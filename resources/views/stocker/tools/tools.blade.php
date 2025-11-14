@@ -106,6 +106,24 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#rearrangeGroup">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Rearrange Stocker Group</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#recalculateStockerTransaction">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Recalculate Stocker</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -198,6 +216,53 @@
             </form>
         </div>
     </div>
+
+    <!-- Rearrange Group -->
+    <div class="modal fade" id="rearrangeGroup" tabindex="-1" aria-labelledby="rearrangeGroupLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="rearrangeGroupLabel">Rearrange Stocker Group</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tanggal</label>
+                        <input type="date" class="form-control" id="rearrange-date">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
+                    <button type="button" class="btn btn-sb" onclick="rearrangeStockerGroup()"><i class="fa fa-rotate-left"></i> Rearrange</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recalculate Stocker -->
+    <div class="modal fade" id="recalculateStockerTransaction" tabindex="-1" aria-labelledby="recalculateStockerTransactionLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="recalculateStockerTransactionLabel">Recalculate Stocker Transaction</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">No. Form</label>
+                        <select name="no_form_recalc" id="no_form_recalc" class="form-control select2bs4recalc" style="width: 100%;">
+                            <option value="">Pilih Form</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
+                    <button type="button" class="btn btn-sb" onclick="recalculateStockerTransaction()"><i class="fa fa-rotate-left"></i> Recalculate</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @section('custom-script')
@@ -221,6 +286,10 @@
             theme: 'bootstrap4',
             dropdownParent: $('#resetStockerModal')
         });
+        $('.select2bs4recalc').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('#recalculateStockerTransaction')
+        });
 
         $(document).ready(function () {
             getFormList();
@@ -239,6 +308,12 @@
                         $('#no_form').append('<option value="">Pilih Form</option>');
                         $.each(response, function (key, value) {
                             $('#no_form').append('<option value="' + value.form_cut_id + '" data-type="'+value.type+'">' + value.no_form + '</option>');
+                        });
+
+                        $('#no_form_recalc').empty();
+                        $('#no_form_recalc').append('<option value="">Pilih Form</option>');
+                        $.each(response, function (key, value) {
+                            $('#no_form_recalc').append('<option value="' + value.form_cut_id + '" data-type="'+value.type+'">' + value.no_form + '</option>');
                         });
                     }
 
@@ -533,6 +608,104 @@
                     console.error(jqXHR);
                 }
             });
+        }
+
+        function rearrangeStockerGroup() {
+            Swal.fire({
+                title: 'Rearrange Stocker Group',
+                html: '<span class="text-danger"><b>Critical</b></span> <br> Yakin akan mengubah data group stocker di tanggal '+$('#rearrange-date').val()+'?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'UBAH',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#dc3545"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Please Wait...',
+                        html: 'Rearranging Data...',
+                        didOpen: () => {
+                            Swal.showLoading()
+                        },
+                        allowOutsideClick: false,
+                    });
+
+                    $.ajax({
+                        url: '{{ route('rearrange-groups') }}',
+                        type: 'post',
+                        data: {
+                            date : $('#rearrange-date').val()
+                        },
+                        success: function(res) {
+                            console.log("successs", res);
+
+                            location.reload();
+                        },
+                        error: function(jqXHR) {
+                            console.log("error", jqXHR);
+                        }
+                    });
+                }
+            });
+        }
+
+        function recalculateStockerTransaction() {
+            Swal.fire({
+                title: 'Recalculate Stocker',
+                html: '<span class="text-danger"><b>Critical</b></span> <br> Yakin akan mengubah data transaksi stocker?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'UBAH',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#dc3545"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Please Wait...',
+                        html: 'Fixing Data...  <br><br> <b>0</b>s elapsed...',
+                        didOpen: () => {
+                            Swal.showLoading();
+
+                            let estimatedTime = 0;
+                            const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                            estimatedTimeInterval = setInterval(() => {
+                                estimatedTime++;
+                                estimatedTimeElement.textContent = estimatedTime;
+                            }, 1000);
+                        },
+                        allowOutsideClick: false,
+                    });
+
+                    $.ajax({
+                        type: "post",
+                        url: "{{ route('recalculate-stocker-transaction') }}",
+                        data: {
+                            formCutId: $('#no_form_recalc').val(),
+                        },
+                        dataType: "json",
+                        success: function(res) {
+                            if (res) {
+                                console.log(res);
+
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: 'Info',
+                                    html: 'Proses Selesai.',
+                                });
+                            }
+                        },
+                        error: function(jqXHR) {
+                            console.log(jqXHR);
+
+                            Swal.fire({
+                                icon:'error',
+                                title: 'Error',
+                                html: 'Terjadi kesalahan.',
+                            });
+                        }
+                    });
+                }
+            })
         }
     </script>
 @endsection

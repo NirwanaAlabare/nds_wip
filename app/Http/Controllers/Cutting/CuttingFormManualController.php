@@ -631,7 +631,8 @@ class CuttingFormManualController extends Controller
         $bulan = substr($date, 5, 2);
         $now = Carbon::now();
 
-        $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderBy("created_at", "desc")->first();
+        $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderBy("created_at", "desc")->orderBy("id", "desc")->first();
+
         $urutan =  $lastForm ? (str_replace($hari."-".$bulan."-", "", $lastForm->no_form) + 1) : 1;
 
         $noForm = "$hari-$bulan-$urutan";

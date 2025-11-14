@@ -48,7 +48,7 @@ class MutLokasiController extends Controller
             }
 
 
-            $dataMutlokas = DB::connection('mysql_sb')->select("select id,no_mut,tgl_mut,no_ws,deskripsi,CONCAT(created_by,' (',created_at, ') ') user_create,status,CONCAT(id,'-',no_mut,'-',tgl_mut,'-',no_ws,'-',deskripsi,'-',CONCAT(created_by,' (',created_at, ') ') ,'-',status) filter, ifnull(rak_tujuan,'-') rak_tujuan from whs_mut_lokasi_h where tgl_mut BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."'  order by no_mut asc");
+            $dataMutlokas = DB::connection('mysql_sb')->select("select id,no_mut,tgl_mut,no_ws,deskripsi,CONCAT(created_by,' (',created_at, ') ') user_create,status,CONCAT(id,'-',no_mut,'-',tgl_mut,'-',no_ws,'-',deskripsi,'-',CONCAT(created_by,' (',created_at, ') ') ,'-',status) filter from whs_mut_lokasi_h where tgl_mut BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."'  order by no_mut asc");
 
 
             return DataTables::of($dataMutlokas)->toJson();
@@ -549,7 +549,7 @@ public function deletemuttemp(Request $request)
 
 }
 
-public function deletemuttempall(Request $request) 
+public function deletemuttempall(Request $request)
 {
     $del_barcode_cancel = DB::connection('mysql_sb')->select("delete from whs_mut_lokasi_temp_cancel where created_by = '".Auth::user()->name."'");
 
