@@ -255,7 +255,7 @@ class CompletedFormController extends Controller
 
         // Check Stocker
         $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
-        if ($stockerForm) {
+        if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
             return array(
                 'status' => 400,
                 'message' => 'Form sudah memiliki stocker',
@@ -421,7 +421,7 @@ class CompletedFormController extends Controller
     public function updateFinish(Request $request, $id) {
         // Stocker
         $stockerForm = Stocker::where('form_cut_id', $id)->first();
-        if ($stockerForm) {
+        if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
             return array(
                 'status' => 400,
                 'message' => 'Form sudah memiliki stocker',
@@ -672,7 +672,7 @@ class CompletedFormController extends Controller
         ]);
 
         $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
-        if ($stockerForm) {
+        if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
             return array(
                 'status' => 400,
                 'message' => 'Form sudah memiliki stocker',
@@ -722,7 +722,7 @@ class CompletedFormController extends Controller
         ]);
 
         $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
-        if ($stockerForm) {
+        if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
             return array(
                 'status' => 400,
                 'message' => 'Form sudah memiliki stocker',
@@ -794,7 +794,7 @@ class CompletedFormController extends Controller
 
     public function destroySpreadingRoll($id) {
         $stockerForm = Stocker::where('form_cut_id', $id)->first();
-        if ($stockerForm) {
+        if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
             return array(
                 'status' => 400,
                 'message' => 'Form sudah memiliki stocker',

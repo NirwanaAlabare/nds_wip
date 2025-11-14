@@ -2661,7 +2661,7 @@
         function updateStatus() {
             $.ajax({
                 url: '{{ route('update-status-redirect') }}',
-                type: 'post',
+                type: 'put',
                 data: {
                     edit_id_status: id,
                     edit_status: $('#edit_status').val(),
