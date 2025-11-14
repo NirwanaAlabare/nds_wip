@@ -81,7 +81,8 @@ class WarehouseController extends Controller
                 FROM `form_cut_input` a
                 left join marker_input b on a.id_marker = b.kode
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
-                left join master_size_new on marker_input_detail.size = master_size_new.size
+                left join master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
+                left join master_size_new on master_sb_ws.size = master_size_new.size
                 left join users on users.id = a.no_meja
                 where a.status = 'SELESAI PENGERJAAN'
                 " . $additionalQuery . "
