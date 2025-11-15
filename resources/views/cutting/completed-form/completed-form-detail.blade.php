@@ -1769,7 +1769,7 @@
 
             let estAmpar = pActualConverted > 0 ? qtyVar / pActualConverted : 0;
 
-            document.getElementById("current_est_amparan").value = estAmpar;
+            document.getElementById("current_est_amparan").value = Number(estAmpar).round(2);
         }
 
         // -Calculate Pemakaian Lembar
@@ -1803,7 +1803,7 @@
 
             let totalPemakaian = ((pActualConverted * lembarGelaranVar) + sambunganRollVar + sisaGelaranVar);
 
-            document.getElementById("current_pemakaian_lembar").value = totalPemakaian;
+            document.getElementById("current_pemakaian_lembar").value = Number(totalPemakaian).round(2);
         }
 
         // -Calculate Total Pemakaian Roll-
@@ -1875,7 +1875,7 @@
 
             let totalPemakaian = ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + pipingVar + sambunganRollVar);
 
-            document.getElementById("current_total_pemakaian_roll").value = totalPemakaian;
+            document.getElementById("current_total_pemakaian_roll").value = Number(totalPemakaian).round(2);
         }
 
         // -Calculate Short Roll-
@@ -1946,8 +1946,8 @@
                 }
             }
 
-            document.getElementById("current_short_roll").value = isNaN(shortRoll) ? 0 : shortRoll;
-            document.getElementById("current_short_roll_percentage").value = isNaN(shortRollPercentage) ? 0 : shortRollPercentage;
+            document.getElementById("current_short_roll").value = isNaN(shortRoll) ? 0 : Number(shortRoll).round(2);
+            document.getElementById("current_short_roll_percentage").value = isNaN(shortRollPercentage) ? 0 : Number(shortRollPercentage).round(2);
         }
 
         // -Calculate Sisa Kain-
