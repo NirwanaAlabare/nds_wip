@@ -411,6 +411,10 @@
 
 
         let datatable_det_karton = $("#datatable_det_karton").DataTable({
+            lengthMenu: [
+        [10, 25, 50, -1],
+        [10, 25, 50, "All"]
+    ],
             "footerCallback": function(row, data, start, end, display) {
                 var api = this.api(),
                     data;
@@ -437,8 +441,8 @@
             },
             ordering: false,
             processing: true,
-            serverSide: true,
-            paging: false,
+            serverSide: false,
+            paging: true,
             destroy: true,
             autoWidth: true,
             scrollX: '300px',
@@ -493,6 +497,11 @@
         }
 
         let datatable_summary = $("#datatable_summary").DataTable({
+            lengthMenu: [
+        [10, 25, 50, -1],
+        [10, 25, 50, "All"]
+    ],
+
             "footerCallback": function(row, data, start, end, display) {
                 var api = this.api(),
                     data;
@@ -519,8 +528,8 @@
             },
             ordering: false,
             processing: true,
-            serverSide: true,
-            paging: false,
+            serverSide: false,
+            paging: true,
             destroy: true,
             autoWidth: true,
             scrollX: '300px',
