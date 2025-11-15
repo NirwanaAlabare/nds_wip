@@ -1,15 +1,15 @@
 @extends('layouts.index')
 
 @section('custom-link')
-    {{-- <!-- DataTables -->
+    <!-- DataTables -->
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}"> --}}
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
 
     <!-- DataTables CSS -->
-    <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/jquery.dataTables.min.css') }}">
+    {{-- <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/jquery.dataTables.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/dataTables.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/fixedColumns.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/fixedColumns.bootstrap4.min.css') }}"> --}}
     <!-- jQuery -->
     <script src="{{ asset('plugins/datatables 2.0/jquery-3.3.1.js') }}"></script>
 
@@ -45,7 +45,6 @@
                             <th scope="col" class="text-center align-middle">Remark</th>
                             <th scope="col" class="text-center align-middle">User</th>
                             <th scope="col" class="text-center align-middle">Update at</th>
-                            <th scope="col" class="text-center align-middle">Act</th>
                         </tr>
                     </thead>
                 </table>
@@ -157,7 +156,13 @@
         }
     </script>
     <script>
+        function dataTableReload() {
+            datatable.ajax.reload();
+        }
+
+
         $(document).ready(function() {
+            dataTableReload();
             $('#CreateModal').on('show.bs.modal', function() {
                 // Clear text
                 $('#txtname').val('');
@@ -170,12 +175,57 @@
             });
         })
 
+        let datatable = $("#datatable").DataTable({
+            ordering: false,
+            responsive: true,
+            processing: true,
+            serverSide: false,
+            paging: true,
+            searching: true,
+            scrollY: true,
+            scrollX: true,
+            scrollCollapse: false,
+            ajax: {
+                url: '{{ route('IE_master_process') }}',
+            },
+            columns: [{
+                    data: 'nm_process'
+                }, // Process Name
+                {
+                    data: 'class'
+                }, // Class
+                {
+                    data: 'smv'
+                }, // SMV
+                {
+                    data: 'amv'
+                }, // AMV
+                {
+                    data: 'machine_type'
+                }, // Machine Type
+                {
+                    data: 'remark'
+                }, // Remark
+                {
+                    data: 'created_by'
+                }, // User
+                {
+                    data: 'updated_at'
+                } // Update at
+            ],
+
+
+        });
+
+
+
         function save_master_process() {
             let process_name = $('#txtname').val();
             let class_name = $('#cboclass').val();
             let cbotype = $('#cbotype').val();
             let smv = $('#txtsmv').val();
             let amv = $('#txtamv').val();
+            let remark = $('#txtremark').val();
 
             // Disable the Save button to prevent multiple clicks
             let $btn = $('#saveButton'); // Add id="saveButton" to your Save button
@@ -190,13 +240,24 @@
                     class_name: class_name,
                     cbotype: cbotype,
                     smv: smv,
-                    amv: amv
+                    amv: amv,
+                    remark: remark
                 },
                 success: function(response) {
                     // SweetAlert success notification
+                    // Clear text
+                    $('#txtname').val('');
+                    $('#txtsmv').val('');
+                    $('#txtamv').val('');
+                    $('#txtremark').val('');
+                    $('#cbotype').val('');
+                    // Optional: Also clear select2 (if using select2)
+                    $('#cboclass').val(null).trigger('change');
+
+
                     Swal.fire({
                         icon: 'success',
-                        title: 'Defect Added',
+                        title: 'Data Added',
                         text: response.message,
                         timer: 1500,
                         showConfirmButton: false

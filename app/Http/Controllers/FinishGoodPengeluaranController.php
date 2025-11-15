@@ -322,6 +322,11 @@ order by po asc, no_carton asc
         $user       = Auth::user()->name;
         $tgl_skrg   = date('Y-m-d');
         $buyer      = $_POST['cbobuyer'];
+        $po         = $_POST['cbopo'];
+        $dest       = $_POST['cbonotes'];
+        $ctn_awal   = $_POST['txtctn_awal'];
+        $ctn_akhir  = $_POST['txtctn_akhir'];
+        $tgl_pengeluaran        = date('Y-m-d');
 
         $data_buyer = DB::connection('mysql_sb')->select("select * from mastersupplier where supplier = '$buyer' and tipe_sup ='C'");
         $id_buyer   = $data_buyer ? ($data_buyer[0] ? $data_buyer[0]->Id_Supplier : '') : '';
@@ -342,31 +347,42 @@ order by po asc, no_carton asc
         $thn_bln_bppbno_int = date('my', strtotime($timestamp));
         $bppbno_int = 'FG/OUT/' . $thn_bln_bppbno_int . '/' . $bppbno_int_no_tr_fix;
 
-        $id_so_detArray         = $_POST['id_so_det'];
-        $qtyArray               = $_POST['qty'];
-        $priceArray             = $_POST['price'];
-        $currArray              = $_POST['curr'];
-        $destArray              = $_POST['dest'];
-        $tgl_pengeluaran        = date('Y-m-d');
-        foreach ($id_so_detArray as $key => $value) {
-            $id_so_det      = $id_so_detArray[$key];
-            $qty            = $qtyArray[$key];
-            $price          = $priceArray[$key];
-            $curr           = $currArray[$key];
-            $dest          = $destArray[$key]; {
-
-                $cek_id_item = DB::connection('mysql_sb')->select("select * from masterstyle where id_so_det = '$id_so_det'");
-                $id_item = $cek_id_item ? $cek_id_item[0]->id_item : null;
-
-                $insert_fg_out_sb =  DB::connection('mysql_sb')->insert("INSERT into
+        $insert_fg_out_sb =  DB::connection('mysql_sb')->insert("INSERT into
                 bppb(bppbno,bppbno_int,bppbdate,id_item,id_so_det,qty,curr,price,username,unit,invno,id_supplier,print,status_retur,jenis_dok,confirm,dateinput,cancel,grade,stat_inv,status_input,id_buyer)
-        values('SJ-FG$bppbno','$bppbno_int','$tgl_pengeluaran','$id_item','$id_so_det','$qty','$curr','$price','$user','PCS','$inv','$id_buyer','N','N','$jns_dok','N','$timestamp','N','GRADE A','0','NDS','$id_buyer') ");
+                select
+'SJ-FG$bppbno',
+'$bppbno_int',
+'$tgl_pengeluaran',
+id_item,
+b.id_so_det,
+sum(b.qty),
+ac.curr,
+sd.price,
+'$user',
+'PCS',
+'$inv',
+'$id_buyer',
+'N',
+'N',
+'$jns_dok',
+'N',
+'$timestamp',
+'N',
+'GRADE A',
+'0',
+'NDS',
+'$id_buyer'
+from
+(
+select * from laravel_nds.fg_fg_out_tmp where po = '$po' and dest = '$dest' and no_carton >= '$ctn_awal' and no_carton <= '$ctn_akhir'
+) a
+left join laravel_nds.fg_fg_in b on a.id_fg_in = b.id
+left join signalbit_erp.masterstyle ms on b.id_so_det = ms.id_so_det
+left join signalbit_erp.so_det sd on b.id_so_det = sd.id
+left join signalbit_erp.so on sd.id_so = so.id
+left join signalbit_erp.act_costing ac on so.id_cost = ac.id
+group by b.id_so_det");
 
-                // $update_karton =  DB::update("
-                //     update packing_master_carton set status = 'transfer' where po = '$po' and no_carton = '$no_carton' ");
-
-            }
-        }
 
         $insert_fg_out_nds = DB::insert("INSERT into fg_fg_out
         (no_sb,tgl_pengeluaran,buyer,id_ppic_master_so,id_so_det,barcode,qty,po,no_carton,lokasi,notes,dest,id_fg_in,jenis_dok,invno,remark,status,created_at,updated_at,created_by)

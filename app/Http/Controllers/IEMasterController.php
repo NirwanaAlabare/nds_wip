@@ -15,44 +15,11 @@ class IEMasterController extends Controller
 {
     public function IE_master_process(Request $request)
     {
-        $thn_view = $request->periode_tahun_view;
-        $user = Auth::user()->name;
-
         if ($request->ajax()) {
-            $data_input = DB::connection('mysql_sb')->select("WITH b AS (
-                SELECT
-                    a.bulan,
-                    a.nama_bulan,
-                    CAST(a.tahun AS UNSIGNED) AS tahun,
-                    COUNT(tanggal) AS tot_working_days
-                FROM dim_date a
-                LEFT JOIN mgt_rep_hari_libur b ON a.tanggal = b.tanggal_libur
-                WHERE status_prod = 'KERJA'
-                    AND (status_absen != 'LN' OR status_absen IS NULL)
-                    AND tahun >= '2025' AND tahun <= '2030'
-                GROUP BY bulan, tahun
-                ORDER BY
-                    CAST(a.tahun AS UNSIGNED) ASC,
-                    CAST(a.bulan AS UNSIGNED) ASC
-            )
+            $data_input = DB::select("SELECT * from ie_master_process
+            ");
 
-            SELECT
-                b.bulan,
-                nama_bulan,
-                b.tahun,
-                round(sum(projection / tot_working_days),2) AS tot_daily_cost
-            FROM mgt_rep_daily_cost a
-            LEFT JOIN b ON a.bulan = b.bulan AND a.tahun = b.tahun
-            WHERE a.tahun >= ?
-            GROUP BY b.bulan, b.nama_bulan, b.tahun
-            ORDER BY
-                CAST(b.tahun AS UNSIGNED) ASC,
-                CAST(b.bulan AS UNSIGNED) ASC
-        ", [$thn_view]);
-
-            return response()->json([
-                'data' => $data_input // ✅ simplified response
-            ]);
+            return DataTables::of($data_input)->toJson();
         }
 
         // For non-AJAX (initial page load)
@@ -61,7 +28,6 @@ class IEMasterController extends Controller
             'subPageGroup' => 'IE-master',
             'subPage' => 'IE-master-process',
             'containerFluid' => true,
-            'user' => $user,
         ]);
     }
 
@@ -75,6 +41,7 @@ class IEMasterController extends Controller
         $cbotype = $request->cbotype;
         $smv = $request->smv;
         $amv = $request->amv;
+        $remark = $request->remark;
 
 
         // Check if the nm_process already exist
@@ -96,6 +63,7 @@ class IEMasterController extends Controller
         machine_type,
         smv,
         amv,
+        remark,
         created_by,
         created_at,
         updated_at
@@ -105,6 +73,7 @@ class IEMasterController extends Controller
             $cbotype,
             $smv,
             $amv,
+            $remark,
             $user,
             $timestamp,
             $timestamp
