@@ -395,6 +395,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-spreading');
         Route::put('/update', 'update')->name('update-spreading');
         Route::put('/update-status', 'updateStatus')->name('update-status');
+        Route::put('/update-status-redirect', 'updateStatusRedirect')->name('update-status-redirect');
         Route::get('/get-order-info', 'getOrderInfo')->name('get-spreading-data');
         Route::get('/get-cut-qty', 'getCutQty')->name('get-cut-qty-data');
         Route::delete('/destroy/{id?}', 'destroy')->name('destroy-spreading');

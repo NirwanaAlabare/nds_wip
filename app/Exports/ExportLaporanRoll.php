@@ -23,7 +23,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
 {
     use Exportable;
 
-    protected $from, $to;
+    protected $from, $to, $supplier, $id_ws;
 
     public function __construct($from, $to, $supplier, $id_ws)
     {
@@ -316,9 +316,9 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     form_cut_piece_detail.id
             ) roll_consumption
             order by
-                created_at asc,
                 waktu_mulai asc,
-                waktu_selesai asc
+                waktu_selesai asc,
+                created_at asc
         ");
 
         $this->rowCount = count($data) + 3;

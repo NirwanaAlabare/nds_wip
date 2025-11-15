@@ -145,11 +145,11 @@ round((((sum(a.tot_output) * mp.smv) / ( (cmp.man_power * (sum(a.tot_output) / o
         when time(max(output_rfts.updated_at)) <= '12:00:00'  THEN '00:00:00'
         when time(max(output_rfts.updated_at)) >= '18:45:00'  THEN '01:30:00'
         END as istirahat,
-    REPLACE('_', ' ', userpassword.username) username
+    REPLACE(userpassword.username, '_', ' ') username
     from output_rfts
     left join user_sb_wip on output_rfts.created_by = user_sb_wip.id
     left join userpassword on user_sb_wip.line_id = userpassword.line_id
-    where output_rfts.updated_at >= '$tgl_cek 00:00:00' and output_rfts.updated_at <= '$tgl_cek 23:59:59' group by REPLACE('_', ' ', userpassword.username), date(output_rfts.updated_at)
+    where output_rfts.updated_at >= '$tgl_cek 00:00:00' and output_rfts.updated_at <= '$tgl_cek 23:59:59' group by REPLACE(userpassword.username, '_', ' '), date(output_rfts.updated_at)
     ) op on a.tgl_trans = op.tgl_trans_line and REPLACE(ul.username, '_', ' ') = op.username
     left join (
     select * from act_costing_mfg where id_item = '8' group by id_act_cost
@@ -215,7 +215,7 @@ round((((sum(a.tot_output) * mp.smv) / ( (cmp.man_power * (sum(a.tot_output) / o
                     when time(max(output_rfts.updated_at)) <= '12:00:00'  THEN '00:00:00'
                     when time(max(output_rfts.updated_at)) >= '18:45:00'  THEN '01:30:00'
                     END as istirahat,
-                    REPLACE('_', ' ', userpassword.username) username
+                    REPLACE(userpassword.username, '_', ' ') username
                 from output_rfts
                 left join user_sb_wip on output_rfts.created_by = user_sb_wip.id
                 left join userpassword on userpassword.line_id = user_sb_wip.line_id
@@ -491,11 +491,11 @@ left join
                             when time(max(output_rfts.updated_at)) <= '12:00:00'  THEN '00:00:00'
                             when time(max(output_rfts.updated_at)) >= '18:45:00'  THEN '01:30:00'
                             END as istirahat,
-                        REPLACE('_', ' ', userpassword.username) username
+                        REPLACE(userpassword.username, '_', ' ') username
                         from output_rfts
                         left join user_sb_wip on output_rfts.created_by = user_sb_wip.id
                         left join userpassword on user_sb_wip.line_id = userpassword.line_id
-                        where output_rfts.updated_at >= '$start_date' and output_rfts.updated_at <= '$end_date' group by REPLACE('_', ' ', userpassword.username), date(output_rfts.updated_at)
+                        where output_rfts.updated_at >= '$start_date' and output_rfts.updated_at <= '$end_date' group by REPLACE(userpassword.username, '_', ' '), date(output_rfts.updated_at)
                         ) op on z.tgl_trans = op.tgl_trans_line and REPLACE(ul.username, '_', ' ') = op.username
                         left join
                         (
@@ -508,18 +508,18 @@ left join
 
             left join
             (
-            select format(sum(mp.jam_kerja),1) jam_kerja, REPLACE(ul.username, '_', ' ') username, sd.styleno_prod, sum(mp.set_target) set_target
+            select format(sum(mp.jam_kerja),1) jam_kerja, REPLACE(a.username, '_', ' ') username, sd.styleno_prod, sum(mp.set_target) set_target
             from
                 (
-                select master_plan_id, created_by, so_det_id from output_rfts
-                where updated_at >= '$start_date' and updated_at <= '$end_date' and status = 'NORMAL'
-                GROUP BY master_plan_id, created_by
+                select master_plan_id, ul.username, so_det_id from output_rfts a
+                inner join user_sb_wip u on a.created_by = u.id
+                inner join userpassword ul on ul.line_id = u.line_id
+                where a.updated_at >= '$start_date' and a.updated_at <= '$end_date' and status = 'NORMAL'
+                GROUP BY master_plan_id, ul.username
                 ) a
                 inner join master_plan mp on a.master_plan_id = mp.id
                 inner join so_det sd on a.so_det_id = sd.id
-                inner join user_sb_wip u on a.created_by = u.id
-                inner join userpassword ul on ul.line_id = u.line_id
-                group by REPLACE(ul.username, '_', ' '), sd.styleno_prod
+                group by REPLACE(a.username, '_', ' '), sd.styleno_prod
             ) jk on REPLACE(ul.username, '_', ' ') = jk.username and sd.styleno_prod = jk.styleno_prod
 
             left join
@@ -743,11 +743,11 @@ left join
                                 when time(max(output_rfts.updated_at)) <= '12:00:00'  THEN '00:00:00'
                                 when time(max(output_rfts.updated_at)) >= '18:45:00'  THEN '01:30:00'
                                 END as istirahat,
-                            REPLACE('_', ' ', userpassword.username) username
+                            REPLACE(userpassword.username, '_', ' ') username
                             from output_rfts
                             left join user_sb_wip on output_rfts.created_by = user_sb_wip.id
                             left join userpassword on user_sb_wip.line_id = userpassword.line_id
-                            where output_rfts.updated_at >= '$tgl_cek 00:00:00' and output_rfts.updated_at <= '$tgl_cek 23:59:59' group by REPLACE('_', ' ', userpassword.username), date(output_rfts.updated_at)
+                            where output_rfts.updated_at >= '$tgl_cek 00:00:00' and output_rfts.updated_at <= '$tgl_cek 23:59:59' group by REPLACE(userpassword.username, '_', ' '), date(output_rfts.updated_at)
                             ) op on a.tgl_trans = op.tgl_trans_line and REPLACE(ul.username, '_', ' ') = op.username
                             left join (
                             select * from act_costing_mfg where id_item = '8' group by id_act_cost
@@ -813,7 +813,7 @@ left join
                                             when time(max(output_rfts.updated_at)) <= '12:00:00'  THEN '00:00:00'
                                             when time(max(output_rfts.updated_at)) >= '18:45:00'  THEN '01:30:00'
                                             END as istirahat,
-                                            REPLACE('_', ' ', userpassword.username) username
+                                            REPLACE(userpassword.username, '_', ' ') username
                                         from output_rfts
                                         left join user_sb_wip on output_rfts.created_by = user_sb_wip.id
                                         left join userpassword on userpassword.line_id = user_sb_wip.line_id

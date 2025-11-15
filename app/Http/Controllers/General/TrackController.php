@@ -584,7 +584,7 @@ class TrackController extends Controller
                     UPPER(b.tipe_marker) tipe_marker,
                     a.tipe_form_cut,
                     COALESCE(b.notes, '-') notes,
-                    GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' /  ') marker_details,
+                    GROUP_CONCAT(DISTINCT CONCAT(COALESCE(master_size_new.size, master_sb_ws.size, marker_input_detail.size), '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' /  ') marker_details,
                     cutting_plan.tgl_plan,
                     cutting_plan.app
                 FROM `form_cut_input` a
@@ -592,7 +592,8 @@ class TrackController extends Controller
                     left join users on users.id = a.no_meja
                     left join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
                     left join marker_input_detail on b.id = marker_input_detail.marker_id and marker_input_detail.ratio > 0
-                    left join master_size_new on marker_input_detail.size = master_size_new.size
+                    left join master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
+                left join master_size_new on master_sb_ws.size = master_size_new.size
                 where
                     a.id is not null AND
                     (b.cancel IS NULL OR b.cancel != 'Y') AND
@@ -674,7 +675,8 @@ class TrackController extends Controller
                 left join users on users.id = a.no_meja
                 left join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
                 left join marker_input_detail on b.id = marker_input_detail.marker_id and marker_input_detail.ratio > 0
-                left join master_size_new on marker_input_detail.size = master_size_new.size
+                left join master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
+                left join master_size_new on master_sb_ws.size = master_size_new.size
             where
                 a.id is not null AND
                 (b.cancel IS NULL OR b.cancel != 'Y') AND

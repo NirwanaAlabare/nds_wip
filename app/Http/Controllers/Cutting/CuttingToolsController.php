@@ -333,7 +333,7 @@ class CuttingToolsController extends Controller
 
         if ($validatedRequest) {
             // If not Bypassed
-            if (!isset($request['modify_bypass_stocker']) && $request['modify_bypass_stocker'] == "bypass") {
+            if (!isset($request['modify_bypass_stocker'])) {
 
                 // Check Stocker Availability
                 $checkStocker = Stocker::where("form_cut_id", $validatedRequest['modify_marker_form_id'])->first();
