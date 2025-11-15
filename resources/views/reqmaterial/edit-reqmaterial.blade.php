@@ -68,6 +68,47 @@
             </div>
             </div>
 
+            <div class="col-md-3">
+                <div class="mb-1">
+                    <div class="form-group">
+                        <label><small>Job Order #/WS #</small></label>
+                        <input type="text" class="form-control" id="job_order" name="job_order" value="{{ $dh->kpno }}" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="mb-1">
+                    <div class="form-group">
+                        <label><small>WS Actual #</small></label>
+                         <select class="form-control select2supp" id="ws_act" name="ws_act" style="width: 100%;" onchange="getStyle_aktual(this.value);">
+                        @foreach ($no_ws_act as $ws_act)
+                        <?php
+                            $status = '';
+                            if ($ws_act->isi == $dh->idws_act) {
+                                $status = 'selected="selected"';
+                            }else{
+                                $status = '';
+                            }
+                        ?>
+                    <option <?= $status; ?> value="{{ $ws_act->isi }}">
+                                {{ $ws_act->tampil }}
+                    </option>
+                        @endforeach
+                </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="mb-1">
+                    <div class="form-group">
+                        <label><small>Style Actual #</small></label>
+                        <input type="text" class="form-control" id="style_act" name="style_act" value="{{ $dh->style_act}}" readonly>
+                    </div>
+                </div>
+            </div>
+
             <div class="col-md-6">
             <div class="mb-1">
                 <div class="form-group">
@@ -550,5 +591,27 @@
             }
         }
     }
+
+
+    function getStyle_aktual($no_ws){
+            let no_ws = $no_ws;
+            // alert(no_ws);
+            return $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route("get-style-actual") }}',
+                type: 'get',
+                data: {
+                    no_ws: no_ws,
+                },
+                success: function (res) {
+                    if (res) {
+                        console.log(res);
+                        document.getElementById('style_act').value = res[0].styleno;
+                    }
+                }
+            });
+        }
     </script>
 @endsection

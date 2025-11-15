@@ -53,7 +53,7 @@ class TrolleyStockerController extends Controller
                             COALESCE (
                                 COALESCE(
                                     (
-                                        MAX(COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0))
+                                        MAX(COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0))
                                         - MAX(COALESCE ( dc_in_input.qty_reject, 0 )) + MAX(COALESCE ( dc_in_input.qty_replace, 0 ))
                                         - MAX(COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + MAX(COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
                                         - MAX(COALESCE ( secondary_in_input.qty_reject, 0 )) + MAX(COALESCE ( secondary_in_input.qty_replace, 0 ))
@@ -123,7 +123,7 @@ class TrolleyStockerController extends Controller
                     CONCAT(users.username, ' (',trolley_stocker.updated_at, ')') user,
                     GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
                     COALESCE(master_sb_ws.size, stocker_input.size) size,
-                    COALESCE(MIN(COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) ), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty,
+                    COALESCE(MIN(COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) ), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty,
                     CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE((stocker_input.qty_ply_mod - stocker_input.qty_ply), 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) ), ') ' ))) rangeAwalAkhir
                 ")->
                 leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
@@ -197,8 +197,8 @@ class TrolleyStockerController extends Controller
                     CONCAT(users.username, ' (',trolley_stocker.updated_at, ')') user,
                     GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
                     COALESCE(master_sb_ws.size, stocker_input.size) size,
-                    COALESCE(MIN(COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) ), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty,
-                    CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE((stocker_input.qty_ply_mod - stocker_input.qty_ply), 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) ), ') ' ))) rangeAwalAkhir
+                    COALESCE(MIN(COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) ), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty,
+                    CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE((COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply) - stocker_input.qty_ply), 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) ), ') ' ))) rangeAwalAkhir
                 ")->
                 leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
                 leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
@@ -619,7 +619,7 @@ class TrolleyStockerController extends Controller
                 stocker_input.color,
                 GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
                 COALESCE(master_sb_ws.size, stocker_input.size) size,
-                COALESCE(MIN(COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) )) qty,
+                COALESCE(MIN(COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) )) qty,
                 CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE((stocker_input.qty_ply_mod - stocker_input.qty_ply), 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) ), ') ' ))) rangeAwalAkhir,
                 CONCAT(users.username, ' (', trolley_stocker.updated_at, ')') user
             ")->

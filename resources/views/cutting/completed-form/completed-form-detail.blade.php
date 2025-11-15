@@ -956,6 +956,23 @@
             </div>
         </div>
     </div>
+    <div class="card">
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">UBAH STATUS</label>
+                <div class="d-flex gap-1 mb-3">
+                    <select class="form-control select2bs4" name="edit_status" id="edit_status">
+                        <option value="SPREADING">SPREADING</option>
+                        <option value="PENGERJAAN FORM CUTTING">PENGERJAAN FORM CUTTING</option>
+                        <option value="PENGERJAAN FORM CUTTING DETAIL">PENGERJAAN FORM CUTTING DETAIL</option>
+                        <option value="PENGERJAAN FORM CUTTING SPREAD">PENGERJAAN FORM CUTTING SPREAD</option>
+                        <option value="SELESAI PENGERJAAN" selected>SELESAI PENGERJAAN</option>
+                    </select>
+                    <button class="btn btn-success btn-sm" onclick="updateStatus()"><i class="fa fa-save"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -1259,20 +1276,20 @@
                 td9.innerHTML = (latestStatus != 'extension complete' ? data.qty : latestQty);
                 td10.innerHTML = data.unit ? data.unit : '-';
                 td11.innerHTML = data.sisa_gelaran ? data.sisa_gelaran : 0;
-                td12.innerHTML = (latestStatus != 'extension complete' ? 0 : (latestSambungan ? latestSambungan : 0)).round(2);
-                td13.innerHTML = (latestStatus != 'extension complete' ? (data.sambungan_roll ? data.sambungan_roll : 0) : ((data.sambungan_roll ? data.sambungan_roll : 0)+latestSambunganRoll)).round(2);
-                td14.innerHTML =  (latestStatus != 'extension complete' ? data.est_amparan : (latestEst ? latestEst : data.est_amparan)).round(2);
+                td12.innerHTML = (latestStatus != 'extension complete' ? 0 : (latestSambungan ? latestSambungan : 0));
+                td13.innerHTML = (latestStatus != 'extension complete' ? (data.sambungan_roll ? data.sambungan_roll : 0) : ((data.sambungan_roll ? data.sambungan_roll : 0)+latestSambunganRoll));
+                td14.innerHTML =  (latestStatus != 'extension complete' ? Number(data.est_amparan).round(2) : (Number(latestEst).round(2) ? Number(latestEst).round(2) : Number(data.est_amparan).round(2)));
                 td15.innerHTML = data.lembar_gelaran ? data.lembar_gelaran : '-';
                 td16.innerHTML = data.average_time ? data.average_time : 0;
-                td17.innerHTML = (latestStatus != 'extension complete' ? (data.kepala_kain ? data.kepala_kain : 0) : Number(data.kepala_kain ? data.kepala_kain : 0)+Number(latestKepalaKain)).round(2);
-                td18.innerHTML = (latestStatus != 'extension complete' ? (data.sisa_tidak_bisa ? data.sisa_tidak_bisa : 0) : Number(data.sisa_tidak_bisa ? data.sisa_tidak_bisa : 0)+Number(latestSisaTidakBisa)).round(2);
-                td19.innerHTML = (latestStatus != 'extension complete' ? (data.reject ? data.reject : 0) : Number(data.reject ? data.reject : 0)+Number(latestReject)).round(2);
-                td20.innerHTML = (latestStatus != 'extension complete' ? (data.piping ? data.piping : 0) : Number(data.piping ? data.piping : 0)+Number(latestPiping)).round(2);
-                td21.innerHTML = (latestStatus != 'extension complete' ? (data.sisa_kain ? data.sisa_kain : 0) : Number(data.sisa_kain ? data.sisa_kain : 0)+Number(latestSisaKain)).round(2);
-                td22.innerHTML = (latestStatus != 'extension complete' ? (data.pemakaian_lembar ? data.pemakaian_lembar : 0) : Number(data.pemakaian_lembar ? data.pemakaian_lembar : 0)+Number(latestPemakaianLembar)).round(2);
-                td23.innerHTML = (latestStatus != 'extension complete' ? (data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) : Number(data.total_pemakaian_roll ? data.total_pemakaian_roll : 0)+Number(latestTotalPemakaian)).round(2);
-                td24.innerHTML = (latestStatus != 'extension complete' ? Number(Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )).round(2) - ( data.qty ? data.qty : 0 )).round(2) : Number(Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + (latestTotalPemakaian ? latestTotalPemakaian : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )).round(2) - ( latestQty ? latestQty : 0 )).round(2));
-                td25.innerHTML = (latestStatus != 'extension complete' ? Number((Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )).round(2) - ( data.qty ? data.qty : 0 )) / ( data.qty ? data.qty : 0 ) * 100 ).round(2) : Number((Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0 )  + (latestTotalPemakaian ? latestTotalPemakaian : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )).round(2) - ( latestQty ? latestQty : 0 )) / ( latestQty ? latestQty : 0 ) * 100).round(2));
+                td17.innerHTML = (latestStatus != 'extension complete' ? (data.kepala_kain ? data.kepala_kain : 0) : Number(data.kepala_kain ? data.kepala_kain : 0)+Number(latestKepalaKain));
+                td18.innerHTML = (latestStatus != 'extension complete' ? (data.sisa_tidak_bisa ? data.sisa_tidak_bisa : 0) : Number(data.sisa_tidak_bisa ? data.sisa_tidak_bisa : 0)+Number(latestSisaTidakBisa));
+                td19.innerHTML = (latestStatus != 'extension complete' ? (data.reject ? data.reject : 0) : Number(data.reject ? data.reject : 0)+Number(latestReject));
+                td20.innerHTML = (latestStatus != 'extension complete' ? (data.piping ? data.piping : 0) : Number(data.piping ? data.piping : 0)+Number(latestPiping));
+                td21.innerHTML = (latestStatus != 'extension complete' ? (data.sisa_kain ? data.sisa_kain : 0) : Number(data.sisa_kain ? data.sisa_kain : 0)+Number(latestSisaKain));
+                td22.innerHTML = (latestStatus != 'extension complete' ? (data.pemakaian_lembar ? data.pemakaian_lembar : 0) : Number(data.pemakaian_lembar ? data.pemakaian_lembar : 0)+Number(latestPemakaianLembar));
+                td23.innerHTML = (latestStatus != 'extension complete' ? (data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) : Number(data.total_pemakaian_roll ? data.total_pemakaian_roll : 0)+Number(latestTotalPemakaian));
+                td24.innerHTML = (latestStatus != 'extension complete' ? Number(Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )) - ( data.qty ? data.qty : 0 )).round(2) : Number(Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + (latestTotalPemakaian ? latestTotalPemakaian : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )) - ( latestQty ? latestQty : 0 )).round(2));
+                td25.innerHTML = (latestStatus != 'extension complete' ? Number((Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )) - ( data.qty ? data.qty : 0 )) / ( data.qty ? data.qty : 0 ) * 100 ).round(2) : Number((Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0 )  + (latestTotalPemakaian ? latestTotalPemakaian : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )) - ( latestQty ? latestQty : 0 )) / ( latestQty ? latestQty : 0 ) * 100).round(2));
             } else {
                 td1.innerHTML = '';
                 td15.innerHTML = data.lembar_gelaran ? data.lembar_gelaran : '';
@@ -1335,9 +1352,9 @@
             totalPemakaianLembar += Number(data.pemakaian_lembar);
             totalTotalPemakaian += Number(data.total_pemakaian_roll);
             latestStatus != 'extension complete' ? totalBeratAmparan += Number(data.berat_amparan) : '';
-            // console.log(Number(Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )).round(2) - ( data.qty ? data.qty : 0 )).round(2));
-            Number(data.short_roll) < 0 ? totalShortRoll += (latestStatus != 'extension complete' ? Number(Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )).round(2) - ( data.qty ? data.qty : 0 )).round(2) : Number(Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + (latestTotalPemakaian ? latestTotalPemakaian : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )).round(2) - ( latestQty ? latestQty : 0 )).round(2)) : "";
-            Number(data.short_roll) < 0 ? totalShortRollPercentage += (latestStatus != 'extension complete' ? Number((Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )).round(2) - ( data.qty ? data.qty : 0 )) / ( data.qty ? data.qty : 0 ) * 100 ).round(2) : Number((Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0 )  + (latestTotalPemakaian ? latestTotalPemakaian : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )).round(2) - ( latestQty ? latestQty : 0 )) / ( latestQty ? latestQty : 0 ) * 100).round(2)) : 0;
+            // console.log(Number(Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )) - ( data.qty ? data.qty : 0 )));
+            Number(data.short_roll) < 0 ? totalShortRoll += (latestStatus != 'extension complete' ? Number(Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )) - ( data.qty ? data.qty : 0 )) : Number(Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + (latestTotalPemakaian ? latestTotalPemakaian : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )) - ( latestQty ? latestQty : 0 ))) : "";
+            Number(data.short_roll) < 0 ? totalShortRollPercentage += (latestStatus != 'extension complete' ? Number((Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )) - ( data.qty ? data.qty : 0 )) / ( data.qty ? data.qty : 0 ) * 100 ) : Number((Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0 )  + (latestTotalPemakaian ? latestTotalPemakaian : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )) - ( latestQty ? latestQty : 0 )) / ( latestQty ? latestQty : 0 ) * 100)) : 0;
 
             let averageTotalAverageTime = totalAverageTime / totalRow;
             let averageTotalAverageTimeMinute = averageTotalAverageTime.round(0) >= 60 ? pad((averageTotalAverageTime.round(0) / 60).round(0)) : pad(0);
@@ -1348,7 +1365,7 @@
             document.getElementById("total-sisa-gelaran").innerText = Number(totalSisaGelaran).round(2);
             document.getElementById("total-sambungan").innerText = Number(totalSambungan).round(2);
             document.getElementById("total-sambungan-roll").innerText = Number(totalSambunganRoll).round(2);
-            document.getElementById("total-est-amparan").innerText = Number(totalEstAmparan).round(2);
+            document.getElementById("total-est-amparan").innerText = Number(totalEstAmparan).round(2).round(2);
             document.getElementById("total-lembar").innerText = Number(totalLembar).round(2);
             document.getElementById("total-average-time").innerText = (averageTotalAverageTimeMinute + ":" +averageTotalAverageTimeSecond);
             document.getElementById("total-kepala-kain").innerText = Number(totalKepalaKain).round(2);
@@ -1617,7 +1634,7 @@
                     rollQtyConverted = rollQtyVar;
                 }
 
-                return Number(rollQtyConverted).round(2);
+                return Number(rollQtyConverted);
             }
 
             return null;
@@ -1658,7 +1675,7 @@
                     }
                 }
 
-                return Number(qtyConverted).round(2);
+                return Number(qtyConverted);
             }
 
             return null;
@@ -1677,7 +1694,7 @@
 
             consAmpar = totalRatio > 0 ? (gramasiVar * pActualFinal * lActualMeter) / 1000 : 0;
 
-            document.getElementById('cons_ampar').value = consAmpar.round(2);
+            document.getElementById('cons_ampar').value = consAmpar;
         }
 
         // -Calculate Cons Act-
@@ -1704,7 +1721,7 @@
 
             let estPipping = consPippingVar * totalQtyCut;
 
-            document.getElementById('est_pipping').value = estPipping.round(2);
+            document.getElementById('est_pipping').value = estPipping;
         }
 
         // -Calculate Est. Kain-
@@ -1713,7 +1730,7 @@
 
             let estKain = consMarkerVar * totalQtyCut
 
-            document.getElementById('est_kain').value = estKain.round(2);
+            document.getElementById('est_kain').value = estKain;
         }
 
         // -Calculate Est. Ampar-
@@ -1740,7 +1757,7 @@
 
             let estAmpar = pActualConverted > 0 ? qtyVar / pActualConverted : 0;
 
-            document.getElementById("current_est_amparan").value = estAmpar.round(2);
+            document.getElementById("current_est_amparan").value = estAmpar;
         }
 
         // -Calculate Pemakaian Lembar
@@ -1774,7 +1791,7 @@
 
             let totalPemakaian = ((pActualConverted * lembarGelaranVar) + sambunganRollVar + sisaGelaranVar);
 
-            document.getElementById("current_pemakaian_lembar").value = totalPemakaian.round(2);
+            document.getElementById("current_pemakaian_lembar").value = totalPemakaian;
         }
 
         // -Calculate Total Pemakaian Roll-
@@ -1809,7 +1826,7 @@
                 // // let totalPemakaian = lembarGelaranVar * pActualConverted + kepalaKainVar + sisaTidakBisaVar + rejectVar;
                 // let totalPemakaian = lembarGelaranVar * pActualConverted;
 
-                // document.getElementById("current_total_pemakaian_roll").value = totalPemakaian.round(2);
+                // document.getElementById("current_total_pemakaian_roll").value = totalPemakaian;
 
             let lembarGelaranVar = Number(document.getElementById("current_lembar_gelaran").value);
             let pActualVar = Number(document.getElementById("p_act").value);
@@ -1846,7 +1863,7 @@
 
             let totalPemakaian = ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + pipingVar + sambunganRollVar);
 
-            document.getElementById("current_total_pemakaian_roll").value = totalPemakaian.round(2);
+            document.getElementById("current_total_pemakaian_roll").value = totalPemakaian;
         }
 
         // -Calculate Short Roll-
@@ -1917,8 +1934,8 @@
                 }
             }
 
-            document.getElementById("current_short_roll").value = isNaN(shortRoll.round(2)) ? 0 : shortRoll.round(2);
-            document.getElementById("current_short_roll_percentage").value = isNaN(shortRollPercentage.round(2)) ? 0 : shortRollPercentage.round(2);
+            document.getElementById("current_short_roll").value = isNaN(shortRoll) ? 0 : shortRoll;
+            document.getElementById("current_short_roll_percentage").value = isNaN(shortRollPercentage) ? 0 : shortRollPercentage;
         }
 
         // -Calculate Sisa Kain-
@@ -1951,7 +1968,7 @@
 
             let sisaKain = qtyVar - ((pActualConverted * lembarGelaranVar) + kepalaKainVar + sisaTidakBisaVar + rejectVar + rejectVar + pipingVar);
 
-            document.getElementById("current_sisa_kain").value = sisaKain.round(2);
+            document.getElementById("current_sisa_kain").value = sisaKain;
         }
 
         // -Calculate Sambungan-
@@ -1993,11 +2010,11 @@
             let estSambungan = pActualConverted - sisaGelaranConverted;
 
             if (latestStatus == "need extension") {
-                document.getElementById("current_sambungan").value = estSambungan.round(2);
-                document.getElementById("current_total_pemakaian_roll").value = estSambungan.round(2);
+                document.getElementById("current_sambungan").value = estSambungan;
+                document.getElementById("current_total_pemakaian_roll").value = estSambungan;
             }
 
-            return estSambungan.round(2);
+            return estSambungan;
         }
 
         // -Get Cons. WS Data-
@@ -2187,8 +2204,20 @@
                                 await getSummary(true);
 
                                 await finishProcess();
+                            } else {
+                                document.getElementById("loading").classList.add("d-none");
+
+                                if (res.status == 400) {
+                                    iziToast.error({
+                                        title: 'Error',
+                                        message: res.message,
+                                        position: 'topCenter'
+                                    });
+                                }
                             }
                         }, error: function (jqXHR) {
+                            document.getElementById("loading").classList.remove("d-none");
+
                             let res = jqXHR.responseJSON;
                             let message = '';
 
@@ -2443,7 +2472,7 @@
             //         totalCurrentSambunganRoll += Number(sambunganRollElements[i].value);
             //     }
 
-            //     $("#current_total_sambungan_roll").val(Number(totalCurrentSambunganRoll).round(2)).trigger("change");
+            //     $("#current_total_sambungan_roll").val(Number(totalCurrentSambunganRoll)).trigger("change");
             // }
 
             // async function storeSambungan() {
@@ -2626,6 +2655,41 @@
                         });
                     }
                 })
+            })
+        }
+
+        function updateStatus() {
+            $.ajax({
+                url: '{{ route('update-status-redirect') }}',
+                type: 'put',
+                data: {
+                    edit_id_status: id,
+                    edit_status: $('#edit_status').val(),
+                },
+                dataType: 'json',
+                success: function(res) {
+                    document.getElementById("loading").classList.add('d-none');
+
+                    if (res.redirect) {
+                        window.open(res.redirect, '_blank');
+                    } else {
+                        window.location.reload();
+                    }
+                },
+                error: function(jqXHR) {
+                    document.getElementById("loading").classList.add('d-none');
+
+                    console.error(jqXHR);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Terjadi Kesalahan.',
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                    });
+                }
             })
         }
     </script>

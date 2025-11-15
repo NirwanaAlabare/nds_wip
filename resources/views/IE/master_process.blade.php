@@ -25,51 +25,94 @@
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Master Proses</h5>
         </div>
         <div class="card-body">
-            <div class="row mb-3">
-                <div class="col-md-4">
-                    <label for="txtproc"><small><b>Process :</b></small></label>
-                    <input type="text" id="txtproc" name="txtproc" class="form-control form-control-sm border-primary">
-                </div>
-                <div class="col-md-4">
-                    <label for="txtremark"><small><b>Remark :</b></small></label>
-                    <input type="text" id="txtremark" name="txtremark"
-                        class="form-control form-control-sm border-primary">
-                </div>
-                <div class="col-md-2">
-                    <label for="txtmachine"><small><b>Machine Type :</b></small></label>
-                    <input type="text" id="txtmachine" name="txtmachine"
-                        class="form-control form-control-sm border-primary">
-                </div>
-                <div class="col-md-1">
-                    <label for="txtval"><small><b>Value :</b></small></label>
-                    <input type="text" id="txtval" name="txtval" class="form-control form-control-sm border-primary">
-                </div>
-                <div class="col-md-1 d-flex align-items-end">
-                    <a class="btn btn-outline-primary position-relative btn-sm w-100" onclick="dataTableReload()">
-                        <i class="fas fa-plus"></i>
-                        Add
-                    </a>
-                </div>
+            <div class="mb-3">
+                <button type="button" class="btn btn-outline-primary position-relative btn-sm" data-bs-toggle="modal"
+                    data-bs-target="#CreateModal">
+                    <i class="fas fa-plus"></i>
+                    New
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table id="datatable" class="table table-bordered table-hover align-middle text-nowrap w-100">
+                    <thead class="bg-sb">
+                        <tr>
+                            <th scope="col" class="text-center align-middle">Process Name</th>
+                            <th scope="col" class="text-center align-middle">Class</th>
+                            <th scope="col" class="text-center align-middle">SMV</th>
+                            <th scope="col" class="text-center align-middle">AMV</th>
+                            <th scope="col" class="text-center align-middle">Machine Type</th>
+                            <th scope="col" class="text-center align-middle">Remark</th>
+                            <th scope="col" class="text-center align-middle">User</th>
+                            <th scope="col" class="text-center align-middle">Update at</th>
+                            <th scope="col" class="text-center align-middle">Act</th>
+                        </tr>
+                    </thead>
+                </table>
             </div>
         </div>
     </div>
 
-    <div class="card card-sb">
-        <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Master Part</h5>
-        </div>
-        <div class="card-body">
-            <div class="row mb-3 col-6">
-                <div class="table-responsive">
-                    <table id="datatable" class="table table-bordered table-striped w-100 text-wrap">
-                        <thead>
-                            <tr style="text-align:center; vertical-align:middle">
-                                <th scope="col">Act</th>
-                                <th scope="col">Process</th>
-                                <th scope="col">Value</th>
-                            </tr>
-                        </thead>
-                    </table>
+    <!-- Modal -->
+    <div class="modal fade" id="CreateModal" tabindex="-1" aria-labelledby="CreateModalLabel" aria-hidden="true"
+        data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl"> <!-- ubah modal-lg ke modal-sm/md sesuai kebutuhan -->
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-white">
+                    <h5 class="modal-title" id="CreateModalLabel">New Master Process</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Isi form di sini -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="txtname"><small><b>Process Name :</b></small></label>
+                            <input type="text" id="txtname" name="txtname" class="form-control form-control-sm"
+                                value="">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="cboclass" class="form-label"><small><b>Class :</b></small></label>
+                            <select id="cboclass" name="cboclass"
+                                class="form-control form-control-sm select2bs4 border-primary" style="width: 100%;">
+                                <option value="">-- Select Class --</option>
+                                <option value="Operator">Operator</option>
+                                <option value="Helper">Helper</option>
+                                <option value="Steam">Steam</option>
+                                <option value="QC">QC</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="cbotype"><small><b>Machine Type :</b></small></label>
+                            <input type="text" id="cbotype" name="cbotype" class="form-control form-control-sm"
+                                value="">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="txtsmv"><small><b>SMV:</b></small></label>
+                            <input type="number" id="txtsmv" name="txtsmv" class="form-control form-control-sm"
+                                value="">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="txtamv"><small><b>AMV :</b></small></label>
+                            <input type="number" id="txtamv" name="txtamv" class="form-control form-control-sm"
+                                value="">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="txtremark"><small><b>Remark :</b></small></label>
+                            <input type="text" id="txtremark" name="txtremark" class="form-control form-control-sm"
+                                value="">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" id="saveButton"
+                        onclick="save_master_process();">Save</button>
+
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 </div>
             </div>
         </div>
@@ -115,7 +158,64 @@
     </script>
     <script>
         $(document).ready(function() {
-
+            $('#CreateModal').on('show.bs.modal', function() {
+                // Clear text
+                $('#txtname').val('');
+                $('#txtsmv').val('');
+                $('#txtamv').val('');
+                $('#txtremark').val('');
+                $('#cbotype').val('');
+                // Optional: Also clear select2 (if using select2)
+                $('#cboclass').val(null).trigger('change');
+            });
         })
+
+        function save_master_process() {
+            let process_name = $('#txtname').val();
+            let class_name = $('#cboclass').val();
+            let cbotype = $('#cbotype').val();
+            let smv = $('#txtsmv').val();
+            let amv = $('#txtamv').val();
+
+            // Disable the Save button to prevent multiple clicks
+            let $btn = $('#saveButton'); // Add id="saveButton" to your Save button
+            $btn.prop('disabled', true);
+
+            $.ajax({
+                type: "POST",
+                url: '{{ route('IE_save_master_process') }}',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    process_name: process_name,
+                    class_name: class_name,
+                    cbotype: cbotype,
+                    smv: smv,
+                    amv: amv
+                },
+                success: function(response) {
+                    // SweetAlert success notification
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Defect Added',
+                        text: response.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: xhr.responseJSON?.message || 'Something went wrong while saving.',
+                    });
+                    dataTableReload();
+                },
+                complete: function() {
+                    // Re-enable the Save button after request completes
+                    $btn.prop('disabled', false);
+                }
+            });
+        }
     </script>
 @endsection

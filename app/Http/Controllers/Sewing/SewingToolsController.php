@@ -2274,12 +2274,13 @@ class SewingToolsController extends Controller
                 ]);
 
                 if ($newMasterPlan) {
-                    $lineId = UserLine::where('username', $lineTo)->value('line_id');
+                    $lineId = UserLine::where('line_id', $lineTo)->value('line_id');
+                    $userLineId = UserSbWip::where('line_id', $lineId)->orderBy("id", "desc")->first() ?? UserSbWip::where('line_id', $lineId)->orderBy("id", "desc")->first()->id;
 
                     // RFT
                     $updateRft = DB::connection("mysql_sb")->table('output_rfts')->where('master_plan_id', $masterPlan->id)->update([
                         "master_plan_id" => $newMasterPlan->id,
-                        "created_by" => $lineId,
+                        "created_by" => $userLineId,
                     ]);
 
                     // Defect & Rework
@@ -2287,7 +2288,7 @@ class SewingToolsController extends Controller
                     foreach ($updateDefect as $defect) {
                         $defect->timestamps = false;
                         $defect->master_plan_id = $newMasterPlan->id;
-                        $defect->created_by = $lineId;
+                        $defect->created_by = $userLineId;
                         $defect->save();
 
                         DB::connection("mysql_sb")->table('output_reworks')->where('defect_id', $defect->id)->update([
@@ -2298,7 +2299,7 @@ class SewingToolsController extends Controller
                     // Reject
                     $updateReject = DB::connection("mysql_sb")->table('output_rejects')->where('master_plan_id', $masterPlan->id)->update([
                         "master_plan_id" => $newMasterPlan->id,
-                        "created_by" => $lineId,
+                        "created_by" => $userLineId,
                     ]);
 
                     $masterPlan->cancel = 'Y';

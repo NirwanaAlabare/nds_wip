@@ -5,10 +5,11 @@ namespace App\Models\Cutting;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Scopes\ThisYearScopeDetail;
+use App\Models\Traits\HasUuid;
 
 class FormCutInputDetail extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuid;
 
     protected $table = "form_cut_input_detail";
 

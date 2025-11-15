@@ -70,7 +70,7 @@ class MasterLokasiController extends Controller
 
 
             $data_m_lokasi = DB::connection('mysql_sb')->select("
-            select a.*,b.unit unit_roll,c.unit unit_bundle,d.unit unit_box,e.unit unit_pack,f.unit from (select  id,kode_lok,area_lok,inisial_lok,baris_lok,level_lok,no_lok,kapasitas,CONCAT(create_by, ' (',create_date,')') create_user,concat (IF(status = 'Active','Y','N'),'-' ,kode_lok,'-',id) kode_id, status from whs_master_lokasi) a left join
+            select a.*,b.unit unit_roll,c.unit unit_bundle,d.unit unit_box,e.unit unit_pack,f.unit from (select  id,kode_lok,area_lok,inisial_lok,baris_lok,level_lok,no_lok,kapasitas,CONCAT(create_by, ' (',create_date,')') create_user,concat (IF(status = 'Active','Y','N'),'-' ,kode_lok,'-',id) kode_id, status, subbaris_lok, sublevel_lok from whs_master_lokasi) a left join
                 (select kode_lok, unit from whs_unit_lokasi where unit = 'ROLL' and status = 'Y' GROUP BY kode_lok) b on b.kode_lok = a.kode_lok left join
                 (select kode_lok, unit from whs_unit_lokasi where unit = 'BUNDLE' and status = 'Y' GROUP BY kode_lok) c on c.kode_lok = a.kode_lok left join
                 (select kode_lok, unit from whs_unit_lokasi where unit = 'BOX' and status = 'Y' GROUP BY kode_lok) d on d.kode_lok = a.kode_lok left join
@@ -138,70 +138,64 @@ class MasterLokasiController extends Controller
      */
     public function store(Request $request)
     {
-        // $markerCount = Marker::selectRaw("MAX(kode) latest_kode")->whereRaw("kode LIKE 'MRK/" . date('ym') . "/%'")->first();
-        // $markerNumber = intval(substr($markerCount->latest_kode, -5)) + 1;
-        // $markerCode = 'MRK/' . date('ym') . '/' . sprintf('%05s', $markerNumber);
-        // $totalQty = 0;
 
         $validatedRequest = $request->validate([
+            "kode_lok" => "required",
             "txt_area_new" => "required",
             "txt_inisial_new" => "required",
-            "txt_baris_new" => "required",
-            "txt_level_new" => "required",
-            "txt_num_new" => "required",
             "txt_capacity_new" => "required",
         ]);
 
-        $lokCode = $validatedRequest['txt_inisial_new'] . '.' . $validatedRequest['txt_baris_new'] . '.' . $validatedRequest['txt_level_new'] . '.' . $validatedRequest['txt_num_new'];
+        $lokCode = $validatedRequest['kode_lok'];
 
         $datanomor = DB::connection('mysql_sb')->select("
         select kode_lok from whs_master_lokasi where kode_lok = '".$lokCode."'");
         $nomor_lokasi = $datanomor ? $datanomor[0] : null;
       if($nomor_lokasi == null){
 
-        if ($request['ROLL'] == 'on') {
-             $unitStore1 = UnitLokasi::create([
-                'kode_lok' => $lokCode,
-                'unit' => 'ROLL',
-                'status' => 'Y',
-            ]);
+        // if ($request['ROLL'] == 'on') {
+        //      $unitStore1 = UnitLokasi::create([
+        //         'kode_lok' => $lokCode,
+        //         'unit' => 'ROLL',
+        //         'status' => 'Y',
+        //     ]);
 
-        }
-        if ($request['BUNDLE'] == 'on') {
-             $unitStore2 = UnitLokasi::create([
-                'kode_lok' => $lokCode,
-                'unit' => 'BUNDLE',
-                'status' => 'Y',
-            ]);
+        // }
+        // if ($request['BUNDLE'] == 'on') {
+        //      $unitStore2 = UnitLokasi::create([
+        //         'kode_lok' => $lokCode,
+        //         'unit' => 'BUNDLE',
+        //         'status' => 'Y',
+        //     ]);
 
-        }
-        if ($request['BOX'] == 'on') {
-             $unitStore3 = UnitLokasi::create([
-                'kode_lok' => $lokCode,
-                'unit' => 'BOX',
-                'status' => 'Y',
-            ]);
+        // }
+        // if ($request['BOX'] == 'on') {
+        //      $unitStore3 = UnitLokasi::create([
+        //         'kode_lok' => $lokCode,
+        //         'unit' => 'BOX',
+        //         'status' => 'Y',
+        //     ]);
 
-        }
-        if ($request['PACK'] == 'on') {
-             $unitStore4 = UnitLokasi::create([
-                'kode_lok' => $lokCode,
-                'unit' => 'PACK',
-                'status' => 'Y',
-            ]);
+        // }
+        // if ($request['PACK'] == 'on') {
+        //      $unitStore4 = UnitLokasi::create([
+        //         'kode_lok' => $lokCode,
+        //         'unit' => 'PACK',
+        //         'status' => 'Y',
+        //     ]);
 
-        }
+        // }
         $timestamp = Carbon::now();
 
-        if ($request['ROLL'] == 'on' || $request['BUNDLE'] == 'on' || $request['BOX'] == 'on' || $request['PACK'] == 'on') {
-
             $lokasiStore = MasterLokasi::create([
+                'type_lok' => 'FABRIC WAREHOUSE RACK',
                 'kode_lok' => $lokCode,
                 'area_lok' => $validatedRequest['txt_area_new'],
                 'inisial_lok' => $validatedRequest['txt_inisial_new'],
-                'baris_lok' => $validatedRequest['txt_baris_new'],
-                'level_lok' => $validatedRequest['txt_level_new'],
-                'no_lok' => $validatedRequest['txt_num_new'],
+                'baris_lok' => $request['txt_baris_new'],
+                'level_lok' => $request['txt_level_new'],
+                'subbaris_lok' => $request['txt_subbaris_new'],
+                'sublevel_lok' => $request['txt_sublevel_new'],
                 'unit' => '-',
                 'kapasitas' => $validatedRequest['txt_capacity_new'],
                 'status' => 'Active',
@@ -217,7 +211,6 @@ class MasterLokasiController extends Controller
                 "additional" => [],
                 "redirect" => url('/master-lokasi')
             );
-        }
     }else{
         return array(
                 "status" => 400,
@@ -230,74 +223,65 @@ class MasterLokasiController extends Controller
 
     public function simpanedit(Request $request)
     {
-        // $markerCount = Marker::selectRaw("MAX(kode) latest_kode")->whereRaw("kode LIKE 'MRK/" . date('ym') . "/%'")->first();
-        // $markerNumber = intval(substr($markerCount->latest_kode, -5)) + 1;
-        // $markerCode = 'MRK/' . date('ym') . '/' . sprintf('%05s', $markerNumber);
-        // $totalQty = 0;
 
         $validatedRequest = $request->validate([
+            "kode_lok_edit" => "required",
             "txt_id" => "required",
             "txt_area" => "required",
             "txt_inisial" => "required",
-            "txt_baris" => "required",
-            "txt_level" => "required",
-            "txt_num" => "required",
             "txt_capacity" => "required",
         ]);
 
-        $lokCode = $validatedRequest['txt_inisial'] . '.' . $validatedRequest['txt_baris'] . '.' . $validatedRequest['txt_level'] . '.' . $validatedRequest['txt_num'];
+        $lokCode = $validatedRequest['kode_lok_edit'];
 
-        $datanomor = DB::connection('mysql_sb')->select("
-        select kode_lok from whs_master_lokasi where kode_lok = '".$lokCode."' and kode_lok != (select kode_lok from whs_master_lokasi where id = '".$validatedRequest['txt_id']."')");
-        $nomor_lokasi = $datanomor ? $datanomor[0] : null;
-      if($nomor_lokasi == null){
+      if($lokCode != null){
 
-        $delete_unit = UnitLokasi::where('kode_lok', $lokCode)
-              ->delete();
+        // $delete_unit = UnitLokasi::where('kode_lok', $lokCode)
+        //       ->delete();
 
-        if ($request['ROLL_edit'] == 'on') {
-             $unitStore1 = UnitLokasi::create([
-                'kode_lok' => $lokCode,
-                'unit' => 'ROLL',
-                'status' => 'Y',
-            ]);
+        // if ($request['ROLL_edit'] == 'on') {
+        //      $unitStore1 = UnitLokasi::create([
+        //         'kode_lok' => $lokCode,
+        //         'unit' => 'ROLL',
+        //         'status' => 'Y',
+        //     ]);
 
-        }
-        if ($request['BUNDLE_edit'] == 'on') {
-             $unitStore2 = UnitLokasi::create([
-                'kode_lok' => $lokCode,
-                'unit' => 'BUNDLE',
-                'status' => 'Y',
-            ]);
+        // }
+        // if ($request['BUNDLE_edit'] == 'on') {
+        //      $unitStore2 = UnitLokasi::create([
+        //         'kode_lok' => $lokCode,
+        //         'unit' => 'BUNDLE',
+        //         'status' => 'Y',
+        //     ]);
 
-        }
-        if ($request['BOX_edit'] == 'on') {
-             $unitStore3 = UnitLokasi::create([
-                'kode_lok' => $lokCode,
-                'unit' => 'BOX',
-                'status' => 'Y',
-            ]);
+        // }
+        // if ($request['BOX_edit'] == 'on') {
+        //      $unitStore3 = UnitLokasi::create([
+        //         'kode_lok' => $lokCode,
+        //         'unit' => 'BOX',
+        //         'status' => 'Y',
+        //     ]);
 
-        }
-        if ($request['PACK_edit'] == 'on') {
-             $unitStore4 = UnitLokasi::create([
-                'kode_lok' => $lokCode,
-                'unit' => 'PACK',
-                'status' => 'Y',
-            ]);
+        // }
+        // if ($request['PACK_edit'] == 'on') {
+        //      $unitStore4 = UnitLokasi::create([
+        //         'kode_lok' => $lokCode,
+        //         'unit' => 'PACK',
+        //         'status' => 'Y',
+        //     ]);
 
-        }
+        // }
 
         $timestamp = Carbon::now();
 
-        if ($request['ROLL_edit'] == 'on' || $request['BUNDLE_edit'] == 'on' || $request['BOX_edit'] == 'on' || $request['PACK_edit'] == 'on') {
             $updateLokasi = MasterLokasi::where('id', $validatedRequest['txt_id'])->update([
                 'kode_lok' => $lokCode,
                 'area_lok' => $validatedRequest['txt_area'],
                 'inisial_lok' => $validatedRequest['txt_inisial'],
-                'baris_lok' => $validatedRequest['txt_baris'],
-                'level_lok' => $validatedRequest['txt_level'],
-                'no_lok' => $validatedRequest['txt_num'],
+                'baris_lok' => $request['txt_baris'],
+                'level_lok' => $request['txt_level'],
+                'subbaris_lok' => $request['subtxt_baris'],
+                'sublevel_lok' => $request['subtxt_level'],
                 'kapasitas' => $validatedRequest['txt_capacity'],
                 'status' => 'Active',
                 'create_by' => Auth::user()->name,
@@ -313,7 +297,6 @@ class MasterLokasiController extends Controller
                 "additional" => [],
                 "redirect" => url('/master-lokasi')
             );
-        }
         }else{
         return array(
                 "status" => 400,
@@ -342,8 +325,35 @@ class MasterLokasiController extends Controller
 
         $fileName = 'Lokasi-'.$dataLokasi->kode_lok.'.pdf';
 
-        return $pdf->download(str_replace("/", "_", $fileName));
+        return $pdf->stream(str_replace("/", "_", $fileName));
     }
+
+
+    public function printLokasiAll()
+{
+    $allLokasi = MasterLokasi::selectRaw("
+        CONCAT(inisial_lok,baris_lok,level_lok,no_lok) kode_lok,
+        kode_lok kode,
+        id
+    ")->get();
+
+//     $allLokasi = MasterLokasi::selectRaw("
+//     CONCAT(inisial_lok, baris_lok, level_lok, no_lok) AS kode_lok,
+//     kode_lok AS kode,
+//     id
+// ")
+// ->orderBy('id', 'asc')
+// ->limit(10)
+// ->get();
+
+    $pdf = PDF::loadView('master.pdf.print-lokasi-all', [
+        "listLokasi" => $allLokasi
+    ])->setPaper('a7', 'landscape');
+
+    $fileName = 'Lokasi-All.pdf';
+    return $pdf->stream($fileName);
+}
+
 
     /**
      * Display the specified resource.

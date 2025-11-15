@@ -54,7 +54,7 @@
                 <button type="button" class="btn btn-success btn-sm" onclick="countStockerUpdate()">
                     <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> No. Stocker
                 </button>
-                <button type="button" class="btn btn-info btn-sm" onclick="rearrangeGroup('{{ $dataSpreading->no_form }}')">
+                <button type="button" class="btn btn-info btn-sm" onclick="rearrangeGroup('{{ $dataSpreading->id }}', '{{ $dataSpreading->no_form }}')">
                     <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> Grouping
                 </button>
                 <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#size-qty-modal">
@@ -2191,7 +2191,7 @@
             }
         }
 
-        function rearrangeGroup(noForm) {
+        function rearrangeGroup(id, no_form) {
             Swal.fire({
                 title: 'Please Wait...',
                 html: 'Rearranging Data...',
@@ -2205,7 +2205,8 @@
                 url: '{{ route('rearrange-group') }}',
                 type: 'post',
                 data: {
-                    no_form : noForm
+                    form_cut_id : id,
+                    no_form : no_form
                 },
                 success: function(res) {
                     console.log("successs", res);

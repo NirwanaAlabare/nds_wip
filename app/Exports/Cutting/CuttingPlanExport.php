@@ -75,7 +75,7 @@ class CuttingPlanExport implements FromView, ShouldAutoSize
                     b.cons_marker,
                     a.tipe_form_cut,
                     CONCAT(b.panel, ' - ', b.urutan_marker) panel,
-                    GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details,
+                    GROUP_CONCAT(DISTINCT CONCAT(COALESCE(marker_input_detail.size, master_sb_ws.size, marker_input_detail.size), '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details,
                     sum(marker_input_detail.ratio) * a.qty_ply	qty_output,
                     coalesce(sum(marker_input_detail.ratio) * c.tot_lembar_akt,0) qty_act,
                     COALESCE(a2.total_lembar, a.total_lembar, '0') total_lembar
@@ -83,7 +83,8 @@ class CuttingPlanExport implements FromView, ShouldAutoSize
                 left join (select form_cut_input_detail.form_cut_id, SUM(form_cut_input_detail.lembar_gelaran) total_lembar from form_cut_input_detail group by form_cut_input_detail.form_cut_id) a2 on a2.form_cut_id = a.id
                 left join marker_input b on a.id_marker = b.kode
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
-                left join master_size_new on marker_input_detail.size = master_size_new.size
+                left join master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
+                left join master_size_new on master_sb_ws.size = master_size_new.size
                 left join users on users.id = a.no_meja
                 left join (select form_cut_id,sum(lembar_gelaran) tot_lembar_akt from form_cut_input_detail group by form_cut_id) c on a.id = c.form_cut_id
                 where

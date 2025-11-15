@@ -74,11 +74,11 @@
                             <th>No Aju</th>
                             <th>Tgl Aju</th>
                             <th>Supplier Ceisa</th>
-                            <th>Supplier SB</th> 
+                            <th>Supplier SB</th>
                             <th>Satuan Ceisa</th>
-                            <th>Satuan SB</th> 
+                            <th>Satuan SB</th>
                             <th>Qty Ceisa</th>
-                            <th>Qty SB</th> 
+                            <th>Qty SB</th>
                             <th>Diff Qty</th>
                             <th>Total Ceisa</th>
                             <th>Total IDR</th>
@@ -115,8 +115,8 @@
         let datatable = $("#datatable").DataTable({
             ordering: false,
             processing: true,
-            serverSide: true,
-            paging: false,
+            serverSide: false,
+            paging: true,
             searching: true,
             scrollY: '300px',
             scrollX: '300px',
@@ -190,7 +190,7 @@
             {
                 data: 'keterangan_update'
             },
-            
+
             ],
             columnDefs: [
             {
@@ -221,7 +221,7 @@
             render: function(data) {
                 if (data == null || data === '') return data;
                 // pastikan data angka, kalau string parse dulu
-                let num = Number(data.toString().replace(/,/g, '')); 
+                let num = Number(data.toString().replace(/,/g, ''));
                 if (isNaN(num)) return data;
 
                 // format angka dengan ribuan koma dan desimal titik (2 digit)

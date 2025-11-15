@@ -11,6 +11,20 @@
 @endsection
 
 @section('content')
+<style>
+/* Highlight hanya untuk tabel di dalam modal */
+.modal-body #tableshow td.drag-highlight {
+  background-color: rgba(13, 110, 253, 0.15); /* biru lembut */
+  outline: 2px solid #0d6efd; /* garis luar, tidak ubah layout */
+  outline-offset: -1px;
+}
+
+/* Cursor hanya aktif di tabel dalam modal */
+.modal-body #tableshow td.editable {
+  cursor: cell;
+}
+</style>
+
 <form action="{{ route('store-inmaterial-fabric') }}" method="post" id="store-inmaterial" onsubmit="submitForm(this, event)">
     @csrf
     <div class="card card-sb">
@@ -101,6 +115,9 @@
                                     <option selected="selected" value="{{$kodegr->no_po}}">{{$kodegr->no_po}}</option>
                                 </select>
                                 @endif
+                                @if ($kodegr->type_dok == "")
+                                <select class="form-control select2bs4" id="txt_po" name="txt_po" style="width: 100%;"  disabled></select>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -120,6 +137,10 @@
                                 </select>
                                 @endif
                                 @if ($kodegr->type_dok == "FOB")
+                                <select class="form-control select2bs4" id="txt_wsglobal" name="txt_wsglobal" style="width: 100%;"  disabled>
+                                </select>
+                                @endif
+                                @if ($kodegr->type_dok == "")
                                 <select class="form-control select2bs4" id="txt_wsglobal" name="txt_wsglobal" style="width: 100%;"  disabled>
                                 </select>
                                 @endif
@@ -316,15 +337,43 @@
                             <td value="{{$detdata->no_ws}}">{{$detdata->qty_reject}}</td>
                             <td value="{{$detdata->no_ws}}">{{$detdata->unit}}</td>
                             <td>
-                                @if($detdata->qty_sisa > 0)
-                                <div class='d-flex gap-1 justify-content-center'>
-                                    <button type='button' class='btn btn-sm btn-warning' href='javascript:void(0)' onclick='addlocation("{{$detdata->no_ws}}","{{$detdata->id_jo}}","{{$detdata->id_item}}","{{$detdata->kode_item}}","{{$detdata->qty_good}}","{{$detdata->unit}}","{{$detdata->qty_good}}","{{$detdata->desc_item}}","{{$detdata->qty_sisa}}")'><i class="fa-solid fa-circle-plus fa-lg"></i></button>
-                                    <a href="{{ route('upload-lokasi') }}/{{$detdata->id}}"><button type='button' class='btn btn-sm btn-info'><i class="fa-solid fa-upload"></i></button></a>
-                                </div>
-                                @endif
+                               @if($detdata->qty_sisa > 0)
+    <div class="d-flex gap-1 justify-content-center">
+        <button type="button" 
+                class="btn btn-sm btn-warning" 
+                onclick='addlocation(
+                    @json($detdata->no_ws),
+                    @json($detdata->id_jo),
+                    @json($detdata->id_item),
+                    @json($detdata->kode_item),
+                    @json($detdata->qty_good),
+                    @json($detdata->unit),
+                    @json($detdata->qty_good),
+                    @json($detdata->desc_item),
+                    @json($detdata->qty_sisa)
+                )'>
+            <i class="fa-solid fa-circle-plus fa-lg"></i>
+        </button>
+
+        <a href="{{ route('upload-lokasi', $detdata->id) }}">
+            <button type="button" class="btn btn-sm btn-info">
+                <i class="fa-solid fa-upload"></i>
+            </button>
+        </a>
+
+        <button type="button" class="btn btn-sm btn-danger" 
+                onclick='deleteData(@json($detdata->no_dok), @json($detdata->id_item))'>
+            <i class="fa-solid fa-trash"></i>
+        </button>
+    </div>
+@endif
+
                                 @if($detdata->qty_sisa <= 0)
                                 <div class='d-flex gap-1 justify-content-center'>
                                     <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='showlocation("{{$detdata->no_ws}}","{{$detdata->id_jo}}","{{$detdata->id_item}}","{{$detdata->kode_item}}","{{$detdata->qty_good}}","{{$detdata->unit}}","{{$detdata->qty_good}}","{{$detdata->desc_item}}","{{$detdata->qty_sisa}}");getlist_showlokasi("{{$detdata->no_ws}}","{{$detdata->id_jo}}","{{$detdata->id_item}}")'><i class="fa-solid fa-clipboard-check fa-lg"></i></button>
+                                    <button type='button' class='btn btn-sm btn-danger' onclick='deleteData("{{$detdata->no_dok}}","{{$detdata->id_item}}")'>
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
                                 </div>
                                 @endif
                             </td>
@@ -524,6 +573,7 @@
                                     <div class="form-group">
                                         <label><small>Kode Barang</small></label>
                                         <input type="text" class="form-control " id="m_kode_item2" name="m_kode_item2" value="" readonly>
+                                        <input type="hidden" class="form-control " id="m_iditem2" name="m_iditem2" value="" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -531,7 +581,9 @@
                                 <div class="mb-1">
                                     <div class="form-group">
                                         <label><small>Quantity</small></label>
-                                        <input type="text" class="form-control" id="m_qty2" name="m_qty2" value="" readonly>
+                                        <input type="hidden" class="form-control" id="m_qty2" name="m_qty2" value="" readonly>
+                                        <input type="text" class="form-control" id="m_qty2_new" name="m_qty2_new" value="" readonly>
+                                        <input type="hidden" class="form-control" id="m_qty2_diff" name="m_qty2_diff" value="" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -572,6 +624,12 @@
                             <div class="col-md-12" id="detail_showlok">
                             </div>
                         </div>
+
+                        <div class="mt-2 text-right">
+            <button type="button" class="btn btn-success btn-sm" onclick="saveEditedLokasi()">
+                <i class="fa fa-save"></i> Update
+            </button>
+        </div>
                     </div>
 
                 </div>
@@ -868,6 +926,68 @@
         });
     }
 
+function deleteData(no_dok, id_item) {
+    Swal.fire({
+        title: 'Hapus Data?',
+        text: "Data ini akan dihapus secara permanen.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, hapus!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '{{ route("delete-detail-barcode-rak") }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    no_dok: no_dok,
+                    id_item: id_item
+                },
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: 'Data berhasil dihapus.',
+                            timer: 1500,
+                            timerProgressBar: true,
+                            showConfirmButton: false
+                        }).then(() => {
+                            if ($('#datatable').length) {
+                                location.reload();
+                            } else {
+                                location.reload();
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal!',
+                            timer: 1500,
+                            timerProgressBar: true,
+                            text: response.message ?? 'Data gagal dihapus.'
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        timer: 1500,
+                        timerProgressBar: true,
+                        text: 'Terjadi kesalahan saat menghapus data.'
+                    });
+                    console.error(error);
+                }
+            });
+        }
+    });
+}
+
+
 
     function showlocation($ws,$id_jo, $id_item,$kode_item, $qty, $unit, $balance,$desc,$qty_sisa){
         let ws = $ws;
@@ -884,6 +1004,8 @@
         $('#m_no_ws2').val(ws);
         $('#m_kode_item2').val(kode_item);
         $('#m_qty2').val(qty);
+        $('#m_qty2_new').val(qty);
+        $('#m_qty2_diff').val('0');
         $('#m_desc2').val(desc);
         $('#m_balance2').val(balance);
         $('#m_unit2').val(unit);
@@ -913,10 +1035,230 @@
                     document.getElementById('detail_showlok').innerHTML = res;
                     $('#tableshow').dataTable({
                         "bFilter": false,
+                        "paging": false,
+                        "info": false,
+                        "ordering": false
                     });
                 }
             }
         });
     }
+
+function saveEditedLokasi() {
+    const rows = [];
+    $("#tableshow tbody tr").each(function() {
+        const barcode = $(this).data('barcode');
+        const cols = $(this).find('td');
+        rows.push({
+            no_barcode: barcode,
+            no_roll: $(cols[1]).text().trim(),
+            no_roll_buyer: $(cols[2]).text().trim(),
+            no_lot: $(cols[3]).text().trim(),
+            qty_aktual: $(cols[4]).text().trim(),
+            kode_lok: $(cols[5]).text().trim(),
+            m_qty: $('#m_qty2_new').val(),
+            m_qty_diff: $('#m_qty2_diff').val(),
+            m_gr_dok: $('#m_gr_dok2').val(),
+            m_iditem: $('#m_iditem2').val(),
+        });
+    });
+
+    Swal.fire({
+        title: 'Konfirmasi',
+        text: 'Simpan semua perubahan data lokasi?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Simpan',
+        cancelButtonText: 'Batal',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                type: 'POST',
+                url: '{{ route("update-all-barcode-rak") }}',
+                data: { data: rows },
+                success: function(res) {
+                    if (res.success) {
+                        Swal.fire({
+                        title: 'Berhasil',
+                        text: 'Data berhasil disimpan!',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            location.reload(); 
+                        }
+                    });
+                    } else {
+                        Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan.', 'error');
+                    }
+                },
+                error: function() {
+                    Swal.fire('Error', 'Tidak dapat terhubung ke server!', 'error');
+                }
+            });
+        }
+    });
+}
+
+
+$(document).ready(function(){
+    let isDragging = false;
+    let isNumbering = false; // mode numbering (ALT + klik kanan)
+    let startCell = null;
+    let startText = '';
+    let startRowIndex = null;
+    let startColIndex = null;
+    let lastRowIndex = null;
+    let lastColIndex = null;
+
+    // === FUNGSI UPDATE TOTAL QTY ===
+    function updateQtyTotal() {
+        let total = 0;
+        $('#tableshow tbody tr').each(function(){
+            let val = parseFloat($(this).find('td:eq(4)').text()) || 0; // kolom 5 = Qty Aktual
+            total += val;
+        });
+        $('#m_qty2_new').val(total.toFixed(2));
+
+        // bandingkan dengan qty lama
+        let awal = parseFloat($('#m_qty2').val()) || 0;
+        let diff = total - awal;
+        $('#m_qty2_diff').val(diff.toFixed(2));
+    }
+
+    function getCellPosition(cell){
+        const row = $(cell).closest('tr').index();
+        const col = $(cell).index();
+        return { row, col };
+    }
+
+    // === MULAI DRAG (ALT + klik kiri = copy text | ALT + klik kanan = numbering) ===
+    $(document).on('mousedown', '#tableshow td.editable', function(e){
+        if(e.altKey && (e.which === 1 || e.which === 3)){
+            e.preventDefault();
+
+            isDragging = true;
+            isNumbering = (e.which === 3);
+            startCell = this;
+            startText = $(this).text();
+
+            const pos = getCellPosition(this);
+            startRowIndex = pos.row;
+            startColIndex = pos.col;
+            lastRowIndex = startRowIndex;
+            lastColIndex = startColIndex;
+
+            $('#tableshow td.editable').removeClass('drag-highlight');
+            $(this).addClass('drag-highlight');
+        }
+    });
+
+    // === HIGHLIGHT AREA ===
+    $(document).on('mouseenter', '#tableshow td.editable', function(){
+        if(isDragging && startCell){
+            const pos = getCellPosition(this);
+            lastRowIndex = pos.row;
+            lastColIndex = pos.col;
+
+            const minRow = Math.min(startRowIndex, lastRowIndex);
+            const maxRow = Math.max(startRowIndex, lastRowIndex);
+            const minCol = Math.min(startColIndex, lastColIndex);
+            const maxCol = Math.max(startColIndex, lastColIndex);
+
+            $('#tableshow td.editable').removeClass('drag-highlight');
+            for(let r = minRow; r <= maxRow; r++){
+                for(let c = minCol; c <= maxCol; c++){
+                    $('#tableshow tr').eq(r).find('td').eq(c).addClass('drag-highlight');
+                }
+            }
+        }
+    });
+
+    // === AUTO SCROLL SAAT DRAG ===
+    $(document).on('mousemove', function(e){
+        if(!isDragging) return;
+        const $container = $('.modal-body .table-responsive');
+        const offset = $container.offset();
+        const scrollTop = $container.scrollTop();
+        const height = $container.height();
+        const scrollSpeed = 25;
+
+        if(e.pageY < offset.top + 30){
+            $container.scrollTop(scrollTop - scrollSpeed);
+        } else if(e.pageY > offset.top + height - 30){
+            $container.scrollTop(scrollTop + scrollSpeed);
+        }
+    });
+
+    // === LEPAS DRAG ===
+    $(document).on('mouseup', function(){
+        if(isDragging && startCell){
+            const selectedCells = $('#tableshow td.drag-highlight');
+
+            if(isNumbering){
+                // 🔢 MODE NUMBERING
+                let num = 1;
+                selectedCells.each(function(){
+                    $(this).text(num++);
+                });
+            } else {
+                // 📝 MODE COPY TEXT
+                selectedCells.each(function(){
+                    $(this).text(startText);
+                });
+            }
+
+            $('#tableshow td.editable').removeClass('drag-highlight');
+
+            const table = $('#tableshow').DataTable();
+            table.rows().invalidate().draw(false);
+
+            // Update total setelah drag selesai
+            updateQtyTotal();
+        }
+
+        isDragging = false;
+        isNumbering = false;
+        startCell = null;
+    });
+
+
+    // Fungsi hitung total qty aktual
+    function updateQtyTotal() {
+    let total = 0;
+    $('#tableshow tbody tr').each(function(){
+        let val = parseFloat($(this).find('td:eq(4)').text()) || 0;
+        total += val;
+    });
+    $('#m_qty2_new').val(total.toFixed(2));
+
+    // hitung selisih
+    let awal = parseFloat($('#m_qty2').val()) || 0;
+    let selisih = total - awal;
+    $('#m_qty2_diff').val(selisih.toFixed(2));
+}
+
+
+    // Saat user mengubah qty di kolom qty aktual
+    $(document).on('input', '#tableshow td:nth-child(5)', function(){
+        let value = $(this).text();
+
+        // Validasi angka saja
+        if(isNaN(value) || value.trim() === ''){
+            $(this).css('background-color', '#f8d7da'); // merah muda (error)
+        } else {
+            $(this).css('background-color', ''); // reset
+            updateQtyTotal(); // hitung ulang total
+        }
+    });
+
+    // Jalankan pertama kali saat tabel dimuat
+    updateQtyTotal();
+});
+
+
 </script>
 @endsection

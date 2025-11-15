@@ -401,6 +401,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-spreading');
         Route::put('/update', 'update')->name('update-spreading');
         Route::put('/update-status', 'updateStatus')->name('update-status');
+        Route::put('/update-status-redirect', 'updateStatusRedirect')->name('update-status-redirect');
         Route::get('/get-order-info', 'getOrderInfo')->name('get-spreading-data');
         Route::get('/get-cut-qty', 'getCutQty')->name('get-cut-qty-data');
         Route::delete('/destroy/{id?}', 'destroy')->name('destroy-spreading');
@@ -849,6 +850,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/reset-redundant-stocker', 'resetRedundantStocker')->name('reset-redundant-stocker');
 
         Route::post('/import-stocker-manual', 'importStockerManual')->name('import-stocker-manual');
+
+        Route::post('/rearrange-groups', 'rearrangeGroups')->name('rearrange-groups');
+        Route::post('/recalculate-stocker-transaction', 'recalculateStockerTransaction')->name('recalculate-stocker-transaction');
     });
 
     // DC :
@@ -1376,6 +1380,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/updatestatus', 'updatestatus')->name('updatestatus');
         Route::get('/simpanedit', 'simpanedit')->name('simpan-edit');
         Route::post('/print-lokasi/{id?}', 'printlokasi')->name('print-lokasi');
+        Route::post('/print-lokasi-all', 'printLokasiAll')->name('print-lokasi-all');
+
     });
 
     //dashboard fabric
@@ -1462,6 +1468,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-qty-upload', 'getqtyupload')->name('get-qty-upload');
         Route::post('/save-upload-lokasi', 'saveuploadlokasi')->name('save-upload-lokasi');
         Route::get('/cancel-retur-material', 'CancelReturMaterial')->name('cancel-retur-material');
+        Route::post('/delete-detail-barcode-rak', 'DeleteDataBarcode')->name('delete-detail-barcode-rak');
+        Route::get('/export-format-upload-roll', 'ExportUploadRoll')->name('export-format-upload-roll');
+        Route::post('/update-all-barcode-rak', 'updateAllLokasi')->name('update-all-barcode-rak');
+
     });
 
     //permintaan
@@ -1472,10 +1482,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-ws-act', 'getWSact')->name('get-ws-act');
         Route::get('/show-detail', 'showdetail')->name('get-detail-req');
         Route::get('/sum-detail', 'sumdetail')->name('get-sum-req');
+        Route::get('/get-style-actual', 'getStyleAct')->name('get-style-actual');
         Route::post('/store', 'store')->name('store-reqmaterial-fabric');
         Route::post('/print-pdf-reqmaterial/{bppbno?}', 'pdfreqmaterial')->name('print-pdf-reqmaterial');
         Route::get('/edit-request/{id?}', 'editrequest')->name('edit-reqmaterial');
         Route::get('/update-req-fabric', 'updateReq')->name('update-reqmaterial-fabric');
+        Route::get('/cancel-request', 'CancelRequest')->name('cancel-request');
     });
 
     //Pengeluaran
@@ -1494,6 +1506,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/print-pdf-outmaterial/{id?}', 'pdfoutmaterial')->name('print-pdf-outmaterial');
         Route::get('/delete-scan-temp', 'deletescantemp')->name('delete-scan-temp');
         Route::get('/delete-all-temp', 'deletealltemp')->name('delete-all-temp');
+        Route::get('/edit-out-material/{id?}', 'editoutmaterial')->name('edit-out-material');
+        Route::get('/update-out-material', 'updateOut')->name('update-outmaterial-fabric');
+        Route::get('/show-detail-bppb', 'showdetailBppb')->name('get-detail-bppb');
+        Route::post('/update-detail-barcode-bppb', 'updateBarcodeBppb')->name('update-detail-barcode-bppb');
+        Route::post('/delete-detail-barcode-bppb', 'DeleteDataBarcodeBppb')->name('delete-detail-barcode-bppb');
+        Route::post('/save-out-scan-edit', 'saveoutscanEdit')->name('save-out-scan-edit');
+        Route::post('/save-out-manual-edit', 'saveoutmanualEdit')->name('save-out-manual-edit');
     });
 
 
@@ -1508,6 +1527,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/approve-mutlok', 'approvemutlok')->name('approve-mutlok');
         Route::get('/edit-mutlok/{id?}', 'editmutlok')->name('edit-mutlok');
         Route::get('/update-mutlokasi', 'updatemutlok')->name('update-mutlokasi');
+        Route::get('/get-barcode', 'getbarcodemutasi')->name('get-data-barcodemutasi');
+        Route::get('/save-barcode', 'simpanbarcodemutasi')->name('simpan-scan-barcode-mutasi');
+        Route::get('/list-scan-barcode', 'listscanbarcodemut')->name('list-scan-barcode-mutasi');
+        Route::get('/delete-mut-temp', 'deletemuttemp')->name('delete-mut-temp');
+        Route::get('/delete-mut-temp-all', 'deletemuttempall')->name('delete-mut-temp-all');
+        Route::get('/update_lokasi-mut-temp', 'updatelokasimuttemp')->name('update_lokasi-mut-temp');
+        Route::post('/store_new', 'store_new')->name('save-mutasi-rak-fabric');
     });
 
     //Retur
@@ -1528,6 +1554,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/barcode-ro/{id?}', 'barcodeRO')->name('barcode-ro');
         Route::get('/ro-list-barcode', 'ROListbarcode')->name('ro-list-barcode');
         Route::post('/save-ro-scan', 'saveroscan')->name('save-ro-scan');
+        Route::post('/save-ro-manual', 'saveromanual')->name('save-ro-manual');
     });
 
     //Retur Penerimaan
@@ -2301,9 +2328,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard_IE', 'dashboard_IE')->name('dashboard-IE');
     });
 
-    // Proses Industrial Engineering Operational Breakdown
+    // Proses Industrial Engineering Master Process
     Route::controller(IEMasterController::class)->prefix("master")->middleware('role:management')->group(function () {
         Route::get('/IE_master_process', 'IE_master_process')->name('IE_master_process');
+        Route::post('/IE_save_master_process', 'IE_save_master_process')->name('IE_save_master_process');
     });
 
     // Proses Industrial Engineering Operational Breakdown

@@ -49,7 +49,7 @@ class SewingService
                     act_costing.id actual_act_costing_id,
                     so_det.size,
                     so_det.dest,
-                    userpassword.username line,
+                    COALESCE(userpassword.username, master_plan.sewing_line) line,
                     COALESCE(master_plan.tgl_plan, DATE(output_rfts.updated_at)) tgl_plan
                 FROM
                     output_rfts
@@ -101,7 +101,7 @@ class SewingService
                     act_costing.id actual_act_costing_id,
                     so_det.size,
                     so_det.dest,
-                    userpassword.username line,
+                    COALESCE(userpassword.username, master_plan.sewing_line) line,
                     COALESCE(master_plan.tgl_plan, DATE(output_defects.updated_at)) tgl_plan
                 FROM
                     output_defects
@@ -153,7 +153,7 @@ class SewingService
                     act_costing.id actual_act_costing_id,
                     so_det.size,
                     so_det.dest,
-                    userpassword.username line,
+                    COALESCE(userpassword.username, master_plan.sewing_line) line,
                     COALESCE(master_plan.tgl_plan, DATE(output_rejects.updated_at)) tgl_plan
                 FROM
                     output_rejects
@@ -371,7 +371,7 @@ class SewingService
                     act_costing.id actual_act_costing_id,
                     so_det.size,
                     so_det.dest,
-                    userpassword.username line,
+                    COALESCE(master_plan.sewing_line, userpassword.username) line,
                     COALESCE(master_plan.tgl_plan, DATE(output_rfts.updated_at)) as tgl_plan
                 FROM
                     output_rfts_packing as output_rfts
@@ -422,7 +422,7 @@ class SewingService
                     act_costing.id actual_act_costing_id,
                     so_det.size,
                     so_det.dest,
-                    userpassword.username line,
+                    COALESCE(master_plan.sewing_line, userpassword.username) line,
                     COALESCE(master_plan.tgl_plan, DATE(output_defects.updated_at)) as tgl_plan
                 FROM
                     output_defects_packing as output_defects
@@ -477,7 +477,7 @@ class SewingService
                     act_costing.id actual_act_costing_id,
                     so_det.size,
                     so_det.dest,
-                    userpassword.username line,
+                    COALESCE(master_plan.sewing_line, userpassword.username) line,
                     COALESCE(master_plan.tgl_plan, DATE(output_rejects.updated_at)) as tgl_plan
                 FROM
                     output_rejects_packing as output_rejects

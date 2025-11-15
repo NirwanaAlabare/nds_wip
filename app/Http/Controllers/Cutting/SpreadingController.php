@@ -90,7 +90,7 @@ class SpreadingController extends Controller
                     UPPER(b.tipe_marker) tipe_marker,
                     a.tipe_form_cut,
                     REPLACE(COALESCE(b.notes, '-'), '\"', '') notes,
-                    GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' /  ') marker_details,
+                    GROUP_CONCAT(DISTINCT CONCAT(COALESCE(master_size_new.size, master_sb_ws.size, marker_input_detail.size), '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' /  ') marker_details,
                     cutting_plan.tgl_plan,
                     cutting_plan.app
                 FROM `form_cut_input` a
@@ -99,7 +99,8 @@ class SpreadingController extends Controller
                     left join users on users.id = a.no_meja
                     left join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
                     left join marker_input_detail on b.id = marker_input_detail.marker_id and marker_input_detail.ratio > 0
-                    left join master_size_new on marker_input_detail.size = master_size_new.size
+                    left join master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
+                left join master_size_new on master_sb_ws.size = master_size_new.size
                 where
                     a.id is not null
                     " . $additionalQuery . "
@@ -245,7 +246,7 @@ class SpreadingController extends Controller
             $bulan = substr($date, 5, 2);
             $now = Carbon::now();
 
-            $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderBy("id", "desc")->first();
+            $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderBy("created_at", "desc")->orderBy("id", "desc")->first();
 
             $urutan =  $lastForm ? (str_replace($hari."-".$bulan."-", "", $lastForm->no_form) + $i) : $i;
 
@@ -367,15 +368,17 @@ class SpreadingController extends Controller
         ]);
 
         // If the form already has stockers (return error)
-        $stockerForm = Stocker::where('form_cut_id', $validatedRequest['edit_id_status'])->first();
-        if ($stockerForm) {
-            return array(
-                'status' => 400,
-                'message' => 'Form sudah memiliki stocker',
-                'redirect' => '',
-                'table' => 'datatable',
-                'additional' => [],
-            );
+        if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0)) {
+            $stockerForm = Stocker::where('form_cut_id', $validatedRequest['edit_id_status'])->first();
+            if ($stockerForm) {
+                return array(
+                    'status' => 400,
+                    'message' => 'Form sudah memiliki stocker',
+                    'redirect' => '',
+                    'table' => 'datatable',
+                    'additional' => [],
+                );
+            }
         }
 
         // If the form only has part form (delete part form & reorder)
@@ -400,6 +403,76 @@ class SpreadingController extends Controller
                 'status' => 201,
                 'message' => 'Form  "' . $updatedData->no_form. '" berhasil diubah ke status '.$validatedRequest['edit_status'].'. ',
                 'redirect' => '',
+                'table' => 'datatable',
+                'additional' => [],
+            );
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Data produksi gagal diubah',
+            'redirect' => '',
+            'table' => 'datatable',
+            'additional' => [],
+        );
+    }
+
+    public function updateStatusRedirect(Request $request, StockerService $stockerService) {
+        $validatedRequest = $request->validate([
+            "edit_id_status" => "required",
+            "edit_status" => "required",
+        ]);
+
+        // If the form already has stockers (return error)
+        if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0)) {
+            $stockerForm = Stocker::where('form_cut_id', $validatedRequest['edit_id_status'])->first();
+            if ($stockerForm) {
+                return array(
+                    'status' => 400,
+                    'message' => 'Form sudah memiliki stocker',
+                    'redirect' => '',
+                    'table' => 'datatable',
+                    'additional' => [],
+                );
+            }
+        }
+
+        // If the form only has part form (delete part form & reorder)
+        $partForm = PartForm::where('form_id', $validatedRequest['edit_id_status'])->first();
+        if ($partForm) {
+            // Delete part form
+            $deletePartForm = PartForm::where('form_id', $validatedRequest['edit_id_status'])->delete();
+
+            if ($deletePartForm) {
+                // Reorder part form group
+                $stockerService->reorderStockerNumbering($partForm->part_id);
+            }
+        }
+
+        $updateStatusForm = FormCutInput::where('id', $validatedRequest['edit_id_status'])->update([
+            'status' => $validatedRequest['edit_status']
+        ]);
+
+        if ($updateStatusForm) {
+            $updatedData = FormCutInput::where('id', $validatedRequest['edit_id_status'])->first();
+
+            $redirect = '';
+            switch ($updatedData->tipe_form_cut) {
+                case 'NORMAL' :
+                    $redirect = route('process-form-cut-input', $updatedData->id);
+                    break;
+                case 'MANUAL' :
+                    $redirect = route('process-manual-form-cut', $updatedData->id);
+                    break;
+                case 'PILOT' :
+                    $redirect = route('process-pilot-form-cut', $updatedData->id);
+                    break;
+            }
+
+            return array(
+                'status' => 201,
+                'message' => 'Form  "' . $updatedData->no_form. '" berhasil diubah ke status '.$validatedRequest['edit_status'].'. ',
+                'redirect' => $redirect,
                 'table' => 'datatable',
                 'additional' => [],
             );

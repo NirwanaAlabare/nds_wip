@@ -52,7 +52,7 @@
                 <div class="form-group">
                 <label><small>Tgl SJ</small></label>
                 <input type="date" class="form-control form-control" id="txt_tgl_sj" name="txt_tgl_sj"
-                        value="{{ date('Y-m-d') }}" onchange="get_nobppb(this.value)">
+                         onchange="get_nobppb(this.value)">
                 </div>
             </div>
             </div>
