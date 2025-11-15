@@ -192,7 +192,7 @@
                                 </a>
                             </div>
                             <div class="table-responsive">
-                                <table id="datatable_det_karton" class="table table-bordered 100 text-nowrap">
+                                <table id="datatable_det_karton" class="table table-bordered w-100 text-nowrap">
                                     <thead class="table-warning">
                                         <tr>
                                             <th>PO #</th>
@@ -223,7 +223,7 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table id="datatable_summary" class="table table-bordered 100 text-nowrap">
+                                <table id="datatable_summary" class="table table-bordered w-100 text-nowrap">
                                     <thead class="table-success">
                                         <tr>
                                             <th>WS #</th>
@@ -412,9 +412,9 @@
 
         let datatable_det_karton = $("#datatable_det_karton").DataTable({
             lengthMenu: [
-        [10, 25, 50, -1],
-        [10, 25, 50, "All"]
-    ],
+                [10, 25, 50, -1],
+                [10, 25, 50, "All"]
+            ],
             "footerCallback": function(row, data, start, end, display) {
                 var api = this.api(),
                     data;
@@ -498,9 +498,9 @@
 
         let datatable_summary = $("#datatable_summary").DataTable({
             lengthMenu: [
-        [10, 25, 50, -1],
-        [10, 25, 50, "All"]
-    ],
+                [10, 25, 50, -1],
+                [10, 25, 50, "All"]
+            ],
 
             "footerCallback": function(row, data, start, end, display) {
                 var api = this.api(),
