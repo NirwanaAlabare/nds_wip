@@ -760,7 +760,7 @@ class OutMaterialController extends Controller
 
         // $bppb_detail = DB::connection('mysql_sb')->insert("insert into whs_bppb_det
         //     select a.*, price, nilai_barang, type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar from (select '','".$bppbno_int."' no_bppb, id_roll,id_jo,id_item, no_rak, no_lot,no_roll,item_desc,qty_stok,satuan,qty_out,'' a,'0',status,created_by,deskripsi,created_at,updated_at from whs_bppb_det_temp where created_by = '".Auth::user()->name."') a INNER JOIN (select b.no_dok,a.type_pch, b.no_barcode ,type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar,price, nilai_barang from (select a.*,id_jo, id_item, price, nilai_barang from whs_inmaterial_fabric a INNER JOIN whs_inmaterial_fabric_det c on c.no_dok = a.no_dok) a INNER JOIN whs_lokasi_inmaterial b on b.no_dok = a.no_dok and a.id_jo = b.id_jo and a.id_item = b.id_item where b.status = 'Y' ) b on b.no_barcode = a.id_roll");
-        $bppb_detail = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select '',no_bppb, id_roll, id_jo, id_item, no_rak, no_lot, no_roll,item_desc,qty_stok,satuan,qty_out,curr,'0',status,created_by,deskripsi,created_at,updated_at, price, nilai_barang, type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar from (select '','".$bppbno_int."' no_bppb, id_roll,id_jo,id_item, no_rak, no_lot,no_roll,item_desc,qty_stok,satuan,qty_out,'0',status,created_by,deskripsi,created_at,updated_at from whs_bppb_det_temp where created_by = '".Auth::user()->name."') a left JOIN (select a.* from (select b.id,b.no_dok,a.type_pch, b.no_barcode , b.kode_lok,type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar,IF(price is null or price = '',b.nilai_barang,price) price, a.nilai_barang,qty_aktual,curr from (select a.*,id_jo, id_item, price, nilai_barang,curr from whs_inmaterial_fabric a INNER JOIN whs_inmaterial_fabric_det c on c.no_dok = a.no_dok) a INNER JOIN whs_lokasi_inmaterial b on b.no_dok = a.no_dok and a.id_jo = b.id_jo and a.id_item = b.id_item where b.status = 'Y') a left join (select id_roll, no_rak, SUM(qty_out) qty_out from whs_bppb_det where status = 'Y' GROUP BY id_roll) b on b.id_roll = a.no_barcode and b.no_rak = a.kode_lok where (qty_aktual - coalesce(qty_out,0)) > 0 ORDER BY no_barcode asc) b on b.no_barcode = a.id_roll");
+        $bppb_detail = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select '',no_bppb, id_roll, id_jo, id_item, no_rak, no_lot, no_roll, no_roll_buyer,item_desc,qty_stok,satuan,qty_out,curr,'0',status,created_by,deskripsi,created_at,updated_at, price, nilai_barang, type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar, np_curr, np_tgl_in, np_price, null, null from (select '','".$bppbno_int."' no_bppb, id_roll,id_jo,id_item, no_rak, no_lot,no_roll,item_desc,qty_stok,satuan,qty_out,'0',status,created_by,deskripsi,created_at,updated_at from whs_bppb_det_temp where created_by = '".Auth::user()->name."') a left JOIN (select a.* from (select b.id,b.no_dok,a.type_pch, b.no_barcode , b.kode_lok,type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar,IF(price is null or price = '',b.nilai_barang,price) price, a.nilai_barang,qty_aktual,curr, IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price, no_roll_buyer from (select a.*,id_jo, id_item, price, nilai_barang,curr from whs_inmaterial_fabric a INNER JOIN whs_inmaterial_fabric_det c on c.no_dok = a.no_dok) a INNER JOIN whs_lokasi_inmaterial b on b.no_dok = a.no_dok and a.id_jo = b.id_jo and a.id_item = b.id_item where b.status = 'Y') a left join (select id_roll, no_rak, SUM(qty_out) qty_out from whs_bppb_det where status = 'Y' GROUP BY id_roll) b on b.id_roll = a.no_barcode and b.no_rak = a.kode_lok where (qty_aktual - coalesce(qty_out,0)) > 0 ORDER BY no_barcode asc) b on b.no_barcode = a.id_roll");
         $bppb_temp = BppbDetTemp::where('created_by',Auth::user()->name)->delete();
 
         $massage = $bppbno_int . ' Saved Succesfully';
@@ -930,41 +930,41 @@ class OutMaterialController extends Controller
         ->delete();
 
         if ($request['ROLL_edit'] == 'on') {
-           $unitStore1 = UnitLokasi::create([
+         $unitStore1 = UnitLokasi::create([
             'kode_lok' => $lokCode,
             'unit' => 'ROLL',
             'status' => 'Y',
         ]);
 
-       }
-       if ($request['BUNDLE_edit'] == 'on') {
-           $unitStore2 = UnitLokasi::create([
+     }
+     if ($request['BUNDLE_edit'] == 'on') {
+         $unitStore2 = UnitLokasi::create([
             'kode_lok' => $lokCode,
             'unit' => 'BUNDLE',
             'status' => 'Y',
         ]);
 
-       }
-       if ($request['BOX_edit'] == 'on') {
-           $unitStore3 = UnitLokasi::create([
+     }
+     if ($request['BOX_edit'] == 'on') {
+         $unitStore3 = UnitLokasi::create([
             'kode_lok' => $lokCode,
             'unit' => 'BOX',
             'status' => 'Y',
         ]);
 
-       }
-       if ($request['PACK_edit'] == 'on') {
-           $unitStore4 = UnitLokasi::create([
+     }
+     if ($request['PACK_edit'] == 'on') {
+         $unitStore4 = UnitLokasi::create([
             'kode_lok' => $lokCode,
             'unit' => 'PACK',
             'status' => 'Y',
         ]);
 
-       }
+     }
 
-       $timestamp = Carbon::now();
+     $timestamp = Carbon::now();
 
-       if ($request['ROLL_edit'] == 'on' || $request['BUNDLE_edit'] == 'on' || $request['BOX_edit'] == 'on' || $request['PACK_edit'] == 'on') {
+     if ($request['ROLL_edit'] == 'on' || $request['BUNDLE_edit'] == 'on' || $request['BOX_edit'] == 'on' || $request['PACK_edit'] == 'on') {
         $updateLokasi = MasterLokasi::where('id', $validatedRequest['txt_id'])->update([
             'kode_lok' => $lokCode,
             'area_lok' => $validatedRequest['txt_area'],
@@ -1100,6 +1100,9 @@ public function pdfoutmaterial(Request $request, $id)
 
         $id = $request['txt_idbppb'];
 
+        $bppb = DB::connection('mysql_sb')->select("select * from whs_bppb_h where id = '" . $id . "' LIMIT 1");
+        $bppbno_int = $bppb ? $bppb[0]->no_bppb : null;
+
         $updateInMaterial = BppbHeader::where('id', $request['txt_idbppb'])->update([
             'tgl_bppb' => $request['txt_tgl_bppb'],
             'jenis_pengeluaran' => $request['txt_jns_klr'],
@@ -1109,6 +1112,13 @@ public function pdfoutmaterial(Request $request, $id)
             'no_invoice' => $request['txt_invoice'],
             'no_po_subkon' => $request['txt_po_sub'],
             'catatan' => $request['txt_notes'],
+        ]);
+
+        DB::connection('mysql_sb')->table('bppb')
+        ->where('bppbno_int', $bppbno_int)
+        ->update([
+            'bppbdate'    => $request['txt_tgl_bppb'],
+            'jenis_trans'    => $request['txt_jns_klr'],
         ]);
 
         $massage = 'Edit Data Successfully';
@@ -1260,9 +1270,17 @@ public function pdfoutmaterial(Request $request, $id)
         $timestamp = Carbon::now();
         $no_bppb = $request['m_no_bppb2'];
         $bppb_temp_det = [];
+        $sumQty = [];
         $data_aktual = 0;
         for ($i = 1; $i <= $request['tot_roll']; $i++) {
             if ($request["qty_out"][$i] > 0) {
+
+                $barcode_in = DB::connection('mysql_sb')->select("select no_roll_buyer, IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price from whs_lokasi_inmaterial where no_barcode = '" . $request["id_roll"][$i] . "' ORDER BY id ASC LIMIT 1");
+                $no_roll_buyer = $barcode_in ? $barcode_in[0]->no_roll_buyer : null;
+                $np_curr = $barcode_in ? $barcode_in[0]->np_curr : null;
+                $np_tgl_in = $barcode_in ? $barcode_in[0]->np_tgl_in : null;
+                $np_price = $barcode_in ? $barcode_in[0]->np_price : null;
+
                 array_push($bppb_temp_det, [
                     "no_bppb" => $no_bppb ,
                     "id_roll" => $request["id_roll"][$i],
@@ -1289,13 +1307,41 @@ public function pdfoutmaterial(Request $request, $id)
                     "tgl_aju_in" => '',
                     "no_daftar_in" => '',
                     "tgl_daftar_in" => '',
+                    "np_curr" => $np_curr,
+                    "np_tgl_in" => $np_tgl_in,
+                    "np_price" => $np_price,
+                    "np_curr_rev" => null,
+                    "np_price_rev" => null,
                 ]);
+
+                $groupKey = $no_bppb . '-' . $request["id_item"][$i] . '-' . $request["id_jo"][$i];
+
+                if (!isset($sumQty[$groupKey])) {
+                    $sumQty[$groupKey] = 0;
+                }
+
+                $sumQty[$groupKey] += $request['qty_out'][$i];
             }
         }
 
         // dd($bppb_temp_det);
 
         $BppbdetStore = BppbDet::insert($bppb_temp_det);
+
+        foreach ($sumQty as $groupKey => $totalQty) {
+
+            list($bppbno_int, $id_item, $id_jo) = explode('-', $groupKey);
+
+            DB::connection('mysql_sb')
+            ->table('bppb')
+            ->where('bppbno_int', $bppbno_int)
+            ->where('id_item', $id_item)
+            ->where('id_jo', $id_jo)
+            ->update([
+                'qty_old' => DB::raw('qty'),
+                'qty'     => $totalQty,      
+            ]);
+        }
 
 
         $massage = 'Add data Succesfully';
@@ -1322,9 +1368,17 @@ public function pdfoutmaterial(Request $request, $id)
             $timestamp = Carbon::now();
             $no_bppb = $request['m_no_bppb'];
             $bppb_temp_det = [];
+            $sumQty = [];
             $data_aktual = 0;
             foreach ($qtyOut as $key => $value) {
                 if ($request['qty_out'][$key] > 0) {
+
+                    $barcode_in = DB::connection('mysql_sb')->select("select no_roll_buyer, IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price from whs_lokasi_inmaterial where no_barcode = '" . $request["id_roll"][$key] . "' ORDER BY id ASC LIMIT 1");
+                    $no_roll_buyer = $barcode_in ? $barcode_in[0]->no_roll_buyer : null;
+                    $np_curr = $barcode_in ? $barcode_in[0]->np_curr : null;
+                    $np_tgl_in = $barcode_in ? $barcode_in[0]->np_tgl_in : null;
+                    $np_price = $barcode_in ? $barcode_in[0]->np_price : null;
+
                     array_push($bppb_temp_det, [
                         "no_bppb" => $no_bppb,
                         "id_roll" => $request["id_roll"][$key],
@@ -1351,11 +1405,39 @@ public function pdfoutmaterial(Request $request, $id)
                         "tgl_aju_in" => '',
                         "no_daftar_in" => '',
                         "tgl_daftar_in" => '',
+                        "np_curr" => $np_curr,
+                        "np_tgl_in" => $np_tgl_in,
+                        "np_price" => $np_price,
+                        "np_curr_rev" => null,
+                        "np_price_rev" => null,
                     ]);
+
+                    $groupKey = $no_bppb . '-' . $request["id_item"][$key] . '-' . $request["id_jo"][$key];
+
+                    if (!isset($sumQty[$groupKey])) {
+                        $sumQty[$groupKey] = 0;
+                    }
+
+                    $sumQty[$groupKey] += $request['qty_out'][$key];
                 }
             }
 
             $BppbdetStore = BppbDet::insert($bppb_temp_det);
+
+            foreach ($sumQty as $groupKey => $totalQty) {
+
+                list($bppbno_int, $id_item, $id_jo) = explode('-', $groupKey);
+
+                DB::connection('mysql_sb')
+                ->table('bppb')
+                ->where('bppbno_int', $bppbno_int)
+                ->where('id_item', $id_item)
+                ->where('id_jo', $id_jo)
+                ->update([
+                    'qty_old' => DB::raw('qty'),
+                    'qty'     => $totalQty,      
+                ]);
+            }
 
 
             $massage = 'Add data Succesfully';

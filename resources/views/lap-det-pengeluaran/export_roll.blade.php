@@ -18,7 +18,9 @@
             <th>Tujuan</th>
             <th>No barcode</th>
             <th>No Roll</th>
+            <th>No Roll Buyer</th>
             <th>No Lot</th>
+            <th>Lokasi</th>
             <th>Qty Out</th>
             <th>Unit</th>
             <th>Id Item</th>
@@ -48,7 +50,9 @@
                 <td>{{ $item->tujuan }}</td>
                 <td>{{ $item->no_barcode }}</td>
                 <td>{{ $item->no_roll }}</td>
+                <td>{{ $item->no_roll_buyer }}</td>
                 <td>{{ $item->no_lot }}</td>
+                <td>{{ $item->rak }}</td>
                 <td style="text-align: right;">{{ $item->qty_out }}</td>
                 <td>{{ $item->unit }}</td>
                 <td>{{ $item->id_item }}</td>

@@ -536,7 +536,7 @@ public function updatedet(Request $request)
                 'qty_reject' => $request["qty_reject"][$i],
             ]);
 
-            $get_det_bpb = DB::connection('mysql_sb')->select("select id_item, id_jo from whs_inmaterial_fabric_det where id = '" .$request['txt_idgr']. "'");
+            $get_det_bpb = DB::connection('mysql_sb')->select("select id_item, id_jo from whs_inmaterial_fabric_det where id = '" .$request["id_det"][$i]. "'");
             $sb_id_item = $get_det_bpb ? $get_det_bpb[0]->id_item : 0;
             $sb_id_jo = $get_det_bpb ? $get_det_bpb[0]->id_jo : 0;
 

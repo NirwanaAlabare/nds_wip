@@ -56,7 +56,7 @@ class ExportLaporanPengeluaranRoll implements FromView, WithEvents, ShouldAutoSi
 // left join act_costing ac on so.id_cost=ac.id  
 // where LEFT(a.no_bppb,2) = 'GK' and b.status != 'N' and a.status != 'cancel' and a.tgl_bppb >= '" . $this->from . "' and a.tgl_bppb <= '" . $this->to . "' and matclass= 'FABRIC' GROUP BY b.id order by a.no_bppb) a");
 
-$data = DB::connection('mysql_sb')->select("select * , CONCAT_WS('',no_bppb,tgl_bppb,no_req,tujuan,no_barcode,no_roll,no_lot,qty_out,unit,id_item,id_jo,ws,goods_code,itemdesc,color,size,remark,username,confirm_by)cari_data from (select br.idws_act,ac.styleno,a.no_bppb,a.tgl_bppb,a.no_req,a.tujuan,b.id_roll no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_out,4) qty_out, b.satuan unit,b.id_item,b.id_jo,ac.kpno ws,goods_code,concat(itemdesc,' ',add_info) itemdesc,s.color,s.size,a.catatan remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by
+$data = DB::connection('mysql_sb')->select("select * , CONCAT_WS('',no_bppb,tgl_bppb,no_req,tujuan,no_barcode,no_roll,no_lot,qty_out,unit,id_item,id_jo,ws,goods_code,itemdesc,color,size,remark,username,confirm_by)cari_data from (select br.idws_act,ac.styleno,a.no_bppb,a.tgl_bppb,a.no_req,a.tujuan,b.id_roll no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_out,4) qty_out, b.satuan unit,b.id_item,b.id_jo,ac.kpno ws,goods_code,concat(itemdesc,' ',add_info) itemdesc,s.color,s.size,a.catatan remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by, CONCAT(no_rak,' FABRIC WAREHOUSE RACK') rak, b.no_roll_buyer
 from whs_bppb_h a 
 inner join whs_bppb_det b on b.no_bppb = a.no_bppb
 inner join masteritem s on b.id_item=s.id_item 
@@ -66,7 +66,8 @@ left join so on tmpjod.id_so=so.id
 left join act_costing ac on so.id_cost=ac.id  
 where LEFT(a.no_bppb,2) = 'GK' and b.status != 'N' and a.status != 'cancel' and a.tgl_bppb BETWEEN  '" . $this->from . "' and '" . $this->to . "' GROUP BY b.id order by a.no_bppb) a
 UNION
-select * , CONCAT_WS('',no_bppb,tgl_bppb,no_req,tujuan,no_barcode,no_roll,no_lot,qty_out,unit,id_item,id_jo,ws,goods_code,itemdesc,color,size,remark,username,confirm_by)cari_data from (select '' ws_aktual, ac.styleno,a.no_mut no_bppb,a.tgl_mut tgl_bppb,'' no_req,'Mutasi Lokasi' tujuan,c.no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_mutasi,4) qty_out, b.unit,b.id_item,c.id_jo,ac.kpno ws,goods_code,concat(itemdesc,' ',add_info) itemdesc,s.color,s.size,a.deskripsi remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by
+select * , CONCAT_WS('',no_bppb,tgl_bppb,no_req,tujuan,no_barcode,no_roll,no_lot,qty_out,unit,id_item,id_jo,ws,goods_code,itemdesc,color,size,remark,username,confirm_by)cari_data from (select '' ws_aktual, ac.styleno,a.no_mut no_bppb,a.tgl_mut tgl_bppb,'' no_req,'Mutasi Lokasi' tujuan,c.no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_mutasi,4) qty_out, b.unit,b.id_item,c.id_jo,ac.kpno ws,goods_code,concat(itemdesc,' ',add_info) itemdesc,s.color,s.size,a.deskripsi remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by, CONCAT(b.
+rak_asal,' FABRIC WAREHOUSE RACK') rak, b.no_roll_buyer
 from whs_mut_lokasi_h a 
 inner join whs_mut_lokasi b on b.no_mut = a.no_mut
 inner join (select no_barcode,no_dok,id_jo,id_item,'-' curr, '0' price,satuan unit FROM whs_lokasi_inmaterial GROUP BY no_barcode UNION
@@ -74,6 +75,7 @@ select no_barcode,no_bpb,id_jo,id_item,'-' curr, '0' price,unit FROM whs_sa_fabr
 inner join masteritem s on b.id_item=s.id_item 
 left join (select id_jo,id_so from jo_det group by id_jo ) tmpjod on tmpjod.id_jo=c.id_jo 
 left join so on tmpjod.id_so=so.id 
+
 left join act_costing ac on so.id_cost=ac.id  
 where b.status != 'N' and a.status != 'cancel' and a.tgl_mut BETWEEN  '" . $this->from . "' and '" . $this->to . "' GROUP BY b.id order by a.no_mut) a");
 
@@ -103,7 +105,7 @@ where b.status != 'N' and a.status != 'cancel' and a.tgl_mut BETWEEN  '" . $this
     {
 
         $event->sheet->styleCells(
-            'A3:T' . $event->getConcernable()->rowCount,
+            'A3:X' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [
