@@ -6139,7 +6139,7 @@ class StockerController extends Controller
 
                 $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
 
-                return $pdf->download(str_replace("/", "_", $fileName));;
+                return $pdf->download(str_replace("/", "_", $fileName));
             }
 
             return array(

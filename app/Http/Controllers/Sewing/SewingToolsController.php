@@ -40,6 +40,7 @@ use App\Exports\Sewing\CheckOutputDetailListExport;
 use Carbon\Carbon;
 use DB;
 use Excel;
+use PDF;
 
 class SewingToolsController extends Controller
 {
@@ -3363,4 +3364,64 @@ class SewingToolsController extends Controller
         }
     }
 
+    public function printLineLabel() {
+        $customPaper = array(0, 0, 35.35, 110.90);
+        $data = [
+            'LINE 01',
+            'LINE 02',
+            'LINE 03',
+            'LINE 04',
+            'LINE 05',
+            'LINE 06',
+            'LINE 07',
+            'LINE 08',
+            'LINE 09',
+            'LINE 10',
+            'LINE 11',
+            'LINE 12',
+            'LINE 13',
+            'LINE 14',
+            'LINE 15',
+            'LINE 16',
+            'LINE 17',
+            'LINE 18',
+            'LINE 19',
+            'LINE 20',
+            'LINE 21',
+            'LINE 22',
+            'LINE 23',
+            'LINE 24',
+            'LINE 25',
+            'LINE 26',
+            'LINE 27',
+            'LINE 28',
+            'LINE 29',
+            'LINE 30',
+            'LINE 31',
+            'LINE 32',
+            'LINE 33',
+            'LINE 34',
+            'LINE 35',
+            'LINE 36',
+            'LINE 37',
+            'LINE 38',
+            'LINE 39',
+            'LINE 40',
+            'LINE 41',
+            'LINE 42',
+            'LINE 43',
+            'LINE 44',
+            'LINE 45',
+            'CUTTING',
+            'MENDING',
+            'SPOT CLEANING',
+            'IT',
+            'DC'
+        ];
+        $pdf = PDF::loadView('sewing.pdf.print-line-label', ["data" => $data])->setPaper($customPaper);
+
+        $fileName = str_replace("/", "-", ('Line Label.pdf'));
+
+        return $pdf->download(str_replace("/", "_", $fileName));
+    }
 }

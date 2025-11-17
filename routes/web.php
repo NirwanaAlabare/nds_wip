@@ -1296,7 +1296,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/check-output-detail-list', 'checkOutputDetailList')->name("check-output-detail-list");
         Route::post('/check-output-detail-export', 'checkOutputDetailExport')->name("check-output-detail-export");
 
-
         Route::get('/line-migration', 'lineMigration')->name("line-migration");
         Route::post('/line-migration-submit', 'lineMigrationSubmit')->name("line-migration-submit");
 
@@ -1314,6 +1313,8 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/undo-defect-in-out', 'undoDefectInOut')->name("undo-defect-in-out");
         Route::post('/undo-defect-in-out-submit', 'undoDefectInOutSubmit')->name("undo-defect-in-out-submit");
+
+        Route::post('/print-line-label', 'printLineLabel')->name("print-line-label");
     });
 
     // Mutasi Mesin
