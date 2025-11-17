@@ -1803,7 +1803,7 @@
 
             let totalPemakaian = ((pActualConverted * lembarGelaranVar) + sambunganRollVar + sisaGelaranVar);
 
-            document.getElementById("current_pemakaian_lembar").value = Number(totalPemakaian).round(2);
+            document.getElementById("current_pemakaian_lembar").value = totalPemakaian ? Number(totalPemakaian).round(2) : 0;
         }
 
         // -Calculate Total Pemakaian Roll-
@@ -1875,7 +1875,7 @@
 
             let totalPemakaian = ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + pipingVar + sambunganRollVar);
 
-            document.getElementById("current_total_pemakaian_roll").value = Number(totalPemakaian).round(2);
+            document.getElementById("current_total_pemakaian_roll").value = totalPemakaian ? Number(totalPemakaian).round(2) : 0;
         }
 
         // -Calculate Short Roll-
@@ -1920,7 +1920,7 @@
             }
 
             // let shortRoll = pActualConverted * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
-            let shortRoll = ((pActualConverted * lembarGelaranVar) + sambunganVar + sisaGelaranVar + sambunganRollVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar) - qtyVar;
+            let shortRoll = Number(((pActualConverted * lembarGelaranVar) + sambunganVar + sisaGelaranVar + sambunganRollVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar) - qtyVar).round(2);
 
             if (sambunganVar != 0) {
                 shortRoll = 0;
