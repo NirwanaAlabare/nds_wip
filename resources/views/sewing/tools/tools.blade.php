@@ -129,6 +129,15 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4">
+                    <a type="button" onclick="printLineLabel()" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-print"></i> Print Line Label</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -261,7 +270,7 @@
                         url: "{{ route('sewing-miss-masterplan') }}",
                         data: {
                             update_origin: (result.isConfirmed ? true : (result.isDenied ? false : false))
-                        },  
+                        },
                         dataType: "json",
                         success: function(response) {
                             console.log(response);
@@ -513,6 +522,51 @@
                         confirmButtonText: 'Oke',
                         confirmButtonColor: "#082149",
                     });
+                }
+            });
+        }
+
+        function printLineLabel() {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...  <br><br> <b>0</b>s elapsed...',
+                didOpen: () => {
+                    Swal.showLoading();
+
+                    let estimatedTime = 0;
+                    const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                    estimatedTimeInterval = setInterval(() => {
+                        estimatedTime++;
+                        estimatedTimeElement.textContent = estimatedTime;
+                    }, 1000);
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                url: '{{ route('print-line-label') }}',
+                type: 'post',
+                xhrFields:
+                {
+                    responseType: 'blob'
+                },
+                success: function(res) {
+                    if (res) {
+                        console.log(res);
+
+                        var blob = new Blob([res], {type: 'application/pdf'});
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "Line Label.pdf";
+                        link.click();
+                    }
+
+                    Swal.close();
+                },
+                error: function(jqXHR) {
+                    console.error(jqXHR)
+
+                    Swal.close();
                 }
             });
         }

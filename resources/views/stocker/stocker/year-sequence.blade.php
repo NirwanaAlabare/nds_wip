@@ -792,14 +792,14 @@
 
                         clearInterval(estimatedTimeInterval);
                     }
-                    });
+                });
 
-                    rangeI += qtyI;
-                }
+                rangeI += qtyI;
+            }
 
-                // window.location.reload();
+            // window.location.reload();
 
-                swal.close();
+            swal.close();
         }
 
         async function printYearSequenceAjax(method, year, yearSequence, rangeAwal, rangeAkhir) {
