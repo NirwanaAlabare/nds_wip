@@ -1048,20 +1048,32 @@
                     success: function(res) {
                         document.getElementById("loading").classList.add("d-none");
 
-                        if (res && res.qty > 0) {
-                            setSpreadingForm(res, true);
-                        } else {
+                        if (res && res.status && res.status == 400) {
                             Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal',
-                                text: 'Roll tidak tersedia atau sudah habis.',
+                                icon: 'info',
+                                title: 'Info',
+                                text: 'Data sudah memiliki Stocker.',
                                 showCancelButton: false,
                                 showConfirmButton: true,
                                 confirmButtonText: 'Oke',
                             });
+                        } else {
+                            if (res && res.qty > 0) {
+                                setSpreadingForm(res, true);
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: 'Roll tidak tersedia atau sudah habis.',
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                });
 
-                            document.getElementById("current_id_roll").value = document.getElementById("current_id_roll_ori").value;
+                                document.getElementById("current_id_roll").value = document.getElementById("current_id_roll_ori").value;
+                            }
                         }
+
                     }, error: function(jqXHR) {
                         Swal.fire({
                             icon: 'error',
@@ -1757,7 +1769,7 @@
 
             let estAmpar = pActualConverted > 0 ? qtyVar / pActualConverted : 0;
 
-            document.getElementById("current_est_amparan").value = estAmpar;
+            document.getElementById("current_est_amparan").value = Number(estAmpar).round(2);
         }
 
         // -Calculate Pemakaian Lembar
@@ -1791,7 +1803,7 @@
 
             let totalPemakaian = ((pActualConverted * lembarGelaranVar) + sambunganRollVar + sisaGelaranVar);
 
-            document.getElementById("current_pemakaian_lembar").value = totalPemakaian;
+            document.getElementById("current_pemakaian_lembar").value = totalPemakaian ? Number(totalPemakaian).round(2) : 0;
         }
 
         // -Calculate Total Pemakaian Roll-
@@ -1863,7 +1875,7 @@
 
             let totalPemakaian = ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + pipingVar + sambunganRollVar);
 
-            document.getElementById("current_total_pemakaian_roll").value = totalPemakaian;
+            document.getElementById("current_total_pemakaian_roll").value = totalPemakaian ? Number(totalPemakaian).round(2) : 0;
         }
 
         // -Calculate Short Roll-
@@ -1908,7 +1920,7 @@
             }
 
             // let shortRoll = pActualConverted * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
-            let shortRoll = ((pActualConverted * lembarGelaranVar) + sambunganVar + sisaGelaranVar + sambunganRollVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar) - qtyVar;
+            let shortRoll = Number(((pActualConverted * lembarGelaranVar) + sambunganVar + sisaGelaranVar + sambunganRollVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar) - qtyVar).round(2);
 
             if (sambunganVar != 0) {
                 shortRoll = 0;
@@ -1934,8 +1946,8 @@
                 }
             }
 
-            document.getElementById("current_short_roll").value = isNaN(shortRoll) ? 0 : shortRoll;
-            document.getElementById("current_short_roll_percentage").value = isNaN(shortRollPercentage) ? 0 : shortRollPercentage;
+            document.getElementById("current_short_roll").value = isNaN(shortRoll) ? 0 : Number(shortRoll).round(2);
+            document.getElementById("current_short_roll_percentage").value = isNaN(shortRollPercentage) ? 0 : Number(shortRollPercentage).round(2);
         }
 
         // -Calculate Sisa Kain-
@@ -2216,7 +2228,7 @@
                                 }
                             }
                         }, error: function (jqXHR) {
-                            document.getElementById("loading").classList.remove("d-none");
+                            document.getElementById("loading").classList.add("d-none");
 
                             let res = jqXHR.responseJSON;
                             let message = '';
@@ -2275,20 +2287,32 @@
                 success: function(res) {
                     document.getElementById("loading").classList.add("d-none");
 
-                    if (res) {
+                    if (res && res.status && res.status == 400) {
                         Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil',
-                            text: 'Data berhasil diubah',
+                            icon: 'info',
+                            title: 'Info',
+                            text: 'Data sudah memiliki Stocker.',
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
-                            timer: 5000,
-                            timerProgressBar: true
-                        }).then((result) => {
-                            location.reload();
-                        })
+                        });
+                    } else {
+                        if (res) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: 'Data berhasil diubah',
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                                timer: 5000,
+                                timerProgressBar: true
+                            }).then((result) => {
+                                location.reload();
+                            })
+                        }
                     }
+
                 },
                 error: function(jqXHR) {
                     document.getElementById("loading").classList.add("d-none");
@@ -2324,14 +2348,27 @@
                 dataType: 'json',
                 data: dataObj,
                 success: async function(res) {
-                    if (res) {
-                        await clearSpreadingForm();
-
-                        await getSummary(true);
-
-                        await finishProcess();
-                    } else {
+                    if (res && res.status && res.status == 400) {
                         document.getElementById("loading").classList.add("d-none");
+
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Info',
+                            text: 'Data sudah memiliki Stocker.',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        });
+                    } else {
+                        if (res) {
+                            await clearSpreadingForm();
+
+                            await getSummary(true);
+
+                            await finishProcess();
+                        } else {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
                     }
                 },
                 error: function(jqXHR) {
@@ -2377,14 +2414,27 @@
                 dataType: 'json',
                 data: dataObj,
                 success: async function(res) {
-                    if (res) {
-                        await clearSpreadingForm();
-
-                        await getSummary(true);
-
-                        await finishProcess();
-                    } else {
+                    if (res && res.status && res.status == 400) {
                         document.getElementById("loading").classList.add("d-none");
+
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Info',
+                            text: 'Data sudah memiliki Stocker.',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        });
+                    } else {
+                        if (res) {
+                            await clearSpreadingForm();
+
+                            await getSummary(true);
+
+                            await finishProcess();
+                        } else {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
                     }
                 },
                 error: function(jqXHR) {

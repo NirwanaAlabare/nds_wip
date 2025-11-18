@@ -392,7 +392,7 @@
 
                     <div class="col-md-12">
                         <input type="text" class="form-control " id="m_no_bppb" name="m_no_bppb" value="" readonly>
-                        <input type="text" class="form-control " id="m_tgl_bppb" name="m_tgl_bppb" value="" readonly>
+                        <input type="hidden" class="form-control " id="m_tgl_bppb" name="m_tgl_bppb" value="" readonly>
                         <input type="hidden" class="form-control " id="t_roll" name="t_roll" value="" readonly>
                     <div class="row">
                         <div class="col-4 col-md-4">
