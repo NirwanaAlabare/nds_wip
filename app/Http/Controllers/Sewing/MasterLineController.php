@@ -157,7 +157,7 @@ class MasterLineController extends Controller
             "technical_name" => "nullable",
         ]);
 
-        if ($validatedRequest["chief_id"] || $validatedRequest["leader_id"]) {
+        // if ($validatedRequest["chief_id"] || $validatedRequest["leader_id"]) {
             $storeEmployeeLine = EmployeeLine::create([
                 "tanggal" => $validatedRequest["tanggal"],
                 "line_id" => $validatedRequest["line_id"],
@@ -271,7 +271,7 @@ class MasterLineController extends Controller
                     "additional" => [$storeEmployeeLine],
                 );
             }
-        }
+        // }
 
         return array(
             "status" => 400,
