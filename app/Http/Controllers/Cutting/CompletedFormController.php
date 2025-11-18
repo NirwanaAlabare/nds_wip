@@ -793,20 +793,20 @@ class CompletedFormController extends Controller
     }
 
     public function destroySpreadingRoll($id) {
-        $stockerForm = Stocker::where('form_cut_id', $id)->first();
-        if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
-            return array(
-                'status' => 400,
-                'message' => 'Form sudah memiliki stocker',
-                'redirect' => '',
-                'table' => 'datatable',
-                'additional' => [],
-            );
-        }
-
         $formCutDetail = FormCutInputDetail::find($id);
 
         if ($formCutDetail) {
+            $stockerForm = Stocker::where('form_cut_id', $formCutDetail->form_cut_id)->first();
+            if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
+                return array(
+                    'status' => 400,
+                    'message' => 'Form sudah memiliki stocker',
+                    'redirect' => '',
+                    'table' => 'datatable',
+                    'additional' => [],
+                );
+            }
+
             if ($formCutDetail->id_roll) {
                 $formCutDetailRoll = ScannedItem::where("id_roll", $formCutDetail->id_roll)->first();
 
