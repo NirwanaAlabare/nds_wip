@@ -347,6 +347,14 @@ order by po asc, no_carton asc
         $thn_bln_bppbno_int = date('my', strtotime($timestamp));
         $bppbno_int = 'FG/OUT/' . $thn_bln_bppbno_int . '/' . $bppbno_int_no_tr_fix;
 
+        $insert_fg_out_nds = DB::insert("INSERT into fg_fg_out
+        (no_sb,tgl_pengeluaran,buyer,id_ppic_master_so,id_so_det,barcode,qty,po,no_carton,lokasi,notes,dest,id_fg_in,jenis_dok,invno,remark,status,created_at,updated_at,created_by)
+select '$bppbno_int','$tgl_skrg',buyer,id_ppic_master_so,id_so_det,barcode,qty,a.po,a.no_carton,lokasi,a.notes,'$dest',a.id_fg_in,'$jns_dok','$inv','-','NORMAL','$timestamp','$timestamp','$user'
+from fg_fg_out_tmp	a
+inner join fg_fg_in b on a.id_fg_in = b.id
+where a.created_by = '$user'");
+
+
         $insert_fg_out_sb =  DB::connection('mysql_sb')->insert("INSERT into
                 bppb(bppbno,bppbno_int,bppbdate,id_item,id_so_det,qty,curr,price,username,unit,invno,id_supplier,print,status_retur,jenis_dok,confirm,dateinput,cancel,grade,stat_inv,status_input,id_buyer)
                 select
@@ -374,7 +382,7 @@ sd.price,
 '$id_buyer'
 from
 (
-select * from laravel_nds.fg_fg_out_tmp where po = '$po' and dest = '$dest' and no_carton >= '$ctn_awal' and no_carton <= '$ctn_akhir'
+select * from laravel_nds.fg_fg_out where no_sb = '$bppbno_int'
 ) a
 left join laravel_nds.fg_fg_in b on a.id_fg_in = b.id
 left join signalbit_erp.masterstyle ms on b.id_so_det = ms.id_so_det
@@ -382,14 +390,6 @@ left join signalbit_erp.so_det sd on b.id_so_det = sd.id
 left join signalbit_erp.so on sd.id_so = so.id
 left join signalbit_erp.act_costing ac on so.id_cost = ac.id
 group by b.id_so_det");
-
-
-        $insert_fg_out_nds = DB::insert("INSERT into fg_fg_out
-        (no_sb,tgl_pengeluaran,buyer,id_ppic_master_so,id_so_det,barcode,qty,po,no_carton,lokasi,notes,dest,id_fg_in,jenis_dok,invno,remark,status,created_at,updated_at,created_by)
-select '$bppbno_int','$tgl_skrg',buyer,id_ppic_master_so,id_so_det,barcode,qty,a.po,a.no_carton,lokasi,a.notes,'$dest',a.id_fg_in,'$jns_dok','$inv','-','NORMAL','$timestamp','$timestamp','$user'
-from fg_fg_out_tmp	a
-inner join fg_fg_in b on a.id_fg_in = b.id
-where a.created_by = '$user'");
 
         //         $update_karton =  DB::update("
         // update packing_master_carton a
