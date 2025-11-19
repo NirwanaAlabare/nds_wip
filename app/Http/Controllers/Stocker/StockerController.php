@@ -3897,7 +3897,7 @@ class StockerController extends Controller
 
     // Fixing Things...
     public function rearrangeGroup(Request $request) {
-        $formCutDetails = FormCutInputDetail::where("form_cut_id", $request->form_cut_id)->where("no_form_cut_input", $request->no_form)->orderBy("created_at", "asc")->get();
+        $formCutDetails = FormCutInputDetail::where("form_cut_id", $request->form_cut_id)->where("no_form_cut_input", $request->no_form)->orderBy("created_at", "asc")->orderBy("updated_at", "asc")->get();
 
         $currentGroup = "";
         $groupNumber = 0;
@@ -3978,7 +3978,7 @@ class StockerController extends Controller
     //         ]);
 
     //         // Adjust form cut detail data
-    //         $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->get();
+    //         $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->orderBy("updated_at", "asc")->get();
 
     //         $currentGroup = "";
     //         $currentGroupNumber = 0;
@@ -4301,7 +4301,7 @@ class StockerController extends Controller
         //         ]);
 
         //         // Adjust form cut detail data
-        //         $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->get();
+        //         $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->orderBy("updated_at", "asc")->get();
 
         //         $currentGroup = "";
         //         $currentGroupNumber = 0;

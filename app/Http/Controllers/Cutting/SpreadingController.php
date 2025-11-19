@@ -246,9 +246,9 @@ class SpreadingController extends Controller
             $bulan = substr($date, 5, 2);
             $now = Carbon::now();
 
-            $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderBy("created_at", "desc")->orderBy("id", "desc")->first();
+            $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderByRaw("CAST(SUBSTR(no_form, 7) as integer) desc")->first();
 
-            $urutan =  $lastForm ? (str_replace($hari."-".$bulan."-", "", $lastForm->no_form) + $i) : $i;
+            $urutan =  $lastForm ? (str_replace($hari."-".$bulan."-", "", $lastForm->no_form) + $i + 1) : $i;
 
             $no_form = "$hari-$bulan-$urutan";
 

@@ -167,7 +167,7 @@ class StockerService
                 ]);
 
                 // Adjust form cut detail data
-                $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->get();
+                $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->orderBy("updated_at", "asc")->get();
 
                 $currentGroup = "";
                 $currentGroupNumber = 0;
