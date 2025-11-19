@@ -1021,49 +1021,6 @@ class SecondaryInController extends Controller
             "txtqtyreject" => "required"
         ]);
 
-        if ($request['cborak']) {
-            $rak = DB::table('rack_detail')
-            ->select('id')
-            ->where('nama_detail_rak', '=', $request['cborak'])
-            ->get();
-            $rak_data = $rak ? $rak[0]->id : null;
-
-            $insert_rak = RackDetailStocker::create([
-                'nm_rak' => $request['cborak'],
-                'detail_rack_id' => $rak_data,
-                'stocker_id' => $request['txtno_stocker'],
-                'qty_in' => $request['txtqtyin'],
-                'created_at' => $timestamp,
-                'updated_at' => $timestamp,
-            ]);
-        }
-
-        if ($request['cbotrolley']) {
-            $lastTrolleyStock = TrolleyStocker::select('kode')->orderBy('id', 'desc')->first();
-            $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
-
-            $trolleyStockArr = [];
-
-            $thisStocker = Stocker::whereRaw("id_qr_stocker = '" . $request['txtno_stocker'] . "'")->first();
-            $thisTrolley = Trolley::where("nama_trolley", $request['cbotrolley'])->first();
-            if ($thisTrolley && $thisStocker) {
-                $trolleyCheck = TrolleyStocker::where('stocker_id', $thisStocker->id)->first();
-                if (!$trolleyCheck) {
-                    TrolleyStocker::create([
-                        "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber)),
-                        "trolley_id" => $thisTrolley->id,
-                        "stocker_id" => $thisStocker->id,
-                        "status" => "active",
-                        "tanggal_alokasi" => date('Y-m-d'),
-                    ]);
-                }
-
-                $thisStocker->status = "trolley";
-                $thisStocker->latest_alokasi = Carbon::now();
-                $thisStocker->save();
-            }
-        }
-
         $lastStep = Stocker::selectRaw("MAX(part_detail_secondary.urutan) as urutan")->
             leftJoin("part_detail_secondary", function ($join) {
                 $join->on("part_detail_secondary.part_detail_id", "=", "stocker_input.part_detail_id");
@@ -1073,8 +1030,50 @@ class SecondaryInController extends Controller
             groupBy("stocker_input.id")->
             value("urutan");
 
-        if ($lastStep) {
+        // Update Rak/Trolley (One Step Before Loading) On Last Step/No Step at all
+        if (!$lastStep || $lastStep == $request->txturutan) {
+            if ($request['cborak']) {
+                $rak = DB::table('rack_detail')
+                ->select('id')
+                ->where('nama_detail_rak', '=', $request['cborak'])
+                ->get();
+                $rak_data = $rak ? $rak[0]->id : null;
 
+                $insert_rak = RackDetailStocker::create([
+                    'nm_rak' => $request['cborak'],
+                    'detail_rack_id' => $rak_data,
+                    'stocker_id' => $request['txtno_stocker'],
+                    'qty_in' => $request['txtqtyin'],
+                    'created_at' => $timestamp,
+                    'updated_at' => $timestamp,
+                ]);
+            }
+
+            if ($request['cbotrolley']) {
+                $lastTrolleyStock = TrolleyStocker::select('kode')->orderBy('id', 'desc')->first();
+                $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
+
+                $trolleyStockArr = [];
+
+                $thisStocker = Stocker::whereRaw("id_qr_stocker = '" . $request['txtno_stocker'] . "'")->first();
+                $thisTrolley = Trolley::where("nama_trolley", $request['cbotrolley'])->first();
+                if ($thisTrolley && $thisStocker) {
+                    $trolleyCheck = TrolleyStocker::where('stocker_id', $thisStocker->id)->first();
+                    if (!$trolleyCheck) {
+                        TrolleyStocker::create([
+                            "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber)),
+                            "trolley_id" => $thisTrolley->id,
+                            "stocker_id" => $thisStocker->id,
+                            "status" => "active",
+                            "tanggal_alokasi" => date('Y-m-d'),
+                        ]);
+                    }
+
+                    $thisStocker->status = "trolley";
+                    $thisStocker->latest_alokasi = Carbon::now();
+                    $thisStocker->save();
+                }
+            }
         }
 
         $savein = SecondaryIn::updateOrCreate(
