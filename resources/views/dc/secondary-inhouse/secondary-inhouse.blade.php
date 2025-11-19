@@ -141,7 +141,12 @@
                                     <input type='number' class='form-control form-control-sm' id='txtqtyin' name='txtqtyin' value = '' readonly style = 'border-color:green;'>
                                 </div>
                             </div>
-
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Urutans</small></label>
+                                    <input type='number' class='form-control form-control-sm' id='txturutan' name='txturutan' value = '' readonly>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="row">
@@ -873,6 +878,8 @@
                 },
                 dataType: 'json',
                 success: function(response) {
+                    console.log("response", response);
+
                     document.getElementById('txtno_stocker').value = response.id_qr_stocker;
                     document.getElementById('txtno_form').value = response.no_form;
                     document.getElementById('txtws').value = response.act_costing_ws;
@@ -885,6 +892,7 @@
                     document.getElementById('txttujuan').value = response.tujuan;
                     document.getElementById('txtalokasi').value = response.lokasi;
                     document.getElementById('txtqtyawal').value = response.qty_awal;
+                    document.getElementById('txturutan').value = response.urutan;
                     // let txtqtyreject = $("#txtqtyreject").val();
                     // let txtqtyreplace = $("#txtqtyreplace").val();
                     // let txtqtyin = $("#txtqtyin").val();
@@ -923,6 +931,8 @@
 
                 },
                 error: function(request, status, error) {
+                    console.error(request, status, error);
+
                     Swal.fire({
                         icon: 'warning',
                         title: 'Data Tidak Ada',

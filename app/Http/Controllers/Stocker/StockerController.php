@@ -242,14 +242,16 @@ class StockerController extends Controller
                 part_detail.id,
                 master_part.nama_part,
                 master_part.bag,
-                COALESCE(master_secondary.tujuan, '-') tujuan,
-                COALESCE(master_secondary.proses, '-') proses
+                GROUP_CONCAT(DISTINCT COALESCE(master_secondary.tujuan, '-') SEPARATOR ' | ') tujuan,
+                GROUP_CONCAT(COALESCE(master_secondary.proses, '-') SEPARATOR ' | ') proses,
+                GROUP_CONCAT(DISTINCT CONCAT(COALESCE(master_secondary.tujuan, '-'), '|', COALESCE(master_secondary.proses, '-')) SEPARATOR ' , ') proses_tujuan
             ")->
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
             leftJoin("part", "part.id", "part_detail.part_id")->
             leftJoin("part_form", "part_form.part_id", "part.id")->
             leftJoin("form_cut_input", "form_cut_input.id", "part_form.form_id")->
-            leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
+            leftJoin("part_detail_secondary", "part_detail_secondary.part_detail_id", "=", "part_detail.id")->
+            leftJoin("master_secondary", "master_secondary.id", "=", "part_detail_secondary.master_secondary_id")->
             where("form_cut_input.id", $formCutId)->
             groupBy("master_part.id")->
             get();
@@ -735,6 +737,7 @@ class StockerController extends Controller
                         'qty_ply_mod' => (($request['group_stocker'][$index] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($i == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) + $modifySizeQty->difference_qty : null),
                         'qty_cut' => $request['qty_cut'][$index],
                         'notes' => $request['note'],
+                        'urutan' => 1,
                         'range_awal' => $cumRangeAwal,
                         'range_akhir' => (($request['group_stocker'][$index] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($i == ($request['ratio'][$index] - 1) && $modifySizeQty)  || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir),
                         'created_by' => Auth::user()->id,
@@ -1429,6 +1432,7 @@ class StockerController extends Controller
                                 'notes' => $request['note']." (Separated Stocker)",
                                 'range_awal' => $cumRangeAwal,
                                 'range_akhir' => $cumRangeAkhir,
+                                'urutan' => 1,
                                 'created_by' => Auth::user()->id,
                                 'created_by_username' => Auth::user()->username,
                                 'created_at' => Carbon::now(),

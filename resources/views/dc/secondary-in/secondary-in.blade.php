@@ -413,7 +413,13 @@
                         </div>
 
                         <div class="row">
-                            <div class='col-md-6' id="rak-input">
+                            <div class='col-md-4'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Urutans</small></label>
+                                    <input type='text' class='form-control' id='txturutan' name='txturutan' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-md-4' id="rak-input">
                                 <div class='form-group'>
                                     <label class='form-label'><small>Rak</small></label>
                                     <select class="form-control select2bs4" name="cborak" id="cborak" style="width: 100%;">
@@ -426,7 +432,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class='col-md-6' id="trolley-input">
+                            <div class='col-md-4' id="trolley-input">
                                 <div class='form-group'>
                                     <label class='form-label'><small>Trolley</small></label>
                                     <select class="form-control select2bs4" name="cbotrolley" id="cbotrolley" style="width: 100%;">
@@ -439,7 +445,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class='col-md-6'>
+                            <div class='col-md-4'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Keterangan</small></label>
                                     <input type='text' class='form-control' id='txtket' name='txtket' value='' style = 'border-color:blue;' autocomplete="off">
@@ -1155,6 +1161,7 @@
                     document.getElementById('txttujuan').value = response.tujuan;
                     document.getElementById('txtalokasi').value = response.lokasi;
                     document.getElementById('txtqtyawal').value =  response.qty_awal;
+                    document.getElementById('txturutan').value = response.urutan;
 
                     console.log(response.tempat_tujuan);
 
@@ -1209,7 +1216,7 @@
 
                     Swal.fire({
                         icon: 'warning',
-                        title: 'Data Tidak Ada',
+                        title: request.responseText ? request.responseText : 'Data Tidak Ada',
                         showConfirmButton: true,
                     })
                 },
@@ -1247,7 +1254,7 @@
                 error: function(request, status, error) {
                     Swal.fire({
                         icon: 'warning',
-                        title: 'Data Tidak Ada',
+                        title: request.responseText ? request.responseText : 'Data Tidak Ada',
                         showConfirmButton: true,
                     })
                 },

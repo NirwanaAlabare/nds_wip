@@ -5,6 +5,7 @@ namespace App\Http\Controllers\DC;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Stocker\Stocker;
 use App\Models\Dc\SecondaryInhouse;
 use App\Exports\DC\ExportSecondaryInHouse;
 use App\Exports\DC\ExportSecondaryInHouseDetail;
@@ -83,41 +84,76 @@ class SecondaryInhouseController extends Controller
             }
 
             $data_input = DB::select("
-                SELECT a.*,
-                (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
-                DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
-                a.tgl_trans,
-                s.act_costing_ws,
-                s.color,
-                p.buyer,
-                p.style,
-                a.qty_awal,
-                a.qty_reject,
-                a.qty_replace,
-                a.qty_in,
-                a.created_at,
-                dc.tujuan,
-                dc.lokasi,
-                dc.tempat,
-                COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
-                COALESCE(msb.size, s.size) size,
-                a.user,
-                mp.nama_part,
-                CONCAT(s.range_awal, ' - ', s.range_akhir, (CASE WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range
-                from secondary_inhouse_input a
-                left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
-                left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-                left join form_cut_input f on f.id = s.form_cut_id
-                left join form_cut_reject fr on fr.id = s.form_reject_id
-                left join form_cut_piece fp on fp.id = s.form_piece_id
-                left join part_detail pd on s.part_detail_id = pd.id
-                left join part p on pd.part_id = p.id
-                left join master_part mp on mp.id = pd.master_part_id
-                left join (select id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
-                where
-                a.tgl_trans is not null
-                ".$additionalQuery."
-                order by a.tgl_trans desc
+                SELECT
+                    a.*,
+                    (CASE WHEN fp.id > 0 THEN 'PIECE'
+                            WHEN fr.id > 0 THEN 'REJECT'
+                            ELSE 'NORMAL' END) AS tipe,
+                    DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') AS tgl_trans_fix,
+                    a.tgl_trans,
+                    s.act_costing_ws,
+                    s.color,
+                    p.buyer,
+                    p.style,
+                    COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
+                    COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
+                    COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
+                    COALESCE(mx.qty_akhir, a.qty_in) qty_in,
+                    a.created_at,
+                    COALESCE(mx.tujuan, dc.tujuan) as tujuan,
+                    COALESCE(mx.proses, dc.lokasi) lokasi,
+                    dc.tempat,
+                    COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
+                    COALESCE(msb.size, s.size) AS size,
+                    a.user,
+                    mp.nama_part,
+                    CONCAT(
+                        s.range_awal, ' - ', s.range_akhir,
+                        CASE
+                        WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL
+                            THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ')
+                        ELSE ' (0)'
+                        END
+                    ) AS stocker_range_old,
+                    CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range
+                FROM secondary_inhouse_input a
+                LEFT JOIN (
+                    SELECT
+                        secondary_inhouse_input.id_qr_stocker,
+                        MAX(qty_awal) as qty_awal,
+                        SUM(qty_reject) qty_reject,
+                        SUM(qty_replace) qty_replace,
+                        (MAX(qty_awal) - SUM(qty_reject) + SUM(qty_replace)) as qty_akhir,
+                        MAX(secondary_inhouse_input.urutan) AS max_urutan,
+                        GROUP_CONCAT(master_secondary.tujuan SEPARATOR ' | ') as tujuan,
+                        GROUP_CONCAT(master_secondary.proses SEPARATOR ' | ') as proses
+                    FROM secondary_inhouse_input
+                    LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_inhouse_input.id_qr_stocker
+                    LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id and part_detail_secondary.urutan = secondary_inhouse_input.urutan
+                    LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
+                    GROUP BY id_qr_stocker
+                    having MAX(secondary_inhouse_input.urutan) is not null
+                ) mx ON a.id_qr_stocker = mx.id_qr_stocker AND a.urutan = mx.max_urutan
+                LEFT JOIN stocker_input s ON a.id_qr_stocker = s.id_qr_stocker
+                LEFT JOIN master_sb_ws msb ON msb.id_so_det = s.so_det_id
+                LEFT JOIN form_cut_input f ON f.id = s.form_cut_id
+                LEFT JOIN form_cut_reject fr ON fr.id = s.form_reject_id
+                LEFT JOIN form_cut_piece fp ON fp.id = s.form_piece_id
+                LEFT JOIN part_detail pd ON s.part_detail_id = pd.id
+                LEFT JOIN part p ON pd.part_id = p.id
+                LEFT JOIN master_part mp ON mp.id = pd.master_part_id
+                LEFT JOIN (
+                    SELECT id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat
+                    FROM dc_in_input
+                ) dc ON a.id_qr_stocker = dc.id_qr_stocker
+                WHERE
+                    a.tgl_trans IS NOT NULL
+                    AND (
+                        a.urutan IS NULL
+                        OR a.urutan = mx.max_urutan
+                    )
+                    $additionalQuery
+                ORDER BY a.tgl_trans DESC
             ");
 
             return DataTables::of($data_input)->toJson();
@@ -138,41 +174,76 @@ class SecondaryInhouseController extends Controller
         }
 
         $data_input = collect(DB::select("
-            SELECT a.*,
-            (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
-            DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
-            a.tgl_trans,
-            s.act_costing_ws,
-            s.color,
-            p.buyer,
-            p.style,
-            a.qty_awal,
-            a.qty_reject,
-            a.qty_replace,
-            a.qty_in,
-            a.created_at,
-            dc.tujuan,
-            dc.lokasi,
-            dc.tempat,
-            COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
-            COALESCE(msb.size, s.size) size,
-            a.user,
-            mp.nama_part,
-            CONCAT(s.range_awal, ' - ', s.range_akhir, (CASE WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range
-            from secondary_inhouse_input a
-            left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
-            left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-            left join form_cut_input f on f.id = s.form_cut_id
-            left join form_cut_reject fr on fr.id = s.form_reject_id
-            left join form_cut_piece fp on fp.id = s.form_piece_id
-            left join part_detail pd on s.part_detail_id = pd.id
-            left join part p on pd.part_id = p.id
-            left join master_part mp on mp.id = pd.master_part_id
-            left join (select id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
-            where
-            a.tgl_trans is not null
-            ".$additionalQuery."
-            order by a.tgl_trans desc
+            SELECT
+                a.*,
+                (CASE WHEN fp.id > 0 THEN 'PIECE'
+                        WHEN fr.id > 0 THEN 'REJECT'
+                        ELSE 'NORMAL' END) AS tipe,
+                DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') AS tgl_trans_fix,
+                a.tgl_trans,
+                s.act_costing_ws,
+                s.color,
+                p.buyer,
+                p.style,
+                COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
+                COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
+                COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
+                COALESCE(mx.qty_akhir, a.qty_in) qty_in,
+                a.created_at,
+                COALESCE(mx.tujuan, dc.tujuan) as tujuan,
+                COALESCE(mx.proses, dc.lokasi) lokasi,
+                dc.tempat,
+                COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
+                COALESCE(msb.size, s.size) AS size,
+                a.user,
+                mp.nama_part,
+                CONCAT(
+                    s.range_awal, ' - ', s.range_akhir,
+                    CASE
+                    WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL
+                        THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ')
+                    ELSE ' (0)'
+                    END
+                ) AS stocker_range_old,
+                CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range
+            FROM secondary_inhouse_input a
+            LEFT JOIN (
+                SELECT
+                    secondary_inhouse_input.id_qr_stocker,
+                    MAX(qty_awal) as qty_awal,
+                    SUM(qty_reject) qty_reject,
+                    SUM(qty_replace) qty_replace,
+                    (MAX(qty_awal) - SUM(qty_reject) + SUM(qty_replace)) as qty_akhir,
+                    MAX(secondary_inhouse_input.urutan) AS max_urutan,
+                    GROUP_CONCAT(master_secondary.tujuan SEPARATOR ' | ') as tujuan,
+                    GROUP_CONCAT(master_secondary.proses SEPARATOR ' | ') as proses
+                FROM secondary_inhouse_input
+                LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_inhouse_input.id_qr_stocker
+                LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id and part_detail_secondary.urutan = secondary_inhouse_input.urutan
+                LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
+                GROUP BY id_qr_stocker
+                having MAX(secondary_inhouse_input.urutan) is not null
+            ) mx ON a.id_qr_stocker = mx.id_qr_stocker AND a.urutan = mx.max_urutan
+            LEFT JOIN stocker_input s ON a.id_qr_stocker = s.id_qr_stocker
+            LEFT JOIN master_sb_ws msb ON msb.id_so_det = s.so_det_id
+            LEFT JOIN form_cut_input f ON f.id = s.form_cut_id
+            LEFT JOIN form_cut_reject fr ON fr.id = s.form_reject_id
+            LEFT JOIN form_cut_piece fp ON fp.id = s.form_piece_id
+            LEFT JOIN part_detail pd ON s.part_detail_id = pd.id
+            LEFT JOIN part p ON pd.part_id = p.id
+            LEFT JOIN master_part mp ON mp.id = pd.master_part_id
+            LEFT JOIN (
+                SELECT id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat
+                FROM dc_in_input
+            ) dc ON a.id_qr_stocker = dc.id_qr_stocker
+            WHERE
+                a.tgl_trans IS NOT NULL
+                AND (
+                    a.urutan IS NULL
+                    OR a.urutan = mx.max_urutan
+                )
+                $additionalQuery
+            ORDER BY a.tgl_trans DESC
         "));
 
         $tipe = $data_input->groupBy("tipe")->keys();
@@ -241,6 +312,23 @@ class SecondaryInhouseController extends Controller
                     left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
                     left join master_sb_ws m on s.so_det_id = m.id_so_det
                     left join secondary_inhouse_input sii on dc.id_qr_stocker = sii.id_qr_stocker
+                    LEFT JOIN (
+                        SELECT
+                            secondary_inhouse_input.id_qr_stocker,
+                            MAX(qty_awal) as qty_awal,
+                            SUM(qty_reject) qty_reject,
+                            SUM(qty_replace) qty_replace,
+                            (MAX(qty_awal) - SUM(qty_reject) + SUM(qty_replace)) as qty_akhir,
+                            MAX(secondary_inhouse_input.urutan) AS max_urutan,
+                            GROUP_CONCAT(master_secondary.tujuan SEPARATOR ' | ') as tujuan,
+                            GROUP_CONCAT(master_secondary.proses SEPARATOR ' | ') as proses
+                        FROM secondary_inhouse_input
+                        LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_inhouse_input.id_qr_stocker
+                        LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id and part_detail_secondary.urutan = secondary_inhouse_input.urutan
+                        LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
+                        GROUP BY id_qr_stocker
+                        having MAX(secondary_inhouse_input.urutan) is not null
+                    ) mx ON sii.id_qr_stocker = mx.id_qr_stocker AND sii.urutan = mx.max_urutan
                 where
                     dc.tujuan = 'SECONDARY DALAM' ".$additionalQuery."
                 group by
@@ -294,38 +382,296 @@ class SecondaryInhouseController extends Controller
         );
     }
 
-    public function cek_data_stocker_inhouse(Request $request)
+    public function cek_data_stocker_inhouse_old(Request $request)
     {
         $cekdata =  DB::select("
-        SELECT
-        dc.id_qr_stocker,
-        s.act_costing_ws,
-        msb.buyer,
-        COALESCE(a.no_cut, c.no_cut, '-') as no_cut,
-        msb.styleno as style,
-        s.color,
-        COALESCE(msb.size, s.size) size,
-        mp.nama_part,
-        dc.tujuan,
-        dc.lokasi,
-        coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace qty_awal,
-        ifnull(si.id_qr_stocker,'x')
-        from dc_in_input dc
-        left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
-        left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-        left join form_cut_input a on s.form_cut_id = a.id
-        left join form_cut_reject b on s.form_reject_id = b.id
-        left join form_cut_piece c on s.form_piece_id = c.id
-        left join part_detail p on s.part_detail_id = p.id
-        left join master_part mp on p.master_part_id = mp.id
-        left join marker_input mi on a.id_marker = mi.kode
-        left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
-        where dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
-        and ifnull(si.id_qr_stocker,'x') = 'x'
+            SELECT
+                dc.id_qr_stocker,
+                s.act_costing_ws,
+                msb.buyer,
+                COALESCE(a.no_cut, c.no_cut, '-') as no_cut,
+                msb.styleno as style,
+                s.color,
+                COALESCE(msb.size, s.size) size,
+                mp.nama_part,
+                dc.tujuan,
+                dc.lokasi,
+                coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace qty_awal,
+                ifnull(si.id_qr_stocker,'x')
+            from dc_in_input dc
+                left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+                left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+                left join form_cut_input a on s.form_cut_id = a.id
+                left join form_cut_reject b on s.form_reject_id = b.id
+                left join form_cut_piece c on s.form_piece_id = c.id
+                left join part_detail p on s.part_detail_id = p.id
+                left join master_part mp on p.master_part_id = mp.id
+                left join marker_input mi on a.id_marker = mi.kode
+                left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
+            where
+                dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
+                and ifnull(si.id_qr_stocker,'x') = 'x'
         ");
         return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
     }
 
+    public function cek_data_stocker_inhouse(Request $request)
+    {
+        $stocker = Stocker::where('id_qr_stocker', $request->txtqrstocker)->first();
+
+        if ($stocker) {
+            // Check Part Detail
+            $partDetail = $stocker->partDetail;
+            if ($partDetail) {
+
+                // Check Part Detail Secondary
+                $partDetailSecondary = $partDetail->secondaries;
+                if ($partDetailSecondary) {
+
+                    // If there ain't no urutan
+                    if ($stocker->urutan == null) {
+                        $cekdata = DB::select("
+                            SELECT
+                                dc.id_qr_stocker,
+                                s.act_costing_ws,
+                                msb.buyer,
+                                COALESCE(a.no_cut, c.no_cut, '-') as no_cut,
+                                msb.styleno as style,
+                                s.color,
+                                COALESCE(msb.size, s.size) size,
+                                mp.nama_part,
+                                dc.tujuan,
+                                dc.lokasi,
+                                coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace qty_awal,
+                                ifnull(si.id_qr_stocker,'x'),
+                                1 as urutan
+                            from dc_in_input dc
+                                left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+                                left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+                                left join form_cut_input a on s.form_cut_id = a.id
+                                left join form_cut_reject b on s.form_reject_id = b.id
+                                left join form_cut_piece c on s.form_piece_id = c.id
+                                left join part_detail p on s.part_detail_id = p.id
+                                left join master_part mp on p.master_part_id = mp.id
+                                left join marker_input mi on a.id_marker = mi.kode
+                                left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
+                            where
+                                dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
+                                and ifnull(si.id_qr_stocker,'x') = 'x'
+                        ");
+
+                        dd($cekdata);
+
+                        return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
+                    }
+                    // If there is urutan
+                    else {
+                        // Current Secondary
+                        $currentPartDetailSecondary = $partDetailSecondary->where('urutan', $stocker->urutan)->first();
+
+                        if ($currentPartDetailSecondary && ($currentPartDetailSecondary->secondary && $currentPartDetailSecondary->secondary->tujuan == 'SECONDARY DALAM')) {
+
+                            // Check the one step before
+                            $multiSecondaryBefore = DB::table("stocker_input")->selectRaw("
+                                    stocker_input.id,
+                                    stocker_input.id_qr_stocker,
+                                    part_detail_secondary.urutan,
+                                    master_secondary.tujuan
+                                ")->
+                                where('id_qr_stocker', $request->txtqrstocker)->
+                                leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+                                leftJoin("part_detail_secondary", "part_detail_secondary.part_detail_id", "=", "part_detail.id")->
+                                leftJoin("master_secondary", "master_secondary.id", "=",  "part_detail_secondary.master_secondary_id")->
+                                where("part_detail_secondary.urutan", "<", $currentPartDetailSecondary->urutan)->
+                                orderBy("part_detail_secondary.urutan", "desc")->
+                                first();
+
+                            // When there is a step before
+                            if ($multiSecondaryBefore) {
+
+                                // When the tujuan is different
+                                if ($multiSecondaryBefore->tujuan != $currentPartDetailSecondary->secondary->tujuan) {
+
+                                    // Check Secondary Before on Secondary In (where the secondary should've finished)
+                                    $multiSecondaryBeforeSecondaryIn = DB::table("secondary_in_input")->
+                                        where("id_qr_stocker", $request->txtqrstocker)->
+                                        where("urutan", $multiSecondaryBefore->urutan)->
+                                        first();
+
+                                    // When there is secondary in on the step before then
+                                    if ($multiSecondaryBeforeSecondaryIn) {
+
+                                        // Return the data
+                                        $cekdata =  DB::select("
+                                            SELECT
+                                                dc.id_qr_stocker,
+                                                s.act_costing_ws,
+                                                msb.buyer,
+                                                COALESCE(a.no_cut, c.no_cut, '-') as no_cut,
+                                                msb.styleno as style,
+                                                s.color,
+                                                COALESCE(msb.size, s.size) size,
+                                                mp.nama_part,
+                                                ms.tujuan,
+                                                ms.proses lokasi,
+                                                ".($multiSecondaryBeforeSecondaryIn->qty_in)." qty_awal,
+                                                ifnull(si.id_qr_stocker,'x'),
+                                                (pds.urutan) as urutan
+                                            from
+                                                dc_in_input dc
+                                                left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+                                                left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+                                                left join form_cut_input a on s.form_cut_id = a.id
+                                                left join form_cut_reject b on s.form_reject_id = b.id
+                                                left join form_cut_piece c on s.form_piece_id = c.id
+                                                left join part_detail p on s.part_detail_id = p.id
+                                                left join part_detail_secondary pds on pds.part_detail_id = p.id
+                                                left join master_part mp on p.master_part_id = mp.id
+                                                left join master_secondary ms on pds.master_secondary_id = ms.id
+                                                left join marker_input mi on a.id_marker = mi.kode
+                                                left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
+                                            where
+                                                dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and
+                                                ms.tujuan = 'SECONDARY DALAM' and
+                                                pds.urutan = '".$currentPartDetailSecondary->urutan."'
+                                        ");
+
+                                        return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
+                                    }
+                                }
+                                // When the tujuan is the same
+                                else {
+
+                                    // Check the before tujuan
+                                    $multiSecondaryBeforeSecondary = null;
+                                    if ($multiSecondaryBefore->tujuan == 'SECONDARY DALAM') {
+                                        $multiSecondaryBeforeSecondary = DB::table("secondary_inhouse_input")->
+                                            where("id_qr_stocker", $request->txtqrstocker)->
+                                            where("urutan", $multiSecondaryBefore->urutan)->
+                                            first();
+                                    } else {
+                                        $multiSecondaryBeforeSecondary = DB::table("secondary_in_input")->
+                                            where("id_qr_stocker", $request->txtqrstocker)->
+                                            where("urutan", $multiSecondaryBefore->urutan)->
+                                            first();
+                                    }
+
+                                    // Return the data
+                                    $cekdata =  DB::select("
+                                        SELECT
+                                            dc.id_qr_stocker,
+                                            s.act_costing_ws,
+                                            msb.buyer,
+                                            COALESCE(a.no_cut, c.no_cut, '-') as no_cut,
+                                            msb.styleno as style,
+                                            s.color,
+                                            COALESCE(msb.size, s.size) size,
+                                            mp.nama_part,
+                                            ms.tujuan,
+                                            ms.proses lokasi,
+                                            '".($multiSecondaryBeforeSecondary->qty_in)."' qty_awal,
+                                            ifnull(si.id_qr_stocker,'x'),
+                                            (pds.urutan) as urutan
+                                        from
+                                            dc_in_input dc
+                                            left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+                                            left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+                                            left join form_cut_input a on s.form_cut_id = a.id
+                                            left join form_cut_reject b on s.form_reject_id = b.id
+                                            left join form_cut_piece c on s.form_piece_id = c.id
+                                            left join part_detail p on s.part_detail_id = p.id
+                                            left join part_detail_secondary pds on pds.part_detail_id = p.id
+                                            left join master_part mp on p.master_part_id = mp.id
+                                            left join master_secondary ms on pds.master_secondary_id = ms.id
+                                            left join marker_input mi on a.id_marker = mi.kode
+                                            left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
+                                        where
+                                            dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and
+                                            ms.tujuan = 'SECONDARY DALAM' and
+                                            pds.urutan = '".$currentPartDetailSecondary->urutan."'
+                                    ");
+
+                                    return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
+                                }
+                            } else {
+                                $cekdata =  DB::select("
+                                    SELECT
+                                        dc.id_qr_stocker,
+                                        s.act_costing_ws,
+                                        msb.buyer,
+                                        COALESCE(a.no_cut, c.no_cut, '-') as no_cut,
+                                        msb.styleno as style,
+                                        s.color,
+                                        COALESCE(msb.size, s.size) size,
+                                        mp.nama_part,
+                                        dc.tujuan,
+                                        dc.lokasi,
+                                        coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace qty_awal,
+                                        ifnull(si.id_qr_stocker,'x'),
+                                        1 as urutan
+                                    from dc_in_input dc
+                                        left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+                                        left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+                                        left join form_cut_input a on s.form_cut_id = a.id
+                                        left join form_cut_reject b on s.form_reject_id = b.id
+                                        left join form_cut_piece c on s.form_piece_id = c.id
+                                        left join part_detail p on s.part_detail_id = p.id
+                                        left join master_part mp on p.master_part_id = mp.id
+                                        left join marker_input mi on a.id_marker = mi.kode
+                                        left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
+                                    where
+                                        dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
+                                        and ifnull(si.id_qr_stocker,'x') = 'x'
+                                ");
+
+                                return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
+                            }
+                        } else {
+                            return "Part Detail Secondary tidak sesuai.";
+                        }
+                    }
+                }
+                // Default
+                else {
+                    $cekdata =  DB::select("
+                        SELECT
+                            dc.id_qr_stocker,
+                            s.act_costing_ws,
+                            msb.buyer,
+                            COALESCE(a.no_cut, c.no_cut, '-') as no_cut,
+                            msb.styleno as style,
+                            s.color,
+                            COALESCE(msb.size, s.size) size,
+                            mp.nama_part,
+                            dc.tujuan,
+                            dc.lokasi,
+                            coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace qty_awal,
+                            ifnull(si.id_qr_stocker,'x'),
+                            1 as urutan
+                        from dc_in_input dc
+                            left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+                            left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+                            left join form_cut_input a on s.form_cut_id = a.id
+                            left join form_cut_reject b on s.form_reject_id = b.id
+                            left join form_cut_piece c on s.form_piece_id = c.id
+                            left join part_detail p on s.part_detail_id = p.id
+                            left join master_part mp on p.master_part_id = mp.id
+                            left join marker_input mi on a.id_marker = mi.kode
+                            left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
+                        where
+                            dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
+                            and ifnull(si.id_qr_stocker,'x') = 'x'
+                    ");
+
+                    return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
+                }
+            } else {
+                return "No Part Detail Found.";
+            }
+        }
+
+        return "No Stocker Data Found.";
+    }
 
     // public function get_rak(Request $request)
     // {
@@ -361,13 +707,14 @@ class SecondaryInhouseController extends Controller
             'qty_replace' => $request['txtqtyreplace'],
             'qty_in' => $request['txtqtyawal'] - $request['txtqtyreject'] + $request['txtqtyreplace'],
             'user' => Auth::user()->name,
+            'urutan' => $request['txturutan'],
             'ket' => $request['txtket'],
             'created_at' => $timestamp,
             'updated_at' => $timestamp,
         ]);
 
         DB::update(
-            "update stocker_input set status = 'secondary' where id_qr_stocker = '" . $request->txtno_stocker . "'"
+            "update stocker_input set status = 'secondary' ".($request->txturutan ? ", urutan = '" . ($request->txturutan + 1) . "'" : "")." where id_qr_stocker = '" . $request->txtno_stocker . "'"
         );
 
         // dd($savemutasi);

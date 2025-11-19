@@ -474,9 +474,9 @@ class DCInController extends Controller
                 a.range_awal,
                 a.range_akhir,
                 concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) kode,
-                ms.tujuan,
-                IF(ms.tujuan = 'NON SECONDARY',a.lokasi,ms.proses) lokasi,
-                a.tempat
+                COALESCE(ms.tujuan, ms_old.tujuan) tujuan,
+                CASE WHEN pds.id is null THEN (IF(ms_old.tujuan = 'non secondary', a.lokasi, ms_old.proses)) ELSE (IF(ms.tujuan = 'non secondary', '-', ms.proses)) END lokasi,
+                CASE WHEN pds.id is null THEN (IF(ms_old.tujuan = 'non secondary', ms_old.proses, '-')) ELSE (IF(ms.tujuan = 'non secondary', ms.proses, '-')) END tempat
             FROM
                 `stocker_input` a
                 left join master_sb_ws msb on msb.id_so_det = a.so_det_id
@@ -485,10 +485,15 @@ class DCInController extends Controller
                 left join form_cut_piece fp on a.form_piece_id = fp.id
                 left JOIN marker_input m ON m.kode = f.id_marker
                 left join part_detail pd on a.part_detail_id = pd.id
-                left join master_secondary ms on pd.master_secondary_id = ms.id
+                left join part_detail_secondary pds on pds.part_detail_id = pd.id
+                left join master_secondary ms on pds.master_secondary_id = ms.id
+                left join master_secondary ms_old on pd.master_secondary_id = ms_old.id
             WHERE
                 a.id_qr_stocker = '$request->txtqrstocker'
                 and (a.cancel != 'y' or a.cancel IS NULL)
+                and (CASE WHEN pds.id IS NOT NULL THEN pds.urutan = 1 ELSE pd.id IS NOT NULL END)
+            GROUP BY
+                a.id
         ");
 
         return json_encode($data_header ? $data_header[0] : null);
@@ -599,7 +604,7 @@ class DCInController extends Controller
                 ms.id_qr_stocker,
                 mp.nama_part,
                 concat( ms.id_qr_stocker, ' - ', mp.nama_part ) kode_stocker,
-                ifnull( s.tujuan, '-' ) tujuan,
+                ifnull( tmp.tujuan, '-' ) tujuan,
                 ifnull( tmp.tempat, '-' ) tempat,
                 ifnull( tmp.lokasi, '-' ) lokasi,
                 concat(COALESCE ( ms.qty_ply_mod, ms.qty_ply ) - COALESCE ( tmp.qty_reject, 0 ) + COALESCE ( tmp.qty_replace, 0 ),
@@ -633,7 +638,7 @@ class DCInController extends Controller
                 ms.id_qr_stocker,
                 mp.nama_part,
                 concat( ms.id_qr_stocker, ' - ', mp.nama_part ) kode_stocker,
-                ifnull( s.tujuan, '-' ) tujuan,
+                ifnull( tmp.tujuan, '-' ) tujuan,
                 ifnull( tmp.tempat, '-' ) tempat,
                 ifnull( tmp.lokasi, '-' ) lokasi,
                 concat(COALESCE ( ms.qty_ply_mod, ms.qty_ply ) - COALESCE ( tmp.qty_reject, 0 ) + COALESCE ( tmp.qty_replace, 0 ),
@@ -667,7 +672,7 @@ class DCInController extends Controller
                 ms.id_qr_stocker,
                 mp.nama_part,
                 concat( ms.id_qr_stocker, ' - ', mp.nama_part ) kode_stocker,
-                ifnull( s.tujuan, '-' ) tujuan,
+                ifnull( x.tujuan, '-' ) tujuan,
                 ifnull( tmp.tempat, '-' ) tempat,
                 ifnull( tmp.lokasi, '-' ) lokasi,
                 concat(COALESCE ( ms.qty_ply_mod, ms.qty_ply ) - COALESCE ( tmp.qty_reject, 0 ) + COALESCE ( tmp.qty_replace, 0 ),
@@ -783,9 +788,9 @@ class DCInController extends Controller
                     a.range_awal,
                     a.range_akhir,
                     concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) kode,
-                    ms.tujuan,
-                    IF(ms.tujuan = 'NON SECONDARY',a.lokasi,ms.proses) lokasi,
-                    a.tempat,
+                    COALESCE(ms.tujuan, ms_old.tujuan) tujuan,
+                    CASE WHEN pds.id is null THEN (IF(ms_old.tujuan = 'non secondary', a.lokasi, ms_old.proses)) ELSE (IF(ms.tujuan = 'non secondary', '-', ms.proses)) END lokasi,
+                    CASE WHEN pds.id is null THEN (IF(ms_old.tujuan = 'non secondary', ms_old.proses, '-')) ELSE (IF(ms.tujuan = 'non secondary', ms.proses, '-')) END tempat,
                     a.id_qr_stocker,
                     (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                 FROM
@@ -796,12 +801,15 @@ class DCInController extends Controller
                     left join form_cut_piece fp on a.form_piece_id = fp.id
                     left JOIN marker_input m ON m.kode = f.id_marker
                     left join part_detail pd on a.part_detail_id = pd.id
-                    left join master_secondary ms on pd.master_secondary_id = ms.id
+                    left join part_detail_secondary pds on pds.part_detail_id = pd.id
+                    left join master_secondary ms on pds.master_secondary_id = ms.id
+                    left join master_secondary ms_old on pds.master_secondary_id = ms_old.id
                 WHERE
                     a.act_costing_ws = '".$thisStocker->act_costing_ws."' AND
                     a.color = '".$thisStocker->color."' AND
                     COALESCE(f.no_cut, fp.no_cut) = '".$thisStocker->no_cut."' AND
-                    (a.cancel IS NULL OR a.cancel != 'y')
+                    (a.cancel IS NULL OR a.cancel != 'y') and
+                    (CASE WHEN pds.id IS NOT NULL THEN pds.urutan = 1 ELSE pd.id IS NOT NULL END)
             ");
 
             $user = Auth::user()->name;
@@ -854,10 +862,6 @@ class DCInController extends Controller
                                 '$user'
                             )
                         ");
-
-                        DB::update(
-                            "update stocker_input set status = 'dc' where id_qr_stocker = '" . $d->id_qr_stocker . "'"
-                        );
                     }
                 }
             }
@@ -890,8 +894,7 @@ class DCInController extends Controller
                 (case when s.qty_ply_mod > 0 THEN s.qty_ply_mod ELSE s.qty_ply END) - coalesce(tmp.qty_reject,0) + coalesce(tmp.qty_replace,0) qty_in,
                 tmp.qty_reject,
                 tmp.qty_replace,
-                ms.tujuan,
-                ms.proses,
+                COALESCE(ms.tujuan, ms_old.tujuan) tujuan,
                 tmp.tempat,
                 tmp.lokasi,
                 tmp.ket,
@@ -899,12 +902,16 @@ class DCInController extends Controller
             from
                 stocker_input s
                 left join part_detail pd on s.part_detail_id = pd.id
-                left join master_part mp  on pd.master_part_id = mp.id
-                left join master_secondary ms on pd.master_secondary_id = ms.id
+                left join part_detail_secondary pds on pds.part_detail_id = pd.id
+                left join master_secondary ms on pds.master_secondary_id = ms.id
+                left join master_secondary ms_old on ms_old.id = pd.master_secondary_id
                 left join tmp_dc_in_input_new tmp on s.id_qr_stocker = tmp.id_qr_stocker
             where
                 s.id_qr_stocker= '$request->id_c' and
-                (s.cancel is null or s.cancel != 'y')
+                (s.cancel is null or s.cancel != 'y') and
+                (CASE WHEN pds.id IS NOT NULL THEN pds.urutan = 1 ELSE pd.id IS NOT NULL END)
+            group by
+                s.id
         ");
 
         return json_encode($data_tmp_dc_in[0]);
@@ -1124,6 +1131,7 @@ class DCInController extends Controller
         $timestamp = Carbon::now();
         $user = Auth::user()->name;
 
+        // DC In Input Insert
         DB::insert("
             REPLACE INTO dc_in_input
             (
@@ -1137,6 +1145,8 @@ class DCInController extends Controller
                 qty_replace,
                 user,
                 status,
+                created_by,
+                created_by_username,
                 created_at,
                 updated_at
             )
@@ -1151,6 +1161,8 @@ class DCInController extends Controller
                 qty_replace,
                 user,
                 'N',
+                '".Auth::user()->id."',
+                '".Auth::user()->username."',
                 '$timestamp',
                 '$timestamp'
             from
@@ -1163,6 +1175,7 @@ class DCInController extends Controller
                 user = '$user'
         ");
 
+        // Rack Detail Stocker Insert
         DB::insert("
             INSERT INTO rack_detail_stocker
             (
@@ -1185,6 +1198,7 @@ class DCInController extends Controller
                 left join stocker_input s on tmp.id_qr_stocker = s.id_qr_stocker
             where
                 tmp.tujuan = 'NON SECONDARY' and
+                tmp.tempat = 'RAK' and
                 tmp.tujuan > '' and
                 tmp.lokasi > '' and
                 tmp.tempat > '' and
@@ -1192,6 +1206,50 @@ class DCInController extends Controller
                 user = '$user'
             "
         );
+
+        // Trolley Stocker Insert
+        // $lastKode = DB::table('trolley_stocker')
+        //     ->select('kode')
+        //     ->orderBy('id', 'desc')
+        //     ->value('kode');
+        // $startNumber = $lastKode ? intval(substr($lastKode, -5)) + 1 : 1;
+        // DB::statement("SET @rownum := 0");
+        // DB::statement("SET @kodeStart := {$startNumber}");
+        // DB::statement("
+        //     INSERT INTO trolley_stocker (
+        //         kode,
+        //         stocker_id,
+        //         trolley_id,
+        //         status,
+        //         tanggal_alokasi,
+        //         created_by,
+        //         created_by_username,
+        //         created_at,
+        //         updated_at
+        //     )
+        //     SELECT
+        //         CONCAT('TLS', LPAD(@kodeStart + (@rownum := @rownum + 1), 5, '0')) AS kode,
+        //         s.id,
+        //         tr.id,
+        //         'active',
+        //         tmp.id_qr_stocker,
+        //         '$tgltrans',
+        //         (CASE WHEN s.qty_ply_mod > 0 THEN s.qty_ply_mod ELSE s.qty_ply END) - qty_reject + qty_replace AS qty_in,
+        //         '".Auth::user()->id."'
+        //         '".Auth::user()->username."'
+        //         '$timestamp',
+        //         '$timestamp'
+        //     FROM tmp_dc_in_input_new tmp
+        //     LEFT JOIN trolley tr ON tr.nama_trolley = tmp.lokasi
+        //     LEFT JOIN stocker_input s ON tmp.id_qr_stocker = s.id_qr_stocker
+        //     WHERE
+        //         tmp.tujuan = 'NON SECONDARY'
+        //         AND tmp.tujuan > ''
+        //         AND tmp.lokasi > ''
+        //         AND tmp.tempat > ''
+        //         AND (s.cancel IS NULL OR s.cancel != 'y')
+        //         AND user = '$user'
+        // ");
 
         return array(
             'status' => 999,
