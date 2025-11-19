@@ -50,15 +50,20 @@
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Awal</b></small></label>
                     <input type="date" class="form-control form-control-sm " id="tgl-awal" name="tgl_awal"
-                        oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
+                        value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Akhir</b></small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
+                        value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <a onclick="export_excel_packing_out()" class="btn btn-outline-success position-relative btn-sm">
+                    <button class="btn btn-primary btn-sm" onclick="dataTableReload()">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+                <div class="mb-3">
+                    <a onclick="export_excel()" class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel
                     </a>
@@ -104,6 +109,7 @@
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="{{ asset('plugins/export_excel_js/exceljs.min.js') }}"></script>
     <script>
         // Select2 Autofocus
         $(document).on('select2:open', () => {
@@ -272,6 +278,180 @@
 
                     }
                 },
+            });
+        }
+
+        function export_excel() {
+            let dateFrom = $('#tgl-awal').val();
+            let dateTo = $('#tgl-akhir').val();
+
+            const startTime = new Date().getTime();
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "GET",
+                url: '{{ route('export_excel_packing_out') }}',
+                data: {
+                    dateFrom: dateFrom,
+                    dateTo: dateTo
+                },
+                success: function(data) {
+                    const workbook = new ExcelJS.Workbook();
+                    const worksheet = workbook.addWorksheet("List Packing Scan");
+
+                    // --- Title Row ---
+                    const mainTitleRow = worksheet.addRow(["Laporan Packing Scan"]);
+                    worksheet.mergeCells(`A${mainTitleRow.number}:M${mainTitleRow.number}`);
+                    mainTitleRow.font = {
+                        bold: true,
+                        size: 14
+                    };
+                    mainTitleRow.alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle'
+                    };
+
+                    const titleRow = worksheet.addRow([`Tgl Transaksi: ${dateFrom} - ${dateTo}`]);
+                    worksheet.mergeCells(`A${titleRow.number}:M${titleRow.number}`);
+                    titleRow.alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle'
+                    };
+                    titleRow.font = {
+                        italic: true,
+                        size: 12
+                    };
+
+                    worksheet.addRow([]); // empty row
+
+                    // --- Header Row ---
+                    const headers = [
+                        "No", "Tgl. Trans", "No. Carton", "Barcode", "PO",
+                        "WS", "Color", "Size", "Dest", "Tgl. Shipment",
+                        "Total", "User", "Tgl. Input"
+                    ];
+                    const headerRow = worksheet.addRow(headers);
+                    headerRow.font = {
+                        bold: true
+                    };
+                    headerRow.alignment = {
+                        horizontal: 'center',
+                        vertical: 'middle'
+                    };
+
+                    // --- Data Rows ---
+                    data.forEach(function(row, index) {
+                        const values = [
+                            index + 1,
+                            row.tgl_trans_fix,
+                            row.no_carton,
+                            row.barcode,
+                            row.po,
+                            row.ws,
+                            row.color,
+                            row.size,
+                            row.dest,
+                            row.tgl_shipment,
+                            row.tot,
+                            row.created_by,
+                            row.tgl_akt_input
+                        ];
+                        const dataRow = worksheet.addRow(values);
+
+                        dataRow.eachCell({
+                            includeEmpty: true
+                        }, function(cell, colNumber) {
+                            // Format numeric column
+                            if ([11].includes(colNumber) && typeof cell.value === 'number') {
+                                cell.numFmt = '#,##0';
+                                cell.alignment = {
+                                    horizontal: 'right'
+                                };
+                                if (cell.value < 0) {
+                                    cell.font = {
+                                        color: {
+                                            argb: 'FFFF0000'
+                                        }
+                                    }; // red if negative
+                                }
+                            }
+                            // Default alignment for text
+                            if (typeof cell.value === 'string') {
+                                cell.alignment = {
+                                    horizontal: 'left'
+                                };
+                            }
+                        });
+                    });
+
+                    // --- Apply borders to all cells including merged title rows ---
+                    worksheet.eachRow({
+                        includeEmpty: true
+                    }, function(row, rowNumber) {
+                        row.eachCell({
+                            includeEmpty: true
+                        }, function(cell, colNumber) {
+                            cell.border = {
+                                top: {
+                                    style: 'thin'
+                                },
+                                left: {
+                                    style: 'thin'
+                                },
+                                bottom: {
+                                    style: 'thin'
+                                },
+                                right: {
+                                    style: 'thin'
+                                }
+                            };
+                        });
+                    });
+
+                    // Optional: set column widths
+                    const columnWidths = [5, 15, 15, 20, 15, 10, 15, 10, 15, 15, 10, 15, 20];
+                    columnWidths.forEach((w, i) => {
+                        worksheet.getColumn(i + 1).width = w;
+                    });
+
+                    // --- Export ---
+                    workbook.xlsx.writeBuffer().then(function(buffer) {
+                        const blob = new Blob([buffer], {
+                            type: "application/octet-stream"
+                        });
+                        const link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "Laporan_Packing_Scan.xlsx";
+                        link.click();
+
+                        const endTime = new Date().getTime();
+                        const elapsedTime = Math.round((endTime - startTime) / 1000);
+
+                        Swal.close();
+                        Swal.fire({
+                            title: 'Success!',
+                            text: `Data has been successfully exported in ${elapsedTime} seconds.`,
+                            icon: 'success',
+                            confirmButtonText: 'Okay'
+                        });
+                    });
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'There was an error exporting the data.',
+                        icon: 'error',
+                        confirmButtonText: 'Okay'
+                    });
+                }
             });
         }
     </script>

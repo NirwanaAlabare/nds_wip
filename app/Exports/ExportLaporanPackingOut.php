@@ -48,24 +48,37 @@ class ExportLaporanPackingOut implements FromView, WithEvents, ShouldAutoSize, W
 
     {
         $data = DB::select("
-            select count(o.barcode) tot,
-            o.po,
-            no_carton,
-            o.barcode,
-            m.color,
-            m.size,
-            m.ws,
-            o.dest,
-            concat((DATE_FORMAT(o.tgl_trans,  '%d')), '-', left(DATE_FORMAT(o.tgl_trans,  '%M'),3),'-',DATE_FORMAT(o.tgl_trans,  '%Y')
-            ) tgl_trans_fix,
-            o.created_by,
-            max(o.created_at)created_at
-            from packing_packing_out_scan o
-            inner join ppic_master_so p on o.po = p.po and o.barcode = p.barcode
-            inner join master_sb_ws m on p.id_so_det = m.id_so_det
-            where o.tgl_trans >= '$this->from' and o.tgl_trans <= '$this->to'
-            group by po, no_carton, tgl_trans, barcode, dest
-            order by created_at desc
+SELECT
+o.tot,
+DATE_FORMAT(o.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
+p.po,
+p.barcode,
+sd.color,
+sd.size,
+no_carton,
+ac.kpno as ws,
+ac.styleno,
+sd.reff_no,
+p.dest,
+DATE_FORMAT(o.tgl_akt_input, '%d-%m-%Y %H:%i:%s') AS tgl_akt_input,
+DATE_FORMAT(p.tgl_shipment, '%d-%m-%Y') AS tgl_shipment,
+o.created_by
+from
+(
+select
+count(barcode) as tot,
+created_by,
+po, no_carton, tgl_trans, barcode, dest,max(created_at)tgl_akt_input
+from packing_packing_out_scan where tgl_trans >= '$this->from' and tgl_trans <= '$this->to'
+group by po, no_carton, tgl_trans, barcode, dest
+) o
+inner join laravel_nds.ppic_master_so p on o.barcode = p.barcode and o.po = p.po
+inner join signalbit_erp.so_det sd on p.id_so_det = sd.id
+inner join signalbit_erp.so on sd.id_so = so.id
+inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
+inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
+where sd.cancel = 'N' and so.cancel_h = 'N'
+order by o.tgl_trans desc, po asc
         ");
 
 

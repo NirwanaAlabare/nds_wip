@@ -519,7 +519,45 @@ where po = '$cek_dest_po' and no_carton = '$no_carton' and barcode = '$barcode' 
 
     public function export_excel_packing_out(Request $request)
     {
-        return Excel::download(new ExportLaporanPackingOut($request->from, $request->to), 'Laporan_Hasil_Scan.xlsx');
+
+        $tgl_awal = $request->dateFrom;
+        $tgl_akhir = $request->dateTo;
+        // return Excel::download(new ExportLaporanPackingOut($request->from, $request->to), 'Laporan_Hasil_Scan.xlsx');
+        $data = DB::select("
+SELECT
+o.tot,
+DATE_FORMAT(o.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
+p.po,
+p.barcode,
+sd.color,
+sd.size,
+no_carton,
+ac.kpno as ws,
+ac.styleno,
+sd.reff_no,
+p.dest,
+DATE_FORMAT(o.tgl_akt_input, '%d-%m-%Y %H:%i:%s') AS tgl_akt_input,
+DATE_FORMAT(p.tgl_shipment, '%d-%m-%Y') AS tgl_shipment,
+o.created_by
+from
+(
+select
+count(barcode) as tot,
+created_by,
+po, no_carton, tgl_trans, barcode, dest,max(created_at)tgl_akt_input
+from packing_packing_out_scan where tgl_trans >= '$tgl_awal' and tgl_trans <=  '$tgl_akhir'
+group by po, no_carton, tgl_trans, barcode, dest
+) o
+inner join laravel_nds.ppic_master_so p on o.barcode = p.barcode and o.po = p.po
+inner join signalbit_erp.so_det sd on p.id_so_det = sd.id
+inner join signalbit_erp.so on sd.id_so = so.id
+inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
+inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
+where sd.cancel = 'N' and so.cancel_h = 'N'
+order by o.tgl_trans desc, po asc
+        ");
+
+        return response()->json($data);
     }
 
 

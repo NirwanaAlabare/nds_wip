@@ -23,6 +23,7 @@
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Color</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Size</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Dest</th>
+            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Tgl. Shipment</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Total</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">User</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Tgl. Input</th>
@@ -43,9 +44,10 @@
                 <td>{{ $item->color }}</td>
                 <td>{{ $item->size }}</td>
                 <td>{{ $item->dest }}</td>
+                <td>{{ $item->tgl_shipment }}</td>
                 <td>{{ $item->tot }}</td>
                 <td>{{ $item->created_by }}</td>
-                <td>{{ $item->created_at }}</td>
+                <td>{{ $item->tgl_akt_input }}</td>
             </tr>
         @endforeach
     </tbody>
