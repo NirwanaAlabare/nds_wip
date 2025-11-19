@@ -142,7 +142,8 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     b.status,
                     a.operator,
                     a.tipe_form_cut,
-                    b.created_at
+                    b.created_at,
+                    b.updated_at
                 from
                     form_cut_input a
                     left join form_cut_input_detail b on a.id = b.form_cut_id
@@ -227,7 +228,8 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     null `status`,
                     form_cut_piping.operator,
                     'PIPING' tipe_form_cut,
-                    form_cut_piping.created_at
+                    form_cut_piping.created_at,
+                    form_cut_piping.updated_at
                 from
                     form_cut_piping
                     left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
@@ -302,7 +304,8 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     form_cut_piece_detail.status `status`,
                     form_cut_piece.employee_name,
                     'PCS' tipe_form_cut,
-                    form_cut_piece.created_at
+                    form_cut_piece.created_at,
+                    form_cut_piece.updated_at
                 from
                     form_cut_piece
                     left join form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
@@ -318,7 +321,8 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
             order by
                 waktu_mulai asc,
                 waktu_selesai asc,
-                created_at asc
+                created_at asc,
+                updated_at asc
         ");
 
         $this->rowCount = count($data) + 3;

@@ -372,7 +372,7 @@ class CompletedFormController extends Controller
             }
 
             // Form Cut Detail Reorder Group Stocker
-            $formCutDetails = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where("no_form_cut_input", $validatedRequest['no_form_cut_input'])->orderBy("created_at", "asc")->get();
+            $formCutDetails = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where("no_form_cut_input", $validatedRequest['no_form_cut_input'])->orderBy("created_at", "asc")->orderBy("updated_at", "asc")->get();
             $currentGroup = "";
             $groupNumber = 0;
             foreach ($formCutDetails as $formCutDetail) {
@@ -527,7 +527,7 @@ class CompletedFormController extends Controller
                     ]);
 
                     // Adjust form cut detail data
-                    $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->get();
+                    $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->orderBy("updated_at", "asc")->get();
 
                     $currentGroup = "";
                     $currentGroupNumber = 0;
@@ -721,16 +721,16 @@ class CompletedFormController extends Controller
             "qty_ply" => "required"
         ]);
 
-        $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
-        if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
-            return array(
-                'status' => 400,
-                'message' => 'Form sudah memiliki stocker',
-                'redirect' => '',
-                'table' => 'datatable',
-                'additional' => [],
-            );
-        }
+        // $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
+        // if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
+        //     return array(
+        //         'status' => 400,
+        //         'message' => 'Form sudah memiliki stocker',
+        //         'redirect' => '',
+        //         'table' => 'datatable',
+        //         'additional' => [],
+        //     );
+        // }
 
         // Form Recalculate
         $formCutInput = FormCutInput::where("id", $validatedRequest['id'])->where("no_form", $validatedRequest['no_form_cut_input'])->first();
