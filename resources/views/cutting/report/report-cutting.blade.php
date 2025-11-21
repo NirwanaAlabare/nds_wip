@@ -110,8 +110,8 @@
                 $(this).html('<input type="text" class="form-control form-control-sm" id="'+listFilter[i]+'"/>');
 
                 $('input', this).on('keyup change', function() {
-                    if (datatable.column(i).search() !== this.value) {
-                        datatable
+                    if ($("#datatable").DataTable().column(i).search() !== this.value) {
+                        $("#datatable").DataTable()
                             .column(i)
                             .search(this.value)
                             .draw();
@@ -220,7 +220,7 @@
         });
 
         function datatableReload() {
-            datatable.ajax.reload();
+            $("#datatable").DataTable().ajax.reload();
         }
 
         // Legacy Export Excel
