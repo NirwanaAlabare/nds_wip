@@ -1141,6 +1141,9 @@
             // -Method-
             var method = "scan";
 
+            // -Is Processing-
+            var isProcessing = false;
+
         // Function List :
             // -On Load-
             $(document).ready(async () => {
@@ -1420,6 +1423,10 @@
 
             // -Store Time Record Transaction-
             async function storeTimeRecord(isContinue = 0) {
+                if (isProcessing) return alert("Prevent Redundant data, Reload the page to Try Again.");
+
+                isProcessing = true;
+
                 document.getElementById("loading").classList.remove("d-none");
 
                 clearModified();
@@ -1444,6 +1451,8 @@
                     document.getElementById("loading").classList.add("d-none");
                     document.getElementById("stopLapButton").removeAttribute("disabled");
 
+                    isProcessing = false;
+
                     return Swal.fire({
                         icon: 'error',
                         title: 'Harap isi berat amparan',
@@ -1460,6 +1469,8 @@
                             document.getElementById("stopLapButton").removeAttribute("disabled");
 
                             lockForm();
+
+                            isProcessing = false;
 
                             return Swal.fire({
                                 icon: 'error',
@@ -1486,6 +1497,7 @@
                         dataType: 'json',
                         data: dataObj,
                         success: function(res) {
+                            isProcessing = false;
                             document.getElementById("loading").classList.add("d-none");
                             document.getElementById("stopLapButton").removeAttribute("disabled");
 
@@ -1520,6 +1532,7 @@
                             }
                         },
                         error: function(jqXHR) {
+                            isProcessing = false;
                             document.getElementById("loading").classList.add("d-none");
                             document.getElementById("stopLapButton").removeAttribute("disabled");
 
@@ -1551,6 +1564,7 @@
                         dataType: 'json',
                         data: dataObj,
                         success: function(res) {
+                            isProcessing = false;
                             document.getElementById("loading").classList.add("d-none");
                             document.getElementById("stopLapButton").removeAttribute("disabled");
 
@@ -1585,6 +1599,8 @@
                             }
                         },
                         error: function(jqXHR) {
+                            isProcessing = false;
+
                             document.getElementById("loading").classList.add("d-none");
                             document.getElementById("stopLapButton").removeAttribute("disabled");
 
