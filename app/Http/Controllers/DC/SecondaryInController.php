@@ -1022,16 +1022,13 @@ class SecondaryInController extends Controller
         ]);
 
         $lastStep = Stocker::selectRaw("MAX(part_detail_secondary.urutan) as urutan")->
-            leftJoin("part_detail_secondary", function ($join) {
-                $join->on("part_detail_secondary.part_detail_id", "=", "stocker_input.part_detail_id");
-                $join->on("part_detail_secondary.urutan", "=", "stocker_input.urutan");
-            })->
+            leftJoin("part_detail_secondary", "part_detail_secondary.part_detail_id", "=", "stocker_input.part_detail_id")->
             where("stocker_input.id_qr_stocker", $request['txtno_stocker'])->
             groupBy("stocker_input.id")->
             value("urutan");
 
         // Update Rak/Trolley (One Step Before Loading) On Last Step/No Step at all
-        if (!$lastStep || $lastStep == $request->txturutan) {
+        if (!$lastStep || $lastStep <= $request->txturutan) {
             if ($request['cborak']) {
                 $rak = DB::table('rack_detail')
                 ->select('id')

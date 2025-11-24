@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\DC;
 
 use App\Http\Controllers\Controller;
+use App\Models\Dc\SecondaryInhouse;
+use App\Models\Dc\SecondaryIn;
 use App\Models\Dc\Trolley;
 use App\Models\Dc\TrolleyStocker;
 use App\Models\Stocker\Stocker;
@@ -723,6 +725,22 @@ class TrolleyStockerController extends Controller
                 for ($i = 0; $i < count($stockerIds); $i++) {
                     $thisStockerData = Stocker::where('id', $stockerIds[$i])->first();
 
+                    // Qty
+                    $currentQty = 0;
+
+                    $thisStockerPartDetailSecondaries = $thisStockerData->partDetail ? ($thisStockerData->partDetail->secondaries ? $thisStockerData->partDetail->secondaries : null) : null;
+                    if ($thisStockerPartDetailSecondaries) {
+                        $currentSecondary = $thisStockerPartDetailSecondaries->sortByDesc("urutan")->first();
+
+                        if ($currentSecondary) {
+                            $currentQty = SecondaryIn::where("id_qr_stocker", $thisStockerData->id_qr_stocker)->where("urutan", $currentSecondary->urutan)->value("qty_in");
+                        } else {
+                            $currentQty = ($thisStockerData->qty_ply_mod > 0 ? $thisStockerData->qty_ply_mod : $thisStockerData->qty_ply) + ($thisStockerData->dcIn ? ((0 - $thisStockerData->dcIn->qty_reject) + $thisStockerData->dcIn->qty_replace) : 0) + ($thisStockerData->secondaryInHouse ? ((0 - $thisStockerData->secondaryInHouse->qty_reject) + $thisStockerData->secondaryInHouse->qty_replace) : 0) + ($thisStockerData->secondaryIn ? ((0 - $thisStockerData->secondaryIn->qty_reject) + $thisStockerData->secondaryIn->qty_replace) : 0);
+                        }
+                    } else {
+                        $currentQty = ($thisStockerData->qty_ply_mod > 0 ? $thisStockerData->qty_ply_mod : $thisStockerData->qty_ply) + ($thisStockerData->dcIn ? ((0 - $thisStockerData->dcIn->qty_reject) + $thisStockerData->dcIn->qty_replace) : 0) + ($thisStockerData->secondaryInHouse ? ((0 - $thisStockerData->secondaryInHouse->qty_reject) + $thisStockerData->secondaryInHouse->qty_replace) : 0) + ($thisStockerData->secondaryIn ? ((0 - $thisStockerData->secondaryIn->qty_reject) + $thisStockerData->secondaryIn->qty_replace) : 0);
+                    }
+
                     $loadingLinePlan = LoadingLinePlan::where("act_costing_ws", $thisStockerData->act_costing_ws)->where("color", $thisStockerData->color)->where("line_id", $lineData['line_id'])->where("tanggal", $request['tanggal_loading'])->first();
 
                     $isExist = LoadingLine::where("stocker_id", $stockerIds[$i])->count();
@@ -734,7 +752,7 @@ class TrolleyStockerController extends Controller
                                 "loading_plan_id" => $loadingLinePlan['id'],
                                 "nama_line" => $lineData['username'],
                                 "stocker_id" => $thisStockerData['id'],
-                                "qty" => ($thisStockerData->qty_ply_mod > 0 ? $thisStockerData->qty_ply_mod : $thisStockerData->qty_ply) + ($thisStockerData->dcIn ? ((0 - $thisStockerData->dcIn->qty_reject) + $thisStockerData->dcIn->qty_replace) : 0) + ($thisStockerData->secondaryInHouse ? ((0 - $thisStockerData->secondaryInHouse->qty_reject) + $thisStockerData->secondaryInHouse->qty_replace) : 0) + ($thisStockerData->secondaryIn ? ((0 - $thisStockerData->secondaryIn->qty_reject) + $thisStockerData->secondaryIn->qty_replace) : 0),
+                                "qty" => $currentQty,
                                 "status" => "active",
                                 "tanggal_loading" => $request['tanggal_loading'],
                                 "no_bon" => $request['no_bon'],
@@ -768,7 +786,7 @@ class TrolleyStockerController extends Controller
                                 "loading_plan_id" => $storeLoadingPlan['id'],
                                 "nama_line" => $lineData['username'],
                                 "stocker_id" => $thisStockerData['id'],
-                                "qty" => ($thisStockerData->qty_ply_mod > 0 ? $thisStockerData->qty_ply_mod : $thisStockerData->qty_ply) + ($thisStockerData->dcIn ? ((0 - $thisStockerData->dcIn->qty_reject) + $thisStockerData->dcIn->qty_replace) : 0) + ($thisStockerData->secondaryInHouse ? ((0 - $thisStockerData->secondaryInHouse->qty_reject) + $thisStockerData->secondaryInHouse->qty_replace) : 0) + ($thisStockerData->secondaryIn ? ((0 - $thisStockerData->secondaryIn->qty_reject) + $thisStockerData->secondaryIn->qty_replace) : 0),
+                                "qty" => $currentQty,
                                 "status" => "active",
                                 "tanggal_loading" => $request['tanggal_loading'],
                                 "no_bon" => $request['no_bon'],

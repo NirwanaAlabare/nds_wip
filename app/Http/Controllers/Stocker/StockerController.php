@@ -244,7 +244,7 @@ class StockerController extends Controller
                 master_part.bag,
                 GROUP_CONCAT(DISTINCT COALESCE(master_secondary.tujuan, '-') SEPARATOR ' | ') tujuan,
                 GROUP_CONCAT(COALESCE(master_secondary.proses, '-') SEPARATOR ' | ') proses,
-                GROUP_CONCAT(DISTINCT CONCAT(COALESCE(master_secondary.tujuan, '-'), '|', COALESCE(master_secondary.proses, '-')) SEPARATOR ' , ') proses_tujuan
+                GROUP_CONCAT(DISTINCT COALESCE(master_secondary.proses, '-') ORDER BY part_detail_secondary.urutan SEPARATOR ' , ') proses_tujuan
             ")->
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
             leftJoin("part", "part.id", "part_detail.part_id")->
