@@ -460,8 +460,6 @@ class SecondaryInhouseController extends Controller
                                 and ifnull(si.id_qr_stocker,'x') = 'x'
                         ");
 
-                        dd($cekdata);
-
                         return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
                     }
                     // If there is urutan
