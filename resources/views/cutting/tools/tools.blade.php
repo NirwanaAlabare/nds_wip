@@ -504,11 +504,11 @@
             let idRoll = document.getElementById("fix_roll_id").value;
             let qtyRoll = document.getElementById("fix_roll_qty").value;
 
-            if (!idRoll || !qtyRoll || isNaN(qtyRoll)) {
+            if (!idRoll) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Invalid Input',
-                    text: 'Please enter a valid Roll ID and Quantity.',
+                    text: 'Please enter a valid Roll ID.',
                 });
                 return;
             }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
+use App\Models\Cutting\FormCutInputDetail;
 use App\Models\Cutting\ScannedItem;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Marker\Marker;
@@ -65,6 +66,22 @@ class CuttingToolsController extends Controller
     public function fixRollQty(Request $request) {
         $rollId = $request->id_roll;
         $rollQty = $request->qty;
+        $rollUse = null;
+
+        if (!$rollQty) {
+            $lastInput = FormCutInputDetail::selectRaw("
+                SUM(total_pemakaian_roll) total_lembar,
+                MIN(sisa_kain) as sisa_kain
+            ")->
+            where("id_roll", $request->id_roll)->
+            groupBy("id_roll")->
+            first();
+
+            if ($lastInput) {
+                $rollQty = $lastInput->sisa_kain;
+                $rollUse = $lastInput->total_lembar;
+            }
+        }
 
         $additionalQuery = "";
         if ($rollId) {
@@ -115,6 +132,10 @@ class CuttingToolsController extends Controller
                                 $scannedItem->qty = $currentRoll->sisa_kain;
                             }
                         }
+                    }
+
+                    if ($rollUse > 0 && $scannedItem->qty_pakai != $rollUse) {
+                        $scannedItem->qty_pakai = $rollUse;
                     }
 
                     $scannedItem->save();
