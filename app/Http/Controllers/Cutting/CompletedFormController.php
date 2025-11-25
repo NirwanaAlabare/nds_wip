@@ -688,11 +688,11 @@ class CompletedFormController extends Controller
         if ($formCutInput) {
             if ($validatedRequest['p_act'] != $formCutInput->p_act || $validatedRequest['comma_act'] != $formCutInput->comma_p_act) {
 
-                if ($validatedRequest['p_act'] && $validatedRequest['p_act'] != $formCutInput->p_act) {
+                if ($validatedRequest['p_act'] != null && $validatedRequest['p_act'] != $formCutInput->p_act) {
                     $formCutInput->p_act = $validatedRequest['p_act'];
                 }
 
-                if ($validatedRequest['comma_act'] && $validatedRequest['comma_act'] != $formCutInput->comma_p_act) {
+                if ($validatedRequest['comma_act'] != null && $validatedRequest['comma_act'] != $formCutInput->comma_p_act) {
                     $formCutInput->comma_p_act = $validatedRequest['comma_act'];
                 }
 

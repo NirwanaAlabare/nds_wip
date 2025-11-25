@@ -86,8 +86,8 @@ class MutLokasiController extends Controller
     public function editmutlok($id)
     {
 
-        $det_data = DB::connection('mysql_sb')->select("select a.id,id_item,kode_item,item_desc,a.no_ws,no_bpb,no_lot,no_roll,ROUND(qty_roll,2) qty_roll,ROUND(qty_mutasi,2) qty_mutasi,unit,a.rak_asal,rak_tujuan from whs_mut_lokasi a inner join whs_mut_lokasi_h b on b.no_mut = a.no_mut where a.status = 'Y' and b.id = '$id'");
-        $sum_data = DB::connection('mysql_sb')->select("select count(id_item)jml from (select id_item,kode_item,item_desc,a.no_ws,no_bpb,no_lot,no_roll,ROUND(qty_roll,2) qty_roll,ROUND(qty_mutasi,2) qty_mutasi,unit,a.rak_asal,rak_tujuan from whs_mut_lokasi a inner join whs_mut_lokasi_h b on b.no_mut = a.no_mut where a.status = 'Y' and b.id = '$id') a");
+        $det_data = DB::connection('mysql_sb')->select("select a.id,id_item,kode_item,item_desc,a.no_ws,no_bpb,no_lot,no_roll,ROUND(qty_roll,2) qty_roll,ROUND(qty_mutasi,2) qty_mutasi,unit,a.rak_asal,b.rak_tujuan from whs_mut_lokasi a inner join whs_mut_lokasi_h b on b.no_mut = a.no_mut where a.status = 'Y' and b.id = '$id'");
+        $sum_data = DB::connection('mysql_sb')->select("select count(id_item)jml from (select id_item,kode_item,item_desc,a.no_ws,no_bpb,no_lot,no_roll,ROUND(qty_roll,2) qty_roll,ROUND(qty_mutasi,2) qty_mutasi,unit,a.rak_asal,b.rak_tujuan from whs_mut_lokasi a inner join whs_mut_lokasi_h b on b.no_mut = a.no_mut where a.status = 'Y' and b.id = '$id') a");
         $d_header = DB::connection('mysql_sb')->select("select no_mut kode,tgl_mut,no_ws,rak_asal,deskripsi from whs_mut_lokasi_h where id = '$id'");
         $lokasi = DB::connection('mysql_sb')->table('whs_master_lokasi')->select('id', 'kode_lok')->where('status', '=', 'active')->get();
 
