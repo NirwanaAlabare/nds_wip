@@ -104,7 +104,7 @@ class SecondaryInController extends Controller
                     COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
                     COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
                     COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
-                    COALESCE(mx.qty_akhir, a.qty_in) qty_in,
+                    COALESCE(a.qty_in) qty_in,
                     a.created_at,
                     CONCAT(s.range_awal, ' - ', s.range_akhir,
                         (

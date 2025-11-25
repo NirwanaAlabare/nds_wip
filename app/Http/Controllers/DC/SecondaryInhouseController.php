@@ -47,40 +47,40 @@ class SecondaryInhouseController extends Controller
             }
 
             if ($request->sec_filter_tipe && count($request->sec_filter_tipe) > 0) {
-                $additionalQuery .= " and (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) in (".addQuotesAround(implode("\n", $request->sec_filter_tipe)).")";
+                $keywordQuery .= " and (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) in (".addQuotesAround(implode("\n", $request->sec_filter_tipe)).")";
             }
             if ($request->sec_filter_buyer && count($request->sec_filter_buyer) > 0) {
-                $additionalQuery .= " and p.buyer in (".addQuotesAround(implode("\n", $request->sec_filter_buyer)).")";
+                $keywordQuery .= " and p.buyer in (".addQuotesAround(implode("\n", $request->sec_filter_buyer)).")";
             }
             if ($request->sec_filter_ws && count($request->sec_filter_ws) > 0) {
-                $additionalQuery .= " and s.act_costing_ws in (".addQuotesAround(implode("\n", $request->sec_filter_ws)).")";
+                $keywordQuery .= " and s.act_costing_ws in (".addQuotesAround(implode("\n", $request->sec_filter_ws)).")";
             }
             if ($request->sec_filter_style && count($request->sec_filter_style) > 0) {
-                $additionalQuery .= " and p.style in (".addQuotesAround(implode("\n", $request->sec_filter_style)).")";
+                $keywordQuery .= " and p.style in (".addQuotesAround(implode("\n", $request->sec_filter_style)).")";
             }
             if ($request->sec_filter_color && count($request->sec_filter_color) > 0) {
-                $additionalQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->sec_filter_color)).")";
+                $keywordQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->sec_filter_color)).")";
             }
             if ($request->sec_filter_part && count($request->sec_filter_part) > 0) {
-                $additionalQuery .= " and mp.nama_part in (".addQuotesAround(implode("\n", $request->sec_filter_part)).")";
+                $keywordQuery .= " and mp.nama_part in (".addQuotesAround(implode("\n", $request->sec_filter_part)).")";
             }
             if ($request->sec_filter_size && count($request->sec_filter_size) > 0) {
-                $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->sec_filter_size)).")";
+                $keywordQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->sec_filter_size)).")";
             }
             if ($request->sec_filter_no_cut && count($request->sec_filter_no_cut) > 0) {
-                $additionalQuery .= " and COALESCE(f.no_cut, fp.no_cut, '-') in (".addQuotesAround(implode("\n", $request->sec_filter_no_cut)).")";
+                $keywordQuery .= " and COALESCE(f.no_cut, fp.no_cut, '-') in (".addQuotesAround(implode("\n", $request->sec_filter_no_cut)).")";
             }
             if ($request->sec_filter_tujuan && count($request->sec_filter_tujuan) > 0) {
-                $additionalQuery .= " and a.tujuan in (".addQuotesAround(implode("\n", $request->sec_filter_tujuan)).")";
+                $keywordQuery .= " and a.tujuan in (".addQuotesAround(implode("\n", $request->sec_filter_tujuan)).")";
             }
             if ($request->sec_filter_tempat && count($request->sec_filter_tempat) > 0) {
-                $additionalQuery .= " and a.tempat in (".addQuotesAround(implode("\n", $request->sec_filter_tempat)).")";
+                $keywordQuery .= " and a.tempat in (".addQuotesAround(implode("\n", $request->sec_filter_tempat)).")";
             }
             if ($request->sec_filter_lokasi && count($request->sec_filter_lokasi) > 0) {
-                $additionalQuery .= " and a.lokasi in (".addQuotesAround(implode("\n", $request->sec_filter_lokasi)).")";
+                $keywordQuery .= " and a.lokasi in (".addQuotesAround(implode("\n", $request->sec_filter_lokasi)).")";
             }
             if ($request->size_filter && count($request->size_filter) > 0) {
-                $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->size_filter)).")";
+                $keywordQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->size_filter)).")";
             }
 
             $data_input = DB::select("
@@ -98,7 +98,7 @@ class SecondaryInhouseController extends Controller
                     COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
                     COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
                     COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
-                    COALESCE(mx.qty_akhir, a.qty_in) qty_in,
+                    COALESCE(a.qty_in) qty_in,
                     a.created_at,
                     COALESCE(mx.tujuan, dc.tujuan) as tujuan,
                     COALESCE(mx.proses, dc.lokasi) lokasi,
@@ -153,6 +153,7 @@ class SecondaryInhouseController extends Controller
                         OR a.urutan = mx.max_urutan
                     )
                     $additionalQuery
+                    $keywordQuery
                 ORDER BY a.tgl_trans DESC
             ");
 
@@ -210,10 +211,10 @@ class SecondaryInhouseController extends Controller
             LEFT JOIN (
                 SELECT
                     secondary_inhouse_input.id_qr_stocker,
-                    MAX(qty_awal) as qty_awal,
-                    SUM(qty_reject) qty_reject,
-                    SUM(qty_replace) qty_replace,
-                    (MAX(qty_awal) - SUM(qty_reject) + SUM(qty_replace)) as qty_akhir,
+                    MAX(other_sec_in.qty_awal) as qty_awal,
+                    SUM(other_sec_in.qty_reject) qty_reject,
+                    SUM(other_sec_in.qty_replace) qty_replace,
+                    MAX(secondary_inhouse_input.qty_in) as qty_akhir,
                     MAX(secondary_inhouse_input.urutan) AS max_urutan,
                     GROUP_CONCAT(master_secondary.tujuan SEPARATOR ' | ') as tujuan,
                     GROUP_CONCAT(master_secondary.proses SEPARATOR ' | ') as proses
@@ -221,8 +222,12 @@ class SecondaryInhouseController extends Controller
                 LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_inhouse_input.id_qr_stocker
                 LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id and part_detail_secondary.urutan = secondary_inhouse_input.urutan
                 LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
-                GROUP BY id_qr_stocker
-                having MAX(secondary_inhouse_input.urutan) is not null
+                left join secondary_inhouse_input as other_sec_inhouse on other_sec_inhouse.id_qr_stocker = stocker_input.id_qr_stocker
+                    $additionalQuery
+                GROUP BY
+                    secondary_inhouse_input.id
+                having
+                    MAX(secondary_inhouse_input.urutan) is not null
             ) mx ON a.id_qr_stocker = mx.id_qr_stocker AND a.urutan = mx.max_urutan
             LEFT JOIN stocker_input s ON a.id_qr_stocker = s.id_qr_stocker
             LEFT JOIN master_sb_ws msb ON msb.id_so_det = s.so_det_id
@@ -243,7 +248,8 @@ class SecondaryInhouseController extends Controller
                     OR a.urutan = mx.max_urutan
                 )
                 $additionalQuery
-            ORDER BY a.tgl_trans DESC
+            ORDER BY
+                a.tgl_trans DESC
         "));
 
         $tipe = $data_input->groupBy("tipe")->keys();
