@@ -281,37 +281,180 @@ class SecondaryInhouseController extends Controller
             $additionalQuery = '';
 
             if ($request->dateFrom) {
-                $additionalQuery .= " and (sii.tgl_trans >= '" . $request->dateFrom . "') ";
+                $additionalQuery .= " and (a.tgl_trans >= '" . $request->dateFrom . "') ";
             }
 
             if ($request->dateTo) {
-                $additionalQuery .= " and (sii.tgl_trans <= '" . $request->dateTo . "') ";
+                $additionalQuery .= " and (a.tgl_trans <= '" . $request->dateTo . "') ";
             }
 
             if ($request->detail_sec_filter_buyer && count($request->detail_sec_filter_buyer) > 0) {
-                $additionalQuery .= " and m.buyer in (".addQuotesAround(implode("\n", $request->detail_sec_filter_buyer)).")";
+                $additionalQuery .= " and p.buyer in (".addQuotesAround(implode("\n", $request->detail_sec_filter_buyer)).")";
             }
             if ($request->detail_sec_filter_ws && count($request->detail_sec_filter_ws) > 0) {
                 $additionalQuery .= " and s.act_costing_ws in (".addQuotesAround(implode("\n", $request->detail_sec_filter_ws)).")";
             }
             if ($request->detail_sec_filter_style && count($request->detail_sec_filter_style) > 0) {
-                $additionalQuery .= " and styleno in (".addQuotesAround(implode("\n", $request->detail_sec_filter_style)).")";
+                $additionalQuery .= " and p.style in (".addQuotesAround(implode("\n", $request->detail_sec_filter_style)).")";
             }
             if ($request->detail_sec_filter_color && count($request->detail_sec_filter_color) > 0) {
                 $additionalQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->detail_sec_filter_color)).")";
             }
             if ($request->detail_sec_filter_lokasi && count($request->detail_sec_filter_lokasi) > 0) {
-                $additionalQuery .= " and dc.lokasi in (".addQuotesAround(implode("\n", $request->detail_sec_filter_lokasi)).")";
+                $additionalQuery .= " and COALESCE(mx.proses, dc.lokasi) in (".addQuotesAround(implode("\n", $request->detail_sec_filter_lokasi)).")";
             }
 
             $data_detail = DB::select("
                 select
-                    s.act_costing_ws, m.buyer,s.color,  styleno, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) qty_in, COALESCE(sum(sii.qty_reject), 0) qty_reject, COALESCE(sum(sii.qty_replace), 0) qty_replace, COALESCE(sum(sii.qty_in), 0) qty_out, COALESCE((sum(sii.qty_in) - sum(dc.qty_awal - dc.qty_reject + dc.qty_replace)), 0) balance, dc.lokasi
+                    act_costing_ws, buyer, color, style as styleno, COALESCE(SUM(qty_awal), 0) qty_in, COALESCE(sum(qty_reject), 0) qty_reject, COALESCE(sum(qty_replace), 0) qty_replace, COALESCE(sum(qty_in), 0) qty_out, COALESCE(sum(qty_awal) - sum(qty_in), 0) balance, lokasi
                 from
-                    dc_in_input dc
-                    left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
-                    left join master_sb_ws m on s.so_det_id = m.id_so_det
-                    left join secondary_inhouse_input sii on dc.id_qr_stocker = sii.id_qr_stocker
+                    (
+                        SELECT
+                            (CASE WHEN fp.id > 0 THEN 'PIECE'
+                                    WHEN fr.id > 0 THEN 'REJECT'
+                                    ELSE 'NORMAL' END) AS tipe,
+                            DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') AS tgl_trans_fix,
+                            a.tgl_trans,
+                            s.act_costing_ws,
+                            s.color,
+                            p.buyer,
+                            p.style,
+                            COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
+                            COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
+                            COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
+                            COALESCE(mx.qty_akhir, a.qty_in) qty_in,
+                            a.created_at,
+                            COALESCE(mx.tujuan, dc.tujuan) as tujuan,
+                            COALESCE(mx.proses, dc.lokasi) lokasi,
+                            dc.tempat,
+                            COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
+                            COALESCE(msb.size, s.size) AS size,
+                            a.user,
+                            mp.nama_part,
+                            CONCAT(
+                                s.range_awal, ' - ', s.range_akhir,
+                                CASE
+                                WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL
+                                    THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ')
+                                ELSE ' (0)'
+                                END
+                            ) AS stocker_range_old,
+                            CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range
+                        FROM secondary_inhouse_input a
+                        LEFT JOIN (
+                            SELECT
+                                secondary_inhouse_input.id_qr_stocker,
+                                MAX(qty_awal) as qty_awal,
+                                SUM(qty_reject) qty_reject,
+                                SUM(qty_replace) qty_replace,
+                                (MAX(qty_awal) - SUM(qty_reject) + SUM(qty_replace)) as qty_akhir,
+                                MAX(secondary_inhouse_input.urutan) AS max_urutan,
+                                GROUP_CONCAT(master_secondary.tujuan SEPARATOR ' | ') as tujuan,
+                                GROUP_CONCAT(master_secondary.proses SEPARATOR ' | ') as proses
+                            FROM secondary_inhouse_input
+                            LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_inhouse_input.id_qr_stocker
+                            LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id and part_detail_secondary.urutan = secondary_inhouse_input.urutan
+                            LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
+                            GROUP BY id_qr_stocker
+                            having MAX(secondary_inhouse_input.urutan) is not null
+                        ) mx ON a.id_qr_stocker = mx.id_qr_stocker AND a.urutan = mx.max_urutan
+                        LEFT JOIN stocker_input s ON a.id_qr_stocker = s.id_qr_stocker
+                        LEFT JOIN master_sb_ws msb ON msb.id_so_det = s.so_det_id
+                        LEFT JOIN form_cut_input f ON f.id = s.form_cut_id
+                        LEFT JOIN form_cut_reject fr ON fr.id = s.form_reject_id
+                        LEFT JOIN form_cut_piece fp ON fp.id = s.form_piece_id
+                        LEFT JOIN part_detail pd ON s.part_detail_id = pd.id
+                        LEFT JOIN part p ON pd.part_id = p.id
+                        LEFT JOIN master_part mp ON mp.id = pd.master_part_id
+                        LEFT JOIN (
+                            SELECT id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat
+                            FROM dc_in_input
+                        ) dc ON a.id_qr_stocker = dc.id_qr_stocker
+                        WHERE
+                            a.tgl_trans IS NOT NULL
+                            AND (
+                                a.urutan IS NULL
+                                OR a.urutan = mx.max_urutan
+                            )
+                            $additionalQuery
+                        GROUP BY
+                            a.id_qr_stocker
+                    ) a
+                GROUP BY
+                    act_costing_ws,buyer,style,color,lokasi
+            ");
+
+            return DataTables::of($data_detail)->toJson();
+        }
+
+        return view('dc.secondary-inhouse.secondary-inhouse', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-inhouse"], ['tgl_skrg' => $tgl_skrg]);
+    }
+
+    public function filterDetailSecondaryInhouse(Request $request)
+    {
+        $additionalQuery = '';
+
+        if ($request->dateFrom) {
+            $additionalQuery .= " and (a.tgl_trans >= '" . $request->dateFrom . "') ";
+        }
+
+        if ($request->dateTo) {
+            $additionalQuery .= " and (a.tgl_trans <= '" . $request->dateTo . "') ";
+        }
+
+        if ($request->detail_sec_filter_buyer && count($request->detail_sec_filter_buyer) > 0) {
+            $additionalQuery .= " and p.buyer in (".addQuotesAround(implode("\n", $request->detail_sec_filter_buyer)).")";
+        }
+        if ($request->detail_sec_filter_ws && count($request->detail_sec_filter_ws) > 0) {
+            $additionalQuery .= " and s.act_costing_ws in (".addQuotesAround(implode("\n", $request->detail_sec_filter_ws)).")";
+        }
+        if ($request->detail_sec_filter_style && count($request->detail_sec_filter_style) > 0) {
+            $additionalQuery .= " and p.style in (".addQuotesAround(implode("\n", $request->detail_sec_filter_style)).")";
+        }
+        if ($request->detail_sec_filter_color && count($request->detail_sec_filter_color) > 0) {
+            $additionalQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->detail_sec_filter_color)).")";
+        }
+        if ($request->detail_sec_filter_lokasi && count($request->detail_sec_filter_lokasi) > 0) {
+            $additionalQuery .= " and COALESCE(mx.proses, dc.lokasi) in (".addQuotesAround(implode("\n", $request->detail_sec_filter_lokasi)).")";
+        }
+
+        $data_detail = collect(DB::select("
+            select
+                act_costing_ws, buyer, color, style as styleno, COALESCE(SUM(qty_awal), 0) qty_in, COALESCE(sum(qty_reject), 0) qty_reject, COALESCE(sum(qty_replace), 0) qty_replace, COALESCE(sum(qty_in), 0) qty_out, COALESCE(sum(qty_awal) - sum(qty_in), 0) balance, lokasi
+            from
+                (
+                    SELECT
+                        (CASE WHEN fp.id > 0 THEN 'PIECE'
+                                WHEN fr.id > 0 THEN 'REJECT'
+                                ELSE 'NORMAL' END) AS tipe,
+                        DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') AS tgl_trans_fix,
+                        a.tgl_trans,
+                        s.act_costing_ws,
+                        s.color,
+                        p.buyer,
+                        p.style,
+                        COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
+                        COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
+                        COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
+                        COALESCE(mx.qty_akhir, a.qty_in) qty_in,
+                        a.created_at,
+                        COALESCE(mx.tujuan, dc.tujuan) as tujuan,
+                        COALESCE(mx.proses, dc.lokasi) lokasi,
+                        dc.tempat,
+                        COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
+                        COALESCE(msb.size, s.size) AS size,
+                        a.user,
+                        mp.nama_part,
+                        CONCAT(
+                            s.range_awal, ' - ', s.range_akhir,
+                            CASE
+                            WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL
+                                THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ')
+                            ELSE ' (0)'
+                            END
+                        ) AS stocker_range_old,
+                        CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range
+                    FROM secondary_inhouse_input a
                     LEFT JOIN (
                         SELECT
                             secondary_inhouse_input.id_qr_stocker,
@@ -328,43 +471,31 @@ class SecondaryInhouseController extends Controller
                         LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
                         GROUP BY id_qr_stocker
                         having MAX(secondary_inhouse_input.urutan) is not null
-                    ) mx ON sii.id_qr_stocker = mx.id_qr_stocker AND sii.urutan = mx.max_urutan
-                where
-                    dc.tujuan = 'SECONDARY DALAM' ".$additionalQuery."
-                group by
-                    m.ws,m.buyer,m.styleno,m.color,dc.lokasi
-            ");
-
-            return DataTables::of($data_detail)->toJson();
-        }
-
-        return view('dc.secondary-inhouse.secondary-inhouse', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-inhouse"], ['tgl_skrg' => $tgl_skrg]);
-    }
-
-    public function filterDetailSecondaryInhouse(Request $request)
-    {
-        $additionalQuery = '';
-
-        if ($request->dateFrom) {
-            $additionalQuery .= " and (sii.tgl_trans >= '" . $request->dateFrom . "') ";
-        }
-
-        if ($request->dateTo) {
-            $additionalQuery .= " and (sii.tgl_trans <= '" . $request->dateTo . "') ";
-        }
-
-        $data_detail = collect(DB::select("
-            select
-                s.act_costing_ws, m.buyer,s.color,  styleno, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) qty_in, COALESCE(sum(sii.qty_reject), 0) qty_reject, COALESCE(sum(sii.qty_replace), 0) qty_replace, COALESCE(sum(sii.qty_in), 0) qty_out, COALESCE((sum(sii.qty_in) - sum(dc.qty_awal - dc.qty_reject + dc.qty_replace)), 0) balance, dc.lokasi
-            from
-                dc_in_input dc
-                left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
-                left join master_sb_ws m on s.so_det_id = m.id_so_det
-                left join secondary_inhouse_input sii on dc.id_qr_stocker = sii.id_qr_stocker
-            where
-                dc.tujuan = 'SECONDARY DALAM' ".$additionalQuery."
-            group by
-                m.ws,m.buyer,m.styleno,m.color,dc.lokasi
+                    ) mx ON a.id_qr_stocker = mx.id_qr_stocker AND a.urutan = mx.max_urutan
+                    LEFT JOIN stocker_input s ON a.id_qr_stocker = s.id_qr_stocker
+                    LEFT JOIN master_sb_ws msb ON msb.id_so_det = s.so_det_id
+                    LEFT JOIN form_cut_input f ON f.id = s.form_cut_id
+                    LEFT JOIN form_cut_reject fr ON fr.id = s.form_reject_id
+                    LEFT JOIN form_cut_piece fp ON fp.id = s.form_piece_id
+                    LEFT JOIN part_detail pd ON s.part_detail_id = pd.id
+                    LEFT JOIN part p ON pd.part_id = p.id
+                    LEFT JOIN master_part mp ON mp.id = pd.master_part_id
+                    LEFT JOIN (
+                        SELECT id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat
+                        FROM dc_in_input
+                    ) dc ON a.id_qr_stocker = dc.id_qr_stocker
+                    WHERE
+                        a.tgl_trans IS NOT NULL
+                        AND (
+                            a.urutan IS NULL
+                            OR a.urutan = mx.max_urutan
+                        )
+                        $additionalQuery
+                    GROUP BY
+                        a.id_qr_stocker
+                ) a
+            GROUP BY
+                act_costing_ws,buyer,style,color,lokasi
         "));
 
         $act_costing_ws = $data_detail->groupBy("act_costing_ws")->keys();
