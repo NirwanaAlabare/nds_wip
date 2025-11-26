@@ -112,7 +112,7 @@
                         @php
                             $qty = $loadingLine->qty;
 
-                            if ($currentSize != $loadingLine->size || $currentRange != $loadingLine->range_awal || (str_contains($currentForm, "GR") && $currentForm != $loadingLine->no_form)) {
+                            if ($currentSize != $loadingLine->size || $currentRange != $loadingLine->range_awal || (str_contains($currentForm, "GR") || $currentForm != $loadingLine->no_form)) {
                                 $currentForm = $loadingLine->no_form;
                                 $currentSize = $loadingLine->size;
                                 $currentGroup = $loadingLine->group_stocker ? $loadingLine->group_stocker : $loadingLine->shade;
@@ -125,7 +125,7 @@
 
                                 $currentQty = $qty;
                             } else {
-                                $currentQty > $qty ? $totalQty = $totalQty - $currentQty + $qty : $totalQty = $totalQty;
+                                // $currentQty > $qty ? $totalQty = $totalQty - $currentQty + $qty : $totalQty = $totalQty;
 
                                 $currentQty = $qty;
                             }
@@ -141,9 +141,9 @@
                             <td class="align-middle">{{ $loadingLine->range_awal }}</td>
                             <td class="align-middle">{{ ($loadingLine->range_awal)." - ".($loadingLine->range_akhir) }}</td>
                             <td class="align-middle">{{ $loadingLine->id_qr_stocker }}</td>
-                            <td class="align-middle">{{ $loadingLine->tipe }}</td>
+                            <td class="align-middle {{ $loadingLine->part_status == 'main' ? 'fw-bold' : '' }}">{{ strtoupper($loadingLine->tipe != 'REJECT' ? $loadingLine->part_status : $loadingLine->tipe) }}</td>
                             <td class="align-middle">{{ $loadingLine->no_bon }}</td>
-                            <td class="align-middle">{{ num($qty) }}</td>
+                            <td class="align-middle {{ $loadingLine->part_status == 'main' ? 'fw-bold' : '' }}">{{ num($qty) }}</td>
                             <td class="align-middle">{{ $loadingLine->tanggal_loading }}</td>
                             <td class="align-middle">{{ $loadingLine->waktu_loading }}</td>
                             <td class="align-middle">{{ $loadingLine->user }}</td>

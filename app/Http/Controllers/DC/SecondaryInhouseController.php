@@ -86,9 +86,7 @@ class SecondaryInhouseController extends Controller
             $data_input = DB::select("
                 SELECT
                     a.*,
-                    (CASE WHEN fp.id > 0 THEN 'PIECE'
-                            WHEN fr.id > 0 THEN 'REJECT'
-                            ELSE 'NORMAL' END) AS tipe,
+                    (CASE WHEN fp.id > 0 THEN 'PIECE' WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) AS tipe,
                     DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') AS tgl_trans_fix,
                     a.tgl_trans,
                     s.act_costing_ws,

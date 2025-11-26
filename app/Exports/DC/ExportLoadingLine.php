@@ -266,7 +266,8 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                     master_part.nama_part as part,
                     loading_line.no_bon,
                     DATE_FORMAT(loading_line.updated_at, '%H:%i:%s') waktu_loading,
-                    users.username as user
+                    users.username as user,
+                    part_detail.part_status
                 FROM
                     loading_line
                     LEFT JOIN loading_line_plan ON loading_line_plan.id = loading_line.loading_plan_id
@@ -295,7 +296,8 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                     stocker_input.form_reject_id,
                     stocker_input.form_piece_id,
                     stocker_input.so_det_id,
-                    stocker_input.range_awal
+                    stocker_input.range_awal,
+                    FIELD(part_detail.part_status, 'main', 'regular', 'complement')
             ")
         );
 
@@ -318,7 +320,7 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A1:S' . ($event->getConcernable()->rowCount+2),
+            'A1:T' . ($event->getConcernable()->rowCount+2),
             [
                 'borders' => [
                     'allBorders' => [
