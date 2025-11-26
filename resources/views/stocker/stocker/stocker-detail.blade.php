@@ -100,12 +100,22 @@
                             <input type="text" class="form-control form-control-sm" id="panel" name="panel" value="{{ $dataSpreading->panel }}" readonly>
                         </div>
                     </div>
-                    <div class="col-6 col-md-6">
+                    <div class="col-6 col-md-3">
                         <div class="row">
                             <div class="col-12 col-md-12">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Part</small></label>
                                     <input type="text" class="form-control form-control-sm" id="part" name="part" value="{{ $dataSpreading->part }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="row">
+                            <div class="col-12 col-md-12">
+                                <div class="mb-1">
+                                    <label class="form-label"><small>Status</small></label>
+                                    <input type="text" class="form-control form-control-sm" id="part" name="part" value="{{ $dataSpreading->panel_status ? strtoupper($dataSpreading->panel_status)." PANEL" : "-"  }}" readonly>
                                 </div>
                             </div>
                         </div>
