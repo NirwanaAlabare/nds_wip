@@ -129,7 +129,7 @@
                         </div>
                         <div class="table-responsive">
                             <table id="datatable_upload_tambah"
-                                class="table table-bordered 100 table-hover display nowrap">
+                                class="table table-bordered table-hover display nowrap w-100" >
                                 <thead class="table-primary">
                                     <tr style='text-align:center; vertical-align:middle'>
                                         <th>Tgl. Shipment</th>
@@ -454,13 +454,13 @@
                             </div>
                         </div>
                         <div class="table-responsive">
-                            <table id="datatable_upload" class="table table-bordered 100 table-hover display nowrap">
+                            <table id="datatable_upload" class="table table-bordered w-100 table-hover display nowrap">
                                 <thead class="table-primary">
                                     <tr style='text-align:center; vertical-align:middle'>
                                         <th>Tgl. Shipment</th>
                                         <th>PO #</th>
                                         <th>No. Carton</th>
-                                        <th>Tipe Pack</th>
+                                        <th>Tipe Pack </th>
                                         <th>Color</th>
                                         <th>Size</th>
                                         <th>Qty</th>
