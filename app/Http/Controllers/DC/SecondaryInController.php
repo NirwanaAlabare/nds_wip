@@ -100,7 +100,7 @@ class SecondaryInController extends Controller
                     p.style,
                     COALESCE(mx.tujuan, dc.tujuan) tujuan,
                     COALESCE(mx.proses, dc.lokasi) lokasi,
-                    s.lokasi lokasi_rak,
+                    COALESCE(s.lokasi, '-') lokasi_rak,
                     COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
                     COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
                     COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
@@ -194,7 +194,7 @@ class SecondaryInController extends Controller
                 p.style,
                 COALESCE(mx.tujuan, dc.tujuan) tujuan,
                 COALESCE(mx.proses, dc.lokasi) lokasi,
-                s.lokasi lokasi_rak,
+                COALESCE(s.lokasi, '-') lokasi_rak,
                 COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
                 COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
                 COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
@@ -332,7 +332,7 @@ class SecondaryInController extends Controller
                             p.style,
                             COALESCE(mx.tujuan, dc.tujuan) tujuan,
                             COALESCE(mx.proses, dc.lokasi) lokasi,
-                            s.lokasi lokasi_rak,
+                            COALESCE(s.lokasi, '-') lokasi_rak,
                             COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
                             COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
                             COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
@@ -433,7 +433,7 @@ class SecondaryInController extends Controller
                             p.style,
                             COALESCE(mx.tujuan, dc.tujuan) tujuan,
                             COALESCE(mx.proses, dc.lokasi) lokasi,
-                            s.lokasi lokasi_rak,
+                            COALESCE(s.lokasi, '-') lokasi_rak,
                             COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
                             COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
                             COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
@@ -600,6 +600,8 @@ class SecondaryInController extends Controller
                                 s.lokasi lokasi_tujuan,
                                 s.tempat tempat_tujuan,
                                 1 urutan,
+                                (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND 1 >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status,
+                                max_urutan.max_urutan,
                                 md.sec_in_stocker,
                                 md.sec_in_created_at
                             from
@@ -620,6 +622,17 @@ class SecondaryInController extends Controller
                                 left join form_cut_reject b on s.form_reject_id = b.id
                                 left join form_cut_piece c on s.form_piece_id = c.id
                                 left join part_detail p on s.part_detail_id = p.id
+                                left join (
+                                    select
+                                        part_detail_id,
+                                        MAX(part_detail_secondary.urutan) max_urutan
+                                    from
+                                        part_detail_secondary
+                                    WHERE
+                                        part_detail_secondary.urutan IS NOT NULL
+                                    group by
+                                        part_detail_id
+                                ) max_urutan on max_urutan.part_detail_id = p.id
                                 left join master_part mp on p.master_part_id = mp.id
                                 left join marker_input mi on a.id_marker = mi.kode
                                 left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
@@ -702,7 +715,8 @@ class SecondaryInController extends Controller
                                                     ".$multiSecondaryCurrentSecondary->qty_in." qty_awal,
                                                     s.lokasi lokasi_tujuan,
                                                     s.tempat tempat_tujuan,
-                                                    ".$multiSecondaryCurrentSecondary->urutan." as urutan
+                                                    ".$multiSecondaryCurrentSecondary->urutan." as urutan,
+                                                    (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND ".$multiSecondaryCurrentSecondary->urutan." >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status
                                                 from
                                                     stocker_input
                                                     left join master_sb_ws msb on msb.id_so_det = s.so_det_id
@@ -716,6 +730,17 @@ class SecondaryInController extends Controller
                                                     left join marker_input mi on a.id_marker = mi.kode
                                                     left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
                                                     left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
+                                                    left join (
+                                                        select
+                                                            part_detail_id,
+                                                            MAX(part_detail_secondary.urutan) max_urutan
+                                                        from
+                                                            part_detail_secondary
+                                                        WHERE
+                                                            part_detail_secondary.urutan IS NOT NULL
+                                                        group by
+                                                            part_detail_id
+                                                    ) max_urutan on max_urutan.part_detail_id = p.id
                                                 where
                                                     s.id_qr_stocker = '" . $request->txtqrstocker . "' and
                                                     ms.tujuan = 'SECONDARY DALAM' and
@@ -746,6 +771,7 @@ class SecondaryInController extends Controller
                                                 s.lokasi lokasi_tujuan,
                                                 s.tempat tempat_tujuan,
                                                 ".$multiSecondaryCurrentSecondary->urutan." as urutan
+                                                (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND ".$multiSecondaryCurrentSecondary->urutan." >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status
                                             from
                                                 stocker_input s
                                                 left join master_sb_ws msb on msb.id_so_det = s.so_det_id
@@ -759,6 +785,17 @@ class SecondaryInController extends Controller
                                                 left join marker_input mi on a.id_marker = mi.kode
                                                 left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
                                                 left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
+                                                left join (
+                                                    select
+                                                        part_detail_id,
+                                                        MAX(part_detail_secondary.urutan) max_urutan
+                                                    from
+                                                        part_detail_secondary
+                                                    WHERE
+                                                        part_detail_secondary.urutan IS NOT NULL
+                                                    group by
+                                                        part_detail_id
+                                                ) max_urutan on max_urutan.part_detail_id = p.id
                                             where
                                                 s.id_qr_stocker = '" . $request->txtqrstocker . "' and
                                                 ms.tujuan = 'SECONDARY DALAM' and
@@ -814,7 +851,8 @@ class SecondaryInController extends Controller
                                                         ".$multiSecondaryBeforeSecondaryIn->qty_in." qty_awal,
                                                         s.lokasi lokasi_tujuan,
                                                         s.tempat tempat_tujuan,
-                                                        ".$currentPartDetailSecondary->urutan." as urutan
+                                                        ".$currentPartDetailSecondary->urutan." as urutan,
+                                                        (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND ".$currentPartDetailSecondary->urutan." >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status
                                                     from
                                                         stocker_input s
                                                         left join master_sb_ws msb on msb.id_so_det = s.so_det_id
@@ -828,6 +866,17 @@ class SecondaryInController extends Controller
                                                         left join marker_input mi on a.id_marker = mi.kode
                                                         left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
                                                         left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
+                                                        left join (
+                                                            select
+                                                                part_detail_id,
+                                                                MAX(part_detail_secondary.urutan) max_urutan
+                                                            from
+                                                                part_detail_secondary
+                                                            WHERE
+                                                                part_detail_secondary.urutan IS NOT NULL
+                                                            group by
+                                                                part_detail_id
+                                                        ) max_urutan on max_urutan.part_detail_id = p.id
                                                     where
                                                         s.id_qr_stocker = '" . $request->txtqrstocker . "' and
                                                         ms.tujuan = 'SECONDARY LUAR' and
@@ -854,7 +903,8 @@ class SecondaryInController extends Controller
                                                         ".$multiSecondaryBeforeSecondary->qty_in." qty_awal,
                                                         s.lokasi lokasi_tujuan,
                                                         s.tempat tempat_tujuan,
-                                                        ".$multiSecondaryBefore->urutan." as urutan
+                                                        ".$multiSecondaryBefore->urutan." as urutan,
+                                                        (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND ".$multiSecondaryBefore->urutan." >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status
                                                     from
                                                         stocker_input s
                                                         left join master_sb_ws msb on msb.id_so_det = s.so_det_id
@@ -868,6 +918,17 @@ class SecondaryInController extends Controller
                                                         left join marker_input mi on a.id_marker = mi.kode
                                                         left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
                                                         left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
+                                                        left join (
+                                                            select
+                                                                part_detail_id,
+                                                                MAX(part_detail_secondary.urutan) max_urutan
+                                                            from
+                                                                part_detail_secondary
+                                                            WHERE
+                                                                part_detail_secondary.urutan IS NOT NULL
+                                                            group by
+                                                                part_detail_id
+                                                        ) max_urutan on max_urutan.part_detail_id = p.id
                                                     where
                                                         s.id_qr_stocker = '" . $request->txtqrstocker . "' and
                                                         ms.tujuan = 'SECONDARY DALAM' and
@@ -906,6 +967,7 @@ class SecondaryInController extends Controller
                                                     s.lokasi lokasi_tujuan,
                                                     s.tempat tempat_tujuan,
                                                     ".$currentPartDetailSecondary->urutan." as urutan
+                                                    (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND ".$currentPartDetailSecondary->urutan." >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status
                                                 from
                                                     stocker_input s
                                                     left join master_sb_ws msb on msb.id_so_det = s.so_det_id
@@ -919,6 +981,17 @@ class SecondaryInController extends Controller
                                                     left join marker_input mi on a.id_marker = mi.kode
                                                     left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
                                                     left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
+                                                    left join (
+                                                        select
+                                                            part_detail_id,
+                                                            MAX(part_detail_secondary.urutan) max_urutan
+                                                        from
+                                                            part_detail_secondary
+                                                        WHERE
+                                                            part_detail_secondary.urutan IS NOT NULL
+                                                        group by
+                                                            part_detail_id
+                                                    ) max_urutan on max_urutan.part_detail_id = p.id
                                                 where
                                                     s.id_qr_stocker = '" . $request->txtqrstocker . "' and
                                                     ms.tujuan = 'SECONDARY LUAR' and
@@ -945,7 +1018,9 @@ class SecondaryInController extends Controller
                                             dc.lokasi,
                                             coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace qty_awal,
                                             ifnull(si.id_qr_stocker,'x'),
-                                            1 as urutan
+                                            1 as urutan,
+                                            (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND 1 >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status,
+                                            max_urutan.max_urutan
                                         from dc_in_input dc
                                             left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
                                             left join master_sb_ws msb on msb.id_so_det = s.so_det_id
@@ -956,6 +1031,17 @@ class SecondaryInController extends Controller
                                             left join master_part mp on p.master_part_id = mp.id
                                             left join marker_input mi on a.id_marker = mi.kode
                                             left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
+                                            left join (
+                                                select
+                                                    part_detail_id,
+                                                    MAX(part_detail_secondary.urutan) max_urutan
+                                                from
+                                                    part_detail_secondary
+                                                WHERE
+                                                    part_detail_secondary.urutan IS NOT NULL
+                                                group by
+                                                    part_detail_id
+                                            ) max_urutan on max_urutan.part_detail_id = p.id
                                         where
                                             dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
                                             and ifnull(si.id_qr_stocker,'x') = 'x'
@@ -1008,7 +1094,9 @@ class SecondaryInController extends Controller
                                                     ".$multiSecondaryBeforeSecondary->qty_in." qty_awal,
                                                     s.lokasi lokasi_tujuan,
                                                     s.tempat tempat_tujuan,
-                                                    ".$multiSecondaryBefore->urutan." as urutan
+                                                    ".$multiSecondaryBefore->urutan." as urutan,
+                                                    (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND ".$multiSecondaryBefore->urutan." >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status,
+                                            max_urutan.max_urutan
                                                 from
                                                     stocker_input s
                                                     left join master_sb_ws msb on msb.id_so_det = s.so_det_id
@@ -1022,6 +1110,17 @@ class SecondaryInController extends Controller
                                                     left join marker_input mi on a.id_marker = mi.kode
                                                     left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
                                                     left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
+                                                    left join (
+                                                        select
+                                                            part_detail_id,
+                                                            MAX(part_detail_secondary.urutan) max_urutan
+                                                        from
+                                                            part_detail_secondary
+                                                        WHERE
+                                                            part_detail_secondary.urutan IS NOT NULL
+                                                        group by
+                                                            part_detail_id
+                                                    ) max_urutan on max_urutan.part_detail_id = p.id
                                                 where
                                                     s.id_qr_stocker = '" . $request->txtqrstocker . "' and
                                                     ms.tujuan = 'SECONDARY DALAM' and

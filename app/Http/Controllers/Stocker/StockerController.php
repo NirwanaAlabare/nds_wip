@@ -181,7 +181,7 @@ class StockerController extends Controller
      * @param  \App\Models\Stocker\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
-    public function show($formCutId = 0)
+    public function show($formCutId = 0, StockerService $stockerService)
     {
         $dataSpreading = FormCutInput::selectRaw("
                 part.id part_id,
@@ -459,9 +459,35 @@ class StockerController extends Controller
 
         $dataStockerSeparate = StockerSeparate::where("form_cut_id", $dataSpreading->form_cut_id)->orderBy("updated_at", "desc")->get();
 
+        // Complement
+        $dataPartComplement = DB::table("part")->
+            selectRaw("part.id")->
+            where("part.act_costing_ws", $dataSpreading->ws)->
+            where("part.color", $dataSpreading->color)->
+            where("part.panel_status", "!=", "main")->
+            get();
+
+        if ($dataPartComplement && $dataPartComplement->count() > 0) {
+            $dataStockerCom = collect();
+            foreach ($dataPartComplement as $partComplement) {
+                $formCut = FormCutInput::selectRaw("form_cut_input.id")->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+                    where("part_form.part_id", $partComplement->id)->
+                    where("form_cut_input.no_cut", $dataSpreading->no_cut)->
+                    first();
+
+                if ($formCut) {
+                    $currentStockerData = $stockerService->getStockerGenerate($formCut->id);
+
+                    if ($currentStockerData) {
+                        $dataStockerCom->push($currentStockerData);
+                    }
+                }
+            }
+        }
+
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
-        return view("stocker.stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "dataNumbering" => $dataNumbering, "modifySizeQty" => $modifySizeQty, "dataAdditional" => $dataAdditional, "dataPartDetailAdditional" => $dataPartDetailAdditional, "dataRatioAdditional" => $dataRatioAdditional, "dataStockerAdditional" => $dataStockerAdditional, "dataStockerSeparate" => $dataStockerSeparate, "dataPartForm" => $dataPartForm, "orders" => $orders, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
+        return view("stocker.stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "dataNumbering" => $dataNumbering, "modifySizeQty" => $modifySizeQty, "dataAdditional" => $dataAdditional, "dataPartDetailAdditional" => $dataPartDetailAdditional, "dataRatioAdditional" => $dataRatioAdditional, "dataStockerAdditional" => $dataStockerAdditional, "dataStockerSeparate" => $dataStockerSeparate, "dataPartForm" => $dataPartForm, "orders" => $orders, "dataStockerCom" => $dataStockerCom, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
     }
 
     public function showPcs($formCutId = 0)

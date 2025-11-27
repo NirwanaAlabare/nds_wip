@@ -1175,6 +1175,42 @@ class DCInController extends Controller
                 user = '$user'
         ");
 
+        // Update Stocker
+        $data_tmp_dc_in = DB::select("
+            SELECT
+                s.id_qr_stocker,
+                (case when s.qty_ply_mod > 0 THEN s.qty_ply_mod ELSE s.qty_ply END) - coalesce(tmp.qty_reject,0) + coalesce(tmp.qty_replace,0) qty_in,
+                tmp.qty_reject,
+                tmp.qty_replace,
+                COALESCE(ms.tujuan, ms_old.tujuan) tujuan,
+                tmp.tempat,
+                tmp.lokasi,
+                tmp.ket,
+                concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) kode
+            from
+                stocker_input s
+                left join part_detail pd on s.part_detail_id = pd.id
+                left join part_detail_secondary pds on pds.part_detail_id = pd.id
+                left join master_secondary ms on pds.master_secondary_id = ms.id
+                left join master_secondary ms_old on ms_old.id = pd.master_secondary_id
+                left join tmp_dc_in_input_new tmp on s.id_qr_stocker = tmp.id_qr_stocker
+            where
+                (s.cancel is null or s.cancel != 'y') and
+                (CASE WHEN pds.id IS NOT NULL THEN pds.urutan = 1 ELSE pd.id IS NOT NULL END) and
+                tmp.user = '".$user."' and
+                ms.tujuan = 'NON SECONDARY'
+            group by
+                concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)
+        ");
+        foreach ($data_tmp_dc_in as $data_tmp) {
+            if ($data_tmp) {
+                Stocker::whereRaw("concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) = '".$data_tmp->kode."'")->update([
+                    "tempat" => $data_tmp->tempat,
+                    "lokasi" => $data_tmp->lokasi,
+                ]);
+            }
+        }
+
         // Rack Detail Stocker Insert
         DB::insert("
             INSERT INTO rack_detail_stocker

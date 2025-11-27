@@ -101,13 +101,19 @@
                         </div>
 
                         <div class="row">
-                            <div class='col-sm-6'>
+                            <div class='col-sm-4'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Urutan</small></label>
+                                    <input type='number' class='form-control form-control-sm' id='txturutan' name='txturutan' value = '' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-4'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Tujuan Asal</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txttujuan' name='txttujuan' value = '' readonly>
                                 </div>
                             </div>
-                            <div class='col-sm-6'>
+                            <div class='col-sm-4'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Lokasi Asal</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txtalokasi' name='txtalokasi' value = '' readonly>
@@ -139,12 +145,6 @@
                                 <div class='form-group'>
                                     <label class='form-label'><small>Qty In</small></label>
                                     <input type='number' class='form-control form-control-sm' id='txtqtyin' name='txtqtyin' value = '' readonly style = 'border-color:green;'>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Urutans</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txturutan' name='txturutan' value = '' readonly>
                                 </div>
                             </div>
                         </div>
