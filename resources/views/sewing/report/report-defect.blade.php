@@ -627,7 +627,7 @@
                             percent += cumulative;
                             progress.style.width = percent + "%";
                         }
-                    }, 1000);
+                    }, 1500);
                 },
                 allowOutsideClick: false,
             });
