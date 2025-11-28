@@ -4213,6 +4213,10 @@
 
                 // -Next Lap Time Record-
                 async function addNewTimeRecord(data = null) {
+                    if (isProcessing) return alert("Prevent Redundant data, Reload the page to Try Again.");
+
+                    isProcessing = true;
+
                     if ($("#status_sambungan").val() == "extension") {
                         pauseTimeRecordButtons();
 
@@ -4239,12 +4243,12 @@
 
                         timeRecordTableTbody.prepend(tr);
 
-                        stopLapButton.disabled = false;
-
                         if (!(await stopTimeRecord())) {
                             resetTimeRecord();
-                            resetSambungan();
                         }
+
+                        stopLapButton.disabled = false;
+                        isProcessing = false;
                     } else {
                         pauseTimeRecordButtons();
 
@@ -4274,9 +4278,8 @@
                         await storeThisTimeRecord();
 
                         stopLapButton.disabled = false;
+                        isProcessing = false;
                     }
-
-                    updatePlyProgress();
                 }
 
                 function openStopTimeRecord() {
