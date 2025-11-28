@@ -243,16 +243,17 @@ class StockerController extends Controller
                 part_detail.id,
                 master_part.nama_part,
                 master_part.bag,
-                GROUP_CONCAT(DISTINCT COALESCE(master_secondary.tujuan, '-') SEPARATOR ' | ') tujuan,
-                GROUP_CONCAT(COALESCE(master_secondary.proses, '-') SEPARATOR ' | ') proses,
-                GROUP_CONCAT(DISTINCT COALESCE(master_secondary.proses, '-') ORDER BY part_detail_secondary.urutan SEPARATOR ' , ') proses_tujuan
+                GROUP_CONCAT(DISTINCT COALESCE(master_secondary_new.tujuan, master_secondary.tujuan, '-') SEPARATOR ' | ') tujuan,
+                GROUP_CONCAT(COALESCE(master_secondary_new.proses, master_secondary.proses, '-') SEPARATOR ' | ') proses,
+                GROUP_CONCAT(DISTINCT COALESCE(master_secondary_new.proses, master_secondary.proses, '-') ORDER BY COALESCE(part_detail_secondary.urutan, part_detail.id) SEPARATOR ' , ') proses_tujuan
             ")->
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
             leftJoin("part", "part.id", "part_detail.part_id")->
             leftJoin("part_form", "part_form.part_id", "part.id")->
             leftJoin("form_cut_input", "form_cut_input.id", "part_form.form_id")->
             leftJoin("part_detail_secondary", "part_detail_secondary.part_detail_id", "=", "part_detail.id")->
-            leftJoin("master_secondary", "master_secondary.id", "=", "part_detail_secondary.master_secondary_id")->
+            leftJoin("master_secondary as master_secondary_new", "master_secondary_new.id", "=", "part_detail_secondary.master_secondary_id")->
             where("form_cut_input.id", $formCutId)->
             groupBy("master_part.id")->
             get();
@@ -467,6 +468,7 @@ class StockerController extends Controller
             where("part.panel_status", "!=", "main")->
             get();
 
+        $dataStockerCom = null;
         if ($dataPartComplement && $dataPartComplement->count() > 0) {
             $dataStockerCom = collect();
             foreach ($dataPartComplement as $partComplement) {
