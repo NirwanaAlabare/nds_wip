@@ -21,8 +21,8 @@
 
         public function __construct($defectRateQuery, $topDefectQuery, $topRejectQuery, $dateFrom, $dateTo, $base_ws, $ws, $style, $color, $sewingLine, $department)
         {
-            ini_set('max_execution_time', 3600); // boost only once here
-            ini_set('memory_limit', '1024M'); // adjust as needed
+            ini_set('max_execution_time', 36000); // boost only once here
+            ini_set('memory_limit', '2048M'); // adjust as needed
 
             $this->defectRateQuery = $defectRateQuery;
             $this->topDefectQuery = $topDefectQuery;
