@@ -49,6 +49,9 @@
                         <th>Leader QC</th>
                         <th>Mechanic</th>
                         <th>Technical</th>
+                        <th>Created By</th>
+                        <th>Created At</th>
+                        <th>Updated At</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -340,6 +343,15 @@
                 {
                     data: 'technical_name'
                 },
+                {
+                    data: 'created_by_username'
+                },
+                {
+                    data: 'created_at'
+                },
+                {
+                    data: 'updated_at'
+                },
             ],
             columnDefs: [
                 {
@@ -356,6 +368,13 @@
                                 </a>
                             </div>
                         `;
+                    }
+                },
+                {
+                    targets: [10, 11],
+                    className: 'align-middle',
+                    render: (data, type, row, meta) => {
+                        return formatDateTime(data);
                     }
                 },
                 {
