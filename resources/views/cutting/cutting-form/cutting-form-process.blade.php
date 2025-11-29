@@ -2102,7 +2102,7 @@
 
                 let estAmpar = pActualConverted > 0 ? qtyVar / pActualConverted : 0;
 
-                document.getElementById("current_est_amparan").value = estAmpar.round(2);
+                document.getElementById("current_est_amparan").value = Number(estAmpar).round(2);
             }
 
             // -Calculate Pemakaian Lembar
@@ -3676,9 +3676,7 @@
 
             // -Next Lap Time Record-
             async function addNewTimeRecord(data = null) {
-                if (isProcessing) return alert("Prevent Redundant data, Reload the page to Try Again.");
-
-                isProcessing = true;
+                nextLapButton.disabled - true;
 
                 if ($("#status_sambungan").val() == "extension") {
                     pauseTimeRecordButtons();
@@ -3710,8 +3708,8 @@
                         resetTimeRecord();
                     }
 
+                    nextLapButton.disabled = false;
                     stopLapButton.disabled = false;
-                    isProcessing = false;
                 } else {
                     pauseTimeRecordButtons();
 
@@ -3740,8 +3738,8 @@
 
                     await storeThisTimeRecord();
 
+                    nextLapButton.disabled = false;
                     stopLapButton.disabled = false;
-                    isProcessing = false;
                 }
 
                 updatePlyProgress();

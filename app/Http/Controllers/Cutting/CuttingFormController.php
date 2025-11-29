@@ -414,12 +414,15 @@ class CuttingFormController extends Controller
             "p_act" => "required"
         ]);
 
-        $status = 'complete';
+        $user = Auth::user();
 
+        // Set Roll Usage Status
+        $status = 'complete';
         if ($validatedRequest['current_sisa_gelaran'] > 0) {
             $status = 'need extension';
         }
 
+        // Set Current Group Stocker and Qty
         $beforeData = FormCutInputDetail::select('group_roll', 'group_stocker')->where('form_cut_id', $validatedRequest['id'])->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->whereRaw('(form_cut_input_detail.status = "complete" || form_cut_input_detail.status = "need extension" || form_cut_input_detail.status = "extension complete")')->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->orderBy('created_at', 'desc')->first();
         $groupStocker = $beforeData ? ($beforeData->group_roll == $validatedRequest['current_group'] ? $beforeData->group_stocker : $beforeData->group_stocker + 1) : 1;
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
@@ -427,6 +430,7 @@ class CuttingFormController extends Controller
 
         $checkTimeRecord = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where("status", "not complete")->first();
 
+        // Update or Create Form Cut Input Detail (Roll Usage)
         $storeTimeRecordSummary = null;
         if ($checkTimeRecord) {
             $storeTimeRecordSummary = $checkTimeRecord;
@@ -494,10 +498,13 @@ class CuttingFormController extends Controller
                     "metode" => $request->metode ? $request->metode : "scan",
                     "group_stocker" => $groupStocker,
                     "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
+                    "created_by" => $user ? $user->id : null,
+                    "created_by_username" => $user ? $user->username : null,
                 ]);
         }
 
         if ($storeTimeRecordSummary) {
+            // Sambungan Dalam Roll
             $sambunganRoll = $request['sambungan_roll'] ? array_filter($request['sambungan_roll'], function ($var) {
                 return ($var > 0);
             }) : [];
@@ -517,8 +524,10 @@ class CuttingFormController extends Controller
 
             // $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']) - floatval($validatedRequest['current_kepala_kain']) - floatval($validatedRequest['current_sisa_tidak_bisa']) - floatval($validatedRequest['current_reject']) - floatval($validatedRequest['current_piping']);
             $itemRemain = $validatedRequest['current_sisa_kain'];
-
             if ($status == 'need extension') {
+                // When the roll need an extension
+
+                // Update scanned item (roll detail & qty)
                 ScannedItem::updateOrCreate(
                     ["id_roll" => $validatedRequest['current_id_roll']],
                     [
@@ -535,16 +544,21 @@ class CuttingFormController extends Controller
                     ]
                 );
 
+                // Create an extension
                 $storeTimeRecordSummaryExt = FormCutInputDetail::create([
                     "form_cut_id" => $validatedRequest['id'],
                     "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
                     "group_roll" => $validatedRequest['current_group'],
                     "id_sambungan" => $storeTimeRecordSummary->id,
                     "status" => "extension",
-                    "group_stocker" => $groupStocker
+                    "group_stocker" => $groupStocker,
+                    "created_by" => $user ? $user->id : null,
+                    "created_by_username" => $user ? $user->username : null,
                 ]);
 
                 if ($storeTimeRecordSummaryExt) {
+
+                    // Return the recorded data with the extension
                     return array(
                         "status" => 200,
                         "message" => "alright",
@@ -555,6 +569,7 @@ class CuttingFormController extends Controller
                     );
                 }
             } else {
+                // Update scanned item (roll detail & qty)
                 ScannedItem::updateOrCreate(
                     ["id_roll" => $validatedRequest['current_id_roll']],
                     [
@@ -572,6 +587,7 @@ class CuttingFormController extends Controller
                 );
             }
 
+            // Return the recorded data
             return array(
                 "status" => 200,
                 "message" => "alright",
@@ -591,13 +607,19 @@ class CuttingFormController extends Controller
 
     public function storeThisTimeRecord(Request $request)
     {
+        $user = Auth::user();
+
+        // Current Lap
         $lap = $request->lap;
 
+        // Current Qty
         $itemQty = ($request["current_unit"] != "KGM" ? floatval($request['current_qty']) : floatval($request['current_qty_real']));
         $itemUnit = ($request["current_unit"] != "KGM" ? "METER" : $request['current_unit']);
 
+        // Get the current not completed roll usage
         $checkTimeRecord = FormCutInputDetail::where("form_cut_id", $request->id)->where("status", "not complete")->first();
 
+        // Update or Create Form Cut Input Detail (Roll Usage)
         $storeTimeRecordSummary = null;
         if ($checkTimeRecord) {
             $storeTimeRecordSummary = $checkTimeRecord;
@@ -630,7 +652,7 @@ class CuttingFormController extends Controller
                         "piping" => $request->current_piping,
                         "status" => "not complete",
                         "metode" => $request->metode ? $request->metode : "scan",
-                        "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
+                        "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0
                     ]
                 );
         } else {
@@ -664,27 +686,37 @@ class CuttingFormController extends Controller
                         "status" => "not complete",
                         "metode" => $request->metode ? $request->metode : "scan",
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
+                        "created_by" => $user ? $user->id : null,
+                        "created_by_username" => $user ? $user->username : null,
                     ]
                 );
         }
 
         if ($storeTimeRecordSummary) {
+            // Create or Update the Lap
             if ($lap > 0) {
                 $storeTimeRecordLap = FormCutInputDetailLap::updateOrCreate(
                     ["form_cut_input_detail_id" => $storeTimeRecordSummary->id, "lembar_gelaran_ke" => $lap],
                     [
-                        "waktu" => $request["time_record"][$lap]
+                        "waktu" => $request["time_record"][$lap],
+                        "created_by" => $user ? $user->id : null,
+                        "created_by_username" => $user ? $user->username : null,
                     ]
                 );
             }
 
+            // If there is Sambungan dalam Roll
             if ($request['sambungan_roll'] && count($request['sambungan_roll']) > 0) {
                 for ($i = 0; $i < count($request['sambungan_roll']); $i++) {
                     if ($request['sambungan_roll'][$i] > 0) {
+
+                        // Create or Update Sambungan dalam Roll
                         $storeSambungan = FormCutInputDetailSambungan::updateOrCreate(
                             ["form_cut_input_detail_id" => $storeTimeRecordSummary->id, "sambungan_ke" => $i+1],
                             [
                                 "sambungan_roll" => $request['sambungan_roll'][$i],
+                                "created_by" => $user ? $user->id : null,
+                                "created_by_username" => $user ? $user->username : null,
                             ]
                         );
                     }
@@ -707,8 +739,6 @@ class CuttingFormController extends Controller
 
     public function storeTimeRecordExtension(Request $request)
     {
-        $lap = 1;
-
         $validatedRequest = $request->validate([
             "id" => "required",
             "status_sambungan" => "required",
@@ -740,13 +770,24 @@ class CuttingFormController extends Controller
             "current_sambungan" => "required"
         ]);
 
+        $user = Auth::user();
+
+        // Now
+        $now = Carbon::now();
+
+        // Set Lap to only has 1
+        $lap = 1;
+
+        // Set Current Group and Qty
         $beforeData = FormCutInputDetail::select('group_roll', 'group_stocker')->where('form_cut_id', $validatedRequest['id'])->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->whereRaw('(form_cut_input_detail.status = "complete" || form_cut_input_detail.status = "need extension" || form_cut_input_detail.status = "extension complete")')->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->orderBy('created_at', 'desc')->first();
         $groupStocker = $beforeData ? ($beforeData->group_roll  == $validatedRequest['current_group'] ? $beforeData->group_stocker : $beforeData->group_stocker + 1) : 1;
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
 
+        // Get Current Roll Usage
         $checkTimeRecord  = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where("status", "extension")->first();
 
+        // Create or Update Form Cut Input Detail (Roll Usage)
         $storeTimeRecordSummary = null;
         if ($checkTimeRecord) {
             $storeTimeRecordSummary = $checkTimeRecord;
@@ -782,6 +823,7 @@ class CuttingFormController extends Controller
                         "metode" => $request->metode ? $request->metode : "scan",
                         "group_stocker" => $groupStocker,
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
+                        "updated_at" => $now,
                     ]
                 );
         } else {
@@ -818,11 +860,17 @@ class CuttingFormController extends Controller
                         "metode" => $request->metode ? $request->metode : "scan",
                         "group_stocker" => $groupStocker,
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
+                        "created_by" => $user ? $user->id : null,
+                        "created_by_username" => $user ? $user->username : null,
+                        "created_at" => $now,
+                        "updated_at" => $now,
                     ]
                 );
         }
 
         if ($storeTimeRecordSummary) {
+
+            // Sambungan dalam Roll
             $sambunganRoll = $request['sambungan_roll'] ? array_filter($request['sambungan_roll'], function ($var) {
                 return ($var > 0);
             }) : [];
@@ -834,15 +882,17 @@ class CuttingFormController extends Controller
                             ["form_cut_input_detail_id" => $storeTimeRecordSummary->id, "sambungan_ke" => $i+1],
                             [
                                 "sambungan_roll" => $sambunganRoll[$i],
+                                "created_by" => $user ? $user->id : null,
+                                "created_by_username" => $user ? $user->username : null,
                             ]
                         );
                     }
                 }
             }
 
+            // Update Scanned Item (Roll Detail Data & Qty Stock)
             $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']);
             // $itemRemain = $validatedRequest['current_sisa_kain'];
-
             ScannedItem::updateOrCreate(
                 ["id_roll" => $validatedRequest['current_id_roll']],
                 [
@@ -856,12 +906,13 @@ class CuttingFormController extends Controller
                     "qty_pakai" => DB::raw("COALESCE(qty_pakai, 0) + ".$validatedRequest['current_total_pemakaian_roll']),
                     "unit" => $itemUnit,
                     "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
+                    "created_by" => $user ? $user->id : null,
+                    "created_by_username" => $user ? $user->username : null,
                 ]
             );
 
-            $now = Carbon::now();
-
             if ($lap > 0) {
+                // Create the lap
                 $storeTimeRecordLap = FormCutInputDetailLap::updateOrCreate(
                     ["form_cut_input_detail_id" => $storeTimeRecordSummary->id, "lembar_gelaran_ke" => $lap],
                     [
@@ -870,6 +921,9 @@ class CuttingFormController extends Controller
                 );
 
                 if ($storeTimeRecordLap) {
+                    $postNow = $now->addSecond();
+
+                    // Create post-extension roll spreading
                     $storeTimeRecordSummaryNext = FormCutInputDetail::create([
                         "form_cut_id" => $validatedRequest['id'],
                         "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
@@ -887,8 +941,11 @@ class CuttingFormController extends Controller
                         "status" => "not complete",
                         "metode" => $request->metode ? $request->metode : null,
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
+                        "created_at" => $postNow,
+                        "updated_at" => $postNow,
                     ]);
 
+                    // Return the current extension roll with the post-extension roll
                     return array(
                         "status" => 200,
                         "message" => "alright",
@@ -900,6 +957,7 @@ class CuttingFormController extends Controller
                 }
             }
 
+            // I don't think it could get here
             return array(
                 "status" => 200,
                 "message" => "alright",
@@ -1009,6 +1067,7 @@ class CuttingFormController extends Controller
     {
         $formCutInputData = FormCutInput::where("id", $id)->first();
 
+        // Get latest no. cut
         $formCutInputSimilarLatest = FormCutInput::leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             where("marker_input.act_costing_ws", $formCutInputData->marker->act_costing_ws)->
             where("marker_input.color", $formCutInputData->marker->color)->
@@ -1016,6 +1075,7 @@ class CuttingFormController extends Controller
             where("form_cut_input.status", "SELESAI PENGERJAAN")->
             max("form_cut_input.no_cut");
 
+        // Update the Form to be Finished
         $updateFormCutInput = FormCutInput::where("id", $id)->update([
             "status" => "SELESAI PENGERJAAN",
             "waktu_selesai" => $request->finishTime,
@@ -1032,6 +1092,7 @@ class CuttingFormController extends Controller
             "operator" => $request->operator,
         ]);
 
+        // Backup the incomplete Form Cut Detail (Roll Spreading)
         $notCompletedDetails = FormCutInputDetail::where("form_cut_id", $formCutInputData->id)->where("no_form_cut_input", $formCutInputData->no_form)->whereRaw("(status = 'not complete' OR status = 'extension')")->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->get();
         if ($notCompletedDetails->count() > 0) {
             foreach ($notCompletedDetails as $notCompletedDetail) {
