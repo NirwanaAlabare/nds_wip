@@ -322,7 +322,7 @@ class CompletedFormController extends Controller
                 "short_roll" => $validatedRequest['current_short_roll'],
                 "piping" => $validatedRequest['current_piping'],
                 "berat_amparan" => $validatedRequest['current_berat_amparan'],
-                "status" => $validatedRequest['current_sisa_gelaran'] > 0 ? "need extension" : $validatedRequest['current_sambungan'] > 0 ? "extension complete" : "complete",
+                "status" => floatval($validatedRequest['current_sisa_gelaran']) > 0 ? "need extension" : (floatval($validatedRequest['current_sambungan']) > 0 ? "extension complete" : "complete"),
                 "edited" => 1,
                 "edited_by" => Auth::user()->id,
                 "edited_by_username" => Auth::user()->username,
@@ -370,7 +370,7 @@ class CompletedFormController extends Controller
         if ($updateTimeRecordSummary) {
 
             // Update Scanned Item Qty
-            if (($request->current_id_roll_ori != $validatedRequest['current_id_roll'])) {
+            if ($request->current_id_roll_ori && $validatedRequest['current_id_roll'] && ($request->current_id_roll_ori != $validatedRequest['current_id_roll'])) {
                 // On change ID Roll
                 ScannedItem::where("id_roll", $request->current_id_roll_ori)->
                     update([
