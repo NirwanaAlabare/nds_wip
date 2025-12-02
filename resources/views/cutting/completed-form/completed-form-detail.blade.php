@@ -1054,30 +1054,19 @@
                     success: function(res) {
                         document.getElementById("loading").classList.add("d-none");
 
-                        if (res && res.status && res.status == 400) {
+                        if (res && res.qty > 0) {
+                            setSpreadingForm(res, true);
+                        } else {
                             Swal.fire({
-                                icon: 'info',
-                                title: 'Info',
-                                text: 'Data sudah memiliki Stocker.',
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: 'Roll tidak tersedia atau sudah habis.',
                                 showCancelButton: false,
                                 showConfirmButton: true,
                                 confirmButtonText: 'Oke',
                             });
-                        } else {
-                            if (res && res.qty > 0) {
-                                setSpreadingForm(res, true);
-                            } else {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Gagal',
-                                    text: 'Roll tidak tersedia atau sudah habis.',
-                                    showCancelButton: false,
-                                    showConfirmButton: true,
-                                    confirmButtonText: 'Oke',
-                                });
 
-                                document.getElementById("current_id_roll").value = document.getElementById("current_id_roll_ori").value;
-                            }
+                            document.getElementById("current_id_roll").value = document.getElementById("current_id_roll_ori").value;
                         }
 
                     }, error: function(jqXHR) {
@@ -2104,7 +2093,7 @@
                             }
                         },
                         error: function (jqXHR) {
-                            document.getElementById("loading").classList.remove("d-none");
+                            document.getElementById("loading").classList.add("d-none");
 
                             console.error(jqXHR);
 
@@ -2121,9 +2110,9 @@
                         }
                     });
                 } else {
-                    document.getElementById("loading").classList.remove("d-none");
+                    document.getElementById("loading").classList.add("d-none");
 
-                    resolve(false);
+                    resolve(true);
                 }
             });
         }
@@ -2196,6 +2185,14 @@
                             }
                         };
                     }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Form sudah memiliki Stocker',
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                    confirmButtonColor: "#6531a0",
                 });
             }
         }
@@ -2321,6 +2318,14 @@
                         })
                     }
                 })
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Form sudah memiliki Stocker',
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                    confirmButtonColor: "#6531a0",
+                });
             }
         }
 
@@ -2367,7 +2372,7 @@
                         Swal.fire({
                             icon: 'info',
                             title: 'Info',
-                            text: 'Data sudah memiliki Stocker.',
+                            text: res.message,
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
@@ -2430,7 +2435,7 @@
                         Swal.fire({
                             icon: 'info',
                             title: 'Info',
-                            text: 'Data sudah memiliki Stocker.',
+                            text: res.message,
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
@@ -2496,7 +2501,7 @@
                         Swal.fire({
                             icon: 'info',
                             title: 'Info',
-                            text: 'Data sudah memiliki Stocker.',
+                            text: res.message,
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
@@ -2785,6 +2790,14 @@
                         }
                     })
                 })
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Form sudah memiliki Stocker',
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                    confirmButtonColor: "#6531a0",
+                });
             }
         }
 
@@ -2824,6 +2837,14 @@
                         });
                     }
                 })
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Form sudah memiliki Stocker',
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                    confirmButtonColor: "#6531a0",
+                });
             }
         }
     </script>

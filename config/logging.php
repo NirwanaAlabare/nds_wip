@@ -100,6 +100,12 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'completedFormBypassStocker' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/completedFormBypassStocker/completedFormBypassStocker.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+        ],
+
         'deletePartDetail' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/deletePartDetail/deletePartDetail.log'),
