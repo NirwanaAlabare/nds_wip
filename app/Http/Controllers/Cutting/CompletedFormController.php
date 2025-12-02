@@ -20,6 +20,7 @@ use App\Models\Stocker\StockerDetail;
 use App\Services\CuttingService;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Services\StockerService;
 use DB;
 
@@ -220,6 +221,31 @@ class CompletedFormController extends Controller
         //
     }
 
+    public function checkStockerForm(Request $request) {
+        if ($request->id) {
+            // Check Stocker
+            $stockerForm = Stocker::where('form_cut_id', $request->id)->first();
+
+            if ($stockerForm) {
+                return array(
+                    'status' => 400,
+                    'message' => '<b>Form sudah memiliki stocker</b> <br> <br> Jika mengubah qty form setelah ada stocker maka ada juga kemungkinan qty stocker menjadi selisih di proses selanjutnya.',
+                    'redirect' => '',
+                    'table' => 'datatable',
+                    'additional' => [],
+                );
+            }
+        }
+
+        return array(
+            'status' => 200,
+            'message' => "It's fine",
+            'redirect' => '',
+            'table' => 'datatable',
+            'additional' => [],
+        );
+    }
+
     public function updateCutting(Request $request, CuttingService $cuttingService) {
         $validatedRequest = $request->validate([
             "id" => "required",
@@ -255,6 +281,7 @@ class CompletedFormController extends Controller
 
         // Check Stocker
         $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
+        Log::channel("completedFormBypassStocker")->info($stockerForm);
         if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
             return array(
                 'status' => 400,
@@ -423,6 +450,7 @@ class CompletedFormController extends Controller
     public function updateFinish(Request $request, $id) {
         // Stocker
         $stockerForm = Stocker::where('form_cut_id', $id)->first();
+        Log::channel("completedFormBypassStocker")->info($stockerForm);
         if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
             return array(
                 'status' => 400,
@@ -675,6 +703,7 @@ class CompletedFormController extends Controller
         ]);
 
         $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
+        Log::channel("completedFormBypassStocker")->info($stockerForm);
         if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
             return array(
                 'status' => 400,
@@ -725,6 +754,7 @@ class CompletedFormController extends Controller
         ]);
 
         // $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
+        // Log::channel("completedFormBypassStocker")->info($stockerForm);
         // if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
         //     return array(
         //         'status' => 400,
@@ -800,6 +830,7 @@ class CompletedFormController extends Controller
 
         if ($formCutDetail) {
             $stockerForm = Stocker::where('form_cut_id', $formCutDetail->form_cut_id)->first();
+            Log::channel("completedFormBypassStocker")->info($stockerForm);
             if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
                 return array(
                     'status' => 400,
