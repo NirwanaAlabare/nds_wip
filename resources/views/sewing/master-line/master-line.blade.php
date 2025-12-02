@@ -30,6 +30,9 @@
                         <label class="form-label">Sampai</label>
                         <input type="date" class="form-control" name="to" id="to" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                     </div>
+                    <button class="btn btn-primary" onclick="datatableReload()">
+                        <i class="fa fa-search"></i>
+                    </button>
                 </div>
                 <div class="d-flex gap-1">
                     <button class="btn btn-sb fw-bold" onclick="updateImage()"><i class="fa-solid fa-images"></i> UPDATE</a>
