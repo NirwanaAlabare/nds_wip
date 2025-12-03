@@ -100,6 +100,12 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'completedFormBypassStocker' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/completedFormBypassStocker/completedFormBypassStocker.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+        ],
+
         'deletePartDetail' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/deletePartDetail/deletePartDetail.log'),
@@ -169,6 +175,12 @@ return [
         'modifyYearSequence' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/modifyYearSequence/modifyYearSequence.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+        ],
+
+        'importStockerManual' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/importStockerManual/importStockerManual.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
         ],
     ],
