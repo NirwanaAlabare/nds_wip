@@ -881,6 +881,7 @@
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Sisa Kain</b></small></label>
                                     <div class="input-group input-group-sm mb-3">
+                                        <input type="hidden" id="current_sisa_kain_ori" name="current_sisa_kain_ori">
                                         <input type="number" class="form-control form-control-sm border-input" id="current_sisa_kain" name="current_sisa_kain" step=".01"
                                             onkeyup="
                                                 calculateShortRoll();
@@ -1449,6 +1450,7 @@
                 data.id_roll ? document.getElementById("current_id_roll_ori").value = data.id_roll : '';
                 data.qty ? document.getElementById("current_qty_ori").value = data.qty : '';
                 data.unit ? document.getElementById("current_unit_ori").value = data.unit : '';
+                data.sisa_kain ? document.getElementById("current_sisa_kain_ori").value = data.sisa_kain : '';
             }
             data.id_roll ? document.getElementById("current_id_roll").value = data.id_roll : '';
             data.group_roll ? document.getElementById("current_group").value = data.group_roll : '';
