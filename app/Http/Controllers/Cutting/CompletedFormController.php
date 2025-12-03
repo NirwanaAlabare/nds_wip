@@ -322,7 +322,7 @@ class CompletedFormController extends Controller
                 "short_roll" => $validatedRequest['current_short_roll'],
                 "piping" => $validatedRequest['current_piping'],
                 "berat_amparan" => $validatedRequest['current_berat_amparan'],
-                "status" => $validatedRequest['current_sisa_gelaran'] > 0 ? "need extension" : $validatedRequest['current_sambungan'] > 0 ? "extension complete" : "complete",
+                "status" => floatval($validatedRequest['current_sisa_gelaran']) > 0 ? "need extension" : (floatval($validatedRequest['current_sambungan']) > 0 ? "extension complete" : "complete"),
                 "edited" => 1,
                 "edited_by" => Auth::user()->id,
                 "edited_by_username" => Auth::user()->username,
@@ -368,35 +368,37 @@ class CompletedFormController extends Controller
             first();
 
         if ($updateTimeRecordSummary) {
-
-            // Update Scanned Item Qty
-            if (($request->current_id_roll_ori != $validatedRequest['current_id_roll'])) {
+            // Update Original Scanned Item Qty
+            if ($request->current_id_roll_ori && ($request->current_id_roll_ori != $validatedRequest['current_id_roll'])) {
                 // On change ID Roll
                 ScannedItem::where("id_roll", $request->current_id_roll_ori)->
                     update([
-                        "qty" => DB::raw("COALESCE(qty, 0) + ".(floatval($request->current_qty_ori))),
+                        "qty" => DB::raw("COALESCE(qty, 0) + COALESCE(".(round(floatval($request->current_qty_ori - $request->current_sisa_kain_ori), 2)).", 0)"),
                         "unit" => $request->current_unit_ori,
                     ]);
-            } else {
-                // Compare Current Form Detail to Latest ID Roll usage
-                $lastFormCutDetailRoll = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
-                    where("id_roll", $validatedRequest['current_id_roll'])->
-                    orderBy("qty", "asc")->
-                    first();
+            }
 
-                if (!$lastFormCutDetailRoll || ($lastFormCutDetailRoll && $lastFormCutDetailRoll->id == $detail->id)) {
-                    // On exist ID Roll
-                    ScannedItem::where("id_roll", $validatedRequest['current_id_roll'])->
-                        update([
-                            "id_item" => $validatedRequest['current_id_item'],
-                            "detail_item" => $validatedRequest['current_detail_item'],
-                            "lot" => $request['current_lot'],
-                            "roll" => $validatedRequest['current_roll'],
-                            "roll_buyer" => $validatedRequest['current_roll_buyer'],
-                            "qty" => $itemRemain,
-                            "unit" => $itemUnit,
-                        ]);
-                }
+            // Update Current Scanned Item Qty
+
+            // Compare Current Form Detail to Latest ID Roll usage
+            $lastFormCutDetailRoll = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
+                where("id_roll", $validatedRequest['current_id_roll'])->
+                orderBy("qty", "asc")->
+                orderBy("updated_at", "desc")->
+                first();
+
+            if (!$lastFormCutDetailRoll || ($lastFormCutDetailRoll && $lastFormCutDetailRoll->id == $detail->id)) {
+                // On exist ID Roll
+                ScannedItem::where("id_roll", $validatedRequest['current_id_roll'])->
+                    update([
+                        "id_item" => $validatedRequest['current_id_item'],
+                        "detail_item" => $validatedRequest['current_detail_item'],
+                        "lot" => $request['current_lot'],
+                        "roll" => $validatedRequest['current_roll'],
+                        "roll_buyer" => $validatedRequest['current_roll_buyer'],
+                        "qty" => $itemRemain,
+                        "unit" => $itemUnit,
+                    ]);
             }
 
             // Form Cut Detail Reorder Group Stocker

@@ -60,8 +60,9 @@ class ImportStockerManual implements ToCollection, WithStartRow
 
             if ($orderInfo && $orderInfo[0]) {
                 $partBagian = explode(' - ', $row[4]);
-                $namaPart = trim($partBagian[0] ? $partBagian[0] : null);
-                $namaBagian = trim($partBagian[1] ? $partBagian[1] : null);
+
+                $namaPart = trim(isset($partBagian[0]) ? $partBagian[0] : null);
+                $namaBagian = trim(isset($partBagian[1]) ? $partBagian[1] : null);
 
                 $partDetailInfo = DB::select("
                     SELECT
@@ -77,6 +78,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
                         part.act_costing_ws = '".$row[0]."' and
                         part.panel = '".$row[3]."' and
                         master_part.nama_part = '".$namaPart."'
+                        ".( $namaBagian ? " and master_part.bag == '".$namaBagian."'" : "")."
                     LIMIT 1
                 ");
 
@@ -304,13 +306,13 @@ class ImportStockerManual implements ToCollection, WithStartRow
                             }
                         }
                     } else {
-                        \Log::info("Fail Import Stocker Manual on create stocker ROW :".$i, $createStocker);
+                        \Log::channel("importStockerManual")->info("Fail Import Stocker Manual on create stocker ROW :".$i, $createStocker);
                     }
                 } else {
-                    \Log::info("Fail Import Stocker Manual on part_detailing ROW :".$i, $partDetailInfo);
+                    \Log::channel("importStockerManual")->info("Fail Import Stocker Manual on part_detailing ROW :".$i, $partDetailInfo);
                 }
             } else {
-                \Log::info("Fail Import Stocker Manual on order_info ROW :".$i, $orderInfo);
+                \Log::channel("importStockerManual")->info("Fail Import Stocker Manual on order_info ROW :".$i, $orderInfo);
             }
         }
     }
