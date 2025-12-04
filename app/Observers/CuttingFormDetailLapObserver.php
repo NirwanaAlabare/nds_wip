@@ -14,8 +14,8 @@ class CuttingFormDetailLapObserver
      */
     public function created(FormCutInputDetailLap $formCutInputDetailLap)
     {
-        app('App\Http\Controllers\General\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
-        app('App\Http\Controllers\General\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputDetailLap && $formCutInputDetailLap->formCutInputDetail && $formCutInputDetailLap->formCutInputDetail->formCutInput && $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja ? $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja->username : null);
+        // app('App\Http\Controllers\General\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
+        // app('App\Http\Controllers\General\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputDetailLap && $formCutInputDetailLap->formCutInputDetail && $formCutInputDetailLap->formCutInputDetail->formCutInput && $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja ? $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja->username : null);
         // dd(date("Y-m-d"), $formCutInputDetailLap && $formCutInputDetailLap->formCutInputDetail && $formCutInputDetailLap->formCutInputDetail->formCutInput && $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja ? $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja->username : null);
     }
 
@@ -27,8 +27,8 @@ class CuttingFormDetailLapObserver
      */
     public function updated(FormCutInputDetailLap $formCutInputDetailLap)
     {
-        app('App\Http\Controllers\General\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
-        app('App\Http\Controllers\General\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputDetailLap && $formCutInputDetailLap->formCutInputDetail && $formCutInputDetailLap->formCutInputDetail->formCutInput && $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja ? $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja->username : null);
+        // app('App\Http\Controllers\General\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
+        // app('App\Http\Controllers\General\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputDetailLap && $formCutInputDetailLap->formCutInputDetail && $formCutInputDetailLap->formCutInputDetail->formCutInput && $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja ? $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja->username : null);
         // dd(date("Y-m-d"), $formCutInputDetailLap && $formCutInputDetailLap->formCutInputDetail && $formCutInputDetailLap->formCutInputDetail->formCutInput && $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja ? $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja->username : null);
     }
 
@@ -40,8 +40,8 @@ class CuttingFormDetailLapObserver
      */
     public function deleted(FormCutInputDetailLap $formCutInputDetailLap)
     {
-        app('App\Http\Controllers\General\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
-        app('App\Http\Controllers\General\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputDetailLap && $formCutInputDetailLap->formCutInputDetail && $formCutInputDetailLap->formCutInputDetail->formCutInput && $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja ? $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja->username : null);
+        // app('App\Http\Controllers\General\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
+        // app('App\Http\Controllers\General\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), $formCutInputDetailLap && $formCutInputDetailLap->formCutInputDetail && $formCutInputDetailLap->formCutInputDetail->formCutInput && $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja ? $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja->username : null);
         // dd(date("Y-m-d"), $formCutInputDetailLap && $formCutInputDetailLap->formCutInputDetail && $formCutInputDetailLap->formCutInputDetail->formCutInput && $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja ? $formCutInputDetailLap->formCutInputDetail->formCutInput->alokasiMeja->username : null);
     }
 

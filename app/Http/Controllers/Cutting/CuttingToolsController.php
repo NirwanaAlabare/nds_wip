@@ -13,6 +13,7 @@ use App\Models\Part\PartForm;
 use App\Models\Stocker\Stocker;
 use App\Models\SignalBit\ActCosting;
 use App\Services\StockerService;
+use App\Services\CuttingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;

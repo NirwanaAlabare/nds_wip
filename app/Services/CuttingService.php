@@ -5,7 +5,11 @@ namespace App\Services;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
 use Illuminate\Http\Request;
+use Illuminate\HttpRequest;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use DB;
+use Carbon\Carbon;
 
 class CuttingService
 {
@@ -186,5 +190,68 @@ class CuttingService
                 }
             }
         }
+    }
+
+    public function deleteRedundant($idForm, $idRoll, $qtyRoll, $status) {
+        if ($idRoll) {
+            $currentDetails = FormCutInputDetail::where("form_cut_id", $idForm)->where("id_roll", $idRoll)->where("qty", $qtyRoll)->where("status", $status)->get();
+
+            // Set Exception
+            $exceptionId = $currentDetails->last();
+
+            if ($currentDetails->count() > 1) {
+                foreach ($currentDetails as $currentDetail) {
+                    if ($currentDetail->id != $exceptionId) {
+                        // Delete history
+                        DB::table("form_cut_input_detail_delete")->insert([
+                            "form_cut_id" => $currentDetail->form_cut_id,
+                            "no_form_cut_input" => $currentDetail->no_form_cut_input,
+                            "id_roll" => $currentDetail->id_roll,
+                            "id_item" => $currentDetail->id_item,
+                            "color_act" => $currentDetail->color_act,
+                            "detail_item" => $currentDetail->detail_item,
+                            "group_roll" => $currentDetail->group_roll,
+                            "lot" => $currentDetail->lot,
+                            "roll" => $currentDetail->roll,
+                            "qty" => $currentDetail->qty,
+                            "unit" => $currentDetail->unit,
+                            "sisa_gelaran" => $currentDetail->sisa_gelaran,
+                            "sambungan" => $currentDetail->sambungan,
+                            "sambungan_roll" => $currentDetail->sambungan_roll,
+                            "est_amparan" => $currentDetail->est_amparan,
+                            "lembar_gelaran" => $currentDetail->lembar_gelaran,
+                            "average_time" => $currentDetail->average_time,
+                            "kepala_kain" => $currentDetail->kepala_kain,
+                            "sisa_tidak_bisa" => $currentDetail->sisa_tidak_bisa,
+                            "reject" => $currentDetail->reject,
+                            "sisa_kain" => ($currentDetail->sisa_kain ? $currentDetail->sisa_kain : 0),
+                            "pemakaian_lembar" => $currentDetail->pemakaian_lembar,
+                            "total_pemakaian_roll" => $currentDetail->total_pemakaian_roll,
+                            "short_roll" => $currentDetail->short_roll,
+                            "piping" => $currentDetail->piping,
+                            "status" => $currentDetail->status,
+                            "metode" => $currentDetail->metode,
+                            "group_stocker" => $currentDetail->group_stocker,
+                            "created_at" => $currentDetail->created_at,
+                            "updated_at" => $currentDetail->updated_at,
+                            "created_by" => $currentDetail->created_by,
+                            "created_by_username" => $currentDetail->created_by_username,
+                            "deleted_by" => "REDUNDANT",
+                            "deleted_at" => Carbon::now(),
+                        ]);
+
+                        // Delete the redundant
+                        Log::channel("deleteRedundantRollUsage")->info($currentDetail);
+                        $currentDetail->delete();
+                    }
+                }
+            }
+        }
+    }
+
+    public function deleteRedundantAll() {
+        $currentDetails = DB::select("
+
+        ");
     }
 }
