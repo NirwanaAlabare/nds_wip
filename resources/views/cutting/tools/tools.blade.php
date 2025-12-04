@@ -152,7 +152,7 @@
                         <label class="form-label">ID Roll</label>
                         <div class="input-group">
                             <input type="text" class="form-control" id="fix_roll_id">
-                            <button class="btn btn-sb" onclick="fetchScan(document.getElementById('fix_roll_id', 'fix_roll_'))">Get</button>
+                            <button class="btn btn-sb" onclick="fetchScan(document.getElementById('fix_roll_id'), 'fix_roll_')">Get</button>
                         </div>
                     </div>
                     <div class="mb-3">
@@ -485,7 +485,7 @@
 
         document.getElementById("fix_roll_id").addEventListener("onkeydown", (event) => {
             if (event.keyCode == 13) {
-                fetchScan(this);
+                fetchScan(this, "fix_roll_");
             }
         })
 
