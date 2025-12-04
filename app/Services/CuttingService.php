@@ -22,19 +22,20 @@ class CuttingService
 
             if ($formCut) {
                 // group stocker
-                $formCutDetails = FormCutInputDetail::where("form_cut_id", $formCut->id)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->orderBy("updated_at", "asc")->get();
+                $formCutDetailsGroup = FormCutInputDetail::where("form_cut_id", $formCut->id)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->orderBy("updated_at", "asc")->get();
                 $currentGroup = "";
                 $groupNumber = 0;
-                foreach ($formCutDetails as $formCutDetail) {
-                    if ($currentGroup != $formCutDetail->group_roll) {
-                        $currentGroup = $formCutDetail->group_roll;
+                foreach ($formCutDetailsGroup as $formCutDetailGroup) {
+                    if ($currentGroup != $formCutDetailGroup->group_roll) {
+                        $currentGroup = $formCutDetailGroup->group_roll;
                         $groupNumber += 1;
                     }
 
-                    $formCutDetail->group_stocker = $groupNumber;
-                    $formCutDetail->save();
+                    $formCutDetailGroup->group_stocker = $groupNumber;
+                    $formCutDetailGroup->save();
                 }
 
+                // Calculate
                 $formCutDetails = $formCut->formCutInputDetails()->orderBy("form_cut_input_detail.created_at")->orderBy("form_cut_input_detail.updated_at")->get();
 
                 if ($formCutDetails) {
@@ -61,7 +62,8 @@ class CuttingService
                     $currentStatus = "";
                     foreach ($formCutDetails as $formCutDetail) {
                         // Sambungan Roll
-                        $sambunganRoll = $formCutDetail->formCutInputDetailSambungan ? $formCutDetail->formCutInputDetailSambungan->sum("sambungan_roll") : 0;
+                        // $sambunganRoll = $formCutDetail->formCutInputDetailSambungan ? $formCutDetail->formCutInputDetailSambungan->sum("sambungan_roll") : 0;
+                        $sambunganRoll = $formCutDetail->sambungan_roll;
 
                         // Check Qty
                         $qty = $currentQty > 0 && $formCutDetail->id_roll == $currentIdRoll ? $currentQty : $formCutDetail->qty;
