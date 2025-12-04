@@ -1035,6 +1035,8 @@ class CuttingFormManualController extends Controller
         // Get Current Roll Spreading (Incomplete Roll Spread)
         $checkTimeRecord = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where('status', 'not complete')->first();
 
+        $now = Carbon::now();
+
         // Create or Update Roll Spreading
         $storeTimeRecordSummary = null;
         if ($checkTimeRecord) {
@@ -1110,6 +1112,8 @@ class CuttingFormManualController extends Controller
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                         "created_by" => $user ? $user->id : null,
                         "created_by_username" => $user ? $user->username : null,
+                        "created_at" => $now,
+                        "updated_at" => $now,
                     ]
                 );
             }
@@ -1142,6 +1146,8 @@ class CuttingFormManualController extends Controller
             $itemRemain = $validatedRequest['current_sisa_kain'];
 
             if ($status == 'need extension') {
+                $postNow = $now->addSecond();
+
                 // Update Roll Detail Data & Qty Stock
                 ScannedItem::updateOrCreate(
                     ["id_roll" => $validatedRequest['current_id_roll']],
@@ -1169,6 +1175,8 @@ class CuttingFormManualController extends Controller
                     "group_stocker" => $groupStocker,
                     "created_by" => $user ? $user->id : null,
                     "created_by_username" => $user ? $user->username : null,
+                    "created_at" => $postNow,
+                    "updated_at" => $postNow,
                 ]);
 
                 if ($storeTimeRecordSummaryExt) {

@@ -431,6 +431,8 @@ class CuttingFormController extends Controller
 
         $checkTimeRecord = DB::table("form_cut_input_detail")->where("form_cut_id", $validatedRequest['id'])->where("status", "not complete")->first();
 
+        $now = Carbon::now();
+
         // Update or Create Form Cut Input Detail (Roll Usage)
         $storeTimeRecordSummary = null;
         if ($checkTimeRecord) {
@@ -504,6 +506,8 @@ class CuttingFormController extends Controller
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                         "created_by" => $user ? $user->id : null,
                         "created_by_username" => $user ? $user->username : null,
+                        "created_at" => $now,
+                        "updated_at" => $now,
                     ]);
             }
         }
@@ -533,6 +537,7 @@ class CuttingFormController extends Controller
             // $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']) - floatval($validatedRequest['current_kepala_kain']) - floatval($validatedRequest['current_sisa_tidak_bisa']) - floatval($validatedRequest['current_reject']) - floatval($validatedRequest['current_piping']);
             $itemRemain = $validatedRequest['current_sisa_kain'];
             if ($status == 'need extension') {
+                $postNow = $now->addSecond();
                 // When the roll need an extension
 
                 // Update scanned item (roll detail & qty)
@@ -562,6 +567,8 @@ class CuttingFormController extends Controller
                     "group_stocker" => $groupStocker,
                     "created_by" => $user ? $user->id : null,
                     "created_by_username" => $user ? $user->username : null,
+                    "created_at" => $postNow,
+                    "updated_at" => $postNow,
                 ]);
 
                 if ($storeTimeRecordSummaryExt) {
