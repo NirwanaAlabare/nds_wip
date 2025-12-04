@@ -818,4 +818,15 @@ class CuttingToolsController extends Controller
             'additional' => [],
         );
     }
+
+    public function deleteRedundantRoll(Request $request, CuttingService $cuttingService) {
+        if ($request->id_roll) {
+            return $cuttingService->deleteRedundantRoll($request->id_roll);
+        }
+
+        return array([
+            "status" => 400,
+            "message" => "Gagal"
+        ]);
+    }
 }

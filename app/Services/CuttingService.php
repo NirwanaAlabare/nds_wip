@@ -199,7 +199,7 @@ class CuttingService
             $currentDetails = FormCutInputDetail::where("form_cut_id", $idForm)->where("id_roll", $idRoll)->where("qty", $qtyRoll)->where("status", $status)->get();
 
             // Set Exception
-            $exceptionId = $currentDetails->last();
+            $exceptionId = $currentDetails->last()->id;
 
             if ($currentDetails->count() > 1) {
                 foreach ($currentDetails as $currentDetail) {
@@ -236,8 +236,6 @@ class CuttingService
                             "group_stocker" => $currentDetail->group_stocker,
                             "created_at" => $currentDetail->created_at,
                             "updated_at" => $currentDetail->updated_at,
-                            "created_by" => $currentDetail->created_by,
-                            "created_by_username" => $currentDetail->created_by_username,
                             "deleted_by" => "REDUNDANT",
                             "deleted_at" => Carbon::now(),
                         ]);
@@ -251,9 +249,75 @@ class CuttingService
         }
     }
 
-    public function deleteRedundantAll() {
-        $currentDetails = DB::select("
+    public function deleteRedundantRoll($idRoll) {
+        $currentDetails = FormCutInputDetail::selectRaw("
+                form_cut_id,
+                id_roll,
+                qty,
+                status,
+                COUNT(id) as total
+            ")->
+            where("id_roll", $idRoll)->
+            groupBy("form_cut_id", "id_roll", "qty", "status")->
+            having("total", ">", 1)->
+            get();
 
-        ");
+        $deletedRoll = [];
+        if ($currentDetails && $currentDetails->count() > 0) {
+            foreach ($currentDetails as $currentDetail) {
+                $formDetails = FormCutInputDetail::where("form_cut_id", $currentDetail->form_cut_id)->where("id_roll", $currentDetail->id_roll)->where("qty", $currentDetail->qty)->where("status", $currentDetail->status)->get();
+
+                $exceptionId = $formDetails->last()->id;
+                foreach ($formDetails as $formDetail) {
+                    if ($formDetail->id != $exceptionId) {
+                        // Delete history
+                        DB::table("form_cut_input_detail_delete")->insert([
+                            "form_cut_id" => $formDetail->form_cut_id,
+                            "no_form_cut_input" => $formDetail->no_form_cut_input,
+                            "id_roll" => $formDetail->id_roll,
+                            "id_item" => $formDetail->id_item,
+                            "color_act" => $formDetail->color_act,
+                            "detail_item" => $formDetail->detail_item,
+                            "group_roll" => $formDetail->group_roll,
+                            "lot" => $formDetail->lot,
+                            "roll" => $formDetail->roll,
+                            "qty" => $formDetail->qty,
+                            "unit" => $formDetail->unit,
+                            "sisa_gelaran" => $formDetail->sisa_gelaran,
+                            "sambungan" => $formDetail->sambungan,
+                            "sambungan_roll" => $formDetail->sambungan_roll,
+                            "est_amparan" => $formDetail->est_amparan,
+                            "lembar_gelaran" => $formDetail->lembar_gelaran,
+                            "average_time" => $formDetail->average_time,
+                            "kepala_kain" => $formDetail->kepala_kain,
+                            "sisa_tidak_bisa" => $formDetail->sisa_tidak_bisa,
+                            "reject" => $formDetail->reject,
+                            "sisa_kain" => ($formDetail->sisa_kain ? $formDetail->sisa_kain : 0),
+                            "pemakaian_lembar" => $formDetail->pemakaian_lembar,
+                            "total_pemakaian_roll" => $formDetail->total_pemakaian_roll,
+                            "short_roll" => $formDetail->short_roll,
+                            "piping" => $formDetail->piping,
+                            "status" => $formDetail->status,
+                            "metode" => $formDetail->metode,
+                            "group_stocker" => $formDetail->group_stocker,
+                            "created_at" => $formDetail->created_at,
+                            "updated_at" => $formDetail->updated_at,
+                            "deleted_by" => "REDUNDANT",
+                            "deleted_at" => Carbon::now(),
+                        ]);
+
+                        // Delete the redundant
+                        array_push($deletedRoll, $formDetail);
+                        Log::channel("deleteRedundantRollUsage")->info($formDetail);
+                        $formDetail->delete();
+                    }
+                }
+            }
+        }
+
+        return array(
+            "status" => 200,
+            "message" => "Deleted ".count($deletedRoll)." Rows."
+        );
     }
 }
