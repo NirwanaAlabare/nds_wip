@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Cutting\FormCutInput;
+use App\Models\Cutting\FormCutInputDetail;
 use Illuminate\Http\Request;
 use DB;
 
@@ -16,8 +17,21 @@ class CuttingService
             $formCut = FormCutInput::where("id", $formId)->first();
 
             if ($formCut) {
+                // group stocker
+                $formCutDetails = FormCutInputDetail::where("form_cut_id", $formCut->id)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->orderBy("updated_at", "asc")->get();
+                $currentGroup = "";
+                $groupNumber = 0;
+                foreach ($formCutDetails as $formCutDetail) {
+                    if ($currentGroup != $formCutDetail->group_roll) {
+                        $currentGroup = $formCutDetail->group_roll;
+                        $groupNumber += 1;
+                    }
 
-                $formCutDetails = $formCut->formCutInputDetails()->orderBy("form_cut_input_detail.id")->get();
+                    $formCutDetail->group_stocker = $groupNumber;
+                    $formCutDetail->save();
+                }
+
+                $formCutDetails = $formCut->formCutInputDetails()->orderBy("form_cut_input_detail.created_at")->orderBy("form_cut_input_detail.updated_at")->get();
 
                 if ($formCutDetails) {
                     // Recalculate

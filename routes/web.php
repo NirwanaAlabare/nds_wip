@@ -679,6 +679,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/cutting/update-finish/{id?}', 'updateFinish')->name('finish-update-spreading-form');
         Route::delete('/cutting/destroy-roll/{id?}', 'destroySpreadingRoll')->name('destroy-spreading-roll');
         Route::post('/cutting/recalculate-form/{id?}', 'recalculateForm')->name('recalculate-spreading-form');
+        Route::get('/check-stocker-form', 'checkStockerForm')->name('check-stocker-form');
     });
 
     // ReportCutting

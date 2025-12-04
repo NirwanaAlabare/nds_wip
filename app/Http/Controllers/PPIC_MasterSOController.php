@@ -267,7 +267,7 @@ m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is 
         if ($cekinput > '1') {
             return array(
                 'icon' => 'salah',
-                'msg' => 'Tidak ada yang disimpan, Periksa Data Lagi',
+                'msg' => 'Tidak ada yang disimpan, Periksa Data yang sudah terinput di ppic',
             );
         } else {
             $insert = DB::insert(

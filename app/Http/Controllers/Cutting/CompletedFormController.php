@@ -20,6 +20,7 @@ use App\Models\Stocker\StockerDetail;
 use App\Services\CuttingService;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Services\StockerService;
 use DB;
 
@@ -220,6 +221,31 @@ class CompletedFormController extends Controller
         //
     }
 
+    public function checkStockerForm(Request $request) {
+        if ($request->id) {
+            // Check Stocker
+            $stockerForm = Stocker::where('form_cut_id', $request->id)->first();
+
+            if ($stockerForm) {
+                return array(
+                    'status' => 400,
+                    'message' => '<b>Form sudah memiliki stocker</b> <br> <br> Jika mengubah qty form setelah ada stocker maka ada juga kemungkinan qty stocker menjadi selisih di proses selanjutnya.',
+                    'redirect' => '',
+                    'table' => 'datatable',
+                    'additional' => [],
+                );
+            }
+        }
+
+        return array(
+            'status' => 200,
+            'message' => "It's fine",
+            'redirect' => '',
+            'table' => 'datatable',
+            'additional' => [],
+        );
+    }
+
     public function updateCutting(Request $request, CuttingService $cuttingService) {
         $validatedRequest = $request->validate([
             "id" => "required",
@@ -255,6 +281,7 @@ class CompletedFormController extends Controller
 
         // Check Stocker
         $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
+        Log::channel("completedFormBypassStocker")->info($stockerForm);
         if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
             return array(
                 'status' => 400,
@@ -295,6 +322,7 @@ class CompletedFormController extends Controller
                 "short_roll" => $validatedRequest['current_short_roll'],
                 "piping" => $validatedRequest['current_piping'],
                 "berat_amparan" => $validatedRequest['current_berat_amparan'],
+                "status" => floatval($validatedRequest['current_sisa_gelaran']) > 0 ? "need extension" : (floatval($validatedRequest['current_sambungan']) > 0 ? "extension complete" : "complete"),
                 "edited" => 1,
                 "edited_by" => Auth::user()->id,
                 "edited_by_username" => Auth::user()->username,
@@ -340,21 +368,23 @@ class CompletedFormController extends Controller
             first();
 
         if ($updateTimeRecordSummary) {
-
-            // Update Scanned Item Qty
-            if (($request->current_id_roll_ori != $validatedRequest['current_id_roll'])) {
+            // Update Original Scanned Item Qty
+            if ($request->current_id_roll_ori && ($request->current_id_roll_ori != $validatedRequest['current_id_roll'])) {
                 // On change ID Roll
                 ScannedItem::where("id_roll", $request->current_id_roll_ori)->
                     update([
-                        "qty" => DB::raw("COALESCE(qty, 0) + ".(floatval($request->current_qty_ori))),
+                        "qty" => DB::raw("COALESCE(qty, 0) + COALESCE(".(round(floatval($request->current_qty_ori - $request->current_sisa_kain_ori), 2)).", 0)"),
                         "unit" => $request->current_unit_ori,
                     ]);
             }
+
+            // Update Current Scanned Item Qty
 
             // Compare Current Form Detail to Latest ID Roll usage
             $lastFormCutDetailRoll = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
                 where("id_roll", $validatedRequest['current_id_roll'])->
                 orderBy("qty", "asc")->
+                orderBy("updated_at", "desc")->
                 first();
 
             if (!$lastFormCutDetailRoll || ($lastFormCutDetailRoll && $lastFormCutDetailRoll->id == $detail->id)) {
@@ -385,6 +415,7 @@ class CompletedFormController extends Controller
                 $formCutDetail->save();
             }
 
+            // Update Meja
             $updateFormCut = FormCutInput::where('id', $validatedRequest['id'])->
                 where('no_form', $validatedRequest['no_form_cut_input'])->
                 update([
@@ -421,6 +452,7 @@ class CompletedFormController extends Controller
     public function updateFinish(Request $request, $id) {
         // Stocker
         $stockerForm = Stocker::where('form_cut_id', $id)->first();
+        Log::channel("completedFormBypassStocker")->info($stockerForm);
         if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
             return array(
                 'status' => 400,
@@ -458,195 +490,198 @@ class CompletedFormController extends Controller
             where("style", $formCutInputData->marker->style)->
             first();
 
-        if ($updateFormCutInput && $partData) {
-            $checkPartForm = PartForm::where("form_id", $formCutInputData->id)->first();
+        if ($updateFormCutInput) {
+            if ($partData) {
+                $checkPartForm = PartForm::where("form_id", $formCutInputData->id)->first();
 
-            if (!$checkPartForm) {
-                $lastPartForm = PartForm::select("kode")->orderBy("kode", "desc")->first();
-                $urutanPartForm = $lastPartForm ? intval(substr($lastPartForm->kode, -5)) + 1 : 1;
-                $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
+                if (!$checkPartForm) {
+                    $lastPartForm = PartForm::select("kode")->orderBy("kode", "desc")->first();
+                    $urutanPartForm = $lastPartForm ? intval(substr($lastPartForm->kode, -5)) + 1 : 1;
+                    $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
 
-                $addToPartForm = PartForm::create([
-                    "kode" => $kodePartForm,
-                    "part_id" => $partData->id,
-                    "form_id" => $formCutInputData->id,
-                    "created_at" => Carbon::now(),
-                    "updated_at" => Carbon::now(),
-                ]);
-            } else {
-                ini_set('max_execution_time', 360000);
-
-                $formCutInputs = FormCutInput::selectRaw("
-                        marker_input.color,
-                        form_cut_input.id as id_form,
-                        form_cut_input.no_cut,
-                        form_cut_input.no_form as no_form
-                    ")->
-                    leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
-                    leftJoin("part", "part.id", "=", "part_form.part_id")->
-                    leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
-                    leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-                    leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-                    leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
-                    leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
-                    leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
-                    leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
-                    whereRaw("part_form.id is not null")->
-                    where("part.id", $partData->id)->
-                    where("marker_input.color", $formCutInputData->color)->
-                    where("form_cut_input.no_cut", ">=", $formCutInputData->no_cut)->
-                    groupBy("form_cut_input.id")->
-                    orderBy("marker_input.color", "asc")->
-                    orderBy("form_cut_input.waktu_selesai", "asc")->
-                    orderBy("form_cut_input.no_cut", "asc")->
-                    get();
-
-                $rangeAwal = 0;
-                $sizeRangeAkhir = collect();
-
-                $currentColor = "";
-                $currentNumber = 0;
-
-                // Loop over all forms
-                foreach ($formCutInputs as $formCut) {
-                    $modifySizeQty = ModifySizeQty::where("no_form", $formCut->no_form)->get();
-
-                    // Reset cumulative data on color switch
-                    if ($formCut->color != $currentColor) {
-                        $rangeAwal = 0;
-                        $sizeRangeAkhir = collect();
-
-                        $currentColor = $formCut->color;
-                        $currentNumber = 0;
-                    }
-
-                    // Adjust form data
-                    $currentNumber++;
-                    FormCutInput::where("id", $formCut->id_form)->update([
-                        "no_cut" => $currentNumber
+                    $addToPartForm = PartForm::create([
+                        "kode" => $kodePartForm,
+                        "part_id" => $partData->id,
+                        "form_id" => $formCutInputData->id,
+                        "created_at" => Carbon::now(),
+                        "updated_at" => Carbon::now(),
                     ]);
+                } else {
+                    // Reorder Stocker
+                    ini_set('max_execution_time', 360000);
 
-                    // Adjust form cut detail data
-                    $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->orderBy("updated_at", "asc")->get();
+                    $formCutInputs = FormCutInput::selectRaw("
+                            marker_input.color,
+                            form_cut_input.id as id_form,
+                            form_cut_input.no_cut,
+                            form_cut_input.no_form as no_form
+                        ")->
+                        leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+                        leftJoin("part", "part.id", "=", "part_form.part_id")->
+                        leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
+                        leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+                        leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+                        leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
+                        leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
+                        leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
+                        leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+                        whereRaw("part_form.id is not null")->
+                        where("part.id", $partData->id)->
+                        where("marker_input.color", $formCutInputData->color)->
+                        where("form_cut_input.no_cut", ">=", $formCutInputData->no_cut)->
+                        groupBy("form_cut_input.id")->
+                        orderBy("marker_input.color", "asc")->
+                        orderBy("form_cut_input.waktu_selesai", "asc")->
+                        orderBy("form_cut_input.no_cut", "asc")->
+                        get();
 
-                    $currentGroup = "";
-                    $currentGroupNumber = 0;
-                    foreach ($formCutInputDetails as $formCutInputDetail) {
-                        if ($currentGroup != $formCutInputDetail->group_roll) {
-                            $currentGroup = $formCutInputDetail->group_roll;
-                            $currentGroupNumber += 1;
+                    $rangeAwal = 0;
+                    $sizeRangeAkhir = collect();
+
+                    $currentColor = "";
+                    $currentNumber = 0;
+
+                    // Loop over all forms
+                    foreach ($formCutInputs as $formCut) {
+                        $modifySizeQty = ModifySizeQty::where("no_form", $formCut->no_form)->get();
+
+                        // Reset cumulative data on color switch
+                        if ($formCut->color != $currentColor) {
+                            $rangeAwal = 0;
+                            $sizeRangeAkhir = collect();
+
+                            $currentColor = $formCut->color;
+                            $currentNumber = 0;
                         }
 
-                        $formCutInputDetail->group_stocker = $currentGroupNumber;
-                        $formCutInputDetail->save();
-                    }
+                        // Adjust form data
+                        $currentNumber++;
+                        FormCutInput::where("id", $formCut->id_form)->update([
+                            "no_cut" => $currentNumber
+                        ]);
 
-                    // Adjust stocker data
-                    $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->where("notes", "!=", "ADDITIONAL")->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
+                        // Adjust form cut detail data
+                        $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->orderBy("updated_at", "asc")->get();
 
-                    $currentStockerPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
-                    $currentStockerSize = "";
-                    $currentStockerGroup = "initial";
-                    $currentStockerRatio = 0;
+                        $currentGroup = "";
+                        $currentGroupNumber = 0;
+                        foreach ($formCutInputDetails as $formCutInputDetail) {
+                            if ($currentGroup != $formCutInputDetail->group_roll) {
+                                $currentGroup = $formCutInputDetail->group_roll;
+                                $currentGroupNumber += 1;
+                            }
 
-                    foreach ($stockerForm as $key => $stocker) {
-                        $lembarGelaran = 1;
-                        if ($stocker->group_stocker) {
-                            $lembarGelaran = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->where('group_stocker', $stocker->group_stocker)->sum('lembar_gelaran');
-                        } else {
-                            $lembarGelaran = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->where('group_roll', $stocker->shade)->sum('lembar_gelaran');
+                            $formCutInputDetail->group_stocker = $currentGroupNumber;
+                            $formCutInputDetail->save();
                         }
 
-                        if ($currentStockerPart == $stocker->part_detail_id) {
-                            if ($stockerForm->min("group_stocker") == $stocker->group_stocker && $stockerForm->filter(function ($item) use ($stocker) { return $item->size == $stocker->size; })->max("ratio") == $stocker->ratio) {
-                                $modifyThis = $modifySizeQty->where("so_det_id", $stocker->so_det_id)->first();
+                        // Adjust stocker data
+                        $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->where("notes", "!=", "ADDITIONAL")->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
 
-                                if ($modifyThis) {
-                                    $lembarGelaran = ($stocker->qty_ply < 1 ? 0 : $lembarGelaran) + $modifyThis->difference_qty;
+                        $currentStockerPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
+                        $currentStockerSize = "";
+                        $currentStockerGroup = "initial";
+                        $currentStockerRatio = 0;
+
+                        foreach ($stockerForm as $key => $stocker) {
+                            $lembarGelaran = 1;
+                            if ($stocker->group_stocker) {
+                                $lembarGelaran = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->where('group_stocker', $stocker->group_stocker)->sum('lembar_gelaran');
+                            } else {
+                                $lembarGelaran = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->where('group_roll', $stocker->shade)->sum('lembar_gelaran');
+                            }
+
+                            if ($currentStockerPart == $stocker->part_detail_id) {
+                                if ($stockerForm->min("group_stocker") == $stocker->group_stocker && $stockerForm->filter(function ($item) use ($stocker) { return $item->size == $stocker->size; })->max("ratio") == $stocker->ratio) {
+                                    $modifyThis = $modifySizeQty->where("so_det_id", $stocker->so_det_id)->first();
+
+                                    if ($modifyThis) {
+                                        $lembarGelaran = ($stocker->qty_ply < 1 ? 0 : $lembarGelaran) + $modifyThis->difference_qty;
+                                    }
+                                }
+
+                                if (isset($sizeRangeAkhir[$stocker->so_det_id]) && ($currentStockerSize != $stocker->so_det_id || $currentStockerGroup != $stocker->group_stocker || $currentStockerRatio != $stocker->ratio)) {
+                                    $rangeAwal = $sizeRangeAkhir[$stocker->so_det_id] + 1;
+                                    $sizeRangeAkhir[$stocker->so_det_id] = ($sizeRangeAkhir[$stocker->so_det_id] + $lembarGelaran);
+
+                                    $currentStockerSize = $stocker->so_det_id;
+                                    $currentStockerGroup = $stocker->group_stocker;
+                                    $currentStockerRatio = $stocker->ratio;
+                                } else if (!isset($sizeRangeAkhir[$stocker->so_det_id])) {
+                                    $rangeAwal =  1;
+                                    $sizeRangeAkhir->put($stocker->so_det_id, $lembarGelaran);
                                 }
                             }
 
-                            if (isset($sizeRangeAkhir[$stocker->so_det_id]) && ($currentStockerSize != $stocker->so_det_id || $currentStockerGroup != $stocker->group_stocker || $currentStockerRatio != $stocker->ratio)) {
-                                $rangeAwal = $sizeRangeAkhir[$stocker->so_det_id] + 1;
-                                $sizeRangeAkhir[$stocker->so_det_id] = ($sizeRangeAkhir[$stocker->so_det_id] + $lembarGelaran);
+                            $stocker->so_det_id && (($sizeRangeAkhir[$stocker->so_det_id] - ($rangeAwal-1)) != $stocker->qty || $stocker->qty_ply < 1) ? ($stocker->qty_ply_mod = ($sizeRangeAkhir[$stocker->so_det_id] - ($rangeAwal-1))) : $stocker->qty_ply_mod = 0;
+                            $stocker->range_awal = $rangeAwal;
+                            $stocker->range_akhir = $stocker->so_det_id ? $sizeRangeAkhir[$stocker->so_det_id] : 0;
+                            $stocker->save();
 
-                                $currentStockerSize = $stocker->so_det_id;
-                                $currentStockerGroup = $stocker->group_stocker;
-                                $currentStockerRatio = $stocker->ratio;
-                            } else if (!isset($sizeRangeAkhir[$stocker->so_det_id])) {
-                                $rangeAwal =  1;
-                                $sizeRangeAkhir->put($stocker->so_det_id, $lembarGelaran);
+                            if ($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1) {
+                                $stocker->delete();
                             }
                         }
 
-                        $stocker->so_det_id && (($sizeRangeAkhir[$stocker->so_det_id] - ($rangeAwal-1)) != $stocker->qty || $stocker->qty_ply < 1) ? ($stocker->qty_ply_mod = ($sizeRangeAkhir[$stocker->so_det_id] - ($rangeAwal-1))) : $stocker->qty_ply_mod = 0;
-                        $stocker->range_awal = $rangeAwal;
-                        $stocker->range_akhir = $stocker->so_det_id ? $sizeRangeAkhir[$stocker->so_det_id] : 0;
-                        $stocker->save();
+                        // Adjust numbering data
+                            // $numbers = StockerDetail::selectRaw("
+                            //         form_cut_id,
+                            //         act_costing_ws,
+                            //         color,
+                            //         panel,
+                            //         so_det_id,
+                            //         size,
+                            //         no_cut_size,
+                            //         MAX(number) number
+                            //     ")->
+                            //     where("form_cut_id", $formCut->id_form)->
+                            //     whereRaw("(cancel is null OR cancel = 'N')")->
+                            //     groupBy("form_cut_id", "size")->
+                            //     get();
 
-                        if ($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1) {
-                            $stocker->delete();
-                        }
+                            // foreach ($numbers as $number) {
+                            //     if (isset($sizeRangeAkhir[$number->so_det_id])) {
+                            //         if ($number->number > $sizeRangeAkhir[$number->so_det_id]) {
+                            //             StockerDetail::where("form_cut_id", $number->form_cut_id)->
+                            //                 where("size", $number->size)->
+                            //                 where("number", ">", $sizeRangeAkhir[$number->so_det_id])->
+                            //                 update([
+                            //                     "cancel" => "Y"
+                            //                 ]);
+                            //         } else {
+                            //             StockerDetail::where("form_cut_id", $number->form_cut_id)->
+                            //                 where("size", $number->size)->
+                            //                 where("number", "<=", $sizeRangeAkhir[$number->so_det_id])->
+                            //                 where("cancel", "Y")->
+                            //                 update([
+                            //                     "cancel" => "N"
+                            //                 ]);
+                            //         }
+
+                            //         if ($number->number < $sizeRangeAkhir[$number->so_det_id]) {
+                            //             $stockerDetailCount = StockerDetail::select("kode")->orderBy("id", "desc")->first() ? str_replace("WIP-", "", StockerDetail::select("kode")->orderBy("id", "desc")->first()->kode) + 1 : 1;
+                            //             $noCutSize = substr($number->no_cut_size, 0, strlen($number->size)+2);
+
+                            //             $no = 0;
+                            //             for ($i = $number->number; $i < $sizeRangeAkhir[$number->so_det_id]; $i++) {
+                            //                 StockerDetail::create([
+                            //                     "kode" => "WIP-".($stockerDetailCount+$no),
+                            //                     "form_cut_id" => $number->form_cut_id,
+                            //                     "act_costing_ws" => $number->act_costing_ws,
+                            //                     "color" => $number->color,
+                            //                     "panel" => $number->panel,
+                            //                     "so_det_id" => $number->so_det_id,
+                            //                     "size" => $number->size,
+                            //                     "no_cut_size" => $noCutSize. sprintf('%04s', ($i+1)),
+                            //                     "number" => $i+1
+                            //                 ]);
+
+                            //                 $no++;
+                            //             }
+                            //         }
+                            //     }
+                            // }
                     }
-
-                    // Adjust numbering data
-                        // $numbers = StockerDetail::selectRaw("
-                        //         form_cut_id,
-                        //         act_costing_ws,
-                        //         color,
-                        //         panel,
-                        //         so_det_id,
-                        //         size,
-                        //         no_cut_size,
-                        //         MAX(number) number
-                        //     ")->
-                        //     where("form_cut_id", $formCut->id_form)->
-                        //     whereRaw("(cancel is null OR cancel = 'N')")->
-                        //     groupBy("form_cut_id", "size")->
-                        //     get();
-
-                        // foreach ($numbers as $number) {
-                        //     if (isset($sizeRangeAkhir[$number->so_det_id])) {
-                        //         if ($number->number > $sizeRangeAkhir[$number->so_det_id]) {
-                        //             StockerDetail::where("form_cut_id", $number->form_cut_id)->
-                        //                 where("size", $number->size)->
-                        //                 where("number", ">", $sizeRangeAkhir[$number->so_det_id])->
-                        //                 update([
-                        //                     "cancel" => "Y"
-                        //                 ]);
-                        //         } else {
-                        //             StockerDetail::where("form_cut_id", $number->form_cut_id)->
-                        //                 where("size", $number->size)->
-                        //                 where("number", "<=", $sizeRangeAkhir[$number->so_det_id])->
-                        //                 where("cancel", "Y")->
-                        //                 update([
-                        //                     "cancel" => "N"
-                        //                 ]);
-                        //         }
-
-                        //         if ($number->number < $sizeRangeAkhir[$number->so_det_id]) {
-                        //             $stockerDetailCount = StockerDetail::select("kode")->orderBy("id", "desc")->first() ? str_replace("WIP-", "", StockerDetail::select("kode")->orderBy("id", "desc")->first()->kode) + 1 : 1;
-                        //             $noCutSize = substr($number->no_cut_size, 0, strlen($number->size)+2);
-
-                        //             $no = 0;
-                        //             for ($i = $number->number; $i < $sizeRangeAkhir[$number->so_det_id]; $i++) {
-                        //                 StockerDetail::create([
-                        //                     "kode" => "WIP-".($stockerDetailCount+$no),
-                        //                     "form_cut_id" => $number->form_cut_id,
-                        //                     "act_costing_ws" => $number->act_costing_ws,
-                        //                     "color" => $number->color,
-                        //                     "panel" => $number->panel,
-                        //                     "so_det_id" => $number->so_det_id,
-                        //                     "size" => $number->size,
-                        //                     "no_cut_size" => $noCutSize. sprintf('%04s', ($i+1)),
-                        //                     "number" => $i+1
-                        //                 ]);
-
-                        //                 $no++;
-                        //             }
-                        //         }
-                        //     }
-                        // }
                 }
             }
 
@@ -658,7 +693,7 @@ class CompletedFormController extends Controller
 
         return array(
             "status" => 400,
-            "message" => "nothing really matter anymore",
+            "message" => "Data tidak berubah.",
         );
     }
 
@@ -672,6 +707,7 @@ class CompletedFormController extends Controller
         ]);
 
         $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
+        Log::channel("completedFormBypassStocker")->info($stockerForm);
         if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
             return array(
                 'status' => 400,
@@ -709,7 +745,7 @@ class CompletedFormController extends Controller
 
         return array(
             "status" => 400,
-            "message" => "nothing really matter anymore",
+            "message" => "Data tidak berubah.",
         );
     }
 
@@ -722,6 +758,7 @@ class CompletedFormController extends Controller
         ]);
 
         // $stockerForm = Stocker::where('form_cut_id', $validatedRequest['id'])->first();
+        // Log::channel("completedFormBypassStocker")->info($stockerForm);
         // if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
         //     return array(
         //         'status' => 400,
@@ -765,7 +802,7 @@ class CompletedFormController extends Controller
 
         return array(
             "status" => 400,
-            "message" => "nothing really matter anymore",
+            "message" => "Data tidak berubah.",
         );
     }
 
@@ -797,6 +834,7 @@ class CompletedFormController extends Controller
 
         if ($formCutDetail) {
             $stockerForm = Stocker::where('form_cut_id', $formCutDetail->form_cut_id)->first();
+            Log::channel("completedFormBypassStocker")->info($stockerForm);
             if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
                 return array(
                     'status' => 400,
@@ -863,7 +901,7 @@ class CompletedFormController extends Controller
 
         return array(
             "status" => 400,
-            "message" => "nothing really matter anymore"
+            "message" => "Data tidak berubah."
         );
     }
 }
