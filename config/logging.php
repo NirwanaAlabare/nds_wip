@@ -183,5 +183,11 @@ return [
             'path' => storage_path('logs/importStockerManual/importStockerManual.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
         ],
+
+        'deleteRedundantRollUsage' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/deleteRedundantRollUsage/deleteRedundantRollUsage.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+        ],
     ],
 ];

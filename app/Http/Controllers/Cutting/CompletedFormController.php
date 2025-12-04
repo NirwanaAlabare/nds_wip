@@ -846,13 +846,17 @@ class CompletedFormController extends Controller
             }
 
             if ($formCutDetail->id_roll) {
-                $formCutDetailRoll = ScannedItem::where("id_roll", $formCutDetail->id_roll)->first();
+                // No need to update qty if it is redundant
+                $checkSimilarTimeRecord = DB::table("form_cut_input_detail")->where("form_cut_id", $formCutDetail->form_cut_id)->where("id_roll", $formCutDetail->id_roll)->where("qty", $formCutDetail->qty)->first();
+                if (!$checkSimilarTimeRecord) {
+                    $formCutDetailRoll = ScannedItem::where("id_roll", $formCutDetail->id_roll)->first();
 
-                if ($formCutDetailRoll) {
-                    $formCutDetailRoll->qty_pakai -= round($formCutDetail->total_pemakaian_roll, 2);
-                    $formCutDetailRoll->qty += $formCutDetail->status == 'extension complete' || $formCutDetail->status == 'extension' ? round($formCutDetail->total_pemakaian_roll, 2) : round($formCutDetail->qty - $formCutDetail->sisa_kain, 2);
+                    if ($formCutDetailRoll) {
+                        $formCutDetailRoll->qty_pakai -= round($formCutDetail->total_pemakaian_roll, 2);
+                        $formCutDetailRoll->qty += $formCutDetail->status == 'extension complete' || $formCutDetail->status == 'extension' ? round($formCutDetail->total_pemakaian_roll, 2) : round($formCutDetail->qty - $formCutDetail->sisa_kain, 2);
 
-                    $formCutDetailRoll->save();
+                        $formCutDetailRoll->save();
+                    }
                 }
             }
 
