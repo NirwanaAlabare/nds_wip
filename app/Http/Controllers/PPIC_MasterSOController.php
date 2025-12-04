@@ -123,9 +123,15 @@ class PPIC_MasterSOController extends Controller
             return DataTables::of($data_input)->toJson();
         }
 
+        if ($user == 'admin 01') {
+            $cond_sql = "";
+        } else {
+            $cond_sql = "created_by = '$user' and";
+        }
+
         $data_ws = DB::select("select ws isi, ws tampil from
 (select * from ppic_master_so p
-where created_by = '" . $user . "' and tgl_shipment >= '" . $tgl_skrg_min_sebulan . "' ) p
+where  $cond_sql tgl_shipment >= '$tgl_skrg_min_sebulan' ) p
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
 group by ws
 order by ws asc");
@@ -168,7 +174,34 @@ order by ws asc");
             tmp.updated_at,
             tmp.created_by,
             if(
-            m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is null,'Ok','Check') status
+            m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is null,'Ok','Check') status,
+						CASE
+						WHEN (
+								SELECT COUNT(*)
+								FROM ppic_master_so_tmp t2
+								WHERE t2.ws = tmp.ws
+									AND t2.style = tmp.style
+									AND t2.color = tmp.color
+									AND t2.size = tmp.size
+									AND t2.buyer = tmp.buyer
+									AND t2.barcode = tmp.barcode
+									AND t2.po = tmp.po
+									AND t2.dest = tmp.dest
+									AND t2.created_by = tmp.created_by
+						) > 1
+								THEN 'Double'
+							WHEN m.id_so_det IS NULL AND tmp.tgl_shipment = '0000-00-00'
+									THEN 'id_so_det, tgl_shipment'
+							WHEN m.id_so_det IS NULL
+									THEN 'id_so_det'
+							WHEN tmp.tgl_shipment = '0000-00-00'
+									THEN 'tgl_shipment'
+							WHEN p.id_so_det is not null
+										THEN 'Sudah Terinput'
+							WHEN x.id_so_det is not null
+										THEN 'Sudah Terinput'
+							ELSE 'Ok'
+					END AS keterangan
             from ppic_master_so_tmp tmp
             left join master_sb_ws m on tmp.ws = m.ws
             and tmp.color = m.color
@@ -176,8 +209,10 @@ order by ws asc");
             and tmp.style = m.styleno
             and tmp.dest = m.dest
             left join ppic_master_so p on m.id_so_det = p.id_so_det
-                                and tmp.po = p.po
+                and tmp.po = p.po
 								and tmp.barcode = p.barcode
+						left join ppic_master_so x on m.id_so_det = x.id_so_det
+									and tmp.po = x.po
             left join master_size_new msn on tmp.size = msn.size
             where tmp.created_by = '$user'
             order by ws asc, urutan asc
@@ -513,10 +548,16 @@ order by created_by asc
         $tgl_skrg = date('Y-m-d');
         $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
         $user = Auth::user()->name;
+        if ($user == 'admin 01') {
+            $cond_sql = "";
+        } else {
+            $cond_sql = "created_by = '$user' and";
+        }
+
         $data_po = DB::select("
 select p.po isi, p.po tampil from
 (select * from ppic_master_so p
-where created_by = '$user' and tgl_shipment >= '$tgl_skrg_min_sebulan' ) p
+where $cond_sql tgl_shipment >= '$tgl_skrg_min_sebulan' ) p
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
 where m.ws = '" . $request->cbows_edit_tgl . "'
 group by po
@@ -537,10 +578,16 @@ order by po asc
         $tgl_skrg = date('Y-m-d');
         $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
         $user = Auth::user()->name;
+        if ($user == 'admin 01') {
+            $cond_sql = "";
+        } else {
+            $cond_sql = "created_by = '$user' and";
+        }
+
         $data_po = DB::select("
 select p.po isi, p.po tampil from
 (select * from ppic_master_so p
-where created_by = '$user' and tgl_shipment >= '$tgl_skrg_min_sebulan' ) p
+where $cond_sql tgl_shipment >= '$tgl_skrg_min_sebulan' ) p
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
 where m.ws = '" . $request->cbows_hapus . "'
 group by po
