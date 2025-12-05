@@ -454,7 +454,7 @@ foreach ($rows as $r) {
         $r['tgl_dok'] ?? '',
         $r['supplier'] ?? '',
         $r['buyer'] ?? '',
-        $r['kode_lok'] ?? '',
+       ($r['kode_lok'] ?? '') . ' FABRIC WAREHOUSE RACK',
         $r['id_jo'] ?? '',
         $r['kpno'] ?? '',
         $r['styleno'] ?? '',
@@ -464,10 +464,10 @@ foreach ($rows as $r) {
         $r['no_roll_buyer'] ?? '',
         $r['no_lot'] ?? '',
         $r['satuan'] ?? '',
-        $r['sal_awal'] ?? '',
-        $r['qty_in'] ?? '',
-        $r['qty_out'] ?? '',
-        $r['sal_akhir'] ?? '',
+        round($r['sal_awal'] ?? 0, 2),
+        round($r['qty_in'] ?? 0, 2),
+        round($r['qty_out'] ?? 0, 2),
+        round($r['sal_akhir'] ?? 0, 2),
     ];
 
     foreach ($rowData as $i => $v) {
