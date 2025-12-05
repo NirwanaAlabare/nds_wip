@@ -464,7 +464,7 @@ class MutLokasiController extends Controller
 
     public function getbarcodemutasi(Request $request)
 {
-    $barcode = DB::connection('mysql_sb')->select("select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id_jo, id_item, no_lot, no_roll, satuan, sal_akhir qty, kpno no_ws, styleno, color, itemdesc from data_stock_fabric where no_barcode = '$request->no_barcode' limit 1");
+    $barcode = DB::connection('mysql_sb')->select("select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id_jo, id_item, no_lot, no_roll, satuan, sal_akhir qty, kpno no_ws, styleno, color, itemdesc from data_stock_fabric where no_barcode = '$request->no_barcode' and sal_akhir > 0 limit 1");
 
 
     return response()->json($barcode);
