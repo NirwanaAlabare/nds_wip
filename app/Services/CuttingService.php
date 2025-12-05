@@ -199,11 +199,11 @@ class CuttingService
             $currentDetails = FormCutInputDetail::where("form_cut_id", $idForm)->where("id_roll", $idRoll)->where("qty", $qtyRoll)->where("status", $status)->get();
 
             // Set Exception
-            $exceptionId = $currentDetails->last()->id;
+            $exceptionId = $currentDetails->last() ? $currentDetails->last()->id : null;
 
             if ($currentDetails->count() > 1) {
                 foreach ($currentDetails as $currentDetail) {
-                    if ($currentDetail->id != $exceptionId) {
+                    if ($exceptionId && $currentDetail->id != $exceptionId) {
                         // Delete history
                         DB::table("form_cut_input_detail_delete")->insert([
                             "form_cut_id" => $currentDetail->form_cut_id,
@@ -267,9 +267,9 @@ class CuttingService
             foreach ($currentDetails as $currentDetail) {
                 $formDetails = FormCutInputDetail::where("form_cut_id", $currentDetail->form_cut_id)->where("id_roll", $currentDetail->id_roll)->where("qty", $currentDetail->qty)->where("status", $currentDetail->status)->get();
 
-                $exceptionId = $formDetails->last()->id;
+                $exceptionId = $formDetails->last() ? $formDetails->last()->id : null;
                 foreach ($formDetails as $formDetail) {
-                    if ($formDetail->id != $exceptionId) {
+                    if ($exceptionId && $formDetail->id != $exceptionId) {
                         // Delete history
                         DB::table("form_cut_input_detail_delete")->insert([
                             "form_cut_id" => $formDetail->form_cut_id,
