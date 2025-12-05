@@ -21,6 +21,15 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-4">
+                    <a type="button" class="home-item" onclick="updateMasterSbWs()">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Update Master SB</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
                     <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#updateGeneralOrderModal">
                         <div class="card">
                             <div class="card-body">
@@ -134,6 +143,61 @@
                     }
                 }
             });
+        }
+
+        function updateMasterSbWs() {
+            Swal.fire({
+                title: 'Update Master SB',
+                html: 'Yakin akan memperbaharui data master sb?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'PERBAHARUI',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#dc3545"
+            }).then((result) => {
+                document.getElementById("loading").classList.remove("d-none");
+
+                $.ajax({
+                    type: "post",
+                    url: "{{ route('update-master-sb-ws') }}",
+                    dataType: "json",
+                    success: function (response) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        if (response) {
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'INFO',
+                                html:
+                                    "Deleted '"+response.deleted+"'' rows <br>"+
+                                    "Inserted '"+response.inserted+"'' rows <br>"+
+                                    "Updated '"+response.updated+"'' rows <br>",
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                                confirmButtonColor: "#082149",
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                html: 'Terjadi kesalahan',
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                                confirmButtonColor: "#082149",
+                            });
+                        }
+
+                        console.log(response);
+                    },
+                    error: function (jqXHR) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        console.error(jqXHR);
+                    }
+                });
+            })
         }
     </script>
 @endsection

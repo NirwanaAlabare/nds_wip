@@ -29,6 +29,7 @@ use App\Models\Dc\LoadingLinePlan;
 use App\Models\SignalBit\MasterPlan;
 use App\Models\SignalBit\RejectIn;
 use App\Models\Hris\MasterEmployee;
+use App\Services\GeneralService;
 use PDF;
 
 class GeneralController extends Controller
@@ -468,6 +469,10 @@ class GeneralController extends Controller
         return view('general.tools.tools', [
             "orders" => $orders,
         ]);
+    }
+
+    public function updateMasterSbWs(GeneralService $generalService) {
+        return $generalService->updateMasterSbWs();
     }
 
     public function updateGeneralOrder(Request $request) {

@@ -266,6 +266,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-panels-new', 'getPanelListNew')->name('get-panels');
 
         Route::get('/general-tools', 'generalTools')->middleware('role:superadmin')->name('general-tools');
+        Route::post('/update-master-sb-ws', 'updateMasterSbWs')->middleware('role:superadmin')->name('update-master-sb-ws');
         Route::post('/update-general-order', 'updateGeneralOrder')->middleware('role:superadmin')->name('update-general-order');
 
         // get scanned employee
@@ -741,6 +742,9 @@ Route::middleware('auth')->group(function () {
 
         // modify group
         Route::post('/update-form-group', 'updateFormGroup')->name('update-form-group');
+
+        // Delete redundant roll
+        Route::post('/delete-redundant-roll', 'deleteRedundantRoll')->name('delete-redundant-roll');
     });
 
     // Stocker :
