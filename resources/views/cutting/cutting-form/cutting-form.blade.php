@@ -54,6 +54,10 @@
                             <th>Ket.</th>
                             <th class="align-bottom">Status</th>
                             <th class="align-bottom">Approve</th>
+                            <th>Approved By</th>
+                            <th>Created By</th>
+                            <th>Created At</th>
+                            <th>Updated At</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -323,6 +327,18 @@
                 {
                     data: 'app'
                 },
+                {
+                    data: 'app_by'
+                },
+                {
+                    data: 'created_by_username'
+                },
+                {
+                    data: 'created_at'
+                },
+                {
+                    data: 'updated_at'
+                },
             ],
             columnDefs: [
                 {
@@ -419,6 +435,27 @@
                     }
                 },
                 {
+                    targets: [15, 16],
+                    className: "text-nowrap",
+                    render: (data, type, row, meta) => {
+                        let color = "";
+
+                        if (row.status == 'SELESAI PENGERJAAN') {
+                            color = '#087521';
+                        } else if (row.status == 'PENGERJAAN MARKER') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
+                            color = '#2243d6';
+                        }
+
+                        return "<span style='font-weight: 600; color: "+color+"'>"+formatDateTime(data)+"</span>";
+                    }
+                },
+                {
                     targets: '_all',
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
@@ -455,6 +492,10 @@
             }
         });
 
+        function dataTableReload() {
+            datatable.ajax.reload();
+        }
+
         let datatableRatio = $("#datatable-ratio").DataTable({
             ordering: false,
             processing: true,
@@ -477,10 +518,6 @@
                 },
             ]
         });
-
-        function dataTableReload() {
-            datatable.ajax.reload();
-        }
 
         function dataTableRatioReload() {
             datatableRatio.ajax.reload();
