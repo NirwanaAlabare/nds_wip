@@ -11,7 +11,8 @@
                 <input type="date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" wire:model='date' id="date">
             </div>
             <div class="mb-3">
-                <button class="btn btn-primary btn-sm" onclick="openImport()"><i class="fa fa-upload"></i> Upload</button>
+                <button class="btn btn-primary btn-sm" onclick="openImport()"><i class="fa fa-upload"></i> Upload Master Plan</button>
+                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#importExcelTmp"><i class="fa fa-upload"></i> Upload Master Line</a>
             </div>
         </div>
         <div class="d-flex justify-content-end">
@@ -114,6 +115,55 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
                         <button type="submit" class="btn btn-sb toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Import</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal fade" id="importExcelTmp" tabindex="-1" role="dialog" aria-labelledby="importExcelTmpLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <form method="post" action="{{ route('import-master-line') }}" enctype="multipart/form-data" id="form-import-master-line">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h5 class="modal-title" id="importExcelTmpLabel">Upload Master Line</h5>
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        {{ csrf_field() }}
+                        <label class="drop-container mx-3 my-3" id="dropcontainer">
+                            <input type="file" name="file" required="required" id="file-input" onchange="submitImportTmp()">
+                        </label>
+                        <a href="{{ asset('example/contoh-import-master-line.xlsx') }}" download class="btn btn-sb-secondary btn-sm"><i class="fa fa-solid fa-download"></i> Contoh Excel</a>
+                        <div class="table-responsive">
+                        <table class="table table-bordered w-100" id="datatable-tmp">
+                            <thead>
+                                <th>Tanggal Plan</th>
+                                <th>Sewing Line</th>
+                                <th>WS</th>
+                                <th>Color</th>
+                                <th>Jam Kerja</th>
+                                <th>Man Power</th>
+                                <th>Plan Target</th>
+                                <th>Target Efficiency</th>
+                                <th>Tanggal Input</th>
+                                <th>Jam Kerja Awal</th>
+                                <th>Chief</th>
+                                <th>Leader</th>
+                                <th>IE</th>
+                                <th>Leader QC</th>
+                                <th>Mechanic</th>
+                                <th>Technical</th>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
+                        <button type="button" class="btn btn-sb toastsDefaultDanger" onclick="submitImportedMasterLine()"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Import</button>
                     </div>
                 </div>
             </form>
@@ -231,6 +281,187 @@
                     document.getElementById("loading").classList.add("d-none");
 
                     console.error(jqXHR);
+                }
+            });
+        }
+
+        let datatableTmp = $("#datatable-tmp").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            scrollX: true,
+            scrollY: "500px",
+            ajax: {
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route('tmp-master-line') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: function(d) {
+                    d.from = $('#from').val();
+                    d.to = $('#to').val();
+                },
+            },
+            columns: [
+                {
+                    data: "tanggal",
+                },
+                {
+                    data: "sewing_line",
+                },
+                {
+                    data: "ws",
+                },
+                {
+                    data: "color",
+                },
+                {
+                    data: "jam_kerja",
+                },
+                {
+                    data: "man_power",
+                },
+                {
+                    data: "plan_target",
+                },
+                {
+                    data: "target_effy",
+                },
+                {
+                    data: "created_at",
+                },
+                {
+                    data: "jam_kerja_awal",
+                },
+                {
+                    data: "chief_name",
+                },
+                {
+                    data: "leader_name",
+                },
+                {
+                    data: "ie_name",
+                },
+                {
+                    data: "leaderqc_name",
+                },
+                {
+                    data: "mechanic_name",
+                },
+                {
+                    data: "technical_name",
+                },
+            ],
+            columnDefs: [
+                {
+                    targets: [0],
+                    className: 'align-middle',
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class='d-flex gap-1 justify-content-center'>
+                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-tmp-master-line') }}/`+row['id']+`' onclick='deleteData(this)'>
+                                    <i class='fa fa-trash'></i>
+                                </a>
+                            </div>
+                        `;
+                    }
+                },
+                {
+                    targets: [8],
+                    className: 'align-middle',
+                    render: (data, type, row, meta) => {
+                        return formatDateTime(data);
+                    }
+                },
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                }
+            ]
+        });
+
+        function datatableTmpReload() {
+            datatableTmp.ajax.reload();
+        }
+
+        function submitImportTmp() {
+            document.getElementById("loading").classList.remove("d-none");
+
+            var formImportMasterLine = document.getElementById("form-import-master-line");
+
+            $.ajax({
+                url: formImportMasterLine.getAttribute('action'),
+                type: formImportMasterLine.getAttribute('method'),
+                data: new FormData(formImportMasterLine),
+                processData: false,
+                contentType: false,
+                success: async function(res) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    if (res.status == 200) {
+                        console.log(res);
+
+                        formImportMasterLine.reset();
+
+                        datatableTmpReload();
+                    }
+                },
+                error: function (jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    console.error(jqXHR);
+                }
+            });
+        }
+
+        $('#importExcel').on('shown.bs.modal', function () {
+            datatableTmp.columns.adjust().draw();
+        });
+
+        function submitImportedMasterLine() {
+            document.getElementById("loading").classList.remove("d-none");
+
+            var formImportMasterLine = document.getElementById("form-import-master-line");
+
+            $.ajax({
+                url: "{{ route('submit-imported-master-line') }}",
+                type: "post",
+                dataType: "json",
+                success: function (response) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    if (response.status == 200) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Berhasil",
+                            message: response.message
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Gagal",
+                            message: response.message
+                        });
+                    }
+
+                    datatableReload();
+                    datatableTmpReload();
+                },
+                error: function (jqXHR) {
+                    document.getElementById("loading").classList.remove("d-none");
+
+                    console.error(jqXHR);
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Gagal",
+                        message: "Terjadi Kesalahan"
+                    });
+
+                    datatableReload();
+                    datatableTmpReload();
                 }
             });
         }

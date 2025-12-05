@@ -2136,7 +2136,7 @@
 
                 let totalPemakaian = ((pActualConverted * lembarGelaranVar) + sambunganRollVar + sisaGelaranVar);
 
-                document.getElementById("current_pemakaian_lembar").value = totalPemakaian.round(2);
+                document.getElementById("current_pemakaian_lembar").value = Number(totalPemakaian).round(2);
             }
 
             // -Calculate Total Pemakaian Roll-
