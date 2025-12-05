@@ -1058,6 +1058,11 @@ Route::middleware('auth')->group(function () {
         Route::post('export', 'exportExcel')->name('export-master-line');
 
         Route::post('update-image', 'updateImage')->name('update-master-line-image');
+
+        Route::post('import-master-line', 'importMasterLine')->name('import-master-line');
+        Route::get("tmp-master-line", 'tmpMasterLine')->name("tmp-master-line");
+        Route::delete("destroy-tmp-master-line/{id?}", 'destroyTmpMasterLine')->name("destroy-tmp-master-line");
+        Route::post('submit-imported-master-line', "submitImportedMasterLine")->name("submit-imported-master-line");
     });
 
     // Master Plan
