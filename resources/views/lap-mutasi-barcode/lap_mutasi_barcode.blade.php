@@ -207,6 +207,8 @@ let datatable = $("#datatable").DataTable({
     scrollX: '300px',
     scrollCollapse: true,
     deferLoading: 0,
+    deferRender: true,     // SUPER PENTING
+    scroller: true, 
     ajax: {
         url: '{{ route('lap-mutasi-barcode') }}',
         data: function(d) {
