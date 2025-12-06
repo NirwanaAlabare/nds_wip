@@ -64,6 +64,9 @@
                             <th>Ket.</th>
                             <th class="align-bottom" style="text-align: left !important;">Status</th>
                             <th>Plan</th>
+                            <th>Created By</th>
+                            <th>Created At</th>
+                            <th>Updated At</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -367,6 +370,15 @@
                 {
                     data: 'tgl_plan'
                 },
+                {
+                    data: 'created_by_username'
+                },
+                {
+                    data: 'created_at'
+                },
+                {
+                    data: 'updated_at'
+                },
             ],
             columnDefs: [
                 {
@@ -435,6 +447,27 @@
                         }
 
                         return icon;
+                    }
+                },
+                {
+                    targets: [15, 16],
+                    className: "text-nowrap",
+                    render: (data, type, row, meta) => {
+                        let color = "";
+
+                        if (row.status == 'SELESAI PENGERJAAN') {
+                            color = '#087521';
+                        } else if (row.status == 'PENGERJAAN MARKER') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
+                            color = '#2243d6';
+                        }
+
+                        return "<span style='font-weight: 600; color: "+color+"'>"+formatDateTime(data)+"</span>";
                     }
                 },
                 {

@@ -40,12 +40,15 @@ class CuttingFormController extends Controller
         if ($request->ajax()) {
             $additionalQuery = "";
 
-            if ($request->dateFrom) {
-                $additionalQuery .= " and (cutting_plan.tgl_plan >= '" . $request->dateFrom . "' or a.updated_at >= '". $request->dateFrom ."')";
+            $dateFrom = $request->dateFrom ?? date("Y-m-d");
+            $dateTo = $request->dateTo ?? date("Y-m-d");
+
+            if ($dateFrom) {
+                $additionalQuery .= " and (cutting_plan.tgl_plan >= '" . $dateFrom . "' or a.updated_at >= '". $dateFrom ."')";
             }
 
-            if ($request->dateTo) {
-                $additionalQuery .= " and (cutting_plan.tgl_plan <= '" . $request->dateTo . "' or a.updated_at <= '". $request->dateTo ."')";
+            if ($dateTo) {
+                $additionalQuery .= " and (cutting_plan.tgl_plan <= '" . $dateTo . "' or a.updated_at <= '". $dateTo ."')";
             }
 
             if (Auth::user()->type == "meja") {
@@ -99,7 +102,11 @@ class CuttingFormController extends Controller
                     cutting_plan.app,
                     a.tipe_form_cut,
                     COALESCE(b.notes, '-') notes,
-                    GROUP_CONCAT(DISTINCT CONCAT(COALESCE(master_size_new.size, master_sb_ws.size, marker_input_detail.size), '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details
+                    GROUP_CONCAT(DISTINCT CONCAT(COALESCE(master_size_new.size, master_sb_ws.size, marker_input_detail.size), '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details,
+                    a.created_by_username,
+                    a.created_at,
+                    a.updated_at,
+                    user_app.username as app_by
                 FROM cutting_plan
                 left join form_cut_input a on a.id = cutting_plan.form_cut_id
                 left join (select form_cut_input_detail.form_cut_id, SUM(form_cut_input_detail.lembar_gelaran) total_lembar from form_cut_input_detail group by form_cut_input_detail.form_cut_id) a2 on a2.form_cut_id = a.id
@@ -108,6 +115,7 @@ class CuttingFormController extends Controller
                 left join master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
                 left join master_size_new on master_size_new.size = master_sb_ws.size
                 left join users on users.id = a.no_meja
+                left join users as user_app on user_app.id = cutting_plan.app_by
                 where
                     a.id is not null
                     AND a.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
