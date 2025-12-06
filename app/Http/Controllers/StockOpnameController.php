@@ -784,7 +784,7 @@ public function undosotempall(Request $request)
 
 public function getbarcodeso(Request $request)
 {
-    $barcode = DB::connection('mysql_sb')->select("select SUBSTRING_INDEX(d.no_dokumen, '-', 1) no_dokumen, d.no_barcode as barcode_so, s.no_barcode, s.kode_lok, s.id_item, s.id_jo, s.no_lot, s.no_roll, s.qty, s.unit, m.itemdesc from   whs_saldo_stockopname s LEFT JOIN masteritem m on m.id_item = s.id_item LEFT JOIN whs_so_detail d on d.no_barcode = s.no_barcode and SUBSTRING_INDEX(d.no_dokumen, '-', 1) = s.no_transaksi WHERE s.no_barcode = '$request->no_barcode' and s.no_transaksi = '$request->no_transaksi' limit 1");
+    $barcode = DB::connection('mysql_sb')->select("select SUBSTRING_INDEX(d.no_dokumen, '-', 1) no_dokumen, d.no_barcode as barcode_so, s.no_barcode, s.kode_lok, s.id_item, s.id_jo, s.no_lot, s.no_roll, s.qty, s.unit, m.itemdesc from   whs_saldo_stockopname s LEFT JOIN masteritem m on m.id_item = s.id_item LEFT JOIN whs_so_detail d on d.no_barcode = s.no_barcode and SUBSTRING_INDEX(d.no_dokumen, '-', 1) = s.no_transaksi WHERE s.no_barcode = '$request->no_barcode' and s.no_transaksi = '$request->no_transaksi' and s.qty != 0 limit 1");
 
 
     return response()->json($barcode);
