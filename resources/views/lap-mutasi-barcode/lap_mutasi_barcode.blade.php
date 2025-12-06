@@ -62,6 +62,7 @@
                         <th>No BPB</th>
                         <th>Tgl BPB</th>
                         <th>Supplier</th>
+                        <th>Buyer</th>
                         <th>Lokasi</th>
                         <th>Id JO</th>
                         <th>No WS</th>
@@ -81,7 +82,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <th colspan="13" class="text-center">TOTAL</th>
+                        <th colspan="14" class="text-center">TOTAL</th>
                         <th></th> <!-- saldo awal -->
                         <th></th> <!-- qty in -->
                         <th></th> <!-- qty out -->
@@ -221,6 +222,7 @@ let datatable = $("#datatable").DataTable({
     { data: 'no_dok' },
     { data: 'tgl_dok' },
     { data: 'supplier' },
+    { data: 'buyer' },
     { data: 'kode_lok' },
     { data: 'id_jo' },
     { data: 'kpno' },
@@ -237,7 +239,11 @@ let datatable = $("#datatable").DataTable({
     ],
     columnDefs: [
     {
-        targets: [13,14,15,16],
+        targets: 5, // kode_lok
+        render: (data) => data ? data + ' FABRIC WAREHOUSE RACK' : '-',
+    },
+    {
+        targets: [14,15,16,17],
         render: (data, type, row, meta) => data ? parseFloat(data).toFixed(2) : "0.00",
         className: "text-right"
     }
@@ -245,30 +251,51 @@ let datatable = $("#datatable").DataTable({
 
     // 🔹 Hitung total di footer
     footerCallback: function (row, data, start, end, display) {
-        let api = this.api();
+    let api = this.api();
 
-        // fungsi helper untuk sum
-        let intVal = function (i) {
-            return typeof i === 'string'
-            ? parseFloat(i.replace(/[\$,]/g, '')) || 0
-            : typeof i === 'number'
-            ? i
-            : 0;
-        };
+    // ambil semua baris yang saat ini "applied" (termasuk search/filter)
+    let rows = api.rows({ search: 'applied' }).data();
 
-        // hitung total tiap kolom
-        let total_awal   = api.column(13).data().reduce((a, b) => intVal(a) + intVal(b), 0);
-        let total_in     = api.column(14).data().reduce((a, b) => intVal(a) + intVal(b), 0);
-        let total_out    = api.column(15).data().reduce((a, b) => intVal(a) + intVal(b), 0);
-        let total_akhir  = api.column(16).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+    // helper untuk parse angka aman (hilangkan koma dan non-digit)
+    const toNumber = v => {
+        if (v === null || v === undefined || v === '') return 0;
+        // jika sudah number
+        if (typeof v === 'number') return v;
+        // ubah ke string, hilangkan koma/space/currency, ganti tanda minus tetap
+        let s = String(v).replace(/[^0-9\-\.\,]/g, '');
+        // jika ada thousand separator koma, hilangkan koma
+        s = s.replace(/,/g, '');
+        let n = parseFloat(s);
+        return isNaN(n) ? 0 : n;
+    };
 
-        // update footer
-
-        $(api.column(13).footer()).html(number_format(total_awal, 2, '.', ','));
-        $(api.column(14).footer()).html(number_format(total_in, 2, '.', ','));
-        $(api.column(15).footer()).html(number_format(total_out, 2, '.', ','));
-        $(api.column(16).footer()).html(number_format(total_akhir, 2, '.', ','));
+    // jumlahkan berdasarkan properti original dari row data
+    let total_awal = 0, total_in = 0, total_out = 0, total_akhir = 0;
+    for (let i = 0; i < rows.length; i++) {
+        let r = rows[i];
+        total_awal  += toNumber(r.sal_awal);
+        total_in    += toNumber(r.qty_in);
+        total_out   += toNumber(r.qty_out);
+        total_akhir += toNumber(r.sal_akhir);
     }
+
+    // fungsi formatting (ganti kalau kamu pakai library lain)
+    function number_format(number, decimals, dec_point, thousands_sep) {
+        // simple implementation
+        number = Number(number) || 0;
+        let fixed = number.toFixed(decimals);
+        let parts = fixed.split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thousands_sep);
+        return parts.join(dec_point);
+    }
+
+    // update footer (pastikan footer ada di HTML)
+    $(api.column(14).footer()).html(number_format(total_awal, 2, '.', ','));
+    $(api.column(15).footer()).html(number_format(total_in,   2, '.', ','));
+    $(api.column(16).footer()).html(number_format(total_out,  2, '.', ','));
+    $(api.column(17).footer()).html(number_format(total_akhir,2, '.', ','));
+}
+
 });
 
 
