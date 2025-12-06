@@ -195,13 +195,15 @@ class CuttingService
     }
 
     public function deleteRedundant($idForm, $idRoll, $qtyRoll, $status) {
-        if ($idRoll) {
-            $currentDetails = FormCutInputDetail::where("form_cut_id", $idForm)->where("id_roll", $idRoll)->where("qty", $qtyRoll)->where("status", $status)->get();
+        if ($idForm && $idRoll && $qtyRoll && $status) {
+            // Get the current roll usage
+            $currentDetails = FormCutInputDetail::where("form_cut_id", $idForm)->where("id_roll", $idRoll)->where("qty", $qtyRoll)->where("status", $status)->whereNotNull("form_cut_id")->whereNotNull("id_roll")->get();
+            if ($currentDetails && $currentDetails->count() > 1) {
 
-            // Set Exception
-            $exceptionId = $currentDetails->last() ? $currentDetails->last()->id : null;
+                // Set Exception for the last row
+                $exceptionId = $currentDetails->last() ? $currentDetails->last()->id : null;
 
-            if ($currentDetails->count() > 1) {
+                // Loop Over to delete all except the last row (exception)
                 foreach ($currentDetails as $currentDetail) {
                     if ($exceptionId && $currentDetail->id != $exceptionId) {
                         // Delete history
@@ -247,6 +249,8 @@ class CuttingService
                 }
             }
         }
+
+        return true;
     }
 
     public function deleteRedundantRoll($idRoll) {

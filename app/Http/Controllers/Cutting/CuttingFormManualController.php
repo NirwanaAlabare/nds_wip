@@ -1120,9 +1120,6 @@ class CuttingFormManualController extends Controller
         }
 
         if ($storeTimeRecordSummary) {
-            // Delete Redundant if it still passed the prevention attempt
-            $cuttingService->deleteRedundant($storeTimeRecordSummary->form_cut_id, $storeTimeRecordSummary->id_roll, $storeTimeRecordSummary->qty, $storeTimeRecordSummary->status);
-
             // Sambungan dalam Roll
             $sambunganRoll = $request['sambungan_roll'] ? array_filter($request['sambungan_roll'], function ($var) {
                 return ($var > 0);
@@ -1148,6 +1145,20 @@ class CuttingFormManualController extends Controller
             if ($status == 'need extension') {
                 $postNow = $now->addSecond();
 
+                // Create the Extension when it need one
+                $storeTimeRecordSummaryExt = FormCutInputDetail::create([
+                    "form_cut_id" => $validatedRequest['id'],
+                    "group_roll" => $validatedRequest['current_group'],
+                    "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
+                    "id_sambungan" => $storeTimeRecordSummary->id,
+                    "status" => "extension",
+                    "group_stocker" => $groupStocker,
+                    "created_by" => $user ? $user->id : null,
+                    "created_by_username" => $user ? $user->username : null,
+                    "created_at" => $postNow,
+                    "updated_at" => $postNow,
+                ]);
+
                 // Update Roll Detail Data & Qty Stock
                 ScannedItem::updateOrCreate(
                     ["id_roll" => $validatedRequest['current_id_roll']],
@@ -1165,21 +1176,10 @@ class CuttingFormManualController extends Controller
                     ]
                 );
 
-                // Create the Extension when it need one
-                $storeTimeRecordSummaryExt = FormCutInputDetail::create([
-                    "form_cut_id" => $validatedRequest['id'],
-                    "group_roll" => $validatedRequest['current_group'],
-                    "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
-                    "id_sambungan" => $storeTimeRecordSummary->id,
-                    "status" => "extension",
-                    "group_stocker" => $groupStocker,
-                    "created_by" => $user ? $user->id : null,
-                    "created_by_username" => $user ? $user->username : null,
-                    "created_at" => $postNow,
-                    "updated_at" => $postNow,
-                ]);
-
                 if ($storeTimeRecordSummaryExt) {
+
+                    // Delete Redundant if it still passed the prevention attempt
+                    $cuttingService->deleteRedundant($storeTimeRecordSummary->form_cut_id, $storeTimeRecordSummary->id_roll, $storeTimeRecordSummary->qty, $storeTimeRecordSummary->status);
 
                     // Return the current recorded data with the extension
                     return array(
@@ -1209,6 +1209,9 @@ class CuttingFormManualController extends Controller
                     ]
                 );
             }
+
+            // Delete Redundant if it still passed the prevention attempt
+            $cuttingService->deleteRedundant($storeTimeRecordSummary->form_cut_id, $storeTimeRecordSummary->id_roll, $storeTimeRecordSummary->qty, $storeTimeRecordSummary->status);
 
             // Return the recorded data
             return array(
