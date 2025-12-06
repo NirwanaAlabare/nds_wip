@@ -189,5 +189,11 @@ return [
             'path' => storage_path('logs/deleteRedundantRollUsage/deleteRedundantRollUsage.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
         ],
+
+        'cuttingRollUsageProcess' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/cuttingRollUsageProcess/cuttingRollUsageProcess.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+        ]
     ],
 ];

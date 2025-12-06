@@ -23,6 +23,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Str;
@@ -393,6 +394,9 @@ class CuttingFormController extends Controller
 
     public function storeTimeRecord(Request $request, CuttingService $cuttingService)
     {
+        ini_set("memory_limit", "2048M");
+        ini_set("max_execution_time", 300);
+
         $validatedRequest = $request->validate([
             "id" => "required",
             "current_id_roll" => "nullable",
@@ -422,6 +426,8 @@ class CuttingFormController extends Controller
             "current_sambungan" => "required",
             "p_act" => "required"
         ]);
+
+        Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Request Validation Complete");
 
         $user = Auth::user();
 
@@ -521,22 +527,26 @@ class CuttingFormController extends Controller
         }
 
         if ($storeTimeRecordSummary) {
+            Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Store Time Record Complete with Status Actual = '".$storeTimeRecordSummary->status."' and Status Request = '".$status."'");
+
             // Sambungan Dalam Roll
-            $sambunganRoll = $request['sambungan_roll'] ? array_filter($request['sambungan_roll'], function ($var) {
-                return ($var > 0);
-            }) : [];
+            $sambunganRoll = $request['sambungan_roll'] ? array_filter($request['sambungan_roll'], fn($v) => $v > 0) : null;
 
             if ($sambunganRoll && count($sambunganRoll) > 0) {
+                $sambunganArr = [];
                 for ($i = 0; $i < count($sambunganRoll); $i++) {
                     if ($sambunganRoll[$i] > 0) {
-                        $storeSambungan = FormCutInputDetailSambungan::updateOrCreate(
-                            ["form_cut_input_detail_id" => $storeTimeRecordSummary->id, "sambungan_ke" => $i+1],
-                            [
-                                "sambungan_roll" => $sambunganRoll[$i],
-                            ]
-                        );
+                        array_push($sambunganArr, [
+                            "form_cut_input_detail_id" => $storeTimeRecordSummary->id,
+                            "sambungan_ke" => $i+1,
+                            "sambungan_roll" => $sambunganRoll[$i]
+                        ]);
                     }
                 }
+
+                FormCutInputDetailSambungan::upsert($sambunganArr, ["form_cut_input_detail_id", "sambungan_ke"], ["sambungan_roll"]);
+
+                Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Sambungan Dalam Roll Completed");
             }
 
             // $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']) - floatval($validatedRequest['current_kepala_kain']) - floatval($validatedRequest['current_sisa_tidak_bisa']) - floatval($validatedRequest['current_reject']) - floatval($validatedRequest['current_piping']);
@@ -576,7 +586,11 @@ class CuttingFormController extends Controller
                     ]
                 );
 
+                Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Update Item Completed");
+
                 if ($storeTimeRecordSummaryExt) {
+
+                    Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' The Extension Completed");
 
                     // Delete Redundant if it still passed the prevention attempt at last (somehow this one returning error sometimes)
                     $cuttingService->deleteRedundant($storeTimeRecordSummary->form_cut_id, $storeTimeRecordSummary->id_roll, $storeTimeRecordSummary->qty, $storeTimeRecordSummary->status);
@@ -608,10 +622,14 @@ class CuttingFormController extends Controller
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                     ]
                 );
+
+                Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Update Item Completed");
             }
 
             // Delete Redundant if it still passed the prevention attempt at last (somehow this one returning error sometimes)
             $cuttingService->deleteRedundant($storeTimeRecordSummary->form_cut_id, $storeTimeRecordSummary->id_roll, $storeTimeRecordSummary->qty, $storeTimeRecordSummary->status);
+
+            Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Delete Redundant Roll Completed");
 
             // Return the recorded data
             return array(
