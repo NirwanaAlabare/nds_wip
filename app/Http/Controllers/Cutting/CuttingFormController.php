@@ -426,8 +426,7 @@ class CuttingFormController extends Controller
             "current_sambungan" => "required",
             "p_act" => "required"
         ]);
-
-        Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Request Validation Complete");
+        Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Request Validation Complete #1");
 
         $user = Auth::user();
 
@@ -527,7 +526,7 @@ class CuttingFormController extends Controller
         }
 
         if ($storeTimeRecordSummary) {
-            Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Store Time Record Complete with Status Actual = '".$storeTimeRecordSummary->status."' and Status Request = '".$status."'");
+            Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Store Time Record Complete with Status Actual = '".$storeTimeRecordSummary->status."' and Status Request = '".$status."' #2");
 
             // Sambungan Dalam Roll
             $sambunganRoll = $request['sambungan_roll'] ? array_filter($request['sambungan_roll'], fn($v) => $v > 0) : null;
@@ -545,29 +544,15 @@ class CuttingFormController extends Controller
                 }
 
                 FormCutInputDetailSambungan::upsert($sambunganArr, ["form_cut_input_detail_id", "sambungan_ke"], ["sambungan_roll"]);
-
-                Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Sambungan Dalam Roll Completed");
             }
+            Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Sambungan Dalam Roll Completed #3");
 
             // $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']) - floatval($validatedRequest['current_kepala_kain']) - floatval($validatedRequest['current_sisa_tidak_bisa']) - floatval($validatedRequest['current_reject']) - floatval($validatedRequest['current_piping']);
             $itemRemain = $validatedRequest['current_sisa_kain'];
+
             if ($status == 'need extension') {
                 $postNow = $now->addSecond();
                 // When the roll need an extension
-
-                // Create an extension
-                $storeTimeRecordSummaryExt = FormCutInputDetail::create([
-                    "form_cut_id" => $validatedRequest['id'],
-                    "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
-                    "group_roll" => $validatedRequest['current_group'],
-                    "id_sambungan" => $storeTimeRecordSummary->id,
-                    "status" => "extension",
-                    "group_stocker" => $groupStocker,
-                    "created_by" => $user ? $user->id : null,
-                    "created_by_username" => $user ? $user->username : null,
-                    "created_at" => $postNow,
-                    "updated_at" => $postNow,
-                ]);
 
                 // Update scanned item (roll detail & qty)
                 ScannedItem::updateOrCreate(
@@ -585,15 +570,27 @@ class CuttingFormController extends Controller
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                     ]
                 );
+                Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Update Item Completed #4");
 
-                Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Update Item Completed");
-
+                // Create an extension
+                $storeTimeRecordSummaryExt = FormCutInputDetail::create([
+                    "form_cut_id" => $validatedRequest['id'],
+                    "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
+                    "group_roll" => $validatedRequest['current_group'],
+                    "id_sambungan" => $storeTimeRecordSummary->id,
+                    "status" => "extension",
+                    "group_stocker" => $groupStocker,
+                    "created_by" => $user ? $user->id : null,
+                    "created_by_username" => $user ? $user->username : null,
+                    "created_at" => $postNow,
+                    "updated_at" => $postNow,
+                ]);
                 if ($storeTimeRecordSummaryExt) {
-
-                    Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' The Extension Completed");
+                    Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' The Extension Completed #5");
 
                     // Delete Redundant if it still passed the prevention attempt at last (somehow this one returning error sometimes)
                     $cuttingService->deleteRedundant($storeTimeRecordSummary->form_cut_id, $storeTimeRecordSummary->id_roll, $storeTimeRecordSummary->qty, $storeTimeRecordSummary->status);
+                    Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Delete Redundant Roll Usage Completed #6");
 
                     // Return the recorded data with the extension
                     return array(
@@ -622,14 +619,12 @@ class CuttingFormController extends Controller
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                     ]
                 );
-
-                Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Update Item Completed");
+                Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Update Item Completed #4");
             }
 
             // Delete Redundant if it still passed the prevention attempt at last (somehow this one returning error sometimes)
             $cuttingService->deleteRedundant($storeTimeRecordSummary->form_cut_id, $storeTimeRecordSummary->id_roll, $storeTimeRecordSummary->qty, $storeTimeRecordSummary->status);
-
-            Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Delete Redundant Roll Completed");
+            Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Delete Redundant Roll Completed #5");
 
             // Return the recorded data
             return array(
@@ -817,6 +812,7 @@ class CuttingFormController extends Controller
             "current_total_pemakaian_roll" => "required",
             "current_sambungan" => "required"
         ]);
+        Log::channel("cuttingRollUsageProcessExtension")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Request Validation Complete #1");
 
         $user = Auth::user();
 
@@ -921,8 +917,7 @@ class CuttingFormController extends Controller
         }
 
         if ($storeTimeRecordSummary) {
-            // Delete Redundant if it still passed the prevention attempt
-            $cuttingService->deleteRedundant($storeTimeRecordSummary->form_cut_id, $storeTimeRecordSummary->id_roll, $storeTimeRecordSummary->qty, "extension complete");
+            Log::channel("cuttingRollUsageProcessExtension")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Store Time Record Complete with Status Actual = '".$storeTimeRecordSummary->status."' and Status Request = 'extension complete' #2");
 
             // Sambungan dalam Roll
             $sambunganRoll = $request['sambungan_roll'] ? array_filter($request['sambungan_roll'], function ($var) {
@@ -943,6 +938,7 @@ class CuttingFormController extends Controller
                     }
                 }
             }
+            Log::channel("cuttingRollUsageProcessExtension")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Sambungan Dalam Roll Complete #3");
 
             // Update Scanned Item (Roll Detail Data & Qty Stock)
             $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']);
@@ -964,6 +960,32 @@ class CuttingFormController extends Controller
                     "created_by_username" => $user ? $user->username : null,
                 ]
             );
+            Log::channel("cuttingRollUsageProcessExtension")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Update Item Completed #4");
+
+            $postNow = $now->addSecond();
+
+            // Create post-extension roll spreading
+            $storeTimeRecordSummaryNext = FormCutInputDetail::create([
+                "form_cut_id" => $validatedRequest['id'],
+                "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
+                "id_roll" => $validatedRequest['current_id_roll'],
+                "id_item" => $validatedRequest['current_id_item'],
+                "color_act" => $validatedRequest['color_act'],
+                "detail_item" => $validatedRequest['detail_item'],
+                "group_roll" => $validatedRequest['current_group'],
+                "lot" => $request['current_lot'],
+                "roll" => $validatedRequest['current_roll'],
+                "roll_buyer" => $validatedRequest['current_roll_buyer'],
+                "qty" => $itemRemain,
+                "unit" => $itemUnit,
+                "sambungan" => 0,
+                "status" => "not complete",
+                "metode" => $request->metode ? $request->metode : null,
+                "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
+                "created_at" => $postNow,
+                "updated_at" => $postNow,
+            ]);
+            Log::channel("cuttingRollUsageProcessExtension")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' Post-Extension Roll Completed #5");
 
             if ($lap > 0) {
                 // Create the lap
@@ -973,50 +995,20 @@ class CuttingFormController extends Controller
                         "waktu" => $request["time_record"][$lap]
                     ]
                 );
-
-                if ($storeTimeRecordLap) {
-                    $postNow = $now->addSecond();
-
-                    // Create post-extension roll spreading
-                    $storeTimeRecordSummaryNext = FormCutInputDetail::create([
-                        "form_cut_id" => $validatedRequest['id'],
-                        "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
-                        "id_roll" => $validatedRequest['current_id_roll'],
-                        "id_item" => $validatedRequest['current_id_item'],
-                        "color_act" => $validatedRequest['color_act'],
-                        "detail_item" => $validatedRequest['detail_item'],
-                        "group_roll" => $validatedRequest['current_group'],
-                        "lot" => $request['current_lot'],
-                        "roll" => $validatedRequest['current_roll'],
-                        "roll_buyer" => $validatedRequest['current_roll_buyer'],
-                        "qty" => $itemRemain,
-                        "unit" => $itemUnit,
-                        "sambungan" => 0,
-                        "status" => "not complete",
-                        "metode" => $request->metode ? $request->metode : null,
-                        "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
-                        "created_at" => $postNow,
-                        "updated_at" => $postNow,
-                    ]);
-
-                    // Return the current extension roll with the post-extension roll
-                    return array(
-                        "status" => 200,
-                        "message" => "alright",
-                        "additional" => [
-                            DB::table("form_cut_input_detail")->selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummary->id)->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->first(),
-                            DB::table("form_cut_input_detail")->selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummaryNext->id)->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->first(),
-                        ],
-                    );
-                }
             }
+            Log::channel("cuttingRollUsageProcessExtension")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' Lap Completed #6");
 
-            // I don't think it could get here
+            // Delete Redundant if it still passed the prevention attempt
+            $cuttingService->deleteRedundant($storeTimeRecordSummary->form_cut_id, $storeTimeRecordSummary->id_roll, $storeTimeRecordSummary->qty, "extension complete");
+            Log::channel("cuttingRollUsageProcessExtension")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' Delete Redundant Roll Completed #7");
+
+            // Return the current extension roll with the post-extension roll
             return array(
                 "status" => 200,
                 "message" => "alright",
                 "additional" => [
-                    DB::table("form_cut_input_detail")->selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummary->id)->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->first()
+                    DB::table("form_cut_input_detail")->selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummary->id)->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->first(),
+                    DB::table("form_cut_input_detail")->selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummaryNext->id)->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->first(),
                 ],
             );
         }

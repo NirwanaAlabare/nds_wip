@@ -194,6 +194,11 @@ return [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/cuttingRollUsageProcess/cuttingRollUsageProcess.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
+        ],
+        'cuttingRollUsageProcessExtension' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/cuttingRollUsageProcessExtension/cuttingRollUsageProcessExtension.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
         ]
     ],
 ];
