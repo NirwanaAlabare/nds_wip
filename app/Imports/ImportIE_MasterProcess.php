@@ -24,15 +24,18 @@ class ImportIE_MasterProcess implements ToModel, WithStartRow
 
         // Uppercase semua data
         $nm_process   = strtoupper(trim($row[0]));
+        $remark     = strtoupper(trim($row[5]));
 
-        // 🔍 Cek duplicate
+        // 🔍 Cek duplicate berdasarkan nm_process + remark
         $exists = DB::table('ie_master_process')
             ->where('nm_process', $nm_process)
+            ->where('remark', $remark)
             ->exists();
 
+
         if ($exists) {
-            // ❌ STOP seluruh proses import
-            throw new \Exception("Duplicate found: " . $nm_process);
+            // ❌ STOP entire import
+            throw new \Exception("Duplicate found: {$nm_process} | {$remark}");
         }
 
         DB::table('ie_master_process')->insert([
