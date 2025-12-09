@@ -199,7 +199,8 @@ use App\Http\Controllers\MgtReportProfitLineController;
 
 // Industrial Engineering
 use App\Http\Controllers\IEDashboardController;
-use App\Http\Controllers\IEMasterController;
+use App\Http\Controllers\IEMasterProcessController;
+use App\Http\Controllers\IEMasterPartProcessController;
 use App\Http\Controllers\IE_Proses_OB_Controller;
 
 
@@ -1386,7 +1387,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/simpanedit', 'simpanedit')->name('simpan-edit');
         Route::post('/print-lokasi/{id?}', 'printlokasi')->name('print-lokasi');
         Route::post('/print-lokasi-all', 'printLokasiAll')->name('print-lokasi-all');
-
     });
 
     //dashboard fabric
@@ -1476,7 +1476,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/delete-detail-barcode-rak', 'DeleteDataBarcode')->name('delete-detail-barcode-rak');
         Route::get('/export-format-upload-roll', 'ExportUploadRoll')->name('export-format-upload-roll');
         Route::post('/update-all-barcode-rak', 'updateAllLokasi')->name('update-all-barcode-rak');
-
     });
 
     //permintaan
@@ -2334,9 +2333,17 @@ Route::middleware('auth')->group(function () {
     });
 
     // Proses Industrial Engineering Master Process
-    Route::controller(IEMasterController::class)->prefix("master")->middleware('role:management')->group(function () {
+    Route::controller(IEMasterProcessController::class)->prefix("master")->middleware('role:management')->group(function () {
         Route::get('/IE_master_process', 'IE_master_process')->name('IE_master_process');
         Route::post('/IE_save_master_process', 'IE_save_master_process')->name('IE_save_master_process');
+        Route::get('/IE_show_master_process', 'IE_show_master_process')->name('IE_show_master_process');
+        Route::post('/IE_edit_master_process', 'IE_edit_master_process')->name('IE_edit_master_process');
+        Route::get('/contoh_upload_master_process', 'contoh_upload_master_process')->name('contoh_upload_master_process');
+        Route::post('/upload_excel_master_process', 'upload_excel_master_process')->name('upload_excel_master_process');
+    });
+    // Proses Industrial Engineering Master Part Process
+    Route::controller(IEMasterPartProcessController::class)->prefix("master")->middleware('role:management')->group(function () {
+        Route::get('/IE_master_part_process', 'IE_master_part_process')->name('IE_master_part_process');
     });
 
     // Proses Industrial Engineering Operational Breakdown
