@@ -20,89 +20,6 @@
 @endsection
 
 @section('content')
-    <!-- Update Modal -->
-    <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-
-                <div class="modal-header bg-sb">
-                    <h5 class="modal-title" id="updateModalLabel">Update Data</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-
-                <div class="modal-body">
-
-                    <!-- Select Frequency -->
-                    <div class="mb-3">
-                        <label for="frequency" class="form-label">Select Type</label>
-                        <select class="form-select form-select-sm" id="frequency" onchange="handleFrequencyChange()">
-                            <option value="">-- Select --</option>
-                            <option value="daily">Daily</option>
-                            <option value="monthly">Monthly</option>
-                            <option value="yearly">Yearly</option>
-                        </select>
-                    </div>
-
-                    <!-- Daily Inputs -->
-                    <div id="daily-inputs" class="d-none">
-                        <div class="mb-3">
-                            <label for="startDate" class="form-label">Start Date</label>
-                            <input type="date" class="form-control form-control-sm" id="startDate">
-                        </div>
-                        <div class="mb-3">
-                            <label for="endDate" class="form-label">End Date</label>
-                            <input type="date" class="form-control form-control-sm" id="endDate">
-                        </div>
-                    </div>
-
-                    <!-- Monthly Inputs -->
-                    <div id="monthly-inputs" class="d-none">
-                        <div class="mb-3">
-                            <label for="month" class="form-label">Month</label>
-                            <select class="form-select form-select-sm" id="month">
-                                <option value="">-- Select Month --</option>
-                                <option value="01">January</option>
-                                <option value="02">February</option>
-                                <option value="03">March</option>
-                                <option value="04">April</option>
-                                <option value="05">May</option>
-                                <option value="06">June</option>
-                                <option value="07">July</option>
-                                <option value="08">August</option>
-                                <option value="09">September</option>
-                                <option value="10">October</option>
-                                <option value="11">November</option>
-                                <option value="12">December</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="monthlyYear" class="form-label">Year</label>
-                            <select class="form-select form-select-sm" id="monthlyYear"></select>
-                        </div>
-                    </div>
-
-                    <!-- Yearly Input -->
-                    <div id="yearly-inputs" class="d-none">
-                        <div class="mb-3">
-                            <label for="year" class="form-label">Year</label>
-                            <select class="form-select form-select-sm" id="year"></select>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary btn-sm" onclick="confirm_update()">Yes, Update</button>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-
-
-
     <form>
         <div class="card card-sb">
             <div class="card-header">
@@ -114,12 +31,12 @@
                     <table id="myTable" class="table table-bordered text-nowrap" style="width:100%">
                         <thead class="bg-sb">
                             <tr>
-                                <th class="text-center">Buyer</th>
-                                <th class="text-center">WS</th>
-                                <th class="text-center">Styleno</th>
-                                <th class="text-center">Total Perubahan</th>
-                                <th class="text-center">Tgl. Plan</th>
-                                <th class="text-center">SMV</th>
+                                <th class="text-center align-middle" style="color: black;">Buyer</th>
+                                <th class="text-center align-middle" style="color: black;">WS</th>
+                                <th class="text-center align-middle" style="color: black;">Styleno</th>
+                                <th class="text-center align-middle" style="color: black;">Total Perubahan</th>
+                                <th>Tgl. Plan</th>
+                                <th>SMV</th>
                                 @php
                                     $maxDetails = 0;
                                     foreach ($groupedData as $ws) {
@@ -145,13 +62,9 @@
                                     <td class="text-center">{{ $ws['total_changes'] }}</td>
                                     @foreach ($ws['details'] as $index => $detail)
                                         @php
-                                            if ($index == 0) {
-                                                $bgColor = '';
-                                            } else {
-                                                // Selang-seling dari array warna, kembali ke awal jika >4
-                                                $colorIndex = ($index - 1) % $colorCount;
-                                                $bgColor = $colors[$colorIndex];
-                                            }
+                                            // Semua kolom tgl_plan + smv selang-seling dari pertama
+                                            $colorIndex = $index % $colorCount;
+                                            $bgColor = $colors[$colorIndex];
                                         @endphp
                                         <td class="text-center" style="background-color: {{ $bgColor }};">
                                             {{ $detail['tgl_plan_fix'] }}</td>
@@ -225,6 +138,9 @@
                 scrollY: "800px",
                 scrollX: true,
                 scrollCollapse: true,
+                fixedColumns: {
+                    leftColumns: 4
+                },
 
                 // Ubah default page length menjadi 25
                 pageLength: 15,
