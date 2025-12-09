@@ -294,9 +294,7 @@
             Swal.fire({
                 title: 'Please Wait...',
                 html: 'Exporting Data...',
-                didOpen: () => {
-                    Swal.showLoading();
-                },
+                didOpen: () => Swal.showLoading(),
                 allowOutsideClick: false,
             });
 
@@ -304,56 +302,32 @@
                 type: "GET",
                 url: '{{ route('export_excel_packing_out') }}',
                 data: {
-                    dateFrom: dateFrom,
-                    dateTo: dateTo
+                    dateFrom,
+                    dateTo
                 },
+
                 success: function(data) {
-                    const workbook = new ExcelJS.Workbook();
-                    const worksheet = workbook.addWorksheet("List Packing Scan");
 
-                    // --- Title Row ---
-                    const mainTitleRow = worksheet.addRow(["Laporan Packing Scan"]);
-                    worksheet.mergeCells(`A${mainTitleRow.number}:M${mainTitleRow.number}`);
-                    mainTitleRow.font = {
-                        bold: true,
-                        size: 14
-                    };
-                    mainTitleRow.alignment = {
-                        horizontal: 'center',
-                        vertical: 'middle'
-                    };
+                    // -----------------------------------------
+                    // CREATE CSV
+                    // -----------------------------------------
+                    let csv = "";
 
-                    const titleRow = worksheet.addRow([`Tgl Transaksi: ${dateFrom} - ${dateTo}`]);
-                    worksheet.mergeCells(`A${titleRow.number}:M${titleRow.number}`);
-                    titleRow.alignment = {
-                        horizontal: 'center',
-                        vertical: 'middle'
-                    };
-                    titleRow.font = {
-                        italic: true,
-                        size: 12
-                    };
+                    // Title rows
+                    csv += "Laporan Packing Scan\n";
+                    csv += `Tgl Transaksi: ${dateFrom} - ${dateTo}\n\n`;
 
-                    worksheet.addRow([]); // empty row
-
-                    // --- Header Row ---
+                    // Headers
                     const headers = [
                         "No", "Tgl. Trans", "No. Carton", "Barcode", "PO",
                         "WS", "Color", "Size", "Dest", "Tgl. Shipment",
                         "Total", "User", "Tgl. Input"
                     ];
-                    const headerRow = worksheet.addRow(headers);
-                    headerRow.font = {
-                        bold: true
-                    };
-                    headerRow.alignment = {
-                        horizontal: 'center',
-                        vertical: 'middle'
-                    };
+                    csv += headers.join(",") + "\n";
 
-                    // --- Data Rows ---
-                    data.forEach(function(row, index) {
-                        const values = [
+                    // Data rows
+                    data.forEach((row, index) => {
+                        csv += [
                             index + 1,
                             row.tgl_trans_fix,
                             row.no_carton,
@@ -367,87 +341,36 @@
                             row.tot,
                             row.created_by,
                             row.tgl_akt_input
-                        ];
-                        const dataRow = worksheet.addRow(values);
-
-                        dataRow.eachCell({
-                            includeEmpty: true
-                        }, function(cell, colNumber) {
-                            // Format numeric column
-                            if ([11].includes(colNumber) && typeof cell.value === 'number') {
-                                cell.numFmt = '#,##0';
-                                cell.alignment = {
-                                    horizontal: 'right'
-                                };
-                                if (cell.value < 0) {
-                                    cell.font = {
-                                        color: {
-                                            argb: 'FFFF0000'
-                                        }
-                                    }; // red if negative
-                                }
-                            }
-                            // Default alignment for text
-                            if (typeof cell.value === 'string') {
-                                cell.alignment = {
-                                    horizontal: 'left'
-                                };
-                            }
-                        });
+                        ].map(v => `"${v}"`).join(",") + "\n";
                     });
 
-                    // --- Apply borders to all cells including merged title rows ---
-                    worksheet.eachRow({
-                        includeEmpty: true
-                    }, function(row, rowNumber) {
-                        row.eachCell({
-                            includeEmpty: true
-                        }, function(cell, colNumber) {
-                            cell.border = {
-                                top: {
-                                    style: 'thin'
-                                },
-                                left: {
-                                    style: 'thin'
-                                },
-                                bottom: {
-                                    style: 'thin'
-                                },
-                                right: {
-                                    style: 'thin'
-                                }
-                            };
-                        });
+                    // -----------------------------------------
+                    // DOWNLOAD CSV
+                    // -----------------------------------------
+                    const blob = new Blob([csv], {
+                        type: "text/csv;charset=utf-8;"
+                    });
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(blob);
+                    link.download = "Laporan_Packing_Scan.csv";
+                    link.click();
+
+                    // -----------------------------------------
+                    // FINISH
+                    // -----------------------------------------
+                    const endTime = new Date().getTime();
+                    const elapsedTime = Math.round((endTime - startTime) / 1000);
+
+                    Swal.close();
+                    Swal.fire({
+                        title: 'Success!',
+                        text: `Data has been successfully exported in ${elapsedTime} seconds.`,
+                        icon: 'success',
+                        confirmButtonText: 'Okay'
                     });
 
-                    // Optional: set column widths
-                    const columnWidths = [5, 15, 15, 20, 15, 10, 15, 10, 15, 15, 10, 15, 20];
-                    columnWidths.forEach((w, i) => {
-                        worksheet.getColumn(i + 1).width = w;
-                    });
-
-                    // --- Export ---
-                    workbook.xlsx.writeBuffer().then(function(buffer) {
-                        const blob = new Blob([buffer], {
-                            type: "application/octet-stream"
-                        });
-                        const link = document.createElement('a');
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = "Laporan_Packing_Scan.xlsx";
-                        link.click();
-
-                        const endTime = new Date().getTime();
-                        const elapsedTime = Math.round((endTime - startTime) / 1000);
-
-                        Swal.close();
-                        Swal.fire({
-                            title: 'Success!',
-                            text: `Data has been successfully exported in ${elapsedTime} seconds.`,
-                            icon: 'success',
-                            confirmButtonText: 'Okay'
-                        });
-                    });
                 },
+
                 error: function() {
                     Swal.fire({
                         title: 'Error!',

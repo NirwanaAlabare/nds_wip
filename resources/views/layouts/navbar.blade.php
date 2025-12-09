@@ -1589,6 +1589,12 @@
                                     <i class="fa-solid fa-list-ul fa-sm"></i> Master Process
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('IE_master_part_process') }}"
+                                    class="dropdown-item {{ $subPage == 'IE-master-part-process' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Master Part Process
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
