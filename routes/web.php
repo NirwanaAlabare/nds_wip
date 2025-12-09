@@ -202,6 +202,7 @@ use App\Http\Controllers\IEDashboardController;
 use App\Http\Controllers\IEMasterProcessController;
 use App\Http\Controllers\IEMasterPartProcessController;
 use App\Http\Controllers\IE_Proses_OB_Controller;
+use App\Http\Controllers\IE_Lap_Recap_SMV_Controller;
 
 
 //maintain-bpb
@@ -2349,6 +2350,11 @@ Route::middleware('auth')->group(function () {
     // Proses Industrial Engineering Operational Breakdown
     Route::controller(IE_Proses_OB_Controller::class)->prefix("proses")->middleware('role:management')->group(function () {
         Route::get('/IE_proses_op_breakdown', 'IE_proses_op_breakdown')->name('IE_proses_op_breakdown');
+    });
+
+    // Laporan Industrial Engineering Recap SMV
+    Route::controller(IE_Lap_Recap_SMV_Controller::class)->prefix("laporan")->middleware('role:management')->group(function () {
+        Route::get('/IE_lap_recap_smv', 'IE_lap_recap_smv')->name('IE_lap_recap_smv');
     });
 });
 
