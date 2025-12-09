@@ -20,7 +20,7 @@ class IE_Lap_Recap_SMV_Controller extends Controller
         from master_plan mp
 		inner join act_costing ac on mp.id_ws = ac.id
 		inner join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-        where id_ws is not null and tgl_plan is not null
+        where id_ws is not null and tgl_plan is not null and mp.cancel = 'N'
         group by id_ws, smv
         order by ms.supplier asc, ac.styleno asc, tgl_plan asc
         ");
