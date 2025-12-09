@@ -1035,6 +1035,8 @@ class CuttingFormManualController extends Controller
         // Get Current Roll Spreading (Incomplete Roll Spread)
         $checkTimeRecord = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where('status', 'not complete')->first();
 
+        $now = Carbon::now();
+
         // Create or Update Roll Spreading
         $storeTimeRecordSummary = null;
         if ($checkTimeRecord) {
@@ -1110,15 +1112,14 @@ class CuttingFormManualController extends Controller
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                         "created_by" => $user ? $user->id : null,
                         "created_by_username" => $user ? $user->username : null,
+                        "created_at" => $now,
+                        "updated_at" => $now,
                     ]
                 );
             }
         }
 
         if ($storeTimeRecordSummary) {
-            // Delete Redundant if it still passed the prevention attempt
-            $cuttingService->deleteRedundant($storeTimeRecordSummary->form_cut_id, $storeTimeRecordSummary->id_roll, $storeTimeRecordSummary->qty, $storeTimeRecordSummary->status);
-
             // Sambungan dalam Roll
             $sambunganRoll = $request['sambungan_roll'] ? array_filter($request['sambungan_roll'], function ($var) {
                 return ($var > 0);
@@ -1142,6 +1143,22 @@ class CuttingFormManualController extends Controller
             $itemRemain = $validatedRequest['current_sisa_kain'];
 
             if ($status == 'need extension') {
+                $postNow = $now->addSecond();
+
+                // Create the Extension when it need one
+                $storeTimeRecordSummaryExt = FormCutInputDetail::create([
+                    "form_cut_id" => $validatedRequest['id'],
+                    "group_roll" => $validatedRequest['current_group'],
+                    "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
+                    "id_sambungan" => $storeTimeRecordSummary->id,
+                    "status" => "extension",
+                    "group_stocker" => $groupStocker,
+                    "created_by" => $user ? $user->id : null,
+                    "created_by_username" => $user ? $user->username : null,
+                    "created_at" => $postNow,
+                    "updated_at" => $postNow,
+                ]);
+
                 // Update Roll Detail Data & Qty Stock
                 ScannedItem::updateOrCreate(
                     ["id_roll" => $validatedRequest['current_id_roll']],
@@ -1159,19 +1176,10 @@ class CuttingFormManualController extends Controller
                     ]
                 );
 
-                // Create the Extension when it need one
-                $storeTimeRecordSummaryExt = FormCutInputDetail::create([
-                    "form_cut_id" => $validatedRequest['id'],
-                    "group_roll" => $validatedRequest['current_group'],
-                    "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
-                    "id_sambungan" => $storeTimeRecordSummary->id,
-                    "status" => "extension",
-                    "group_stocker" => $groupStocker,
-                    "created_by" => $user ? $user->id : null,
-                    "created_by_username" => $user ? $user->username : null,
-                ]);
-
                 if ($storeTimeRecordSummaryExt) {
+
+                    // Delete Redundant if it still passed the prevention attempt
+                    $cuttingService->deleteRedundant($storeTimeRecordSummary->form_cut_id, $storeTimeRecordSummary->id_roll, $storeTimeRecordSummary->qty, $storeTimeRecordSummary->status);
 
                     // Return the current recorded data with the extension
                     return array(
@@ -1201,6 +1209,9 @@ class CuttingFormManualController extends Controller
                     ]
                 );
             }
+
+            // Delete Redundant if it still passed the prevention attempt
+            $cuttingService->deleteRedundant($storeTimeRecordSummary->form_cut_id, $storeTimeRecordSummary->id_roll, $storeTimeRecordSummary->qty, $storeTimeRecordSummary->status);
 
             // Return the recorded data
             return array(
@@ -1709,37 +1720,37 @@ class CuttingFormManualController extends Controller
         if ($notCompletedDetails->count() > 0) {
             foreach ($notCompletedDetails as $notCompletedDetail) {
                 DB::table("form_cut_input_detail_delete")->insert([
-                    "form_cut_id" => $notCompletedDetail['form_cut_id'],
-                    "no_form_cut_input" => $notCompletedDetail['no_form_cut_input'],
-                    "id_roll" => $notCompletedDetail['id_roll'],
-                    "id_item" => $notCompletedDetail['id_item'],
-                    "color_act" => $notCompletedDetail['color_act'],
-                    "detail_item" => $notCompletedDetail['detail_item'],
-                    "group_roll" => $notCompletedDetail['group_roll'],
-                    "lot" => $notCompletedDetail['lot'],
-                    "roll" => $notCompletedDetail['roll'],
-                    "roll_buyer" => $notCompletedDetail['roll_buyer'],
-                    "qty" => $notCompletedDetail['qty'],
-                    "unit" => $notCompletedDetail['unit'],
-                    "sisa_gelaran" => $notCompletedDetail['sisa_gelaran'],
-                    "sambungan_roll" => $notCompletedDetail['sambungan_roll'],
-                    "sambungan" => $notCompletedDetail['sambungan'],
-                    "est_amparan" => $notCompletedDetail['est_amparan'],
-                    "lembar_gelaran" => $notCompletedDetail['lembar_gelaran'],
-                    "average_time" => $notCompletedDetail['average_time'],
-                    "kepala_kain" => $notCompletedDetail['kepala_kain'],
-                    "sisa_tidak_bisa" => $notCompletedDetail['sisa_tidak_bisa'],
-                    "reject" => $notCompletedDetail['reject'],
-                    "sisa_kain" => ($notCompletedDetail['sisa_kain'] ? $notCompletedDetail['sisa_kain'] : 0),
-                    "pemakaian_lembar" => $notCompletedDetail['pemakaian_lembar'],
-                    "short_roll" => $notCompletedDetail['short_roll'],
-                    "piping" => $notCompletedDetail['piping'],
-                    "total_pemakaian_roll" => $notCompletedDetail['total_pemakaian_roll'],
-                    "status" => $notCompletedDetail['status'],
-                    "metode" => $notCompletedDetail['metode'],
-                    "group_stocker" => $notCompletedDetail['group_stocker'],
-                    "created_at" => $notCompletedDetail['created_at'],
-                    "updated_at" => $notCompletedDetail['updated_at'],
+                    "form_cut_id" => $notCompletedDetail->form_cut_id,
+                    "no_form_cut_input" => $notCompletedDetail->no_form_cut_input,
+                    "id_roll" => $notCompletedDetail->id_roll,
+                    "id_item" => $notCompletedDetail->id_item,
+                    "color_act" => $notCompletedDetail->color_act,
+                    "detail_item" => $notCompletedDetail->detail_item,
+                    "group_roll" => $notCompletedDetail->group_roll,
+                    "lot" => $notCompletedDetail->lot,
+                    "roll" => $notCompletedDetail->roll,
+                    "roll_buyer" => $notCompletedDetail->roll_buyer,
+                    "qty" => $notCompletedDetail->qty,
+                    "unit" => $notCompletedDetail->unit,
+                    "sisa_gelaran" => $notCompletedDetail->sisa_gelaran,
+                    "sambungan_roll" => $notCompletedDetail->sambungan_roll,
+                    "sambungan" => $notCompletedDetail->sambungan,
+                    "est_amparan" => $notCompletedDetail->est_amparan,
+                    "lembar_gelaran" => $notCompletedDetail->lembar_gelaran,
+                    "average_time" => $notCompletedDetail->average_time,
+                    "kepala_kain" => $notCompletedDetail->kepala_kain,
+                    "sisa_tidak_bisa" => $notCompletedDetail->sisa_tidak_bisa,
+                    "reject" => $notCompletedDetail->reject,
+                    "sisa_kain" => ($notCompletedDetail->sisa_kain ? $notCompletedDetail->sisa_kain : 0),
+                    "pemakaian_lembar" => $notCompletedDetail->pemakaian_lembar,
+                    "short_roll" => $notCompletedDetail->short_roll,
+                    "piping" => $notCompletedDetail->piping,
+                    "total_pemakaian_roll" => $notCompletedDetail->total_pemakaian_roll,
+                    "status" => $notCompletedDetail->status,
+                    "metode" => $notCompletedDetail->metode,
+                    "group_stocker" => $notCompletedDetail->group_stocker,
+                    "created_at" => $notCompletedDetail->created_at,
+                    "updated_at" => $notCompletedDetail->updated_at,
                     "deleted_by" => Auth::user()->username,
                     "deleted_at" => Carbon::now(),
                 ]);

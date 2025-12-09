@@ -211,13 +211,14 @@ class StockerController extends Controller
                 marker_input.po_marker,
                 marker_input.urutan_marker,
                 marker_input.cons_marker,
-                form_cut_input.total_lembar,
+                form_detail.total_lembar,
                 form_cut_input.no_cut,
                 UPPER(form_cut_input.shell) shell,
                 GROUP_CONCAT(DISTINCT COALESCE(master_size_new.size, marker_input_detail.size) ORDER BY master_size_new.urutan ASC SEPARATOR ', ') sizes,
                 GROUP_CONCAT(DISTINCT CONCAT(' ', COALESCE(master_size_new.size, marker_input_detail.size), '(', marker_input_detail.ratio * form_cut_input.total_lembar, ')') ORDER BY master_size_new.urutan ASC) marker_details,
                 GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) SEPARATOR ', ') part
             ")->
+            leftJoin(DB::raw("(SELECT form_cut_id, SUM(form_cut_input_detail.lembar_gelaran) as total_lembar from form_cut_input_detail group by form_cut_id) as form_detail"), "form_detail.form_cut_id", "=", "form_cut_input.id")->
             leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
             leftJoin("part", "part.id", "=", "part_form.part_id")->
             leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->

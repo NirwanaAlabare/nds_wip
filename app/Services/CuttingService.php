@@ -195,15 +195,17 @@ class CuttingService
     }
 
     public function deleteRedundant($idForm, $idRoll, $qtyRoll, $status) {
-        if ($idRoll) {
-            $currentDetails = FormCutInputDetail::where("form_cut_id", $idForm)->where("id_roll", $idRoll)->where("qty", $qtyRoll)->where("status", $status)->get();
+        if ($idForm && $idRoll && $qtyRoll && $status) {
+            // Get the current roll usage
+            $currentDetails = FormCutInputDetail::where("form_cut_id", $idForm)->where("id_roll", $idRoll)->where("qty", $qtyRoll)->where("status", $status)->whereNotNull("form_cut_id")->whereNotNull("id_roll")->get();
+            if ($currentDetails && $currentDetails->count() > 1) {
 
-            // Set Exception
-            $exceptionId = $currentDetails->last()->id;
+                // Set Exception for the last row
+                $exceptionId = $currentDetails->last() ? $currentDetails->last()->id : null;
 
-            if ($currentDetails->count() > 1) {
+                // Loop Over to delete all except the last row (exception)
                 foreach ($currentDetails as $currentDetail) {
-                    if ($currentDetail->id != $exceptionId) {
+                    if ($exceptionId && $currentDetail->id != $exceptionId) {
                         // Delete history
                         DB::table("form_cut_input_detail_delete")->insert([
                             "form_cut_id" => $currentDetail->form_cut_id,
@@ -247,6 +249,8 @@ class CuttingService
                 }
             }
         }
+
+        return true;
     }
 
     public function deleteRedundantRoll($idRoll) {
@@ -267,9 +271,9 @@ class CuttingService
             foreach ($currentDetails as $currentDetail) {
                 $formDetails = FormCutInputDetail::where("form_cut_id", $currentDetail->form_cut_id)->where("id_roll", $currentDetail->id_roll)->where("qty", $currentDetail->qty)->where("status", $currentDetail->status)->get();
 
-                $exceptionId = $formDetails->last()->id;
+                $exceptionId = $formDetails->last() ? $formDetails->last()->id : null;
                 foreach ($formDetails as $formDetail) {
-                    if ($formDetail->id != $exceptionId) {
+                    if ($exceptionId && $formDetail->id != $exceptionId) {
                         // Delete history
                         DB::table("form_cut_input_detail_delete")->insert([
                             "form_cut_id" => $formDetail->form_cut_id,

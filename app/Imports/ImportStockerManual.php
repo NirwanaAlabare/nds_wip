@@ -200,7 +200,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
                         // Optionally format with Carbon
                         $formattedDate = Carbon::instance($convertedDate)->format('Y-m-d');
 
-                        if ($row[9] > 0) {
+                        if ($row[10] > 0) {
                             DCIn::create([
                                 "id_qr_stocker" => $createStocker->id_qr_stocker,
                                 "tujuan" => $partDetailInfo[0]->tujuan,

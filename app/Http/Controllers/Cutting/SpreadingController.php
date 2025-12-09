@@ -34,12 +34,15 @@ class SpreadingController extends Controller
         if ($request->ajax()) {
             $additionalQuery = "";
 
-            if ($request->dateFrom) {
-                $additionalQuery .= "and ( cutting_plan.tgl_plan >= '".$request->dateFrom."' OR COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) >= '" . $request->dateFrom . "')";
+            $dateFrom = $request->dateFrom ?? date("Y-m-d");
+            $dateTo = $request->dateTo ?? date("Y-m-d");
+
+            if ($dateFrom) {
+                $additionalQuery .= "and ( cutting_plan.tgl_plan >= '".$dateFrom."' OR COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) >= '" . $dateFrom . "')";
             }
 
-            if ($request->dateTo) {
-                $additionalQuery .= "and ( cutting_plan.tgl_plan <= '".$request->dateTo."' OR COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) <= '" . $request->dateTo . "')";
+            if ($dateTo) {
+                $additionalQuery .= "and ( cutting_plan.tgl_plan <= '".$dateTo."' OR COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) <= '" . $dateTo . "')";
             }
 
             $keywordQuery = "";
@@ -92,7 +95,10 @@ class SpreadingController extends Controller
                     REPLACE(COALESCE(b.notes, '-'), '\"', '') notes,
                     GROUP_CONCAT(DISTINCT CONCAT(COALESCE(master_size_new.size, master_sb_ws.size, marker_input_detail.size), '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' /  ') marker_details,
                     cutting_plan.tgl_plan,
-                    cutting_plan.app
+                    cutting_plan.app,
+                    a.created_by_username,
+                    a.created_at,
+                    a.updated_at
                 FROM `form_cut_input` a
                     left join (select form_cut_input_detail.form_cut_id, SUM(form_cut_input_detail.lembar_gelaran) total_lembar from form_cut_input_detail group by form_cut_input_detail.form_cut_id) a2 on a2.form_cut_id = a.id
                     left join cutting_plan on cutting_plan.form_cut_id = a.id
