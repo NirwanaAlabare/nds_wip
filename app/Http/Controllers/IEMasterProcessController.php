@@ -47,6 +47,7 @@ class IEMasterProcessController extends Controller
         // Check if the nm_process already exist
         $exists = DB::table('ie_master_process')
             ->where('nm_process', $process_name)
+            ->where('remark', $remark)
             ->exists();
 
         if ($exists) {
