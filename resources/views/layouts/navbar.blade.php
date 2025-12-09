@@ -1609,6 +1609,18 @@
                             </li>
                         </ul>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'IE-proses' ? 'active' : '' }}">Laporan</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('IE_proses_op_breakdown') }}"
+                                    class="dropdown-item {{ $subPage == 'IE-proses-op-breakdown' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Operational Breakdown
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                 @endif
 
 
