@@ -72,17 +72,17 @@ class Report_eff_new_export implements FromView, WithEvents, ShouldAutoSize
                 sum(d_rfts.tot_rfts) tot_rfts,
                 op.tot_output_line,
                 so.curr,
-                CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * konv_sb.rate_jual, acm.price)
+                CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
                 ELSE acm.price end AS cm_price,
                 round(
-                sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * konv_sb.rate_jual, acm.price)
+                sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
                 ELSE acm.price end,2) AS earning,
                 mkb.kurs_tengah,
                 round(
                 if (so.curr = 'IDR',
-                sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * konv_sb.rate_jual, acm.price)
+                sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
                 ELSE acm.price end,
-                sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * konv_sb.rate_jual, acm.price)
+                sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
                 ELSE acm.price end * mkb.kurs_tengah
                 ),2) tot_earning_rupiah,
                 round((cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60),2) mins_avail,
@@ -130,6 +130,9 @@ class Report_eff_new_export implements FromView, WithEvents, ShouldAutoSize
             left join (
                 select * from masterrate where  curr='USD' and v_codecurr IN('COSTING3','COSTING6','COSTING8','COSTING12') group by tanggal
             ) konv_sb on ac.deldate = konv_sb.tanggal
+            left join (
+                select * from masterrate where  curr='USD' and v_codecurr IN('COSTING3','COSTING6','COSTING8','COSTING12') group by tanggal ORDER BY tanggal DESC limit 1
+            ) last_konv_sb on ac.deldate >= last_konv_sb.tanggal
             left join (
                 SELECT
                         master_plan_id,
@@ -201,8 +204,8 @@ class Report_eff_new_export implements FromView, WithEvents, ShouldAutoSize
             'sewing.export.report_efficiency_new_export',
             [
                 'data' => $data,
-                'tgl_awal_n' => $this->tgl_awal,
-                'tgl_akhir_n' => $this->tgl_akhir,
+                'tgl_awal_n' => $this->tgl_awal_n,
+                'tgl_akhir_n' => $this->tgl_akhir_n,
                 'totalManPower' => $totalManPower,
                 'totalTarget' => $totalTarget,
                 'totalOutput' => $totalOutput,

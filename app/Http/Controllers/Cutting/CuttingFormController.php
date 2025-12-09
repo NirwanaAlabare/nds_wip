@@ -485,7 +485,7 @@ class CuttingFormController extends Controller
         } else {
             // Prevent redundant
             $checkSimilarTimeRecord = DB::table("form_cut_input_detail")->where("form_cut_id", $validatedRequest['id'])->where("id_roll", $validatedRequest['current_id_roll'])->where("qty", $itemQty)->first();
-            if (!$checkSimilarTimeRecord) {
+            if (!$checkSimilarTimeRecord || !$validatedRequest['current_id_roll']) {
                 $storeTimeRecordSummary = FormCutInputDetail::create([
                         "form_cut_id" => $validatedRequest['id'],
                         "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
@@ -697,7 +697,7 @@ class CuttingFormController extends Controller
         } else {
             // Prevent redundant
             $checkSimilarTimeRecord = DB::table("form_cut_input_detail")->where("form_cut_id", $request->id)->where("id_roll", $request->current_id_roll)->where("qty", $itemQty)->first();
-            if (!$checkSimilarTimeRecord) {
+            if (!$checkSimilarTimeRecord || !$request->current_id_roll) {
                 $storeTimeRecordSummary = FormCutInputDetail::
                     create(
                         [
@@ -873,7 +873,7 @@ class CuttingFormController extends Controller
         } else {
             // Prevent redundant
             $checkSimilarTimeRecord = DB::table("form_cut_input_detail")->where("form_cut_id", $validatedRequest['id'])->where("id_roll", $validatedRequest['current_id_roll'])->where("qty", $itemQty)->first();
-            if (!$checkSimilarTimeRecord) {
+            if (!$checkSimilarTimeRecord || !$validatedRequest['current_id_roll']) {
                 $storeTimeRecordSummary = FormCutInputDetail::
                     create(
                         [

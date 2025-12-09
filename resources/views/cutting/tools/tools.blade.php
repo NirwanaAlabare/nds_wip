@@ -684,7 +684,7 @@
                                             <tr>
                                                 <td><input type='text' class='form-control' value='`+item.so_det_id+`' id='`+prefix+`so_det_id_`+i+`' data-index='`+i+`' name='`+prefix+`so_det_id[`+i+`]' readonly /></td>
                                                 <td><input type='text' class='form-control' value='`+item.size+`' id='`+prefix+`size_`+i+`' data-index='`+i+`' name='`+prefix+`size[`+i+`]' readonly /></td>
-                                                <td><input type='number' class='form-control' value='`+item.ratio+`' id='`+prefix+`ratio_`+i+`' data-index='`+i+`' name='`+prefix+`ratio[`+i+`]' onkeyup='calculateRatio(this)'/></td>
+                                                <td><input type='number' class='form-control' value='`+item.ratio+`' id='`+prefix+`ratio_`+i+`' data-index='`+i+`' name='`+prefix+`ratio[`+i+`]' onkeyup='calculateRatio(this)' onchange='calculateRatio(this)'/></td>
                                                 <td><input type='number' class='form-control' value='`+item.cut_qty+`' id='`+prefix+`cut_qty_`+i+`' data-index='`+i+`' name='`+prefix+`cut_qty[`+i+`]' readonly /></td>
                                             </tr>
                                         `;
