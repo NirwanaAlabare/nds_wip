@@ -627,6 +627,14 @@
             if (complementPartButton) {
                 complementPartButton.classList.remove("d-none");
             }
+
+            let isMainPartElements = document.querySelectorAll(".is-main-part");
+            if (isMainPartElements && isMainPartElements.length > 0) {
+                isMainPartElements[0].checked = true;
+                for (let i = 0; i < isMainPartElements.length; i++) {
+                    isMainPartElements[i].classList.add("d-none");
+                }
+            }
         }
 
         // Hide Complement Section
@@ -640,6 +648,15 @@
 
             if (complementPartButton) {
                 complementPartButton.classList.add("d-none");
+            }
+
+            // hide main part check
+            let isMainPartElements = document.querySelectorAll(".is-main-part");
+            if (isMainPartElements && isMainPartElements.length > 0) {
+                for (let i = 0; i < isMainPartElements.length; i++) {
+                    isMainPartElements[i].classList.add("d-none");
+                    isMainPartElements[i].checked = false;
+                }
             }
         }
 

@@ -328,7 +328,7 @@
     <form action="{{ route('update-part-secondary') }}" method="post" id="update_part_secondary_form" onsubmit="submitForm(this, event)">
         @method("PUT")
         <div class="modal fade" id="editPartSecondaryModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="editPartSecondaryModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-dialog modal-dialog-scrollable modal-xl">
                 <div class="modal-content">
                     <div class="modal-header bg-sb">
                         <h1 class="modal-title fs-5" id="editPartSecondaryModalLabel"><i class="fa fa-edit"></i> Edit Part Detail</h1>
@@ -358,6 +358,15 @@
                             <div class="input-group">
                                 <input type="number" class="form-control" id="edit_cons" name="edit_cons" step="0.001">
                                 <input type="text" class="form-control" id="edit_unit" name="edit_unit" readonly>
+                            </div>
+                        </div>
+                        <div class="mb-3" id="edit_part_status_container">
+                            <label class="form-label">Status</label>
+                            <div class="input-group">
+                                <select class="form-select select2bs4" id="edit_part_status" name="edit_part_status">
+                                    <option value="main">MAIN</option>
+                                    <option value="regular">REGULAR</option>
+                                </select>
                             </div>
                         </div>
                         <div class="mb-3">
@@ -1715,5 +1724,16 @@
                 }
             });
         }
+
+        $('#editPartSecondaryModal').on('shown.bs.modal', function () {
+            let editPartStatusContainer = document.getElementById("edit_part_status_container");
+            let editPartStatus = document.getElementById("edit_part_status");
+
+            if (editPartStatus.value == "main") {
+                editPartStatusContainer.classList.add("d-none");
+            } else {
+                editPartStatusContainer.classList.remove("d-none");
+            }
+        });
     </script>
 @endsection

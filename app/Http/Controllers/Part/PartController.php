@@ -51,6 +51,7 @@ class PartController extends Controller
                     part.style,
                     part.color,
                     part.panel,
+                    UPPER(COALESCE(part.panel_status, '')) panel_status,
                     COUNT(DISTINCT form_cut_input.id) total_form,
                     GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, '-', master_part.bag) ORDER BY master_part.nama_part SEPARATOR ' || ') part_details,
                     a.sisa
@@ -876,7 +877,6 @@ class PartController extends Controller
                 ]);
 
             if ($update_part) {
-
                 // Phase 2 (Update Master Part)
                 $partDetail = PartDetail::where("id", $validatedRequest['edit_id'])->first();
                 if ($request->edit_master_part_id && $request->edit_master_part_id != $partDetail->master_part_id) {
@@ -917,9 +917,27 @@ class PartController extends Controller
 
                     if ($storeCurrentSecondaries) {
                         // Delete Old Secondaries
-                        $oldSecondaries = PartDetailSecondary::where("part_detail_id", $validatedRequest['edit_id'])->
+                        $deleteOldSecondaries = PartDetailSecondary::where("part_detail_id", $validatedRequest['edit_id'])->
                             where("batch", "!=", $batch)->
                             delete();
+                    }
+                }
+
+                // Phase 4 (Update Part Status)
+                if ($request->edit_part_status && $request->edit_part_status != $partDetail->part_status) {
+                    // Update Current Part Status
+                    $updatePartDetail = $partDetail->update([
+                        "part_status" => $request->edit_part_status
+                    ]);
+
+                    if ($updatePartDetail && $request->edit_part_status == "main") {
+                        // Update Other Part Details (Main Part to Regular Part)
+                        $updateMainPartDetail = PartDetail::where("part_id", $partDetail->part_id)->
+                            where("id", "!=", $partDetail->id)->
+                            where("part_status", $request->edit_part_status)->
+                            update([
+                                "part_status" => "regular"
+                            ]);
                     }
                 }
 
