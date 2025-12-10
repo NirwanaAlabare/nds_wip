@@ -143,11 +143,16 @@ order by ms.supplier asc, ac.styleno asc, b.created_at asc
             ];
         }
 
-        // Hitung total perubahan untuk semua WS
         foreach ($groupedData as &$wsData) {
-            $wsData['total_changes'] = count($wsData['details']);
+            // total perubahan adalah jumlah log (b) yang memiliki price_upd / created_at
+            $wsData['total_changes'] = collect($wsData['details'])
+                ->filter(function ($d) {
+                    return !empty($d['price_act_upd']); // atau pakai created_at
+                })
+                ->count();
         }
         unset($wsData);
+
 
         // Kalau mau, reset key supaya 0,1,2,... untuk foreach di Blade
         $groupedData = array_values($groupedData);
