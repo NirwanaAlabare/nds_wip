@@ -822,7 +822,7 @@ class RollController extends Controller
                 whs_lokasi_inmaterial.kode_lok lokasi,
                 whs_bppb_det.satuan unit,
                 whs_bppb_det.qty_stok,
-                SUM(whs_bppb_det.qty_out) qty
+                SUM(whs_bppb_det.qty_out)-COALESCE(qty_ri, 0) qty
             FROM
                 whs_bppb_det
                 LEFT JOIN (SELECT jo_det.* FROM jo_det WHERE cancel != 'Y' GROUP BY id_jo) jodet ON jodet.id_jo = whs_bppb_det.id_jo
@@ -831,11 +831,13 @@ class RollController extends Controller
                 LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
                 LEFT JOIN masteritem ON masteritem.id_item = whs_bppb_det.id_item
                 LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
-                LEFT JOIN whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                LEFT JOIN (SELECT * from whs_lokasi_inmaterial WHERE no_barcode = '".$id."' ORDER BY id DESC LIMIT 1) as whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                LEFT JOIN (select no_barcode, sum(qty_aktual) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.no_barcode = '".$id."' and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = whs_bppb_det.id_roll
             WHERE
                 whs_bppb_det.id_roll = '".$id."'
                 AND whs_bppb_h.tujuan = 'Production - Cutting'
                 AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
+                AND whs_bppb_det.no_bppb LIKE '%GK/OUT%'
             GROUP BY
                 whs_bppb_det.id_roll
             LIMIT 1
@@ -922,7 +924,7 @@ class RollController extends Controller
                 whs_lokasi_inmaterial.kode_lok lokasi,
                 whs_bppb_det.satuan unit,
                 whs_bppb_det.qty_stok,
-                SUM(whs_bppb_det.qty_out) qty
+                SUM(whs_bppb_det.qty_out)-COALESCE(qty_ri, 0) qty
             FROM
                 whs_bppb_det
                 LEFT JOIN (SELECT jo_det.* FROM jo_det WHERE cancel != 'Y' GROUP BY id_jo) jodet ON jodet.id_jo = whs_bppb_det.id_jo
@@ -931,11 +933,13 @@ class RollController extends Controller
                 LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
                 LEFT JOIN masteritem ON masteritem.id_item = whs_bppb_det.id_item
                 LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
-                LEFT JOIN whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                LEFT JOIN (SELECT * FROM whs_lokasi_inmaterial WHERE no_barcode in (".$idsStr.") GROUP BY no_barcode) as whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                LEFT JOIN (select no_barcode, sum(qty_aktual) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where no_barcode in (".$idsStr.") and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = whs_bppb_det.id_roll
             WHERE
                 whs_bppb_det.id_roll in (".$idsStr.")
                 AND whs_bppb_h.tujuan = 'Production - Cutting'
                 AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
+                AND whs_bppb_det.no_bppb LIKE '%GK/OUT%'
             GROUP BY
                 whs_bppb_det.id_roll
         ");
