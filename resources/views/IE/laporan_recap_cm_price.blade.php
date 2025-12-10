@@ -62,7 +62,7 @@
                                     <td>{{ $ws['buyer'] }}</td>
                                     <td>{{ $ws['kpno'] }}</td>
                                     <td>{{ $ws['styleno'] }}</td>
-                                    <td>{{ $ws['price_act'] }}</td>
+                                    <td>{{ number_format($ws['price_act'], 2, '.', ',') }}</td>
                                     <td class="text-center">{{ $ws['total_changes'] }}</td>
 
                                     @foreach ($ws['details'] as $index => $detail)
@@ -78,7 +78,7 @@
                                         </td>
                                         <td class="text-center"
                                             @if ($bgColor) style="background-color: {{ $bgColor }}" @endif>
-                                            {{ $detail['price_act_upd'] ?? '-' }}
+                                            {{ isset($detail['price_act_upd']) ? number_format($detail['price_act_upd'], 2, '.', ',') : '-' }}
                                         </td>
                                     @endforeach
 
