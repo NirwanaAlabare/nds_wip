@@ -23,7 +23,7 @@
     <form>
         <div class="card card-sb">
             <div class="card-header">
-                <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Recap SMV</h5>
+                <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Recap CM Price</h5>
             </div>
 
             <div class="card-body">
@@ -31,46 +31,58 @@
                     <table id="myTable" class="table table-bordered text-nowrap" style="width:100%">
                         <thead class="bg-sb">
                             <tr>
-                                <th class="text-center align-middle" style="color: black;">Buyer</th>
-                                <th class="text-center align-middle" style="color: black;">WS</th>
-                                <th class="text-center align-middle" style="color: black;">Styleno</th>
-                                <th class="text-center align-middle" style="color: black;">Number of Changes</th>
-                                <th>Date Plan</th>
-                                <th>SMV</th>
+                                <th class="text-center align-middle">Buyer</th>
+                                <th class="text-center align-middle">WS</th>
+                                <th class="text-center align-middle">Styleno</th>
+                                <th class="text-center align-middle">Price</th>
+                                <th class="text-center align-middle">Number of Changes</th>
+
                                 @php
                                     $maxDetails = 0;
                                     foreach ($groupedData as $ws) {
                                         $maxDetails = max($maxDetails, count($ws['details']));
                                     }
                                 @endphp
-                                @for ($i = 1; $i < $maxDetails; $i++)
-                                    <th class="text-center">Date Plan</th>
-                                    <th class="text-center">SMV</th>
+
+                                @for ($i = 0; $i < $maxDetails; $i++)
+                                    <th class="text-center">Date of Update</th>
+                                    <th class="text-center">Price</th>
                                 @endfor
                             </tr>
                         </thead>
+
                         <tbody>
                             @php
                                 $colors = ['#fff3cd', '#d1ecf1', '#f8d7da', '#d4edda']; // kuning, biru, merah muda, hijau muda
                                 $colorCount = count($colors);
                             @endphp
+
                             @foreach ($groupedData as $ws)
                                 <tr>
-                                    <td class="text-left">{{ $ws['buyer'] }}</td>
-                                    <td class="text-left">{{ $ws['kpno'] }}</td>
-                                    <td class="text-left">{{ $ws['styleno'] }}</td>
+                                    <td>{{ $ws['buyer'] }}</td>
+                                    <td>{{ $ws['kpno'] }}</td>
+                                    <td>{{ $ws['styleno'] }}</td>
+                                    <td>{{ $ws['price_act'] }}</td>
                                     <td class="text-center">{{ $ws['total_changes'] }}</td>
+
                                     @foreach ($ws['details'] as $index => $detail)
                                         @php
-                                            // Semua kolom tgl_plan + smv selang-seling dari pertama
-                                            $colorIndex = $index % $colorCount;
-                                            $bgColor = $colors[$colorIndex];
+                                            $hasValue =
+                                                !empty($detail['tgl_upd_fix']) || !empty($detail['price_act_upd']);
+                                            $bgColor = $hasValue ? $colors[$index % $colorCount] : '';
                                         @endphp
-                                        <td class="text-center" style="background-color: {{ $bgColor }};">
-                                            {{ $detail['tgl_plan_fix'] }}</td>
-                                        <td class="text-center" style="background-color: {{ $bgColor }};">
-                                            {{ $detail['smv'] }}</td>
+
+                                        <td class="text-center"
+                                            @if ($bgColor) style="background-color: {{ $bgColor }}" @endif>
+                                            {{ $detail['tgl_upd_fix'] ?? '-' }}
+                                        </td>
+                                        <td class="text-center"
+                                            @if ($bgColor) style="background-color: {{ $bgColor }}" @endif>
+                                            {{ $detail['price_act_upd'] ?? '-' }}
+                                        </td>
                                     @endforeach
+
+                                    {{-- tambahkan sel kosong agar kolom tetap balance --}}
                                     @php
                                         $missing = $maxDetails - count($ws['details']);
                                     @endphp
@@ -84,6 +96,8 @@
                     </table>
                 </div>
             </div>
+
+
     </form>
     </div>
 @endsection
@@ -138,9 +152,6 @@
                 scrollY: "800px",
                 scrollX: true,
                 scrollCollapse: true,
-                fixedColumns: {
-                    leftColumns: 4
-                },
 
                 // Ubah default page length menjadi 25
                 pageLength: 15,

@@ -202,7 +202,7 @@ use App\Http\Controllers\IEDashboardController;
 use App\Http\Controllers\IEMasterProcessController;
 use App\Http\Controllers\IEMasterPartProcessController;
 use App\Http\Controllers\IE_Proses_OB_Controller;
-use App\Http\Controllers\IE_Lap_Recap_SMV_Controller;
+use App\Http\Controllers\IE_Laporan_Controller;
 
 
 //maintain-bpb
@@ -2353,8 +2353,9 @@ Route::middleware('auth')->group(function () {
     });
 
     // Laporan Industrial Engineering Recap SMV
-    Route::controller(IE_Lap_Recap_SMV_Controller::class)->prefix("laporan")->middleware('role:management')->group(function () {
+    Route::controller(IE_Laporan_Controller::class)->prefix("laporan")->middleware('role:management')->group(function () {
         Route::get('/IE_lap_recap_smv', 'IE_lap_recap_smv')->name('IE_lap_recap_smv');
+        Route::get('/IE_lap_recap_cm_price', 'IE_lap_recap_cm_price')->name('IE_lap_recap_cm_price');
     });
 });
 

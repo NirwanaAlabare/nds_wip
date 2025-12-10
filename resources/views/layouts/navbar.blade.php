@@ -1619,6 +1619,12 @@
                                     <i class="fa-solid fa-list-ul fa-sm"></i> Recap SMV
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('IE_lap_recap_cm_price') }}"
+                                    class="dropdown-item {{ $subPage == 'IE-laporan-recap-cm-price' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Recap CM Price
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif
