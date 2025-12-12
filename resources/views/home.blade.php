@@ -118,6 +118,7 @@
                                 </div>
                             </a>
                         </div>
+
                         <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('stock_opname') }}" class="home-item">
                                 <div class="card h-100">
@@ -158,6 +159,22 @@
                             </a>
                         </div>
                         @endwarehouse
+
+                        <?php if(auth()->user()->username == 'acc'){ ?>
+                            <div class="col-lg-2 col-md-3 col-sm-6">
+                                <a href="{{ route('stock_opname') }}" class="home-item">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex h-100 flex-column justify-content-between">
+                                                <img src="{{ asset('dist/img/stock_opname.png') }}" class="img-fluid p-3"
+                                                    alt="so image">
+                                                <p class="text-center fw-bold text-uppercase text-dark">Stock Opname</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                            <?php } ?>
 
                         @ppic
                             <div class="col-lg-2 col-md-3 col-sm-6">
