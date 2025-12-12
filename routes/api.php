@@ -6,6 +6,8 @@ use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\MgtReportProsesController;
 use App\Http\Controllers\FGStokLaporanController;
 use App\Http\Controllers\DashboardWipLineController;
+use App\Http\Controllers\InMaterialController;
+use App\Http\Controllers\OutMaterialController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -41,4 +43,19 @@ Route::controller(FGStokLaporanController::class)->prefix("laporan-fg-stock")->g
 // DASHBOARD WIP LINE
 Route::controller(DashboardWipLineController::class)->prefix("trigger-wip-line")->group(function () {
     Route::post('dashboard-line/wip-line-sign', 'trigger_wip_line');
+});
+
+//In Barcode Fabric
+Route::controller(InMaterialController::class)->prefix("in-barcode-fabric")->group(function () {
+    Route::post('in-material/in-barcode-fabric', 'in_barcode_fabric');
+});
+
+//out barcode Fabric
+Route::controller(OutMaterialController::class)->prefix("out-barcode-fabric")->group(function () {
+    Route::post('out-material/out-barcode-fabric', 'out_barcode_fabric');
+});
+
+//out barcode Fabric
+Route::controller(OutMaterialController::class)->prefix("mutasi-barcode-fabric")->group(function () {
+    Route::post('mutasi-material/mutasi-barcode-fabric', 'mutasi_barcode_fabric');
 });
