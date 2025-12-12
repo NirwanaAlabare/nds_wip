@@ -149,8 +149,8 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label for="cbotype"><small><b>Machine Type :</b></small></label>
-                            <input type="text" id="cbotype" name="cbotype" class="form-control form-control-sm"
+                            <label for="txttype"><small><b>Machine Type :</b></small></label>
+                            <input type="text" id="txttype" name="txttype" class="form-control form-control-sm"
                                 value="">
                         </div>
                     </div>
@@ -209,16 +209,16 @@
                             <select id="cboedclass" name="cboedclass"
                                 class="form-control form-control-sm select2bs4 border-primary" style="width: 100%;">
                                 <option value="">-- Select Class --</option>
-                                <option value="Operator">Operator</option>
-                                <option value="Helper">Helper</option>
-                                <option value="Steam">Steam</option>
+                                <option value="OPERATOR">OPERATOR</option>
+                                <option value="HELPER">HELPER</option>
+                                <option value="STEAM">STEAM</option>
                                 <option value="QC">QC</option>
                             </select>
                         </div>
 
                         <div class="col-md-4">
-                            <label for="cboedtype"><small><b>Machine Type :</b></small></label>
-                            <input type="text" id="cboedtype" name="cboedtype" class="form-control form-control-sm"
+                            <label for="txtedtype"><small><b>Machine Type :</b></small></label>
+                            <input type="text" id="txtedtype" name="txtedtype" class="form-control form-control-sm"
                                 value="">
                         </div>
                     </div>
@@ -412,7 +412,7 @@
         function save_master_process() {
             let process_name = $('#txtname').val();
             let class_name = $('#cboclass').val();
-            let cbotype = $('#cbotype').val();
+            let type = $('#txttype').val();
             let smv = $('#txtsmv').val();
             let amv = $('#txtamv').val();
             let remark = $('#txtremark').val();
@@ -428,7 +428,7 @@
                     _token: '{{ csrf_token() }}',
                     process_name: process_name,
                     class_name: class_name,
-                    cbotype: cbotype,
+                    type: type,
                     smv: smv,
                     amv: amv,
                     remark: remark
@@ -440,7 +440,7 @@
                     $('#txtsmv').val('');
                     $('#txtamv').val('');
                     $('#txtremark').val('');
-                    $('#cbotype').val('');
+                    $('#txttype').val('');
                     // Optional: Also clear select2 (if using select2)
                     $('#cboclass').val(null).trigger('change');
                     Swal.fire({
@@ -480,7 +480,7 @@
                     $("#id_c").val(res.id);
                     $("#txtedname").val(res.nm_process);
                     $("#cboedclass").val(res.class).trigger('change'); // untuk select2
-                    $("#cboedtype").val(res.machine_type);
+                    $("#txtedtype").val(res.machine_type);
                     $("#txtedsmv").val(res.smv);
                     $("#txtedamv").val(res.amv);
                     $("#txtedremark").val(res.remark);
@@ -494,7 +494,7 @@
         function edit_master_process() {
             let process_name = $('#txtedname').val();
             let class_name = $('#cboedclass').val();
-            let cbotype = $('#cboedtype').val();
+            let txttype = $('#txtedtype').val();
             let smv = $('#txtedsmv').val();
             let amv = $('#txtedamv').val();
             let remark = $('#txtedremark').val();
@@ -511,7 +511,7 @@
                     _token: '{{ csrf_token() }}',
                     process_name: process_name,
                     class_name: class_name,
-                    cbotype: cbotype,
+                    txttype: txttype,
                     smv: smv,
                     amv: amv,
                     remark: remark,

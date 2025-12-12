@@ -2345,6 +2345,11 @@ Route::middleware('auth')->group(function () {
     // Proses Industrial Engineering Master Part Process
     Route::controller(IEMasterPartProcessController::class)->prefix("master")->middleware('role:management')->group(function () {
         Route::get('/IE_master_part_process', 'IE_master_part_process')->name('IE_master_part_process');
+        Route::get('/IE_master_part_process_show_new', 'IE_master_part_process_show_new')->name('IE_master_part_process_show_new');
+        Route::post('/IE_save_master_part_process', 'IE_save_master_part_process')->name('IE_save_master_part_process');
+        Route::get('/IE_show_master_part_process', 'IE_show_master_part_process')->name('IE_show_master_part_process');
+        Route::get('/IE_master_part_process_show_edit', 'IE_master_part_process_show_edit')->name('IE_master_part_process_show_edit');
+        Route::post('/IE_update_master_part_process', 'IE_update_master_part_process')->name('IE_update_master_part_process');
     });
 
     // Proses Industrial Engineering Operational Breakdown

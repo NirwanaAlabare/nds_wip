@@ -31,12 +31,11 @@
                     <table id="myTable" class="table table-bordered text-nowrap" style="width:100%">
                         <thead class="bg-sb">
                             <tr>
-                                <th class="text-center align-middle">Buyer</th>
-                                <th class="text-center align-middle">WS</th>
-                                <th class="text-center align-middle">Styleno</th>
-                                <th class="text-center align-middle">Price</th>
-                                <th class="text-center align-middle">Number of Changes</th>
-
+                                <th class="text-center align-middle" style="color: black;">Buyer</th>
+                                <th class="text-center align-middle" style="color: black;">WS</th>
+                                <th class="text-center align-middle" style="color: black;">Style</th>
+                                <th class="text-center align-middle" style="color: black;">Price</th>
+                                <th class="text-center align-middle" style="color: black;">Number of Changes</th>
                                 @php
                                     $maxDetails = 0;
                                     foreach ($groupedData as $ws) {
@@ -50,7 +49,6 @@
                                 @endfor
                             </tr>
                         </thead>
-
                         <tbody>
                             @php
                                 $colors = ['#fff3cd', '#d1ecf1', '#f8d7da', '#d4edda']; // kuning, biru, merah muda, hijau muda
@@ -96,10 +94,8 @@
                     </table>
                 </div>
             </div>
-
-
+        </div>
     </form>
-    </div>
 @endsection
 
 @section('custom-script')
@@ -152,6 +148,9 @@
                 scrollY: "800px",
                 scrollX: true,
                 scrollCollapse: true,
+                fixedColumns: {
+                    leftColumns: 5
+                },
 
                 // Ubah default page length menjadi 25
                 pageLength: 15,
