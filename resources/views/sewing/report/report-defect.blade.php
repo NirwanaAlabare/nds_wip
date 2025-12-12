@@ -229,8 +229,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-success" onclick="exportExcel(this)"><i
-                            class="fa fa-file-excel"></i> Export</button>
+                    <button type="button" class="btn btn-success" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i> Export</button>
                 </div>
             </div>
         </div>
@@ -602,14 +601,11 @@
                     Swal.showLoading();
 
                     let divider = 0
-                    if ($("#report_type").val().includes("defect_rate") && !$("#report_type").val().includes(
-                            "top_defect")) {
+                    if ($("#report_type").val().includes("defect_rate") && !$("#report_type").val().includes("top_defect")) {
                         divider = 560;
-                    } else if (!$("#report_type").val().includes("defect_rate") && $("#report_type").val()
-                        .includes("top_defect")) {
+                    } else if (!$("#report_type").val().includes("defect_rate") && $("#report_type").val().includes("top_defect")) {
                         divider = 230;
-                    } else if ($("#report_type").val().includes("defect_rate") && $("#report_type").val()
-                        .includes("top_defect")) {
+                    } else if ($("#report_type").val().includes("defect_rate") && $("#report_type").val().includes("top_defect")) {
                         divider = 100;
                     }
 
@@ -627,7 +623,7 @@
                             percent += cumulative;
                             progress.style.width = percent + "%";
                         }
-                    }, 1500);
+                    }, 1111);
                 },
                 allowOutsideClick: false,
             });

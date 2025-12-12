@@ -560,16 +560,22 @@ class SewingToolsController extends Controller
         ini_set("max_execution_time", 3600);
 
         // Get Defects with Missing Rework
-        $defects = collect(DB::connection("mysql_sb")->select("select null as id, output_defects.id as defect_id, 'NORMAL' as status, output_defects.created_by, output_defects.created_at, output_defects.updated_at from output_defects left join output_reworks on output_reworks.defect_id = output_defects.id where output_reworks.id is null and defect_status = 'reworked'"));
+        $defects = collect(DB::connection("mysql_sb")->select("select null as id, output_defects.id as defect_id, 'NORMAL' as status, output_defects.created_by, output_defects.created_at, output_defects.updated_at from output_defects left join output_reworks on output_reworks.defect_id = output_defects.id where output_reworks.id is null and defect_status = 'reworked' and output_defects.updated_at >= '2025-11-27 00:00:00' and output_defects.updated_at < '2025-12-11 23:59:59'"));
 
         $defectArr = $defects->map(function ($item, $key) {
             return (array) $item;
         })->toArray();
 
-        $storeToRework = Rework::insert($defectArr);
+        $storeToRework = Rework::upsert($defectArr, ['defect_id'], ['status', 'created_by', 'created_at', 'updated_at']);
 
         // Get Reworks Data with Of Course Missing RFT
-        $reworks = collect(DB::connection("mysql_sb")->select("select null as id, output_defects.master_plan_id, output_defects.so_det_id, 'REWORK' as status, output_reworks.id as rework_id, output_defects.created_by, output_reworks.created_at, output_reworks.updated_at, output_defects.kode_numbering, output_defects.kode_numbering no_cut_size from output_reworks left join output_defects on output_defects.id = output_reworks.defect_id left join output_rfts on output_rfts.rework_id = output_reworks.id where output_rfts.id is null"));
+        $reworks = collect(DB::connection("mysql_sb")->select("select
+                null as id, output_defects.master_plan_id, output_defects.so_det_id, 'REWORK' as status, output_reworks.id as rework_id, output_defects.created_by, output_reworks.created_at, output_reworks.updated_at, output_defects.kode_numbering, output_defects.kode_numbering no_cut_size
+            from output_reworks
+            left join output_defects on output_defects.id = output_reworks.defect_id
+            left join output_rfts on output_rfts.rework_id = output_reworks.id
+            left join output_rfts as output on output.kode_numbering = output_defects.kode_numbering
+            where output_rfts.id is null and output_defects.updated_at >= '2025-11-27 00:00:00' and output_defects.updated_at < '2025-12-11 23:59:59'"));
 
         if ($reworks->count() < 1) {
             return array(
@@ -585,43 +591,54 @@ class SewingToolsController extends Controller
             return (array) $item;
         })->toArray();
 
-        $storeToRft = Rft::insert($reworkArr);
+        $reworkArrChunk = array_chunk($reworkArr, 500);
+
+        foreach ($reworkArrChunk as $chunk) {
+            Rft::upsert($chunk, ['kode_numbering'], ['master_plan_id', 'so_det_id', 'status', 'rework_id', 'created_by', 'created_at', 'updated_at', 'no_cut_size']);
+        }
 
         // Get Defects with Missing Rework Packing
-        $defectsPacking = collect(DB::connection("mysql_sb")->select("select null as id, output_defects_packing.id as defect_id, 'NORMAL' as status, output_defects_packing.created_by, output_defects_packing.created_at, output_defects_packing.updated_at from output_defects_packing left join output_reworks_packing on output_reworks_packing.defect_id = output_defects_packing.id where output_reworks_packing.id is null and defect_status = 'reworked'"));
+        $defectsPacking = collect(DB::connection("mysql_sb")->select("select null as id, output_defects_packing.id as defect_id, 'NORMAL' as status, output_defects_packing.created_by, output_defects_packing.created_at, output_defects_packing.updated_at from output_defects_packing left join output_reworks_packing on output_reworks_packing.defect_id = output_defects_packing.id where output_reworks_packing.id is null and defect_status = 'reworked' and output_defects_packing.updated_at >= '2025-11-12 00:00:00' and output_defects_packing.updated_at < '2025-12-11 23:59:59'"));
 
         $defectPackingArr = $defectsPacking->map(function ($item, $key) {
             return (array) $item;
         })->toArray();
 
-        $storeToReworkPacking = ReworkPacking::insert($defectPackingArr);
+        $storeToReworkPacking = ReworkPacking::insert($defectPackingArr, ['defect_id'], ['status', 'created_by', 'created_at', 'updated_at']);
 
         // Get Reworks Data with Of Course Missing RFT Packing
-        $reworksPacking = collect(DB::connection("mysql_sb")->select("select null as id, output_defects_packing.master_plan_id, output_defects_packing.so_det_id, 'REWORK' as status, output_reworks_packing.id as rework_id, output_defects_packing.created_by, output_reworks_packing.created_at, output_reworks_packing.updated_at, output_defects_packing.kode_numbering, output_defects_packing.kode_numbering no_cut_size from output_reworks_packing left join output_defects_packing on output_defects_packing.id = output_reworks_packing.defect_id left join output_rfts_packing on output_rfts_packing.rework_id = output_reworks_packing.id where output_rfts_packing.id is null"));
+        $reworksPacking = collect(DB::connection("mysql_sb")->select("select
+                null as id, output_defects.master_plan_id, output_defects.so_det_id, 'REWORK' as status, output_reworks_packing.id as rework_id, output_defects.created_by, output_reworks_packing.created_at, output_reworks_packing.updated_at, output_defects.kode_numbering, output_defects.kode_numbering no_cut_size
+            from output_reworks_packing
+            left join output_defects_packing as output_defects on output_defects.id = output_reworks_packing.defect_id
+            left join output_rfts_packing as output_rfts on output_rfts.rework_id = output_reworks_packing.id
+            left join output_rfts_packing as output on output.kode_numbering = output_defects.kode_numbering
+            where output_rfts.id is null and output.id is null and output_defects.updated_at >= '2025-11-12 00:00:00'"));
 
         $reworkPackingArr = $reworksPacking->map(function ($item, $key) {
             return (array) $item;
         })->toArray();
 
-        $storeToRftPacking = RftPacking::insert($reworkPackingArr);
-
-        if ($storeToRework && $storeToRft) {
-            Log::channel('missReworkOutput')->info([
-                "Repair Defect->Rework->RFT Chain Data",
-                "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
-                "Total Data ".count($defects)." - ".$defects,
-                "Total Data Packing ".count($defectsPacking)." - ".$defectsPacking,
-                $reworks
-            ]);
-
-            return array(
-                'status' => 200,
-                'message' => 'Berhasil memperbaiki <br> Data Defect = '.count($defects).' <br> Data Rework = '.count($reworks).'',
-                'redirect' => '',
-                'table' => '',
-                'additional' => [],
-            );
+        $reworkPackingArrChunk = array_chunk($reworkPackingArr, 500);
+        foreach ($reworkPackingArrChunk as $chunk) {
+            RftPacking::insert($chunk, ['kode_numbering'], ['master_plan_id', 'so_det_id', 'status', 'rework_id', 'created_by', 'created_at', 'updated_at', 'no_cut_size']);
         }
+
+        Log::channel('missReworkOutput')->info([
+            "Repair Defect->Rework->RFT Chain Data",
+            "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+            "Total Data ".count($defects)." - ".$defects,
+            "Total Data Packing ".count($defectsPacking)." - ".$defectsPacking,
+            $reworks
+        ]);
+
+        return array(
+            'status' => 200,
+            'message' => '',
+            'redirect' => '',
+            'table' => '',
+            'additional' => [],
+        );
 
         return array(
             'status' => 400,
@@ -642,7 +659,7 @@ class SewingToolsController extends Controller
             return (array) $item;
         })->toArray();
 
-        $storeToReject = Reject::insert($defectArr);
+        $storeToReject = Reject::upsert($defectArr, ['defect_id'], ['master_plan_id', 'so_det_id', 'status', 'reject_type_id', 'reject_area_id', 'reject_area_x', 'reject_area_y', 'defect_status', 'created_by', 'created_at', 'updated_at']);
 
         // Get Defects with Missing Reject Packing
         $defectsPacking = collect(DB::connection("mysql_sb")->select("select null as id, output_defects.master_plan_id, output_defects.so_det_id, 'NORMAL' as status, output_defects.id as defect_id, output_defects.defect_type_id as reject_type_id, output_defects.defect_area_id as reject_area_id, output_defects.defect_area_x as reject_area_x, output_defects.defect_area_y as reject_area_y, 'defect' as reject_status, output_defects.created_by, output_defects.created_at, output_defects.updated_at from output_defects_packing as output_defects left join output_rejects_packing as output_rejects on output_rejects.defect_id = output_defects.id where output_rejects.id is null and defect_status = 'rejected'"));
@@ -651,7 +668,7 @@ class SewingToolsController extends Controller
             return (array) $item;
         })->toArray();
 
-        $storeToRejectPacking = RejectPacking::insert($defectPackingArr);
+        $storeToRejectPacking = RejectPacking::upsert($defectPackingArr, ['kode_numbering'], ['master_plan_id', 'so_det_id', 'status', 'reject_type_id', 'reject_area_id', 'reject_area_x', 'reject_area_y', 'defect_status', 'created_by', 'created_at', 'updated_at']);
 
         if ($storeToReject && $storeToRejectPacking) {
             Log::channel('missRejectOutput')->info([

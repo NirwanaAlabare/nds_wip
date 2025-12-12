@@ -51,7 +51,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     COALESCE(userpassword.username, master_plan.sewing_line) line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_rfts.updated_at)) tgl_plan
+                    COALESCE(DATE(output_rfts.updated_at), master_plan.tgl_plan) tgl_plan
                 FROM
                     output_rfts
                     LEFT JOIN user_sb_wip on user_sb_wip.id = output_rfts.created_by
@@ -61,8 +61,9 @@ class SewingService
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
                     LEFT JOIN master_plan on master_plan.id = output_rfts.master_plan_id
                 WHERE
-                    output_rfts.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
-                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
+                    output_rfts.updated_at BETWEEN '2025-12-11 00:00:00' AND '".date("Y-m-d")." 23:59:59'
+                    and output_rfts.status = 'NORMAL'
+                    and (master_plan.tgl_plan != DATE(output_rfts.updated_at) OR master_plan.sewing_line != userpassword.username OR master_plan.sewing_line != userpassword.username OR master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
                     ".$additionalQuery."
                 GROUP BY
                     output_rfts.id
@@ -71,7 +72,7 @@ class SewingService
                 actual.id_ws = output.actual_act_costing_id AND
                 actual.color = output.actual_color and
                 actual.sewing_line = output.line and
-                actual.tgl_plan <= output.tgl_plan
+                actual.tgl_plan = output.tgl_plan
             WHERE
                 actual.id IS NULL OR actual.id != output.plan_id
             GROUP BY
@@ -103,7 +104,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     COALESCE(userpassword.username, master_plan.sewing_line) line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_defects.updated_at)) tgl_plan
+                    COALESCE(DATE(output_defects.updated_at), master_plan.tgl_plan) tgl_plan
                 FROM
                     output_defects
                     LEFT JOIN user_sb_wip on user_sb_wip.id = output_defects.created_by
@@ -113,8 +114,8 @@ class SewingService
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
                     LEFT JOIN master_plan on master_plan.id = output_defects.master_plan_id
                 WHERE
-                    output_defects.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
-                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
+                    output_defects.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - "))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
+                    and (master_plan.sewing_line != userpassword.username OR master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
                     ".$additionalQuery."
                 GROUP BY
                     output_defects.id
@@ -155,7 +156,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     COALESCE(userpassword.username, master_plan.sewing_line) line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_rejects.updated_at)) tgl_plan
+                    COALESCE(DATE(output_rejects.updated_at), master_plan.tgl_plan) tgl_plan
                 FROM
                     output_rejects
                     LEFT JOIN user_sb_wip on user_sb_wip.id = output_rejects.created_by
@@ -165,8 +166,8 @@ class SewingService
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
                     LEFT JOIN master_plan on master_plan.id = output_rejects.master_plan_id
                 WHERE
-                    output_rejects.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
-                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
+                    output_rejects.updated_at BETWEEN '2025-12-11 00:00:00' AND '".date("Y-m-d")." 23:59:59'
+                    and (master_plan.sewing_line != userpassword.username OR master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
                     ".$additionalQuery."
                 GROUP BY
                     output_rejects.id
@@ -358,7 +359,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     COALESCE(master_plan.sewing_line, userpassword.username) line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_rfts.updated_at)) as tgl_plan
+                    COALESCE(DATE(output_rfts.updated_at), master_plan.tgl_plan) as tgl_plan
                 FROM
                     output_rfts_packing as output_rfts
                     LEFT JOIN userpassword on userpassword.username = output_rfts.created_by
@@ -367,8 +368,8 @@ class SewingService
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
                     LEFT JOIN master_plan on master_plan.id = output_rfts.master_plan_id
                 WHERE
-                    output_rfts.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
-                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
+                    output_rfts.updated_at BETWEEN '2025-12-11 00:00:00' AND '".date("Y-m-d")." 23:59:59'
+                    and (master_plan.sewing_line != userpassword.username OR master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
                     ".$additionalQuery."
                 GROUP BY
                     output_rfts.id
@@ -409,7 +410,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     COALESCE(master_plan.sewing_line, userpassword.username) line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_defects.updated_at)) as tgl_plan
+                    COALESCE(DATE(output_defects.updated_at), master_plan.tgl_plan) as tgl_plan
                 FROM
                     output_defects_packing as output_defects
                     LEFT JOIN userpassword on userpassword.username = output_defects.created_by
@@ -418,8 +419,8 @@ class SewingService
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
                     LEFT JOIN master_plan on master_plan.id = output_defects.master_plan_id
                 WHERE
-                    output_defects.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
-                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
+                    output_defects.updated_at BETWEEN '2025-12-11 00:00:00' AND '".date("Y-m-d")." 23:59:59'
+                    and (master_plan.sewing_line != userpassword.username OR master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
                     ".$additionalQuery."
                 GROUP BY
                     output_defects.id
@@ -460,7 +461,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     COALESCE(master_plan.sewing_line, userpassword.username) line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_rejects.updated_at)) as tgl_plan
+                    COALESCE(DATE(output_rejects.updated_at), master_plan.tgl_plan) as tgl_plan
                 FROM
                     output_rejects_packing as output_rejects
                     LEFT JOIN userpassword on userpassword.username = output_rejects.created_by
@@ -469,8 +470,8 @@ class SewingService
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
                     LEFT JOIN master_plan on master_plan.id = output_rejects.master_plan_id
                 WHERE
-                    output_rejects.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
-                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null)
+                    output_rejects.updated_at BETWEEN '2025-12-11 00:00:00' AND '".date("Y-m-d")." 23:59:59'
+                    and (master_plan.sewing_line != userpassword.username OR master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null)
                     ".$additionalQuery."
                 GROUP BY
                     output_rejects.id
@@ -659,7 +660,7 @@ class SewingService
                     so_det.dest,
                     ppic_master_so.po,
                     COALESCE(master_plan.sewing_line, userpassword.username) line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_rfts.updated_at)) as tgl_plan
+                    COALESCE(DATE(output_rfts.updated_at), master_plan.tgl_plan) as tgl_plan
                 FROM
                     output_rfts_packing_po as output_rfts
                     LEFT JOIN userpassword on userpassword.username = output_rfts.created_by
@@ -669,8 +670,8 @@ class SewingService
                     LEFT JOIN master_plan on master_plan.id = output_rfts.master_plan_id
                     LEFT JOIN laravel_nds.ppic_master_so on ppic_master_so.id = output_rfts.po_id
                 WHERE
-                    output_rfts.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
-                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
+                    output_rfts.updated_at BETWEEN '2025-12-11 00:00:00' AND '".date("Y-m-d")." 23:59:59'
+                    and (master_plan.sewing_line != userpassword.username OR master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
                     ".$additionalQuery."
                 GROUP BY
                     output_rfts.id
