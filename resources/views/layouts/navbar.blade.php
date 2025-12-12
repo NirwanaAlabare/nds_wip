@@ -914,7 +914,7 @@
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
                             class="nav-link dropdown-toggle">Report</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-
+                            <?php if(auth()->user()->username != 'acc'){ ?>
                             <li>
                                 <a href="{{ route('detail-stok-opname') }}" class="dropdown-item">
                                     List Stock Opname
@@ -926,6 +926,13 @@
                                     Report Stock Opname
                                 </a>
                             </li>
+                            <?php }else{ ?>
+                                <li>
+                                    <a href="{{ route('laporan-stok-opname') }}" class="dropdown-item">
+                                        Report Stock Opname
+                                    </a>
+                                </li>
+                            <?php } ?>
                         </ul>
                     </li>
                 @endif
