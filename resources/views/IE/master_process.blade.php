@@ -341,7 +341,7 @@
                 $('#txtsmv').val('');
                 $('#txtamv').val('');
                 $('#txtremark').val('');
-                $('#cbotype').val('');
+                $('#txttype').val('');
                 // Optional: Also clear select2 (if using select2)
                 $('#cboclass').val(null).trigger('change');
             });

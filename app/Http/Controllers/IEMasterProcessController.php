@@ -38,7 +38,7 @@ class IEMasterProcessController extends Controller
 
         $process_name = strtoupper($request->process_name);
         $class_name = strtoupper($request->class_name);
-        $txttype = strtoupper($request->txttype);
+        $type = strtoupper($request->type);
         $remark = strtoupper($request->remark);
         $smv = $request->smv;
         $amv = $request->amv;
@@ -74,7 +74,7 @@ class IEMasterProcessController extends Controller
     ) VALUES (?,?,?,?,?,?,?,?,?)", [
             $process_name,
             $class_name,
-            $txttype,
+            $type,
             $smv,
             $amv,
             $remark,
