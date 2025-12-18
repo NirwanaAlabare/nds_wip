@@ -87,7 +87,7 @@ class TrackOrderOutput extends Component
         //     $this->dateToFilter = date("Y-m-d");
         // }
 
-        $this->search = true;
+        // $this->search = true;
     }
 
     public function setSearch() {

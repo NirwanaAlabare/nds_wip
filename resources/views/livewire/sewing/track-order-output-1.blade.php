@@ -9,7 +9,8 @@
             <div class="loading"></div>
         </div>
     </div>
-    <input type="hidden" wire:model="search">
+    <h1>{{ $this->search ? 'search' : 'not search' }}</h1>
+    <input type="text" wire:model="search">
     <div class="row justify-content-between align-items-end">
         <div class="col-12 col-lg-6 col-xl-5">
             <div class="d-flex align-items-center justify-content-start gap-3 mb-3">
@@ -20,7 +21,7 @@
                 <div wire:ignore>
                     <input type="date" class="form-control form-control-sm" id="dateTo" wire:model="dateToFilter" value="{{ $dateToFilter }}">
                 </div>
-                <button class="btn btn-sb-secondary btn-sm" wire:click="setSearch" onclick="clearFixedColumn()"><i class="fa fa-search"></i></button>
+                <button class="btn btn-sb-secondary btn-sm" wire:click="setSearch"><i class="fa fa-search"></i></button>
                 <span class="badge bg-sb text-light">{{ strtoupper(str_replace("_", "", ($outputType ? ($outputType == "_packing_po" ? "PACKING" : ($outputType == "_packing" ? "FINISHING" : "SEWING")) : 'SEWING'))) }}</span>
             </div>
         </div>
@@ -51,28 +52,32 @@
             </div>
         </div>
     </div>
-    <div class="table-responsive">
-        <table class="table table-bordered w-100" id="trackdatatable">
+    <div>
+        @if (!$loadingOrderOutput)
+            <table class="table table-bordered" id="trackdatatable">
+        @else
+            <table class="table table-bordered" id="trackdatatable">
+        @endif
             <thead>
                 <tr>
-                    <th class="bg-sb fw-bold">No. WS</th>
-                    <th class="bg-sb fw-bold">Style</th>
-                    <th class="bg-sb fw-bold">Color</th>
-                    <th class="bg-sb fw-bold">Line</th>
+                    <td class="fixed-column">No. WS</td>
+                    <td class="fixed-column">Style</td>
+                    <td class="fixed-column">Color</td>
+                    <td class="fixed-column">Line</td>
                     @if ($groupBy == 'size')
-                        <th class="bg-sb">Size</th>
+                        <td class="fixed-column">Size</td>
                     @endif
                     <?php
                         if ( $dailyOrderOutputs && $dailyOrderOutputs->count() > 0 ) {
                             foreach ($dailyOrderOutputs->sortBy("tanggal")->groupBy("tanggal") as $dailyDate) {
                                 if ($dailyDate && is_object($dailyDate->first())) {
                                 ?>
-                                    <th class="bg-sb">{{ date_format(date_create(($dailyDate->first()->tanggal)), "d-m-Y") }}</th>
+                                    <th>{{ date_format(date_create(($dailyDate->first()->tanggal)), "d-m-Y") }}</th>
                                 <?php
                                 }
                             }
                     ?>
-                    <th class="bg-sb text-center">TOTAL</th>
+                    <th class="text-center">TOTAL</th>
                 </tr>
             <thead>
             <tbody>
@@ -90,11 +95,43 @@
                             if ($dailyGroup && is_object($dailyGroup)) {
                             ?>
                                 <tr>
-                                    <td class="text-nowrap"><span class="sticky-span">{{ $dailyGroup->ws }}</span></td>
-                                    <td class="text-nowrap"><span class="sticky-span">{{ $dailyGroup->style }}</span></td>
-                                    <td class="text-nowrap"><span class="sticky-span">{{ $dailyGroup->color }}</span></td>
-                                    <td class="text-nowrap"><span class="sticky-span">{{ strtoupper(str_replace('_', ' ', $dailyGroup->sewing_line)) }}</span></td>
-                                    <td class="text-nowrap">{{ $dailyGroup->size }}</td>
+                                    @if ($dailyGroup->ws != $currentWs)
+                                        <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->count() }}"><span>{{ $dailyGroup->ws }}</span></td>
+
+                                        @php
+                                            $currentWs = $dailyGroup->ws;
+                                            $currentStyle = null;
+                                            $currentColor = null;
+                                            $currentLine = null;
+                                        @endphp
+                                    @endif
+                                    @if ($dailyGroup->ws == $currentWs && $dailyGroup->style != $currentStyle)
+                                        <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->count() }}"><span>{{ $dailyGroup->style }}</span></td>
+
+                                        @php
+                                            $currentStyle = $dailyGroup->style;
+                                            $currentColor = null;
+                                            $currentLine = null;
+                                        @endphp
+                                    @endif
+                                    @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color != $currentColor)
+                                        <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->count() }}"><span>{{ $dailyGroup->color }}</span></td>
+
+                                        @php
+                                            $currentColor = $dailyGroup->color;
+                                            $currentLine = null;
+                                        @endphp
+                                    @endif
+                                    @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color == $currentColor && $dailyGroup->sewing_line != $currentLine)
+                                        <td class="fixed-column text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->count() }}"><span>{{ strtoupper(str_replace('_', ' ', $dailyGroup->sewing_line)) }}</span></td>
+
+                                        @php
+                                            $currentLine = $dailyGroup->sewing_line;
+                                        @endphp
+                                    @endif
+                                    @if ($groupBy == "size")
+                                        <td class="fixed-column text-nowrap">{{ $dailyGroup->size }}</td>
+                                    @endif
 
                                     @php
                                         $thisRowOutput = 0;
@@ -134,6 +171,12 @@
                             <?php
                             }
                         }
+                    } else {
+                        ?>
+                            <tr>
+                                <td colspan="{{ $groupBy == "size" ? '7' : '4' }}">Data tidak ditemukan</td>
+                            </tr>
+                        <?php
                     }
                 ?>
             </tbody>
@@ -311,32 +354,24 @@
             });
 
             $('#dateFrom').on('change', async function (e) {
-                await clearFixedColumn();
-
                 @this.set('dateFromFilter', this.value);
 
                 updateSupplierList($('#dateFrom').val(), $('#dateTo').val());
             });
 
             $('#dateTo').on('change', async function (e) {
-                await clearFixedColumn();
-
                 @this.set('dateToFilter', this.value);
 
                 updateSupplierList($('#dateFrom').val(), $('#dateTo').val());
             });
 
             $('#supplier').on('change', async function (e) {
-                await clearFixedColumn();
-
                 @this.set('selectedSupplier', this.value);
 
                 updateWsList($('#dateFrom').val(), $('#dateTo').val(), this.value);
             });
 
             $('#order').on('change', async function (e) {
-                await clearFixedColumn();
-
                 @this.set('loadingOrderOutput', true);
 
                 @this.set('selectedOrder', this.value);
@@ -345,101 +380,29 @@
             });
 
             $('#color').on('change', async function (e) {
-                await clearFixedColumn();
-
                 @this.set('loadingOrderOutput', true);
 
                 Livewire.emit('loadingStart');
             });
 
             $('#line').on('change', async function (e) {
-                await clearFixedColumn();
-
                 @this.set('loadingOrderOutput', true);
 
                 Livewire.emit('loadingStart');
             });
 
             $('#size').on('change', async function (e) {
-                await clearFixedColumn();
-
                 @this.set('loadingOrderOutput', true);
 
                 Livewire.emit('loadingStart');
             });
-
-            var datatable = $('#trackdatatable').DataTable({
-                paging: false,
-                ordering: false,
-                searching: false,
-                scrollX: true,
-                scrollY: '400px',
-                serverSide: false,
-                rowsGroup: [
-                    0,
-                    1,
-                    2,
-                    3,
-                    {{ $groupBy == 'size' ? 4 : null }}
-                ]
-            });
-        });
-
-        function clearFixedColumn() {
-            $('#trackdatatable').DataTable().destroy();
-
-            console.log("clearFixedColumn");
-        }
-
-        async function setFixedColumn() {
-            setTimeout(function () {
-                // Initialize DataTable again
-                var datatable = $('#trackdatatable').DataTable({
-                    fixedColumns: {
-                        start: {{ $groupBy == 'size' ? 5 : 4 }},
-                        end: 1
-                    },
-                    paging: false,
-                    ordering: false,
-                    searching: false,
-                    scrollX: true,
-                    scrollY: "400px",
-                    serverSide: false,
-                    rowsGroup: [
-                        0,
-                        1,
-                        2,
-                        3,
-                        {{ $groupBy == 'size' ? 4 : null }}
-                    ]
-                });
-            }, 500);
-
-            setTimeout(function () {
-                $('#trackdatatable').DataTable().columns.adjust();
-            }, 1000);
-
-            console.log("initFixedColumn");
-        }
-
-        Livewire.on("clearFixedColumn", () => {
-            clearFixedColumn();
         });
 
         Livewire.on("initFixedColumn", () => {
-            setFixedColumn();
-
-            setTimeout(function () {
-                $('#trackdatatable').DataTable().columns.adjust();
+            setTimeout(() => {
+                setFixedColumn();
             }, 1000);
         });
-
-        // Run after any Livewire update
-        // Livewire.hook('message.processed', () => {
-        //     setTimeout(() => {
-        //         setFixedColumn();
-        //     }, 0);
-        // });
 
         async function updateSupplierList(dateFrom, dateTo) {
             document.getElementById("loadingOrderOutput").classList.remove("hidden");

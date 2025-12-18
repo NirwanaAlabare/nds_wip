@@ -33,7 +33,7 @@ class SewingService
                 output.plan_id,
                 output.plan_color,
                 output.plan_act_costing_id,
-                actual.id as act_plan_id,
+                MAX(actual.id) as act_plan_id,
                 actual.color as act_color,
                 actual.id_ws as act_act_costing_id,
                 output.actual_color as color,
@@ -51,7 +51,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     COALESCE(userpassword.username, master_plan.sewing_line) line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_rfts.updated_at)) tgl_plan
+                    COALESCE(DATE(output_rfts.created_at), master_plan.tgl_plan) tgl_plan
                 FROM
                     output_rfts
                     LEFT JOIN user_sb_wip on user_sb_wip.id = output_rfts.created_by
@@ -85,7 +85,7 @@ class SewingService
                 output.plan_id,
                 output.plan_color,
                 output.plan_act_costing_id,
-                actual.id as act_plan_id,
+                MAX(actual.id) as act_plan_id,
                 actual.color as act_color,
                 actual.id_ws as act_act_costing_id,
                 output.actual_color as color,
@@ -103,7 +103,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     COALESCE(userpassword.username, master_plan.sewing_line) line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_defects.updated_at)) tgl_plan
+                    COALESCE(DATE(output_defects.created_at), master_plan.tgl_plan) tgl_plan
                 FROM
                     output_defects
                     LEFT JOIN user_sb_wip on user_sb_wip.id = output_defects.created_by
@@ -137,7 +137,7 @@ class SewingService
                 output.plan_id,
                 output.plan_color,
                 output.plan_act_costing_id,
-                actual.id as act_plan_id,
+                MAX(actual.id) as act_plan_id,
                 actual.color as act_color,
                 actual.id_ws as act_act_costing_id,
                 output.actual_color as color,
@@ -155,7 +155,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     COALESCE(userpassword.username, master_plan.sewing_line) line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_rejects.updated_at)) tgl_plan
+                    COALESCE(DATE(output_rejects.created_at), master_plan.tgl_plan) tgl_plan
                 FROM
                     output_rejects
                     LEFT JOIN user_sb_wip on user_sb_wip.id = output_rejects.created_by
@@ -358,7 +358,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     COALESCE(master_plan.sewing_line, userpassword.username) line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_rfts.updated_at)) as tgl_plan
+                    COALESCE(DATE(output_rfts.created_at), master_plan.tgl_plan) as tgl_plan
                 FROM
                     output_rfts_packing as output_rfts
                     LEFT JOIN userpassword on userpassword.username = output_rfts.created_by
@@ -409,7 +409,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     COALESCE(master_plan.sewing_line, userpassword.username) line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_defects.updated_at)) as tgl_plan
+                    COALESCE(DATE(output_defects.created_at), master_plan.tgl_plan) as tgl_plan
                 FROM
                     output_defects_packing as output_defects
                     LEFT JOIN userpassword on userpassword.username = output_defects.created_by
@@ -460,7 +460,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     COALESCE(master_plan.sewing_line, userpassword.username) line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_rejects.updated_at)) as tgl_plan
+                    COALESCE(DATE(output_rejects.created_at), master_plan.tgl_plan) as tgl_plan
                 FROM
                     output_rejects_packing as output_rejects
                     LEFT JOIN userpassword on userpassword.username = output_rejects.created_by
@@ -659,7 +659,7 @@ class SewingService
                     so_det.dest,
                     ppic_master_so.po,
                     COALESCE(master_plan.sewing_line, userpassword.username) line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_rfts.updated_at)) as tgl_plan
+                    COALESCE(DATE(output_rfts.created_at), master_plan.tgl_plan) as tgl_plan
                 FROM
                     output_rfts_packing_po as output_rfts
                     LEFT JOIN userpassword on userpassword.username = output_rfts.created_by
