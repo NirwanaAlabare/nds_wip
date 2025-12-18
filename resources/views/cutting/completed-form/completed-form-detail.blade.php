@@ -1400,6 +1400,7 @@
             latestTotalPemakaian = Number(data.total_pemakaian_roll);
             latestShortRoll = Number(data.short_roll);
 
+            let currentLatestStatus = latestStatus;
             latestStatus = data.status;
             latestQty = Number(data.qty);
             latestUnit = data.unit;
@@ -1414,7 +1415,7 @@
 
                 this.classList.add('selected');
 
-                setSpreadingForm(data, false);
+                setSpreadingForm(data, false, currentLatestStatus);
 
                 location.href = '#spreading-form-card';
             };
@@ -1439,8 +1440,8 @@
         }
 
         // -Set Spreading Form-
-        function setSpreadingForm(data, item) {
-            openItemSpreading();
+        function setSpreadingForm(data, item, latestStatus = null) {
+            openItemSpreading(latestStatus);
 
             // spreading form data set
             let convertedQty = rollQtyConversion(data.qty, data.unit);
@@ -2249,8 +2250,13 @@
         }
 
         // -Open Item input on Spreading Form-
-        function openItemSpreading() {
-            document.getElementById("current_id_roll").removeAttribute("readonly");
+        function openItemSpreading(latestStatus = null) {
+            // alert(latestStatus);
+            if (latestStatus != 'extension complete') {
+                document.getElementById("current_id_roll").removeAttribute("readonly");
+            } else {
+                document.getElementById("current_id_roll").setAttribute("readonly");
+            }
             document.getElementById("current_id_item").removeAttribute("readonly");
             document.getElementById("current_lot").removeAttribute("readonly");
             document.getElementById("current_roll").removeAttribute("readonly");

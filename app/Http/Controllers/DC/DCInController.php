@@ -281,6 +281,10 @@ class DCInController extends Controller
             $additionalQuery .= " and a.user LIKE '%".$request->user."%'";
         }
 
+        if ($request->created_at) {
+            $additionalQuery .= " and a.created_at LIKE '%".$request->created_at."%'";
+        }
+
         if ($request->dc_filter_tipe && count($request->dc_filter_tipe) > 0) {
             $additionalQuery .= " and (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) in (".addQuotesAround(implode("\n", $request->dc_filter_tipe)).")";
         }

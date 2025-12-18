@@ -243,10 +243,6 @@
         </div>
     </div>
 
-
-
-
-
     <!-- Master Table -->
     <div class="card card-sb">
         <div class="card-header">
@@ -395,6 +391,14 @@
         function closePreview() {
             document.getElementById('previewModal').style.display = 'none';
         }
+
+        // Tutup modal dengan tombol ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                closePreview();
+            }
+        });
+
 
         function reset_modal_new() {
             const imgPreview = document.getElementById('imgPreview');
