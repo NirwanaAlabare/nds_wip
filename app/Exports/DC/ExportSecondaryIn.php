@@ -77,7 +77,7 @@ class ExportSecondaryIn implements FromView, WithEvents, ShouldAutoSize
             left join dc_in_input dc on a.id_qr_stocker = dc.id_qr_stocker
             left join secondary_inhouse_input sii on a.id_qr_stocker = sii.id_qr_stocker
             where
-            a.tgl_trans is not null
+            a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
             ".$additionalQuery."
             order by a.tgl_trans desc
         ");
