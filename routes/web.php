@@ -2355,6 +2355,12 @@ Route::middleware('auth')->group(function () {
     // Proses Industrial Engineering Operational Breakdown
     Route::controller(IE_Proses_OB_Controller::class)->prefix("proses")->middleware('role:management')->group(function () {
         Route::get('/IE_proses_op_breakdown', 'IE_proses_op_breakdown')->name('IE_proses_op_breakdown');
+        Route::get('/show_modal_proses_breakdown_new', 'show_modal_proses_breakdown_new')->name('show_modal_proses_breakdown_new');
+        Route::get('/show_modal_summary_breakdown', 'show_modal_summary_breakdown')->name('show_modal_summary_breakdown');
+        Route::post('/IE_save_op_breakdown', 'IE_save_op_breakdown')->name('IE_save_op_breakdown');
+        Route::get('/IE_show_op_breakdown', 'IE_show_op_breakdown')->name('IE_show_op_breakdown');
+        Route::get('/IE_show_op_breakdown_edit', 'IE_show_op_breakdown_edit')->name('IE_show_op_breakdown_edit');
+        Route::post('/IE_update_op_breakdown', 'IE_update_op_breakdown')->name('IE_update_op_breakdown');
     });
 
     // Laporan Industrial Engineering Recap SMV
