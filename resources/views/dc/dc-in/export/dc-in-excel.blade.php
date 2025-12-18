@@ -18,6 +18,7 @@
         <th><b>Qty In</b></th>
         <th><b>Buyer</b></th>
         <th><b>User</b></th>
+        <th><b>Created At</b></th>
     </tr>
     @php
         $totalQtyAwal = 0;
@@ -51,6 +52,7 @@
             <td>{{ $d->qty_in }}</td>
             <td>{{ $d->buyer }}</td>
             <td>{{ $d->user }}</td>
+            <td>{{ $d->created_at }}</td>
         </tr>
     @endforeach
     <tr>

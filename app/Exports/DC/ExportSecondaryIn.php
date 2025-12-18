@@ -101,7 +101,7 @@ class ExportSecondaryIn implements FromView, WithEvents, ShouldAutoSize
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A1:R' . ($event->getConcernable()->rowCount+2),
+            'A1:S' . ($event->getConcernable()->rowCount+2),
             [
                 'borders' => [
                     'allBorders' => [
