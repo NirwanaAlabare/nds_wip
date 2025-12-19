@@ -395,7 +395,30 @@
                         // Set the formatted total in the correct footer cell
                         $(api.column(i).footer()).html(formattedTotal);
                     }
+                },
+                initComplete: function() {
+                    let api = this.api();
+                    let colors = ['#e6ffec', '#ffe6e6', '#e6efff'];
+
+                    api.columns().every(function(col) {
+
+                        // skip kolom pertama (Date)
+                        if (col === 0) return;
+
+                        // mulai hitung dari kolom ke-2
+                        let adjustedIndex = col - 1;
+
+                        // grup per 3 kolom
+                        let groupIndex = Math.floor(adjustedIndex / 3);
+                        let colorIndex = groupIndex % colors.length;
+
+                        $(api.column(col).header())
+                            .css('background-color', colors[colorIndex])
+                            .css('color', '#000');
+                    });
                 }
+
+
 
 
             });
