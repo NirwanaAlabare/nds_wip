@@ -178,7 +178,7 @@ class PartController extends Controller
     public function getComplementPanelList(Request $request)
     {
         $include = "";
-        $complementPanels = Part::select("part.id", "part.panel")->where("part.act_costing_id", $request->act_costing_id)->where("part.color", $request->color)->where("part.panel", "!=", $request->panel)->get();
+        $complementPanels = Part::select("part.id", "part.panel")->where("part.act_costing_id", $request->act_costing_id)->where("part.panel", "!=", $request->panel)->get();
 
         $html = "<option value=''>Pilih Panel</option>";
 

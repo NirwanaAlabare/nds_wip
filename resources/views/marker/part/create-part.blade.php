@@ -191,7 +191,7 @@
                                         </select>
                                     </div>
                                     <div class="col">
-                                        <label class="form-label"><small>Main Part</small></label>
+                                        <label class="form-label is-main-part-label"><small>Main Part</small></label>
                                         <br>
                                         <div class="form-check">
                                             <input class="form-check-input is-main-part" type="checkbox" value="true" id="main_part_0" name="main_part[0]" onchange="uncheckOtherMainPart(0)" checked="true">
@@ -629,10 +629,15 @@
             }
 
             let isMainPartElements = document.querySelectorAll(".is-main-part");
+            let isMainPartLabelElements = document.querySelectorAll(".is-main-part");
             if (isMainPartElements && isMainPartElements.length > 0) {
                 isMainPartElements[0].checked = true;
                 for (let i = 0; i < isMainPartElements.length; i++) {
-                    isMainPartElements[i].classList.add("d-none");
+                    if (i == 0) {
+                        isMainPartElements[i].checked = true;
+                    }
+                    isMainPartElements[i].classList.remove("d-none");
+                    isMainPartLabelElements[i].classList.remove("d-none");
                 }
             }
         }
@@ -652,10 +657,12 @@
 
             // hide main part check
             let isMainPartElements = document.querySelectorAll(".is-main-part");
+            let isMainPartLabelElements = document.querySelectorAll(".is-main-part");
             if (isMainPartElements && isMainPartElements.length > 0) {
                 for (let i = 0; i < isMainPartElements.length; i++) {
-                    isMainPartElements[i].classList.add("d-none");
                     isMainPartElements[i].checked = false;
+                    isMainPartElements[i].classList.add("d-none");
+                    isMainPartLabelElements[i].classList.add("d-none");
                 }
             }
         }
