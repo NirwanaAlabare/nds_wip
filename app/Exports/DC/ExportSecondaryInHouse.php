@@ -77,7 +77,7 @@ class ExportSecondaryInHouse implements FromView, WithEvents, ShouldAutoSize
             left join master_part mp on mp.id = pd.master_part_id
             left join (select id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
             where
-            a.tgl_trans is not null
+            a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
             ".$additionalQuery."
             order by a.tgl_trans desc
         ");
@@ -100,7 +100,7 @@ class ExportSecondaryInHouse implements FromView, WithEvents, ShouldAutoSize
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A1:Q' . ($event->getConcernable()->rowCount+2),
+            'A1:R' . ($event->getConcernable()->rowCount+2),
             [
                 'borders' => [
                     'allBorders' => [

@@ -171,6 +171,7 @@
                             <th>Qty In</th>
                             <th>Buyer</th>
                             <th>User</th>
+                            <th>Created At</th>
                         </tr>
                     </thead>
                     <tfoot>
@@ -192,7 +193,7 @@
                                 {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_in'> --}}
                                 ...
                             </th>
-                            <th colspan="2"></th>
+                            <th colspan="3"></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -426,7 +427,8 @@
             'qty_replace_filter',
             'qty_in_filter',
             'buyer_filter',
-            'user_filter'
+            'user_filter',
+            'created_at_filter',
         ];
 
         $('#datatable-input thead tr').clone(true).appendTo('#datatable-input thead');
@@ -528,6 +530,7 @@
                         'qty_in': $('#qty_in_filter').val(),
                         'qty_buyer': $('#qty_buyer_filter').val(),
                         'user': $('#user_filter').val(),
+                        'created_at': $('#created_at_filter').val(),
                         'dc_filter_tipe': $('#dc_filter_tipe').val(),
                         'dc_filter_buyer': $('#dc_filter_buyer').val(),
                         'dc_filter_ws': $('#dc_filter_ws').val(),
@@ -652,6 +655,9 @@
                 },
                 {
                     data: 'user',
+                },
+                {
+                    data: 'created_at',
                 },
             ],
             columnDefs: [{

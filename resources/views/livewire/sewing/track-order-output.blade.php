@@ -368,6 +368,38 @@
                 Livewire.emit('loadingStart');
             });
 
+            $('#output-type').on('change', async function (e) {
+                await clearFixedColumn();
+
+                @this.set('loadingOrderOutput', true);
+
+                Livewire.emit('loadingStart');
+            });
+
+            $('#group-by').on('change', async function (e) {
+                await clearFixedColumn();
+
+                @this.set('loadingOrderOutput', true);
+
+                Livewire.emit('loadingStart');
+            });
+
+            $('#color').on('change', async function (e) {
+                await clearFixedColumn();
+
+                @this.set('loadingOrderOutput', true);
+
+                Livewire.emit('loadingStart');
+            });
+
+            $('#line').on('change', async function (e) {
+                await clearFixedColumn();
+
+                @this.set('loadingOrderOutput', true);
+
+                Livewire.emit('loadingStart');
+            });
+
             var datatable = $('#trackdatatable').DataTable({
                 paging: false,
                 ordering: false,

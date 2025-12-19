@@ -87,11 +87,11 @@
                         foreach ($dailyOrderGroup as $dailyGroup) {
                             ?>
                                 <tr>
-                                        <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->ws }}</span></td>
-                                        <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->style }}</span></td>
-                                        <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->color }}</span></td>
-                                        <td class="text-nowrap"><span class="bg-light text-dark">{{ strtoupper(str_replace('_', ' ', $dailyGroup->meja)) }}</span></td>
-                                        <td class="text-nowrap"><span class="bg-light text-dark">{{ $dailyGroup->panel }}</span></td>
+                                        <td class="text-nowrap"><span class="bg-light text-dark sticky-span">{{ $dailyGroup->ws }}</span></td>
+                                        <td class="text-nowrap"><span class="bg-light text-dark sticky-span">{{ $dailyGroup->style }}</span></td>
+                                        <td class="text-nowrap"><span class="bg-light text-dark sticky-span">{{ $dailyGroup->color }}</span></td>
+                                        <td class="text-nowrap"><span class="bg-light text-dark sticky-span">{{ strtoupper(str_replace('_', ' ', $dailyGroup->meja)) }}</span></td>
+                                        <td class="text-nowrap"><span class="bg-light text-dark sticky-span">{{ $dailyGroup->panel }}</span></td>
                                         <td class="text-nowrap">{{ $dailyGroup->size }}</td>
                                     @php
                                         $thisRowOutput = 0;
