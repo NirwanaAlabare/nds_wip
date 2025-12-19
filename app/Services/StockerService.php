@@ -182,7 +182,7 @@ class StockerService
                 }
 
                 // Adjust stocker data
-                $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->whereRaw("(`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%')")->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("so_det_id", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
+                $stockerForm = Stocker::withoutGlobalScopes()->where("form_cut_id", $formCut->id_form)->whereRaw("(`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%')")->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("so_det_id", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
 
                 $currentStockerPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
                 $currentStockerSize = "";
@@ -249,6 +249,9 @@ class StockerService
 
                     if (($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1) || ($formPartWs && $formPartWs != $stocker->act_costing_ws) || ($maxFormRatio && $stocker->ratio > $maxFormRatio)) {
                         $stocker->cancel = "y";
+                        $stocker->save();
+                    } else {
+                        $stocker->cancel = "n";
                         $stocker->save();
                     }
                 }
