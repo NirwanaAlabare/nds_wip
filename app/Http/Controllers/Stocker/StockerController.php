@@ -6550,6 +6550,15 @@ class StockerController extends Controller
 
         $stocker = Stocker::selectRaw("stocker_input.id_qr_stocker, stocker_input.form_cut_id, stocker_input.form_reject_id, stocker_input.form_piece_id, stocker_input.so_det_id, stocker_input.size, stocker_input.range_akhir, (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe")->where("stocker_input.id_qr_stocker", $request->stocker)->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->first();
 
+        if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() < 1) {
+            if (!$stocker) {
+                return array(
+                    "status" => 400,
+                    "message" => "Stocker tidak ditemukan",
+                );
+            }
+        }
+
         $request->size = $stocker ? $stocker->so_det_id : $request->size;
         $request->size_text = $stocker ? $stocker->size : $request->size_text;
 
@@ -6653,7 +6662,7 @@ class StockerController extends Controller
                 // When the updated Size Was in different Plan
                 $sewingService->missMasterPlan(addQuotesAround(implode("\n", $yearSequenceArr)), false);
 
-                 // When the updated Size Was in different PO
+                // When the updated Size Was in different PO
                 $sewingService->missPackingPo();
 
                 if ($request['method'] == "list") {
