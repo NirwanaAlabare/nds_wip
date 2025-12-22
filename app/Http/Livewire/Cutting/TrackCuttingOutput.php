@@ -213,8 +213,8 @@ class TrackCuttingOutput extends Component
                 marker_input_detail.so_det_id
         UNION
             SELECT
-                '-' id_meja,
-                '-' meja,
+                'reject' id_meja,
+                'reject' meja,
                 COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) tanggal,
                 form_cut_reject.act_costing_id,
                 form_cut_reject.act_costing_ws ws,
@@ -338,8 +338,8 @@ class TrackCuttingOutput extends Component
                 marker_input_detail.so_det_id
         UNION
             SELECT
-                null id_meja,
-                '-' meja,
+                'reject' id_meja,
+                'reject' meja,
                 '-' id_marker,
                 form_cut_reject.no_form,
                 COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) tanggal,
@@ -370,8 +370,8 @@ class TrackCuttingOutput extends Component
                 form_cut_reject_detail.so_det_id
         UNION
             SELECT
-                null id_meja,
-                '-' meja,
+                'piece' id_meja,
+                'piece' meja,
                 '-' id_marker,
                 form_cut_piece.no_form,
                 COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) tanggal,
@@ -498,8 +498,8 @@ class TrackCuttingOutput extends Component
                         SELECT
                             '-' as kode,
                             form_cut_reject.no_form,
-                            null as id_meja,
-                            '-' as meja,
+                            'reject' as id_meja,
+                            'reject' as meja,
                             COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) tgl_form_cut,
                             form_cut_reject.buyer,
                             form_cut_reject.act_costing_id,
@@ -537,8 +537,8 @@ class TrackCuttingOutput extends Component
                         SELECT
                             '-' as kode,
                             form_cut_piece.no_form,
-                            null as id_meja,
-                            '-' as meja,
+                            'piece' as id_meja,
+                            'piece' as meja,
                             COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) tgl_form_cut,
                             form_cut_piece.buyer,
                             form_cut_piece.act_costing_id,

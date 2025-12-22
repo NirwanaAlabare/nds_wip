@@ -225,11 +225,13 @@ class CuttingToolsController extends Controller
         if ($validatedRequest) {
             $checkStocker = Stocker::where("form_cut_id", $validatedRequest['modify_ratio_form_id'])->first();
 
-            if ($checkStocker) {
-                return array(
-                    "status" => 400,
-                    "message" => "Form sudah memiliki Stocker."
-                );
+            if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() < 1) {
+                if ($checkStocker) {
+                    return array(
+                        "status" => 400,
+                        "message" => "Form sudah memiliki Stocker."
+                    );
+                }
             }
 
             $oldMarker = Marker::where("kode", $validatedRequest['modify_ratio_kode_marker'])->first();
@@ -562,14 +564,16 @@ class CuttingToolsController extends Controller
                                             if (count($filtered) < 1) {
                                                 // Update Stocker
                                                 Stocker::where("form_cut_id", $validatedRequest["modify_marker_form_id"])
-                                                ->where("so_det_id", $markerDetail->masterSbWs->id_so_det)
-                                                ->update([
-                                                    "act_costing_ws" => $currentSoDet->kpno,
-                                                    "color" => $currentSoDet->color,
-                                                    "so_det_id" => $currentSoDet->so_det_id,
-                                                    "size" => $currentSoDet->size . ($currentSoDet->dest && $currentSoDet->dest != "-" ? " - " . $currentSoDet->dest : ""),
-                                                    "notes" => DB::raw("CONCAT(notes, ' MODIFY MARKER')")
-                                                ]);
+                                                    ->where("so_det_id", $markerDetail->masterSbWs->id_so_det)
+                                                    ->update([
+                                                        // "part_id" => $currentSoDet->kpno,
+                                                        // "act_costing_ws" => $currentSoDet->kpno,
+                                                        // "color" => $currentSoDet->color,
+                                                        // "so_det_id" => $currentSoDet->so_det_id,
+                                                        // "size" => $currentSoDet->size . ($currentSoDet->dest && $currentSoDet->dest != "-" ? " - " . $currentSoDet->dest : ""),
+                                                        "notes" => DB::raw("CONCAT(notes, ' MODIFY MARKER CANCEL')"),
+                                                        "cancel" => 'Y'
+                                                    ]);
                                             }
                                         }
                                     }
