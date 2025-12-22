@@ -21,8 +21,8 @@ class IEMasterPartProcessController extends Controller
             picture,
             nm_part_process,
             count(a.id) tot_process,
-            sum(b.smv) tot_smv,
-            sum(b.amv) tot_amv,
+            ROUND(SUM(b.smv), 3) AS tot_smv,
+            ROUND(SUM(b.amv), 3) AS tot_amv,
             a.created_by,
             DATE_FORMAT(a.updated_at, '%d-%m-%y %H:%i:%s') AS tgl_update_fix
             FROM ie_master_part_process a
