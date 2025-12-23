@@ -291,6 +291,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-reject-in', 'getRejectIn')->name('get-reject-in');
         // defect in out
         Route::get('/get-defect-in-out', 'getDefectInOut')->name('get-defect-in-out');
+
+        // Part Item
+        Route::get('/get-part-item', 'getPartItemList')->name('get-part-item');
     });
 
     // Worksheet

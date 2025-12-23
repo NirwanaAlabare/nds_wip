@@ -121,6 +121,12 @@
                                     @endforeach
                                 </select>
                             </div>
+                            <div class="col-2">
+                                <label class="form-label"><small>Item</small></label>
+                                <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="item[0]" id="item_0" data-index="0">
+                                    <option value="">Pilih Proses</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="col-12">
@@ -182,6 +188,7 @@
                 await getMasterParts();
                 await getTujuan();
                 await getProses();
+                await getItemPart();
 
                 partSection = document.getElementById('parts-section');
 
@@ -322,6 +329,27 @@
             if (thisTujuan.value != thisSelected.getAttribute('data-tujuan')) {
                 $('#tujuan_'+thisIndex).val(thisSelected.getAttribute('data-tujuan')).trigger("change");
             }
+        }
+
+        // Update Panel Select Option Based on Order WS and Color WS
+        function updatePartItemList() {
+            document.getElementById('panel_id').value = null;
+            return $.ajax({
+                url: '{{ route("get-part-item") }}',
+                type: 'get',
+                data: {
+                    act_costing_id: $('#ws_id').val(),
+                },
+                success: function (res) {
+                    if (res) {
+                        // Update this step
+                        let partItemList = document.getElementsByClassName('part-item-list');
+                        for (let i = 0; i < partItemList.length; i++) {
+                            partItemList[i].innerHTML = res;
+                        }
+                    }
+                },
+            });
         }
 
         function addNewPart() {
