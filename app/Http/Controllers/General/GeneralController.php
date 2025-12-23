@@ -14,6 +14,8 @@ use Yajra\DataTables\Facades\DataTables;
 use App\Models\Stocker\Stocker;
 use App\Models\MarkerInput;
 use App\Models\Part\Part;
+use App\Models\Part\PartDetail;
+use App\Models\Part\PartDetailItem;
 use App\Models\CuttingPlanOutput;
 use App\Models\Stocker\StockerAdditional;
 use App\Models\Cutting\Piping;

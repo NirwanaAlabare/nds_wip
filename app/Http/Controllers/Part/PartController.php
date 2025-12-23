@@ -8,6 +8,7 @@ use App\Models\Part\MasterTujuan;
 use App\Models\Part\MasterSecondary;
 use App\Models\Part\Part;
 use App\Models\Part\PartDetail;
+use App\Models\Part\PartDetailItem;
 use App\Models\Part\PartItem;
 use App\Models\Part\PartForm;
 use App\Models\Cutting\FormCutInput;
@@ -247,8 +248,6 @@ class PartController extends Controller
             // Part Detail
             $timestamp = Carbon::now();
             $partId = $partStore->id;
-            $partDetailData = [];
-            $partItemData = [];
             for ($i = 0; $i < $totalPartDetail; $i++) {
                 if ($request["part_details"][$i] && $request["proses"][$i] && $request["cons"][$i] && $request["cons_unit"][$i]) {
                     $partDetailStore = PartDetail::create([
@@ -264,6 +263,8 @@ class PartController extends Controller
                     // Part Detail Item
                     if ($partDetailStore) {
                         if ($request["item"][$i] && count($request["item"][$i]) > 0) {
+                            $partItemData = [];
+
                             for ($j = 0; $j < count($request["item"][$i]); $j++) {
                                 array_push($partItemData, [
                                     "part_detail_id" => $partDetailStore->id,

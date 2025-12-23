@@ -121,10 +121,9 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col">
+                            <div class="col" id="parent-detail-0">
                                 <label class="form-label"><small>Item</small></label>
-                                <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="item[0][]" id="item_0" data-index="0">
-                                    <option value="">Pilih Item</option>
+                                <select class="form-control select2bs4multi part-item-list" style="border-radius: 0 3px 3px 0;" name="item[0][]" id="item_0" data-index="0" multiple>
                                 </select>
                             </div>
                         </div>
@@ -180,7 +179,7 @@
 
                 $(".select2").val('').trigger('change');
                 $(".select2bs4").val('').trigger('change');
-                $(".select2bs4custom").val('').trigger('change');
+                $(".select2bs4").val('').trigger('change');
 
                 $("#ws_id").val(null).trigger("change");
                 $('#part_details').val(null).trigger('change');
@@ -203,9 +202,9 @@
         });
 
         // Select2 Autofocus
-        $(document).on('select2:open', () => {
-            document.querySelector('.select2-search__field').focus();
-        });
+        // $(document).on('select2:open', () => {
+        //     document.querySelector('.select2-search__field').focus();
+        // });
 
         // Initialize Select2 Elements
         $('.select2').select2();
@@ -215,6 +214,14 @@
             theme: 'bootstrap4',
         });
 
+        $('.select2bs4multi').select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            closeOnSelect: false,
+            placeholder: "Pilih Item",
+            allowClear: true,
+        });
+
         // Step One (WS) on change event
         $('#ws_id').on('change', async function(e) {
             document.getElementById("loading").classList.remove("d-none");
@@ -222,6 +229,7 @@
             if (this.value) {
                 await updateOrderInfo();
                 await updatePanelList();
+                await updatePartItemList();
             }
 
             document.getElementById("loading").classList.add("d-none");
@@ -334,6 +342,7 @@
         // Update Panel Select Option Based on Order WS and Color WS
         var partItemListOptions = "";
         function updatePartItemList() {
+            partItemListOptions = "";
             document.getElementById('panel_id').value = null;
             return $.ajax({
                 url: '{{ route("get-part-item") }}',
@@ -345,15 +354,17 @@
                     if (res) {
                         // Generate Options
                         res.forEach(element => {
-                            partItemListOptions += "<option value='"+res.id+"'>"+res.itemdesc+"</option>"
+                            partItemListOptions += "<option value='"+element.id+"'>"+element.itemdesc+"</option>"
                         });
 
                         // Append Options
                         let partItemList = document.getElementsByClassName('part-item-list');
                         for (let i = 0; i < partItemList.length; i++) {
-                            partItemList[i].innerHTML = options;
+                            partItemList[i].innerHTML = partItemListOptions;
                         }
                     }
+
+                    console.log(res, partItemListOptions);
                 },
             });
         }
@@ -366,14 +377,14 @@
 
                 // 1
                 let divCol1 = document.createElement('div');
-                divCol1.setAttribute('class', 'col-3');
+                divCol1.setAttribute('class', 'col');
 
                 let label1 = document.createElement('label');
                 label1.setAttribute('class', 'form-label');
                 label1.innerHTML = '<small>Part</small>';
 
                 let partDetail = document.createElement("select");
-                partDetail.setAttribute('class', 'form-select select2bs4custom');
+                partDetail.setAttribute('class', 'form-select');
                 partDetail.setAttribute('name', 'part_details['+jumlahPartDetail.value+']');
                 partDetail.setAttribute('id', 'part_details_'+jumlahPartDetail.value);
                 partDetail.innerHTML = partOptions;
@@ -383,7 +394,7 @@
 
                 // 2
                 let divCol2 = document.createElement('div');
-                divCol2.setAttribute('class', 'col-3');
+                divCol2.setAttribute('class', 'col');
 
                 divCol2.innerHTML= `
                     <label class="form-label"><small>Cons</small></label>
@@ -404,14 +415,14 @@
 
                 // 3
                 let divCol3 = document.createElement('div');
-                divCol3.setAttribute('class', 'col-3');
+                divCol3.setAttribute('class', 'col');
 
                 let label3 = document.createElement('label');
                 label3.setAttribute('class', 'form-label');
                 label3.innerHTML = '<small>Tujuan</small>';
 
                 let tujuan = document.createElement("select");
-                tujuan.setAttribute('class', 'form-select select2bs4custom');
+                tujuan.setAttribute('class', 'form-select');
                 tujuan.setAttribute('name', 'tujuan['+jumlahPartDetail.value+']');
                 tujuan.setAttribute('id', 'tujuan_'+jumlahPartDetail.value);
                 tujuan.innerHTML = tujuanOptions;
@@ -421,14 +432,14 @@
 
                 // 4
                 let divCol4 = document.createElement('div');
-                divCol4.setAttribute('class', 'col-3');
+                divCol4.setAttribute('class', 'col');
 
                 let label4 = document.createElement('label');
                 label4.setAttribute('class', 'form-label');
                 label4.innerHTML = '<small>Proses</small>';
 
                 let proses = document.createElement("select");
-                proses.setAttribute('class', 'form-select select2bs4custom');
+                proses.setAttribute('class', 'form-select');
                 proses.setAttribute('name', 'proses['+jumlahPartDetail.value+']');
                 proses.setAttribute('id', 'proses_'+jumlahPartDetail.value);
                 proses.setAttribute('data-index', jumlahPartDetail.value);
@@ -440,21 +451,23 @@
 
                 // 5
                 let divCol5 = document.createElement('div');
-                divCol5.setAttribute('class', 'col-3');
+                divCol5.setAttribute('id', 'parent-detail-'+jumlahPartDetail.value);
+                divCol5.setAttribute('class', 'col');
 
                 let label5 = document.createElement('label');
                 label5.setAttribute('class', 'form-label');
                 label5.innerHTML = '<small>Item</small>';
 
                 let item = document.createElement("select");
-                item.setAttribute('class', 'form-select select2bs4custom');
+                item.setAttribute('class', 'form-select part-item-list');
                 item.setAttribute('name', 'item['+jumlahPartDetail.value+'][]');
                 item.setAttribute('id', 'item_'+jumlahPartDetail.value);
                 item.setAttribute('data-index', jumlahPartDetail.value);
+                item.setAttribute('multiple', true);
                 item.innerHTML = partItemListOptions;
 
-                divCol5.appendChild(label4);
-                divCol6.appendChild(proses);
+                divCol5.appendChild(label5);
+                divCol5.appendChild(item);
 
                 // row
                 divRow.appendChild(divCol1);
@@ -476,6 +489,8 @@
                 });
                 $('#item_'+jumlahPartDetail.value).select2({
                     theme: 'bootstrap4',
+                    multiple: true,
+                    closeOnSelect: false,
                 });
 
                 jumlahPartDetail.value++;
