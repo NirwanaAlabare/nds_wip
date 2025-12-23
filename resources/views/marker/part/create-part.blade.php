@@ -78,7 +78,7 @@
                     </div>
                     <div class="col-12 col-md-12" id="parts-section">
                         <div class="row">
-                            <div class="col-3">
+                            <div class="col">
                                 <label class="form-label"><small>Part</small></label>
                                 <select class="form-control select2bs4" name="part_details[0]" id="part_details_0">
                                     <option value="">Pilih Part</option>
@@ -87,7 +87,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-3">
+                            <div class="col">
                                 <label class="form-label"><small>Cons</small></label>
                                 <div class="d-flex mb-3">
                                     <div style="width: 50%;">
@@ -103,7 +103,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-3">
+                            <div class="col">
                                 <label class="form-label"><small>Tujuan</small></label>
                                 <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="tujuan[0]" id="tujuan_0">
                                     <option value="">Pilih Tujuan</option>
@@ -112,7 +112,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-3">
+                            <div class="col">
                                 <label class="form-label"><small>Proses</small></label>
                                 <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="proses[0]" id="proses_0" data-index="0" onchange="changeTujuan(this)">
                                     <option value="">Pilih Proses</option>
@@ -121,10 +121,10 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-2">
+                            <div class="col">
                                 <label class="form-label"><small>Item</small></label>
-                                <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="item[0]" id="item_0" data-index="0">
-                                    <option value="">Pilih Proses</option>
+                                <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="item[0][]" id="item_0" data-index="0">
+                                    <option value="">Pilih Item</option>
                                 </select>
                             </div>
                         </div>
@@ -188,7 +188,7 @@
                 await getMasterParts();
                 await getTujuan();
                 await getProses();
-                await getItemPart();
+                await updatePartItemList();
 
                 partSection = document.getElementById('parts-section');
 
@@ -332,6 +332,7 @@
         }
 
         // Update Panel Select Option Based on Order WS and Color WS
+        var partItemListOptions = "";
         function updatePartItemList() {
             document.getElementById('panel_id').value = null;
             return $.ajax({
@@ -342,10 +343,15 @@
                 },
                 success: function (res) {
                     if (res) {
-                        // Update this step
+                        // Generate Options
+                        res.forEach(element => {
+                            partItemListOptions += "<option value='"+res.id+"'>"+res.itemdesc+"</option>"
+                        });
+
+                        // Append Options
                         let partItemList = document.getElementsByClassName('part-item-list');
                         for (let i = 0; i < partItemList.length; i++) {
-                            partItemList[i].innerHTML = res;
+                            partItemList[i].innerHTML = options;
                         }
                     }
                 },
@@ -432,11 +438,30 @@
                 divCol4.appendChild(label4);
                 divCol4.appendChild(proses);
 
+                // 5
+                let divCol5 = document.createElement('div');
+                divCol5.setAttribute('class', 'col-3');
+
+                let label5 = document.createElement('label');
+                label5.setAttribute('class', 'form-label');
+                label5.innerHTML = '<small>Item</small>';
+
+                let item = document.createElement("select");
+                item.setAttribute('class', 'form-select select2bs4custom');
+                item.setAttribute('name', 'item['+jumlahPartDetail.value+'][]');
+                item.setAttribute('id', 'item_'+jumlahPartDetail.value);
+                item.setAttribute('data-index', jumlahPartDetail.value);
+                item.innerHTML = partItemListOptions;
+
+                divCol5.appendChild(label4);
+                divCol6.appendChild(proses);
+
                 // row
                 divRow.appendChild(divCol1);
                 divRow.appendChild(divCol2);
                 divRow.appendChild(divCol3);
                 divRow.appendChild(divCol4);
+                divRow.appendChild(divCol5);
 
                 partSection.appendChild(divRow);
 
@@ -447,6 +472,9 @@
                     theme: 'bootstrap4',
                 });
                 $('#proses_'+jumlahPartDetail.value).select2({
+                    theme: 'bootstrap4',
+                });
+                $('#item_'+jumlahPartDetail.value).select2({
                     theme: 'bootstrap4',
                 });
 

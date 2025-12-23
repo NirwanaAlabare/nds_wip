@@ -679,7 +679,7 @@ class GeneralController extends Controller
     {
         if ($request->act_costing_id) {
             $items = DB::connection("mysql_sb")->select("
-                select bom_jo_item.id_item, masteritem.* from bom_jo_item
+                select bom_jo_item.id, masteritem.itemdesc from bom_jo_item
                 left join jo_det on jo_det.id_jo = bom_jo_item.id_jo
                 left join so on so.id = jo_det.id_so
                 left join act_costing on act_costing.id = so.id_cost
