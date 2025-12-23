@@ -865,7 +865,6 @@ from earn a
 left join sum_earning_buyer b on a.buyer = b.buyer
 group by a.buyer
 $having_buyer
-$cond_na
         ");
 
 
