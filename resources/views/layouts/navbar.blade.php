@@ -451,6 +451,12 @@
                                         Modify Loading <i class="fa-solid fa-sliders"></i>
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('loading_out') }}"
+                                        class="dropdown-item {{ $subPage == 'loading_out' ? 'active' : '' }}">
+                                        Loading Out / WIP Out <i class="fas fa-long-arrow-alt-right"></i>
+                                    </a>
+                                </li>
                                 {{-- Deprecated --}}
                                 {{--
                                     <li>
@@ -927,11 +933,11 @@
                                 </a>
                             </li>
                             <?php }else{ ?>
-                                <li>
-                                    <a href="{{ route('laporan-stok-opname') }}" class="dropdown-item">
-                                        Report Stock Opname
-                                    </a>
-                                </li>
+                            <li>
+                                <a href="{{ route('laporan-stok-opname') }}" class="dropdown-item">
+                                    Report Stock Opname
+                                </a>
+                            </li>
                             <?php } ?>
                         </ul>
                     </li>

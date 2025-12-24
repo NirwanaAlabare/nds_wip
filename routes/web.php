@@ -68,6 +68,7 @@ use App\Http\Controllers\DC\RackStockerController;
 use App\Http\Controllers\DC\TrolleyController;
 use App\Http\Controllers\DC\TrolleyStockerController;
 use App\Http\Controllers\DC\LoadingLineController;
+use App\Http\Controllers\DC\LoadingOutController;
 use App\Http\Controllers\DC\BonLoadingController;
 use App\Http\Controllers\DC\DcToolsController;
 
@@ -1011,6 +1012,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/modify-loading-line', 'modifyLoadingLine')->name('modify-loading-line');
         Route::post('/modify-loading-line/update', 'modifyLoadingLineUpdate')->name('modify-loading-line-update');
         Route::delete('/modify-loading-line/delete', 'modifyLoadingLineDelete')->name('modify-loading-line-delete');
+    });
+
+    // Loading Out
+    Route::controller(LoadingOutController::class)->prefix("loading-out")->middleware('role:dc')->group(function () {
+        Route::get('/loading_out', 'loading_out')->name('loading_out');
+        Route::get('/input_loading_out', 'input_loading_out')->name('input_loading_out');
+        Route::get('/getpo_loading_out', 'getpo_loading_out')->name('getpo_loading_out');
+        Route::get('/get_list_po_loading_out', 'get_list_po_loading_out')->name('get_list_po_loading_out');
     });
 
     // Bon Loading
