@@ -800,6 +800,27 @@ function hideLoading() {
     }
 }
 
+function updateConnection(element, route) {
+    if (element && route) {
+        $.ajax({
+            type: "POST",
+            url: route,
+            data: {
+                id: element.value
+            },
+            dataType: "json",
+            success: function (response) {
+                location.reload();
+            },
+            error: function (jqXHR) {
+                console.error(jqXHR);
+            }
+        });
+    } else {
+        console.error("Element or route is undefined.");
+    }
+}
+
 window.formatTimer = function(elapsedMs) {
     const totalSeconds = Math.floor(elapsedMs / 1000);
     const hours = Math.floor(totalSeconds / 3600);

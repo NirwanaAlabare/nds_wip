@@ -85,6 +85,48 @@ return [
             ]) : [],
         ],
 
+        'mysql_soljer' => [
+            'driver' => 'mysql',
+            'url' => env('DATABASE_URL'),
+            'host' => env('DB_HOST_SOLJER', '127.0.0.1'),
+            'port' => env('DB_PORT_SOLJER', '3306'),
+            'database' => env('DB_DATABASE_SOLJER', 'forge'),
+            'username' => env('DB_USERNAME_SOLJER', 'forge'),
+            'password' => env('DB_PASSWORD_SOLJER', ''),
+            'unix_socket' => env('DB_SOCKET_SOLJER', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => false,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                // PDO::ATTR_EMULATE_PREPARES => true,
+            ]) : [],
+        ],
+
+        'mysql_sb_soljer' => [
+            'driver' => 'mysql',
+            'url' => env('DATABASE_URL'),
+            'host' => env('DB_HOST_SB_SOLJER', '127.0.0.1'),
+            'port' => env('DB_PORT_SB_SOLJER', '3306'),
+            'database' => env('DB_DATABASE_SB_SOLJER', 'forge'),
+            'username' => env('DB_USERNAME_SB_SOLJER', 'forge'),
+            'password' => env('DB_PASSWORD_SB_SOLJER', ''),
+            'unix_socket' => env('DB_SOCKET_SB_SOLJER', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => false,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                // PDO::ATTR_EMULATE_PREPARES => true,
+            ]) : [],
+        ],
+
         'mysql_dsb' => [
             'driver' => 'mysql',
             'url' => env('DATABASE_URL'),

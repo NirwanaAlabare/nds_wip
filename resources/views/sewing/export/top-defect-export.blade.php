@@ -1,18 +1,18 @@
 <table>
     <tr>
-        <td style="text-align: start; font-weight: 800;" colspan="3">Defect {{ $department == "_packing" ? "Finishing" : "QC" }} {{ $dateFrom." s/d ".$dateTo }}</td>
+        <td colspan="3">Defect {{ $department == "_packing" ? "Finishing" : "QC" }} {{ $dateFrom." s/d ".$dateTo }}</td>
     </tr>
     <tr>
-        <td style="text-align: start; font-weight: 800;" colspan="3">WS : {{ $ws }}</td>
+        <td colspan="3">WS : {{ $ws }}</td>
     </tr>
     <tr>
-        <td style="text-align: start; font-weight: 800;" colspan="3">Style : {{ $ws && $ws != "All WS" ? $topDefect->groupBy("style")->keys()->implode(", ") : $style }}</td>
+        <td colspan="3">Style : {{ $ws && $ws != "All WS" ? $topDefect->groupBy("style")->keys()->implode(", ") : $style }}</td>
     </tr>
     <tr>
-        <td style="text-align: start; font-weight: 800;" colspan="3">Color : {{ $color }}</td>
+        <td colspan="3">Color : {{ $color }}</td>
     </tr>
     <tr>
-        <td style="text-align: start; font-weight: 800;" colspan="3">Sewing Line : {{ $sewingLine }}</td>
+        <td colspan="3">Sewing Line : {{ $sewingLine }}</td>
     </tr>
     @php
         $lineStyleGroups = $topDefect->groupBy("grouping");
@@ -41,43 +41,43 @@
     @endphp
     {{-- Line Style --}}
     <tr>
-        <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Line</th>
-        <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">WS</th>
-        <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Style</th>
-        <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Color</th>
-        <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Size</th>
-        <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Defect Type</th>
-        <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Defect Area</th>
+        <th>Line</th>
+        <th>WS</th>
+        <th>Style</th>
+        <th>Color</th>
+        <th>Size</th>
+        <th>Defect Type</th>
+        <th>Defect Area</th>
         <?php
             if ( $topDefect && $topDefect->count() > 0 ) {
                 foreach ($topDefect->sortBy("tanggal")->groupBy("tanggal") as $dailyDate) {
                     ?>
-                        <th style="font-weight: 800; text-align: center;border: 1px solid #000;">{{ date_format(date_create($dailyDate->first()->tanggal), "d-m-Y") }}</th>
+                        <th>{{ date_format(date_create($dailyDate->first()->tanggal), "d-m-Y") }}</th>
                     <?php
                 }
         ?>
-        <th style="font-weight: 800;text-align: center;vertical-align: middle;border: 1px solid #000;">Grand Total</th>
+        <th>Grand Total</th>
     </tr>
         <?php
                 foreach ($sortedLineStyleGroup as $lineStyle) {
                     ?>
                         <tr>
-                            <td style="border: 1px solid #000;">{{ $lineStyle['sewing_line'] }}</td>
-                            <td style="border: 1px solid #000;">{{ $lineStyle['ws'] }}</td>
-                            <td style="border: 1px solid #000;">{{ $lineStyle['style'] }}</td>
-                            <td style="border: 1px solid #000;">{{ $lineStyle['color'] }}</td>
-                            <td style="border: 1px solid #000;">{{ $lineStyle['size'] }}</td>
-                            <td style="border: 1px solid #000;">{{ $lineStyle['defect_type'] }}</td>
-                            <td style="border: 1px solid #000;">{{ $lineStyle['defect_area'] }}</td>
+                            <td>{{ $lineStyle['sewing_line'] }}</td>
+                            <td>{{ $lineStyle['ws'] }}</td>
+                            <td>{{ $lineStyle['style'] }}</td>
+                            <td>{{ $lineStyle['color'] }}</td>
+                            <td>{{ $lineStyle['size'] }}</td>
+                            <td>{{ $lineStyle['defect_type'] }}</td>
+                            <td>{{ $lineStyle['defect_area'] }}</td>
                             @foreach ($topDefect->sortBy("tanggal")->groupBy("tanggal") as $dailyDate)
                                 @php
                                     $thisDefect = $topDefect->where('grouping', $lineStyle['grouping'])->where('tanggal', $dailyDate->first()->tanggal)->sum("total_defect");
                                 @endphp
-                                <td style="border: 1px solid #000;" data-format="0">
+                                <td data-format="0">
                                     {{ $thisDefect }}
                                 </td>
                             @endforeach
-                            <td style="font-weight: 800;vertical-align: middle;border: 1px solid #000;" data-format="0">
+                            <td data-format="0">
                                 {{ $lineStyle['total_defect'] }}
                             </td>
                         </tr>
@@ -86,22 +86,22 @@
             } else {
                 ?>
                     <tr>
-                        <td style="text-align:center;">Data tidak ditemukan</td>
+                        <td>Data tidak ditemukan</td>
                     </tr>
                 <?php
             }
         ?>
     <tr>
-        <th style="font-weight: 800;text-align: center;border: 1px solid #000;" colspan="7">TOTAL</th>
+        <th colspan="7">TOTAL</th>
         @foreach ($topDefect->sortBy("tanggal")->groupBy("tanggal") as $dailyDate)
             @php
                 $thisDefect = $topDefect->where('tanggal', $dailyDate->first()->tanggal)->sum("total_defect");
             @endphp
-            <th style="font-weight: 800;border: 1px solid #000;" data-format="0">
+            <th data-format="0">
                 {{ $thisDefect }}
             </th>
         @endforeach
-        <th style="font-weight: 800;border: 1px solid #000;" data-format="0">
+        <th data-format="0">
             {{ $topDefect->sum("total_defect") }}
         </th>
     </tr>

@@ -99,6 +99,15 @@
                                 @endforeach
                             </select>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label">Connections</label>
+                            <select class="form-select select2bs4-create" name="connectionList[]" id="connectionList" multiple="multiple">
+                                <option value=""></option>
+                                @foreach ($connectionList as $conn)
+                                    <option value="{{ $conn->id }}">{{ strtoupper($conn->connection_name) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div class="d-flex justify-content-end gap-3">
                             <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
                             <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Simpan</button>
@@ -175,6 +184,36 @@
                                     <tbody>
                                         <tr>
                                             <td colspan="3">No Data</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Add Connection</label>
+                            <select class="form-select select2bs4-edit" name="edit_connectionList[]" id="edit_connectionList" multiple="multiple">
+                                <option value=""></option>
+                                @foreach ($connectionList as $conn)
+                                    <option value="{{ $conn->id }}">{{ strtoupper($conn->connection_name) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Connections</label>
+                            <div class="table-responsive">
+                                <table class="table table-bordered w-100" id="user-connection-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Action</th>
+                                            <th>Connection</th>
+                                            <th>SB Connection</th>
+                                            <th>NDS Connection</th>
+                                            <th>Is Active</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="5">No Data</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -261,7 +300,7 @@
 
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editUserModal" onclick='editData(` + JSON.stringify(row) + `, "editUserModal", [{"function" : "dataTableUserReload(); dataTableUserRoleReload();"}]);' `+(disabled ? "disabled" : "")+`>
+                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editUserModal" onclick='editData(` + JSON.stringify(row) + `, "editUserModal", [{"function" : "dataTableUserReload(); dataTableUserRoleReload(); dataTableUserConnectionReload();"}]);' `+(disabled ? "disabled" : "")+`>
                                     <i class='fa fa-edit'></i>
                                 </a>
                                 <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-user') }}/`+data+`' onclick='deleteData(this)' `+(disabled ? "disabled" : "")+`>
@@ -345,6 +384,63 @@
 
         function dataTableUserRoleReload() {
             $('#user-role-table').DataTable().ajax.reload();
+        }
+
+        // Edit Connection
+        $('#user-connection-table').DataTable({
+            searching: false,
+            paging: false,
+            ordering: false,
+            processing: true,
+            serverside: true,
+            ajax: {
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route('get-user-connection') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: function (d) {
+                    d.id = $("#edit_id").val();
+                }
+            },
+            columns: [
+                {
+                    data: 'id',
+                },
+                {
+                    data: 'connection_name'
+                },
+                {
+                    data: 'connection_sb'
+                },
+                {
+                    data: 'connection_nds'
+                },
+                {
+                    data: 'is_active'
+                },
+            ],
+            columnDefs: [
+                {
+                    targets: [0],
+                    render: (data, type, row, meta) => {
+                        let buttonDelete = "<button type='button' class='btn btn-danger btn-sm'><i class='fa fa-trash'></i></button>";
+
+                        return `
+                            <div class='d-flex gap-1 justify-content-center'>
+                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-user-connection') }}/`+data+`' onclick='deleteData(this)'>
+                                    <i class='fa fa-trash'></i>
+                                </a>
+                            </div>
+                        `;
+                    }
+                },
+            ]
+        });
+
+        function dataTableUserConnectionReload() {
+            $('#user-connection-table').DataTable().ajax.reload();
         }
     </script>
 @endsection

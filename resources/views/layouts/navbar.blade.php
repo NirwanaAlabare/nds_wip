@@ -1467,6 +1467,12 @@
                                     Line <i class="fa-solid fa-users-line"></i>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('manage-connection') }}"
+                                    class="dropdown-item {{ $subPage == 'manage-connection' ? 'active' : '' }}">
+                                    Connection <i class="fas fa-code-branch"></i>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif
@@ -1790,6 +1796,26 @@
                     <i class="fas fa-user ps-1"></i>
                     {{ strlen(Auth::user()->username) > 10 ? substr(Auth::user()->username, 0, 10) . '...' : Auth::user()->username }}
                 </a>
+            </li>
+
+            <li class="nav-item">
+                @php
+                    $userConnection = Auth::user()->userConnection;
+                @endphp
+                @if ($userConnection && $userConnection->count() > 0)
+                    <div>
+                        <select class="form-select" name="select-connection" id="select-connection" onchange="updateConnection(this, '{{ route('update-user-connection') }}')">
+                            @foreach ($userConnection as $connection)
+                                @php
+                                    $connectionList = $connection->connectionList;
+                                @endphp
+                                @if ($connectionList)
+                                    <option value="{{ $connection->id }}"{{ $connection->is_active === "active" ? 'selected' : '' }}>{{ strtoupper($connectionList->connection_name) }}</option>
+                                @endif
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
             </li>
         </ul>
     </div>

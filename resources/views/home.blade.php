@@ -5,7 +5,26 @@
     <div class="container my-3">
         <div class="card card-outline card-sb h-100">
             <div class="card-body">
-                <h3 class="card-title fw-bold text-sb">Halo, {{ strtoupper(auth()->user()->name) }}</h3>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="card-title fw-bold text-sb">Halo, {{ strtoupper(auth()->user()->name) }}</h3>
+                    @php
+                        $userConnection = Auth::user()->userConnection;
+                    @endphp
+                    @if ($userConnection && $userConnection->count() > 0)
+                        <div>
+                            <select class="form-select" name="select-connection" id="select-connection" onchange="updateConnection(this, '{{ route('update-user-connection') }}')">
+                                @foreach ($userConnection as $connection)
+                                    @php
+                                        $connectionList = $connection->connectionList;
+                                    @endphp
+                                    @if ($connectionList)
+                                        <option value="{{ $connectionList->id }}"{{ $connection->is_active === "active" ? 'selected' : '' }}>{{ strtoupper($connectionList->connection_name) }}</option>
+                                    @endif
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+                </div>
                 <br>
                 <div class="row g-3 mt-3">
                     @role('marker')

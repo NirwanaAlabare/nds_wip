@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\PackingLineController;
 use Illuminate\Support\Facades\Route;
 
 // User
@@ -9,6 +8,7 @@ use App\Http\Controllers\User\ManageUserController;
 use App\Http\Controllers\User\ManageRoleController;
 use App\Http\Controllers\User\ManageAccessController;
 use App\Http\Controllers\User\ManageUserLineController;
+use App\Http\Controllers\User\ManageConnectionController;
 
 // Dashboard WIP Line
 use App\Http\Controllers\DashboardWipLineController;
@@ -228,8 +228,52 @@ Route::middleware('auth')->group(function () {
     // User
     Route::controller(UserController::class)->prefix("user")->group(function () {
         Route::put('/update/{id?}', 'update')->name('update-user');
+        Route::post('/update-user-connection', 'updateUserConnection')->name('update-user-connection');
     });
 
+    // Manage User
+    Route::controller(ManageUserController::class)->prefix("manage-user")->middleware('role:superadmin')->group(function () {
+        Route::get('/', 'index')->name('manage-user');
+        Route::post('/store', 'store')->name('store-user');
+        Route::put('/update', 'update')->name('update-user-detail');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-user');
+
+        Route::get('/get-user-role', 'getUserRole')->name('get-user-role');
+        Route::delete('/destroy-user-role/{id?}', 'destroyUserRole')->name('destroy-user-role');
+
+        Route::get('/get-user-connection', 'getUserConnection')->name('get-user-connection');
+        Route::delete('/destroy-user-connection/{id?}', 'destroyUserConnection')->name('destroy-user-connection');
+    });
+
+    // Manage Role
+    Route::controller(ManageRoleController::class)->prefix("manage-role")->middleware('role:superadmin')->group(function () {
+        Route::get('/', 'index')->name('manage-role');
+        Route::post('/store', 'store')->name('store-role');
+        Route::put('/update', 'update')->name('update-role');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-role');
+
+        Route::get('/get-role-access', 'getRoleAccess')->name('get-role-access');
+        Route::delete('/destroy-role-access/{id?}', 'destroyRoleAccess')->name('destroy-role-access');
+    });
+
+    // Manage Access
+    Route::controller(ManageAccessController::class)->prefix("manage-access")->middleware('role:superadmin')->group(function () {
+        Route::get('/', 'index')->name('manage-access');
+        Route::post('/store', 'store')->name('store-access');
+        Route::put('/update', 'update')->name('update-access');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-access');
+    });
+
+    // Manage Connection
+    Route::controller(ManageConnectionController::class)->prefix("manage-connection")->middleware('role:superadmin')->group(function () {
+        Route::get('/', 'index')->name('manage-connection');
+        Route::post('/store', 'store')->name('store-connection');
+        Route::put('/update', 'update')->name('update-connection');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-connection');
+    });
+});
+
+Route::middleware(['auth', 'tenant'])->group(function () {
     // General
     Route::controller(GeneralController::class)->prefix("general")->group(function () {
         // generate unlock token
@@ -2112,36 +2156,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/trigger/{date?}/{mejaId?}', 'cutting_trigger_chart_by_mejaid')->name('cutting-trigger-chart-by-mejaid');
     });
 
-    // Manage User
-    Route::controller(ManageUserController::class)->prefix("manage-user")->middleware('role:superadmin')->group(function () {
-        Route::get('/', 'index')->name('manage-user');
-        Route::post('/store', 'store')->name('store-user');
-        Route::put('/update', 'update')->name('update-user-detail');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-user');
-
-        Route::get('/get-user-role', 'getUserRole')->name('get-user-role');
-        Route::delete('/destroy-user-role/{id?}', 'destroyUserRole')->name('destroy-user-role');
-    });
-
-    // Manage Role
-    Route::controller(ManageRoleController::class)->prefix("manage-role")->middleware('role:superadmin')->group(function () {
-        Route::get('/', 'index')->name('manage-role');
-        Route::post('/store', 'store')->name('store-role');
-        Route::put('/update', 'update')->name('update-role');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-role');
-
-        Route::get('/get-role-access', 'getRoleAccess')->name('get-role-access');
-        Route::delete('/destroy-role-access/{id?}', 'destroyRoleAccess')->name('destroy-role-access');
-    });
-
-    // Manage Access
-    Route::controller(ManageAccessController::class)->prefix("manage-access")->middleware('role:superadmin')->group(function () {
-        Route::get('/', 'index')->name('manage-access');
-        Route::post('/store', 'store')->name('store-access');
-        Route::put('/update', 'update')->name('update-access');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-access');
-    });
-
     // Manage
     Route::controller(ManageUserLineController::class)->prefix("manage-user-line")->middleware('role:superadmin')->group(function () {
         Route::get('/', 'index')->name('manage-user-line');
@@ -2374,9 +2388,9 @@ Route::middleware('auth')->group(function () {
 });
 
 // Dashboard
-Route::get('/dashboard-track', [DashboardController::class, 'track'])->middleware('auth')->name('dashboard-track');
-Route::get('/dashboard-marker', [DashboardController::class, 'marker'])->middleware('auth')->name('dashboard-marker');
-Route::get('/dashboard-wip', [DashboardWipLineController::class, 'index'])->middleware('auth')->name('dashboard-wip');
+Route::get('/dashboard-track', [DashboardController::class, 'track'])->middleware(['auth','tenant'])->name('dashboard-track');
+Route::get('/dashboard-marker', [DashboardController::class, 'marker'])->middleware(['auth','tenant'])->name('dashboard-marker');
+Route::get('/dashboard-wip', [DashboardWipLineController::class, 'index'])->middleware(['auth','tenant'])->name('dashboard-wip');
 Route::get('/dashboard-wip/wip-line/{id?}', [DashboardWipLineController::class, 'show_wip_line'])->name('show_wip_line');
 // Factory
 Route::get('/dashboard-wip/factory-performance/{year?}/{month?}', [DashboardWipLineController::class, 'factoryPerformance'])->name('dashboard-factory-performance');
@@ -2384,14 +2398,14 @@ Route::get('/dashboard-wip/factory-performance/{year?}/{month?}', [DashboardWipL
 Route::get('/dashboard-wip/chief-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'chiefSewing'])->name('dashboard-chief-sewing');
 Route::get('/dashboard-wip/chief-sewing-data', [DashboardWipLineController::class, 'chiefSewingData'])->name('dashboard-chief-sewing-data');
 // Chief Range
-Route::get('/dashboard-wip/chief-sewing-range/{dateFrom?}/{dateTo?}', [DashboardWipLineController::class, 'chiefSewingRange'])->middleware('auth')->name('dashboard-chief-sewing-range');
-Route::get('/dashboard-wip/chief-sewing-range-data', [DashboardWipLineController::class, 'chiefSewingRangeData'])->middleware('auth')->name('dashboard-chief-sewing-range-data');
-Route::post('/dashboard-wip/chief-sewing-range-data-export', [DashboardWipLineController::class, 'chiefSewingRangeDataExport'])->middleware('auth')->name('dashboard-chief-sewing-range-data-export');
+Route::get('/dashboard-wip/chief-sewing-range/{dateFrom?}/{dateTo?}', [DashboardWipLineController::class, 'chiefSewingRange'])->middleware(['auth','tenant'])->name('dashboard-chief-sewing-range');
+Route::get('/dashboard-wip/chief-sewing-range-data', [DashboardWipLineController::class, 'chiefSewingRangeData'])->middleware(['auth','tenant'])->name('dashboard-chief-sewing-range-data');
+Route::post('/dashboard-wip/chief-sewing-range-data-export', [DashboardWipLineController::class, 'chiefSewingRangeDataExport'])->middleware(['auth','tenant'])->name('dashboard-chief-sewing-range-data-export');
 // Leader
-Route::get('/dashboard-wip/leader-sewing/{dateFrom?}/{dateTo?}', [DashboardWipLineController::class, 'leaderSewing'])->middleware('auth')->name('dashboard-leader-sewing');
-Route::get('/dashboard-wip/leader-sewing-data', [DashboardWipLineController::class, 'leaderSewingData'])->middleware('auth')->name('dashboard-leader-sewing-data');
-Route::get('/dashboard-wip/leader-sewing-filter', [DashboardWipLineController::class, 'leaderSewingFilter'])->middleware('auth')->name('dashboard-leader-sewing-filter');
-Route::post('/dashboard-wip/leader-sewing-range-data-export', [DashboardWipLineController::class, 'leaderSewingRangeDataExport'])->middleware('auth')->name('dashboard-leader-sewing-range-data-export');
+Route::get('/dashboard-wip/leader-sewing/{dateFrom?}/{dateTo?}', [DashboardWipLineController::class, 'leaderSewing'])->middleware(['auth','tenant'])->name('dashboard-leader-sewing');
+Route::get('/dashboard-wip/leader-sewing-data', [DashboardWipLineController::class, 'leaderSewingData'])->middleware(['auth','tenant'])->name('dashboard-leader-sewing-data');
+Route::get('/dashboard-wip/leader-sewing-filter', [DashboardWipLineController::class, 'leaderSewingFilter'])->middleware(['auth','tenant'])->name('dashboard-leader-sewing-filter');
+Route::post('/dashboard-wip/leader-sewing-range-data-export', [DashboardWipLineController::class, 'leaderSewingRangeDataExport'])->middleware(['auth','tenant'])->name('dashboard-leader-sewing-range-data-export');
 // Line Support
 Route::get('/dashboard-wip/support-line-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'supportLineSewing'])->name('dashboard-support-line-sewing');
 Route::get('/dashboard-wip/support-line-sewing-data', [DashboardWipLineController::class, 'supportLineSewingData'])->name('dashboard-support-line-sewing-data');
@@ -2399,9 +2413,9 @@ Route::get('/dashboard-wip/support-line-sewing-data', [DashboardWipLineControlle
 Route::get('/dashboard-wip/factory-daily-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'factoryDailyPerformance'])->name('dashboard-factory-daily-sewing');
 Route::get('/dashboard-wip/factory-daily-sewing-data', [DashboardWipLineController::class, 'factoryDailyPerformanceData'])->name('dashboard-factory-daily-sewing-data');
 // Chief Leader
-Route::get('/dashboard-wip/chief-leader-sewing/{dateFrom?}/{dateTo?}', [DashboardWipLineController::class, 'chiefLeaderSewing'])->middleware('auth')->name('dashboard-chief-leader-sewing');
-Route::get('/dashboard-wip/chief-leader-sewing-data', [DashboardWipLineController::class, 'chiefLeaderSewingData'])->middleware('auth')->name('dashboard-chief-leader-sewing-data');
-Route::post('/dashboard-wip/chief-leader-sewing-range-data-export', [DashboardWipLineController::class, 'chiefLeaderSewingRangeDataExport'])->middleware('auth')->name('dashboard-chief-leader-sewing-range-data-export');
+Route::get('/dashboard-wip/chief-leader-sewing/{dateFrom?}/{dateTo?}', [DashboardWipLineController::class, 'chiefLeaderSewing'])->middleware(['auth','tenant'])->name('dashboard-chief-leader-sewing');
+Route::get('/dashboard-wip/chief-leader-sewing-data', [DashboardWipLineController::class, 'chiefLeaderSewingData'])->middleware(['auth','tenant'])->name('dashboard-chief-leader-sewing-data');
+Route::post('/dashboard-wip/chief-leader-sewing-range-data-export', [DashboardWipLineController::class, 'chiefLeaderSewingRangeDataExport'])->middleware(['auth','tenant'])->name('dashboard-chief-leader-sewing-range-data-export');
 // Chief Top
 Route::get('/dashboard-wip/top-chief-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'topChiefSewing'])->name('dashboard-top-chief-sewing');
 Route::get('/dashboard-wip/top-chief-sewing-data', [DashboardWipLineController::class, 'topChiefSewingData'])->name('dashboard-top-chief-sewing-data');
@@ -2409,32 +2423,32 @@ Route::get('/dashboard-wip/top-chief-sewing-data', [DashboardWipLineController::
 Route::get('/dashboard-wip/top-leader-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'topLeaderSewing'])->name('dashboard-top-leader-sewing');
 Route::get('/dashboard-wip/top-leader-sewing-data', [DashboardWipLineController::class, 'topLeaderSewingData'])->name('dashboard-top-leader-sewing-data');
 
-Route::get('/marker-qty', [DashboardController::class, 'markerQty'])->middleware('auth')->name('marker-qty');
-Route::get('/dashboard-cutting', [DashboardController::class, 'cutting'])->middleware('auth')->name('dashboard-cutting');
-Route::get('/dashboard-cutting-chart', [DashboardController::class, 'cutting_chart'])->middleware('auth')->name('dashboard-cutting-chart');
-Route::get('/meja-dashboard-cutting', [DashboardController::class, 'get_cutting_chart_meja'])->middleware('auth')->name('meja-dashboard-cutting');
-Route::get('/cutting-chart-by-mejaid', [DashboardController::class, 'cutting_chart_by_mejaid'])->middleware('auth')->name('cutting-chart-by-mejaid');
-Route::get('/cutting-qty', [DashboardController::class, 'cuttingQty'])->middleware('auth')->name('cutting-qty');
-Route::get('/cutting-dashboard-list', [DashboardController::class, 'cuttingDashboardList'])->middleware('auth')->name('cutting-dashboard-list');
-Route::get('/cutting-form-list', [DashboardController::class, 'cuttingFormList'])->middleware('auth')->name('cutting-form-list');
-Route::get('/cutting-form-chart', [DashboardController::class, 'cuttingFormChart'])->middleware('auth')->name('cutting-form-chart');
-Route::get('/cutting-worksheet-list', [DashboardController::class, 'cuttingWorksheetList'])->middleware('auth')->name('cutting-worksheet-list');
-Route::get('/cutting-worksheet-total', [DashboardController::class, 'cuttingWorksheetTotal'])->middleware('auth')->name('cutting-worksheet-total');
-Route::get('/cutting-output-list', [DashboardController::class, 'cuttingOutputList'])->middleware('auth')->name('cutting-output-list');
-Route::get('/cutting-output-list-all', [DashboardController::class, 'cuttingOutputListAll'])->middleware('auth')->name('cutting-output-list-all');
-Route::get('/cutting-output-list-panels', [DashboardController::class, 'cuttingOutputListPanels'])->middleware('auth')->name('cutting-output-list-panels');
-Route::get('/cutting-output-list-data', [DashboardController::class, 'cuttingOutputListData'])->middleware('auth')->name('cutting-output-list-data');
-Route::get('/cutting-stock-list-data', [DashboardController::class, 'cuttingStockListData'])->middleware('auth')->name('cutting-stock-list-data');
+Route::get('/marker-qty', [DashboardController::class, 'markerQty'])->middleware(['auth','tenant'])->name('marker-qty');
+Route::get('/dashboard-cutting', [DashboardController::class, 'cutting'])->middleware(['auth','tenant'])->name('dashboard-cutting');
+Route::get('/dashboard-cutting-chart', [DashboardController::class, 'cutting_chart'])->middleware(['auth','tenant'])->name('dashboard-cutting-chart');
+Route::get('/meja-dashboard-cutting', [DashboardController::class, 'get_cutting_chart_meja'])->middleware(['auth','tenant'])->name('meja-dashboard-cutting');
+Route::get('/cutting-chart-by-mejaid', [DashboardController::class, 'cutting_chart_by_mejaid'])->middleware(['auth','tenant'])->name('cutting-chart-by-mejaid');
+Route::get('/cutting-qty', [DashboardController::class, 'cuttingQty'])->middleware(['auth','tenant'])->name('cutting-qty');
+Route::get('/cutting-dashboard-list', [DashboardController::class, 'cuttingDashboardList'])->middleware(['auth','tenant'])->name('cutting-dashboard-list');
+Route::get('/cutting-form-list', [DashboardController::class, 'cuttingFormList'])->middleware(['auth','tenant'])->name('cutting-form-list');
+Route::get('/cutting-form-chart', [DashboardController::class, 'cuttingFormChart'])->middleware(['auth','tenant'])->name('cutting-form-chart');
+Route::get('/cutting-worksheet-list', [DashboardController::class, 'cuttingWorksheetList'])->middleware(['auth','tenant'])->name('cutting-worksheet-list');
+Route::get('/cutting-worksheet-total', [DashboardController::class, 'cuttingWorksheetTotal'])->middleware(['auth','tenant'])->name('cutting-worksheet-total');
+Route::get('/cutting-output-list', [DashboardController::class, 'cuttingOutputList'])->middleware(['auth','tenant'])->name('cutting-output-list');
+Route::get('/cutting-output-list-all', [DashboardController::class, 'cuttingOutputListAll'])->middleware(['auth','tenant'])->name('cutting-output-list-all');
+Route::get('/cutting-output-list-panels', [DashboardController::class, 'cuttingOutputListPanels'])->middleware(['auth','tenant'])->name('cutting-output-list-panels');
+Route::get('/cutting-output-list-data', [DashboardController::class, 'cuttingOutputListData'])->middleware(['auth','tenant'])->name('cutting-output-list-data');
+Route::get('/cutting-stock-list-data', [DashboardController::class, 'cuttingStockListData'])->middleware(['auth','tenant'])->name('cutting-stock-list-data');
 
-Route::get('/dashboard-stocker', [DashboardController::class, 'stocker'])->middleware('auth')->name('dashboard-stocker');
-Route::get('/dashboard-stocker/show/{actCostingId?}', [DashboardController::class, 'showStocker'])->middleware('auth')->name('dashboard-stocker-show');
+Route::get('/dashboard-stocker', [DashboardController::class, 'stocker'])->middleware(['auth','tenant'])->name('dashboard-stocker');
+Route::get('/dashboard-stocker/show/{actCostingId?}', [DashboardController::class, 'showStocker'])->middleware(['auth','tenant'])->name('dashboard-stocker-show');
 
-Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
-Route::get('/dc-qty', [DashboardController::class, 'dcQty'])->middleware('auth')->name('dc-qty');
-Route::get('/dashboard-sewing-eff', [DashboardController::class, 'sewingEff'])->middleware('auth')->name('dashboard-sewing-eff');
-Route::get('/sewing-summary', [DashboardController::class, 'sewingSummary'])->middleware('auth')->name('dashboard-sewing-sum');
-Route::get('/sewing-output-data', [DashboardController::class, 'sewingOutputData'])->middleware('auth')->name('dashboard-sewing-output');
-Route::get('/dashboard-manage-user', [DashboardController::class, 'manageUser'])->middleware('auth')->name('dashboard-manage-user');
+Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware(['auth','tenant'])->name('dashboard-dc');
+Route::get('/dc-qty', [DashboardController::class, 'dcQty'])->middleware(['auth','tenant'])->name('dc-qty');
+Route::get('/dashboard-sewing-eff', [DashboardController::class, 'sewingEff'])->middleware(['auth','tenant'])->name('dashboard-sewing-eff');
+Route::get('/sewing-summary', [DashboardController::class, 'sewingSummary'])->middleware(['auth','tenant'])->name('dashboard-sewing-sum');
+Route::get('/sewing-output-data', [DashboardController::class, 'sewingOutputData'])->middleware(['auth','tenant'])->name('dashboard-sewing-output');
+Route::get('/dashboard-manage-user', [DashboardController::class, 'manageUser'])->middleware(['auth','tenant'])->name('dashboard-manage-user');
 
 // Accounting
 Route::controller(AccountingController::class)->prefix("accounting")->middleware('role:accounting')->group(function () {

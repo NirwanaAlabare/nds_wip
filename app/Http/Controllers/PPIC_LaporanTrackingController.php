@@ -1204,7 +1204,7 @@ order by buyer asc");
                     INNER JOIN
                             laravel_nds.stocker_input b ON a.stocker_id = b.id
                     WHERE
-                            b.form_cut_id > 0
+                            b.form_cut_id > 0 and (b.cancel != 'Y' OR b.cancel IS NULL)
                     GROUP BY
                         b.so_det_id,
                         b.form_cut_id,

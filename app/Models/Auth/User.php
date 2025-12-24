@@ -59,10 +59,37 @@ class User extends Authenticatable
     /**
      * Get all of the user role for the User
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function userRole()
     {
         return $this->hasMany(UserRole::class, 'user_id', 'id');
+    }
+
+    /**
+     * Get all of the connections for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+    public function connectionList()
+    {
+        return $this->hasManyThrough(
+            ConnectionList::class,
+            UserConnection::class,
+            'user_id', // Foreign key on the user role table...
+            'id', // Foreign key on the role table...
+            'id', // Local key on the user table...
+            'connection_id' // Local key on the user role table...
+        );
+    }
+
+    /**
+     * Get all of the user connection for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function userConnection()
+    {
+        return $this->hasMany(UserConnection::class, 'user_id', 'id');
     }
 }

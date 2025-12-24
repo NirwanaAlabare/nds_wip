@@ -90,5 +90,6 @@ class Kernel extends HttpKernel
         'so' => \App\Http\Middleware\IsStockOpname::class,
         'marketing' => \App\Http\Middleware\IsMarketing::class,
         'role' => \App\Http\Middleware\RoleMiddleWare::class,
+        'tenant' => \App\Http\Middleware\SetTenantConnection::class,
     ];
 }

@@ -7,6 +7,8 @@ use App\Models\Auth\User;
 use App\Models\Auth\Role;
 use App\Models\Auth\UserRole;
 use App\Models\Auth\Access;
+use App\Models\Auth\ConnectionList;
+use App\Models\Auth\UserConnection;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Requests\StoreUserRequest;
@@ -45,8 +47,9 @@ class ManageUserController extends Controller
 
         $roles = Role::all();
         $accesses = Access::all();
+        $connectionList = ConnectionList::all();
 
-        return view("users.users", ["roles" => $roles, "accesses" => $accesses, "page" => "dashboard-manage-user", "subPageGroup" => "manage-user", "subPage" => "manage-user"]);
+        return view("users.users", ["roles" => $roles, "accesses" => $accesses, "connectionList" => $connectionList, "page" => "dashboard-manage-user", "subPageGroup" => "manage-user", "subPage" => "manage-user"]);
     }
 
     /**
@@ -85,6 +88,13 @@ class ManageUserController extends Controller
                 }
 
                 UserRole::insert($roleArray);
+
+                $connectionArray = [];
+                for ($j = 0; $j < count($request['connectionList']); $j++) {
+                    array_push($connectionArray, ["user_id" => $create->id, "connection_id" => $request['connectionList'][$j], "is_active" => ($j == 0 ? 'active' : 'inactive')]);
+                }
+
+                UserConnection::insert($connectionArray);
             }
 
             return array(
@@ -154,6 +164,7 @@ class ManageUserController extends Controller
         }
 
         if ($updateUser) {
+            // Update User Role
             if ($request['edit_roles'] && count($request['edit_roles']) > 0) {
                 $roleArray = [];
 
@@ -162,6 +173,32 @@ class ManageUserController extends Controller
                 }
 
                 UserRole::insert($roleArray);
+            }
+
+            // Update User Connection
+            if ($request['edit_connectionList'] && count($request['edit_connectionList']) > 0) {
+                $connectionArray = [];
+
+                for ($i = 0; $i < count($request['edit_connectionList']); $i++) {
+                    array_push($connectionArray, ["user_id" => $validatedRequest["edit_id"], "connection_id" => $request['edit_connectionList'][$i], 'is_active' => 'inactive']);
+                }
+
+                UserConnection::insert($connectionArray);
+
+                // Check Active Connection
+                $checkUserConnectionActive = UserConnection::where("user_id", $validatedRequest["edit_id"])->
+                    where("is_active", "active")->
+                    first();
+
+                // If there is no Active Connection, set the first connection as Active
+                if (!$checkUserConnectionActive) {
+                    $firstUserConnection = UserConnection::where("user_id", $validatedRequest["edit_id"])->first();
+
+                    if ($firstUserConnection) {
+                        $firstUserConnection->is_active = "active";
+                        $firstUserConnection->save();
+                    }
+                }
             }
 
             return array(
@@ -194,6 +231,8 @@ class ManageUserController extends Controller
 
             if ($deleteUser) {
                 UserRole::where("user_id", $id)->delete();
+
+                UserConnection::where("user_id", $id)->delete();
 
                 return array(
                     'status' => '200',
@@ -243,6 +282,56 @@ class ManageUserController extends Controller
         return array(
             'status' => '400',
             'message' => 'Delete Role failed',
+            'redirect' => '',
+            'additional' => [],
+        );
+    }
+
+    public function getUserConnection(Request $request) {
+        $userConnection = UserConnection::with(["connectionList"])->where("user_id", $request->id);
+
+        return DataTables::eloquent($userConnection)
+            ->addColumn('connection_name', function ($row) {
+                return $row->connectionList->connection_name;
+            })
+            ->addColumn('connection_sb', function ($row) {
+                return $row->connectionList->connection_sb;
+            })
+            ->addColumn('connection_nds', function ($row) {
+                return $row->connectionList->connection_nds;
+            })
+            ->rawColumns(['connection_name', 'connection_sb','connection_nds'])->
+            toJson();
+    }
+
+    public function destroyUserConnection($id = 0) {
+        $currentUserConnection = UserConnection::where("id", $id)->first();
+
+        if ($currentUserConnection) {
+            if ($currentUserConnection->is_active != 'active') {
+                $currentUserConnection->delete();
+            } else {
+                return array(
+                    'status' => '200',
+                    'message' => 'Connection Deleted',
+                    'table' => 'user-connection-table',
+                    'redirect' => '',
+                    'additional' => [],
+                );
+            }
+
+            return array(
+                'status' => '200',
+                'message' => 'Connection Deleted',
+                'table' => 'user-connection-table',
+                'redirect' => '',
+                'additional' => [],
+            );
+        }
+
+        return array(
+            'status' => '400',
+            'message' => 'Delete Connection failed',
             'redirect' => '',
             'additional' => [],
         );

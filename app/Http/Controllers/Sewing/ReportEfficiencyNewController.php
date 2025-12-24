@@ -182,13 +182,13 @@ class ReportEfficiencyNewController extends Controller
                     round(
                     sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
                     ELSE acm.price end,2) AS earning,
-                    COALESCE(mr.kurs_tengah,mkb.kurs_tengah) kurs_tengah,
+                    mkb.kurs_tengah kurs_tengah,
                     round(
                     if (so.curr = 'IDR',
                     sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
                     ELSE acm.price end,
                     sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
-                    ELSE acm.price end * COALESCE(mr.kurs_tengah,mkb.kurs_tengah)
+                    ELSE acm.price end * mkb.kurs_tengah
                     ),2) tot_earning_rupiah,
                     round((cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60),2) mins_avail,
                     round(sum(a.tot_output) * mp.smv,2) mins_prod,
@@ -283,24 +283,6 @@ class ReportEfficiencyNewController extends Controller
                     JOIN master_kurs_bi k
                     ON k.tanggal_kurs_bi = x.max_kurs_date
                 ) mkb ON a.tgl_trans = mkb.tgl_trans
-
-                LEFT JOIN (
-                    SELECT x.tgl_trans, x.max_kurs_date, k.rate as kurs_tengah
-                    FROM (
-                        SELECT a_dates.tgl_trans, MAX(mr.tanggal) AS max_kurs_date
-                        FROM (
-                            SELECT DISTINCT date(updated_at) AS tgl_trans
-                            FROM output_rfts
-                            WHERE updated_at >= '$start_date' AND updated_at <= '$end_date'
-                        ) a_dates
-                        JOIN masterrate mr
-                        ON mr.tanggal <= a_dates.tgl_trans
-                        GROUP BY a_dates.tgl_trans
-                    ) x
-                    JOIN masterrate k
-                    ON k.tanggal = x.max_kurs_date
-                    WHERE k.v_codecurr = 'HARIAN'
-                ) mr ON a.tgl_trans = mr.tgl_trans
 
                 group by ul.username, ac.kpno, ac.Styleno, a.tgl_trans
                 order by a.tgl_trans asc, ul.username asc, ac.kpno asc;

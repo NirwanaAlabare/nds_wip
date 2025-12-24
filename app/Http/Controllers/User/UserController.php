@@ -4,11 +4,13 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Auth\User;
+use App\Models\Auth\UserConnection;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -116,6 +118,43 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         //
+    }
+
+    public function updateUserConnection(Request $request)
+    {
+        $user = Auth::user();
+
+        if ($user && $request->id) {
+            // Update Selected Connection to Active
+            $updateUserConnection = UserConnection::where("id", $request->id)->
+                where("user_id", $user->id)->
+                update([
+                    "is_active" => "active"
+                ]);
+
+            if ($updateUserConnection) {
+                // Update Other Connections to Inactive
+                UserConnection::where("id", "!=", $request->id)->
+                    where("user_id", $user->id)->
+                    update([
+                        "is_active" => "inactive"
+                    ]);
+
+                return response()->json([
+                    'status' => '200',
+                    'message' => 'Connection update success',
+                    'redirect' => '',
+                    'additional' => [],
+                ]);
+            }
+        }
+
+        return response()->json([
+            'status' => '400',
+            'message' => 'Connection update failed',
+            'redirect' => 'reload',
+            'additional' => [],
+        ]);
     }
 
     public function getApi()
