@@ -8,6 +8,8 @@ use App\Models\Part\MasterTujuan;
 use App\Models\Part\MasterSecondary;
 use App\Models\Part\Part;
 use App\Models\Part\PartDetail;
+use App\Models\Part\PartDetailItem;
+use App\Models\Part\PartItem;
 use App\Models\Part\PartForm;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
@@ -243,24 +245,40 @@ class PartController extends Controller
                 "created_by_username" => Auth::user()->username,
             ]);
 
+            // Part Detail
             $timestamp = Carbon::now();
             $partId = $partStore->id;
-            $partDetailData = [];
             for ($i = 0; $i < $totalPartDetail; $i++) {
                 if ($request["part_details"][$i] && $request["proses"][$i] && $request["cons"][$i] && $request["cons_unit"][$i]) {
-                    array_push($partDetailData, [
+                    $partDetailStore = PartDetail::create([
                         "part_id" => $partId,
                         "master_part_id" => $request["part_details"][$i],
                         "master_secondary_id" => $request["proses"][$i],
                         "cons" => $request["cons"][$i],
                         "unit" => $request["cons_unit"][$i],
                         "created_at" => $timestamp,
-                        "updated_at" => $timestamp,
+                        "updated_at" => $timestamp
                     ]);
+
+                    // Part Detail Item
+                    if ($partDetailStore) {
+                        if ($request["item"][$i] && count($request["item"][$i]) > 0) {
+                            $partItemData = [];
+
+                            for ($j = 0; $j < count($request["item"][$i]); $j++) {
+                                array_push($partItemData, [
+                                    "part_detail_id" => $partDetailStore->id,
+                                    "bom_jo_item_id" => $request["item"][$i][$j],
+                                    "created_at" => $timestamp,
+                                    "updated_at" => $timestamp,
+                                ]);
+                            }
+
+                            PartDetailItem::insert($partItemData);
+                        }
+                    }
                 }
             }
-
-            $partDetailStore = PartDetail::insert($partDetailData);
 
             $formCutData = FormCutInput::select('form_cut_input.id')->leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->where("marker_input.act_costing_id", $partStore->act_costing_id)->where("marker_input.act_costing_ws", $partStore->act_costing_ws)->where("marker_input.panel", $partStore->panel)->where("marker_input.buyer", $partStore->buyer)->where("marker_input.style", $partStore->style)->where("form_cut_input.status", "SELESAI PENGERJAAN")->orderBy("no_cut", "asc")->get();
             foreach ($formCutData as $formCut) {

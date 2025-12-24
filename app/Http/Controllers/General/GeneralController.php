@@ -14,6 +14,8 @@ use Yajra\DataTables\Facades\DataTables;
 use App\Models\Stocker\Stocker;
 use App\Models\MarkerInput;
 use App\Models\Part\Part;
+use App\Models\Part\PartDetail;
+use App\Models\Part\PartDetailItem;
 use App\Models\CuttingPlanOutput;
 use App\Models\Stocker\StockerAdditional;
 use App\Models\Cutting\Piping;
@@ -673,6 +675,25 @@ class GeneralController extends Controller
             first();
 
         return $employee;
+    }
+
+    public function getPartItemList(Request $request)
+    {
+        if ($request->act_costing_id) {
+            $items = DB::connection("mysql_sb")->select("
+                select bom_jo_item.id, masteritem.itemdesc from bom_jo_item
+                left join jo_det on jo_det.id_jo = bom_jo_item.id_jo
+                left join so on so.id = jo_det.id_so
+                left join act_costing on act_costing.id = so.id_cost
+                left join masteritem on bom_jo_item.id_item = masteritem.id_item
+                where act_costing.id = '".$request->act_costing_id."' and bom_jo_item.`status` = 'P' and matclass != 'CMT'
+                group by bom_jo_item.id_item
+            ");
+
+            return $items;
+        }
+
+        return null;
     }
 
     public function getScannedItem($id = 0, Request $request)

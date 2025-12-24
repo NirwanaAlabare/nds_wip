@@ -16,7 +16,10 @@ class MgtReportSumBuyerController extends Controller
     public function mgt_report_sum_buyer(Request $request)
     {
         ini_set('max_execution_time', 0);
+<<<<<<< HEAD
 
+=======
+>>>>>>> 162bdb99cc8d74154076b57a7a469429dec2d5ae
         $user = Auth::user()->name;
 
         $data_buyer = DB::connection('mysql_sb')->select("SELECT supplier isi, supplier tampil from signalbit_erp.so
@@ -892,7 +895,10 @@ from earn a
 left join sum_earning_buyer b on a.buyer = b.buyer
 group by a.buyer
 $having_buyer
+<<<<<<< HEAD
 
+=======
+>>>>>>> 162bdb99cc8d74154076b57a7a469429dec2d5ae
         ");
                 return response()->json([
                     'data' => $rawData // ✅ simplified response
