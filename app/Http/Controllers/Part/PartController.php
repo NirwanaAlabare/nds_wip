@@ -569,7 +569,17 @@ class PartController extends Controller
 
         $data_tujuan = DB::select("select tujuan isi, tujuan tampil from master_tujuan");
 
-        return view("marker.part.manage-part-secondary", ["part" => $part, "data_part" => $data_part, "data_tujuan" => $data_tujuan, "page" => "dashboard-marker",  "subPageGroup" => "proses-marker", "subPage" => "part"]);
+        $data_item = DB::connection("mysql_sb")->select("
+                select bom_jo_item.id, masteritem.itemdesc from bom_jo_item
+                left join jo_det on jo_det.id_jo = bom_jo_item.id_jo
+                left join so on so.id = jo_det.id_so
+                left join act_costing on act_costing.id = so.id_cost
+                left join masteritem on bom_jo_item.id_item = masteritem.id_item
+                where act_costing.kpno = '".$request->act_costing_ws."' and bom_jo_item.`status` = 'P' and matclass != 'CMT'
+                group by bom_jo_item.id_item
+            ");
+
+        return view("marker.part.manage-part-secondary", ["part" => $part, "data_part" => $data_part, "data_tujuan" => $data_tujuan, "data_item" => $data_item, "page" => "dashboard-marker",  "subPageGroup" => "proses-marker", "subPage" => "part"]);
     }
 
     public function get_proses(Request $request)
@@ -970,14 +980,15 @@ class PartController extends Controller
             "
             SELECT
                 pd.id,
-                CONCAT(nama_part, ' - ', bag) nama_part,
+                CONCAT(mp.nama_part, ' - ', mp.bag) nama_part,
                 master_part_id,
                 master_secondary_id,
                 ms.tujuan,
                 ms.proses,
-                cons,
-                UPPER(unit) unit,
-                stocker.total total_stocker
+                pd.cons,
+                UPPER(pd.unit) unit,
+                stocker.total total_stocker,
+                GROUP_CONCAT(DISTINCT mi.itemdesc) as item
             FROM
                 `part_detail` pd
                 inner join master_part mp on pd.master_part_id = mp.id
@@ -991,8 +1002,13 @@ class PartController extends Controller
                     group by
                         part_detail_id
                 ) stocker on stocker.part_detail_id = pd.id
+                left join part_detail_item pdi on pdi.part_detail_id = pd.id
+                left join signalbit_erp.bom_jo_item bji on bji.id = pdi.bom_jo_item_id
+                left join signalbit_erp.masteritem mi on mi.id_item = bji.id_item
             where
                 part_id = '" . $request->id . "'
+            group by
+                pd.id
             "
         );
 

@@ -160,6 +160,7 @@
                                     <th>Satuan</th>
                                     <th>Tujuan</th>
                                     <th>Proses</th>
+                                    <th>Item</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -220,6 +221,15 @@
                         <div class="mb-3">
                             <label class="form-label">Proses</label>
                             <select class="form-select select2bs4" name="edit_proses" id="edit_proses"></select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Item</label>
+                            <select class="form-select select2bs4" name="edit_item" id="edit_item"></select>
+                            @foreach ($data_item as $item)
+                                <option value="{{ $$item->id }}">
+                                    {{ $$item->itemdesc }}
+                                </option>
+                            @endforeach
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -438,6 +448,9 @@
                     },
                     {
                         data: 'proses',
+                    },
+                    {
+                        data: 'item',
                     },
                 ],
                 columnDefs: [
