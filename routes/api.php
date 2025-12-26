@@ -55,7 +55,12 @@ Route::controller(OutMaterialController::class)->prefix("out-barcode-fabric")->g
     Route::post('out-material/out-barcode-fabric', 'out_barcode_fabric');
 });
 
-//out barcode Fabric
+//mutasi barcode Fabric
 Route::controller(OutMaterialController::class)->prefix("mutasi-barcode-fabric")->group(function () {
     Route::post('mutasi-material/mutasi-barcode-fabric', 'mutasi_barcode_fabric');
+});
+
+//mutasi item Fabric
+Route::controller(OutMaterialController::class)->prefix("mutasi-item-fabric")->group(function () {
+    Route::post('mutasi-material/mutasi-item-fabric', 'mutasi_item_fabric');
 });
