@@ -207,6 +207,10 @@ use App\Http\Controllers\IE_Laporan_Controller;
 
 //maintain-bpb
 use App\Http\Controllers\MaintainBpbController;
+
+//packing subcont
+use App\Http\Controllers\PackingSubcontController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -1806,6 +1810,10 @@ Route::middleware('auth')->group(function () {
     Route::controller(PackingLineController::class)->prefix("packing-line")->middleware('packing')->group(function () {
         Route::get('/track-packing-output', 'trackPackingOutput')->name('track-packing-output');
         Route::post('/track-packing-output/export', 'exportPackingOutput')->name('export-packing-output');
+    });
+
+    Route::controller(PackingSubcontController::class)->prefix("packing-subcont")->middleware('packing')->group(function () {
+        Route::get('/packing-out-subcont', 'PackingOutSubcont')->name('packing-out-subcont');
     });
 
     // Needle Check
