@@ -46,7 +46,7 @@
             <div class="mt-4 ">
                 <button class="btn btn-sm btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Search</button>
                 <!-- <button class="btn btn-info" onclick="tambahdata()"> <i class="fas fa-plus"></i> Add Data</button> -->
-                <a href="{{ route('create-inmaterial') }}" class="btn btn-sm btn-info">
+                <a href="{{ route('create-packing-out-subcont') }}" class="btn btn-sm btn-info">
                 <i class="fas fa-plus"></i>
                 Add Data
             </a>

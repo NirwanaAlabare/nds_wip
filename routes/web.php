@@ -1813,7 +1813,8 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::controller(PackingSubcontController::class)->prefix("packing-subcont")->middleware('packing')->group(function () {
-        Route::get('/packing-out-subcont', 'PackingOutSubcont')->name('packing-out-subcont');
+        Route::get('/packing-out-subcont', 'index')->name('packing-out-subcont');
+        Route::get('/create-packing-out-subcont', 'create')->name('create-packing-out-subcont');
     });
 
     // Needle Check
