@@ -262,7 +262,7 @@ class PartController extends Controller
 
                     // Part Detail Item
                     if ($partDetailStore) {
-                        if ($request["item"][$i] && count($request["item"][$i]) > 0) {
+                        if (isset($request["item"][$i]) && $request["item"][$i] && count($request["item"][$i]) > 0) {
                             $partItemData = [];
 
                             for ($j = 0; $j < count($request["item"][$i]); $j++) {
