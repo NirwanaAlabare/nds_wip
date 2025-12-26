@@ -94,8 +94,8 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
                     req.styleno,
                     req.color,
                     COALESCE(roll.roll, req.no_roll) roll,
-                    COALESCE(roll.qty, req.qty_out) qty,
-                    COALESCE(roll.sisa_kain, req.qty_out, 0) - COALESCE(piping.piping, 0) as sisa_kain,
+                    (CASE WHEN piping.id_roll IS NOT NULL THEN GREATEST(COALESCE(roll.qty, req.qty_out, 0), piping.qty) ELSE COALESCE(roll.qty, req.qty_out, 0) END) qty,
+                    (CASE WHEN piping.id_roll IS NOT NULL THEN LEAST(COALESCE(roll.sisa_kain, req.qty_out, 0), COALESCE(piping.sisa_kain, 0)) ELSE COALESCE(roll.sisa_kain, req.qty_out, 0) END) sisa_kain,
                     COALESCE(roll.unit, piping.unit, req.satuan) unit,
                     COALESCE(roll.total_pemakaian_roll, 0) + COALESCE(piping.piping, 0) as total_pemakaian_roll,
                     COALESCE(roll.total_short_roll_2, 0) total_short_roll_2,
@@ -151,7 +151,8 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
                         id_roll,
                         form_cut_piping.unit,
                         SUM(form_cut_piping.qty) qty,
-                        SUM(form_cut_piping.piping) piping
+                        SUM(form_cut_piping.piping) piping,
+                        MIN(form_cut_piping.qty_sisa) sisa_kain
                     from
                         form_cut_piping
                     where
