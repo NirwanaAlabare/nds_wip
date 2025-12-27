@@ -11,7 +11,7 @@
 @endsection
 
 @section('content')
-<form action="{{ route('store-outmaterial-fabric') }}" method="post" id="store-outmaterial-fabric" onsubmit="submitForm(this, event)">
+<form action="{{ route('store-packing-out-subcont') }}" method="post" id="store-outmaterial-fabric" onsubmit="submitForm(this, event)">
     @csrf
     <div class="card card-sb">
         <div class="card-header">
@@ -52,14 +52,36 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>No PO</small></label>
-                <select class="form-control select2bs4" id="txt_noreq" name="txt_noreq" style="width: 100%;" onchange="det_request(this.value)">
-                    <option selected="selected" value="">Pilih Request</option>
-                        @foreach ($no_req as $noreq)
-                    <option value="{{ $noreq->isi }}">
-                                {{ $noreq->tampil }}
+                <select class="form-control select2bs4" id="txt_no_po" name="txt_no_po" style="width: 100%;" onchange="detail_po(this.value)">
+                    <option selected="selected" value="">Pilih PO</option>
+                        @foreach ($no_po as $po)
+                    <option value="{{ $po->pono }}">
+                                {{ $po->pono }}
                     </option>
                         @endforeach
                 </select>
+                </div>
+            </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="row">
+
+            <div class="col-md-12">
+            <div class="mb-1">
+                <div class="form-group">
+                    <label><small>Tujuan Kirim</small></label>
+                    <select class="form-control select2bs4" id="txt_supp" name="txt_supp" style="width: 100%;" onchange="settype()">
+                        <option selected="selected" value="">Pilih Supplier</option>
+                        @foreach ($msupplier as $msupp)
+                        <option value="{{ $msupp->id_supplier }}">
+                            {{ $msupp->Supplier }}
+                        </option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
             </div>
@@ -69,7 +91,7 @@
                 <div class="form-group">
                 <label><small>Jenis Pengeluaran</small></label>
                 <select class="form-control select2bs4" id="txt_jns_klr" name="txt_jns_klr" style="width: 100%;">
-                    <option selected="selected" value="">Pilih Pengeluaran</option>
+                    <option selected="selected" value="">Pilih Jenis Pengeluaran</option>
                         @foreach ($jns_klr as $jnsklr)
                     <option value="{{ $jnsklr->isi }}">
                                 {{ $jnsklr->tampil }}
@@ -79,80 +101,6 @@
                 </div>
             </div>
             </div>
-
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>No JO</small></label>
-                <input type="text" class="form-control " id="txt_nojo" name="txt_nojo" value="" readonly>
-                <input type="hidden" class="form-control " id="txt_id_jo" name="txt_id_jo" value="" readonly>
-                </div>
-            </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="row">
-
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                                    <label><small>Tujuan Kirim</small></label>
-                                    <select class="form-control select2bs4" id="txt_supp" name="txt_supp"
-                                    style="width: 100%;" onchange="settype()">
-                                    <option selected="selected" value="">Pilih Supplier</option>
-                                    @foreach ($msupplier as $msupp)
-                                    <option value="{{ $msupp->id_supplier }}">
-                                        {{ $msupp->Supplier }}
-                                    </option>
-                                    @endforeach
-                                </select>
-                            </div>
-            </div>
-            </div>
-
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Buyer</small></label>
-                <input type="text" class="form-control " id="txt_buyer" name="txt_buyer" value="" readonly>
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Worksheet</small></label>
-                <input type="text" class="form-control " id="txt_nows" name="txt_nows" value="" readonly>
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Worksheet Actual</small></label>
-                <input type="text" class="form-control " id="txt_nows_act" name="txt_nows_act" value="" readonly>
-                </select>
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Style Actual</small></label>
-                <input type="text" class="form-control " id="txt_style_act" name="txt_style_act" value="" readonly>
-                </div>
-            </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="row">
 
             <div class="col-md-12">
             <div class="mb-1">
@@ -170,56 +118,20 @@
             </div>
             </div>
 
-            <!-- <div class="col-md-7">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>No Aju</small></label>
-                <input type="text" class="form-control " id="txt_no_aju" name="txt_no_aju" value="" >
-                </div>
-            </div>
-            </div>
+        </div>
+    </div>
 
-            <div class="col-md-5">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Tgl Aju</small></label>
-                <input type="date" class="form-control form-control" id="txt_tgl_aju" name="txt_tgl_aju"
-                        value="{{ date('Y-m-d') }}">
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-7">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>No Daftar</small></label>
-                <input type="text" class="form-control " id="txt_no_daftar" name="txt_no_daftar" value="" >
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-5">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Tgl Daftar</small></label>
-                <input type="date" class="form-control form-control" id="txt_tgl_daftar" name="txt_tgl_daftar"
-                        value="{{ date('Y-m-d') }}">
-                </div>
-            </div>
-            </div> -->
-
-            <input type="hidden" class="form-control " id="txt_no_aju" name="txt_no_aju" value="" >
-            <input type="hidden" class="form-control form-control" id="txt_tgl_aju" name="txt_tgl_aju"
-                        value="{{ date('Y-m-d') }}">
-            <input type="hidden" class="form-control " id="txt_no_daftar" name="txt_no_daftar" value="" >
-            <input type="hidden" class="form-control form-control" id="txt_tgl_daftar" name="txt_tgl_daftar"
-                        value="{{ date('Y-m-d') }}">
+    <div class="col-md-4">
+        <div class="row">
 
             <div class="col-md-6">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>No Kontrak</small></label>
-                <input type="text" class="form-control " id="txt_kontrak" name="txt_kontrak" value="" >
+                    <label><small>Berat Garment</small></label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="qty_bruto" name="txt_qty_garment" style="text-align:right;" oninput="setqtynetto()">
+                        <input type="text" class="form-control bg-info text-white text-center" value="KG" readonly style="max-width: 50px;">
+                    </div>
                 </div>
             </div>
             </div>
@@ -227,34 +139,21 @@
             <div class="col-md-6">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>No Invoice</small></label>
-<!--            <select class="form-control select2bs4" id="txt_tom" name="txt_tom" style="width: 100%;"></select> -->                      
-                <input type="text" class="form-control " id="txt_invoice" name="txt_invoice" value="">
-               </div>
-            </div>
-            </div>
-
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>PO Subcont</small></label>
-                <select class="form-control select2bs4" id="txt_po_sub" name="txt_po_sub" style="width: 100%;">
-                    <option selected="selected" value="">Pilih PO Subcont</option>
-                        @foreach ($no_po as $po)
-                    <option value="{{ $po->pono }}">
-                                {{ $po->pono }}
-                    </option>
-                        @endforeach
-                </select>
+                <label><small>Berat Karton</small></label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="qty_bruto" name="txt_qty_karton" style="text-align:right;" oninput="setqtynetto()">
+                        <input type="text" class="form-control bg-success text-white text-center" value="KG" readonly style="max-width: 50px;">
+                    </div>
                 </div>
             </div>
             </div>
+
 
             <div class="col-md-12">
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>Catatan</small></label>
-                <textarea type="text" rows="5" class="form-control " id="txt_notes" name="txt_notes" value="" > </textarea>
+                <textarea type="text" rows="4" class="form-control " id="txt_notes" name="txt_notes" value="" > </textarea>
                 <input type="hidden" class="form-control" id="jumlah_data" name="jumlah_data" readonly>
                 <input type="hidden" class="form-control" id="jumlah_qty" name="jumlah_qty" readonly>
                 </div>
@@ -284,19 +183,21 @@
             <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100 text-nowrap">
                 <thead>
                     <tr>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Style</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">No WS</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Styleno</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Job Order</th>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Item</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Deskripsi</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Stok</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Request</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Item Desc</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Unit</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty PO</th>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Out</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Sisa Qty Request</th>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Input</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Satuan</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Lokasi</th>
-                        <th class="text-center" style="display: none;">Lokasi</th>
-                        <th class="text-center" style="display: none;">Lokasi</th>
-                        <th class="text-center" style="display: none;">Lokasi</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Balance</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Add Data</th>
+                        <th class="text-center" style="display: none;"></th>
+                        <th class="text-center" style="display: none;"></th>
+                        <th class="text-center" style="display: none;"></th>
+                        <th class="text-center" style="display: none;"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -316,10 +217,10 @@
     </div>
 </form>
 
-<div class="modal fade" id="modal-out-manual">
-    <form action="{{ route('save-out-manual') }}" method="post" onsubmit="submitFormScan(this, event)">
+<div class="modal fade" id="modal_add_detail">
+    <form action="{{ route('save-out-detail-temp') }}" method="post" onsubmit="submitFormScan(this, event)">
          @method('POST')
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
                     <h4 class="modal-title">List Item</h4>
@@ -331,34 +232,32 @@
                 <div class="form-group row">
 
                     <div class="col-md-12">
-                        <input type="hidden" class="form-control " id="m_no_bppb" name="m_no_bppb" value="" readonly>
-                        <input type="hidden" class="form-control " id="m_tgl_bppb" name="m_tgl_bppb" value="" readonly>
-                        <input type="hidden" class="form-control " id="t_roll" name="t_roll" value="" readonly>
                     <div class="row">
-                        <div class="col-4 col-md-4">
+                        <div class="col-12 col-md-12">
                         <div class="mb-1">
                         <div class="form-group">
-                            <label><small>Qty Request</small></label>
-                                <input type="text" class="form-control " id="m_qty_req" name="m_qty_req" value="" readonly>
-                                <input type="hidden" class="form-control " id="m_qty_req_h" name="m_qty_req_h" value="" readonly>
+                            <label><small>Buyer</small></label>
+                                <input type="text" class="form-control " id="mdl_buyer" name="mdl_buyer" value="" readonly>
                         </div>
                         </div>
                         </div>
-                        <div class="col-4 col-md-4">
+                        <div class="col-6 col-md-6">
                         <div class="mb-1">
                         <div class="form-group">
-                            <label><small>Qty Out</small></label>
-                                <input type="text" class="form-control " id="m_qty_out" name="m_qty_out" value="" readonly>
-                                <input type="hidden" class="form-control " id="m_qty_out_h" name="m_qty_out_h" value="" readonly>
+                            <label><small>NO WS</small></label>
+                                <input type="text" class="form-control " id="mdl_ws" name="mdl_ws" value="" readonly>
                         </div>
                         </div>
                         </div>
-                        <div class="col-4 col-md-4">
+                        <div class="col-6 col-md-6">
                         <div class="mb-1">
                         <div class="form-group">
-                            <label><small>Qty Balance</small></label>
-                                <input type="text" class="form-control " id="m_qty_bal" name="m_qty_bal" value="" readonly>
-                                <input type="hidden" class="form-control " id="m_qty_bal_h" name="m_qty_bal_h" value="" readonly>
+                            <label><small>Qty</small></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control " style="text-align:right;" id="mdl_qty" name="mdl_qty" value="" readonly>
+                                    <input type="text" class="form-control bg-success text-white text-center" value="PCS" readonly style="max-width: 70px;">
+                                </div>
+                                <input type="hidden" class="form-control " id="mdl_qty_h" name="mdl_qty_h" value="" readonly>
                         </div>
                         </div>
                         </div>
@@ -386,80 +285,7 @@
 </div>
 
 
-<div class="modal fade" id="modal-out-barcode">
-    <form action="{{ route('save-out-scan') }}" method="post" onsubmit="submitFormScan(this, event)">
-         @method('POST')
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header bg-sb text-light">
-                    <h4 class="modal-title">List Item</h4>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            <div class="modal-body">
-                <div class="form-group row">
-                    <div class="row">
-                        <div class="col-4 col-md-4">
-                        <div class="mb-1">
-                        <div class="form-group">
-                            <label><small>Qty Request</small></label>
-                                <input type="text" class="form-control " id="m_qty_req2" name="m_qty_req2" value="" readonly>
-                                <input type="hidden" class="form-control " id="m_qty_req_h2" name="m_qty_req_h2" value="" readonly>
-                        </div>
-                        </div>
-                        </div>
-                        <div class="col-4 col-md-4">
-                        <div class="mb-1">
-                        <div class="form-group">
-                            <label><small>Qty Out</small></label>
-                                <input type="text" class="form-control " id="m_qty_out2" name="m_qty_out2" value="" readonly>
-                                <input type="hidden" class="form-control " id="m_qty_out_h2" name="m_qty_out_h2" value="" readonly>
-                        </div>
-                        </div>
-                        </div>
-                        <div class="col-4 col-md-4">
-                        <div class="mb-1">
-                        <div class="form-group">
-                            <label><small>Qty Balance</small></label>
-                                <input type="text" class="form-control " id="m_qty_bal2" name="m_qty_bal2" value="" readonly>
-                                <input type="hidden" class="form-control " id="m_qty_bal_h2" name="m_qty_bal_h2" value="" readonly>
-                        </div>
-                        </div>
-                        </div>
-                        <div class="col-md-12">
-                            <input type="hidden" class="form-control " id="m_no_bppb2" name="m_no_bppb2" value="" readonly>
-                            <input type="hidden" class="form-control " id="m_tgl_bppb2" name="m_tgl_bppb2" value="" readonly>
-                        <input type="hidden" class="form-control " id="t_roll2" name="t_roll2" value="" readonly>
-                        <div class="mb-1">
-                        <div class="form-group">
-                            <label><small>Scan Barcode</small></label>
-                            <select class='form-control select2barcode' multiple='multiple' style='width: 100%;height: 20px;' name='txt_barcode' id='txt_barcode' onchange='getdatabarcode(this.value)' >
-                            </select>
-                        </div>
-                        </div>
-                        </div>
-                    </div>
 
-                    <div class="col-md-12">
-                    <div class="row">
-                        <div class="col-md-12" id="detail_showbarcode">
-                        </div>
-                    </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Tutup</button>
-                    <button type="submit" class="btn btn-primary toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Simpan</button>
-                </div>
-
-            </div>
-        </div>
-    </form>
-</div>
 @endsection
 
 @section('custom-script')
@@ -574,7 +400,7 @@ function submitFormScan(e, evt) {
                             location.reload();
                         }
                     }
-                    getlistdata();
+                    detail_po();
                 });
 
                 e.reset();
@@ -728,47 +554,7 @@ function submitFormScan(e, evt) {
 }
 
 
-        function sum_qty_item(val){
-            var table = document.getElementById("tableshow");
-            var qty_stok = 0;
-            var satuan = '';
-            var qty_out = 0;
-            var qty = 0;
-            var sisa_qty = 0;
-            var nol = 0;
-            var qty_req = $('#m_qty_req_h').val();
-            var h_qty_out = '';
-            var h_sum_bal = '';
-            var sum_bal = 0;
-            var sum_out = 0;
-
-            for (let i = 1; i < (table.rows.length); i++) {
-                var cek =  document.getElementById("pil_item"+i);
-                satuan = document.getElementById("unit"+i).value;
-                qty_stok = document.getElementById("qty_stok"+i).value || 0;
-                qty_out = document.getElementById("qty_out"+i).value || 0;
-                sisa_qty = parseFloat(qty_stok) - parseFloat(qty_out) ;
-
-                if (cek.checked == true && qty_out > 0) {
-                    if (parseFloat(qty_out) > parseFloat(qty_stok)) {
-                        $('#qty_out'+i).val(qty_stok);
-                        $('#qty_sisa'+i).val(nol);
-                    }else{
-                        $('#qty_out'+i).val(qty_out);
-                        $('#qty_sisa'+i).val(sisa_qty.round(2) || 0);
-                    }
-                    sum_out += parseFloat(qty_out);
-                }
-            }
-                h_qty_out = sum_out.round(2) + ' ' + satuan;
-                sum_bal = parseFloat(qty_req) - parseFloat(sum_out);
-                h_sum_bal = sum_bal.round(2) + ' ' + satuan;
-                $('#m_qty_out').val(h_qty_out);
-                $('#m_qty_out_h').val(sum_out.round(2));
-                $('#m_qty_bal').val(h_sum_bal || 0);
-                $('#m_qty_bal_h').val(sum_bal.round(2) || 0);
-
-        }
+        
 
         function sum_qty_barcode(val){
             var table = document.getElementById("tableshow");
@@ -866,7 +652,7 @@ function submitFormScan(e, evt) {
             });
     }
 
-        async function getlistdata() {
+        async function detail_po() {
             return datatable.ajax.reload(() => {
                 document.getElementById('jumlah_data').value = datatable.data().count();
             });
@@ -882,42 +668,46 @@ function submitFormScan(e, evt) {
             scrollX: '300px',
             scrollCollapse: true,
             ajax: {
-                url: '{{ route("get-detail-item") }}',
+                url: '{{ route("get-detail-item-subcont") }}',
                 data: function (d) {
-                    d.no_req = $('#txt_noreq').val();
-                    d.no_jo = $('#txt_id_jo').val() || 0;
+                    d.pono = $('#txt_no_po').val();
                     // alert(d.no_jo);
-                    console.log(d.no_req);
-                    console.log(d.no_jo);
+                    console.log(d.pono);
                 },
             },
             columns: [
                 {
+                    data: 'kpno'
+                },
+                {
                     data: 'styleno'
+                } ,
+                {
+                    data: 'jo_no'
                 },
                 {
                     data: 'id_item'
-                } ,
+                },
                 {
                     data: 'itemdesc'
                 },
                 {
-                    data: 'qtyitem_sisa'
+                    data: 'unit'
                 },
                 {
-                    data: 'qtyreq'
+                    data: 'qty'
                 },
                 {
-                    data: 'qty_sdh_out'
-                },
-                {
-                    data: 'qty_sisa_out'
+                    data: 'qty_out'
                 },
                 {
                     data: 'qty_input'
                 },
                 {
-                    data: 'unit'
+                    data: 'qty_balance'
+                },
+                {
+                    data: 'id_po'
                 },
                 {
                     data: 'id_jo'
@@ -926,49 +716,148 @@ function submitFormScan(e, evt) {
                     data: 'id_item'
                 },
                 {
-                    data: 'qty_sdh_out'
+                    data: 'unit'
                 },
                 {
-                    data: 'unit'
+                    data: 'id_po'
                 }
             ],
             columnDefs: [
                 {
-                    targets: [3],
-                    render: (data, type, row, meta) => data ? data.round(2) : "0"
+                    targets: [6,7,9],
+                    render: (data, type, row, meta) => data ? data : "0"
                 },
                 {
-                    targets: [7],
+                    targets: [8],
                     // className: "d-none",
-                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="input_qty' + meta.row + '" name="input_qty['+meta.row+']" value="' + data.round(2) + '" readonly />'
+                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="input_qty' + meta.row + '" name="input_qty['+meta.row+']" value="' + data + '" readonly />'
                 },
                 {
-                    targets: [9],
+                    targets: [10],
                     render: (data, type, row, meta) => {
                     return `<div class='d-flex gap-1 justify-content-center'>
-                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='out_manual("` + row.id_item + `","` + row.id_jo + `","` + row.qty_sisa_out + `","` + row.unit + `")'><i class="fa-solid fa-table-list"></i></button>
-                    <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='out_scan("` + row.id_item + `","` + row.id_jo + `","` + row.qty_sisa_out + `","` + row.unit + `","` + row.no_req + `")'><i class="fa-solid fa-barcode"></i></i></button>
-                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='delete_scan("` + row.id_item + `","` + row.id_jo + `")'><i class="fa-solid fa-undo"></i></i></button>
+                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='get_data_detail("` + row.id_po + `","` + row.id_jo + `","` + row.id_item + `","` + row.buyer + `","` + row.kpno + `")'><i class="fas fa-plus-square"></i> Add</button>
+                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='delete_temp("` + row.id_po + `","` + row.id_jo + `","` + row.id_item + `")'><i class="fa-solid fa-undo"></i> Undo</button>
                     </div>`;
                 }
                 },
                 {
-                    targets: [10],
-                    className: "d-none",
-                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="id_item' + meta.row + '" name="id_item['+meta.row+']" value="' + data + '" readonly />'
-                },
-                {
                     targets: [11],
                     className: "d-none",
-                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="qty_sdh_out' + meta.row + '" name="qty_sdh_out['+meta.row+']" value="' + data + '" readonly />'
+                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="id_jo' + meta.row + '" name="id_jo['+meta.row+']" value="' + data + '" readonly />'
                 },
                 {
                     targets: [12],
                     className: "d-none",
+                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="id_item' + meta.row + '" name="id_item['+meta.row+']" value="' + data + '" readonly />'
+                },
+                {
+                    targets: [13],
+                    className: "d-none",
                     render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="unit' + meta.row + '" name="unit['+meta.row+']" value="' + data + '" readonly />'
+                },
+                {
+                    targets: [14],
+                    className: "d-none",
+                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="id_po' + meta.row + '" name="id_po['+meta.row+']" value="' + data + '" readonly />'
                 }
                 ]
         });
+
+        function get_data_detail($id_po,$id_jo,$id_item,$buyer,$ws){
+        let id_po = $id_po;
+        let id_jo = $id_jo;
+        let id_item = $id_item;
+        let buyer = $buyer;
+        let ws = $ws;
+
+        getlist_showitem($id_po, id_item, id_jo);
+
+        $('#mdl_buyer').val(buyer);
+        $('#mdl_ws').val(ws);
+        $('#mdl_qty').val('');
+        $('#mdl_qty_h').val('');
+        $('#modal_add_detail').modal('show');
+    }
+
+    function getlist_showitem($id_po,$id_item,$id_jo){
+        let id_po = $id_po;
+        let id_item = $id_item;
+        let id_jo = $id_jo;
+        return $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route("show-detail-so-subcont") }}',
+                type: 'get',
+                data: {
+                    id_po: id_po,
+                    id_item: id_item,
+                    id_jo: id_jo,
+                },
+                success: function (res) {
+                    if (res) {
+                        document.getElementById('detail_showitem').innerHTML = res;
+                        $('#tableshow').DataTable({
+    paging: false,          // matikan paging
+    searching: true,        // tetap bisa filter
+    scrollY: '300px',       // tinggi area scroll vertikal
+    scrollX: true,          // scroll horizontal
+    scrollCollapse: true    // collapse tinggi scroll jika datanya sedikit
+});
+
+                    }
+                }
+            });
+    }
+
+
+    function sum_qty_item(val){
+    var table = document.getElementById("tableshow");
+    var sum_out = 0;
+
+    for (let i = 1; i < table.rows.length; i++) {
+        let qty_out = parseFloat($("#det_qty"+i).val()) || 0;
+        sum_out += qty_out;
+    }
+
+    let rounded = Math.round(sum_out);
+
+    let formatted = new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(rounded);
+
+    $('#mdl_qty').val(formatted);
+    $('#mdl_qty_h').val(rounded);
+}
+
+function delete_temp($id_po,$id_jo,$id_item){
+        let id_po = $id_po;
+        let id_jo = $id_jo;
+        let id_item = $id_item;
+        return $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route("delete-out-detail-temp") }}',
+                type: 'get',
+                data: {
+                    id_po: id_po,
+                    id_jo: id_jo,
+                    id_item: id_item,
+                },
+                success: function (res) {
+                    detail_po();
+                }
+            });
+
+    }
+
+
+
+
+
 
     function getdatabarcode(val){
         let id_barcode = $('#txt_barcode').val();
@@ -995,25 +884,6 @@ function submitFormScan(e, evt) {
 
     }
 
-    function delete_scan($id_item,$id_jo){
-        let id_item = $id_item;
-        let id_jo = $id_jo;
-        return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("delete-scan-temp") }}',
-                type: 'get',
-                data: {
-                    id_item: id_item,
-                    id_jo: id_jo,
-                },
-                success: function (res) {
-                    getlistdata();
-                }
-            });
-
-    }
 
     function delete_all_temp(){
         let no_bppb = $('#txt_nobppb').val();
@@ -1082,50 +952,9 @@ function submitFormScan(e, evt) {
             });
     }
 
-    function out_manual($id_item,$id_jo,$qty_req,$unit){
-        let id_item = $id_item;
-        let id_jo = $id_jo;
-        let qty_req = $qty_req;
-        let unit = $unit;
-        let no_bppb = $('#txt_nobppb').val();
-        let tgl_bppb = $('#txt_tgl_bppb').val();
+    
 
-        getlist_showitem(id_item,id_jo);
-
-        $('#m_qty_req').val(qty_req + ' ' + unit);
-        $('#m_qty_req_h').val(qty_req);
-        $('#m_no_bppb').val(no_bppb);
-        $('#m_tgl_bppb').val(tgl_bppb);
-        $('#m_qty_out').val('');
-        $('#m_qty_out_h').val('');
-        $('#m_qty_bal').val('');
-        $('#m_qty_bal_h').val('');
-        $('#modal-out-manual').modal('show');
-    }
-
-    function getlist_showitem($id_item,$id_jo){
-        let iditem = $id_item;
-        let idjo = $id_jo;
-        return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("get-detail-showitem") }}',
-                type: 'get',
-                data: {
-                    id_item: iditem,
-                    id_jo: idjo,
-                },
-                success: function (res) {
-                    if (res) {
-                        document.getElementById('detail_showitem').innerHTML = res;
-                        // $('#tableshow').dataTable({
-                        //     "bFilter": false,
-                        // });
-                    }
-                }
-            });
-    }
+    
 
         function tambahqty($val){
             var table = document.getElementById("datatable");

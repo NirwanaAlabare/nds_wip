@@ -1815,6 +1815,11 @@ Route::middleware('auth')->group(function () {
     Route::controller(PackingSubcontController::class)->prefix("packing-subcont")->middleware('packing')->group(function () {
         Route::get('/packing-out-subcont', 'index')->name('packing-out-subcont');
         Route::get('/create-packing-out-subcont', 'create')->name('create-packing-out-subcont');
+        Route::get('/get-detail-item-subcont', 'getDetailList')->name('get-detail-item-subcont');
+        Route::get('/show-detail-so-subcont', 'showdetailitem')->name('show-detail-so-subcont');
+        Route::post('/save-out-detail-temp', 'SaveOutDetailTemp')->name('save-out-detail-temp');
+        Route::get('/delete-out-detail-temp', 'DeleteOutDetailTemp')->name('delete-out-detail-temp');
+        Route::post('/store', 'store')->name('store-packing-out-subcont');
     });
 
     // Needle Check
