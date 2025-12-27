@@ -3,7 +3,7 @@
 
 <table>
     <tr>
-        <th style="font-weight: 800;">Pemakaian Roll</th>
+        <th style="font-weight:800;">Pemakaian Roll</th>
     </tr>
     <tr>
         <th>{{ $dateFrom." - ".$dateTo }}</th>
@@ -28,26 +28,26 @@
         <th>Short Roll Percentage</th>
         <th>Unit</th>
     </tr>
-    @foreach ($data->sortBy("no_req") as $roll)
+    @foreach ($data as $roll)
         <tr>
-            <td>{{ $roll->tanggal_req }}</td>
-            <td>{{ $roll->no_req }}</td>
-            <td>{{ $roll->no_out }}</td>
-            <td>{{ $roll->no_ws }}</td>
-            <td>{{ $roll->no_ws_aktual }}</td>
-            <td>{{ $roll->styleno }}</td>
-            <td>{{ $roll->id_roll }}</td>
-            <td>{{ $roll->id_item }}</td>
-            <td>{{ $roll->detail_item }}</td>
-            <td>{{ $roll->color }}</td>
-            <td>{{ $roll->lot }}</td>
-            <td>{{ $roll->roll }}</td>
-            <td>{{ $roll->qty }}</td>
-            <td>{{ $roll->total_pemakaian_roll }}</td>
-            <td>{{ $roll->sisa_kain }}</td>
-            <td>{{ $roll->total_short_roll }}</td>
-            <td>{{ $roll->qty > 0 ? round(($roll->total_short_roll/($roll->qty+$roll->sisa_kain)) * 100, 2) : 0 }} %</td>
-            <td>{{ $roll->unit }}</td>
+            <td>{{ $roll->pluck("tanggal_req")->unique()->values()->implode(',') }}</td>
+            <td>{{ $roll->pluck("no_req")->unique()->values()->implode(',') }}</td>
+            <td>{{ $roll->pluck("no_out")->unique()->values()->implode(',') }}</td>
+            <td>{{ $roll->pluck("no_ws")->unique()->values()->implode(',') }}</td>
+            <td>{{ $roll->pluck("no_ws_aktual")->unique()->values()->implode(',') }}</td>
+            <td>{{ $roll->pluck("styleno")->unique()->values()->implode(',') }}</td>
+            <td>{{ $roll->pluck("id_roll")->unique()->values()->implode(',') }}</td>
+            <td>{{ $roll->pluck("id_item")->unique()->values()->implode(',') }}</td>
+            <td>{{ $roll->pluck("detail_item")->unique()->values()->implode(',') }}</td>
+            <td>{{ $roll->pluck("color")->unique()->values()->implode(',') }}</td>
+            <td>{{ $roll->pluck("lot")->unique()->values()->implode(',') }}</td>
+            <td>{{ $roll->pluck("roll")->unique()->values()->implode(',') }}</td>
+            <td>{{ $roll->first()->qty }}</td>
+            <td>{{ $roll->first()->total_pemakaian_roll }}</td>
+            <td>{{ $roll->first()->sisa_kain }}</td>
+            <td>{{ $roll->first()->total_short_roll }}</td>
+            <td>{{ $roll->first()->qty > 0 ? round(($roll->first()->total_short_roll/($roll->first()->qty+$roll->first()->sisa_kain)) * 100, 2) : 0 }} %</td>
+            <td>{{ $roll->first()->unit }}</td>
         </tr>
     @endforeach
 </table>
