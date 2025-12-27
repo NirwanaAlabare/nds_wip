@@ -853,6 +853,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/reset-stocker-id', 'resetStockerId')->name('reset-stocker-id');
         Route::post('/reset-stocker-form', 'resetStockerForm')->name('reset-stocker-form');
         Route::post('/reset-redundant-stocker', 'resetRedundantStocker')->name('reset-redundant-stocker');
+        Route::post('/restore-stocker-log', 'restoreStockerLog')->name('restore-stocker-log');
 
         Route::post('/import-stocker-manual', 'importStockerManual')->name('import-stocker-manual');
 
