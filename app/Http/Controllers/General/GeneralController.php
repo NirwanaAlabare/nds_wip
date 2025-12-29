@@ -705,13 +705,17 @@ class GeneralController extends Controller
             $itemAdditional .= " and br.unit = '".$request->unit."'";
         }
 
-        if ($request->act_costing_id) {
-            $newItemAdditional .= " and (act_costing.id = '".$request->act_costing_id."' or whs_bppb_h.no_ws_aktual = '".$request->act_costing_ws."')";
-            $itemAdditional .= " and ac.id = '".$request->act_costing_id."'";
-        }
+        // if ($request->act_costing_id) {
+        //     $newItemAdditional .= " and (act_costing.id = '".$request->act_costing_id."' or whs_bppb_h.no_ws_aktual = '".$request->act_costing_ws."')";
+        //     $itemAdditional .= " and ac.id = '".$request->act_costing_id."'";
+        // }
 
         // if ($request->color) {
-        //     $newItemAdditional .= " and masteritem.color = '".$request->color."'";
+        //     $newItemAdditional .= " and so_det.color = '".$request->color."' ";
+        // }
+
+        // if ($request->panel) {
+        //     $newItemAdditional .= " and masterpanel.nama_panel = '".$request->panel."' ";
         // }
 
         $newItem = DB::connection("mysql_sb")->select("
@@ -728,6 +732,10 @@ class GeneralController extends Controller
                 SUM(qty)-COALESCE(qty_ri, 0) as qty,
                 unit,
                 rule_bom,
+                act_costing_id, 
+                act_costing_ws,
+                color,
+                panel,
                 so_det_list,
                 size_list
             FROM (
@@ -744,14 +752,19 @@ class GeneralController extends Controller
                     whs_bppb_det.qty_out qty,
                     whs_bppb_det.satuan unit,
                     bji.rule_bom,
+                    GROUP_CONCAT(DISTINCT act_costing.id) as act_costing_id,
+                    GROUP_CONCAT(DISTINCT act_costing.kpno) as act_costing_ws,
+                    GROUP_CONCAT(DISTINCT so_det.color) as color,
+                    GROUP_CONCAT(DISTINCT masterpanel.nama_panel) as panel,
                     GROUP_CONCAT(DISTINCT so_det.id ORDER BY so_det.id ASC SEPARATOR ', ') as so_det_list,
                     GROUP_CONCAT(DISTINCT so_det.size ORDER BY so_det.id ASC SEPARATOR ', ') as size_list
                 FROM
                     whs_bppb_det
                     LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
                     LEFT JOIN (SELECT no_barcode, id_item, no_roll_buyer FROM whs_lokasi_inmaterial where no_barcode = '".$id."' GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
-                    LEFT JOIN masteritem ON masteritem.id_item = whs_lokasi_inmaterial.id_item
+                    LEFT JOIN masteritem ON masteritem.id_item = whs_bppb_det.id_item
                     LEFT JOIN bom_jo_item bji ON bji.id_item = masteritem.id_gen
+                    LEFT JOIN masterpanel on masterpanel.id = bji.id_panel
                     LEFT JOIN so_det ON so_det.id = bji.id_so_det
                     LEFT JOIN so ON so.id = so_det.id_so
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
@@ -760,6 +773,7 @@ class GeneralController extends Controller
                     AND whs_bppb_h.tujuan = 'Production - Cutting'
                     AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
                     AND whs_bppb_det.no_bppb LIKE '%GK/OUT%'
+                    ".$newItemAdditional."
                 GROUP BY
                     whs_bppb_det.id
             ) item
@@ -769,6 +783,16 @@ class GeneralController extends Controller
             LIMIT 1
         ");
         if ($newItem) {
+            if (!str_contains($newItem[0]->act_costing_id, $request->act_costing_id) && !str_contains($newItem[0]->act_costing_ws, $request->act_costing_ws)) {
+                return "WS Roll tidak sesuai. WS : ".$newItem[0]->act_costing_id." ".$newItem[0]->act_costing_ws;
+            }
+            if (!str_contains($newItem[0]->color, $request->color)) {
+                return "Color Roll tidak sesuai. Color : ".$newItem[0]->color;
+            }
+            if (!str_contains($newItem[0]->panel, $request->panel)) {
+                return "Panel Roll tidak sesuai.Panel : ".$newItem[0]->panel;
+            }
+
             $scannedItem = ScannedItem::selectRaw("
                 scanned_item.id,
                 scanned_item.id_roll,
@@ -834,6 +858,8 @@ class GeneralController extends Controller
                 $newItemUnit = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? 'METER' : $newItem[0]->unit;
 
                 if ($scannedItemUpdate) {
+                    $scannedItemUpdate->id_item = $newItem[0]->id_item;
+                    $scannedItemUpdate->detail_item = $newItem[0]->detail_item;
                     $scannedItemUpdate->qty_stok = $newItemQtyStok;
                     $scannedItemUpdate->qty_in = $newItemQty;
                     $scannedItemUpdate->qty = floatval(($newItemQty - $scannedItem->qty_in) + $scannedItem->qty);

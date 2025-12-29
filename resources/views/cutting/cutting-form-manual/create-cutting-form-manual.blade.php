@@ -3869,6 +3869,11 @@
                 return $.ajax({
                     url: '{{ route('get-scanned-form-cut-input') }}/' + id,
                     type: 'get',
+                    data: {
+                        act_costing_id: $("#act_costing_id").val(),
+                        act_costing_ws: $("#no_ws").val(),
+                        panel: $("#panel").val(),
+                    },
                     dataType: 'json',
                     success: function (res) {
                         if (res) {
