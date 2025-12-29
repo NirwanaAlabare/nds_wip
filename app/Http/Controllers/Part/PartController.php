@@ -612,11 +612,29 @@ class PartController extends Controller
         //     unit = 'METER'
         //     where id = '$request->txtpart'");
 
+        // Update Part Detail
         $update_part = PartDetail::updateOrCreate(['part_id' => $request->id, 'master_part_id' => $request->txtpart],[
             'master_secondary_id' => $validatedRequest['cboproses'],
             'cons' => $validatedRequest['txtcons'],
             'unit' => $validatedRequest['txtconsunit'],
         ]);
+
+        // Update Part Detail Item
+        $currentPartDetail = PartDetail::where("part_id", $request->id)->where("master_part_id", $request->txtpart)->first();
+        if ($currentPartDetail && $currentPartDetail->id) {
+            // Get Selected Items
+            if ($request->items && count($request->items) > 0) {
+                // Upsert Selected Items
+                $partDetailItemArr = [];
+                for ($i = 0;$i < count($request->items);$i++) {
+                    array_push($partDetailItemArr, [
+                        "part_detail_id" => $currentPartDetail->id,
+                        "bom_jo_item_id" => $request->items[$i],
+                    ]);
+                }
+                PartDetailItem::upsert($partDetailItemArr, ['part_detail_id', 'bom_jo_item_id'], ['updated_at']);
+            }
+        }
 
         if ($update_part) {
             return array(
@@ -694,12 +712,12 @@ class PartController extends Controller
                 if ($request->edit_item && count($request->edit_item) > 0) {
                     // Delete Removed Items
                     $deletePartDetailItem = PartDetailItem::where('part_detail_id', $partDetail->id)->whereNotIn('bom_jo_item_id', $request->edit_item)->delete();
-                    
+
                     // Upsert Selected Items
                     $partDetailItemArr = [];
                     for ($i = 0;$i < count($request->edit_item);$i++) {
                         array_push($partDetailItemArr, [
-                            "part_detail_id" => $partDetail->id, 
+                            "part_detail_id" => $partDetail->id,
                             "bom_jo_item_id" => $request->edit_item[$i],
                         ]);
                     }

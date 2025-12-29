@@ -88,7 +88,7 @@
                 <div class="card-body">
                     <form method="post" id="store-secondary" name='form'>
                         <div class="row">
-                            <div class="col-6 col-md-3">
+                            <div class="col">
                                 <div class="mb-4">
                                     <label><small><b>Part</b></small></label>
                                     <select class="form-control select2bs4" id="txtpart" name="txtpart" style="width: 100%;">
@@ -101,7 +101,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-3">
+                            <div class="col">
                                 <div class="mb-4">
                                     <label><small><b>Cons</b></small></label>
                                     <div class="input-group mb-3">
@@ -117,7 +117,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-3">
+                            <div class="col">
                                 <div class="mb-4">
                                     <label><small><b>Tujuan</b></small></label>
                                     <select class="form-control select2bs4" id="cbotuj" name="cbotuj" style="width: 100%;" onchange="getproses();">
@@ -130,22 +130,28 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-3">
-                                <div class="row align-items-end">
-                                    <div class="col-9">
-                                        <div class="mb-4">
-                                            <label><small><b>Proses</b></small></label>
-                                            <select class="form-control select2bs4 w-100" id="cboproses" name="cboproses" style="width: 100%;">
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-3">
-                                        <div class="mb-4">
-                                            <label><small><b>&nbsp</b></small></label>
-                                            <button type="button" class="btn btn-block bg-primary" name="simpan" id="simpan" onclick="simpan_data();"><i class="fa fa-save"></i></button>
-                                            {{-- <input type="button" class="btn bg-primary w-100" name="simpan" id="simpan" value="Simpan" onclick="simpan_data();"> --}}
-                                        </div>
-                                    </div>
+                            <div class="col">
+                                <div class="mb-4">
+                                    <label><small><b>Proses</b></small></label>
+                                    <select class="form-control select2bs4 w-100" id="cboproses" name="cboproses" style="width: 100%;">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="mb-4">
+                                    <label><small><b>Item</b></small></label>
+                                    <select class="form-control select2bs4 w-100" id="items" name="items[]" style="width: 100%;" multiple>
+                                        @foreach ($data_item as $item)
+                                            <option value="{{ $item->id }}">{{ $item->itemdesc }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <div class="mb-4">
+                                    <label><small><b>&nbsp</b></small></label>
+                                    <button type="button" class="btn btn-block bg-primary" name="simpan" id="simpan" onclick="simpan_data();"><i class="fa fa-save"></i></button>
+                                    {{-- <input type="button" class="btn bg-primary w-100" name="simpan" id="simpan" value="Simpan" onclick="simpan_data();"> --}}
                                 </div>
                             </div>
                         </div>
@@ -481,6 +487,8 @@
             let txtcons = document.form.txtcons.value;
             let txtconsunit = document.form.txtconsunit.value;
             let cboproses = document.form.cboproses.value;
+            let items = $("#items").val();
+            console.log(items);
             $.ajax({
                 type: "post",
                 url: '{{ route('store_part_secondary') }}',
@@ -490,7 +498,8 @@
                     txtpart: txtpart,
                     txtcons: txtcons,
                     txtconsunit: txtconsunit,
-                    cboproses: cboproses
+                    cboproses: cboproses,
+                    items: items
                 },
                 success: function(response) {
                     if (response.icon == 'salah') {
