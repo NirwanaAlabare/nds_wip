@@ -94,12 +94,13 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
                     req.styleno,
                     req.color,
                     COALESCE(roll.roll, req.no_roll) roll,
-                    (CASE WHEN piping.id_roll IS NOT NULL THEN GREATEST(COALESCE(roll.qty, req.qty_out, 0), piping.qty) ELSE COALESCE(roll.qty, req.qty_out, 0) END) qty,
-                    (CASE WHEN piping.id_roll IS NOT NULL THEN LEAST(COALESCE(roll.sisa_kain, req.qty_out, 0), COALESCE(piping.sisa_kain, 0)) ELSE COALESCE(roll.sisa_kain, req.qty_out, 0) END) sisa_kain,
+                    (CASE WHEN piping.id_roll IS NOT NULL THEN GREATEST( COALESCE(roll.qty, 0), COALESCE(piping.qty, 0) ) ELSE COALESCE(roll.qty, req.qty_out, 0) END) qty,
+	                (CASE WHEN piping.id_roll IS NOT NULL THEN LEAST( COALESCE(roll.sisa_kain, 0), COALESCE(piping.sisa_kain, 0) ) ELSE COALESCE(roll.sisa_kain, req.qty_out, 0) END ) sisa_kain,
                     COALESCE(roll.unit, piping.unit, req.satuan) unit,
                     COALESCE(roll.total_pemakaian_roll, 0) + COALESCE(piping.piping, 0) as total_pemakaian_roll,
-                    COALESCE(roll.total_short_roll_2, 0) total_short_roll_2,
-                    COALESCE(roll.total_short_roll, 0) total_short_roll
+                    ROUND((COALESCE(roll.total_pemakaian_roll, 0) + COALESCE(piping.piping, 0) + (CASE WHEN piping.id_roll IS NOT NULL THEN LEAST( COALESCE(roll.sisa_kain, 0), COALESCE(piping.sisa_kain, 0) ) ELSE COALESCE(roll.sisa_kain, req.qty_out, 0) END )) - (CASE WHEN piping.id_roll IS NOT NULL THEN GREATEST( COALESCE(roll.qty, 0), COALESCE(piping.qty, 0) ) ELSE COALESCE(roll.qty, req.qty_out, 0) END), 2) as total_short_roll,
+                    COALESCE(roll.total_short_roll_2, 0) + COALESCE(piping.short_roll, 0) total_short_roll_1,
+                    COALESCE(roll.total_short_roll, 0) + COALESCE(piping.short_roll, 0) total_short_roll_2
                 FROM (
                     select b.*, c.itemdesc, c.color, c.size, tmpjo.styleno from signalbit_erp.whs_bppb_h a INNER JOIN signalbit_erp.whs_bppb_det b on b.no_bppb = a.no_bppb LEFT JOIN signalbit_erp.masteritem c ON c.id_item = b.id_item left join (select id_jo,kpno,styleno from signalbit_erp.act_costing ac inner join signalbit_erp.so on ac.id=so.id_cost inner join signalbit_erp.jo_det jod on signalbit_erp.so.id=jod.id_so group by id_jo) tmpjo on tmpjo.id_jo=b.id_jo WHERE a.no_req = '".$req->bppbno."' and b.id_item = '".$req->id_item."' and b.status = 'Y' GROUP BY id_roll
                 ) req
@@ -150,9 +151,10 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
                     select
                         id_roll,
                         form_cut_piping.unit,
-                        SUM(form_cut_piping.qty) qty,
+                        MAX(form_cut_piping.qty) qty,
                         SUM(form_cut_piping.piping) piping,
-                        MIN(form_cut_piping.qty_sisa) sisa_kain
+                        MIN(form_cut_piping.qty_sisa) sisa_kain,
+                        SUM(form_cut_piping.short_roll) as short_roll
                     from
                         form_cut_piping
                     where
@@ -176,7 +178,7 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
             }
         }
 
-        $data = $data->flatten(1);
+        $data = $data->flatten(1)->groupBy('id_roll');
 
         $this->rowCount = $data->count();
 
