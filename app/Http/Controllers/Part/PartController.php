@@ -575,7 +575,7 @@ class PartController extends Controller
                 left join so on so.id = jo_det.id_so
                 left join act_costing on act_costing.id = so.id_cost
                 left join masteritem on bom_jo_item.id_item = masteritem.id_item
-                where act_costing.kpno = '".$request->act_costing_ws."' and bom_jo_item.`status` = 'P' and matclass != 'CMT'
+                where act_costing.kpno = '".$part->act_costing_ws."' and bom_jo_item.`status` = 'P' and matclass != 'CMT'
                 group by bom_jo_item.id_item
             ");
 
@@ -584,8 +584,7 @@ class PartController extends Controller
 
     public function get_proses(Request $request)
     {
-        $data_proses = DB::select("select id isi, proses tampil from master_secondary
-        where tujuan = '" . $request->cbotuj . "'");
+        $data_proses = DB::select("select id isi, proses tampil from master_secondary where tujuan = '" . $request->cbotuj . "'");
         $html = "<option value=''>Pilih Proses</option>";
 
         foreach ($data_proses as $dataproses) {
@@ -631,6 +630,30 @@ class PartController extends Controller
         );
     }
 
+    public function getEditPartDetailProcess(Request $request) {
+        if ($request->edit_id) {
+            $currentPartDetail = PartDetail::select("master_secondary_id")->where("id", $request->edit_id)->first();
+
+            if ($currentPartDetail && $currentPartDetail->master_secondary_id) {
+                return $currentPartDetail->master_secondary_id;
+            }
+        }
+
+        return null;
+    }
+
+    public function getEditPartDetailItems(Request $request) {
+        if ($request->edit_id) {
+            $currentPartDetailItems = PartDetailItem::select("bom_jo_item_id")->where("part_detail_id", $request->edit_id)->pluck('bom_jo_item_id');
+
+            if ($currentPartDetailItems) {
+                return $currentPartDetailItems;
+            }
+        }
+
+        return null;
+    }
+
     public function updatePartSecondary(Request $request)
     {
         $validatedRequest = $request->validate([
@@ -665,6 +688,25 @@ class PartController extends Controller
                     $updatePartDetail = $partDetail->update([
                         "cons" => $request->edit_cons
                     ]);
+                }
+
+                // Phase 4 (Part Detail Item)
+                if ($request->edit_item && count($request->edit_item) > 0) {
+                    // Delete Removed Items
+                    $deletePartDetailItem = PartDetailItem::where('part_detail_id', $partDetail->id)->whereNotIn('bom_jo_item_id', $request->edit_item)->delete();
+                    
+                    // Upsert Selected Items
+                    $partDetailItemArr = [];
+                    for ($i = 0;$i < count($request->edit_item);$i++) {
+                        array_push($partDetailItemArr, [
+                            "part_detail_id" => $partDetail->id, 
+                            "bom_jo_item_id" => $request->edit_item[$i],
+                        ]);
+                    }
+                    PartDetailItem::upsert($partDetailItemArr, ['part_detail_id', 'bom_jo_item_id'], ['updated_at']);
+                } else {
+                    // Delete All Item when No Item was selected
+                    PartDetailItem::where("part_detail_id", $partDetail->id)->delete();
                 }
 
                 return array(

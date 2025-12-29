@@ -224,12 +224,13 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Item</label>
-                            <select class="form-select select2bs4" name="edit_item" id="edit_item"></select>
-                            @foreach ($data_item as $item)
-                                <option value="{{ $$item->id }}">
-                                    {{ $$item->itemdesc }}
-                                </option>
-                            @endforeach
+                            <select class="form-select select2bs4" name="edit_item[]" id="edit_item" multiple>
+                                @foreach ($data_item as $item)
+                                    <option value="{{ $item->id }}">
+                                        {{ $item->itemdesc }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -460,7 +461,7 @@
                         render: (data, type, row, meta) => {
                             let disableDelete = (row.total_stocker > 0 ? 'disabled' : '');
                             return `
-                                <button class='btn btn-primary btn-sm' onclick='editData(`+JSON.stringify(row)+`, "editPartSecondaryModal")'>
+                                <button class='btn btn-primary btn-sm' onclick='editData(`+JSON.stringify(row)+`, "editPartSecondaryModal", [{function: "setPartDetailProcess()"}])'>
                                     <i class='fa fa-edit'></i>
                                 </button>
                                 <button class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
@@ -1008,6 +1009,55 @@
                     confirmButtonText: 'Oke',
                 });
             }
+        }
+
+        function setPartDetailProcess() {
+            showLoading();
+            $.ajax({
+                type: "get",
+                url: "{{ route('get-edit-part-detail-process') }}",
+                data: {
+                    edit_id: $("#edit_id").val()
+                },
+                dataType: "json",
+                success: function (response) {
+                    console.log(response);
+                    if (response) {
+                        $("#edit_proses").val(response).trigger("change");
+                    }
+
+                    setPartDetailItems();
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
+
+                    hideLoading();
+                }
+            });
+        }
+
+        function setPartDetailItems() {
+            $.ajax({
+                type: "get",
+                url: "{{ route('get-edit-part-detail-items') }}",
+                data: {
+                    edit_id: $("#edit_id").val()
+                },
+                dataType: "json",
+                success: function (response) {
+                    console.log(response);
+                    if (response) {
+                        $("#edit_item").val(response).trigger("change");
+                    }
+
+                    hideLoading();
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
+
+                    hideLoading();
+                }
+            });
         }
     </script>
 @endsection

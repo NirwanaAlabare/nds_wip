@@ -360,6 +360,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-master-tujuan', 'getMasterTujuan')->name('get-master-tujuan');
         // get master secondary
         Route::get('/get-master-secondary', 'getMasterSecondary')->name('get-master-secondary');
+
+        // get part detail process
+        Route::get('/get-edit-part-detail-process', 'getEditPartDetailProcess')->name('get-edit-part-detail-process');
+
+        // get part detail items
+        Route::get('/get-edit-part-detail-items', 'getEditPartDetailItems')->name('get-edit-part-detail-items');
     });
 
     // Marker :
