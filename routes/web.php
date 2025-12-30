@@ -1820,6 +1820,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/save-out-detail-temp', 'SaveOutDetailTemp')->name('save-out-detail-temp');
         Route::get('/delete-out-detail-temp', 'DeleteOutDetailTemp')->name('delete-out-detail-temp');
         Route::post('/store', 'store')->name('store-packing-out-subcont');
+        Route::get('/get-detail-packing-out/{id?}', 'DetailPackingOut')->name('get-detail-packing-out');
+        Route::get('/export-pl-packing-out/{id?}', 'PLPackingOut')->name('export-pl-packing-out');
+
     });
 
     // Needle Check

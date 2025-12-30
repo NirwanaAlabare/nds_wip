@@ -30,10 +30,10 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>No Transaksi</small></label>
-                <!-- @foreach ($kode_gr as $kodegr)
-                <input type="text" class="form-control " id="txt_nobppb" name="txt_nobppb" value="{{ $kodegr->kode }}" readonly>
-                @endforeach -->
-                <input type="text" class="form-control " id="txt_nobppb" name="txt_nobppb" value="SPCK/OUT/1225/00001" readonly>
+                @foreach ($kode_gr as $kodegr)
+                <input type="text" class="form-control " id="txt_nobppb" name="txt_nobppb" value="{{ $kodegr->no_bppb }}" readonly>
+                @endforeach
+                <!-- <input type="text" class="form-control " id="txt_nobppb" name="txt_nobppb" value="SPCK/OUT/1225/00001" readonly> -->
                 </div>
             </div>
             </div>
@@ -74,7 +74,7 @@
             <div class="mb-1">
                 <div class="form-group">
                     <label><small>Tujuan Kirim</small></label>
-                    <select class="form-control select2bs4" id="txt_supp" name="txt_supp" style="width: 100%;" onchange="settype()">
+                    <select class="form-control select2bs4" id="txt_supp" name="txt_supp" style="width: 100%;">
                         <option selected="selected" value="">Pilih Supplier</option>
                         @foreach ($msupplier as $msupp)
                         <option value="{{ $msupp->id_supplier }}">
@@ -129,7 +129,7 @@
                 <div class="form-group">
                     <label><small>Berat Garment</small></label>
                     <div class="input-group">
-                        <input type="text" class="form-control" id="qty_bruto" name="txt_qty_garment" style="text-align:right;" oninput="setqtynetto()">
+                        <input type="text" class="form-control" id="qty_bruto" name="txt_qty_garment" style="text-align:right;">
                         <input type="text" class="form-control bg-info text-white text-center" value="KG" readonly style="max-width: 50px;">
                     </div>
                 </div>
@@ -141,7 +141,7 @@
                 <div class="form-group">
                 <label><small>Berat Karton</small></label>
                     <div class="input-group">
-                        <input type="text" class="form-control" id="qty_bruto" name="txt_qty_karton" style="text-align:right;" oninput="setqtynetto()">
+                        <input type="text" class="form-control" id="qty_bruto" name="txt_qty_karton" style="text-align:right;">
                         <input type="text" class="form-control bg-success text-white text-center" value="KG" readonly style="max-width: 50px;">
                     </div>
                 </div>
@@ -208,7 +208,7 @@
             <div class="mb-1">
                 <div class="form-group">
                     <button class="btn btn-sb float-end mt-2 ml-2"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
-                    <a href="{{ route('out-material') }}" class="btn btn-danger float-end mt-2" onclick="delete_all_temp()">
+                    <a href="{{ route('packing-out-subcont') }}" class="btn btn-danger float-end mt-2" onclick="delete_all_temp()">
                     <i class="fas fa-arrow-circle-left"></i> Kembali</a>
                 </div>
             </div>

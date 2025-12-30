@@ -90,6 +90,85 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalDetail" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+
+      <div class="modal-header bg-sb text-light">
+        <h5 class="modal-title">Detail Packing Out</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- HEADER -->
+        <div class="row">
+          <div class="col-6 mb-1">
+            <strong>No Trans</strong><br>
+            <span id="d_no_bppb">-</span>
+          </div>
+
+          <div class="col-6 mb-1">
+            <strong>Supplier</strong><br>
+            <span id="d_supplier">-</span>
+          </div>
+
+          <div class="col-6 mb-1">
+            <strong>PO</strong><br>
+            <span id="d_no_po">-</span>
+          </div>
+
+          <div class="col-6 mb-1">
+            <strong>Buyer</strong><br>
+            <span id="d_buyer">-</span>
+          </div>
+
+          <div class="col-6 mb-1">
+            <strong>Tgl Trans</strong><br>
+            <span id="d_tgl_bppb">-</span>
+          </div>
+
+          <div class="col-6 mb-1">
+            <strong>Status</strong><br>
+            <span id="d_status" class="badge bg-secondary">-</span>
+          </div>
+        </div>
+
+        <hr>
+
+        <table class="table table-bordered table-striped table-sm" id="detailTable">
+            <thead class="table-light">
+                <tr>
+                    <th>No</th>
+                    <th>No WS</th>
+                    <th>Style</th>
+                    <th>Item Desc</th>
+                    <th>Color</th>
+                    <th>Size</th>
+                    <th class="text-end">Qty</th>
+                    <th>Unit</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+
+            <tfoot>
+              <tr>
+                <th colspan="6" class="text-end">Total</th>
+                <th class="text-end" id="tfoot_qty">0</th>
+                <th></th>
+              </tr>
+            </tfoot>
+        </table>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+
+
 <div class="modal fade" id="modal-appv-material">
     <form action="{{ route('approve-material') }}" method="post" onsubmit="submitForm(this, event)">
          @method('GET')
@@ -370,6 +449,7 @@ $('.select2type').select2({
 })
 </script>
 
+
 <script>
     let datatable = $("#datatable").DataTable({
         ordering: false,
@@ -384,29 +464,19 @@ $('.select2type').select2({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
-            url: '{{ route('in-material') }}',
+            url: '{{ route('packing-out-subcont') }}',
             dataType: 'json',
             dataSrc: 'data',
             data: function(d) {
                 d.tgl_awal = $('#tgl_awal').val();
                 d.tgl_akhir = $('#tgl_akhir').val();
-                d.supplier = $('#supplier').val();
-                d.bc_type = $('#bc_type').val();
-                d.pch_type = $('#pch_type').val();
-                d.status = $('#status').val();
             },
         },
         columns: [{
-                data: 'no_dok'
+                data: 'no_bppb'
             },
             {
-                data: 'tgl_dok'
-            },
-            {
-                data: 'tgl_shipp'
-            },
-            {
-                data: 'type_dok'
+                data: 'tgl_bppb'
             },
             {
                 data: 'no_po'
@@ -415,13 +485,19 @@ $('.select2type').select2({
                 data: 'supplier'
             },
             {
-                data: 'no_invoice'
+                data: 'buyer'
             },
             {
-                data: 'type_bc'
+                data: 'jenis_pengeluaran'
             },
             {
-                data: 'no_daftar'
+                data: 'jenis_dok'
+            },
+            {
+                data: 'created_by'
+            },
+            {
+                data: 'status'
             },
             {
                 data: 'id'
@@ -429,35 +505,24 @@ $('.select2type').select2({
 
         ],
         columnDefs: [{
-                targets: [4],
+                targets: [3,4,5,6,8],
                 render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
-            },
-            {
-                targets: [6],
-                render: (data, type, row, meta) => data ? data : "-"
-            },
-            {
-                targets: [7],
-                render: (data, type, row, meta) => data ? data : "-"
-            },
-            {
-                targets: [8],
-                render: (data, type, row, meta) => data ? data : "-"
             },
             {
                 targets: [9],
                 render: (data, type, row, meta) => {
-                 if (row.qty_balance == 0) {
+                    let exportUrl = "{{ route('export-pl-packing-out', ':id') }}"
+            .replace(':id', row.id);
+
+                 if (row.status == 'DRAFT') {
                     return `<div class='d-flex gap-1 justify-content-center'>
-                    <a href="{{ route('lokasi-inmaterial') }}/`+data+`"><i class="fa-solid fa-location-dot fa-lg" style='color:green;'></i></a>
-                    </div>`;
-                }else if(row.qty_balance == row.qty){
-                   return `<div class='d-flex gap-1 justify-content-center'>
-                    <a href="{{ route('lokasi-inmaterial') }}/`+data+`"><i class="fa-solid fa-location-dot fa-lg" aria-hidden="true" style='color:red;'></i></a>
+                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_bppb + `")'><i class="fa-solid fa-trash"></i></button>
+                    <button type='button' class='btn btn-sm btn-info' onclick='showDetail("${row.id}")'> <i class="fa-solid fa-eye"></i> Detail</button>
+                    <a href='${exportUrl}' class='btn btn-sm btn-success'> <i class="fa-solid fa-file-excel"></i> PL</a>
                     </div>`;
                 }else{
                     return `<div class='d-flex gap-1 justify-content-center'>
-                    <a href="{{ route('lokasi-inmaterial') }}/`+data+`"><i class="fa-solid fa-location-dot fa-lg" aria-hidden="true" style='color:#FFD700;'></i></a>
+                    -
                     </div>`;
                 }
                 }
@@ -469,7 +534,109 @@ $('.select2type').select2({
         datatable.ajax.reload();
     }
 </script>
+<script>
+let detailDT = null;
+</script>
 <script type="text/javascript">
+
+function showDetail(id) {
+
+    let url = "{{ route('get-detail-packing-out', ':id') }}".replace(':id', id);
+
+    $.get(url, function(res){
+
+        $("#d_no_bppb").text(res?.header?.no_bppb ?? '-');
+        $("#d_tgl_bppb").text(res?.header?.tgl_bppb ?? '-');
+        $("#d_no_po").text(res?.header?.no_po ?? '-');
+        $("#d_supplier").text(res?.header?.supplier ?? '-');
+        $("#d_buyer").text(res?.header?.buyer ?? '-');
+
+        // STATUS BADGE
+        let status = (res?.header?.status ?? '-').toUpperCase();
+        let badge = 'bg-secondary';
+        if(status === 'APPROVED') badge = 'bg-success';
+        else if(status === 'DRAFT') badge = 'bg-warning text-dark';
+        else if(status === 'REJECTED') badge = 'bg-danger';
+
+        $("#d_status").removeClass().addClass('badge '+badge).text(status);
+
+        // reset datatable
+        if (detailDT !== null) detailDT.clear().destroy();
+        $("#detailTable tbody").html('');
+
+        // isi rows
+        let rows = '';
+        res.detail.forEach((d,i)=>{
+            rows += `
+                <tr>
+                    <td>${i+1}</td>
+                    <td>${d.kpno ?? ''}</td>
+                    <td>${d.styleno ?? ''}</td>
+                    <td>${d.itemdesc ?? ''}</td>
+                    <td>${d.color ?? ''}</td>
+                    <td>${d.size ?? ''}</td>
+                    <td>${parseFloat(d.qty ?? 0)}</td>
+                    <td>${d.unit ?? ''}</td>
+                </tr>
+            `;
+        });
+        $("#detailTable tbody").html(rows);
+
+        // init datatable
+        detailDT = $("#detailTable").DataTable({
+
+            searching: true,
+            paging: true,
+            ordering: true,
+            info: false,
+            lengthChange: false,
+            pageLength: 10,
+
+            columnDefs:[
+                {
+                    targets:6, 
+                    className:'text-end',
+                    render:function(data){
+                        return (parseFloat(data)||0).toLocaleString('en-US');
+                    }
+                }
+            ],
+
+            // >>> TOTAL TIDAK TERPENGARUH PAGING <<<
+            footerCallback: function ( row, data, start, end, display ) {
+
+                let api = this.api();
+
+                let toNum = function(i){
+                    if(typeof i === 'string'){
+                        return parseFloat(i.replace(/,/g,'')) || 0;
+                    }
+                    return typeof i === 'number' ? i : 0;
+                };
+
+                // TOTAL dari semua data yang terfilter (search applied)
+                let total = api
+                    .column(6, { search:'applied' })
+                    .data()
+                    .reduce(function(a,b){
+                        return toNum(a) + toNum(b);
+                    }, 0);
+
+                let formatted = total.toLocaleString('en-US');
+
+                $(api.column(6).footer()).html(formatted);
+                $("#tfoot_qty").text(formatted);
+            }
+        });
+
+        $("#modalDetail").modal('show');
+    });
+}
+
+
+
+
+
     function approve_inmaterial($nodok){
         // alert($id);
         let nodok  = $nodok;
