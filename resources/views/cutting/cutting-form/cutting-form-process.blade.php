@@ -76,13 +76,13 @@
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>No. WS</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="no_ws" id="no_ws" value="{{ $formCutInputData->act_costing_ws }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="no_ws" value="{{ $formCutInputData->act_costing_ws }}" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Buyer</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="buyer" id="buyer" value="{{ $thisActCosting->buyer }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="buyer" value="{{ $thisActCosting->buyer }}" readonly>
                             </div>
                         </div>
                         <div class="col-12 col-md-6">
@@ -3322,11 +3322,6 @@
                     return $.ajax({
                         url: '{{ route('get-scanned-form-cut-input') }}/' + id,
                         type: 'get',
-                        data: {
-                            act_costing_id: $("#act_costing_id").val(),
-                            act_costing_ws: $("#no_ws").val(),
-                            color: $("#color").val(),
-                        },
                         dataType: 'json',
                         success: function(res) {
                             console.log(res);
