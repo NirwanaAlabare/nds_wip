@@ -520,6 +520,12 @@ $('.select2type').select2({
                     <button type='button' class='btn btn-sm btn-info' onclick='showDetail("${row.id}")'> <i class="fa-solid fa-eye"></i> Detail</button>
                     <a href='${exportUrl}' class='btn btn-sm btn-success'> <i class="fa-solid fa-file-excel"></i> PL</a>
                     </div>`;
+                }else if (row.status == 'APPROVED') {
+                    return `<div class='d-flex gap-1 justify-content-center'>
+                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_bppb + `")'><i class="fa-solid fa-trash"></i></button>
+                    <button type='button' class='btn btn-sm btn-info' onclick='showDetail("${row.id}")'> <i class="fa-solid fa-eye"></i> Detail</button>
+                    <a href='${exportUrl}' class='btn btn-sm btn-success'> <i class="fa-solid fa-file-excel"></i> PL</a>
+                    </div>`;
                 }else{
                     return `<div class='d-flex gap-1 justify-content-center'>
                     -

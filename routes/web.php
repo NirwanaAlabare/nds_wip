@@ -1824,6 +1824,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/export-pl-packing-out/{id?}', 'PLPackingOut')->name('export-pl-packing-out');
 
         Route::get('/approve-packing-out-subcont', 'ApprovePackingOutSubcont')->name('approve-packing-out-subcont');
+        Route::get('/save-approve-packing-out', 'SaveApprovePackingOut')->name('save-approve-packing-out');
 
     });
 

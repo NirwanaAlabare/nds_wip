@@ -1109,6 +1109,15 @@
                                     <i class="fas fa-file-upload fa-sm"></i> Mutasi Packing (WIP)
                                 </a>
                             </li>
+
+                            <!-- packing subcont out -->
+                            <li>
+                                <a href="{{ route('report-packing-out-subcont') }}"
+                                    class="dropdown-item {{ $subPage == 'report-packing-out-subcont' ? 'active' : '' }}">
+                                    Packing Out Subcont <i class="fas fa-shipping-fast"></i>
+                                </a>
+                            </li>
+
                         </ul>
                     </li>
                     <li class="nav-item dropdown">

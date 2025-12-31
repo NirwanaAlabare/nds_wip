@@ -11,9 +11,9 @@ use \avadim\FastExcelLaravel\Excel as FastExcel;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use App\Exports\PLPackingOutExport;
 use App\Models\PackingOutDetTemp;
+use App\Models\PackingOutH;
 use App\Models\BppbSB;
 use App\Models\Tempbpb;
-use App\Models\PackingOutH;
 use DB;
 use PDF;
 
@@ -390,8 +390,7 @@ public function ApprovePackingOutSubcont(Request $request)
             $additionalQuery = "";
             $keywordQuery = "";
 
-            $data_inmaterial = DB::connection('mysql_sb')->select("select a.*,COALESCE(qty_lok,0) qty_lok,round((round(COALESCE(qty,0),4) - round(COALESCE(qty_lok,0),4)),2) qty_balance from (select b.id,b.no_dok,b.tgl_dok,b.tgl_shipp,b.type_dok,b.no_po,b.supplier,b.no_invoice,b.type_bc,b.no_daftar,b.tgl_daftar, b.type_pch,CONCAT(b.created_by,' (',b.created_at, ') ') user_create,b.status,round(sum(COALESCE(qty_good,0)),2) qty, unit from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and b.tgl_dok BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."' GROUP BY b.id) a left JOIN
-                (select no_dok nodok,round(SUM(qty_sj),2) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok) b on b.nodok = a.no_dok where a.tgl_dok BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."' and status = 'Pending' order by no_dok asc");
+            $data_inmaterial = DB::connection('mysql_sb')->select("select a.id, a.no_bppb, a.tgl_bppb, a.no_po, supplier, buyer, jenis_pengeluaran, jenis_dok, CONCAT(a.created_by,' (',a.created_at,')') created_by, a.status from packing_out_h a INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where a.tgl_bppb BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."' and a.status = 'DRAFT' GROUP BY a.no_bppb");
 
 
             return DataTables::of($data_inmaterial)->toJson();
@@ -407,7 +406,61 @@ public function ApprovePackingOutSubcont(Request $request)
         return view("packing-subcont.approve-packing-out", ['status' => $status,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,'page' => 'dashboard-packing', "subPageGroup" => "approve-packing-packing-out", "subPage" => "approve-packing-out-subcont"]);
     }
 
+    public function SaveApprovePackingOut(Request $request)
+    {
+        $timestamp = Carbon::now();
 
+        foreach ($request->id_bpb as $i => $id_bpb) {
+
+            $check = $request->chek_id[$i] ?? 0;
+            if ($check <= 0) continue;
+
+        // Update status di nds
+            PackingOutH::where('no_bppb', $id_bpb)->update([
+                'status' => 'APPROVED',
+                'approved_by' => Auth::user()->name,
+                'approved_date' => $timestamp,
+            ]);
+
+        // Update status di signalbit
+            BppbSB::where('bppbno_int', $id_bpb)->update([
+                'confirm' => 'Y',
+                'confirm_by' => Auth::user()->name,
+                'confirm_date' => $timestamp,
+            ]);
+
+        }
+
+        return response()->json([
+            "status" => 200,
+            "message" => "Approved Data Successfully",
+            "additional" => [],
+        ]);
+    }
+
+
+    public function ReportOutSubcont(Request $request)
+    {
+        if ($request->ajax()) {
+            $additionalQuery = "";
+
+            if ($request->dateFrom) {
+                $additionalQuery .= " and a.tgl_dok >= '" . $request->dateFrom . "' ";
+            }
+
+            if ($request->dateTo) {
+                $additionalQuery .= " and a.tgl_dok <= '" . $request->dateTo . "' ";
+            }
+
+
+            $data_pemasukan = DB::connection('mysql_sb')->select("select *, CONCAT_WS('',no_dok,tgl_dok,no_mut,supplier,rak,barcode,no_roll,no_lot,qty,qty_mut,satuan,id_item,id_jo,no_ws,goods_code,itemdesc,color,size,deskripsi,username,confirm_by) cari_data from (select a.no_dok,b.tgl_dok,COALESCE(c.no_mut,'-') no_mut,a.supplier,CONCAT(c.kode_lok,' FABRIC WAREHOUSE RACK') rak,c.no_barcode barcode,no_roll,no_lot,ROUND(qty_sj,2) qty, COALESCE(ROUND(qty_mutasi,2),0) qty_mut,satuan,b.id_item,b.id_jo,b.no_ws,d.goods_code,d.itemdesc,d.color,d.size,COALESCE(a.deskripsi,'-') deskripsi,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by from whs_inmaterial_fabric a inner join whs_inmaterial_fabric_det b on b.no_dok = a.no_dok  inner join whs_lokasi_inmaterial c on c.no_dok = a.no_dok inner join masteritem d on d.id_item = c.id_item where c.status = 'Y' and left(a.no_dok,2) ='GK' " . $additionalQuery . " group by c.id) a");
+
+
+            return DataTables::of($data_pemasukan)->toJson();
+        }
+
+        return view("packing-subcont.report-packing-out", ["page" => "dashboard-warehouse"]);
+    }
 
     /**
      * Display the specified resource.

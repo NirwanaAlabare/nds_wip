@@ -14,11 +14,11 @@
     @endsection
 
     @section('content')
-    <form action="{{ route('approve-material-all') }}" method="post" onsubmit="submitappForm(this, event)">
+    <form action="{{ route('save-approve-packing-out') }}" method="post" onsubmit="submitappForm(this, event)">
         @method('GET')
         <div class="card card-sb">
             <div class="card-header">
-                <h5 class="card-title fw-bold mb-0">Konfirmasi Penerimaan Bahan Baku</h5>
+                <h5 class="card-title fw-bold mb-0">Approval Packing Out Subcont</h5>
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-end gap-3 mb-3">
@@ -48,38 +48,26 @@
                                 <div class="mt-4 ">
                                     <input type='button' class='btn btn-primary btn-sm' onclick="dataTableReload();" value="Search">
                                     <button type="submit" class="btn btn-success btn-sm toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Approve</button>
-                                    <!-- <button class="btn btn-success" onclick="printbarcode('SA')"> <i class="fa-solid fa-barcode"></i> Saldo Awal</button> -->
-            <!-- <a href="http://10.10.5.49:8082/erp/pages/forms/pdfBarcode_whsSA.php?id='SA'&mode='barcode'" class="btn btn-success">
-                <i class="fa-solid fa-barcode"></i>
-                Saldo Awal
-            </a> -->
+
         </div>
 
     </div>
 </div>
 </div>
 </div>
-        <!-- <div class="d-flex justify-content-between">
-            <div class="ml-auto">
-                <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
-            </div>
-                <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Search GR Document..." onkeyup="carigrdok()">
-                <input type="hidden" class="form-control" id="jumlah_data" name="jumlah_data"
-                                            readonly>
-                                        </div> -->
+
                                         <div class="table-responsive">
                                             <table id="datatable" class="table table-bordered table-striped table-head-fixed table w-100 text-nowrap">
                                                 <thead>
                                                     <tr>
-                                                        <th class="text-center">No BPB</th>
-                                                        <th class="text-center">Tgl BPB</th>
-                                                        <th class="text-center">Tipe BPB</th>
+                                                        <th class="text-center">No Trans</th>
+                                                        <th class="text-center">Tgl Pengeluaran</th>
                                                         <th class="text-center">No PO</th>
                                                         <th class="text-center">Supplier</th>
-                                                        <th class="text-center">No Invoice</th>
-                                                        <th class="text-center">Qty</th>
-                                                        <th class="text-center">Satuan</th>
-                                                        <th class="text-center">Lokasi</th>
+                                                        <th class="text-center">Buyer</th>
+                                                        <th class="text-center">Jenis Pengeluaran</th>
+                                                        <th class="text-center">Jenis Dokumen</th>
+                                                        <th class="text-center">Dibuat Oleh</th>
                                                         <th class="text-center">Check</th>
                                                         <th style="display:none;">Check</th>
                                                         <th class="text-center">Detail</th>
@@ -115,6 +103,83 @@
                                 </div>
                             </div>
                         </div>
+
+
+                        <div class="modal fade" id="modalDetail" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+
+      <div class="modal-header bg-sb text-light">
+        <h5 class="modal-title">Detail Packing Out</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- HEADER -->
+        <div class="row">
+          <div class="col-6 mb-1">
+            <strong>No Trans</strong><br>
+            <span id="d_no_bppb">-</span>
+          </div>
+
+          <div class="col-6 mb-1">
+            <strong>Supplier</strong><br>
+            <span id="d_supplier">-</span>
+          </div>
+
+          <div class="col-6 mb-1">
+            <strong>PO</strong><br>
+            <span id="d_no_po">-</span>
+          </div>
+
+          <div class="col-6 mb-1">
+            <strong>Buyer</strong><br>
+            <span id="d_buyer">-</span>
+          </div>
+
+          <div class="col-6 mb-1">
+            <strong>Tgl Trans</strong><br>
+            <span id="d_tgl_bppb">-</span>
+          </div>
+
+          <div class="col-6 mb-1">
+            <strong>Status</strong><br>
+            <span id="d_status" class="badge bg-secondary">-</span>
+          </div>
+        </div>
+
+        <hr>
+
+        <table class="table table-bordered table-striped table-sm" id="detailTable">
+            <thead class="table-light">
+                <tr>
+                    <th>No</th>
+                    <th>No WS</th>
+                    <th>Style</th>
+                    <th>Item Desc</th>
+                    <th>Color</th>
+                    <th>Size</th>
+                    <th class="text-end">Qty</th>
+                    <th>Unit</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+
+            <tfoot>
+              <tr>
+                <th colspan="6" class="text-end">Total</th>
+                <th class="text-end" id="tfoot_qty">0</th>
+                <th></th>
+              </tr>
+            </tfoot>
+        </table>
+
+      </div>
+
+    </div>
+  </div>
+</div>
 
                         @endsection
 
@@ -234,7 +299,7 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '{{ route('konfirmasi-pemasukan') }}',
+                url: '{{ route('approve-packing-out-subcont') }}',
                 dataType: 'json',
                 dataSrc: 'data',
                 data: function(d) {
@@ -243,13 +308,10 @@
                 },
             },
             columns: [{
-                data: 'no_dok'
+                data: 'no_bppb'
             },
             {
-                data: 'tgl_dok'
-            },
-            {
-                data: 'type_dok'
+                data: 'tgl_bppb'
             },
             {
                 data: 'no_po'
@@ -258,25 +320,25 @@
                 data: 'supplier'
             },
             {
-                data: 'no_invoice'
+                data: 'buyer'
             },
             {
-                data: 'qty'
+                data: 'jenis_pengeluaran'
             },
             {
-                data: 'unit'
+                data: 'jenis_dok'
+            },
+            {
+                data: 'created_by'
             },
             {
                 data: 'id'
             },
             {
-                data: 'id'
+                data: 'no_bppb'
             },
             {
-                data: 'no_dok'
-            },
-            {
-                data: 'no_dok'
+                data: 'no_bppb'
             }
 
             ],
@@ -300,39 +362,18 @@
                 targets: [7],
                 render: (data, type, row, meta) => data ? data : "-"
             },
-            {
-                targets: [8],
-                render: (data, type, row, meta) => {
-                   if (row.qty_balance == 0) {
-                    return `<div class='d-flex gap-1 justify-content-center'>
-                    <a ><i class="fas fa-check-circle fa-lg" style='color:green;'></i></a>
-                    </div>`;
-                }else{
-                    return `<div class='d-flex gap-1 justify-content-center'>
-                    <a ><i class="fas fa-times-circle fa-lg" style='color:red;'></i></a>
-                    </div>`;
-                }
+        {
+            targets: [8],
+            render: (data, type, row, meta) => {
+                console.log(row);
+    
+                        return '<div class="d-flex gap-1 justify-content-center" style="padding-top:5px;"><input type="checkbox" id="chek_id' + meta.row +
+                        '" name="chek_id[' + meta.row + ']" class="flat" value="1" ></td></div>';
+                   
             }
         },
         {
             targets: [9],
-            render: (data, type, row, meta) => {
-                console.log(row);
-                // if (row.no_po != '') {
-                    if (row.qty_balance == 0) {
-                        return '<div class="d-flex gap-1 justify-content-center" style="padding-top:5px;"><input type="checkbox" id="chek_id' + meta.row +
-                        '" name="chek_id[' + meta.row + ']" class="flat" value="1" ></td></div>';
-                    }else{
-                        return '';
-                    }
-
-                // }else{
-                //     return '';
-                // }
-            }
-        },
-        {
-            targets: [10],
             className: "d-none",
             render: (data, type, row, meta) => {
                 return '<div class="d-flex gap-1 justify-content-center"><input type="text" id="id_bpb' + meta.row +
@@ -340,9 +381,9 @@
             }
         },
         {
-            targets: [11],
+            targets: [10],
             render: (data, type, row, meta) => {
-                return `<div class="d-flex gap-1 justify-content-center"><a ><i class="fa-solid fa-circle-info fa-lg" style="color:DarkCyan;" onclick='showdata("` + data + `")'></i></a></div>`;
+                return `<div class="d-flex gap-1 justify-content-center"><a ><i class="fa-solid fa-circle-info fa-lg" style="color:DarkCyan;" onclick='showDetail("${row.id}")'></i></a></div>`;
             }
         }
         ]
@@ -353,6 +394,103 @@ async function dataTableReload() {
         document.getElementById('jumlah_data').value = datatable.data().count();
     });
 }
+
+
+function showDetail(id) {
+    let detailDT = null;
+
+    let url = "{{ route('get-detail-packing-out', ':id') }}".replace(':id', id);
+
+    $.get(url, function(res){
+
+        $("#d_no_bppb").text(res?.header?.no_bppb ?? '-');
+        $("#d_tgl_bppb").text(res?.header?.tgl_bppb ?? '-');
+        $("#d_no_po").text(res?.header?.no_po ?? '-');
+        $("#d_supplier").text(res?.header?.supplier ?? '-');
+        $("#d_buyer").text(res?.header?.buyer ?? '-');
+
+        // STATUS BADGE
+        let status = (res?.header?.status ?? '-').toUpperCase();
+        let badge = 'bg-secondary';
+        if(status === 'APPROVED') badge = 'bg-success';
+        else if(status === 'DRAFT') badge = 'bg-warning text-dark';
+        else if(status === 'REJECTED') badge = 'bg-danger';
+
+        $("#d_status").removeClass().addClass('badge '+badge).text(status);
+
+        // reset datatable
+        if (detailDT !== null) detailDT.clear().destroy();
+        $("#detailTable tbody").html('');
+
+        // isi rows
+        let rows = '';
+        res.detail.forEach((d,i)=>{
+            rows += `
+                <tr>
+                    <td>${i+1}</td>
+                    <td>${d.kpno ?? ''}</td>
+                    <td>${d.styleno ?? ''}</td>
+                    <td>${d.itemdesc ?? ''}</td>
+                    <td>${d.color ?? ''}</td>
+                    <td>${d.size ?? ''}</td>
+                    <td>${parseFloat(d.qty ?? 0)}</td>
+                    <td>${d.unit ?? ''}</td>
+                </tr>
+            `;
+        });
+        $("#detailTable tbody").html(rows);
+
+        // init datatable
+        detailDT = $("#detailTable").DataTable({
+
+            searching: true,
+            paging: true,
+            ordering: true,
+            info: false,
+            lengthChange: false,
+            pageLength: 10,
+
+            columnDefs:[
+                {
+                    targets:6, 
+                    className:'text-end',
+                    render:function(data){
+                        return (parseFloat(data)||0).toLocaleString('en-US');
+                    }
+                }
+            ],
+
+            // >>> TOTAL TIDAK TERPENGARUH PAGING <<<
+            footerCallback: function ( row, data, start, end, display ) {
+
+                let api = this.api();
+
+                let toNum = function(i){
+                    if(typeof i === 'string'){
+                        return parseFloat(i.replace(/,/g,'')) || 0;
+                    }
+                    return typeof i === 'number' ? i : 0;
+                };
+
+                // TOTAL dari semua data yang terfilter (search applied)
+                let total = api
+                    .column(6, { search:'applied' })
+                    .data()
+                    .reduce(function(a,b){
+                        return toNum(a) + toNum(b);
+                    }, 0);
+
+                let formatted = total.toLocaleString('en-US');
+
+                $(api.column(6).footer()).html(formatted);
+                $("#tfoot_qty").text(formatted);
+            }
+        });
+
+        $("#modalDetail").modal('show');
+    });
+}
+
 </script>
 <script type="text/javascript">
     function approve_inmaterial($nodok){
