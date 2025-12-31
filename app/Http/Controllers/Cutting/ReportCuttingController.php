@@ -390,7 +390,8 @@ class ReportCuttingController extends Controller
                         req.color,
                         req.size,
                         COALESCE(roll.roll, req.no_roll) roll,
-                        COALESCE(roll.qty, req.qty_out) qty,
+                        (CASE WHEN piping.id_roll IS NOT NULL THEN GREATEST(COALESCE(roll.qty, req.qty_out, 0), piping.qty) ELSE COALESCE(roll.qty, req.qty_out, 0) END) qty,
+                        (CASE WHEN piping.id_roll IS NOT NULL THEN LEAST(COALESCE(roll.sisa_kain, req.qty_out, 0), COALESCE(piping.sisa_kain, 0)) ELSE COALESCE(roll.sisa_kain, req.qty_out, 0) END) sisa_kain,
                         COALESCE(roll.sisa_kain, req.qty_out, 0) - COALESCE(piping.piping, 0) as sisa_kain,
                         COALESCE(roll.unit, req.satuan) unit,
                         COALESCE(roll.total_pemakaian_roll, 0) + COALESCE(piping.piping, 0) as total_pemakaian_roll,
@@ -446,7 +447,8 @@ class ReportCuttingController extends Controller
                         select
                             id_roll,
                             SUM(form_cut_piping.qty) qty,
-                            SUM(form_cut_piping.piping) piping
+                            SUM(form_cut_piping.piping) piping,
+                            MIN(form_cut_piping.qty_sisa) sisa_kain
                         from
                             form_cut_piping
                         where

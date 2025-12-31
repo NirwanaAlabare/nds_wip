@@ -360,6 +360,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-master-tujuan', 'getMasterTujuan')->name('get-master-tujuan');
         // get master secondary
         Route::get('/get-master-secondary', 'getMasterSecondary')->name('get-master-secondary');
+
+        // get part detail process
+        Route::get('/get-edit-part-detail-process', 'getEditPartDetailProcess')->name('get-edit-part-detail-process');
+
+        // get part detail items
+        Route::get('/get-edit-part-detail-items', 'getEditPartDetailItems')->name('get-edit-part-detail-items');
     });
 
     // Marker :
@@ -853,6 +859,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/reset-stocker-id', 'resetStockerId')->name('reset-stocker-id');
         Route::post('/reset-stocker-form', 'resetStockerForm')->name('reset-stocker-form');
         Route::post('/reset-redundant-stocker', 'resetRedundantStocker')->name('reset-redundant-stocker');
+        Route::post('/restore-stocker-log', 'restoreStockerLog')->name('restore-stocker-log');
 
         Route::post('/import-stocker-manual', 'importStockerManual')->name('import-stocker-manual');
 
