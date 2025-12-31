@@ -98,7 +98,7 @@
                                     <label class="form-label "><small><b>No. WS</b></small></label>
                                     @if ($formCutInputData->act_costing_ws)
                                         <input type="text" class="d-none" name="act_costing_id" id="act_costing_id" value="{{ $formCutInputData->act_costing_id }}" readonly>
-                                        <input type="text" class="form-control form-control-sm " name="no_ws" value="{{ $formCutInputData->act_costing_ws }}" readonly>
+                                        <input type="text" class="form-control form-control-sm " name="no_ws" id="no_ws" value="{{ $formCutInputData->act_costing_ws }}" readonly>
                                     @else
                                         <input type="hidden" name="no_ws" id="no_ws" readonly>
                                         <select class="form-control select2bs4" id="act_costing_id" name="act_costing_id" style="width: 100%;">
@@ -729,6 +729,7 @@
                                                     calculatePemakaianLembar();
                                                     calculateTotalPemakaian();
                                                     calculateShortRoll(event);
+                                                    updatePlyProgress();
                                                 "
 
                                                 onchange="
@@ -736,6 +737,7 @@
                                                     calculatePemakaianLembar();
                                                     calculateTotalPemakaian();
                                                     calculateShortRoll(event);
+                                                    updatePlyProgress();
                                                 ">
                                         </div>
                                     </div>
@@ -3591,8 +3593,8 @@
                     document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
 
                     document.getElementById("current_lembar_gelaran").removeAttribute('readonly');
-                    document.getElementById("current_lembar_gelaran").setAttribute('onkeyup', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();");
-                    document.getElementById("current_lembar_gelaran").setAttribute('onchange', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();");
+                    document.getElementById("current_lembar_gelaran").setAttribute('onkeyup', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();updatePlyProgress();");
+                    document.getElementById("current_lembar_gelaran").setAttribute('onchange', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();updatePlyProgress();");
 
                     // showSambungan();
                 }
@@ -3603,8 +3605,8 @@
                     document.getElementById("current_sisa_gelaran").setAttribute('readonly', true);
 
                     document.getElementById("current_lembar_gelaran").setAttribute('readonly', true);
-                    document.getElementById("current_lembar_gelaran").setAttribute('onkeyup', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();");
-                    document.getElementById("current_lembar_gelaran").setAttribute('onchange', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();");
+                    document.getElementById("current_lembar_gelaran").setAttribute('onkeyup', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();updatePlyProgress();");
+                    document.getElementById("current_lembar_gelaran").setAttribute('onchange', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();updatePlyProgress();");
 
                     // hideSambungan();
                 }
@@ -3864,6 +3866,12 @@
                         return $.ajax({
                             url: '{{ route('get-scanned-form-cut-input') }}/' + id,
                             type: 'get',
+                            data: {
+                                act_costing_id: $("#act_costing_id").val(),
+                                no_ws: $("#no_ws").val(),
+                                color: $("#color").val(),
+                                // panel: $("#panel").val(),
+                            },
                             dataType: 'json',
                             success: function(res) {
                                 if (res) {

@@ -76,7 +76,7 @@
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>No. WS</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="no_ws" value="{{ $formCutInputData->act_costing_ws }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="no_ws" id="no_ws" value="{{ $formCutInputData->act_costing_ws }}" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
@@ -662,12 +662,14 @@
                                                     calculateShortRoll(event);
                                                     calculatePemakaianLembar();
                                                     calculateTotalPemakaian();
+                                                    updatePlyProgress();
                                                     // calculateSisaKain();
                                                 "
                                                 onchange="
                                                     calculateShortRoll(event);
                                                     calculatePemakaianLembar();
                                                     calculateTotalPemakaian();
+                                                    updatePlyProgress();
                                                     // calculateSisaKain();
                                                 ">
                                         </div>
@@ -2916,7 +2918,7 @@
                 data.total_pemakaian_roll ? document.getElementById("current_total_pemakaian_roll").value = data.total_pemakaian_roll : '';
                 data.short_roll ? document.getElementById("current_short_roll").value = data.short_roll : '';
                 data.piping ? document.getElementById("current_piping").value = data.piping : '';
-                document.getElementById("current_berat_amparan").value = latestBerat;
+                document.getElementById("current_berat_amparan").value = latestBerat;   
 
                 if (data.unit == "KGM" || data.unit == "KG") {
                     document.getElementById("berat_amparan").classList.remove("d-none");
@@ -3056,8 +3058,8 @@
                 document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
 
                 document.getElementById("current_lembar_gelaran").removeAttribute('readonly');
-                document.getElementById("current_lembar_gelaran").setAttribute('onkeyup', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();");
-                document.getElementById("current_lembar_gelaran").setAttribute('onchange', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();");
+                document.getElementById("current_lembar_gelaran").setAttribute('onkeyup', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();updatePlyProgress();");
+                document.getElementById("current_lembar_gelaran").setAttribute('onchange', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();updatePlyProgress();");
 
                 // showSambungan();
             }
@@ -3068,8 +3070,8 @@
                 document.getElementById("current_sisa_gelaran").setAttribute('readonly', true);
 
                 document.getElementById("current_lembar_gelaran").setAttribute('readonly', true);
-                document.getElementById("current_lembar_gelaran").setAttribute('onkeyup', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);");
-                document.getElementById("current_lembar_gelaran").setAttribute('onchange', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);");
+                document.getElementById("current_lembar_gelaran").setAttribute('onkeyup', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);updatePlyProgress();");
+                document.getElementById("current_lembar_gelaran").setAttribute('onchange', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);updatePlyProgress();");
 
                 // hideSambungan();
             }
@@ -3160,6 +3162,8 @@
             function updatePlyProgress() {
                 let currentLembar = Number($("#current_lembar_gelaran").val());
                 let qtyPly = Number($("#qty_ply").val());
+
+                console.log("currentLembar", currentLembar);
 
                 document.getElementById("current_ply_progress_txt").innerText = (totalLembar + currentLembar) + "/" + qtyPly;
                 document.getElementById("current_ply_progress").style.width = Number(qtyPly) > 0 ? (Number( totalLembar + currentLembar) / Number(qtyPly) * 100) + "%" : "0%";
@@ -3322,6 +3326,12 @@
                     return $.ajax({
                         url: '{{ route('get-scanned-form-cut-input') }}/' + id,
                         type: 'get',
+                        data: {
+                            act_costing_id: $("#act_costing_id").val(),
+                            act_costing_ws: $("#no_ws").val(),
+                            color: $("#color").val(),
+                            // panel: $("#panel").val(),
+                        },
                         dataType: 'json',
                         success: function(res) {
                             console.log(res);

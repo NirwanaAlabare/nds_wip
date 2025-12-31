@@ -728,6 +728,7 @@ class GeneralController extends Controller
                 SUM(qty)-COALESCE(qty_ri, 0) as qty,
                 unit,
                 rule_bom,
+                id_contents,
                 so_det_list,
                 size_list
             FROM (
@@ -744,6 +745,7 @@ class GeneralController extends Controller
                     whs_bppb_det.qty_out qty,
                     whs_bppb_det.satuan unit,
                     bji.rule_bom,
+                    content.id_contents,
                     GROUP_CONCAT(DISTINCT so_det.id ORDER BY so_det.id ASC SEPARATOR ', ') as so_det_list,
                     GROUP_CONCAT(DISTINCT so_det.size ORDER BY so_det.id ASC SEPARATOR ', ') as size_list
                 FROM
@@ -755,6 +757,19 @@ class GeneralController extends Controller
                     LEFT JOIN so_det ON so_det.id = bji.id_so_det
                     LEFT JOIN so ON so.id = so_det.id_so
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN (
+                        SELECT
+                            a.id AS id_gen,
+                            e.id_contents,
+                            f.itemdesc
+                        FROM
+                            masterdesc a
+                            LEFT JOIN mastercolor b ON a.id_color = b.id
+                            LEFT JOIN masterweight c ON b.id_weight = c.id
+                            LEFT JOIN masterlength d ON c.id_length = d.id
+                            LEFT JOIN masterwidth e ON d.id_width = e.id
+                            INNER JOIN masteritem f ON f.id_gen = a.id
+                    ) content ON content.id_gen = masteritem.id_gen
                 WHERE
                     whs_bppb_det.id_roll = '".$id."'
                     AND whs_bppb_h.tujuan = 'Production - Cutting'
@@ -769,6 +784,43 @@ class GeneralController extends Controller
             LIMIT 1
         ");
         if ($newItem) {
+            if ($request->act_costing_id || $request->act_costing_ws) {
+                // Check Available Item Content
+                $getAvailableContent = DB::connection("mysql_sb")->select("
+                    select
+                        id_item,
+                        act_costing.id,
+                        act_costing.kpno,
+                        masterpanel.nama_panel,
+                        content.id_contents,
+                        content.itemdesc
+                    from
+                        bom_jo_item
+                    left join jo_det on jo_det.id_jo = bom_jo_item.id_jo
+                    left join so on so.id = jo_det.id_so
+                    left join act_costing on act_costing.id = so.id_cost
+                    left join masterpanel on masterpanel.id = bom_jo_item.id_panel
+                    left join (
+                        select a.id as id_gen ,e.id_contents, f.itemdesc from masterdesc a
+                        left join mastercolor b on a.id_color = b.id
+                        left join masterweight c on b.id_weight = c.id
+                        left join masterlength d on c.id_length = d.id
+                        left join masterwidth e on d.id_width = e.id
+                        inner join masteritem f on f.id_gen = a.id
+                    ) content on content.id_gen = bom_jo_item.id_item
+                    where
+                        (act_costing.id = '".$request->act_costing_id."' OR act_costing.kpno = '".$request->act_costing_ws."') and
+                        ".($request->panel ? "  masterpanel.nama_panel = '".$request->panel."' and " : "")."
+                        content.id_contents = '".$newItem[0]->id_contents."'
+                    group by
+                        id_contents
+                ");
+
+                if (count($getAvailableContent) < 1) {
+                    return "Item tidak sesuai dengan order yang dipilih.";
+                }
+            }
+
             $scannedItem = ScannedItem::selectRaw("
                 scanned_item.id,
                 scanned_item.id_roll,

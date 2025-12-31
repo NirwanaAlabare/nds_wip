@@ -725,11 +725,13 @@
                                                         calculateTotalPemakaian();
                                                         calculatePemakaianLembar();
                                                         calculateShortRoll(event);
+                                                        updatePlyProgress();
                                                         // calculateSisaKain();
                                                     " onchange="
                                                         calculateTotalPemakaian();
                                                         calculatePemakaianLembar();
                                                         calculateShortRoll(event);
+                                                        updatePlyProgress();
                                                         // calculateSisaKain();
                                                     ">
                                         </div>
@@ -3606,8 +3608,8 @@
             document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
 
             document.getElementById("current_lembar_gelaran").removeAttribute('readonly');
-            document.getElementById("current_lembar_gelaran").setAttribute('onkeyup', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();");
-            document.getElementById("current_lembar_gelaran").setAttribute('onchange', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();");
+            document.getElementById("current_lembar_gelaran").setAttribute('onkeyup', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();updatePlyProgress();");
+            document.getElementById("current_lembar_gelaran").setAttribute('onchange', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();updatePlyProgress();");
 
             // showSambungan();
         }
@@ -3618,8 +3620,8 @@
             document.getElementById("current_sisa_gelaran").setAttribute('readonly', true);
 
             document.getElementById("current_lembar_gelaran").setAttribute('readonly', true);
-            document.getElementById("current_lembar_gelaran").setAttribute('onkeyup', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();");
-            document.getElementById("current_lembar_gelaran").setAttribute('onchange', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();");
+            document.getElementById("current_lembar_gelaran").setAttribute('onkeyup', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();updatePlyProgress();");
+            document.getElementById("current_lembar_gelaran").setAttribute('onchange', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();updatePlyProgress();");
 
             // hideSambungan();
         }
@@ -3869,6 +3871,12 @@
                 return $.ajax({
                     url: '{{ route('get-scanned-form-cut-input') }}/' + id,
                     type: 'get',
+                    data: {
+                        act_costing_id: $("#act_costing_id").val(),
+                        no_ws: $("#no_ws").val(),
+                        color: $("#color").val(),
+                        // panel: $("#panel").val(),
+                    },
                     dataType: 'json',
                     success: function (res) {
                         if (res) {
