@@ -66,6 +66,18 @@
             text-align: center;
             transition: color .2s ease-in-out;
         }
+
+        .form-control {
+            border: 1.5px solid #ced4da;
+            border-radius: 8px;
+            padding: 6px 10px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.25);
+        }
     </style>
 @endsection
 
@@ -109,6 +121,7 @@
                             <th scope="col" class="text-center align-middle">SMV</th>
                             <th scope="col" class="text-center align-middle">AMV</th>
                             <th scope="col" class="text-center align-middle">Machine Type</th>
+                            <th scope="col" class="text-center align-middle">Kategori</th>
                             <th scope="col" class="text-center align-middle">Remark</th>
                             <th scope="col" class="text-center align-middle">Created At</th>
                             <th scope="col" class="text-center align-middle">Act</th>
@@ -167,6 +180,14 @@
                                 value="">
                         </div>
                         <div class="col-md-4">
+                            <label for="txtkategori"><small><b>Kategori :</b></small></label>
+                            <input type="text" id="txtkategori" name="txtkategori"
+                                class="form-control form-control-sm" value="">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-12">
                             <label for="txtremark"><small><b>Remark :</b></small></label>
                             <input type="text" id="txtremark" name="txtremark" class="form-control form-control-sm"
                                 value="">
@@ -235,6 +256,14 @@
                                 value="">
                         </div>
                         <div class="col-md-4">
+                            <label for="txtedkategori"><small><b>Kategori :</b></small></label>
+                            <input type="text" id="txtedkategori" name="txtedkategori"
+                                class="form-control form-control-sm" value="">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-12">
                             <label for="txtedremark"><small><b>Remark :</b></small></label>
                             <input type="text" id="txtedremark" name="txtedremark"
                                 class="form-control form-control-sm" value="">
@@ -340,6 +369,7 @@
                 $('#txtname').val('');
                 $('#txtsmv').val('');
                 $('#txtamv').val('');
+                $('#txtkategori').val('');
                 $('#txtremark').val('');
                 $('#txttype').val('');
                 // Optional: Also clear select2 (if using select2)
@@ -375,6 +405,9 @@
                 {
                     data: 'machine_type'
                 }, // Machine Type
+                {
+                    data: 'kategori'
+                },
                 {
                     data: 'remark'
                 }, // Remark
@@ -415,6 +448,7 @@
             let type = $('#txttype').val();
             let smv = $('#txtsmv').val();
             let amv = $('#txtamv').val();
+            let kategori = $('#txtkategori').val();
             let remark = $('#txtremark').val();
 
             // Disable the Save button to prevent multiple clicks
@@ -431,6 +465,7 @@
                     type: type,
                     smv: smv,
                     amv: amv,
+                    kategori: kategori,
                     remark: remark
                 },
                 success: function(response) {
@@ -441,6 +476,7 @@
                     $('#txtamv').val('');
                     $('#txtremark').val('');
                     $('#txttype').val('');
+                    $('#txtkategori').val('');
                     // Optional: Also clear select2 (if using select2)
                     $('#cboclass').val(null).trigger('change');
                     Swal.fire({
@@ -483,6 +519,7 @@
                     $("#txtedtype").val(res.machine_type);
                     $("#txtedsmv").val(res.smv);
                     $("#txtedamv").val(res.amv);
+                    $("#txtedkategori").val(res.kategori);
                     $("#txtedremark").val(res.remark);
                 },
                 error: function(request, status, error) {
@@ -497,6 +534,7 @@
             let txttype = $('#txtedtype').val();
             let smv = $('#txtedsmv').val();
             let amv = $('#txtedamv').val();
+            let kategori = $('#txtedkategori').val();
             let remark = $('#txtedremark').val();
             let id_c = $('#id_c').val();
 
@@ -514,6 +552,7 @@
                     txttype: txttype,
                     smv: smv,
                     amv: amv,
+                    kategori: kategori,
                     remark: remark,
                     id_c: id_c
                 },
