@@ -89,7 +89,7 @@
                     </div>
                 </div>
                 <div id="store-form">
-                    <div class="row g-3">
+                    <div class="row justify-content-center g-3">
                         <input type="hidden" name="sewing_line" id="sewing_line" value="{{ $line }}">
                         <input type="hidden" name="tgl_plan" id="tgl_plan" value="{{ $date }}">
                         <div class="col-md-6">
