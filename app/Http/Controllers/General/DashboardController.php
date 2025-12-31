@@ -1833,9 +1833,10 @@ class DashboardController extends Controller
                     orderBy("stocker_input.so_det_id", "asc")->
                     orderBy("stocker_input.shade", "desc")->
                     orderBy("stocker_input.id_qr_stocker", "asc")->
-                    groupBy("stocker_input.id");
+                    groupBy("stocker_input.id")->
+                    get();
 
-                return DataTables::eloquent($dc)->toJson();
+                return DataTables::of($dc)->toJson();
             }
 
             return view('dashboard', ['page' => 'dashboard-dc', 'months' => $months, 'years' => $years]);

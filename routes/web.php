@@ -1027,9 +1027,19 @@ Route::middleware('auth')->group(function () {
     // Loading Out
     Route::controller(LoadingOutController::class)->prefix("loading-out")->middleware('role:dc')->group(function () {
         Route::get('/loading_out', 'loading_out')->name('loading_out');
+        Route::get('/loading_out_det', 'loading_out_det')->name('loading_out_det');
         Route::get('/input_loading_out', 'input_loading_out')->name('input_loading_out');
         Route::get('/getpo_loading_out', 'getpo_loading_out')->name('getpo_loading_out');
         Route::get('/get_list_po_loading_out', 'get_list_po_loading_out')->name('get_list_po_loading_out');
+        Route::post('/get_loading_out_stocker_info', 'get_loading_out_stocker_info')->name('get_loading_out_stocker_info');
+        Route::post('/save_tmp_stocker_loading_out', 'save_tmp_stocker_loading_out')->name('save_tmp_stocker_loading_out');
+        Route::get('/get_list_tmp_scan_loading_out', 'get_list_tmp_scan_loading_out')->name('get_list_tmp_scan_loading_out');
+        Route::post('/loading_out_delete_tmp', 'loading_out_delete_tmp')->name('loading_out_delete_tmp');
+        Route::post('/save_loading_out', 'save_loading_out')->name('save_loading_out');
+        Route::get('/get_info_modal_det_loading_out', 'get_info_modal_det_loading_out')->name('get_info_modal_det_loading_out');
+        Route::get('/get_table_modal_det_loading_out', 'get_table_modal_det_loading_out')->name('get_table_modal_det_loading_out');
+        Route::get('/get_table_modal_stocker_loading_out', 'get_table_modal_stocker_loading_out')->name('get_table_modal_stocker_loading_out');
+        Route::post('/loading_out_konfirmasi', 'loading_out_konfirmasi')->name('loading_out_konfirmasi');
     });
 
     // Bon Loading

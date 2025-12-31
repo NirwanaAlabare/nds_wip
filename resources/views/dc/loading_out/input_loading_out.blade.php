@@ -49,7 +49,7 @@
                 <div class="col-md-3">
                     <label for="cbo_po"><small><b>PO :</b></small></label>
                     <select class='form-control select2bs4 select-border-primary visual-input' style='width: 100%;'
-                        name='cbo_po' id='cbo_po' onchange="dataTablePOReload();"></select>
+                        name='cbo_po' id='cbo_po' onchange="dataTablePOReload();dataTableScanReload();"></select>
                 </div>
                 <div class="col-md-3">
                     <label for="cbo_dok"><small><b>Jenis Dokumen :</b></small></label>
@@ -80,7 +80,13 @@
             </div>
 
             <div class="row mb-3">
-                <div class="col-md-6">
+                <div class="col-md-3">
+                    <label for="txt_ket"><small><b>Tgl. Transaksi :</b></small></label>
+                    <input type="date" class="form-control form-control-sm " id="tgl_trans" name="tgl_trans"
+                        value="{{ date('Y-m-d') }}">
+                </div>
+
+                <div class="col-md-3">
                     <label for="txt_ket"><small><b>Keterangan :</b></small></label>
                     <input type="text" id="txt_ket" name="txt_ket" class="form-control form-control-sm border-primary">
                 </div>
@@ -102,6 +108,14 @@
                 </div>
             </div>
         </div>
+
+        <div class="card-footer text-end">
+            <button type="button" id="btnsave" name="btnsave" class="btn btn-success btn-sm px-4"
+                onclick="saveLoadingOut()">
+                <i class="fas fa-save me-1"></i> Save
+            </button>
+        </div>
+
     </div>
 
     <div class="card card-sb">
@@ -131,31 +145,7 @@
         </div>
     </div>
 
-    <div class="card card-sb">
-        <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Summary </h5>
-        </div>
-        <div class="card-body pb-0">
-            <div class="row mb-3">
-                <div class="table-responsive">
-                    <table id="datatable" class="table table-bordered table-hover align-middle text-nowrap w-100">
-                        <thead class="bg-sb">
-                            <tr>
-                                <th class="text-center">No. Karung</th>
-                                <th class="text-center">WS</th>
-                                <th class="text-center">Style</th>
-                                <th class="text-center">Color</th>
-                                <th class="text-center">Size</th>
-                                <th class="text-center">Qty PCS</th>
-                                <th class="text-center">NW (KG)</th>
-                                <th class="text-center">GW (KG)</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <div class="card card-sb">
         <div class="card-header">
@@ -163,24 +153,54 @@
         </div>
         <div class="card-body pb-0">
             <div class="row mb-3">
-                <div class="table-responsive">
-                    <table id="datatable" class="table table-bordered table-hover align-middle text-nowrap w-100">
-                        <thead class="bg-sb">
-                            <tr>
-                                <th class="text-center">No. Karung</th>
-                                <th class="text-center">WS</th>
-                                <th class="text-center">Style</th>
-                                <th class="text-center">Color</th>
-                                <th class="text-center">Size</th>
-                                <th class="text-center">Qty PCS</th>
-                                <th class="text-center">NW (KG)</th>
-                                <th class="text-center">GW (KG)</th>
-                            </tr>
-                        </thead>
-                    </table>
+                <!-- No. Karung -->
+                <div class="col-md-6 mb-2 mb-md-0">
+                    <label for="txtno_karung" class="form-label">
+                        <small><b>No. Karung</b></small>
+                    </label>
+                    <input type="text" id="txtno_karung" name="txtno_karung"
+                        class="form-control form-control-sm border-primary" placeholder="Masukkan No. Karung">
+                </div>
+
+                <!-- Scan Stocker-->
+                <div class="col-md-6">
+                    <label class="form-label">
+                        <small><b>No. Stocker</b></small>
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" id="txtno_stocker" name="txtno_stocker"
+                            class="form-control border-primary" placeholder="Scan stocker"
+                            onkeydown="if(event.key === 'Enter'){ scan_stocker(); }">
+                        <a href="#" onclick="scan_stocker();" class="btn btn-outline-primary border-primary"
+                            id="btn_scan">
+                            SCAN
+                        </a>
+                    </div>
                 </div>
             </div>
+
+            <div class="table-responsive">
+                <table id="datatable_scan" class="table table-bordered table-hover align-middle text-nowrap w-100">
+                    <thead class="bg-sb">
+                        <tr>
+                            <th class="text-center">ACT</th>
+                            <th class="text-center">No. Karung</th>
+                            <th class="text-center">No. Stocker</th>
+                            <th class="text-center">No. Cut</th>
+                            <th class="text-center">Panel</th>
+                            <th class="text-center">Group</th>
+                            <th class="text-center">WS</th>
+                            <th class="text-center">Style</th>
+                            <th class="text-center">Color</th>
+                            <th class="text-center">Size</th>
+                            <th class="text-center">Qty</th>
+                            <th class="text-center">Range</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
         </div>
+    </div>
     </div>
 @endsection
 
@@ -217,6 +237,7 @@
             $('#txt_ket').val('');
             $('#txt_berat_panel').val('0');
             $('#txt_berat_karung').val('0');
+            $('#txtno_karung').val('');
         });
 
         function getno_po() {
@@ -246,16 +267,15 @@
             serverSide: false,
             paging: false,
             searching: true,
-            scrollY: '600px',
-            scrollX: true,
             scrollCollapse: true,
             autoWidth: true,
 
             ajax: {
-                url: "{{ route('get_list_po_loading_out') }}",
+                url: '{{ route('get_list_po_loading_out') }}',
                 type: "GET",
                 data: function(d) {
                     d.id_po = $('#cbo_po').val();
+                    console.log(d.id_po);
                 }
             },
 
@@ -278,28 +298,368 @@
                     data: 'unit'
                 },
                 {
-                    data: 'qty_po'
+                    data: 'qty_outstanding'
                 },
                 {
-                    data: 'qty_po'
+                    data: 'qty_input'
                 },
                 {
-                    data: 'qty_po'
+                    data: 'blc'
                 }
             ],
-
             initComplete: function() {
-                let table = this.api();
-                setTimeout(() => table.columns.adjust(), 300);
+                this.api().columns.adjust();
             }
+
         });
 
         function dataTablePOReload() {
-            datatable_po.ajax.reload(function() {
-                setTimeout(() => {
+            datatable_po.ajax.reload(null, false);
+
+            datatable_po.off('draw.dt.adjust').on('draw.dt.adjust', function() {
+                requestAnimationFrame(() => {
                     datatable_po.columns.adjust();
-                }, 300);
-            }, false);
+                });
+            });
+        }
+
+
+        function scan_stocker() {
+            let no_karung = $('#txtno_karung').val().trim();
+            let no_stocker = $('#txtno_stocker').val().trim();
+            let id_po = $('#cbo_po').val();
+
+            console.log(id_po, no_stocker);
+
+            // Validasi PO
+            if (!id_po) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'PO Belum Dipilih',
+                    text: 'Silakan pilih PO terlebih dahulu',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    $('#cbo_po').focus();
+                });
+                return;
+            }
+
+            // Validasi No Karung
+            if (!no_karung) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Karung Kosong',
+                    text: 'Silakan isi No Karung',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    $('#txtno_karung').focus();
+                });
+                return;
+            }
+
+            // Validasi No Stocker
+            if (!no_stocker) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Stocker Kosong',
+                    text: 'Silakan scan No Stocker',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    $('#txtno_stocker').focus();
+                });
+                return;
+            }
+
+            $.ajax({
+                type: "POST",
+                url: '{{ route('get_loading_out_stocker_info') }}',
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    no_karung: no_karung,
+                    no_stocker: no_stocker,
+                    id_po: id_po
+                },
+                dataType: "json",
+                success: function(res) {
+
+                    if (res.result === 'N') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Stocker Tidak Valid',
+                            text: res.message || 'Stocker Tidak Valid'
+                        });
+                        return;
+                    }
+
+                    // Step berikutnya: simpan ke TMP
+                    saveTmpStocker(res.data);
+                },
+                error: function() {
+                    alert('Gagal koneksi ke server');
+                },
+                complete: function() {
+                    // Bersihkan & fokus ulang (scanner friendly)
+                    $('#txtno_stocker').val('').focus();
+                }
+            });
+        }
+
+        function saveTmpStocker(data) {
+
+            $.ajax({
+                type: "POST",
+                url: '{{ route('save_tmp_stocker_loading_out') }}',
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    id_po: $('#cbo_po').val(),
+                    no_karung: $('#txtno_karung').val().trim(),
+                    no_stocker: $('#txtno_stocker').val().trim(),
+                    // data tambahan dari backend sebelumnya
+                    // item_id: data.item_id ?? null,
+                    // qty: data.qty ?? 1
+                },
+                dataType: "json",
+                success: function(res) {
+
+                    if (res.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: res.message || 'Stocker berhasil disimpan',
+                            timer: 1200,
+                            showConfirmButton: false
+                        });
+
+                        // optional: refresh tabel TMP
+                        // loadTmpStocker();
+
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: res.message || 'Gagal simpan stocker'
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal koneksi ke server'
+                    });
+                },
+                complete: function() {
+                    // siap scan berikutnya
+                    $('#txtno_stocker').val('').focus();
+                    dataTableScanReload();
+                    dataTablePOReload();
+                }
+            });
+        }
+
+
+        let datatable_scan = $('#datatable_scan').DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: false,
+            paging: false,
+            searching: true,
+            scrollCollapse: true,
+            autoWidth: true,
+
+            ajax: {
+                url: '{{ route('get_list_tmp_scan_loading_out') }}',
+                type: "GET",
+                data: function(d) {
+                    d.id_po = $('#cbo_po').val();
+                }
+            },
+
+            columns: [{
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    render: function(data, type, row) {
+                        return `
+            <div class="text-center align-middle visual-input">
+                <button class="btn btn-outline-danger btn-sm btnDelete"
+                        onclick="deleteTmp(${data.id}, '${data.id_qr_stocker}')">
+                    Delete
+                </button>
+            </div>
+                `;
+                    }
+                },
+                {
+                    data: 'no_karung'
+                },
+                {
+                    data: 'id_qr_stocker'
+                },
+                {
+                    data: 'no_cut'
+                },
+                {
+                    data: 'itemdesc'
+                },
+                {
+                    data: 'shell'
+                },
+                {
+                    data: 'kpno'
+                },
+                {
+                    data: 'styleno'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'qty_ply'
+                },
+                {
+                    data: 'range_stocker'
+                }
+            ],
+            initComplete: function() {
+                this.api().columns.adjust();
+            }
+
+        });
+
+        function dataTableScanReload() {
+            datatable_scan.ajax.reload(null, false);
+
+            datatable_scan.off('draw.dt.adjust').on('draw.dt.adjust', function() {
+                requestAnimationFrame(() => {
+                    datatable_scan.columns.adjust();
+                });
+            });
+        }
+
+        function deleteTmp(id, id_qr_stocker) {
+            Swal.fire({
+                title: 'Yakin ingin menghapus?',
+                html: `<b>QR Stocker:</b> ${id_qr_stocker}`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Hapus',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '{{ route('loading_out_delete_tmp') }}', // Your delete route
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            id: id
+                        },
+                        success: function(response) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: response.message,
+                                timer: 1000,
+                                showConfirmButton: false
+                            });
+                            dataTableScanReload();
+                            dataTablePOReload();
+                        },
+                        error: function() {
+                            Swal.fire('Gagal', 'Data tidak dapat dihapus', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        function saveLoadingOut() {
+
+            let cbo_sup = $('#cbo_sup').val();
+            let id_po = $('#cbo_po').val();
+            let cbo_dok = $('#cbo_dok').val();
+            let cbo_jns = $('#cbo_jns').val();
+            let tgl_trans = $('#tgl_trans').val();
+            let txt_ket = $('#txt_ket').val();
+            let txt_berat_panel = $('#txt_berat_panel').val();
+            let txt_berat_karung = $('#txt_berat_karung').val();
+
+            if (!cbo_sup || !id_po || !cbo_dok || !cbo_jns) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Data belum lengkap',
+                    text: 'Mohon lengkapi data terlebih dahulu.'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Simpan data Loading Out?',
+                text: 'Pastikan data sudah benar.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Simpan',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                $('#btnsave').prop('disabled', true);
+
+                $.ajax({
+                    type: "POST",
+                    url: '{{ route('save_loading_out') }}',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        cbo_sup,
+                        id_po,
+                        cbo_dok,
+                        cbo_jns,
+                        tgl_trans,
+                        txt_ket,
+                        txt_berat_panel,
+                        txt_berat_karung
+                    },
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            Swal.fire({
+                                title: 'Berhasil Disimpan!',
+                                html: `No Form: <b>${response.no_form}</b>`,
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                location.reload(); // reload setelah user klik OK
+                            });
+                        } else {
+                            Swal.fire('Gagal', response.message, 'error');
+                        }
+
+                    },
+                    error: function(xhr) {
+                        let message = 'Gagal menyimpan data.';
+
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            message = xhr.responseJSON.message;
+                        }
+
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Tidak bisa disimpan',
+                            text: message
+                        });
+                    },
+
+                    complete: function() {
+                        $('#btnsave').prop('disabled', false);
+                    }
+                });
+
+            });
         }
     </script>
 @endsection

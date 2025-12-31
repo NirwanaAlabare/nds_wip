@@ -353,18 +353,21 @@ class SecondaryInhouseController extends Controller
             "txtqtyreject" => "required"
         ]);
 
-        $saveinhouse = SecondaryInhouse::create([
-            'tgl_trans' => $tgltrans,
-            'id_qr_stocker' => $request['txtno_stocker'],
-            'qty_awal' => $request['txtqtyawal'],
-            'qty_reject' => $request['txtqtyreject'],
-            'qty_replace' => $request['txtqtyreplace'],
-            'qty_in' => $request['txtqtyawal'] - $request['txtqtyreject'] + $request['txtqtyreplace'],
-            'user' => Auth::user()->name,
-            'ket' => $request['txtket'],
-            'created_at' => $timestamp,
-            'updated_at' => $timestamp,
-        ]);
+        $saveinhouse = SecondaryInhouse::updateOrCreate(
+            ['id_qr_stocker' => $request['txtno_stocker']],
+            [
+                'tgl_trans' => $tgltrans,
+                'id_qr_stocker' => $request['txtno_stocker'],
+                'qty_awal' => $request['txtqtyawal'],
+                'qty_reject' => $request['txtqtyreject'],
+                'qty_replace' => $request['txtqtyreplace'],
+                'qty_in' => $request['txtqtyawal'] - $request['txtqtyreject'] + $request['txtqtyreplace'],
+                'user' => Auth::user()->name,
+                'ket' => $request['txtket'],
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp,
+            ]
+        );
 
         DB::update(
             "update stocker_input set status = 'secondary' where id_qr_stocker = '" . $request->txtno_stocker . "'"

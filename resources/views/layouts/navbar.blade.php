@@ -458,13 +458,11 @@
                                     </a>
                                 </li>
                                 {{-- Deprecated --}}
-                                {{--
-                                    <li>
-                                        <a href="{{ route('bon-loading-line') }}" class="dropdown-item {{ $subPage == 'bon-loading-line' ? 'active' : '' }}">
-                                            Bon Loading <i class="fa-solid fa-ticket-simple"></i>
-                                        </a>
-                                    </li>
-                                --}}
+                                {{-- <li>
+                                    <a href="{{ route('bon-loading-line') }}" class="dropdown-item {{ $subPage == 'bon-loading-line' ? 'active' : '' }}">
+                                        Bon Loading <i class="fa-solid fa-ticket-simple"></i>
+                                    </a>
+                                </li> --}}
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
