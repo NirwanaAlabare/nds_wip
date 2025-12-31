@@ -1823,6 +1823,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-detail-packing-out/{id?}', 'DetailPackingOut')->name('get-detail-packing-out');
         Route::get('/export-pl-packing-out/{id?}', 'PLPackingOut')->name('export-pl-packing-out');
 
+        Route::get('/approve-packing-out-subcont', 'ApprovePackingOutSubcont')->name('approve-packing-out-subcont');
+
     });
 
     // Needle Check

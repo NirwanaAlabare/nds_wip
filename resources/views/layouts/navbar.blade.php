@@ -1061,6 +1061,13 @@
                                     Packing Out Subcont <i class="fas fa-shipping-fast"></i>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('approve-packing-out-subcont') }}"
+                                    class="dropdown-item {{ $subPage == 'approve-packing-out-subcont' ? 'active' : '' }}">
+                                    Approval Packing Out Subcont <i class="fas fa-shipping-fast"></i>
+                                </a>
+                            </li>
+
                         </ul>
                     </li>
                     <li class="nav-item dropdown">

@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use \avadim\FastExcelLaravel\Excel as FastExcel;
 use PhpOffice\PhpSpreadsheet\Style\Border;
+use App\Exports\PLPackingOutExport;
 use App\Models\PackingOutDetTemp;
 use App\Models\BppbSB;
 use App\Models\Tempbpb;
@@ -379,156 +380,33 @@ public function DeleteOutDetailTemp(Request $request)
 
 public function PLPackingOut($id)
 {
-    // ======================================
-    // 1. Ambil list size unik sesuai urutan
-    // ======================================
-    $sizes = DB::connection('mysql_sb')->select("
-        SELECT DISTINCT ms.size
-        FROM packing_out_det b
-        JOIN packing_out_h a ON a.no_bppb = b.no_bppb
-        JOIN master_size_new ms ON ms.size = b.size
-        WHERE a.id = ? 
-          AND b.status = 'Y'
-        ORDER BY ms.urutan
-    ", [$id]);
-
-    $sizeCols = array_map(fn($r) => $r->size, $sizes);
-
-
-    // ======================================
-    // 2. Pivot Query dinamis ukuran
-    // ======================================
-    $cases = [];
-    foreach ($sizeCols as $s) {
-        $safe = str_replace("'", "''", $s);
-        $cases[] = "SUM(CASE WHEN b.size = '{$safe}' THEN b.qty ELSE 0 END) AS `{$safe}`";
-    }
-
-    $sql = "
-        SELECT 
-            d.buyer,
-            d.kpno,
-            d.styleno,
-            mi.itemdesc,
-            b.color,
-            " . implode(",", $cases) . ",
-            SUM(b.qty) AS total_qty
-        FROM packing_out_h a
-        JOIN packing_out_det b ON b.no_bppb = a.no_bppb
-        JOIN masteritem mi ON mi.id_item = b.id_item
-        LEFT JOIN master_size_new ms ON ms.size = b.size
-        INNER JOIN (
-            SELECT id_jo,kpno,styleno, supplier buyer 
-            FROM act_costing ac 
-            INNER JOIN so ON ac.id=so.id_cost 
-            INNER JOIN jo_det jod ON so.id=jod.id_so 
-            INNER JOIN mastersupplier mb ON mb.id_supplier = ac.id_buyer 
-            GROUP BY id_jo
-        ) d ON d.id_jo=b.id_jo
-        WHERE a.id = ? 
-          AND b.status='Y'
-        GROUP BY d.buyer,d.kpno,d.styleno,mi.itemdesc,b.color
-        ORDER BY d.buyer,d.kpno,b.color
-    ";
-
-    // >>> PARAMETER BINDING DIBENERIN DI SINI <<<
-    $data = DB::connection('mysql_sb')->select($sql, [$id]);
-    $rows = array_map(fn($r)=> (array)$r, $data);
-
-
-    // ======================================
-    // Helper kolom → huruf Excel
-    // ======================================
-    $colLetter = function($index) {
-        $letters = '';
-        while ($index > 0) {
-            $mod = ($index - 1) % 26;
-            $letters = chr(65 + $mod) . $letters;
-            $index = (int)(($index - $mod) / 26);
-        }
-        return $letters;
-    };
-
-
-    // ======================================
-    // 3. Buat Excel
-    // ======================================
-    $excel = FastExcel::create('PLPackingOut');
-    $sheet = $excel->getSheet();
-
-
-    // ======================================
-    // 4. Header Perusahaan
-    // ======================================
-    $sheet->writeRow(['PT. NIRWANA ALABARE GARMENT'])->applyFontStyleBold();
-    $sheet->writeRow(['JL. RANCAEKEK MAJALAYA NO 289'])->applyFontStyleBold();
-    $sheet->writeRow(['SOLOKAN JERUK MAJALAYA KAB. BANDUNG'])->applyFontStyleBold();
-    $sheet->writeRow(['INDONESIA'])->applyFontStyleBold();
-    $sheet->writeRow([]);
-
-    $sheet->mergeCells('A1:H1');
-    $sheet->mergeCells('A2:H2');
-    $sheet->mergeCells('A3:H3');
-    $sheet->mergeCells('A4:H4');
-
-
-    // ======================================
-    // 5. Header Tabel
-    // ======================================
-    $sheet->writeRow([
-        'Buyer','Worksheet','Style','Color','Size'
-    ])->applyFontStyleBold();
-
-    $sub = ['', '', '', '', ...$sizeCols, 'Total PCS', 'NW (kg)', 'GW (kg)'];
-    $sheet->writeRow($sub)->applyFontStyleBold();
-
-    $sheet->mergeCells('A5:A6');
-    $sheet->mergeCells('B5:B6');
-    $sheet->mergeCells('C5:C6');
-    $sheet->mergeCells('D5:D6');
-
-    $sizeStartCol = 5;
-    $sizeEndCol   = 4 + count($sizeCols);
-
-    $sheet->mergeCells(
-        $colLetter($sizeStartCol)."5:".$colLetter($sizeEndCol)."5"
-    );
-
-    $totalCol = $sizeEndCol + 1;
-    $nwCol    = $totalCol + 1;
-    $gwCol    = $nwCol + 1;
-
-    $sheet->mergeCells($colLetter($totalCol)."5:".$colLetter($totalCol)."6");
-    $sheet->mergeCells($colLetter($nwCol)."5:".$colLetter($nwCol)."6");
-    $sheet->mergeCells($colLetter($gwCol)."5:".$colLetter($gwCol)."6");
-
-
-    // ======================================
-    // 6. Isi Data
-    // ======================================
-    foreach ($rows as $r) {
-
-        $row = [
-            $r['buyer'] ?? '',
-            $r['kpno'] ?? '',
-            $r['styleno'] ?? '',
-            $r['itemdesc'] ?? '',
-        ];
-
-        foreach ($sizeCols as $s) {
-            $row[] = $r[$s] ?? 0;
-        }
-
-        $row[] = $r['total_qty'] ?? 0;
-        $row[] = ''; // NW
-        $row[] = ''; // GW
-
-        $sheet->writeRow($row)
-            ->applyBorder(Border::BORDER_THIN);
-    }
-
-    return $excel->download("Packing List.xlsx");
+    return Excel::download(new PLPackingOutExport($id), 'Packing List.xlsx');
 }
+
+
+public function ApprovePackingOutSubcont(Request $request)
+    {
+        if ($request->ajax()) {
+            $additionalQuery = "";
+            $keywordQuery = "";
+
+            $data_inmaterial = DB::connection('mysql_sb')->select("select a.*,COALESCE(qty_lok,0) qty_lok,round((round(COALESCE(qty,0),4) - round(COALESCE(qty_lok,0),4)),2) qty_balance from (select b.id,b.no_dok,b.tgl_dok,b.tgl_shipp,b.type_dok,b.no_po,b.supplier,b.no_invoice,b.type_bc,b.no_daftar,b.tgl_daftar, b.type_pch,CONCAT(b.created_by,' (',b.created_at, ') ') user_create,b.status,round(sum(COALESCE(qty_good,0)),2) qty, unit from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and b.tgl_dok BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."' GROUP BY b.id) a left JOIN
+                (select no_dok nodok,round(SUM(qty_sj),2) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok) b on b.nodok = a.no_dok where a.tgl_dok BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."' and status = 'Pending' order by no_dok asc");
+
+
+            return DataTables::of($data_inmaterial)->toJson();
+        }
+
+        $msupplier = DB::connection('mysql_sb')->table('mastersupplier')->select('id_supplier', 'Supplier')->where('tipe_sup', '=', 'S')->get();
+        $mtypebc = DB::connection('mysql_sb')->table('masterpilihan')->select('id', 'nama_pilihan')->where('kode_pilihan', '=', 'JENIS_DOK_IN')->get();
+        $pch_type = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'Purchasing_type')->where('status', '=', 'Active')->get();
+        $status = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'Status_material')->where('status', '=', 'Active')->get();
+        $arealok = DB::connection('mysql_sb')->table('whs_master_area')->select('id', 'area')->where('status', '=', 'active')->get();
+        $unit = DB::connection('mysql_sb')->table('whs_master_unit')->select('id', 'nama_unit')->where('status', '=', 'active')->get();
+
+        return view("packing-subcont.approve-packing-out", ['status' => $status,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,'page' => 'dashboard-packing', "subPageGroup" => "approve-packing-packing-out", "subPage" => "approve-packing-out-subcont"]);
+    }
+
 
 
     /**
