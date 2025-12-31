@@ -6377,7 +6377,7 @@ class StockerController extends Controller
     }
 
     public function getRangeYearSequence(Request $request) {
-        if ($request->year && $request->sequence) {
+        if (($request->year != null || $request->year != "") && $request->sequence) {
 
             $availableYearSequence = collect(DB::select("
                 SELECT
