@@ -6377,7 +6377,7 @@ class StockerController extends Controller
     }
 
     public function getRangeYearSequence(Request $request) {
-        if ($request->year && $request->sequence) {
+        if (($request->year != null || $request->year != "") && $request->sequence) {
 
             $availableYearSequence = collect(DB::select("
                 SELECT
@@ -6409,7 +6409,7 @@ class StockerController extends Controller
 
     // Modify Year Sequence Module
     public function modifyYearSequence(Request $request) {
-        $years = array_reverse(range(1999, date('Y')));
+        $years = array_reverse(range(1999, date('Y', strtotime('+1 years'))));
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno', 'styleno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 

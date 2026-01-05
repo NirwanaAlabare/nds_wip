@@ -207,6 +207,8 @@
             $("#total_update").val(currentRangeTable.page.info().recordsTotal);
 
             $("#switch-method").prop("checked", false);
+
+            $("#year").val(todayYear).trigger("change");
         });
 
         $("#year").on("change", function () {

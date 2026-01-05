@@ -41,7 +41,6 @@
 
                 <div class="d-flex justify-content-between mb-3">
                     <div class="d-flex gap-3">
-                        <button type="button" class="btn btn-primary btn-sm" id="addRow"><i class="fa fa-plus"></i></button>
                         <input type="text" class="form-control" id="no_bon_loading" name="no_bon_loading" placeholder="Nomor...">
                         <select class="form-select select2bs4" name="line_id" id="line_id">
                             <option value="">Pilih Line</option>
@@ -77,7 +76,7 @@
                                 <td class="text-nowrap" id="size_1">-</td>
                                 <td>
                                     <div class="d-flex">
-                                        <input type="text" class="form-control form-control-sm w-auto" data-row='1' id="stocker_1" style="border-radius: 3px 0 0 3px" name="stocker[1]" onkeyup="stockerKeyup(this, event)">
+                                        <input type="text" class="form-control form-control-sm w-auto" data-row='1' id="stocker_1" style="border-radius: 3px 0 0 3px" name="stocker[1]" onkeydown="stockerKeyup(this, event)">
                                         <button class="btn btn-sm btn-outline-success" type="button" data-row='1' id="get_stocker_1" style="border-radius: 0 3px 3px 0" onclick="stockerChange(this)">Get</button>
                                     </div>
                                 </td>
@@ -101,7 +100,7 @@
                                 <td class="text-nowrap" id="size_2">-</td>
                                 <td>
                                     <div class="d-flex">
-                                        <input type="text" class="form-control form-control-sm w-auto" data-row='2' id="stocker_2" style="border-radius: 3px 0 0 3px" name="stocker[2]" onkeyup="stockerKeyup(this, event)">
+                                        <input type="text" class="form-control form-control-sm w-auto" data-row='2' id="stocker_2" style="border-radius: 3px 0 0 3px" name="stocker[2]" onkeydown="stockerKeyup(this, event)">
                                         <button class="btn btn-sm btn-outline-success" type="button" data-row='2' id="get_stocker_2" style="border-radius: 0 3px 3px 0" onclick="stockerChange(this)">Get</button>
                                     </div>
                                 </td>
@@ -125,7 +124,7 @@
                                 <td class="text-nowrap" id="size_3">-</td>
                                 <td>
                                     <div class="d-flex">
-                                        <input type="text" class="form-control form-control-sm w-auto" data-row='3' id="stocker_3" style="border-radius: 3px 0 0 3px" name="stocker[3]" onkeyup="stockerKeyup(this, event)">
+                                        <input type="text" class="form-control form-control-sm w-auto" data-row='3' id="stocker_3" style="border-radius: 3px 0 0 3px" name="stocker[3]" onkeydown="stockerKeyup(this, event)">
                                         <button class="btn btn-sm btn-outline-success" type="button" data-row='3' id="get_stocker_3" style="border-radius: 0 3px 3px 0" onclick="stockerChange(this)">Get</button>
                                     </div>
                                 </td>
@@ -149,7 +148,7 @@
                                 <td class="text-nowrap" id="size_4">-</td>
                                 <td>
                                     <div class="d-flex">
-                                        <input type="text" class="form-control form-control-sm w-auto" data-row='4' id="stocker_4" style="border-radius: 3px 0 0 3px" name="stocker[4]" onkeyup="stockerKeyup(this, event)">
+                                        <input type="text" class="form-control form-control-sm w-auto" data-row='4' id="stocker_4" style="border-radius: 3px 0 0 3px" name="stocker[4]" onkeydown="stockerKeyup(this, event)">
                                         <button class="btn btn-sm btn-outline-success" type="button" data-row='4' id="get_stocker_4" style="border-radius: 0 3px 3px 0" onclick="stockerChange(this)">Get</button>
                                     </div>
                                 </td>
@@ -173,7 +172,7 @@
                                 <td class="text-nowrap" id="size_5">-</td>
                                 <td>
                                     <div class="d-flex">
-                                        <input type="text" class="form-control form-control-sm w-auto" data-row='5' id="stocker_5" style="border-radius: 3px 0 0 3px" name="stocker[5]" onkeyup="stockerKeyup(this, event)">
+                                        <input type="text" class="form-control form-control-sm w-auto" data-row='5' id="stocker_5" style="border-radius: 3px 0 0 3px" name="stocker[5]" onkeydown="stockerKeyup(this, event)">
                                         <button class="btn btn-sm btn-outline-success" type="button" data-row='5' id="get_stocker_5" style="border-radius: 0 3px 3px 0" onclick="stockerChange(this)">Get</button>
                                     </div>
                                 </td>
@@ -193,7 +192,7 @@
                             <tr>
                                 <td colspan="5">Total</td>
                                 <td class="fw-bold" id="total_qty"></td>
-                                <td></td>
+                                <td><button type="button" class="btn btn-primary btn-sm w-100" id="addRow"><i class="fa fa-plus"></i> Tambah Stocker</button></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -289,7 +288,7 @@
                     <td class="text-nowrap" id="size_`+(tableBody.rows.length + 1)+`">-</td>
                     <td>
                         <div class="d-flex">
-                            <input type="text" class="form-control form-control-sm w-auto" data-row='`+(tableBody.rows.length + 1)+`' id="stocker_`+(tableBody.rows.length + 1)+`" style="border-radius: 3px 0 0 3px" name="stocker[`+(tableBody.rows.length + 1)+`]" onkeyup="stockerKeyup(this, event)">
+                            <input type="text" class="form-control form-control-sm w-auto" data-row='`+(tableBody.rows.length + 1)+`' id="stocker_`+(tableBody.rows.length + 1)+`" style="border-radius: 3px 0 0 3px" name="stocker[`+(tableBody.rows.length + 1)+`]" onkeydown="stockerKeyup(this, event)">
                             <button class="btn btn-sm btn-outline-success" type="button" data-row='`+(tableBody.rows.length + 1)+`' id="get_stocker_`+(tableBody.rows.length + 1)+`" style="border-radius: 0 3px 3px 0" onclick="stockerChange(this)">Get</button>
                         </div>
                     </td>
@@ -347,26 +346,18 @@
                     document.getElementById('loading').classList.add('d-none');
 
                     if (res) {
-                        if (res.status != "400") {
-                            let select = document.getElementById('sequence');
-                            select.innerHTML = "";
+                        let select = document.getElementById('sequence');
+                        select.innerHTML = "";
 
-                            let latestVal = null;
-                            for(let i = 0; i < res.length; i++) {
-                                let option = document.createElement("option");
-                                option.setAttribute("value", res[i].year_sequence);
-                                option.innerHTML = res[i].year_sequence;
-                                select.appendChild(option);
-                            }
-
-                            $("#sequence").val(res[0].year_sequence).trigger("change");
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal',
-                                html: res.message,
-                            });
+                        let latestVal = null;
+                        for(let i = res.length-1; i >= 0; i--) {
+                            let option = document.createElement("option");
+                            option.setAttribute("value", res[i]);
+                            option.innerHTML = res[i];
+                            select.appendChild(option);
                         }
+
+                        $("#sequence").val(res[res.length-1]).trigger("change");
                     }
                 },
                 error: function(jqXHR)
@@ -417,6 +408,8 @@
 
         function stockerKeyup(element, event) {
             if (event.keyCode === 13) {
+                event.preventDefault();
+
                 document.getElementById('loading').classList.remove("d-none");
 
                 getStocker(element);
@@ -448,6 +441,8 @@
                         document.getElementById("color_"+stocker.getAttribute("data-row")).innerHTML = res.color;
                         document.getElementById("size_"+stocker.getAttribute("data-row")).innerHTML = res.size;
                         $("#qty_"+stocker.getAttribute("data-row")).val(res.qty).trigger("change");
+
+                        $("#stocker_"+(Number(stocker.getAttribute("data-row"))+1)).focus();
                     }
                 },
                 error: function (jqXHR) {
@@ -514,8 +509,6 @@
         }
 
         function storeBonLoading(e, event) {
-            event.preventDefault();
-
             if (document.getElementById("line_id").value && document.getElementById("no_bon_loading").value) {
                 Swal.fire({
                     icon: "info",
