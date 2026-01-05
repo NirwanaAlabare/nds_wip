@@ -33,9 +33,12 @@ use PDF;
 
 class StockerService
 {
-    public function reorderStockerNumbering($partId)
+    public function reorderStockerNumbering($partId, $color = null)
     {
         ini_set('max_execution_time', 360000);
+
+        $colorFormCutFilter = $color ? " and marker_input.color = '".$color."'" : null;
+        $colorFormPieceFilter = $color ? " and form_cut_piece.color = '".$color."'" : null;
 
         $formCutInputs = collect(DB::select("
             SELECT
@@ -58,6 +61,7 @@ class StockerService
             WHERE
                 part_form.id IS NOT NULL
                 AND `part`.`id` = ".$partId."
+                ".$colorFormCutFilter."
                 AND form_cut_input.tgl_form_cut >= DATE ( NOW()- INTERVAL 2 YEAR )
             GROUP BY
                 `form_cut_input`.`id`
@@ -83,6 +87,7 @@ class StockerService
             WHERE
                 part_form.id IS NOT NULL
                 AND `part`.`id` = ".$partId."
+                ".$colorFormPieceFilter."
                 AND form_cut_piece.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
             GROUP BY
                 `form_cut_piece`.`id`
@@ -383,6 +388,8 @@ class StockerService
                     }
                 }
             }
+
+            \Log::info("row ".$formCut->no_form." & ".$formCut->no_cut);
         }
 
         return $sizeRangeAkhir;

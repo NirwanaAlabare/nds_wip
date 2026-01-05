@@ -356,6 +356,8 @@ class CuttingToolsController extends Controller
         ]);
 
         if ($validatedRequest) {
+            $currentForm = FormCutInput::where("id", $validatedRequest['modify_marker_form_id'])->first();
+
             // If not Bypassed
             if (!isset($request['modify_bypass_stocker'])) {
 
@@ -581,7 +583,7 @@ class CuttingToolsController extends Controller
                             }
                         }
 
-                        $stockerService->reorderStockerNumbering($partId);
+                        $stockerService->reorderStockerNumbering($partId, $validatedRequest["modify_marker_color"], $currentForm->no_cut);
                     }
 
                     return array(
