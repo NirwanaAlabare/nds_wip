@@ -795,7 +795,7 @@ class CuttingToolsController extends Controller
         if ($validatedRequest['form_group']) {
             if ($validatedRequest['form_group_new']) {
                 // Update Form Group
-                $updateFormGroup = DB::table($formTable)->where(($formTable == "form_cut_reject" ? "id" : ($formTable == "form_cut_piece_detail" ? "form_id" : $formTable == "form_cut_input_detail" ? "form_cut_id" : "")), $validatedRequest["form_cut_id"])->where("group_stocker", $validatedRequest["form_group"])->update([
+                $updateFormGroup = DB::table($formTable)->where(($formTable == "form_cut_reject" ? "id" : ($formTable == "form_cut_piece_detail" ? "form_id" : ($formTable == "form_cut_input_detail" ? "form_cut_id" : ""))), $validatedRequest["form_cut_id"])->where("group_stocker", $validatedRequest["form_group"])->update([
                     ($formTable == "form_cut_reject" ? "group" : "group_roll") => $validatedRequest["form_group_new"]
                 ]);
 
