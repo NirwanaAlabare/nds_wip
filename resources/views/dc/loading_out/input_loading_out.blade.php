@@ -32,8 +32,8 @@
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Header Loading Out / WIP Out</h5>
         </div>
         <div class="card-body pb-0">
-            <div class="row mb-3">
-                <div class="col-md-3">
+            <div class="row mb-3 gy-3">
+                <div class="col-12 col-sm-6 col-lg-3">
                     <label for="cbo_sup"><small><b>Supplier :</b></small></label>
                     <select class="form-control form-control-sm select2bs4 select-border-primary visual-input"
                         id="cbo_sup" name="cbo_sup" style="width: 100%;" onchange="getno_po();">
@@ -46,12 +46,12 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-12 col-sm-6 col-lg-3">
                     <label for="cbo_po"><small><b>PO :</b></small></label>
                     <select class='form-control select2bs4 select-border-primary visual-input' style='width: 100%;'
                         name='cbo_po' id='cbo_po' onchange="dataTablePOReload();dataTableScanReload();"></select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-12 col-sm-6 col-lg-3">
                     <label for="cbo_dok"><small><b>Jenis Dokumen :</b></small></label>
                     <select class="form-control form-control-sm select2bs4 select-border-primary visual-input"
                         id="cbo_dok" name="cbo_dok" style="width: 100%;">
@@ -64,7 +64,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-12 col-sm-6 col-lg-3">
                     <label for="cbo_jns"><small><b>Jenis Pengeluaran :</b></small></label>
                     <select class="form-control form-control-sm select2bs4 select-border-primary visual-input"
                         id="cbo_jns" name="cbo_jns" style="width: 100%;">
@@ -79,18 +79,17 @@
                 </div>
             </div>
 
-            <div class="row mb-3">
-                <div class="col-md-3">
+            <div class="row mb-3 gy-3">
+                <div class="col-12 col-sm-6 col-lg-3">
                     <label for="txt_ket"><small><b>Tgl. Transaksi :</b></small></label>
                     <input type="date" class="form-control form-control-sm " id="tgl_trans" name="tgl_trans"
                         value="{{ date('Y-m-d') }}">
                 </div>
-
-                <div class="col-md-3">
+                <div class="col-12 col-sm-6 col-lg-3">
                     <label for="txt_ket"><small><b>Keterangan :</b></small></label>
                     <input type="text" id="txt_ket" name="txt_ket" class="form-control form-control-sm border-primary">
                 </div>
-                <div class="col-md-3">
+                <div class="col-12 col-sm-6 col-lg-3">
                     <label for="txt_berat_panel"><small><b>Berat Set Panel:</b></small></label>
                     <div class="input-group input-group-sm">
                         <input type="text" id="txt_berat_panel" name="txt_berat_panel"
@@ -98,7 +97,7 @@
                         <span class="input-group-text border-primary text-primary">KG</span>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-12 col-sm-6 col-lg-3">
                     <label for="txt_berat_karung"><small><b>Berat Karung:</b></small></label>
                     <div class="input-group input-group-sm">
                         <input type="text" id="txt_berat_karung" name="txt_berat_karung"
@@ -125,7 +124,7 @@
         <div class="card-body pb-0">
             <div class="row mb-3">
                 <div class="table-responsive">
-                    <table id="datatable_po" class="table table-bordered table-hover align-middle text-nowrap w-100">
+                    <table id="datatable_po" class="table table-bordered table-hover align-middle w-100">
                         <thead class="bg-sb">
                             <tr>
                                 <th class="text-center">Job Order</th>
@@ -168,9 +167,8 @@
                         <small><b>No. Stocker</b></small>
                     </label>
                     <div class="input-group input-group-sm">
-                        <input type="text" id="txtno_stocker" name="txtno_stocker"
-                            class="form-control border-primary" placeholder="Scan stocker"
-                            onkeydown="if(event.key === 'Enter'){ scan_stocker(); }">
+                        <input type="text" id="txtno_stocker" class="form-control border-primary"
+                            placeholder="Scan stocker" autocomplete="off">
                         <a href="#" onclick="scan_stocker();" class="btn btn-outline-primary border-primary"
                             id="btn_scan">
                             SCAN
@@ -180,7 +178,7 @@
             </div>
 
             <div class="table-responsive">
-                <table id="datatable_scan" class="table table-bordered table-hover align-middle text-nowrap w-100">
+                <table id="datatable_scan" class="table table-bordered table-hover align-middle w-100">
                     <thead class="bg-sb">
                         <tr>
                             <th class="text-center">ACT</th>
@@ -200,7 +198,6 @@
                 </table>
             </div>
         </div>
-    </div>
     </div>
 @endsection
 
@@ -238,6 +235,23 @@
             $('#txt_berat_panel').val('0');
             $('#txt_berat_karung').val('0');
             $('#txtno_karung').val('');
+
+            // Trigger scan saat ENTER dari scanner
+            $('#txtno_stocker').on('keydown', function(e) {
+                if (e.key === 'Enter' || e.keyCode === 13) {
+                    e.preventDefault();
+                    $(this).val($(this).val().trim());
+                    scan_stocker();
+                }
+            });
+
+            // Fallback jika scanner kirim newline (\n / \r)
+            $('#txtno_stocker').on('input', function() {
+                if (this.value.includes('\n') || this.value.includes('\r')) {
+                    this.value = this.value.trim();
+                    scan_stocker();
+                }
+            });
         });
 
         function getno_po() {
@@ -268,7 +282,9 @@
             paging: false,
             searching: true,
             scrollCollapse: true,
-            autoWidth: true,
+            autoWidth: false,
+            responsive: false,
+            scrollX: true,
 
             ajax: {
                 url: '{{ route('get_list_po_loading_out') }}',
@@ -325,6 +341,7 @@
 
 
         function scan_stocker() {
+
             let no_karung = $('#txtno_karung').val().trim();
             let no_stocker = $('#txtno_stocker').val().trim();
             let id_po = $('#cbo_po').val();
@@ -337,7 +354,7 @@
                     icon: 'warning',
                     title: 'PO Belum Dipilih',
                     text: 'Silakan pilih PO terlebih dahulu',
-                    timer: 2000,
+                    timer: 500,
                     showConfirmButton: false
                 }).then(() => {
                     $('#cbo_po').focus();
@@ -351,7 +368,7 @@
                     icon: 'warning',
                     title: 'No Karung Kosong',
                     text: 'Silakan isi No Karung',
-                    timer: 2000,
+                    timer: 500,
                     showConfirmButton: false
                 }).then(() => {
                     $('#txtno_karung').focus();
@@ -365,7 +382,7 @@
                     icon: 'warning',
                     title: 'No Stocker Kosong',
                     text: 'Silakan scan No Stocker',
-                    timer: 2000,
+                    timer: 500,
                     showConfirmButton: false
                 }).then(() => {
                     $('#txtno_stocker').focus();
@@ -389,7 +406,9 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Stocker Tidak Valid',
-                            text: res.message || 'Stocker Tidak Valid'
+                            text: res.message || 'Stocker Tidak Valid',
+                            timer: 500,
+                            showConfirmButton: false
                         });
                         return;
                     }
@@ -402,7 +421,7 @@
                 },
                 complete: function() {
                     // Bersihkan & fokus ulang (scanner friendly)
-                    $('#txtno_stocker').val('').focus();
+                    $('#txtno_stocker').val('');
                 }
             });
         }
@@ -425,13 +444,13 @@
                 success: function(res) {
 
                     if (res.status === 'success') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil',
-                            text: res.message || 'Stocker berhasil disimpan',
-                            timer: 1200,
-                            showConfirmButton: false
-                        });
+                        // Swal.fire({
+                        //     icon: 'success',
+                        //     title: 'Berhasil',
+                        //     text: res.message || 'Stocker berhasil disimpan',
+                        //     timer: 500,
+                        //     showConfirmButton: false
+                        // });
 
                         // optional: refresh tabel TMP
                         // loadTmpStocker();
@@ -453,7 +472,6 @@
                 },
                 complete: function() {
                     // siap scan berikutnya
-                    $('#txtno_stocker').val('').focus();
                     dataTableScanReload();
                     dataTablePOReload();
                 }
@@ -469,6 +487,7 @@
             searching: true,
             scrollCollapse: true,
             autoWidth: true,
+            scrollX: true,
 
             ajax: {
                 url: '{{ route('get_list_tmp_scan_loading_out') }}',
@@ -565,7 +584,7 @@
                                 icon: 'success',
                                 title: 'Berhasil',
                                 text: response.message,
-                                timer: 1000,
+                                timer: 500,
                                 showConfirmButton: false
                             });
                             dataTableScanReload();

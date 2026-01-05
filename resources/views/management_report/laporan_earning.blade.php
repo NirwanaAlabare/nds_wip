@@ -186,17 +186,22 @@
                 ordering: false,
                 responsive: true,
                 serverSide: false,
-                paging: false,
+                paging: true,
                 searching: true,
                 scrollY: "500px",
                 scrollX: true,
                 scrollCollapse: true,
+                deferRender: true,
                 language: {
                     loadingRecords: "",
                     processing: ""
                 },
+                // <-- Ini bagian penting
+                lengthMenu: [
+                    [10, 25, 50, -1], // -1 = All
+                    [10, 25, 50, "All"] // label yang ditampilkan
+                ],
                 processing: false, // keep processing true if you want to use processing events, just hide the text
-
                 fixedColumns: {
                     leftColumns: 4
                 },

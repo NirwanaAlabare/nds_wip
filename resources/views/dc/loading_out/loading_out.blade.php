@@ -46,22 +46,22 @@
                 <div class="modal-body">
                     <form id="formDetailDefect">
                         <div class="row mb-3">
-                            <div class="col-md-3">
+                            <div class="col-12 col-md-3">
                                 <label class="form-label small fw-bold"> No. Transaksi</label>
                                 <input type="text" id="txtno_form" name="txtno_form"
                                     class="form-control form-control-sm border-primary" readonly>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-12 col-md-3">
                                 <label class="form-label small fw-bold"> Supplier</label>
                                 <input type="text" id="txtsupplier" name="txtsupplier"
                                     class="form-control form-control-sm border-primary" readonly>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-12 col-md-3">
                                 <label class="form-label small fw-bold"> Berat Set Panel</label>
                                 <input type="text" id="txtberat_panel" name="txtberat_panel"
                                     class="form-control form-control-sm border-primary" readonly>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-12 col-md-3">
                                 <label class="form-label small fw-bold"> Berat Karung</label>
                                 <input type="text" id="txtberat_karung" name="txtberat_karung"
                                     class="form-control form-control-sm border-primary" readonly>
@@ -151,8 +151,7 @@
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between mb-3">
-                <a href="{{ route('input_loading_out') }}" target="_blank"
-                    class="btn btn-outline-primary position-relative btn-sm">
+                <a href="{{ route('input_loading_out') }}" class="btn btn-outline-primary position-relative btn-sm">
                     <i class="fas fa-plus"></i>
                     New
                 </a>
