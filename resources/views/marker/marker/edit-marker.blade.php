@@ -708,6 +708,8 @@
                         }
                     }
                 }, error: function (jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+                    
                     // Error Response
 
                     let res = jqXHR.responseJSON;
