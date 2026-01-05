@@ -29,6 +29,7 @@ use App\Models\SignalBit\RejectOut;
 use App\Models\SignalBit\RejectOutDetail;
 use App\Models\SignalBit\OutputGudangStok;
 use App\Models\SignalBit\DefectInOut;
+use App\Models\SignalBit\OutputSewingLock;
 use App\Models\OutputPackingNds;
 use App\Models\Stocker\YearSequence;
 use App\Services\SewingService;
@@ -3986,5 +3987,22 @@ class SewingToolsController extends Controller
         $fileName = str_replace("/", "-", ('Line Label.pdf'));
 
         return $pdf->download(str_replace("/", "_", $fileName));
+    }
+
+    public function outputSewingLock(Request $request) {
+        if ($request->ajax()) {
+            $dateFrom = $request->dateFrom ? $request->dateFrom : date("Y-m-d");
+            $dateTo = $request->dateTo ? $request->dateTo : date("Y-m-d");
+
+            $data = OutputSewingLock::whereBetween("tanggal", [$dateFrom, $dateTo])->orderBy("tanggal", "asc")->get();
+
+            return Datatables::of($data)->toJson();
+        }
+
+        return view("sewing.tools.output-sewing-lock", ["page" => "dashboard-sewing-eff"]);
+    }
+
+    public function outputSewingLockAction(Request $request) {
+        
     }
 }
