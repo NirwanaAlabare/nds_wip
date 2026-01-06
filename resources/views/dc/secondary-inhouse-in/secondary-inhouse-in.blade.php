@@ -18,14 +18,14 @@
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
-                        <h1 class="modal-title fs-5">Scan QR OUT Secondary Dalam</h1>
+                        <h1 class="modal-title fs-5">Scan QR IN Secondary Dalam</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="mb-3">
-                                    <label class="form-label label-input">Scan QR OUT Stocker</label>
+                                    <label class="form-label label-input">Scan QR IN Stocker</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control form-control-sm border-input" name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go" onkeyup="if (event.keyCode == 13) document.getElementById('scanqr').click()" autofocus>
                                         {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
@@ -113,12 +113,6 @@
                                     <input type='text' class='form-control form-control-sm' id='txtalokasi' name='txtalokasi' value = '' readonly>
                                 </div>
                             </div>
-                            <div class='col-sm-6'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>In</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtsecondary_dalam_in' name='txtsecondary_dalam_in' value = '' readonly>
-                                </div>
-                            </div>
                         </div>
 
                         <div class="row">
@@ -185,7 +179,7 @@
 
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">OUT Secondary Dalam <i class="fas fa-house-user"></i></h5>
+            <h5 class="card-title fw-bold mb-0">IN Secondary Dalam <i class="fas fa-house-user"></i></h5>
         </div>
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
@@ -211,7 +205,7 @@
                 </div>
             </div>
 
-            <h5 class="card-title fw-bold mb-0" id="judul" name="judul">List Transaksi OUT Inhouse / Dalam</h5>
+            <h5 class="card-title fw-bold mb-0" id="judul" name="judul">List Transaksi IN Inhouse / Dalam</h5>
             <br>
             <br>
             <div class="table-responsive" id = "show_datatable_input">
@@ -550,7 +544,7 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '{{ route('secondary-inhouse') }}',
+                url: '{{ route('secondary-inhouse-in') }}',
                 dataType: 'json',
                 dataSrc: 'data',
                 data: function(d) {
@@ -720,7 +714,7 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '{{ route('detail_stocker_inhouse') }}',
+                url: '{{ route('detail_stocker_inhouse_in') }}',
                 dataType: 'json',
                 dataSrc: 'data',
                 data: function(d) {
@@ -876,7 +870,7 @@
             let txtqrstocker = document.form.txtqrstocker.value;
             let html = $.ajax({
                 type: "get",
-                url: '{{ route('cek_data_stocker_inhouse') }}',
+                url: '{{ route('cek_data_stocker_inhouse_in') }}',
                 data: {
                     txtqrstocker: txtqrstocker
                 },
@@ -955,13 +949,13 @@
 
 
         function list() {
-            document.getElementById("judul").textContent = "List Transaksi OUT Inhouse / Dalam";
+            document.getElementById("judul").textContent = "List Transaksi IN Inhouse / Dalam";
             document.getElementById("show_datatable_input").style.display = 'block';
             document.getElementById("show_datatable_detail").style.display = 'none';
         }
 
         function detail() {
-            document.getElementById("judul").textContent = "Detail Transaksi OUT Inhouse / Dalam";
+            document.getElementById("judul").textContent = "Detail Transaksi IN Inhouse / Dalam";
             document.getElementById("show_datatable_input").style.display = 'none';
             document.getElementById("show_datatable_detail").style.display = 'block';
             $('#datatable-detail').DataTable().ajax.reload();
@@ -980,7 +974,7 @@
             if (type == 'list') {
 
                 await $.ajax({
-                    url: "{{ route("secondary-inhouse-export-excel") }}",
+                    url: "{{ route("secondary-inhouse-in-export-excel") }}",
                     type: "get",
                     data: {
                         from : $("#tgl-awal").val(),
@@ -1006,7 +1000,7 @@
             } else if (type == 'detail') {
 
                 await $.ajax({
-                    url: "{{ route("secondary-inhouse-detail-export-excel") }}",
+                    url: "{{ route("secondary-inhouse-in-detail-export-excel") }}",
                     type: "get",
                     data: {
                         from : $("#tgl-awal").val(),
@@ -1042,7 +1036,7 @@
             document.getElementById('loading').classList.remove('d-none');
 
             $.ajax({
-                url: '{{ route('filter-sec-inhouse') }}',
+                url: '{{ route('filter-sec-inhouse-in') }}',
                 dataType: 'json',
                 dataSrc: 'data',
                 data: {
@@ -1164,7 +1158,7 @@
             document.getElementById('loading').classList.remove('d-none');
 
             $.ajax({
-                url: '{{ route('filter-detail-sec-inhouse') }}',
+                url: '{{ route('filter-detail-sec-inhouse-in') }}',
                 dataType: 'json',
                 dataSrc: 'data',
                 data: {

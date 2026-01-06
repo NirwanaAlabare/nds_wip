@@ -5,15 +5,16 @@ namespace App\Http\Controllers\DC;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Dc\SecondaryInhouse;
-use App\Exports\DC\ExportSecondaryInHouse;
-use App\Exports\DC\ExportSecondaryInHouseDetail;
+use App\Models\Stocker\Stocker;
+use App\Models\Dc\SecondaryInhouseIn;
+use App\Exports\DC\ExportSecondaryInHouseIn;
+use App\Exports\DC\ExportSecondaryInHouseInDetail;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use DB;
 
-class SecondaryInhouseController extends Controller
+class SecondaryInhouseInController extends Controller
 {
     public function index(Request $request)
     {
@@ -104,7 +105,7 @@ class SecondaryInhouseController extends Controller
                 a.user,
                 mp.nama_part,
                 CONCAT(s.range_awal, ' - ', s.range_akhir, (CASE WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range
-                from secondary_inhouse_input a
+                from secondary_inhouse_in_input a
                 left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
                 left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                 left join form_cut_input f on f.id = s.form_cut_id
@@ -122,7 +123,8 @@ class SecondaryInhouseController extends Controller
 
             return DataTables::of($data_input)->toJson();
         }
-        return view('dc.secondary-inhouse.secondary-inhouse', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-inhouse", "data_rak" => $data_rak], ['tgl_skrg' => $tgl_skrg]);
+
+        return view('dc.secondary-inhouse-in.secondary-inhouse-in', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-inhouse", "data_rak" => $data_rak], ['tgl_skrg' => $tgl_skrg]);
     }
 
     public function filterSecondaryInhouse(Request $request)
@@ -159,7 +161,7 @@ class SecondaryInhouseController extends Controller
             a.user,
             mp.nama_part,
             CONCAT(s.range_awal, ' - ', s.range_akhir, (CASE WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range
-            from secondary_inhouse_input a
+            from secondary_inhouse_in_input a
             left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
             left join master_sb_ws msb on msb.id_so_det = s.so_det_id
             left join form_cut_input f on f.id = s.form_cut_id
@@ -240,7 +242,7 @@ class SecondaryInhouseController extends Controller
                     dc_in_input dc
                     left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
                     left join master_sb_ws m on s.so_det_id = m.id_so_det
-                    left join secondary_inhouse_input sii on dc.id_qr_stocker = sii.id_qr_stocker
+                    left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
                 where
                     dc.tujuan = 'SECONDARY DALAM' ".$additionalQuery."
                 group by
@@ -272,7 +274,7 @@ class SecondaryInhouseController extends Controller
                 dc_in_input dc
                 left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
                 left join master_sb_ws m on s.so_det_id = m.id_so_det
-                left join secondary_inhouse_input sii on dc.id_qr_stocker = sii.id_qr_stocker
+                left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
             where
                 dc.tujuan = 'SECONDARY DALAM' ".$additionalQuery."
             group by
@@ -319,7 +321,7 @@ class SecondaryInhouseController extends Controller
         left join part_detail p on s.part_detail_id = p.id
         left join master_part mp on p.master_part_id = mp.id
         left join marker_input mi on a.id_marker = mi.kode
-        left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
+        left join secondary_inhouse_in_input si on dc.id_qr_stocker = si.id_qr_stocker
         where dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
         and ifnull(si.id_qr_stocker,'x') = 'x'
         ");
@@ -353,7 +355,7 @@ class SecondaryInhouseController extends Controller
             "txtqtyreject" => "required"
         ]);
 
-        $saveinhouse = SecondaryInhouse::updateOrCreate(
+        $saveinhouse = SecondaryInhouseIn::updateOrCreate(
             ['id_qr_stocker' => $request['txtno_stocker']],
             [
                 'tgl_trans' => $tgltrans,
@@ -422,7 +424,7 @@ class SecondaryInhouseController extends Controller
                     LEFT JOIN part_detail p ON s.part_detail_id = p.id
                     LEFT JOIN master_part mp ON p.master_part_id = mp.id
                     LEFT JOIN marker_input mi ON a.id_marker = mi.kode
-                    LEFT JOIN secondary_inhouse_input si ON dc.id_qr_stocker = si.id_qr_stocker
+                    LEFT JOIN secondary_inhouse_in_input si ON dc.id_qr_stocker = si.id_qr_stocker
                 WHERE
                     s.act_costing_ws = '".$thisStocker->act_costing_ws."' AND
                     s.color = '".$thisStocker->color."' AND
@@ -432,7 +434,7 @@ class SecondaryInhouseController extends Controller
             ");
 
             foreach ($cekdata as $d) {
-                $saveinhouse = SecondaryInhouse::create([
+                $saveinhouse = SecondaryInhouseIn::create([
                     'tgl_trans' => $tgltrans,
                     'id_qr_stocker' => $d->id_qr_stocker,
                     'qty_awal' => $d->qty_awal,
@@ -474,11 +476,11 @@ class SecondaryInhouseController extends Controller
 
     public function exportExcel(Request $request)
     {
-        return Excel::download(new ExportSecondaryInHouse($request->from, $request->to), 'Laporan sec inhouse '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
+        return Excel::download(new ExportSecondaryInHouseIn($request->from, $request->to), 'Laporan sec inhouse '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
     }
 
     public function exportExcelDetail(Request $request)
     {
-        return Excel::download(new ExportSecondaryInHouseDetail($request->from, $request->to), 'Laporan sec inhouse detail '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
+        return Excel::download(new ExportSecondaryInHouseInDetail($request->from, $request->to), 'Laporan sec inhouse detail '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
     }
 }
