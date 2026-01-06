@@ -273,7 +273,6 @@ WHERE status_prod = 'KERJA'
 AND (status_absen != 'LN' OR status_absen IS NULL)
 AND CAST(a.bulan AS UNSIGNED) >= '$month'
 AND CAST(a.tahun AS UNSIGNED) >= '$year'
-AND CAST(a.bulan AS UNSIGNED) <= '$month'
 AND CAST(a.tahun AS UNSIGNED) <= '$year'
 GROUP BY bulan, tahun
 ORDER BY
@@ -309,7 +308,6 @@ FROM mgt_rep_daily_cost a
 LEFT JOIN dd ON a.bulan = dd.bulan AND a.tahun = dd.tahun
 WHERE CAST(a.bulan AS UNSIGNED) >= '$month'
 AND CAST(a.tahun AS UNSIGNED) >= '$year'
-AND CAST(a.bulan AS UNSIGNED) <= '$month'
 AND CAST(a.tahun AS UNSIGNED) <= '$year'
 GROUP BY no_coa, dd.bulan, dd.tahun
 ),
