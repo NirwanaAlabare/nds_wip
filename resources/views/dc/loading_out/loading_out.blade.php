@@ -376,7 +376,7 @@
                     data: 'supplier'
                 },
                 {
-                    data: 'qty_ply'
+                    data: 'qty'
                 },
                 {
                     data: 'buyer'

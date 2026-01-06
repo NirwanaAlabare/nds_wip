@@ -29,7 +29,7 @@ ph.pono,
 supplier,
 a.jns_dok,
 a.jns_pengeluaran,
-sum(si.qty_ply) tot_qty,
+sum(b.qty) tot_qty,
 a.berat_panel,
 a.berat_karung,
 a.ket,
@@ -72,7 +72,7 @@ a.jns_pengeluaran,
 a.berat_panel,
 a.berat_karung,
 a.ket,
-si.qty_ply,
+sum(b.qty) as qty,
 b.id_qr_stocker,
 b.no_karung,
 ac.kpno,
@@ -157,7 +157,7 @@ order by no_form asc, tgl_form asc, a.created_at desc");
 SELECT
 k.id_item,
 k.id_jo,
-sum(a.qty_ply) qty_input
+sum(dc.qty_awal - dc.qty_reject + dc.qty_replace) qty_input
 from wip_out_tmp tmp
 left join stocker_input a on tmp.id_qr_stocker = a.id_qr_stocker
 left join part_detail p on a.part_detail_id = p.id
@@ -168,6 +168,7 @@ left join form_cut_input f on a.form_cut_id = f.id
 left join signalbit_erp.so_det sd on a.so_det_id = sd.id
 left join signalbit_erp.so on sd.id_so = so.id
 left join signalbit_erp.act_costing ac on so.id_cost = ac.id
+left join dc_in_input dc on tmp.id_qr_stocker = dc.id_qr_stocker
 where id_po = '$id_po'
 group by k.id_item, k.id_jo
 ),
@@ -392,7 +393,7 @@ order by po.ws asc
         ac.styleno,
         sd.color,
         sd.size,
-        a.qty_ply,
+        dc.qty_awal - dc.qty_reject + dc.qty_replace as qty,
         concat(a.range_awal, ' - ', a.range_akhir) range_stocker
         from wip_out_tmp tmp
         left join stocker_input a on tmp.id_qr_stocker = a.id_qr_stocker
@@ -404,7 +405,9 @@ order by po.ws asc
         left join signalbit_erp.so_det sd on a.so_det_id = sd.id
         left join signalbit_erp.so on sd.id_so = so.id
         left join signalbit_erp.act_costing ac on so.id_cost = ac.id
-        where id_po = '$id_po' ");
+        left join dc_in_input dc on a.id_qr_stocker = dc.id_qr_stocker
+        where id_po = '$id_po'
+        order by tmp.id desc");
 
         return DataTables::of($data_input)->toJson();
     }
@@ -484,13 +487,14 @@ order by po.ws asc
 
         DB::insert("
     INSERT INTO wip_out_det
-    (id_wip_out, no_karung, id_qr_stocker, id_item, id_jo, qty_ply, created_by, created_at, updated_at)
-    SELECT ?, no_karung, tmp.id_qr_stocker, k.id_item, k.id_jo, qty_ply, tmp.created_by, tmp.created_at, tmp.updated_at
+    (id_wip_out, no_karung, id_qr_stocker, id_item, id_jo, qty, created_by, created_at, updated_at)
+    SELECT ?, no_karung, tmp.id_qr_stocker, k.id_item, k.id_jo, dc.qty_awal - dc.qty_reject + dc.qty_replace as qty, tmp.created_by, tmp.created_at, tmp.updated_at
     FROM wip_out_tmp tmp
 		left join stocker_input a on tmp.id_qr_stocker = a.id_qr_stocker
 		left join part_detail p on a.part_detail_id = p.id
 		left join part_detail_item pdi on p.id = pdi.part_detail_id
 		left join signalbit_erp.bom_jo_item k on pdi.bom_jo_item_id = k.id
+        left join dc_in_input dc on a.id_qr_stocker = dc.id_qr_stocker
         WHERE id_po = ?
 ", [$id_header, $id_po]);
 

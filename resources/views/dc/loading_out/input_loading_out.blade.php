@@ -164,58 +164,70 @@
 
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Scan Stocker </h5>
+            <h5 class="card-title fw-bold mb-0">
+                <i class="fas fa-list"></i> Scan Stocker
+            </h5>
         </div>
-        <div class="card-body pb-0">
-            <div class="row mb-3">
-                <!-- Baris 1: No. Karung -->
-                <div class="col-12 mb-3">
-                    <label for="txtno_karung" class="form-label">
-                        <small><b>No. Karung</b></small>
-                    </label>
-                    <input type="text" id="txtno_karung" name="txtno_karung"
-                        class="form-control form-control-sm border-primary" placeholder="Masukkan No. Karung">
+
+        <div class="card-body">
+
+            <div class="row">
+                <!-- ================= LEFT SIDE : INPUT ================= -->
+                <div class="col-md-4 col-12 mb-3">
+
+                    <!-- No Karung -->
+                    <div class="mb-3">
+                        <label for="txtno_karung" class="form-label">
+                            <small><b>No. Karung</b></small>
+                        </label>
+                        <input type="text" id="txtno_karung" name="txtno_karung"
+                            class="form-control form-control-sm border-primary" placeholder="Masukkan No. Karung">
+                    </div>
+
+                    <!-- No Stocker -->
+                    <div>
+                        <label class="form-label">
+                            <small><b>No. Stocker</b></small>
+                        </label>
+                        <div class="input-group">
+                            <input type="text" id="txtno_stocker" class="form-control border-primary"
+                                placeholder="Scan stocker" autocomplete="off" style="height:50px; font-size:1.2rem;">
+                            <button type="button" onclick="scan_stocker();"
+                                class="btn btn-outline-primary border-primary">
+                                SCAN
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
 
-                <!-- Baris 2: Scan Stocker -->
-                <div class="col-12">
-                    <label class="form-label">
-                        <small><b>No. Stocker</b></small>
-                    </label>
-                    <div class="input-group">
-                        <input type="text" id="txtno_stocker" class="form-control border-primary"
-                            placeholder="Scan stocker" autocomplete="off"
-                            style="height:50px; font-size:1.2rem; padding:0.5rem 0.75rem;">
-                        <a href="#" onclick="scan_stocker();"
-                            class="btn btn-outline-primary border-primary d-flex align-items-center justify-content-center">
-                            SCAN
-                        </a>
+                <!-- ================= RIGHT SIDE : DATATABLE ================= -->
+                <div class="col-md-8 col-12">
+
+                    <div class="table-responsive">
+                        <table id="datatable_scan" class="table table-bordered table-hover align-middle w-100">
+                            <thead class="bg-sb">
+                                <tr>
+                                    <th class="text-center">ACT</th>
+                                    <th class="text-center">No. Karung</th>
+                                    <th class="text-center">No. Stocker</th>
+                                    <th class="text-center">No. Cut</th>
+                                    <th class="text-center">Panel</th>
+                                    <th class="text-center">Group</th>
+                                    <th class="text-center">WS</th>
+                                    <th class="text-center">Style</th>
+                                    <th class="text-center">Color</th>
+                                    <th class="text-center">Size</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-center">Range</th>
+                                </tr>
+                            </thead>
+                        </table>
                     </div>
 
                 </div>
             </div>
 
-
-            <div class="table-responsive">
-                <table id="datatable_scan" class="table table-bordered table-hover align-middle w-100">
-                    <thead class="bg-sb">
-                        <tr>
-                            <th class="text-center">ACT</th>
-                            <th class="text-center">No. Karung</th>
-                            <th class="text-center">No. Stocker</th>
-                            <th class="text-center">No. Cut</th>
-                            <th class="text-center">Panel</th>
-                            <th class="text-center">Group</th>
-                            <th class="text-center">WS</th>
-                            <th class="text-center">Style</th>
-                            <th class="text-center">Color</th>
-                            <th class="text-center">Size</th>
-                            <th class="text-center">Qty</th>
-                            <th class="text-center">Range</th>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
         </div>
     </div>
 @endsection
@@ -570,7 +582,7 @@
                     data: 'size'
                 },
                 {
-                    data: 'qty_ply'
+                    data: 'qty'
                 },
                 {
                     data: 'range_stocker'
