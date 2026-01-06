@@ -257,6 +257,32 @@
 
         });
 
+
+        $(document).on('keyup', function(e) {
+
+            // alert(e.keyCode);
+            if (e.key === 'Enter' || e.keyCode === 13 || e.keyCode === 9) {
+                const val = $('#txtno_stocker').val();
+                e.preventDefault();
+                e.stopPropagation();
+                if (val !== '') {
+
+                    scan_stocker();
+                } else {
+                    iziToast.warning({
+                        title: 'KOSONG',
+                        message: 'Input stocker masih kosong',
+                        position: 'topCenter',
+                        timeout: 800,
+                        close: false,
+                        pauseOnHover: false
+                    });
+                }
+                return false;
+            }
+        });
+
+
         function getno_po() {
             let cbo_sup = $('#cbo_sup').val();
 
@@ -390,8 +416,7 @@
                     timer: 500,
                     showConfirmButton: false
                 }).then(() => {
-                    $('#txtno_stocker').focus();
-                    $('#txtno_stocker').val('');
+                    $('#txtno_stocker').val('').focus();
                 });
                 return;
             }
@@ -412,7 +437,7 @@
                         iziToast.error({
                             title: 'Stocker Tidak Valid',
                             message: res.message || 'Stocker Tidak Valid',
-                            position: 'topRight',
+                            position: 'center',
                             close: false, // jangan ada tombol close
                             focus: false, // jangan ambil fokus
                             pauseOnHover: false // jangan pause timer saat hover
@@ -420,7 +445,7 @@
                         $('#txtno_stocker').val('').focus(); // reset & fokus ulang
                     } else {
                         // Step berikutnya: simpan ke TMP
-                        saveTmpStocker(res.data);
+                        saveTmpStocker();
                     }
 
                 },
@@ -429,13 +454,12 @@
                 },
                 complete: function() {
                     // Bersihkan & fokus ulang (scanner friendly)
-                    $('#txtno_stocker').val('');
-                    $('#txtno_stocker').focus();
+                    $('#txtno_stocker').val('').focus();
                 }
             });
         }
 
-        function saveTmpStocker(data) {
+        function saveTmpStocker() {
 
             $.ajax({
                 type: "POST",
@@ -444,7 +468,7 @@
                     _token: "{{ csrf_token() }}",
                     id_po: $('#cbo_po').val(),
                     no_karung: $('#txtno_karung').val().trim(),
-                    no_stocker: $('#txtno_stocker').val().trim(),
+                    no_stocker: $('#txtno_stocker').val(),
                     // data tambahan dari backend sebelumnya
                     // item_id: data.item_id ?? null,
                     // qty: data.qty ?? 1
@@ -453,17 +477,14 @@
                 success: function(res) {
 
                     if (res.status === 'success') {
-                        // Swal.fire({
-                        //     icon: 'success',
-                        //     title: 'Berhasil',
-                        //     text: res.message || 'Stocker berhasil disimpan',
-                        //     timer: 500,
-                        //     showConfirmButton: false
-                        // });
-
-                        // optional: refresh tabel TMP
-                        // loadTmpStocker();
-
+                        iziToast.success({
+                            title: 'Berhasil',
+                            message: res.message || 'Stocker berhasil disimpan',
+                            position: 'center',
+                            timeout: 1500,
+                            close: false,
+                            progressBar: true
+                        });
                     } else {
                         Swal.fire({
                             icon: 'error',
