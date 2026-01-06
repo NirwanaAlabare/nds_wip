@@ -101,9 +101,11 @@ order by no_form asc, tgl_form asc, a.created_at desc");
     {
         $user = Auth::user()->name;
 
-        $data_supplier = DB::connection('mysql_sb')->select("SELECT Id_Supplier as isi, Supplier as tampil
-        from mastersupplier where tipe_sup = 'S'
-        order by SUpplier asc");
+        $data_supplier = DB::connection('mysql_sb')->select("SELECT ms.id_supplier as isi, Supplier as tampil from po_header ph
+		inner join mastersupplier ms on ph.id_supplier = ms.id_supplier
+		where jenis = 'P'
+		group by ph.id_supplier
+		order by SUpplier asc	");
 
         $data_dok = DB::connection('mysql_sb')->select("SELECT nama_pilihan isi,nama_pilihan tampil
             from masterpilihan where kode_pilihan='Status KB Out'");
@@ -213,9 +215,9 @@ coalesce(qty_input,0) as qty_input,
 po.qty_po - bppb.qty_out - coalesce(qty_input,0) blc,
 po.unit
 from po
-left join tmp on po.id_item = tmp.id_item and po.id_jo and tmp.id_jo
-left join bpb on po.id_item = bpb.id_item and po.id_jo and bpb.id_jo
-left join bppb on po.id_item = bppb.id_item and po.id_jo and bppb.id_jo
+left join tmp on po.id_item = tmp.id_item and po.id_jo = tmp.id_jo
+left join bpb on po.id_item = bpb.id_item and po.id_jo = bpb.id_jo
+left join bppb on po.id_item = bppb.id_item and po.id_jo = bppb.id_jo
 order by po.ws asc
             ");
 
@@ -250,12 +252,13 @@ order by po.ws asc
     WHERE si.id_qr_stocker = ?
 ", [$no_stocker]);
 
-        if (!$cek_part_stocker) {
+        if (!$cek_part_stocker || $cek_part_stocker->id === null) {
             return response()->json([
                 'result' => 'N',
                 'message' => 'Stocker belum diisi part'
             ]);
         }
+
 
         // 3️⃣ cek DC IN
         $cek_dc_in = DB::selectOne("
@@ -271,7 +274,7 @@ order by po.ws asc
             ]);
         }
 
-        $cek_stocker = DB::connection('mysql_sb')->select("SELECT
+        $cek_stocker = DB::connection('mysql_sb')->selectOne("SELECT
             si.id_qr_stocker,
             jd.id_jo,
             CASE
@@ -306,7 +309,34 @@ order by po.ws asc
             ]);
         }
 
-        $stocker = $cek_stocker[0];
+        $cek_tmp = DB::selectOne("
+        SELECT id
+        FROM wip_out_tmp
+        WHERE id_qr_stocker = ?
+    ", [$no_stocker]);
+
+        if ($cek_tmp) {
+            return response()->json([
+                'result' => 'N',
+                'message' => 'Stocker Sudah diScan'
+            ]);
+        }
+
+        // 2️⃣ cek duplicate TMP
+        $cek_input_stocker = DB::selectOne("
+        SELECT id_qr_stocker
+        FROM wip_out_det
+        WHERE id_qr_stocker = ?
+    ", [$no_stocker]);
+
+        if ($cek_input_stocker) {
+            return response()->json([
+                'result'  => 'N',
+                'message' => 'Stocker sudah pernah discan'
+            ]);
+        }
+
+        $stocker = $cek_stocker;
 
         return response()->json([
             'result'  => $stocker->result,
@@ -323,34 +353,6 @@ order by po.ws asc
         $user = Auth::user()->name;
         $timestamp = Carbon::now();
 
-
-        // 2️⃣ cek duplicate TMP
-        $cek_tmp = DB::selectOne("
-        SELECT id
-        FROM wip_out_tmp
-        WHERE id_qr_stocker = ?
-    ", [$no_stocker]);
-
-        if ($cek_tmp) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Stocker sudah discan'
-            ]);
-        }
-
-        // 2️⃣ cek duplicate TMP
-        $cek_input_stocker = DB::selectOne("
-        SELECT id_qr_stocker
-        FROM wip_out_det
-        WHERE id_qr_stocker = ?
-    ", [$no_stocker]);
-
-        if ($cek_input_stocker) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Stocker sudah pernah discan'
-            ]);
-        }
 
         DB::insert("INSERT INTO wip_out_tmp (
         id_qr_stocker,
