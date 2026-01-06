@@ -23,6 +23,22 @@
         .select2-container--bootstrap4 .select2-selection__rendered {
             line-height: 1.5 !important;
         }
+
+        /* Khusus input stocker */
+        #txtno_stocker {
+            height: 50px;
+            /* sesuaikan tinggi */
+            font-size: 1.2rem;
+            /* buat teks lebih besar */
+            padding: 0.5rem 0.75rem;
+        }
+
+        /* Jika ingin tombol SCAN ikut menyesuaikan tinggi */
+        #btn_scan {
+            height: 50px;
+            font-size: 1.1rem;
+            line-height: 1;
+        }
     </style>
 @endsection
 
@@ -152,8 +168,8 @@
         </div>
         <div class="card-body pb-0">
             <div class="row mb-3">
-                <!-- No. Karung -->
-                <div class="col-md-6 mb-2 mb-md-0">
+                <!-- Baris 1: No. Karung -->
+                <div class="col-12 mb-3">
                     <label for="txtno_karung" class="form-label">
                         <small><b>No. Karung</b></small>
                     </label>
@@ -161,21 +177,24 @@
                         class="form-control form-control-sm border-primary" placeholder="Masukkan No. Karung">
                 </div>
 
-                <!-- Scan Stocker-->
-                <div class="col-md-6">
+                <!-- Baris 2: Scan Stocker -->
+                <div class="col-12">
                     <label class="form-label">
                         <small><b>No. Stocker</b></small>
                     </label>
-                    <div class="input-group input-group-sm">
+                    <div class="input-group">
                         <input type="text" id="txtno_stocker" class="form-control border-primary"
-                            placeholder="Scan stocker" autocomplete="off">
-                        <a href="#" onclick="scan_stocker();" class="btn btn-outline-primary border-primary"
-                            id="btn_scan">
+                            placeholder="Scan stocker" autocomplete="off"
+                            style="height:50px; font-size:1.2rem; padding:0.5rem 0.75rem;">
+                        <a href="#" onclick="scan_stocker();"
+                            class="btn btn-outline-primary border-primary d-flex align-items-center justify-content-center">
                             SCAN
                         </a>
                     </div>
+
                 </div>
             </div>
+
 
             <div class="table-responsive">
                 <table id="datatable_scan" class="table table-bordered table-hover align-middle w-100">
@@ -236,22 +255,6 @@
             $('#txt_berat_karung').val('0');
             $('#txtno_karung').val('');
 
-            // Trigger scan saat ENTER dari scanner
-            $('#txtno_stocker').on('keydown', function(e) {
-                if (e.key === 'Enter' || e.keyCode === 13) {
-                    e.preventDefault();
-                    $(this).val($(this).val().trim());
-                    scan_stocker();
-                }
-            });
-
-            // Fallback jika scanner kirim newline (\n / \r)
-            $('#txtno_stocker').on('input', function() {
-                if (this.value.includes('\n') || this.value.includes('\r')) {
-                    this.value = this.value.trim();
-                    scan_stocker();
-                }
-            });
         });
 
         function getno_po() {
@@ -342,8 +345,8 @@
 
         function scan_stocker() {
 
-            let no_karung = $('#txtno_karung').val().trim();
-            let no_stocker = $('#txtno_stocker').val().trim();
+            let no_karung = $('#txtno_karung').val();
+            let no_stocker = $('#txtno_stocker').val();
             let id_po = $('#cbo_po').val();
 
             console.log(id_po, no_stocker);
@@ -358,6 +361,7 @@
                     showConfirmButton: false
                 }).then(() => {
                     $('#cbo_po').focus();
+                    $('#txtno_stocker').val('');
                 });
                 return;
             }
@@ -372,6 +376,7 @@
                     showConfirmButton: false
                 }).then(() => {
                     $('#txtno_karung').focus();
+                    $('#txtno_stocker').val('');
                 });
                 return;
             }
@@ -386,6 +391,7 @@
                     showConfirmButton: false
                 }).then(() => {
                     $('#txtno_stocker').focus();
+                    $('#txtno_stocker').val('');
                 });
                 return;
             }
@@ -403,18 +409,20 @@
                 success: function(res) {
 
                     if (res.result === 'N') {
-                        Swal.fire({
-                            icon: 'error',
+                        iziToast.error({
                             title: 'Stocker Tidak Valid',
-                            text: res.message || 'Stocker Tidak Valid',
-                            timer: 500,
-                            showConfirmButton: false
+                            message: res.message || 'Stocker Tidak Valid',
+                            position: 'topRight',
+                            close: false, // jangan ada tombol close
+                            focus: false, // jangan ambil fokus
+                            pauseOnHover: false // jangan pause timer saat hover
                         });
-                        return;
+                        $('#txtno_stocker').val('').focus(); // reset & fokus ulang
+                    } else {
+                        // Step berikutnya: simpan ke TMP
+                        saveTmpStocker(res.data);
                     }
 
-                    // Step berikutnya: simpan ke TMP
-                    saveTmpStocker(res.data);
                 },
                 error: function() {
                     alert('Gagal koneksi ke server');
@@ -422,6 +430,7 @@
                 complete: function() {
                     // Bersihkan & fokus ulang (scanner friendly)
                     $('#txtno_stocker').val('');
+                    $('#txtno_stocker').focus();
                 }
             });
         }

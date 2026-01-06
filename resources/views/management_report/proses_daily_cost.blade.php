@@ -298,7 +298,7 @@
                         <small><b>Periode Tahun</b></small>
                     </label>
                     <select class="form-control form-control-sm select2bs4" id="periode_tahun_view"
-                        name="periode_tahun_view" style="width: 100%;">
+                        name="periode_tahun_view" onchange="dataTableListReload();" style="width: 100%;">
                         <option value="">-- Pilih Tahun --</option>
                         @for ($year = 2025; $year <= 2030; $year++)
                             <option value="{{ $year }}" {{ $year == now()->year ? 'selected' : '' }}>

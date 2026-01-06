@@ -250,7 +250,7 @@ order by po.ws asc
     WHERE si.id_qr_stocker = ?
 ", [$no_stocker]);
 
-        if (!$cek_part_stocker || !$cek_part_stocker->id) {
+        if (!$cek_part_stocker) {
             return response()->json([
                 'result' => 'N',
                 'message' => 'Stocker belum diisi part'
