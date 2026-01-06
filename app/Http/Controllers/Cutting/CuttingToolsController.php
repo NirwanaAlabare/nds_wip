@@ -356,6 +356,8 @@ class CuttingToolsController extends Controller
         ]);
 
         if ($validatedRequest) {
+            $currentForm = FormCutInput::where("id", $validatedRequest['modify_marker_form_id'])->first();
+
             // If not Bypassed
             if (!isset($request['modify_bypass_stocker'])) {
 
@@ -581,7 +583,7 @@ class CuttingToolsController extends Controller
                             }
                         }
 
-                        $stockerService->reorderStockerNumbering($partId);
+                        $stockerService->reorderStockerNumbering($partId, $validatedRequest["modify_marker_color"], $currentForm->no_cut);
                     }
 
                     return array(
@@ -793,7 +795,7 @@ class CuttingToolsController extends Controller
         if ($validatedRequest['form_group']) {
             if ($validatedRequest['form_group_new']) {
                 // Update Form Group
-                $updateFormGroup = DB::table($formTable)->where(($formTable == "form_cut_reject" ? "id" : ($formTable == "form_cut_piece_detail" ? "form_id" : $formTable == "form_cut_input_detail" ? "form_cut_id" : "")), $validatedRequest["form_cut_id"])->where("group_stocker", $validatedRequest["form_group"])->update([
+                $updateFormGroup = DB::table($formTable)->where(($formTable == "form_cut_reject" ? "id" : ($formTable == "form_cut_piece_detail" ? "form_id" : ($formTable == "form_cut_input_detail" ? "form_cut_id" : ""))), $validatedRequest["form_cut_id"])->where("group_stocker", $validatedRequest["form_group"])->update([
                     ($formTable == "form_cut_reject" ? "group" : "group_roll") => $validatedRequest["form_group_new"]
                 ]);
 
