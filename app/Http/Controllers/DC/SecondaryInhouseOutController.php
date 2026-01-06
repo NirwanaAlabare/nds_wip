@@ -309,7 +309,9 @@ class SecondaryInhouseOutController extends Controller
         mp.nama_part,
         dc.tujuan,
         dc.lokasi,
-        coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace qty_awal,
+        COALESCE(sii.updated_at, sii.created_at, '-') as waktu_in,
+        COALESCE(sii.created_by_username, '-') as author_in,
+        coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace - COALESCE(sii.qty_reject, 0) + COALESCE(sii.qty_replace, 0) qty_awal,
         ifnull(si.id_qr_stocker,'x')
         from dc_in_input dc
         left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
@@ -325,8 +327,7 @@ class SecondaryInhouseOutController extends Controller
         where
             dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and
             dc.tujuan = 'SECONDARY DALAM' and
-            ifnull(si.id_qr_stocker,'x') = 'x' and
-            sii.id is not null
+            ifnull(si.id_qr_stocker,'x') = 'x'
         ");
         return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
     }

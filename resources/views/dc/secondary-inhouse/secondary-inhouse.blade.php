@@ -101,22 +101,28 @@
                         </div>
 
                         <div class="row">
-                            <div class='col-sm-6'>
+                            <div class='col-sm-4'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Waktu Scan IN</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='txtwaktu_in' name='txtwaktu_in' value = '' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-4'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Scan IN oleh</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='txtauthor_in' name='txtauthor_in' value = '' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-4'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Tujuan Asal</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txttujuan' name='txttujuan' value = '' readonly>
                                 </div>
                             </div>
-                            <div class='col-sm-6'>
+                            <div class='col-sm-4'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Lokasi Asal</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txtalokasi' name='txtalokasi' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-6'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>In</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtsecondary_dalam_in' name='txtsecondary_dalam_in' value = '' readonly>
                                 </div>
                             </div>
                         </div>
@@ -892,6 +898,8 @@
                     document.getElementById('txtsize').value = response.size;
                     document.getElementById('txtpart').value = response.nama_part;
                     document.getElementById('txttujuan').value = response.tujuan;
+                    document.getElementById('txtwaktu_in').value = response.waktu_in;
+                    document.getElementById('txtauthor_in').value = response.author_in;
                     document.getElementById('txtalokasi').value = response.lokasi;
                     document.getElementById('txtqtyawal').value = response.qty_awal;
                     // let txtqtyreject = $("#txtqtyreject").val();

@@ -13,7 +13,7 @@
 
 @section('content')
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <form action="{{ route('store-secondary-inhouse') }}" method="post" onsubmit="submitForm(this, event)" name='form' id='form'>
+        <form action="{{ route('store-secondary-inhouse-in') }}" method="post" onsubmit="submitForm(this, event)" name='form' id='form'>
             @method('POST')
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
@@ -44,128 +44,23 @@
                             <div class="col-3">
                             </div>
                         </div>
-
-                        <div class="row">
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>No Stocker</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtno_stocker' name='txtno_stocker' value = '' readonly>
-                                    <input type='hidden' class='form-control form-control-sm' id='txtno_form' name='txtno_form' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>WS</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtws' name='txtws' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Buyer</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtbuyer' name='txtbuyer' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>No Cut</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtno_cut' name='txtno_cut' value = '' readonly>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Style</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtstyle' name='txtstyle' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Color</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtcolor' name='txtcolor' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Size</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtsize' name='txtsize' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Part</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtpart' name='txtpart' value = '' readonly>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class='col-sm-6'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Tujuan Asal</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txttujuan' name='txttujuan' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-6'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Lokasi Asal</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtalokasi' name='txtalokasi' value = '' readonly>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Qty Awal</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txtqtyawal' name='txtqtyawal' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Reject</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txtqtyreject' name='txtqtyreject' value = '' oninput='sum();' style = 'border-color:blue;'>
-                                </div>
-                            </div>
-
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Replacement</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txtqtyreplace' name='txtqtyreplace' value = '0' oninput='sum();' style = 'border-color:blue;'>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Qty In</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txtqtyin' name='txtqtyin' value = '' readonly style = 'border-color:green;'>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <div class="row">
-                            {{-- <div class='col-md-6'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Rak</small></label>
-                                    <select class="form-control select2bs4" name="cborak" id="cborak"
-                                        style="width: 100%;">
-                                        <option selected="selected" value="">Pilih Rak Tujuan</option>
-                                        @foreach ($data_rak as $datarak)
-                                            <option value="{{ $datarak->isi }}">
-                                                {{ $datarak->tampil }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div> --}}
-                            <div class='col-md-12'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Keterangan</small></label>
-                                    <textarea class="form-control" rows="2" id='txtket' name='txtket' style = 'border-color:blue;' autocomplete="off"></textarea>
-                                    {{-- <input type='text' class='form-control' id='txtket' name='txtket' value = '' style = 'border-color:blue;' autocomplete="off"> --}}
-                                </div>
-                            </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <th>Action</th>
+                                    <th>No. Stocker</th>
+                                    <th>Worksheet</th>
+                                    <th>Style</th>
+                                    <th>Color</th>
+                                    <th>Part</th>
+                                    <th>Size</th>
+                                    <th>No. Cut</th>
+                                    <th>Tujuan</th>
+                                    <th>Proses</th>
+                                    <th>Range</th>
+                                    <th>Qty</th>
+                                </thead>
+                            </table>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -262,11 +157,11 @@
                             <th>Buyer</th>
                             <th>Style</th>
                             <th>Color</th>
+                            <th>Part</th>
+                            <th>Size</th>
+                            <th>Tujuan</th>
+                            <th>Proses</th>
                             <th>In</th>
-                            <th>Reject</th>
-                            <th>Replace</th>
-                            <th>Out</th>
-                            <th>Balance</th>
                             <th>Proses</th>
                         </tr>
                     </thead>
@@ -493,29 +388,8 @@
                         i : 0;
                 };
 
-                var sumTotalAwal = api
-                    .column(12)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalReject = api
-                    .column(13)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalReplace = api
-                    .column(14)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
                 var sumTotalIn = api
-                    .column(15)
+                    .column(12)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -523,10 +397,7 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(12).footer()).html(sumTotalAwal);
-                $(api.column(13).footer()).html(sumTotalReject);
-                $(api.column(14).footer()).html(sumTotalReplace);
-                $(api.column(15).footer()).html(sumTotalIn);
+                $(api.column(12).footer()).html(sumTotalIn);
 
                 $('#size_filter').select2({
                     theme: 'bootstrap4',
@@ -602,15 +473,6 @@
                     data: 'stocker_range',
                 },
                 {
-                    data: 'qty_awal',
-                },
-                {
-                    data: 'qty_reject',
-                },
-                {
-                    data: 'qty_replace',
-                },
-                {
                     data: 'qty_in',
                 },
                 {
@@ -666,41 +528,9 @@
                         return intVal(a) + intVal(b);
                     }, 0);
 
-                var sumTotalReject = api
-                    .column(5)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalReplace = api
-                    .column(6)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalOut = api
-                    .column(7)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalBalance = api
-                    .column(8)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
                 $(api.column(4).footer()).html(sumTotalIn);
-                $(api.column(5).footer()).html(sumTotalReject);
-                $(api.column(6).footer()).html(sumTotalReplace);
-                $(api.column(7).footer()).html(sumTotalOut);
-                $(api.column(8).footer()).html(sumTotalBalance);
             },
             ordering: false,
             processing: true,
@@ -742,15 +572,6 @@
                 },
                 {
                     data: 'qty_in',
-                },
-                {
-                    data: 'qty_reject',
-                },
-                {
-                    data: 'qty_replace',
-                },
-                {
-                    data: 'qty_out',
                 },
                 {
                     data: 'balance',

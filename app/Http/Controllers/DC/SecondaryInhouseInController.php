@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Stocker\Stocker;
 use App\Models\Dc\SecondaryInhouseIn;
+use App\Models\Dc\SecondaryInhouseInTemp;
 use App\Exports\DC\ExportSecondaryInHouseIn;
 use App\Exports\DC\ExportSecondaryInHouseInDetail;
 use Yajra\DataTables\Facades\DataTables;
@@ -299,35 +300,112 @@ class SecondaryInhouseInController extends Controller
     public function cek_data_stocker_inhouse(Request $request)
     {
         $cekdata =  DB::select("
-        SELECT
-        dc.id_qr_stocker,
-        s.act_costing_ws,
-        msb.buyer,
-        COALESCE(a.no_cut, c.no_cut, '-') as no_cut,
-        msb.styleno as style,
-        s.color,
-        COALESCE(msb.size, s.size) size,
-        mp.nama_part,
-        dc.tujuan,
-        dc.lokasi,
-        coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace qty_awal,
-        ifnull(si.id_qr_stocker,'x')
-        from dc_in_input dc
-        left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
-        left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-        left join form_cut_input a on s.form_cut_id = a.id
-        left join form_cut_reject b on s.form_reject_id = b.id
-        left join form_cut_piece c on s.form_piece_id = c.id
-        left join part_detail p on s.part_detail_id = p.id
-        left join master_part mp on p.master_part_id = mp.id
-        left join marker_input mi on a.id_marker = mi.kode
-        left join secondary_inhouse_in_input si on dc.id_qr_stocker = si.id_qr_stocker
-        where dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
-        and ifnull(si.id_qr_stocker,'x') = 'x'
+            SELECT
+            dc.id_qr_stocker,
+            s.act_costing_ws,
+            msb.buyer,
+            COALESCE(a.no_cut, c.no_cut, '-') as no_cut,
+            msb.styleno as style,
+            s.color,
+            COALESCE(msb.size, s.size) size,
+            mp.nama_part,
+            dc.tujuan,
+            dc.lokasi,
+            coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace qty_awal,
+            ifnull(si.id_qr_stocker,'x')
+            from dc_in_input dc
+            left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+            left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+            left join form_cut_input a on s.form_cut_id = a.id
+            left join form_cut_reject b on s.form_reject_id = b.id
+            left join form_cut_piece c on s.form_piece_id = c.id
+            left join part_detail p on s.part_detail_id = p.id
+            left join master_part mp on p.master_part_id = mp.id
+            left join marker_input mi on a.id_marker = mi.kode
+            left join secondary_inhouse_in_input si on dc.id_qr_stocker = si.id_qr_stocker
+            where dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
+            and ifnull(si.id_qr_stocker,'x') = 'x'
         ");
-        return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
+
+        if ($cekdata && $cekdata[0]) {
+            // Check Secondary Inhouse
+            $checkSecInhouseIn = SecondaryInhouseIn::where("id_qr_stocker", $request->txtqrstocker)->first();
+            if ($checkSecInhouseIn) {
+                return "Stocker sudah discan di transaksi IN Secondary Dalam.";
+            }
+
+            // Check Secondary Inhouse Temp
+            $checkSecInhouseInTemp = SecondaryInhouseInTemp::where("id_qr_stocker", $request->txtqrstocker)->first();
+            if ($checkSecInhouseInTemp) {
+                return "Stocker sudah discan di temporary IN Secondary Dalam.";
+            }
+
+            // Insert to Secondary Inhouse to Temporary
+            $storeSecondaryInhouseInTemp = SecondaryInhouseInTemp::create([
+                "id_qr_stocker" => $request->txtqrstocker,
+                "qty" => $cekdata['qty_awal']
+            ]);
+            if ($storeSecondaryInhouseInTemp) {
+                return "Stocker Berhasil disimpan ke temporary";
+            }
+        }
+
+        return "Data stocker tidak ditemukan.";
     }
 
+
+    public function cek_data_stocker_inhouse_temp(Request $request)
+    {
+        $dataStockerInhouseTemp = DB::select("
+            SELECT
+            dc.id_qr_stocker,
+            s.act_costing_ws,
+            msb.buyer,
+            COALESCE(a.no_cut, c.no_cut, '-') as no_cut,
+            msb.styleno as style,
+            s.color,
+            COALESCE(msb.size, s.size) size,
+            mp.nama_part,
+            dc.tujuan,
+            dc.lokasi,
+            coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace qty_awal,
+            ifnull(si.id_qr_stocker,'x')
+            from
+            secondary_inhouse_in_temp si
+            left join dc_in_input dc on dc.id_qr_stocker = s.id_qr_stocker
+            left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+            left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+            left join form_cut_input a on s.form_cut_id = a.id
+            left join form_cut_reject b on s.form_reject_id = b.id
+            left join form_cut_piece c on s.form_piece_id = c.id
+            left join part_detail p on s.part_detail_id = p.id
+            left join master_part mp on p.master_part_id = mp.id
+            left join marker_input mi on a.id_marker = mi.kode
+            where si.created_by = ".Auth::user()->id."
+        ");
+
+        return Datatables::of($dataStockerInhouseTemp)->toJson();
+    }
+
+    public function storeStockerInhouseIn(Request $request)
+    {
+        // Get user's temporary data
+        $dataStockerInhouseInTemp = SecondaryInhouseInTemp::selectRaw("
+                CURRENT_DATE() tgl_trans,
+                id_qr_stocker,
+                qty qty_in,
+                created_by_username as user,
+                CURRETN_TIMESTAMP as created_at,
+                CURRETN_TIMESTAMP as updated_at
+            ")->
+            where("created_by", Auth::user()->id)->
+            get();
+
+        if ($dataStockerInhouseInTemp) {
+            // Insert to stocker inhouse in
+            $storeStockerInhouseIn = SecondaryInhouseIn::upsert($dataStockerInhouseInTemp->toArray(), ["id_qr_stocker"]);
+        }
+    }
 
     // public function get_rak(Request $request)
     // {
