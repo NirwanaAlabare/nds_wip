@@ -306,6 +306,7 @@ FROM dim_tgl d
 cross join mastercoa_v2 a
 left join dc on a.no_coa = dc.no_coa
 where eng_categori4 = 'DIRECT LABOR COST'
+group by tanggal, no_coa
 ),
 coa_indirect as (
 select
@@ -319,6 +320,7 @@ FROM dim_tgl d
 cross join mastercoa_v2 a
 left join dc on a.no_coa = dc.no_coa
 where eng_categori4 = 'INDIRECT LABOR COST'
+group by tanggal, no_coa
 ),
 coa_overhead as (
 select
@@ -332,6 +334,7 @@ FROM dim_tgl d
 cross join mastercoa_v2 a
 left join dc on a.no_coa = dc.no_coa
 where eng_categori4 = 'FIXED OVERHEAD COST'
+group by tanggal, no_coa
 ),
 coa_selling as (
 select
@@ -345,6 +348,7 @@ FROM dim_tgl d
 cross join mastercoa_v2 a
 left join dc on a.no_coa = dc.no_coa
 where eng_categori4 = 'SELLING EXPENSE'
+group by tanggal, no_coa
 ),
 coa_ga as (
 select
@@ -358,6 +362,7 @@ FROM dim_tgl d
 cross join mastercoa_v2 a
 left join dc on a.no_coa = dc.no_coa
 where eng_categori4 = 'GENERAL & ADMINISTRATION EXPENSE'
+group by tanggal, no_coa
 ),
 coa_expense as (
 select
@@ -371,6 +376,7 @@ FROM dim_tgl d
 cross join mastercoa_v2 a
 left join dc on a.no_coa = dc.no_coa
 where eng_categori3 = 'OTHER EXPENSE'
+group by tanggal, no_coa
 ),
 map_coa as (
 select no_coa, nama_coa, no_cc, cc_name, group2, id_pc from (select a.no_coa, a.nama_coa, b.no_cc, cc_name, b.id_pc, group2 from (select no_coa, nama_coa, support_gen_adm, support_prod, prod, support_sell from mastercoa_v2 where support_gen_adm != 'N' OR support_prod != 'N' OR prod != 'N' OR support_sell != 'N') a inner join
