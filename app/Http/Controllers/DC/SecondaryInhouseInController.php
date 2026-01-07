@@ -398,6 +398,7 @@ class SecondaryInhouseInController extends Controller
             left join master_part mp on p.master_part_id = mp.id
             left join marker_input mi on a.id_marker = mi.kode
             where si.created_by = ".Auth::user()->id."
+            order by si.updated_at desc
         ");
 
         return Datatables::of($dataStockerInhouseTemp)->toJson();
