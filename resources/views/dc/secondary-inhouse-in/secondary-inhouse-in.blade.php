@@ -13,19 +13,19 @@
 
 @section('content')
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <form action="{{ route('store-secondary-inhouse') }}" method="post" onsubmit="submitForm(this, event)" name='form' id='form'>
+        <form action="{{ route('store-secondary-inhouse-in') }}" method="post" onsubmit="submitForm(this, event)" name='form' id='form'>
             @method('POST')
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
-                        <h1 class="modal-title fs-5">Scan QR OUT Secondary Dalam</h1>
+                        <h1 class="modal-title fs-5">Scan QR IN Secondary Dalam</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="row">
+                        <div class="row mb-3">
                             <div class="col-sm-12">
                                 <div class="mb-3">
-                                    <label class="form-label label-input">Scan QR OUT Stocker</label>
+                                    <label class="form-label label-input">Scan QR IN Stocker</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control form-control-sm border-input" name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go" onkeyup="if (event.keyCode == 13) document.getElementById('scanqr').click()" autofocus>
                                         {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
@@ -44,146 +44,24 @@
                             <div class="col-3">
                             </div>
                         </div>
-
-                        <div class="row">
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>No Stocker</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtno_stocker' name='txtno_stocker' value = '' readonly>
-                                    <input type='hidden' class='form-control form-control-sm' id='txtno_form' name='txtno_form' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>WS</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtws' name='txtws' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Buyer</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtbuyer' name='txtbuyer' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>No Cut</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtno_cut' name='txtno_cut' value = '' readonly>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Style</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtstyle' name='txtstyle' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Color</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtcolor' name='txtcolor' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Size</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtsize' name='txtsize' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Part</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtpart' name='txtpart' value = '' readonly>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class='col-sm-4'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>ID IN</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtin_id' name='txtin_id' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-4'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Waktu Scan IN</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtwaktu_in' name='txtwaktu_in' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-4'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Scan IN oleh</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtauthor_in' name='txtauthor_in' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-6'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Tujuan Asal</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txttujuan' name='txttujuan' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-6'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Lokasi Asal</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtalokasi' name='txtalokasi' value = '' readonly>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Qty Awal</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txtqtyawal' name='txtqtyawal' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Reject</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txtqtyreject' name='txtqtyreject' value = '' oninput='sum();' style = 'border-color:blue;'>
-                                </div>
-                            </div>
-
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Replacement</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txtqtyreplace' name='txtqtyreplace' value = '0' oninput='sum();' style = 'border-color:blue;'>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Qty In</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txtqtyin' name='txtqtyin' value = '' readonly style = 'border-color:green;'>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <div class="row">
-                            {{-- <div class='col-md-6'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Rak</small></label>
-                                    <select class="form-control select2bs4" name="cborak" id="cborak"
-                                        style="width: 100%;">
-                                        <option selected="selected" value="">Pilih Rak Tujuan</option>
-                                        @foreach ($data_rak as $datarak)
-                                            <option value="{{ $datarak->isi }}">
-                                                {{ $datarak->tampil }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div> --}}
-                            <div class='col-md-12'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Keterangan</small></label>
-                                    <textarea class="form-control" rows="2" id='txtket' name='txtket' style = 'border-color:blue;' autocomplete="off"></textarea>
-                                    {{-- <input type='text' class='form-control' id='txtket' name='txtket' value = '' style = 'border-color:blue;' autocomplete="off"> --}}
-                                </div>
-                            </div>
+                        <div class="table-responsive w-100">
+                            <table class="table table-bordered w-100" id="secondary-inhouse-in-temp-table">
+                                <thead>
+                                    <th>Action</th>
+                                    <th>No. Stocker</th>
+                                    <th>Worksheet</th>
+                                    <th>Style</th>
+                                    <th>Color</th>
+                                    <th>Part</th>
+                                    <th>Size</th>
+                                    <th>No. Cut</th>
+                                    <th>Tujuan</th>
+                                    <th>Proses</th>
+                                    <th>Range</th>
+                                    <th>Qty</th>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -197,7 +75,7 @@
 
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">OUT Secondary Dalam <i class="fas fa-house-user"></i></h5>
+            <h5 class="card-title fw-bold mb-0">IN Secondary Dalam <i class="fas fa-house-user"></i></h5>
         </div>
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
@@ -223,7 +101,7 @@
                 </div>
             </div>
 
-            <h5 class="card-title fw-bold mb-0" id="judul" name="judul">List Transaksi OUT Inhouse / Dalam</h5>
+            <h5 class="card-title fw-bold mb-0" id="judul" name="judul">List Transaksi IN Inhouse / Dalam</h5>
             <br>
             <br>
             <div class="table-responsive" id = "show_datatable_input">
@@ -246,9 +124,6 @@
                             <th>Tujuan Asal</th>
                             <th>Lokasi Asal</th>
                             <th>Range</th>
-                            <th>Qty Awal</th>
-                            <th>Qty Reject</th>
-                            <th>Qty Replace</th>
                             <th>Qty In</th>
                             <th>Buyer</th>
                             <th>Created By</th>
@@ -258,9 +133,6 @@
                     <tfoot>
                         <tr>
                             <th colspan="12"></th>
-                            <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_awal'></th>
-                            <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_reject'></th>
-                            <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_replace'></th>
                             <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_in'></th>
                             <th colspan="3"></th>
                         </tr>
@@ -277,25 +149,20 @@
                     <thead>
                         <tr>
                             <th>WS</th>
-                            <th>Buyer</th>
                             <th>Style</th>
                             <th>Color</th>
-                            <th>In</th>
-                            <th>Reject</th>
-                            <th>Replace</th>
-                            <th>Out</th>
-                            <th>Balance</th>
+                            <th>Part</th>
+                            <th>Size</th>
+                            <th>Tujuan</th>
                             <th>Proses</th>
+                            <th>In</th>
+                            <th>Buyer</th>
                         </tr>
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="4"></th>
-                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_int'> </th>
-                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_reject_det'> </th>
-                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_replace_det'> </th>
-                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_out'> </th>
-                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_balance'> </th>
+                            <th colspan="7"></th>
+                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_in'> </th>
                             <th></th>
                         </tr>
                     </tfoot>
@@ -466,6 +333,8 @@
 
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+
+    {{-- DATATABLE SCRIPT --}}
     <script>
         $('.select2bs4filtersec').select2({
             theme: 'bootstrap4',
@@ -497,7 +366,6 @@
             }
         });
 
-
         let datatable = $("#datatable-input").DataTable({
             "footerCallback": function(row, data, start, end, display) {
                 var api = this.api(),
@@ -511,29 +379,8 @@
                         i : 0;
                 };
 
-                var sumTotalAwal = api
-                    .column(12)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalReject = api
-                    .column(13)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalReplace = api
-                    .column(14)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
                 var sumTotalIn = api
-                    .column(15)
+                    .column(12)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -541,10 +388,7 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(12).footer()).html(sumTotalAwal);
-                $(api.column(13).footer()).html(sumTotalReject);
-                $(api.column(14).footer()).html(sumTotalReplace);
-                $(api.column(15).footer()).html(sumTotalIn);
+                $(api.column(12).footer()).html(sumTotalIn);
 
                 $('#size_filter').select2({
                     theme: 'bootstrap4',
@@ -562,7 +406,7 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '{{ route('secondary-inhouse') }}',
+                url: '{{ route('secondary-inhouse-in') }}',
                 dataType: 'json',
                 dataSrc: 'data',
                 data: function(d) {
@@ -620,15 +464,6 @@
                     data: 'stocker_range',
                 },
                 {
-                    data: 'qty_awal',
-                },
-                {
-                    data: 'qty_reject',
-                },
-                {
-                    data: 'qty_replace',
-                },
-                {
                     data: 'qty_in',
                 },
                 {
@@ -678,35 +513,7 @@
                 };
 
                 var sumTotalIn = api
-                    .column(4)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalReject = api
-                    .column(5)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalReplace = api
-                    .column(6)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalOut = api
                     .column(7)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalBalance = api
-                    .column(8)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -714,11 +521,7 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(4).footer()).html(sumTotalIn);
-                $(api.column(5).footer()).html(sumTotalReject);
-                $(api.column(6).footer()).html(sumTotalReplace);
-                $(api.column(7).footer()).html(sumTotalOut);
-                $(api.column(8).footer()).html(sumTotalBalance);
+                $(api.column(7).footer()).html(sumTotalIn);
             },
             ordering: false,
             processing: true,
@@ -732,7 +535,7 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '{{ route('detail_stocker_inhouse') }}',
+                url: '{{ route('detail_stocker_inhouse_in') }}',
                 dataType: 'json',
                 dataSrc: 'data',
                 data: function(d) {
@@ -750,31 +553,128 @@
                     data: 'act_costing_ws',
                 },
                 {
-                    data: 'buyer',
-                },
-                {
                     data: 'styleno',
                 },
                 {
                     data: 'color',
                 },
                 {
+                    data: 'nama_part',
+                },
+                {
+                    data: 'size',
+                },
+                {
+                    data: 'tujuan',
+                },
+                {
+                    data: 'proses',
+                },
+                {
                     data: 'qty_in',
                 },
                 {
-                    data: 'qty_reject',
+                    data: 'buyer',
+                },
+            ],
+            columnDefs: [
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                },
+            ]
+        });
+
+        $('#secondary-inhouse-in-temp-table thead tr').clone(true).appendTo('#secondary-inhouse-in-temp-table thead');
+        $('#secondary-inhouse-in-temp-table thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+            $('input', this).on('keyup change', function() {
+                if (secondaryInhouseInTempTable.column(i).search() !== this.value) {
+                    secondaryInhouseInTempTable
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
+
+        let secondaryInhouseInTempTable = $("#secondary-inhouse-in-temp-table").DataTable({
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                var sumTotalIn = api
+                    .column(4)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(4).footer()).html(sumTotalIn);
+            },
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
+            ajax: {
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route('cek_data_stocker_inhouse_in_temp') }}',
+                dataType: 'json',
+            },
+            columns: [
+                {
+                    data: 'id',
                 },
                 {
-                    data: 'qty_replace',
+                    data: 'id_qr_stocker',
                 },
                 {
-                    data: 'qty_out',
+                    data: 'act_costing_ws',
                 },
                 {
-                    data: 'balance',
+                    data: 'style',
+                },
+                {
+                    data: 'color',
+                },
+                {
+                    data: 'nama_part',
+                },
+                {
+                    data: 'size',
+                },
+                {
+                    data: 'no_cut',
+                },
+                {
+                    data: 'tujuan',
                 },
                 {
                     data: 'lokasi',
+                },
+                {
+                    data: 'stocker_range',
+                },
+                {
+                    data: 'qty_awal',
                 },
             ],
             columnDefs: [
@@ -783,9 +683,12 @@
                     className: "text-nowrap"
                 },
                 {
-                    targets: [8],
-                    visible: false
-                }
+                    targets: [0],
+                    className: "text-nowrap",
+                    render: (data, type, row, meta) => {
+                        return `<a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-secondary-inhouse-in-temp') }}/`+data+`' onclick='deleteData(this)'><i class='fa fa-trash'></i></a>`
+                    }
+                },
             ]
         });
 
@@ -793,8 +696,13 @@
             $('#datatable-input').DataTable().ajax.reload();
             $('#datatable-detail').DataTable().ajax.reload();
         }
+
+        function secondaryInhouseInTempTableReload() {
+            $("#secondary-inhouse-in-temp-table").DataTable().ajax.reload();
+        }
     </script>
 
+    {{-- SCAN SCRIPT --}}
     <script>
         // $('.select2bs4').select2({
         //     theme: 'bootstrap4',
@@ -870,13 +778,16 @@
                 dropdownParent: $("#exampleModal")
             })
             $('#cbotuj').val('').trigger('change');
-
         })
 
         $('#exampleModal').on('shown.bs.modal', function(e) {
             $('#txtqrstocker').focus();
+
+            $("#secondary-inhouse-in-temp-table").DataTable().columns.adjust().draw()
         })
     </script>
+
+    {{-- OTHER SCRIPT --}}
     <script>
         function reset() {
             $("#form").trigger("reset");
@@ -884,30 +795,46 @@
         }
 
         function scan_qr() {
+            document.getElementById("loading").classList.remove("d-none");
+
             let txtqrstocker = document.form.txtqrstocker.value;
             let html = $.ajax({
                 type: "get",
-                url: '{{ route('cek_data_stocker_inhouse') }}',
+                url: '{{ route('cek_data_stocker_inhouse_in') }}',
                 data: {
                     txtqrstocker: txtqrstocker
                 },
                 dataType: 'json',
                 success: function(response) {
-                    document.getElementById('txtno_stocker').value = response.id_qr_stocker;
-                    document.getElementById('txtno_form').value = response.no_form;
-                    document.getElementById('txtws').value = response.act_costing_ws;
-                    document.getElementById('txtbuyer').value = response.buyer;
-                    document.getElementById('txtno_cut').value = response.no_cut;
-                    document.getElementById('txtstyle').value = response.style;
-                    document.getElementById('txtcolor').value = response.color;
-                    document.getElementById('txtsize').value = response.size;
-                    document.getElementById('txtpart').value = response.nama_part;
-                    document.getElementById('txttujuan').value = response.tujuan;
-                    document.getElementById('txtin_id').value = response.in_id;
-                    document.getElementById('txtwaktu_in').value = response.waktu_in;
-                    document.getElementById('txtauthor_in').value = response.author_in;
-                    document.getElementById('txtalokasi').value = response.lokasi;
-                    document.getElementById('txtqtyawal').value = response.qty_awal;
+                    document.getElementById("loading").classList.add("d-none");
+
+                    secondaryInhouseInTempTableReload();
+
+                    if (response.status == 200) {
+                        iziToast.success({
+                            title: 'Berhasil',
+                            message: response.message,
+                            position: 'topCenter',
+                        });
+                    } else {
+                        iziToast.error({
+                            title: 'Gagal',
+                            message: response.message,
+                            position: 'topCenter',
+                        });
+                    }
+                    // document.getElementById('txtno_stocker').value = response.id_qr_stocker;
+                    // document.getElementById('txtno_form').value = response.no_form;
+                    // document.getElementById('txtws').value = response.act_costing_ws;
+                    // document.getElementById('txtbuyer').value = response.buyer;
+                    // document.getElementById('txtno_cut').value = response.no_cut;
+                    // document.getElementById('txtstyle').value = response.style;
+                    // document.getElementById('txtcolor').value = response.color;
+                    // document.getElementById('txtsize').value = response.size;
+                    // document.getElementById('txtpart').value = response.nama_part;
+                    // document.getElementById('txttujuan').value = response.tujuan;
+                    // document.getElementById('txtalokasi').value = response.lokasi;
+                    // document.getElementById('txtqtyawal').value = response.qty_awal;
                     // let txtqtyreject = $("#txtqtyreject").val();
                     // let txtqtyreplace = $("#txtqtyreplace").val();
                     // let txtqtyin = $("#txtqtyin").val();
@@ -946,7 +873,7 @@
 
                 },
                 error: function(request, status, error) {
-                    reset();
+                    document.getElementById("loading").classList.add("d-none");
 
                     Swal.fire({
                         icon: 'warning',
@@ -971,13 +898,13 @@
 
 
         function list() {
-            document.getElementById("judul").textContent = "List Transaksi OUT Inhouse / Dalam";
+            document.getElementById("judul").textContent = "List Transaksi IN Inhouse / Dalam";
             document.getElementById("show_datatable_input").style.display = 'block';
             document.getElementById("show_datatable_detail").style.display = 'none';
         }
 
         function detail() {
-            document.getElementById("judul").textContent = "Detail Transaksi OUT Inhouse / Dalam";
+            document.getElementById("judul").textContent = "Detail Transaksi IN Inhouse / Dalam";
             document.getElementById("show_datatable_input").style.display = 'none';
             document.getElementById("show_datatable_detail").style.display = 'block';
             $('#datatable-detail').DataTable().ajax.reload();
@@ -996,7 +923,7 @@
             if (type == 'list') {
 
                 await $.ajax({
-                    url: "{{ route("secondary-inhouse-export-excel") }}",
+                    url: "{{ route("secondary-inhouse-in-export-excel") }}",
                     type: "get",
                     data: {
                         from : $("#tgl-awal").val(),
@@ -1015,14 +942,23 @@
                         var blob = new Blob([res]);
                         var link = document.createElement('a');
                         link.href = window.URL.createObjectURL(blob);
-                        link.download = "Secondary Inhouse List "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
+                        link.download = "IN Secondary Inhouse List "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
                         link.click();
+                    },
+                    error: function (jqXHR) {
+                        Swal.close();
+
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Terjadi Kesalahan',
+                            position: 'topCenter'
+                        });
                     }
                 });
             } else if (type == 'detail') {
 
                 await $.ajax({
-                    url: "{{ route("secondary-inhouse-detail-export-excel") }}",
+                    url: "{{ route("secondary-inhouse-in-detail-export-excel") }}",
                     type: "get",
                     data: {
                         from : $("#tgl-awal").val(),
@@ -1041,8 +977,17 @@
                         var blob = new Blob([res]);
                         var link = document.createElement('a');
                         link.href = window.URL.createObjectURL(blob);
-                        link.download = "Secondary Inhouse Detail List "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
+                        link.download = "IN Secondary Inhouse Detail List "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
                         link.click();
+                    },
+                    error: function (jqXHR) {
+                        Swal.close();
+
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Terjadi Kesalahan',
+                            position: 'topCenter'
+                        });
                     }
                 });
             }
@@ -1058,7 +1003,7 @@
             document.getElementById('loading').classList.remove('d-none');
 
             $.ajax({
-                url: '{{ route('filter-sec-inhouse') }}',
+                url: '{{ route('filter-sec-inhouse-in') }}',
                 dataType: 'json',
                 dataSrc: 'data',
                 data: {
@@ -1180,7 +1125,7 @@
             document.getElementById('loading').classList.remove('d-none');
 
             $.ajax({
-                url: '{{ route('filter-detail-sec-inhouse') }}',
+                url: '{{ route('filter-detail-sec-inhouse-in') }}',
                 dataType: 'json',
                 dataSrc: 'data',
                 data: {
