@@ -53,9 +53,6 @@ class ExportSecondaryInHouseIn implements FromView, WithEvents, ShouldAutoSize
             s.color,
             p.buyer,
             p.style,
-            a.qty_awal,
-            a.qty_reject,
-            a.qty_replace,
             a.qty_in,
             a.created_at,
             dc.tujuan,
@@ -83,7 +80,7 @@ class ExportSecondaryInHouseIn implements FromView, WithEvents, ShouldAutoSize
         ");
         $this->rowCount = count($data);
 
-        return view("dc.secondary-inhouse.export.secondary-inhouse-excel", [
+        return view("dc.secondary-inhouse-in.export.secondary-inhouse-in-excel", [
             "from" => $this->from,
             "to" => $this->to,
             "data" => $data
@@ -100,7 +97,7 @@ class ExportSecondaryInHouseIn implements FromView, WithEvents, ShouldAutoSize
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A1:R' . ($event->getConcernable()->rowCount+2),
+            'A1:O' . ($event->getConcernable()->rowCount+2),
             [
                 'borders' => [
                     'allBorders' => [

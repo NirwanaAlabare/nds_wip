@@ -11,25 +11,16 @@
         <th><b>Tujuan Asal</b></th>
         <th><b>Lokasi Asal</b></th>
         <th><b>Range</b></th>
-        <th><b>Qty Awal</b></th>
-        <th><b>Qty Reject</b></th>
-        <th><b>Qty Replace</b></th>
         <th><b>Qty In</b></th>
         <th><b>Buyer</b></th>
         <th><b>User</b></th>
         <th><b>Created At</b></th>
     </tr>
     @php
-        $totalQtyAwal = 0;
-        $totalQtyReject = 0;
-        $totalQtyReplace = 0;
         $totalQtyIn = 0;
     @endphp
     @foreach ($data as $d)
         @php
-            $totalQtyAwal += $d->qty_awal;
-            $totalQtyReject += $d->qty_reject;
-            $totalQtyReplace += $d->qty_replace;
             $totalQtyIn += $d->qty_in;
         @endphp
         <tr>
@@ -44,9 +35,6 @@
             <td>{{ $d->tujuan }}</td>
             <td>{{ $d->lokasi }}</td>
             <td>{{ $d->stocker_range }}</td>
-            <td>{{ $d->qty_awal }}</td>
-            <td>{{ $d->qty_reject }}</td>
-            <td>{{ $d->qty_replace }}</td>
             <td>{{ $d->qty_in }}</td>
             <td>{{ $d->buyer }}</td>
             <td>{{ $d->user }}</td>
@@ -55,9 +43,6 @@
     @endforeach
     <tr>
         <td colspan="11">Total</td>
-        <td>{{ $totalQtyAwal }}</td>
-        <td>{{ $totalQtyReject }}</td>
-        <td>{{ $totalQtyReplace }}</td>
         <td>{{ $totalQtyIn }}</td>
     </tr>
 </table>

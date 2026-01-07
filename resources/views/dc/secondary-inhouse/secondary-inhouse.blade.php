@@ -103,6 +103,12 @@
                         <div class="row">
                             <div class='col-sm-4'>
                                 <div class='form-group'>
+                                    <label class='form-label'><small>ID IN</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='txtin_id' name='txtin_id' value = '' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-4'>
+                                <div class='form-group'>
                                     <label class='form-label'><small>Waktu Scan IN</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txtwaktu_in' name='txtwaktu_in' value = '' readonly>
                                 </div>
@@ -113,13 +119,13 @@
                                     <input type='text' class='form-control form-control-sm' id='txtauthor_in' name='txtauthor_in' value = '' readonly>
                                 </div>
                             </div>
-                            <div class='col-sm-4'>
+                            <div class='col-sm-6'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Tujuan Asal</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txttujuan' name='txttujuan' value = '' readonly>
                                 </div>
                             </div>
-                            <div class='col-sm-4'>
+                            <div class='col-sm-6'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Lokasi Asal</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txtalokasi' name='txtalokasi' value = '' readonly>
@@ -875,7 +881,6 @@
         function reset() {
             $("#form").trigger("reset");
             // initScan();
-
         }
 
         function scan_qr() {
@@ -898,6 +903,7 @@
                     document.getElementById('txtsize').value = response.size;
                     document.getElementById('txtpart').value = response.nama_part;
                     document.getElementById('txttujuan').value = response.tujuan;
+                    document.getElementById('txtin_id').value = response.in_id;
                     document.getElementById('txtwaktu_in').value = response.waktu_in;
                     document.getElementById('txtauthor_in').value = response.author_in;
                     document.getElementById('txtalokasi').value = response.lokasi;
@@ -940,6 +946,8 @@
 
                 },
                 error: function(request, status, error) {
+                    reset();
+
                     Swal.fire({
                         icon: 'warning',
                         title: 'Data Tidak Ada',

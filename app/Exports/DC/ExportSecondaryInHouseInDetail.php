@@ -47,21 +47,23 @@ class ExportSecondaryInHouseInDetail implements FromView, WithEvents, ShouldAuto
 
         $data = DB::select("
             select
-                s.act_costing_ws, m.buyer,s.color,  styleno, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) qty_in, COALESCE(sum(sii.qty_reject), 0) qty_reject, COALESCE(sum(sii.qty_replace), 0) qty_replace, COALESCE(sum(sii.qty_in), 0) qty_out, COALESCE((sum(sii.qty_in) - sum(dc.qty_awal - dc.qty_reject + dc.qty_replace)), 0) balance, dc.lokasi
+                sii.tgl_trans, s.act_costing_ws, msb.buyer, styleno, s.color, s.size, mp.nama_part, dc.tujuan, dc.lokasi as proses, COALESCE(sum(sii.qty_in), 0) qty_in
             from
                 dc_in_input dc
                 left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
-                left join master_sb_ws m on s.so_det_id = m.id_so_det
+                left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+                left join part_detail pd on s.part_detail_id = pd.id
+                left join master_part mp on mp.id = pd.master_part_id
                 left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
             where
                 dc.tujuan = 'SECONDARY DALAM' ".$additionalQuery."
             group by
-                m.ws,m.buyer,m.styleno,m.color,dc.lokasi
+                sii.tgl_trans, s.act_costing_ws, msb.buyer, styleno, s.color, s.size, mp.nama_part, dc.tujuan, dc.lokasi
         ");
 
         $this->rowCount = count($data);
 
-        return view("dc.secondary-inhouse.export.secondary-inhouse-detail-excel", [
+        return view("dc.secondary-inhouse-in.export.secondary-inhouse-in-detail-excel", [
             "from" => $this->from,
             "to" => $this->to,
             "data" => $data

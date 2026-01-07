@@ -918,9 +918,13 @@ Route::middleware('auth')->group(function () {
     Route::controller(SecondaryInhouseInController::class)->prefix("secondary-inhouse-in")->middleware('role:dc')->group(function () {
         Route::get('/', 'index')->name('secondary-inhouse-in');
         Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse_in');
-        Route::post('/store', 'store')->name('store-secondary-inhouse-in');
+        Route::post('/store', 'storeSecondaryInhouseIn')->name('store-secondary-inhouse-in');
         Route::post('/mass-store', 'massStore')->name('mass-store-secondary-inhouse-in');
         Route::get('/detail_stocker_inhouse', 'detail_stocker_inhouse')->name('detail_stocker_inhouse_in');
+
+        // Temp
+        Route::get('/cek_data_stocker_inhouse_temp', 'cek_data_stocker_inhouse_temp')->name('cek_data_stocker_inhouse_in_temp');
+        Route::delete('/destroy-secondary-inhouse-in-temp/{id?}', 'destroySecondaryInhouseInTemp')->name('destroy-secondary-inhouse-in-temp');
 
         Route::get('/filter-sec-inhouse', 'filterSecondaryInhouse')->name('filter-sec-inhouse-in');
         Route::get('/filter-detail-sec-inhouse', 'filterDetailSecondaryInhouse')->name('filter-detail-sec-inhouse-in');

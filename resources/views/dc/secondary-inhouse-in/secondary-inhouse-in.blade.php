@@ -22,7 +22,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="row">
+                        <div class="row mb-3">
                             <div class="col-sm-12">
                                 <div class="mb-3">
                                     <label class="form-label label-input">Scan QR IN Stocker</label>
@@ -44,8 +44,8 @@
                             <div class="col-3">
                             </div>
                         </div>
-                        <div class="table-responsive">
-                            <table class="table">
+                        <div class="table-responsive w-100">
+                            <table class="table table-bordered w-100" id="secondary-inhouse-in-temp-table">
                                 <thead>
                                     <th>Action</th>
                                     <th>No. Stocker</th>
@@ -60,6 +60,7 @@
                                     <th>Range</th>
                                     <th>Qty</th>
                                 </thead>
+                                <tbody></tbody>
                             </table>
                         </div>
                     </div>
@@ -123,9 +124,6 @@
                             <th>Tujuan Asal</th>
                             <th>Lokasi Asal</th>
                             <th>Range</th>
-                            <th>Qty Awal</th>
-                            <th>Qty Reject</th>
-                            <th>Qty Replace</th>
                             <th>Qty In</th>
                             <th>Buyer</th>
                             <th>Created By</th>
@@ -135,9 +133,6 @@
                     <tfoot>
                         <tr>
                             <th colspan="12"></th>
-                            <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_awal'></th>
-                            <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_reject'></th>
-                            <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_replace'></th>
                             <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_in'></th>
                             <th colspan="3"></th>
                         </tr>
@@ -154,7 +149,6 @@
                     <thead>
                         <tr>
                             <th>WS</th>
-                            <th>Buyer</th>
                             <th>Style</th>
                             <th>Color</th>
                             <th>Part</th>
@@ -162,17 +156,13 @@
                             <th>Tujuan</th>
                             <th>Proses</th>
                             <th>In</th>
-                            <th>Proses</th>
+                            <th>Buyer</th>
                         </tr>
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="4"></th>
-                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_int'> </th>
-                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_reject_det'> </th>
-                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_replace_det'> </th>
-                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_out'> </th>
-                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_balance'> </th>
+                            <th colspan="7"></th>
+                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_in'> </th>
                             <th></th>
                         </tr>
                     </tfoot>
@@ -343,6 +333,8 @@
 
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+
+    {{-- DATATABLE SCRIPT --}}
     <script>
         $('.select2bs4filtersec').select2({
             theme: 'bootstrap4',
@@ -373,7 +365,6 @@
                 });
             }
         });
-
 
         let datatable = $("#datatable-input").DataTable({
             "footerCallback": function(row, data, start, end, display) {
@@ -522,7 +513,7 @@
                 };
 
                 var sumTotalIn = api
-                    .column(4)
+                    .column(7)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -530,7 +521,7 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(4).footer()).html(sumTotalIn);
+                $(api.column(7).footer()).html(sumTotalIn);
             },
             ordering: false,
             processing: true,
@@ -562,22 +553,128 @@
                     data: 'act_costing_ws',
                 },
                 {
-                    data: 'buyer',
-                },
-                {
                     data: 'styleno',
                 },
                 {
                     data: 'color',
                 },
                 {
+                    data: 'nama_part',
+                },
+                {
+                    data: 'size',
+                },
+                {
+                    data: 'tujuan',
+                },
+                {
+                    data: 'proses',
+                },
+                {
                     data: 'qty_in',
                 },
                 {
-                    data: 'balance',
+                    data: 'buyer',
+                },
+            ],
+            columnDefs: [
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                },
+            ]
+        });
+
+        $('#secondary-inhouse-in-temp-table thead tr').clone(true).appendTo('#secondary-inhouse-in-temp-table thead');
+        $('#secondary-inhouse-in-temp-table thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+            $('input', this).on('keyup change', function() {
+                if (secondaryInhouseInTempTable.column(i).search() !== this.value) {
+                    secondaryInhouseInTempTable
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
+
+        let secondaryInhouseInTempTable = $("#secondary-inhouse-in-temp-table").DataTable({
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                var sumTotalIn = api
+                    .column(4)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(4).footer()).html(sumTotalIn);
+            },
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
+            ajax: {
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route('cek_data_stocker_inhouse_in_temp') }}',
+                dataType: 'json',
+            },
+            columns: [
+                {
+                    data: 'id',
+                },
+                {
+                    data: 'id_qr_stocker',
+                },
+                {
+                    data: 'act_costing_ws',
+                },
+                {
+                    data: 'style',
+                },
+                {
+                    data: 'color',
+                },
+                {
+                    data: 'nama_part',
+                },
+                {
+                    data: 'size',
+                },
+                {
+                    data: 'no_cut',
+                },
+                {
+                    data: 'tujuan',
                 },
                 {
                     data: 'lokasi',
+                },
+                {
+                    data: 'stocker_range',
+                },
+                {
+                    data: 'qty_awal',
                 },
             ],
             columnDefs: [
@@ -586,9 +683,12 @@
                     className: "text-nowrap"
                 },
                 {
-                    targets: [8],
-                    visible: false
-                }
+                    targets: [0],
+                    className: "text-nowrap",
+                    render: (data, type, row, meta) => {
+                        return `<a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-secondary-inhouse-in-temp') }}/`+data+`' onclick='deleteData(this)'><i class='fa fa-trash'></i></a>`
+                    }
+                },
             ]
         });
 
@@ -596,8 +696,13 @@
             $('#datatable-input').DataTable().ajax.reload();
             $('#datatable-detail').DataTable().ajax.reload();
         }
+
+        function secondaryInhouseInTempTableReload() {
+            $("#secondary-inhouse-in-temp-table").DataTable().ajax.reload();
+        }
     </script>
 
+    {{-- SCAN SCRIPT --}}
     <script>
         // $('.select2bs4').select2({
         //     theme: 'bootstrap4',
@@ -673,21 +778,25 @@
                 dropdownParent: $("#exampleModal")
             })
             $('#cbotuj').val('').trigger('change');
-
         })
 
         $('#exampleModal').on('shown.bs.modal', function(e) {
             $('#txtqrstocker').focus();
+
+            $("#secondary-inhouse-in-temp-table").DataTable().columns.adjust().draw()
         })
     </script>
+
+    {{-- OTHER SCRIPT --}}
     <script>
         function reset() {
             $("#form").trigger("reset");
             // initScan();
-
         }
 
         function scan_qr() {
+            document.getElementById("loading").classList.remove("d-none");
+
             let txtqrstocker = document.form.txtqrstocker.value;
             let html = $.ajax({
                 type: "get",
@@ -697,18 +806,35 @@
                 },
                 dataType: 'json',
                 success: function(response) {
-                    document.getElementById('txtno_stocker').value = response.id_qr_stocker;
-                    document.getElementById('txtno_form').value = response.no_form;
-                    document.getElementById('txtws').value = response.act_costing_ws;
-                    document.getElementById('txtbuyer').value = response.buyer;
-                    document.getElementById('txtno_cut').value = response.no_cut;
-                    document.getElementById('txtstyle').value = response.style;
-                    document.getElementById('txtcolor').value = response.color;
-                    document.getElementById('txtsize').value = response.size;
-                    document.getElementById('txtpart').value = response.nama_part;
-                    document.getElementById('txttujuan').value = response.tujuan;
-                    document.getElementById('txtalokasi').value = response.lokasi;
-                    document.getElementById('txtqtyawal').value = response.qty_awal;
+                    document.getElementById("loading").classList.add("d-none");
+
+                    secondaryInhouseInTempTableReload();
+
+                    if (response.status == 200) {
+                        iziToast.success({
+                            title: 'Berhasil',
+                            message: response.message,
+                            position: 'topCenter',
+                        });
+                    } else {
+                        iziToast.error({
+                            title: 'Gagal',
+                            message: response.message,
+                            position: 'topCenter',
+                        });
+                    }
+                    // document.getElementById('txtno_stocker').value = response.id_qr_stocker;
+                    // document.getElementById('txtno_form').value = response.no_form;
+                    // document.getElementById('txtws').value = response.act_costing_ws;
+                    // document.getElementById('txtbuyer').value = response.buyer;
+                    // document.getElementById('txtno_cut').value = response.no_cut;
+                    // document.getElementById('txtstyle').value = response.style;
+                    // document.getElementById('txtcolor').value = response.color;
+                    // document.getElementById('txtsize').value = response.size;
+                    // document.getElementById('txtpart').value = response.nama_part;
+                    // document.getElementById('txttujuan').value = response.tujuan;
+                    // document.getElementById('txtalokasi').value = response.lokasi;
+                    // document.getElementById('txtqtyawal').value = response.qty_awal;
                     // let txtqtyreject = $("#txtqtyreject").val();
                     // let txtqtyreplace = $("#txtqtyreplace").val();
                     // let txtqtyin = $("#txtqtyin").val();
@@ -747,6 +873,8 @@
 
                 },
                 error: function(request, status, error) {
+                    document.getElementById("loading").classList.add("d-none");
+
                     Swal.fire({
                         icon: 'warning',
                         title: 'Data Tidak Ada',
@@ -814,8 +942,17 @@
                         var blob = new Blob([res]);
                         var link = document.createElement('a');
                         link.href = window.URL.createObjectURL(blob);
-                        link.download = "Secondary Inhouse List "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
+                        link.download = "IN Secondary Inhouse List "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
                         link.click();
+                    },
+                    error: function (jqXHR) {
+                        Swal.close();
+
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Terjadi Kesalahan',
+                            position: 'topCenter'
+                        });
                     }
                 });
             } else if (type == 'detail') {
@@ -840,8 +977,17 @@
                         var blob = new Blob([res]);
                         var link = document.createElement('a');
                         link.href = window.URL.createObjectURL(blob);
-                        link.download = "Secondary Inhouse Detail List "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
+                        link.download = "IN Secondary Inhouse Detail List "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
                         link.click();
+                    },
+                    error: function (jqXHR) {
+                        Swal.close();
+
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Terjadi Kesalahan',
+                            position: 'topCenter'
+                        });
                     }
                 });
             }
