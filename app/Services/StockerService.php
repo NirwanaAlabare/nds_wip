@@ -252,7 +252,7 @@ class StockerService
                     $formPartWs = $checkFormPart ? ($checkFormPart->act_costing_ws ?? null) : null;
                     $maxFormRatio = $checkFormRatio ? ($checkFormRatio->ratio ?? null) : null;
 
-                    if (($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1) || ($formPartWs && $formPartWs != $stocker->act_costing_ws) || ($maxFormRatio && $stocker->ratio > $maxFormRatio)) {
+                    if (($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1) || ($maxFormRatio && $stocker->ratio > $maxFormRatio)) {
                         $stocker->cancel = "y";
                         $stocker->save();
                     } else {
@@ -322,8 +322,16 @@ class StockerService
                     $stocker->range_akhir = isset($sizeRangeAkhirAdd[$stocker->so_det_id]) ? $sizeRangeAkhirAdd[$stocker->so_det_id] : $rangeAwalAdd + $lembarGelaran;
                     $stocker->save();
 
-                    if ($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1) {
+                    $checkFormRatio = $stocker->formCut->marker->markerDetails()->where("so_det_id", $stocker->so_det_id)->orderBy("ratio", "desc")->first();
+                    $checkFormPart = $stocker->partDetail->part;
+                    $formPartWs = $checkFormPart ? ($checkFormPart->act_costing_ws ?? null) : null;
+                    $maxFormRatio = $checkFormRatio ? ($checkFormRatio->ratio ?? null) : null;
+
+                    if ($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1 || ($formPartWs && $formPartWs != $stocker->act_costing_ws) || ($maxFormRatio && $stocker->ratio > $maxFormRatio)) {
                         $stocker->cancel = "y";
+                        $stocker->save();
+                    } else {
+                        $stocker->cancel = "n";
                         $stocker->save();
                     }
                 }

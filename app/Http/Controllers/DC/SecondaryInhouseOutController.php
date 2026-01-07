@@ -13,7 +13,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use DB;
 
-class SecondaryInhouseController extends Controller
+class SecondaryInhouseOutController extends Controller
 {
     public function index(Request $request)
     {
@@ -122,6 +122,7 @@ class SecondaryInhouseController extends Controller
 
             return DataTables::of($data_input)->toJson();
         }
+
         return view('dc.secondary-inhouse.secondary-inhouse', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-inhouse", "data_rak" => $data_rak], ['tgl_skrg' => $tgl_skrg]);
     }
 
@@ -308,7 +309,10 @@ class SecondaryInhouseController extends Controller
         mp.nama_part,
         dc.tujuan,
         dc.lokasi,
-        coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace qty_awal,
+        COALESCE(sii.id, '-') as in_id,
+        COALESCE(sii.updated_at, sii.created_at, '-') as waktu_in,
+        COALESCE(sii.user, '-') as author_in,
+        COALESCE(sii.qty_in, coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace) qty_awal,
         ifnull(si.id_qr_stocker,'x')
         from dc_in_input dc
         left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
@@ -319,10 +323,14 @@ class SecondaryInhouseController extends Controller
         left join part_detail p on s.part_detail_id = p.id
         left join master_part mp on p.master_part_id = mp.id
         left join marker_input mi on a.id_marker = mi.kode
+        left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
         left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
-        where dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
-        and ifnull(si.id_qr_stocker,'x') = 'x'
+        where
+            dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and
+            dc.tujuan = 'SECONDARY DALAM' and
+            ifnull(si.id_qr_stocker,'x') = 'x'
         ");
+
         return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
     }
 

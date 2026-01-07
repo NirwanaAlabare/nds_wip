@@ -59,7 +59,8 @@ use App\Http\Controllers\Stocker\StockerToolsController;
 // DC
 use App\Http\Controllers\DC\DCInController;
 use App\Http\Controllers\DC\SecondaryInController;
-use App\Http\Controllers\DC\SecondaryInhouseController;
+use App\Http\Controllers\DC\SecondaryInhouseInController;
+use App\Http\Controllers\DC\SecondaryInhouseOutController;
 use App\Http\Controllers\DC\StockDcCompleteController;
 use App\Http\Controllers\DC\StockDcIncompleteController;
 use App\Http\Controllers\DC\StockDcWipController;
@@ -913,8 +914,41 @@ Route::middleware('auth')->group(function () {
         Route::get('/export-excel-detail', 'exportExcelDetail')->name('dc-in-detail-export-excel');
     });
 
+    // Secondary INHOUSE IN
+    Route::controller(SecondaryInhouseInController::class)->prefix("secondary-inhouse-in")->middleware('role:dc')->group(function () {
+        Route::get('/', 'index')->name('secondary-inhouse-in');
+        Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse_in');
+        Route::post('/store', 'storeSecondaryInhouseIn')->name('store-secondary-inhouse-in');
+        Route::post('/mass-store', 'massStore')->name('mass-store-secondary-inhouse-in');
+        Route::get('/detail_stocker_inhouse', 'detail_stocker_inhouse')->name('detail_stocker_inhouse_in');
+
+        // Temp
+        Route::get('/cek_data_stocker_inhouse_temp', 'cek_data_stocker_inhouse_temp')->name('cek_data_stocker_inhouse_in_temp');
+        Route::delete('/destroy-secondary-inhouse-in-temp/{id?}', 'destroySecondaryInhouseInTemp')->name('destroy-secondary-inhouse-in-temp');
+
+        Route::get('/filter-sec-inhouse', 'filterSecondaryInhouse')->name('filter-sec-inhouse-in');
+        Route::get('/filter-detail-sec-inhouse', 'filterDetailSecondaryInhouse')->name('filter-detail-sec-inhouse-in');
+
+        Route::get('/export-excel', 'exportExcel')->name('secondary-inhouse-in-export-excel');
+        Route::get('/export-excel-detail', 'exportExcelDetail')->name('secondary-inhouse-in-detail-export-excel');
+    });
+
     // Secondary INHOUSE
-    Route::controller(SecondaryInhouseController::class)->prefix("secondary-inhouse")->middleware('role:dc')->group(function () {
+    Route::controller(SecondaryInhouseOutController::class)->prefix("secondary-inhouse")->middleware('role:dc')->group(function () {
+        Route::get('/', 'index')->name('secondary-inhouse');
+        Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse');
+        Route::post('/store', 'store')->name('store-secondary-inhouse');
+        Route::post('/mass-store', 'massStore')->name('mass-store-secondary-inhouse');
+        Route::get('/detail_stocker_inhouse', 'detail_stocker_inhouse')->name('detail_stocker_inhouse');
+
+        Route::get('/filter-sec-inhouse', 'filterSecondaryInhouse')->name('filter-sec-inhouse');
+        Route::get('/filter-detail-sec-inhouse', 'filterDetailSecondaryInhouse')->name('filter-detail-sec-inhouse');
+
+        Route::get('/export-excel', 'exportExcel')->name('secondary-inhouse-export-excel');
+        Route::get('/export-excel-detail', 'exportExcelDetail')->name('secondary-inhouse-detail-export-excel');
+    });
+
+    Route::controller(SecondaryInhouseOutController::class)->prefix("secondary-inhouse")->middleware('role:dc')->group(function () {
         Route::get('/', 'index')->name('secondary-inhouse');
         Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse');
         Route::post('/store', 'store')->name('store-secondary-inhouse');

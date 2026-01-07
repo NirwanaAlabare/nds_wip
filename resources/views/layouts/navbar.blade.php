@@ -345,13 +345,18 @@
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
-                            <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
-                                class="nav-link dropdown-toggle {{ $subPageGroup == 'secondary-dc' ? 'active' : '' }}">Secondary</a>
+                            <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'secondary-dc' ? 'active' : '' }}">Secondary</a>
                             <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                                <li>
+                                    <a href="{{ route('secondary-inhouse-in') }}"
+                                        class="dropdown-item {{ $routeName == 'secondary-inhouse-in' ? 'active' : '' }}">
+                                        In Secondary Dalam <i class="fas fa-house-user"></i>
+                                    </a>
+                                </li>
                                 <li>
                                     <a href="{{ route('secondary-inhouse') }}"
                                         class="dropdown-item {{ $routeName == 'secondary-inhouse' ? 'active' : '' }}">
-                                        Secondary Dalam <i class="fas fa-house-user"></i>
+                                        Out Secondary Dalam <i class="fas fa-house-user"></i>
                                     </a>
                                 </li>
                                 <li>
