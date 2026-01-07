@@ -37,29 +37,8 @@ class export_excel_laporan_sum_full_earn implements FromView, ShouldAutoSize, Wi
         $bulan_akhir = date('n', strtotime($this->end_date)); // Returns month as number without leading zero (e.g., 9)
         $tahun_akhir = date('Y', strtotime($this->end_date)); // Returns full year (e.g., 2025)
 
-        $today = date('Y-m-d');
-        $month = date('m');
-        $year = date('Y');
 
-        if ($this->start_date < $today && $this->end_date < $today) {
-            $rawData = DB::connection('mysql_sb')->select("SELECT
-                    tanggal,
-                    tanggal_fix,
-                    sum_tot_earning_rupiah,
-                    est_tot_cost,
-                    blc,
-                    sum_est_full_earning,
-                    blc_full_earning,
-                    sum_est_earning_prod,
-                    sum_est_cost_prod,
-                    blc_est_earn_cost_prod,
-                    sum_est_earning_mkt,
-                    sum_est_cost_mkt,
-                    blc_est_earn_cost_mkt
-                    FROM mgt_rep_tmp_sum_prod_full_earning WHERE tanggal >= '$this->start_date' and tanggal <= '$this->end_date'");
-        } else {
-
-            $rawData = DB::connection('mysql_sb')->select("WITH sum_cost as (
+        $rawData = DB::connection('mysql_sb')->select("WITH sum_cost as (
  select a.cost_no,kpno,supplier,styleno,product_item,season_desc,curr,so_date,status,qty_so,price_so,cost_date,status_cost,qty_cost,COALESCE(ttl_fabric,0) ttl_fabric,COALESCE(ttl_accsew,0) ttl_accsew,COALESCE(ttl_accpack,0) ttl_accpack,(COALESCE(ttl_fabric,0) + COALESCE(ttl_accsew,0) + COALESCE(ttl_accpack,0)) ttl_material,COALESCE(ttl_cmt,0) ttl_cmt,COALESCE(ttl_embro,0) ttl_embro,COALESCE(ttl_wash,0) ttl_wash,COALESCE(ttl_print,0) ttl_print,COALESCE(ttl_wrapbut,0) ttl_wrapbut,COALESCE(ttl_compbut,0) ttl_compbut,COALESCE(ttl_label,0) ttl_label,COALESCE(ttl_laser,0) ttl_laser,(COALESCE(ttl_cmt,0) + COALESCE(ttl_embro,0) + COALESCE(ttl_wash,0) + COALESCE(ttl_print,0) + COALESCE(ttl_wrapbut,0) + COALESCE(ttl_compbut,0) + COALESCE(ttl_label,0) + COALESCE(ttl_laser,0)) ttl_manufacturing,COALESCE(ttl_develop,0) ttl_develop,COALESCE(ttl_overhead,0) ttl_overhead,COALESCE(ttl_market,0) ttl_market,COALESCE(ttl_shipp,0) ttl_shipp,COALESCE(ttl_import,0) ttl_import,COALESCE(ttl_handl,0) ttl_handl,COALESCE(ttl_test,0) ttl_test,COALESCE(ttl_fabhandl,0) ttl_fabhandl,COALESCE(ttl_service,0) ttl_service, COALESCE(ttl_clearcost,0) ttl_clearcost ,COALESCE(ttl_development,0) ttl_development ,COALESCE(ttl_unexcost,0) ttl_unexcost ,COALESCE(ttl_managementfee,0) ttl_managementfee ,COALESCE(ttl_profit,0) ttl_profit ,(COALESCE(ttl_develop,0) + COALESCE(ttl_overhead,0) + COALESCE(ttl_market,0) + COALESCE(ttl_shipp,0) + COALESCE(ttl_import,0) + COALESCE(ttl_handl,0) + COALESCE(ttl_test,0) + COALESCE(ttl_fabhandl,0) + COALESCE(ttl_service,0) + COALESCE(ttl_clearcost,0) + COALESCE(ttl_development,0) + COALESCE(ttl_unexcost,0) + COALESCE(ttl_managementfee,0) + COALESCE(ttl_profit,0)) ttl_others
            from (select a.cost_no,a.kpno,b.supplier,styleno,product_item,season_desc,if(so.curr is null,a.curr,so.curr) curr,so_date,IF(so.cancel_h = 'Y','CANCEL','-') status,so.qty qty_so,so.fob price_so,cost_date,a.status status_cost, a.qty qty_cost  from act_costing a INNER JOIN mastersupplier b ON a.id_buyer=b.Id_Supplier inner join masterproduct mp on a.id_product=mp.id left join so on so.id_cost = a.id left join masterseason ms on ms.id_season = so.id_season where cost_date >= '2025-01-01' GROUP BY cost_no) a left join (select cost_no, sum(ttl_fabric) ttl_fabric, sum(ttl_accsew) ttl_accsew, sum(ttl_accpack) ttl_accpack from (select cost_no,case when mattype = 'FABRIC' then total end as ttl_fabric,
            case when mattype = 'ACCESORIES SEWING' then total end as ttl_accsew,
@@ -94,7 +73,7 @@ earn as (
                     concat((DATE_FORMAT(mp.tgl_plan,  '%d')), '-',left(DATE_FORMAT(mp.tgl_plan,  '%M'),3),'-',DATE_FORMAT(mp.tgl_plan,  '%Y')) tgl_plan_fix,
                     ul.username sewing_line,
                     ms.supplier buyer,
-					a.master_plan_id,
+										a.master_plan_id,
                     ac.kpno,
                     ac.styleno,
                     mp.color,
@@ -113,7 +92,7 @@ earn as (
                     so.curr,
                     CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
                     ELSE acm.price end AS cm_price,
-					acm.allowance,
+										acm.allowance,
                     round(
                     sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
                     ELSE acm.price end,2) AS earning,
@@ -142,7 +121,7 @@ earn as (
                     from output_rfts a
                     left join user_sb_wip on user_sb_wip.id = a.created_by
                     left join userpassword on userpassword.line_id = user_sb_wip.line_id
-                    where a.updated_at >= '$today 00:00:00' and a.updated_at <= '$today 23:59:59'
+                    where a.updated_at >= '$this->start_date 00:00:00' and a.updated_at <= '$this->end_date 23:59:59'
                     group by master_plan_id, userpassword.username, date(a.updated_at)
 										having userpassword.username != 'line_sample_prod'
                 ) a
@@ -163,7 +142,7 @@ earn as (
                     from output_rfts
                     left join user_sb_wip on user_sb_wip.id = output_rfts.created_by
                     left join userpassword on userpassword.line_id = user_sb_wip.line_id
-                    where output_rfts.updated_at >= '$today 00:00:00' and output_rfts.updated_at <= '$today 23:59:59' group by userpassword.username, date(output_rfts.updated_at)
+                    where output_rfts.updated_at >= '$this->start_date 00:00:00' and output_rfts.updated_at <= '$this->end_date 23:59:59' group by userpassword.username, date(output_rfts.updated_at)
                 ) op on a.tgl_trans = op.tgl_trans_line and ul.username = op.username
                 left join (
                     select * from act_costing_mfg where id_item = '8' group by id_act_cost
@@ -189,7 +168,7 @@ earn as (
                             from output_rfts a
                             left join user_sb_wip on user_sb_wip.id = a.created_by
                             left join userpassword on userpassword.line_id = user_sb_wip.line_id
-                            where a.updated_at >= '$today 00:00:00' and a.updated_at <= '$today 23:59:59' and status = 'NORMAL'
+                            where a.updated_at >= '$this->start_date 00:00:00' and a.updated_at <= '$this->end_date 23:59:59' and status = 'NORMAL'
                             group by master_plan_id, userpassword.username, date(a.updated_at)
                     ) a
                     inner join master_plan mp on a.master_plan_id = mp.id
@@ -198,7 +177,7 @@ earn as (
                 left join
                 (
                     select min(id), man_power, sewing_line, tgl_plan from master_plan
-                    where tgl_plan >= '$today' and  tgl_plan <= '$today' and cancel = 'N'
+                    where tgl_plan >= '$this->start_date' and  tgl_plan <= '$this->end_date' and cancel = 'N'
                     group by sewing_line, tgl_plan
                 ) cmp on a.tgl_trans = cmp.tgl_plan and ul.username = cmp.sewing_line
 
@@ -210,7 +189,7 @@ earn as (
                             FROM (
                                     SELECT DISTINCT date(updated_at) AS tgl_trans
                                     FROM output_rfts
-                                    WHERE updated_at >= '$today 00:00:00' AND updated_at <= '$today 23:59:59'
+                                    WHERE updated_at >= '$this->start_date 00:00:00' AND updated_at <= '$this->end_date 23:59:59'
                             ) a_dates
                             JOIN master_kurs_bi mkb
                             ON mkb.tanggal_kurs_bi <= a_dates.tgl_trans
@@ -227,7 +206,7 @@ earn as (
                         FROM (
                             SELECT DISTINCT date(updated_at) AS tgl_trans
                             FROM output_rfts
-                            WHERE updated_at >= '$today 00:00:00' AND updated_at <= '$today 23:59:59'
+                            WHERE updated_at >= '$this->start_date 00:00:00' AND updated_at <= '$this->end_date 23:59:59'
                         ) a_dates
                         JOIN masterrate mr
                         ON mr.tanggal <= a_dates.tgl_trans
@@ -250,9 +229,7 @@ FROM dim_date a
 LEFT JOIN mgt_rep_hari_libur b ON a.tanggal = b.tanggal_libur
 WHERE status_prod = 'KERJA'
 AND (status_absen != 'LN' OR status_absen IS NULL)
-AND CAST(a.bulan AS UNSIGNED) >= '$month'
-AND CAST(a.tahun AS UNSIGNED) >= '$year'
-AND CAST(a.tahun AS UNSIGNED) <= '$year'
+AND a.bulan >= '$bulan_awal' and a.tahun >= '$tahun_awal' and a.bulan <= '$bulan_akhir' and a.tahun <= '$tahun_akhir'
 GROUP BY bulan, tahun
 ORDER BY
 CAST(a.tahun AS UNSIGNED) ASC,
@@ -270,10 +247,11 @@ case
 		when status_prod = 'LIBUR' AND status_absen = 'LP' THEN 'LIBUR'
 		when status_prod = 'LIBUR' AND status_absen = 'LN' THEN 'LIBUR'
 		when status_prod = 'LIBUR' AND status_absen is null THEN 'LIBUR'
+
 		END AS stat_kerja
 FROM dim_date a
 left join mgt_rep_hari_libur b on a.tanggal = b.tanggal_libur
-where tanggal >= '$today' and tanggal <= '$today'
+where tanggal >= '$this->start_date' and tanggal <= '$this->end_date'
 ),
 dc as (
 SELECT
@@ -285,9 +263,7 @@ projection,
 round(sum(projection / tot_working_days),2) AS daily_cost
 FROM mgt_rep_daily_cost a
 LEFT JOIN dd ON a.bulan = dd.bulan AND a.tahun = dd.tahun
-WHERE CAST(a.bulan AS UNSIGNED) >= '$month'
-AND CAST(a.tahun AS UNSIGNED) >= '$year'
-AND CAST(a.tahun AS UNSIGNED) <= '$year'
+WHERE a.bulan >= '$bulan_awal' and a.tahun >= '$tahun_awal' and a.bulan <= '$bulan_akhir' and a.tahun <= '$tahun_akhir'
 GROUP BY no_coa, dd.bulan, dd.tahun
 ),
 coa_direct as (
@@ -392,7 +368,7 @@ sum(bpjs_tk) bpjs_tk,
 sum(bpjs_ks) bpjs_ks,
 sum(thr) thr
 from mgt_rep_labor
-WHERE tanggal_berjalan = '$today' AND status_staff = 'NON STAFF' -- dynamic filter
+WHERE tanggal_berjalan BETWEEN '$this->start_date' AND '$this->end_date' AND status_staff = 'NON STAFF' -- dynamic filter
 group by sub_dept_id, group_department, tanggal_berjalan
 ),
 daily_cost as (
@@ -760,7 +736,7 @@ left join earn a on dt.tanggal = a.tgl_trans
 left join sum_daily_cost b on dt.tanggal = b.tanggal
 left join sum_earn c on dt.tanggal = c.tgl_trans
 left join sum_cost d on a.kpno = d.kpno
-where dt.tanggal = '$today'
+where dt.tanggal >= '$this->start_date' and dt.tanggal <= '$this->end_date'
 order by dt.tanggal asc, sewing_line asc
 ),
 sum_earning as (
@@ -781,15 +757,14 @@ SUM(CASE WHEN department_name = 'sewing' and status_staff = 'NON STAFF' THEN man
 SUM(CASE WHEN department_name = 'sewing' and status_staff = 'NON STAFF' THEN absen_menit ELSE 0 END) AS sewing_absen_menit,
 SUM(man_power)  AS tot_man_power
 from mgt_rep_labor
-WHERE tanggal_berjalan = '$today'
+WHERE tanggal_berjalan BETWEEN '2025-10-01' AND '2025-10-08'
 group by tanggal_berjalan
 order by tanggal_berjalan asc
 ),
 m_kurs_bi as (
-select * from master_kurs_bi where tanggal_kurs_bi = '$today'
-),
+select * from master_kurs_bi where tanggal_kurs_bi BETWEEN '2025-10-01' AND '2025-10-08'
+)
 
-sum_full_earning as (
 select
 a.tanggal,
 concat((DATE_FORMAT(a.tanggal,  '%d')), '-',left(DATE_FORMAT(a.tanggal,  '%M'),3),'-',DATE_FORMAT(a.tanggal,  '%Y')) as tanggal_fix,
@@ -815,29 +790,10 @@ left join sum_earning b on a.tanggal = b.tanggal
 left join sum_daily_cost c on a.tanggal = c.tanggal
 left join sum_labor d on a.tanggal = d.tanggal_berjalan
 left join m_kurs_bi e on a.tanggal = e.tanggal_kurs_bi
-UNION ALL
-SELECT
-                    tanggal,
-                    tanggal_fix,
-                    sum_tot_earning_rupiah,
-                    est_tot_cost,
-                    blc,
-                    sum_est_full_earning,
-                    blc_full_earning,
-                    sum_est_earning_prod,
-                    sum_est_cost_prod,
-                    blc_est_earn_cost_prod,
-                    sum_est_earning_mkt,
-                    sum_est_cost_mkt,
-                    blc_est_earn_cost_mkt
-                    FROM mgt_rep_tmp_sum_prod_full_earning WHERE tanggal >= '$this->start_date' and tanggal <= '$this->end_date'
-)
-
-select * from sum_full_earning where tanggal >= '$this->start_date' and tanggal <= '$this->end_date'
-order by tanggal asc
+order by a.tanggal asc
 
         ");
-        }
+
 
         $this->rowCount = count($rawData) + 1; // 1 for header
 
