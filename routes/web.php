@@ -1825,7 +1825,22 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/approve-packing-out-subcont', 'ApprovePackingOutSubcont')->name('approve-packing-out-subcont');
         Route::get('/save-approve-packing-out', 'SaveApprovePackingOut')->name('save-approve-packing-out');
+
         Route::get('/report-packing-out-subcont', 'ReportOutSubcont')->name('report-packing-out-subcont');
+        Route::get('/export-excel-packing-subcont-out', 'ExportOutSubcont')->name('export-excel-packing-subcont-out');
+
+        Route::get('/report-packing-in-subcont', 'ReportINSubcont')->name('report-packing-in-subcont');
+        Route::get('/export-excel-packing-subcont-in', 'ExportINSubcont')->name('export-excel-packing-subcont-in');
+
+        Route::get('/packing-in-subcont', 'indexIN')->name('packing-in-subcont');
+        Route::get('/create-packing-in-subcont', 'createIN')->name('create-packing-in-subcont');
+        Route::get('/get-detail-item-in-subcont', 'getDetailListIN')->name('get-detail-item-in-subcont');
+        Route::get('/get-supplier-subcont', 'getsupplierSubcont')->name('get-supplier-subcont');
+        Route::get('/show-detail-po-in-subcont', 'showdetailitemIN')->name('show-detail-po-in-subcont');
+        Route::post('/save-in-detail-temp', 'SaveINDetailTemp')->name('save-in-detail-temp');
+        Route::post('/store-in', 'storeIN')->name('store-packing-in-subcont');
+        Route::get('/get-detail-packing-in/{id?}', 'DetailPackingIN')->name('get-detail-packing-in');
+
 
     });
 

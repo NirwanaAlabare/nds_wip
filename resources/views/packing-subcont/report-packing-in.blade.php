@@ -15,7 +15,7 @@
     <form action="{{ route('export_excel_pemasukanroll') }}" method="get">
         <div class="card card-sb">
             <div class="card-header">
-                <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-alt fa-sm"></i> Laporan Pengeluaran Subcont Packing</h5>
+                <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-alt fa-sm"></i> Laporan Penerimaan Subcont Packing</h5>
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-end gap-3 mb-3">
@@ -56,7 +56,7 @@
                     <th>No PO</th>
                     <th>Supplier</th>
                     <th>buyer</th>
-                    <th>Jenis Pengeluaran</th>
+                    <th>Jenis Penerimaan</th>
                     <th>Jenis Dok</th>
                     <th>No Daftar</th>
                     <th>Tgl Daftar</th>
@@ -70,9 +70,8 @@
                     <th>Color</th>
                     <th>Size</th>
                     <th>Qty</th>
+                    <th>Qty Reject</th>
                     <th>Unit</th>
-                    <th>Berat garment</th>
-                    <th>Berat Karton</th>
                     <th>Status</th>
                     <th>Keterangan</th>
                     <th>Created User</th>
@@ -106,17 +105,17 @@
             scrollX: '300px',
             scrollCollapse: true,
             ajax: {
-                url: '{{ route('report-packing-out-subcont') }}',
+                url: '{{ route('report-packing-in-subcont') }}',
                 data: function(d) {
                     d.dateFrom = $('#from').val();
                     d.dateTo = $('#to').val();
                 },
             },
             columns: [{
-                    data: 'no_bppb'
+                    data: 'no_bpb'
                 },
                 {
-                    data: 'tgl_bppb'
+                    data: 'tgl_bpb'
                 },
                 {
                     data: 'no_po'
@@ -128,7 +127,7 @@
                     data: 'buyer'
                 },
                 {
-                    data: 'jenis_pengeluaran'
+                    data: 'jenis_penerimaan'
                 },
                 {
                     data: 'jenis_dok'
@@ -170,13 +169,10 @@
                     data: 'qty'
                 },
                 {
+                    data: 'qty_reject'
+                },
+                {
                     data: 'unit'
-                },
-                {
-                    data: 'berat_garment'
-                },
-                {
-                    data: 'berat_karton'
                 },
                 {
                     data: 'status'
@@ -216,7 +212,7 @@
 
     $.ajax({
         type: "get",
-        url: '{{ route('export-excel-packing-subcont-out') }}',
+        url: '{{ route('export-excel-packing-subcont-in') }}',
         data: {
             from: from,
             to: to
@@ -236,7 +232,7 @@
                 var blob = new Blob([response]);
                 var link = document.createElement('a');
                 link.href = window.URL.createObjectURL(blob);
-                link.download = "Laporan Pengeluaran Subcont Packing Dari  " + from + " sampai " +
+                link.download = "Laporan Penerimaan Subcont Packing Dari  " + from + " sampai " +
                 to + ".xlsx";
                 link.click();
 

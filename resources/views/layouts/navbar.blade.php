@@ -1035,6 +1035,12 @@
                                     Packing In <i class="fa-solid fa-people-carry fa-sm"></i>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('packing-in-subcont') }}"
+                                    class="dropdown-item {{ $subPage == 'packing-in-subcont' ? 'active' : '' }}">
+                                    Packing In Subcont <i class="fas fa-shipping-fast"></i>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -1054,7 +1060,7 @@
                                     Packing Out <i class="fa-solid fa-compress fa-sm"></i>
                                 </a>
                             </li>
-                            <!-- packing subcont out -->
+                            <!-- packing subcont -->
                             <li>
                                 <a href="{{ route('packing-out-subcont') }}"
                                     class="dropdown-item {{ $subPage == 'packing-out-subcont' ? 'active' : '' }}">
@@ -1110,11 +1116,17 @@
                                 </a>
                             </li>
 
-                            <!-- packing subcont out -->
+                            <!-- packing subcont -->
                             <li>
                                 <a href="{{ route('report-packing-out-subcont') }}"
                                     class="dropdown-item {{ $subPage == 'report-packing-out-subcont' ? 'active' : '' }}">
                                     Packing Out Subcont <i class="fas fa-shipping-fast"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('report-packing-in-subcont') }}"
+                                    class="dropdown-item {{ $subPage == 'report-packing-in-subcont' ? 'active' : '' }}">
+                                    Packing In Subcont <i class="fas fa-shipping-fast"></i>
                                 </a>
                             </li>
 
