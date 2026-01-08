@@ -78,7 +78,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
                         part.act_costing_ws = '".$row[0]."' and
                         part.panel = '".$row[3]."' and
                         master_part.nama_part = '".$namaPart."'
-                        ".( $namaBagian ? " and master_part.bag == '".$namaBagian."'" : "")."
+                        ".( $namaBagian ? " and master_part.bag = '".$namaBagian."'" : "")."
                     LIMIT 1
                 ");
 
