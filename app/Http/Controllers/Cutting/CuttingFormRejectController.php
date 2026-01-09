@@ -12,6 +12,7 @@ use App\Models\Dc\TrolleyStocker;
 use App\Models\Dc\LoadingLine;
 use App\Models\Part\PartDetail;
 use App\Models\Stocker\Stocker;
+use App\Models\Cutting\ScannedItem;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\Cutting\ExportCuttingFormReject;
 use Illuminate\Http\Request;
@@ -35,25 +36,25 @@ class CuttingFormRejectController extends Controller
 
             $formCutReject = FormCutReject::whereBetween("tanggal", [$dateFrom, $dateTo]);
 
-            return DataTables::eloquent($formCutReject)->
-                addColumn('sizes', function ($row) {
-                    $sizes = $row->formCutRejectDetails->filter(function ($item) {
-                        return $item->qty > 0;
-                    });
+            return DataTables::eloquent($formCutReject)->addColumn('sizes', function ($row) {
+                $sizes = $row->formCutRejectDetails->filter(function ($item) {
+                    return $item->qty > 0;
+                });
 
-                    $sizeList = "";
-                    foreach ($sizes as $size) {
-                        $sizeList .= $size->size.($size->soDet && $size->soDet->dest && $size->soDet->dest != '-' ? " - ".$size->soDet->dest." / " : " / ");
-                    }
+                $sizeList = "";
+                foreach ($sizes as $size) {
+                    $sizeList .= $size->size . ($size->soDet && $size->soDet->dest && $size->soDet->dest != '-' ? " - " . $size->soDet->dest . " / " : " / ");
+                }
 
-                    return $sizeList;
-                })->
-                addColumn('qty', function ($row) {
-                    $qty = $row->formCutRejectDetails ? $row->formCutRejectDetails->sum("qty") : "-";
+                return $sizeList;
+            })->addColumn('qty', function ($row) {
+                $qty = $row->formCutRejectDetails ? $row->formCutRejectDetails->sum("qty") : "-";
 
-                    return $qty;
-                })->
-                toJSON();
+                return $qty;
+            })->addColumn('jml_barcode', function ($row) {
+                $jml_barcode = $row->formCutRejectDetailsBarcode->count();
+                return $jml_barcode;
+            })->toJSON();
         }
 
         return view("cutting.cutting-form-reject.cutting-form-reject", ["page" => "dashboard-cutting", "subPageGroup" => "cutting-reject", "subPage" => "cutting-reject"]);
@@ -78,10 +79,10 @@ class CuttingFormRejectController extends Controller
         $bulan = substr($date, 5, 2);
         $now = Carbon::now();
 
-        $lastForm = FormCutReject::select("no_form")->whereRaw("no_form LIKE 'GR".$hari."-".$bulan."%'")->orderBy("id", "desc")->first();
-        $urutan =  $lastForm ? (str_replace("GR".$hari."-".$bulan."-", "", $lastForm->no_form) + 1) : 1;
+        $lastForm = FormCutReject::select("no_form")->whereRaw("no_form LIKE 'GR" . $hari . "-" . $bulan . "%'")->orderBy("id", "desc")->first();
+        $urutan =  $lastForm ? (str_replace("GR" . $hari . "-" . $bulan . "-", "", $lastForm->no_form) + 1) : 1;
 
-        $noForm = "GR".$hari."-".$bulan."-".$urutan;
+        $noForm = "GR" . $hari . "-" . $bulan . "-" . $urutan;
 
         $form = FormCutReject::create([
             "no_form" => $noForm
@@ -116,7 +117,7 @@ class CuttingFormRejectController extends Controller
             $storeFormCutReject = FormCutReject::updateOrCreate([
                 "id" => $validatedRequest["id"],
                 "no_form" => $validatedRequest["no_form"],
-            ],[
+            ], [
                 "tanggal" => $validatedRequest["tanggal"],
                 "act_costing_id" => $validatedRequest["act_costing_id"],
                 "act_costing_ws" => $validatedRequest["act_costing_ws"],
@@ -126,8 +127,8 @@ class CuttingFormRejectController extends Controller
                 "color" => $validatedRequest["color"],
                 "panel" => $validatedRequest["panel"],
                 "group" => $validatedRequest["group"],
-                "created_by"=> Auth::user()->id,
-                "created_by_username"=> Auth::user()->username,
+                "created_by" => Auth::user()->id,
+                "created_by_username" => Auth::user()->username,
             ]);
 
             if ($storeFormCutReject) {
@@ -192,14 +193,7 @@ class CuttingFormRejectController extends Controller
                     master_part.bag,
                     COALESCE(master_secondary.tujuan, '-') tujuan,
                     COALESCE(master_secondary.proses, '-') proses
-                ")->
-                leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-                leftJoin("part", "part.id", "part_detail.part_id")->
-                leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
-                where("part.act_costing_id", $formCutReject->act_costing_id)->
-                where("part.panel", $formCutReject->panel)->
-                groupBy("master_part.id")->
-                get();
+                ")->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->leftJoin("part", "part.id", "part_detail.part_id")->leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->where("part.act_costing_id", $formCutReject->act_costing_id)->where("part.panel", $formCutReject->panel)->groupBy("master_part.id")->get();
 
             return view("cutting.cutting-form-reject.show-cutting-form-reject", ["page" => "dashboard-cutting", "subPageGroup" => "cutting-reject", "subPage" => "cutting-reject", "formCutReject" => $formCutReject, "partDetails" => $partDetails]);
         }
@@ -245,21 +239,20 @@ class CuttingFormRejectController extends Controller
 
         if ($totalStocker < 1) {
             if ($validatedRequest) {
-                $updateFormCutReject = FormCutReject::where("id", $validatedRequest["id"])->
-                    update([
-                        "no_form" => $validatedRequest["no_form"],
-                        "tanggal" => $validatedRequest["tanggal"],
-                        "act_costing_id" => $validatedRequest["act_costing_id"],
-                        "act_costing_ws" => $validatedRequest["act_costing_ws"],
-                        "buyer_id" => $validatedRequest["buyer_id"],
-                        "buyer" => $validatedRequest["buyer"],
-                        "style" => $validatedRequest["style"],
-                        "color" => $validatedRequest["color"],
-                        "panel" => $validatedRequest["panel"],
-                        "group" => $validatedRequest["group"],
-                        "created_by"=> Auth::user()->id,
-                        "created_by_username"=> Auth::user()->username,
-                    ]);
+                $updateFormCutReject = FormCutReject::where("id", $validatedRequest["id"])->update([
+                    "no_form" => $validatedRequest["no_form"],
+                    "tanggal" => $validatedRequest["tanggal"],
+                    "act_costing_id" => $validatedRequest["act_costing_id"],
+                    "act_costing_ws" => $validatedRequest["act_costing_ws"],
+                    "buyer_id" => $validatedRequest["buyer_id"],
+                    "buyer" => $validatedRequest["buyer"],
+                    "style" => $validatedRequest["style"],
+                    "color" => $validatedRequest["color"],
+                    "panel" => $validatedRequest["panel"],
+                    "group" => $validatedRequest["group"],
+                    "created_by" => Auth::user()->id,
+                    "created_by_username" => Auth::user()->username,
+                ]);
 
                 if ($updateFormCutReject) {
                     $formCutRejectDetails = [];
@@ -335,13 +328,7 @@ class CuttingFormRejectController extends Controller
                 master_part.nama_part part,
                 stocker_input.qty_ply qty,
                 stocker_input.notes
-            ")->
-            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
-            leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
-            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-            leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
-            where("form_cut_reject.id", $id)->
-            first();
+            ")->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->where("form_cut_reject.id", $id)->first();
 
         if (!$stocker || (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0)) {
             $deleteFormCutReject = FormCutReject::where("id", $id)->delete();
@@ -383,7 +370,8 @@ class CuttingFormRejectController extends Controller
         );
     }
 
-    public function stock(Request $request) {
+    public function stock(Request $request)
+    {
         if ($request->ajax()) {
             $dateFrom = $request->dateFrom ? $request->dateFrom : date("Y-m-d");
             $dateTo = $request->dateTo ? $request->dateTo : date("Y-m-d");
@@ -404,14 +392,7 @@ class CuttingFormRejectController extends Controller
                     master_part.nama_part part,
                     stocker_input.qty_ply qty,
                     stocker_input.notes
-                ")->
-                leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
-                leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
-                leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-                leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
-                whereBetween("form_cut_reject.tanggal", [$dateFrom, $dateTo])->
-                whereNotNull("stocker_input.form_reject_id")->
-                get();
+                ")->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->whereBetween("form_cut_reject.tanggal", [$dateFrom, $dateTo])->whereNotNull("stocker_input.form_reject_id")->get();
 
             return DataTables::of($stocker)->toJSON();
         }
@@ -430,12 +411,7 @@ class CuttingFormRejectController extends Controller
                 (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END) size_dest,
                 master_sb_ws.qty order_qty,
                 COALESCE(form_cut_reject_detail.qty, 0) qty
-            ")->
-            where("master_sb_ws.id_act_cost", $request->act_costing_id)->
-            where("master_sb_ws.color", $request->color)->
-            leftJoin('form_cut_reject_detail', 'form_cut_reject_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->
-            leftJoin('form_cut_reject', 'form_cut_reject.id', '=', 'form_cut_reject_detail.form_id')->
-            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
+            ")->where("master_sb_ws.id_act_cost", $request->act_costing_id)->where("master_sb_ws.color", $request->color)->leftJoin('form_cut_reject_detail', 'form_cut_reject_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->leftJoin('form_cut_reject', 'form_cut_reject.id', '=', 'form_cut_reject_detail.form_id')->leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
 
         $totalFormDetail = FormCutRejectDetail::where("form_id", $request->id)->count();
         if ($totalFormDetail > 0) {
@@ -452,7 +428,74 @@ class CuttingFormRejectController extends Controller
         ]);
     }
 
-    public function exportExcel(Request $request) {
+    public function exportExcel(Request $request)
+    {
         return Excel::download(new ExportCuttingFormReject($request->dateFrom, $request->dateTo), 'Report Cutting.xlsx');
+    }
+
+    public function save_fabric_form_reject(Request $request)
+    {
+        $user = Auth::user()->name;
+        $timestamp = Carbon::now();
+
+        $barcode = $request->barcode;
+        $id = $request->id;
+        $qty_roll = $request->qty_roll;
+        $qty_sisa = $request->qty_sisa;
+        $qty_pakai = $request->qty_pakai;
+        $qty_reject = $request->qty_reject;
+        $tot_pakai = $request->tot_pakai;
+        $today     = date('Y-m-d');
+
+        // Update scanned item (roll detail & qty)
+        ScannedItem::updateOrCreate(
+            ["id_roll" => $barcode],
+            [
+                "qty" => $qty_sisa,
+            ]
+        );
+
+
+        $id = DB::table('form_cut_reject_barcode')->insertGetId([
+            'form_id'               => $id,
+            'tgl_trans'             => $today,
+            'barcode'               => $barcode,
+            'qty_roll'              => $qty_roll,
+            'qty_pakai'             => $qty_pakai,
+            'qty_reject'            => $qty_reject,
+            'sisa_kain'             => $qty_sisa,
+            'qty_total'             => $tot_pakai,
+            'created_by'            => $user,
+            'created_at'            => $timestamp,
+            'updated_at'            => $timestamp,
+        ]);
+
+        // Return detailed response
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Form berhasil disimpan.'
+        ]);
+    }
+
+    public function show_fabric_form_reject(Request $request)
+    {
+        $id = $request->id;
+
+        $data_input = DB::select("SELECT
+barcode,
+lot,
+roll_buyer,
+qty_in,
+a.qty_roll,
+a.qty_pakai,
+a.qty_reject,
+a.sisa_kain,
+round(a.qty_pakai + a.qty_reject + a.sisa_kain - a.qty_roll,2) as short_roll
+from form_cut_reject_barcode a
+left join scanned_item b on a.barcode = b.id_roll
+where a.form_id = '$id'
+            ");
+
+        return DataTables::of($data_input)->toJson();
     }
 }

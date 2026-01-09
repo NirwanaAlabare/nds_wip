@@ -17,25 +17,58 @@
             <h5 class="card-title fw-bold"><i class="fa-solid fa-file-circle-exclamation"></i> Form Ganti Reject</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-cutting-reject') }}" class="btn btn-success btn mb-3"><i class="fa fa-plus"></i> Baru</a>
+            <a href="{{ route('create-cutting-reject') }}" class="btn btn-success btn mb-3"><i class="fa fa-plus"></i>
+                Baru</a>
             <div class="d-flex justify-content-between align-items-end mb-3">
                 <div class="d-flex justify-content-start align-items-end gap-3">
                     <div>
                         <label class="form-label">Dari</label>
-                        <input type="date" class="form-control" value="{{ date("Y-m-d", strtotime(date("Y-m-d")." - 7 days")) }}" id="date-from" name="date-from" onchange="cuttingRejectTableReload()">
+                        <input type="date" class="form-control"
+                            value="{{ date('Y-m-d', strtotime(date('Y-m-d') . ' - 7 days')) }}" id="date-from"
+                            name="date-from" onchange="cuttingRejectTableReload()">
                     </div>
                     <div>
                         <label class="form-label">Sampai</label>
-                        <input type="date" class="form-control" value="{{ date("Y-m-d") }}" id="date-to" name="date-to" onchange="cuttingRejectTableReload()">
+                        <input type="date" class="form-control" value="{{ date('Y-m-d') }}" id="date-to" name="date-to"
+                            onchange="cuttingRejectTableReload()">
                     </div>
                     <div>
-                        <button class="btn btn-sb" onclick="cuttingRejectTableReload()"><i class="fa fa-search"></i></button>
+                        <button class="btn btn-sb" onclick="cuttingRejectTableReload()"><i
+                                class="fa fa-search"></i></button>
                     </div>
                 </div>
                 <div class="d-flex gap-1">
                     {{-- <button class="btn btn-success" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i></button> --}}
                 </div>
             </div>
+            <div class="mb-2 d-flex gap-3 align-items-center">
+                <div class="d-flex align-items-center">
+                    <span
+                        style="
+            width: 20px;
+            height: 20px;
+            background-color: #fff3cd;
+            border: 1px solid #ccc;
+            display: inline-block;
+            margin-right: 8px;
+        "></span>
+                    <span>Fabric belum ada</span>
+                </div>
+
+                <div class="d-flex align-items-center">
+                    <span
+                        style="
+            width: 20px;
+            height: 20px;
+            background-color: #d4edda;
+            border: 1px solid #ccc;
+            display: inline-block;
+            margin-right: 8px;
+        "></span>
+                    <span>Fabric sudah ada</span>
+                </div>
+            </div>
+
             <div class="table-responsive">
                 <table class="table table-bordered" id="cutting-reject-table">
                     <thead>
@@ -98,8 +131,7 @@
                     d.dateTo = $('#date-to').val();
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'id'
                 },
                 {
@@ -127,16 +159,27 @@
                     data: 'qty'
                 },
             ],
-            columnDefs: [
-                {
+            rowCallback: function(row, data) {
+                if (parseInt(data.jml_barcode) === 0) {
+                    $(row).css('background-color', '#fff3cd'); // kuning
+                } else {
+                    $(row).css('background-color', '#d4edda'); // hijau
+                }
+            },
+            columnDefs: [{
                     targets: [0],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
-                        let buttonEdit = `<a href="{{ route('edit-cutting-reject') }}/`+data+`" class="btn btn-sb-secondary btn-sm mx-1"><i class="fa fa-edit"></i></a>`;
-                        let buttonDetail = `<a href="{{ route('show-cutting-reject') }}/`+data+`" class="btn btn-sb btn-sm mx-1"><i class="fa fa-search"></i></a>`;
-                        let buttonDelete = `<a href='javascript:void(0);' class='btn btn-danger btn-sm mx-1' data='`+JSON.stringify(row)+`' data-url='`+'{{ route('destroy-cutting-reject') }}'+`/`+data+`' onclick='deleteData(this);'><i class='fa fa-trash'></i></a>`;
+                        let buttonEdit = `<a href="{{ route('edit-cutting-reject') }}/` + data +
+                            `" class="btn btn-sb-secondary btn-sm mx-1"><i class="fa fa-edit"></i></a>`;
+                        let buttonDetail = `<a href="{{ route('show-cutting-reject') }}/` + data +
+                            `" class="btn btn-sb btn-sm mx-1"><i class="fa fa-search"></i></a>`;
+                        let buttonDelete =
+                            `<a href='javascript:void(0);' class='btn btn-danger btn-sm mx-1' data='` + JSON
+                            .stringify(row) + `' data-url='` + '{{ route('destroy-cutting-reject') }}' +
+                            `/` + data + `' onclick='deleteData(this);'><i class='fa fa-trash'></i></a>`;
 
-                        return buttonEdit+buttonDetail+buttonDelete;
+                        return buttonEdit + buttonDetail + buttonDelete;
                     }
                 },
                 {
@@ -153,7 +196,7 @@
             $("#cutting-reject-table").DataTable().ajax.reload();
         }
 
-        function exportExcel (elm) {
+        function exportExcel(elm) {
             elm.setAttribute('disabled', 'true');
             elm.innerText = "";
             let loading = document.createElement('div');
@@ -176,13 +219,15 @@
             let currentDate = `${day}-${month}-${year}`;
 
             $.ajax({
-                url: "{{ route("export-form-reject") }}",
+                url: "{{ route('export-form-reject') }}",
                 type: 'post',
                 data: {
-                    dateFrom : $("#date-from").val(),
-                    dateTo : $("#date-to").val()
+                    dateFrom: $("#date-from").val(),
+                    dateTo: $("#date-to").val()
                 },
-                xhrFields: { responseType : 'blob' },
+                xhrFields: {
+                    responseType: 'blob'
+                },
                 success: function(res) {
                     elm.removeChild(loading);
                     elm.removeAttribute('disabled');
@@ -201,9 +246,11 @@
                     var blob = new Blob([res]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Form Reject "+$("#date-from").val()+" - "+$("#date-to").val()+".xlsx";
+                    link.download = "Form Reject " + $("#date-from").val() + " - " + $("#date-to").val() +
+                        ".xlsx";
                     link.click();
-                }, error: function (jqXHR) {
+                },
+                error: function(jqXHR) {
                     elm.removeChild(loading);
                     elm.removeAttribute('disabled');
                     let icon = document.createElement('i');
@@ -215,7 +262,7 @@
                     let message = '';
                     console.log(res.message);
                     for (let key in res.errors) {
-                        message += res.errors[key]+' ';
+                        message += res.errors[key] + ' ';
                         document.getElementById(key).classList.add('is-invalid');
                     };
                     iziToast.error({

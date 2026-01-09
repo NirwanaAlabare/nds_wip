@@ -43,6 +43,51 @@
 @endsection
 
 @section('content')
+    <!-- Modal -->
+    <div class="modal fade" id="DetailModal" tabindex="-1" aria-labelledby="DetailModalLabel" aria-hidden="true"
+        data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl"> <!-- ubah modal-lg ke modal-sm/md sesuai kebutuhan -->
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-white">
+                    <h5 class="modal-title" id="DetailModalLabel">Detail Summary Transaksi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Isi form di sini -->
+
+                    <div class="table-responsive">
+                        <table id="datatable_det" class="table table-bordered table-hover align-middle w-100">
+                            <thead class="bg-sb">
+                                <tr>
+                                    <th class="text-center">No. Karung</th>
+                                    <th class="text-center">Item</th>
+                                    <th class="text-center">Worksheet</th>
+                                    <th class="text-center">Style</th>
+                                    <th class="text-center">Color</th>
+                                    <th class="text-center">Size</th>
+                                    <th class="text-center">Qty (Pcs)</th>
+                                </tr>
+                            </thead>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="6" class="text-end">Total:</th>
+                                    <th></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
     <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Header Loading Out / WIP Out</h5>
@@ -103,7 +148,8 @@
                 </div>
                 <div class="col-12 col-sm-6 col-lg-3">
                     <label for="txt_ket"><small><b>Keterangan :</b></small></label>
-                    <input type="text" id="txt_ket" name="txt_ket" class="form-control form-control-sm border-primary">
+                    <input type="text" id="txt_ket" name="txt_ket"
+                        class="form-control form-control-sm border-primary">
                 </div>
                 <div class="col-12 col-sm-6 col-lg-3">
                     <label for="txt_berat_panel"><small><b>Berat Set Panel:</b></small></label>
@@ -124,8 +170,15 @@
             </div>
         </div>
 
-        <div class="card-footer text-end">
-            <button type="button" id="btnsave" name="btnsave" class="btn btn-success btn-sm px-4"
+        <div class="card-footer d-flex align-items-center px-3">
+            <!-- Tombol kiri -->
+            <button type="button" id="btndet_input" name="btndet_input" class="btn btn-primary btn-sm"
+                data-bs-toggle="modal" data-bs-target="#DetailModal">
+                <i class="fas fa-info"></i> Detail Input
+            </button>
+
+            <!-- Tombol kanan -->
+            <button type="button" id="btnsave" name="btnsave" class="btn btn-success btn-sm ms-auto"
                 onclick="saveLoadingOut()">
                 <i class="fas fa-save me-1"></i> Save
             </button>
@@ -267,6 +320,10 @@
             $('#txt_berat_karung').val('0');
             $('#txtno_karung').val('');
 
+            $('#DetailModal').on('show.bs.modal', function() {
+
+                datatable_det.ajax.reload();
+            });
         });
 
 
@@ -529,7 +586,8 @@
             searching: true,
             scrollCollapse: true,
             autoWidth: true,
-            scrollX: true,
+            scrollX: true, // horizontal scroll
+            scrollY: '400px', // tinggi tetap, bisa disesuaikan
 
             ajax: {
                 url: '{{ route('get_list_tmp_scan_loading_out') }}',
@@ -722,5 +780,78 @@
 
             });
         }
+
+
+        let datatable_det = $('#datatable_det').DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: false,
+            paging: false,
+            searching: true,
+            scrollCollapse: true,
+            autoWidth: false,
+            responsive: false,
+            scrollX: true,
+
+            ajax: {
+                url: '{{ route('get_det_summary_loading_out') }}',
+                type: "GET",
+                data: function(d) {
+                    d.id_po = $('#cbo_po').val();
+                }
+            },
+
+            columns: [{
+                    data: 'no_karung',
+                    className: 'text-center align-middle'
+                },
+                {
+                    data: 'itemdesc',
+                    className: 'text-center align-middle'
+                },
+                {
+                    data: 'kpno',
+                    className: 'text-center align-middle'
+                },
+                {
+                    data: 'styleno',
+                    className: 'text-center align-middle'
+                },
+                {
+                    data: 'color',
+                    className: 'text-center align-middle'
+                },
+                {
+                    data: 'size',
+                    className: 'text-center align-middle'
+                },
+                {
+                    data: 'qty',
+                    className: 'text-center align-middle'
+                }
+            ],
+
+            footerCallback: function(row, data, start, end, display) {
+                var api = this.api();
+
+                // Menghitung total qty di kolom terakhir (index 6)
+                var total = api
+                    .column(6, {
+                        page: 'current'
+                    })
+                    .data()
+                    .reduce(function(a, b) {
+                        return parseFloat(a) + parseFloat(b);
+                    }, 0);
+
+                // Menampilkan total di footer
+                $(api.column(6).footer()).html(total.toLocaleString());
+            },
+
+            initComplete: function() {
+                this.api().columns.adjust();
+            }
+
+        });
     </script>
 @endsection
