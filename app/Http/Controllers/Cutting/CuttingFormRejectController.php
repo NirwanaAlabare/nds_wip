@@ -51,6 +51,9 @@ class CuttingFormRejectController extends Controller
                 $qty = $row->formCutRejectDetails ? $row->formCutRejectDetails->sum("qty") : "-";
 
                 return $qty;
+            })->addColumn('jml_barcode', function ($row) {
+                $jml_barcode = $row->formCutRejectDetailsBarcode->count();
+                return $jml_barcode;
             })->toJSON();
         }
 

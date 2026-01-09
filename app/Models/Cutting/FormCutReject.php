@@ -17,4 +17,9 @@ class FormCutReject extends Model
     {
         return $this->hasMany(FormCutRejectDetail::class, 'form_id', 'id');
     }
+
+    public function formCutRejectDetailsBarcode()
+    {
+        return $this->hasMany(FormCutRejectBarcode::class, 'form_id', 'id');
+    }
 }
