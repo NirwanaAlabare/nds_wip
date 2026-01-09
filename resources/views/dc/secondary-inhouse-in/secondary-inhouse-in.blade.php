@@ -730,10 +730,9 @@
 
                     document.getElementById('txtqrstocker').value = decodedText;
 
-                    scan_qr();
-
                     html5QrcodeScanner.clear();
 
+                    scan_qr();
                 }
 
                 function onScanFailure(error) {
@@ -757,6 +756,14 @@
                 html5QrcodeScanner.render(onScanSuccess, onScanFailure);
             }
         }
+
+        $("#form").on("keydown", ((event) => {
+            if (event.keyCode == 13) {
+                event.preventDefault();
+
+                scan_qr();
+            }
+        }))
     </script>
     <script>
         $(document).ready(function() {
@@ -823,6 +830,10 @@
                             position: 'topCenter',
                         });
                     }
+
+                    document.getElementById('txtqrstocker').value = "";
+
+                    initScan();
                     // document.getElementById('txtno_stocker').value = response.id_qr_stocker;
                     // document.getElementById('txtno_form').value = response.no_form;
                     // document.getElementById('txtws').value = response.act_costing_ws;

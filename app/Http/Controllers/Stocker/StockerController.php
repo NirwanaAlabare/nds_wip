@@ -7183,6 +7183,7 @@ class StockerController extends Controller
 
         return $pdf->download(str_replace("/", "_", $fileName));
     }
+
     public function separateStocker(Request $request) {
         $validatedRequest = $request->validate([
             "form_cut_id" => "required",
