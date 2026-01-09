@@ -669,4 +669,36 @@ order by kpno asc, color asc, urutan asc");
             'message' => 'Style : ' . $style . ' Dengan Brand : ' . $brand . ' sudah ditambahkan',
         ]);
     }
+
+    public function get_det_summary_loading_out(Request $request)
+    {
+        $id_po = $request->id_po;
+
+        $data = DB::select("SELECT
+        tmp.no_karung,
+        mi.itemdesc,
+        ac.kpno,
+        ac.styleno,
+        sd.color,
+        sd.size,
+        sum(dc.qty_awal - dc.qty_reject + dc.qty_replace) as qty
+        from wip_out_tmp tmp
+        left join stocker_input a on tmp.id_qr_stocker = a.id_qr_stocker
+        left join part_detail p on a.part_detail_id = p.id
+        left join part_detail_item pdi on p.id = pdi.part_detail_id
+        left join signalbit_erp.bom_jo_item k on pdi.bom_jo_item_id = k.id
+        left join signalbit_erp.masteritem mi on k.id_item = mi.id_item
+        left join form_cut_input f on a.form_cut_id = f.id
+        left join signalbit_erp.so_det sd on a.so_det_id = sd.id
+        left join signalbit_erp.so on sd.id_so = so.id
+        left join signalbit_erp.act_costing ac on so.id_cost = ac.id
+        left join dc_in_input dc on a.id_qr_stocker = dc.id_qr_stocker
+		left join signalbit_erp.master_size_new msn on sd.size = msn.size
+        where id_po = '$id_po'
+        group by no_karung, mi.itemdesc, ac.kpno, ac.styleno,sd.color, sd.size
+        order by no_karung asc, ac.kpno asc, ac.styleno asc, urutan asc
+");
+
+        return DataTables::of($data)->toJson();
+    }
 }

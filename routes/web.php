@@ -620,6 +620,9 @@ Route::middleware('auth')->group(function () {
 
         // export reject
         Route::post('/export-excel', 'exportExcel')->name('export-form-reject');
+
+        Route::post('/save_fabric_form_reject', 'save_fabric_form_reject')->name('save_fabric_form_reject');
+        Route::get('/show_fabric_form_reject', 'show_fabric_form_reject')->name('show_fabric_form_reject');
     });
 
     // Cutting Piece
@@ -1074,6 +1077,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get_table_modal_det_loading_out', 'get_table_modal_det_loading_out')->name('get_table_modal_det_loading_out');
         Route::get('/get_table_modal_stocker_loading_out', 'get_table_modal_stocker_loading_out')->name('get_table_modal_stocker_loading_out');
         Route::post('/loading_out_konfirmasi', 'loading_out_konfirmasi')->name('loading_out_konfirmasi');
+        Route::get('/get_det_summary_loading_out', 'get_det_summary_loading_out')->name('get_det_summary_loading_out');
     });
 
     // Bon Loading
