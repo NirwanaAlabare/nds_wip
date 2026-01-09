@@ -442,6 +442,7 @@ class CuttingFormRejectController extends Controller
         $qty_pakai = $request->qty_pakai;
         $qty_reject = $request->qty_reject;
         $tot_pakai = $request->tot_pakai;
+        $today     = date('Y-m-d');
 
         // Update scanned item (roll detail & qty)
         ScannedItem::updateOrCreate(
@@ -454,6 +455,7 @@ class CuttingFormRejectController extends Controller
 
         $id = DB::table('form_cut_reject_barcode')->insertGetId([
             'form_id'               => $id,
+            'tgl_trans'             => $today,
             'barcode'               => $barcode,
             'qty_roll'              => $qty_roll,
             'qty_pakai'             => $qty_pakai,
