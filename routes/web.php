@@ -1829,9 +1829,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/report-packing-out-subcont', 'ReportOutSubcont')->name('report-packing-out-subcont');
         Route::get('/export-excel-packing-subcont-out', 'ExportOutSubcont')->name('export-excel-packing-subcont-out');
 
-        Route::get('/report-packing-in-subcont', 'ReportINSubcont')->name('report-packing-in-subcont');
-        Route::get('/export-excel-packing-subcont-in', 'ExportINSubcont')->name('export-excel-packing-subcont-in');
-
         Route::get('/packing-in-subcont', 'indexIN')->name('packing-in-subcont');
         Route::get('/create-packing-in-subcont', 'createIN')->name('create-packing-in-subcont');
         Route::get('/get-detail-item-in-subcont', 'getDetailListIN')->name('get-detail-item-in-subcont');
@@ -1840,6 +1837,18 @@ Route::middleware('auth')->group(function () {
         Route::post('/save-in-detail-temp', 'SaveINDetailTemp')->name('save-in-detail-temp');
         Route::post('/store-in', 'storeIN')->name('store-packing-in-subcont');
         Route::get('/get-detail-packing-in/{id?}', 'DetailPackingIN')->name('get-detail-packing-in');
+
+        Route::get('/report-packing-in-subcont', 'ReportINSubcont')->name('report-packing-in-subcont');
+        Route::get('/export-excel-packing-subcont-in', 'ExportINSubcont')->name('export-excel-packing-subcont-in');
+
+        Route::get('/report-packing-monitoring-subcont', 'ReportMonitoringSubcont')->name('report-packing-monitoring-subcont');
+        Route::get('/export-excel-packing-subcont-monitoring', 'ExportMonitoringSubcont')->name('export-excel-packing-subcont-monitoring');
+
+        Route::get('/report-packing-mutasi-subcont', 'ReportMutasiSubcont')->name('report-packing-mutasi-subcont');
+        Route::get('/export-excel-packing-subcont-mutasi', 'ExportMutasiSubcont')->name('export-excel-packing-subcont-mutasi');
+
+        Route::get('/approve-packing-in-subcont', 'ApprovePackingInSubcont')->name('approve-packing-in-subcont');
+        Route::get('/save-approve-packing-in', 'SaveApprovePackingIn')->name('save-approve-packing-in');
 
 
     });

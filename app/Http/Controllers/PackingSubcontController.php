@@ -17,6 +17,7 @@ use App\Models\PackingInH;
 use App\Models\BppbSB;
 use App\Models\Bpb;
 use App\Models\Tempbpb;
+use App\Models\Journal;
 use DB;
 use PDF;
 
@@ -139,7 +140,6 @@ class PackingSubcontController extends Controller
         <th class="text-center" style="font-size: 0.6rem;width: 20%;">Style</th>
         <th class="text-center" style="font-size: 0.6rem;width: 20%;">Color</th>
         <th class="text-center" style="font-size: 0.6rem;width: 10%;">Size</th>
-        <th class="text-center" style="font-size: 0.6rem;width: 13%;">Balance Qty</th>
         <th class="text-center" style="font-size: 0.6rem;width: 13%;">Qty</th>
         <th class="text-center" style="font-size: 0.6rem;width: 10%;">Unit</th>
         <th hidden></th>
@@ -1019,6 +1019,580 @@ foreach ($maxLen as $i => $len) {
     $filename = "Laporan_Pengeluaran_subcont_Packing_dari_{$from}_sd_{$to}.xlsx";
     return $excel->download($filename);
 }
+
+
+public function ReportMonitoringSubcont(Request $request)
+    {
+        $msupplier = DB::connection('mysql_sb')->table('mastersupplier')->select('id_supplier', 'Supplier')->where('tipe_sup', '=', 'S')->get();
+        $no_po = DB::connection('mysql_sb')->select("select DISTINCT no_po pono from packing_out_h where status != 'CANCEL'");
+
+        if ($request->ajax()) {
+            $additionalQuery = "";
+
+            if ($request->dateFrom) {
+                $additionalQuery .= " and a.id_supplier = '" . $request->id_supplier . "' ";
+            }
+
+            if ($request->dateTo) {
+                $additionalQuery .= " and a.no_po <= '" . $request->no_po . "' ";
+            }
+
+
+            $data = DB::connection('mysql_sb')->select("WITH                                      
+det_kirim as (select a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_out from packing_out_h a INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where b.status = 'Y' ".$additionalQuery." GROUP BY a.no_po, supplier, buyer, kpno, styleno, b.color, b.size),
+
+det_terima as (select a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_in, sum(b.qty_reject) qty_in_reject from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where b.status = 'Y' ".$additionalQuery." GROUP BY a.no_po, supplier, buyer, kpno, styleno, b.color, b.size)
+
+select a.*, COALESCE(qty_in,0) qty_in, COALESCE(qty_in_reject,0) qty_in_reject, (qty_out - COALESCE(qty_in,0) - COALESCE(qty_in_reject,0)) qty_sisa from det_kirim a LEFT JOIN det_terima b on b.no_po = a.no_po and b.kpno = a.kpno and b.styleno = a.styleno and b.color = a.color and b.size = a.size");
+
+
+            return DataTables::of($data)->toJson();
+        }
+
+        return view("packing-subcont.report-monitoring-packing", ['msupplier' => $msupplier, 'no_po' => $no_po, 'page' => 'dashboard-packing', "subPageGroup" => "packing-report", "subPage" => "report-packing-monitoring-subcont"]);
+    }
+
+
+
+    public function ExportMonitoringSubcont(Request $request)
+{
+    $id_supplier = $request->id_supplier;
+    $no_po       = $request->no_po;
+
+    $additionalQuery = "";
+
+    if ($request->id_supplier) {
+        $additionalQuery .= " and a.id_supplier = '" . $request->id_supplier . "' ";
+    }
+
+    if ($request->no_po) {
+        $additionalQuery .= " and a.no_po <= '" . $request->no_po . "' ";
+    }
+
+    // ==============================
+    // SQL
+    // ==============================
+    $sql = "WITH                                      
+det_kirim as (select a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_out from packing_out_h a INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where b.status = 'Y' ".$additionalQuery." GROUP BY a.no_po, supplier, buyer, kpno, styleno, b.color, b.size),
+
+det_terima as (select a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_in, sum(b.qty_reject) qty_in_reject from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where b.status = 'Y' ".$additionalQuery." GROUP BY a.no_po, supplier, buyer, kpno, styleno, b.color, b.size)
+
+select a.*, COALESCE(qty_in,0) qty_in, COALESCE(qty_in_reject,0) qty_in_reject, (qty_out - COALESCE(qty_in,0) - COALESCE(qty_in_reject,0)) qty_sisa from det_kirim a LEFT JOIN det_terima b on b.no_po = a.no_po and b.kpno = a.kpno and b.styleno = a.styleno and b.color = a.color and b.size = a.size";
+
+    $data = DB::connection('mysql_sb')->select($sql);
+
+    // convert object → array
+    $rows = array_map(fn($r) => (array)$r, $data);
+
+
+    // ==============================
+    // FastExcel – Hanya Data (NO Style)
+    // ==============================
+    $excel = FastExcel::create('MonitoringSubcont');
+    $sheet = $excel->getSheet();
+
+
+$sheet->writeRow(['Laporan Monitoring Subcont Packing'])
+      ->applyFontStyleBold()
+      ->applyFontSize(16);  
+
+$sheet->mergeCells('A1:K1');
+
+$sheet->writeRow(['']);
+
+    $headers = [
+    'No PO', 'Supplier', 'Buyer', 'WS', 'Style',
+    'Color', 'Size', 'Qty Out', 'Qty In', 'Qty In Reject', 'Balance'
+];
+
+$sheet->writeRow($headers)
+      ->applyFontStyleBold()
+      ->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+// hitung panjang header
+$maxLen = [];
+foreach ($headers as $i => $h) {
+    $maxLen[$i] = strlen($h);
+}
+
+foreach ($rows as $r) {
+    $rowData = [
+        $r['no_po'] ?? '',
+        $r['supplier'] ?? '',
+        $r['buyer'] ?? '',
+        $r['kpno'] ?? '',
+        $r['styleno'] ?? '',
+        $r['color'] ?? '',
+        $r['size'] ?? '',
+        round($r['qty_out'] ?? 0, 2),
+        round($r['qty_in'] ?? 0, 2),
+        round($r['qty_in_reject'] ?? 0, 2),
+        round($r['qty_sisa'] ?? 0, 2),
+    ];
+
+    foreach ($rowData as $i => $v) {
+        $len = strlen((string)$v);
+        $maxLen[$i] = max($maxLen[$i] ?? 0, $len);
+    }
+
+    $sheet->writeRow($rowData)
+          ->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+}
+
+// Setelah semua row ditulis → atur width sesuai panjang isi
+foreach ($maxLen as $i => $len) {
+    $sheet->setColWidth($i + 1, $len + 3); // padding
+}
+
+
+    // DOWNLOAD
+    $filename = "Laporan_Monitoring_subcont_Packing.xlsx";
+    return $excel->download($filename);
+}
+
+
+    public function ReportMutasiSubcont(Request $request)
+    {
+        if ($request->ajax()) {
+            $additionalQuery = "";
+
+            $data = DB::connection('mysql_sb')->select("WITH
+saldo_awal as (select a.id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, a.color, a.size, sum(qty) qty from packing_saldo_subcont a INNER JOIN masteritem b on b.id_item = a.id_item GROUP BY no_po, kpno, color, size ),
+
+out_before as (select b.id_item, itemdesc, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_out from packing_out_h a INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo INNER JOIN masteritem mi on mi.id_item = b.id_item where a.tgl_bppb < '".$request->dateFrom."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
+
+in_before as (select b.id_item, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty + b.qty_reject) qty_in from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where a.tgl_bpb < '".$request->dateFrom."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
+
+out_trx as (select b.id_item, itemdesc, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_out from packing_out_h a INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo INNER JOIN masteritem mi on mi.id_item = b.id_item where a.tgl_bppb BETWEEN '".$request->dateFrom."' and '".$request->dateTo."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
+
+in_trx as (select b.id_item, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty + b.qty_reject) qty_in from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where a.tgl_bpb BETWEEN '".$request->dateFrom."' and '".$request->dateTo."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
+
+saldo_out as (select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  sum(sal_awal) sal_awal, sum(qty_out) qty_out from (
+select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  qty sal_awal, 0 qty_out from saldo_awal 
+UNION 
+select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  qty_out sal_awal, 0 qty_out from out_before
+UNION 
+select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  0 sal_awal, qty_out from out_trx) a GROUP BY no_po, kpno, color, size, id_item)
+select a.id_item, itemdesc, a.no_po, a.supplier, a.buyer, a.kpno, a.styleno, a.color, a.size, (a.sal_awal - COALESCE(b.qty_in,0)) saldo_awal, a.qty_out, COALESCE(c.qty_in,0) qty_in, ((a.sal_awal - COALESCE(b.qty_in,0)) + a.qty_out - COALESCE(c.qty_in,0)) saldo_akhir from saldo_out a left join in_before b on b.no_po = a.no_po and b.kpno = a.kpno and b.color = a.color and b.size = a.size and b.id_item = a.id_item left join in_trx c on c.no_po = a.no_po and c.kpno = a.kpno and c.color = a.color and c.size = a.size and c.id_item = a.id_item where (a.sal_awal - COALESCE(b.qty_in,0)) + a.qty_out + COALESCE(c.qty_in,0) != 0");
+
+
+            return DataTables::of($data)->toJson();
+        }
+
+        return view("packing-subcont.report-mutasi-packing", ['page' => 'dashboard-packing', "subPageGroup" => "packing-report", "subPage" => "report-packing-mutasi-subcont"]);
+    }
+
+
+    public function ExportMutasiSubcont(Request $request)
+{
+    $from = $request->from;
+    $to   = $request->to;
+
+    // ==============================
+    // SQL
+    // ==============================
+    $sql = "WITH
+saldo_awal as (select a.id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, a.color, a.size, sum(qty) qty from packing_saldo_subcont a INNER JOIN masteritem b on b.id_item = a.id_item GROUP BY no_po, kpno, color, size ),
+
+out_before as (select b.id_item, itemdesc, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_out from packing_out_h a INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo INNER JOIN masteritem mi on mi.id_item = b.id_item where a.tgl_bppb < '".$request->from."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
+
+in_before as (select b.id_item, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty + b.qty_reject) qty_in from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where a.tgl_bpb < '".$request->from."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
+
+out_trx as (select b.id_item, itemdesc, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_out from packing_out_h a INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo INNER JOIN masteritem mi on mi.id_item = b.id_item where a.tgl_bppb BETWEEN '".$request->from."' and '".$request->to."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
+
+in_trx as (select b.id_item, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty + b.qty_reject) qty_in from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where a.tgl_bpb BETWEEN '".$request->from."' and '".$request->to."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
+
+saldo_out as (select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  sum(sal_awal) sal_awal, sum(qty_out) qty_out from (
+select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  qty sal_awal, 0 qty_out from saldo_awal 
+UNION 
+select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  qty_out sal_awal, 0 qty_out from out_before
+UNION 
+select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  0 sal_awal, qty_out from out_trx) a GROUP BY no_po, kpno, color, size, id_item)
+select a.id_item, itemdesc, a.no_po, a.supplier, a.buyer, a.kpno, a.styleno, a.color, a.size, (a.sal_awal - COALESCE(b.qty_in,0)) saldo_awal, a.qty_out, COALESCE(c.qty_in,0) qty_in, ((a.sal_awal - COALESCE(b.qty_in,0)) + a.qty_out - COALESCE(c.qty_in,0)) saldo_akhir from saldo_out a left join in_before b on b.no_po = a.no_po and b.kpno = a.kpno and b.color = a.color and b.size = a.size and b.id_item = a.id_item left join in_trx c on c.no_po = a.no_po and c.kpno = a.kpno and c.color = a.color and c.size = a.size and c.id_item = a.id_item where (a.sal_awal - COALESCE(b.qty_in,0)) + a.qty_out + COALESCE(c.qty_in,0) != 0";
+
+    $data = DB::connection('mysql_sb')->select($sql);
+
+    // convert object → array
+    $rows = array_map(fn($r) => (array)$r, $data);
+
+
+    // ==============================
+    // FastExcel – Hanya Data (NO Style)
+    // ==============================
+    $excel = FastExcel::create('MutasiSubcont');
+    $sheet = $excel->getSheet();
+
+
+    $sheet->writeRow(['Laporan Mutasi Subcont Packing'])
+      ->applyFontStyleBold()
+      ->applyFontSize(16); 
+    $sheet->writeRow(["Periode {$from} s/d {$to}"])->applyFontStyleBold(); 
+
+    $sheet->mergeCells('A1:M1');
+
+    $sheet->writeRow(['']);
+
+    $headers = [
+    'Id Item', 'Item desc', 'No PO', 'Supplier', 'buyer', 'WS', 'Style', 'Color', 'Size', 'Saldo Awal', 'Qty Out', 'Qty In', 'Saldo Akhir'
+    ];
+
+$sheet->writeRow($headers)
+      ->applyFontStyleBold()
+      ->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+// hitung panjang header
+$maxLen = [];
+foreach ($headers as $i => $h) {
+    $maxLen[$i] = strlen($h);
+}
+
+foreach ($rows as $r) {
+    $rowData = [
+        $r['id_item'] ?? '',
+        $r['itemdesc'] ?? '',
+        $r['no_po'] ?? '',
+        $r['supplier'] ?? '',
+        $r['buyer'] ?? '',
+        $r['kpno'] ?? '',
+        $r['styleno'] ?? '',
+        $r['color'] ?? '',
+        $r['size'] ?? '',
+        round($r['saldo_awal'] ?? 0, 2),
+        round($r['qty_out'] ?? 0, 2),
+        round($r['qty_in'] ?? 0, 2),
+        round($r['saldo_akhir'] ?? 0, 2),
+    ];
+
+foreach ($rowData as $i => $v) {
+        $len = strlen((string)$v);
+        $maxLen[$i] = max($maxLen[$i] ?? 0, $len);
+    }
+
+    $sheet->writeRow($rowData)
+          ->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+}
+
+// Setelah semua row ditulis → atur width sesuai panjang isi
+foreach ($maxLen as $i => $len) {
+    $sheet->setColWidth($i + 1, $len + 3); // padding
+}
+
+
+    // DOWNLOAD
+    $filename = "Laporan_Mutasi_subcont_Packing_dari_{$from}_sd_{$to}.xlsx";
+    return $excel->download($filename);
+}
+
+
+public function ApprovePackingInSubcont(Request $request)
+    {
+        if ($request->ajax()) {
+            $additionalQuery = "";
+            $keywordQuery = "";
+
+            $data = DB::connection('mysql_sb')->select("select a.id, a.no_bpb, a.tgl_bpb, a.no_po, supplier, buyer, jenis_penerimaan, jenis_dok, CONCAT(a.created_by,' (',a.created_at,')') created_by, a.status from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where a.tgl_bpb BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."' and a.status = 'DRAFT' GROUP BY a.no_bpb");
+
+
+            return DataTables::of($data)->toJson();
+        }
+
+        $msupplier = DB::connection('mysql_sb')->table('mastersupplier')->select('id_supplier', 'Supplier')->where('tipe_sup', '=', 'S')->get();
+        $mtypebc = DB::connection('mysql_sb')->table('masterpilihan')->select('id', 'nama_pilihan')->where('kode_pilihan', '=', 'JENIS_DOK_IN')->get();
+        $pch_type = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'Purchasing_type')->where('status', '=', 'Active')->get();
+        $status = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'Status_material')->where('status', '=', 'Active')->get();
+        $arealok = DB::connection('mysql_sb')->table('whs_master_area')->select('id', 'area')->where('status', '=', 'active')->get();
+        $unit = DB::connection('mysql_sb')->table('whs_master_unit')->select('id', 'nama_unit')->where('status', '=', 'active')->get();
+
+        return view("packing-subcont.approve-packing-in", ['status' => $status,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,'page' => 'dashboard-packing', "subPageGroup" => "packing-packing-in", "subPage" => "approve-packing-in-subcont"]);
+    }
+
+
+    public function SaveApprovePackingIn(Request $request)
+    {
+        $timestamp = Carbon::now();
+
+        foreach ($request->id_bpb as $i => $id_bpb) {
+
+            $check = $request->chek_id[$i] ?? 0;
+            if ($check <= 0) continue;
+
+        // Update status di nds
+            PackingInH::where('no_bpb', $id_bpb)->update([
+                'status' => 'APPROVED',
+                'approved_by' => Auth::user()->name,
+                'approved_date' => $timestamp,
+            ]);
+
+        // Update status di signalbit
+            Bpb::where('bpbno_int', $id_bpb)->update([
+                'confirm' => 'Y',
+                'confirm_by' => Auth::user()->name,
+                'confirm_date' => $timestamp,
+            ]);
+
+            $cekdata = DB::connection('mysql_sb')->select("
+                select 
+                SUBSTR(bpbno_int,1,3) fil_wip, phd.tipe_com, mi.itemdesc, bpb.confirm, bpbno, bpbno_int, bpb.bpbdate, 
+                bpb.id_supplier, supplier, mattype, n_code_category,
+                if(matclass like '%ACCESORIES%','ACCESORIES',mi.matclass) matclass,
+                bpb.curr, COALESCE(ph.tax,0) tax, bpb.username, bpb.dateinput,
+                round(SUM(((qty - COALESCE(qty_reject,0)) * price) + (((qty - COALESCE(qty_reject,0)) * price) * (COALESCE(ph.tax,0) /100))),2) as total,
+                round(SUM(((qty - COALESCE(qty_reject,0)) * price)),2) as dpp,
+                round(SUM((((qty - COALESCE(qty_reject,0)) * price) * (COALESCE(ph.tax,0) /100))),2) as ppn
+                from bpb
+                inner join masteritem mi on bpb.id_item = mi.id_item
+                inner join mastersupplier ms on bpb.id_supplier = ms.id_supplier
+                left join po_header ph on bpb.pono = ph.pono
+                left join po_header_draft phd on phd.id = ph.id_draft
+                where bpbno_int = ?
+                group by bpbno, mattype, n_code_category
+                order by supplier
+                ", [$id_bpb]);
+
+            if (!$cekdata) continue;
+
+            $data = $cekdata[0];
+
+            $no_bpb = $data->bpbno_int;
+            $supp = $data->supplier;
+            $id_supplier = $data->id_supplier;
+            $mattype = $data->mattype;
+            $matclass1 = $data->matclass;
+            $n_code_category = $data->n_code_category;
+            $tax = $data->tax;
+            $curr = $data->curr;
+            $username = $data->username;
+            $total = $data->total;
+            $dpp = $data->dpp;
+            $ppn = $data->ppn;
+            $tgl_bpb = $data->bpbdate;
+            $dateinput_ = $data->dateinput;
+            $tipe_com = $data->tipe_com;
+
+            if ($mattype == 'C') {
+                if (in_array($matclass1, ['CMT','PRINTING','EMBRODEIRY','WASHING','PAINTING','HEATSEAL'])) {
+                    $matclass = $matclass1;
+                } else {
+                    $matclass = 'OTHER';
+                }
+            } else {
+                $matclass = $matclass1;
+            }
+
+            $rate = 1;
+            if ($curr != 'IDR') {
+                $sqlrate = DB::connection('mysql_sb')->select(
+                    "select ROUND(rate,2) as rate from masterrate where tanggal = ? and v_codecurr = 'PAJAK'", [$tgl_bpb]
+                );
+                $rate = $sqlrate ? $sqlrate[0]->rate : 1;
+            }
+
+            $idr_dpp = $dpp * $rate;
+            $idr_ppn = $ppn * $rate;
+            $idr_total = $total * $rate;
+
+            $cust_ctg = in_array($id_supplier, ['342','20','19','692','17','18']) ? 'Related' : 'Third';
+
+            $kata1 = '';
+            if ($mattype != 'N') {
+                switch ($matclass) {
+                    case 'FABRIC': $kata1 = "PEMBELIAN KAIN"; break;
+                    case 'ACCESORIES': $kata1 = "PEMBELIAN AKSESORIS"; break;
+                    case 'CMT': $kata1 = "BIAYA MAKLOON PAKAIAN JADI"; break;
+                    case 'PRINTING': $kata1 = "BIAYA MAKLOON PRINTING"; break;
+                    case 'EMBRODEIRY': $kata1 = "BIAYA MAKLOON EMBRODEIRY"; break;
+                    case 'WASHING': $kata1 = "BIAYA MAKLOON WASHING"; break;
+                    case 'PAINTING': $kata1 = "BIAYA MAKLOON PAINTING"; break;
+                    case 'HEATSEAL': $kata1 = "BIAYA MAKLOON HEATSEAL"; break;
+                    default: $kata1 = "BIAYA MAKLOON LAINNYA";
+                }
+            } else {
+                switch ($n_code_category) {
+                    case '1': $kata1 = "PEMBELIAN PERSEDIAAN ATK"; break;
+                    case '2': $kata1 = "PEMBELIAN PERSEDIAAN UMUM"; break;
+                    case '3': $kata1 = "BIAYA PERSEDIAAN SPAREPARTS"; break;
+                    case '4': $kata1 = "BIAYA MESIN"; break;
+                    default: $kata1 = "";
+                }
+            }
+            $description = $kata1 . " " . $no_bpb . " DARI " . $supp;
+
+            $sqlcoa_cre = DB::connection('mysql_sb')->select("
+                select no_coa, nama_coa from mastercoa_v2
+                where cus_ctg like ? and mattype like ? and matclass like ? and n_code_category like ? and inv_type like '%bpb_credit%' limit 1
+                ", ["%$cust_ctg%", "%$mattype%", "%$matclass%", "%$n_code_category%"]);
+            $no_coa_cre = $sqlcoa_cre ? $sqlcoa_cre[0]->no_coa : '-';
+            $nama_coa_cre = $sqlcoa_cre ? $sqlcoa_cre[0]->nama_coa : '-';
+
+            $sqlcoa_deb = DB::connection('mysql_sb')->select("
+                select no_coa, nama_coa from mastercoa_v2
+                where cus_ctg like ? and mattype like ? and matclass like ? and n_code_category like ? and inv_type like '%bpb_debit%' limit 1
+                ", ["%$cust_ctg%", "%$mattype%", "%$matclass%", "%$n_code_category%"]);
+            $no_coa_deb = $sqlcoa_deb ? $sqlcoa_deb[0]->no_coa : '-';
+            $nama_coa_deb = $sqlcoa_deb ? $sqlcoa_deb[0]->nama_coa : '-';
+
+            Journal::create([
+                'no_journal' => $no_bpb,
+                'tgl_journal' => $tgl_bpb,
+                'type_journal' => 'AP - BPB',
+                'no_coa' => $no_coa_cre,
+                'nama_coa' => $nama_coa_cre,
+                'no_costcenter' => 'DEP13SUB001',
+                'nama_costcenter' => 'PACKING',
+                'curr' => $curr,
+                'rate' => $rate,
+                'debit' => 0,
+                'credit' => $total,
+                'debit_idr' => 0,
+                'credit_idr' => $idr_total,
+                'status' => 'Approved',
+                'keterangan' => $description,
+                'create_by' => $username,
+                'create_date' => $dateinput_,
+                'approve_by' => Auth::user()->name,
+                'approve_date' => $timestamp,
+                'profit_center' => 'NAG',
+            ]);
+
+            Journal::create([
+                'no_journal' => $no_bpb,
+                'tgl_journal' => $tgl_bpb,
+                'type_journal' => 'AP - BPB',
+                'no_coa' => $no_coa_deb,
+                'nama_coa' => $nama_coa_deb,
+                'no_costcenter' => 'DEP13SUB001',
+                'nama_costcenter' => 'PACKING',
+                'curr' => $curr,
+                'rate' => $rate,
+                'debit' => $dpp,
+                'credit' => 0,
+                'debit_idr' => $idr_dpp,
+                'credit_idr' => 0,
+                'status' => 'Approved',
+                'keterangan' => $description,
+                'create_by' => $username,
+                'create_date' => $dateinput_,
+                'approve_by' => Auth::user()->name,
+                'approve_date' => $timestamp,
+                'profit_center' => 'NAG',
+            ]);
+
+            if ($tax >= 1) {
+                $sqlcoa_ppn = DB::connection('mysql_sb')->select("select no_coa, nama_coa from mastercoa_v2 where inv_type like '%PPN MASUKAN%' limit 1");
+                $no_coa_ppn = $sqlcoa_ppn ? $sqlcoa_ppn[0]->no_coa : '-';
+                $nama_coa_ppn = $sqlcoa_ppn ? $sqlcoa_ppn[0]->nama_coa : '-';
+
+                Journal::create([
+                    'no_journal' => $no_bpb,
+                    'tgl_journal' => $tgl_bpb,
+                    'type_journal' => 'AP - BPB',
+                    'no_coa' => $no_coa_ppn,
+                    'nama_coa' => $nama_coa_ppn,
+                    'no_costcenter' => 'DEP13SUB001',
+                    'nama_costcenter' => 'PACKING',
+                    'curr' => $curr,
+                    'rate' => $rate,
+                    'debit' => $ppn,
+                    'credit' => 0,
+                    'debit_idr' => $idr_ppn,
+                    'credit_idr' => 0,
+                    'status' => 'Approved',
+                    'keterangan' => $description,
+                    'create_by' => $username,
+                    'create_date' => $dateinput_,
+                    'approve_by' => Auth::user()->name,
+                    'approve_date' => $timestamp,
+                    'profit_center' => 'NAG',
+                ]);
+            }
+
+            if ($tipe_com == 'BUYER') {
+
+                Journal::create([
+                'no_journal' => $no_bpb,
+                'tgl_journal' => $tgl_bpb,
+                'type_journal' => 'AP - BPB',
+                'no_coa' => $no_coa_deb,
+                'nama_coa' => $nama_coa_deb,
+                'no_costcenter' => 'DEP13SUB001',
+                'nama_costcenter' => 'PACKING',
+                'curr' => $curr,
+                'rate' => $rate,
+                'debit' => 0,
+                'credit' => $dpp,
+                'debit_idr' => 0,
+                'credit_idr' => $idr_dpp,
+                'status' => 'Approved',
+                'keterangan' => $description,
+                'create_by' => $username,
+                'create_date' => $dateinput_,
+                'approve_by' => Auth::user()->name,
+                'approve_date' => $timestamp,
+                'profit_center' => 'NAG',
+            ]);
+
+                Journal::create([
+                'no_journal' => $no_bpb,
+                'tgl_journal' => $tgl_bpb,
+                'type_journal' => 'AP - BPB',
+                'no_coa' => '1.34.05',
+                'nama_coa' => 'PIUTANG LAIN-LAIN PIHAK KETIGA - BAHAN BAKU / BAHAN PEMBANTU',
+                'no_costcenter' => 'DEP13SUB001',
+                'nama_costcenter' => 'PACKING',
+                'curr' => $curr,
+                'rate' => $rate,
+                'debit' => $total,
+                'credit' => 0,
+                'debit_idr' => $idr_total,
+                'credit_idr' => 0,
+                'status' => 'Approved',
+                'keterangan' => $description,
+                'create_by' => $username,
+                'create_date' => $dateinput_,
+                'approve_by' => Auth::user()->name,
+                'approve_date' => $timestamp,
+                'profit_center' => 'NAG',
+            ]);
+
+                if ($tax >= 1) {
+                $sqlcoa_ppn = DB::connection('mysql_sb')->select("select no_coa, nama_coa from mastercoa_v2 where inv_type like '%PPN MASUKAN%' limit 1");
+                $no_coa_ppn = $sqlcoa_ppn ? $sqlcoa_ppn[0]->no_coa : '-';
+                $nama_coa_ppn = $sqlcoa_ppn ? $sqlcoa_ppn[0]->nama_coa : '-';
+
+                Journal::create([
+                    'no_journal' => $no_bpb,
+                    'tgl_journal' => $tgl_bpb,
+                    'type_journal' => 'AP - BPB',
+                    'no_coa' => $no_coa_ppn,
+                    'nama_coa' => $nama_coa_ppn,
+                    'no_costcenter' => 'DEP13SUB001',
+                    'nama_costcenter' => 'PACKING',
+                    'curr' => $curr,
+                    'rate' => $rate,
+                    'debit' => 0,
+                    'credit' => $ppn,
+                    'debit_idr' => 0,
+                    'credit_idr' => $idr_ppn,
+                    'status' => 'Approved',
+                    'keterangan' => $description,
+                    'create_by' => $username,
+                    'create_date' => $dateinput_,
+                    'approve_by' => Auth::user()->name,
+                    'approve_date' => $timestamp,
+                    'profit_center' => 'NAG',
+                ]);
+            }
+
+            }
+
+        }
+
+        return response()->json([
+            "status" => 200,
+            "message" => "Approved Data Successfully",
+            "additional" => [],
+        ]);
+    }
 
 
     /**
