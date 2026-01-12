@@ -929,10 +929,7 @@
                 totPakaiEl.value = qtyPakai + qtyReject;
 
                 // Short roll = qty pakai + qty reject + sisa kain - qty roll
-                shortRollEl.value = qtyPakai + qtyReject + qtySisa;
-
-                // Optional: cegah short roll negatif
-                if (shortRollEl.value < 0) shortRollEl.value = 0;
+                shortRollEl.value = Math.round((qtyPakai + qtyReject + qtySisa - qtyRoll) * 100) / 100;
             }
 
             // Pasang event listener untuk semua input yang mempengaruhi
