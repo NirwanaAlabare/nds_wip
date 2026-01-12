@@ -324,7 +324,6 @@ class SecondaryInhouseInController extends Controller
             left join marker_input mi on a.id_marker = mi.kode
             left join secondary_inhouse_in_input si on dc.id_qr_stocker = si.id_qr_stocker
             where dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
-            and ifnull(si.id_qr_stocker,'x') = 'x'
         ");
 
         if ($cekdata && $cekdata[0]) {
@@ -447,9 +446,7 @@ class SecondaryInhouseInController extends Controller
                 id_qr_stocker,
                 qty qty_in,
                 created_by_username as user,
-                '".$batch."' as batch,
-                CURRENT_TIMESTAMP as created_at,
-                CURRENT_TIMESTAMP as updated_at
+                '".$batch."' as batch
             ")->
             where("created_by", Auth::user()->id)->
             get();
