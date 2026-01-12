@@ -717,6 +717,7 @@ class GeneralController extends Controller
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
                 id_roll,
+                id_jo,
                 detail_item,
                 detail_item_color,
                 detail_item_size,
@@ -733,6 +734,7 @@ class GeneralController extends Controller
             FROM (
                 SELECT
                     whs_bppb_det.id_roll,
+                    whs_bppb_det.id_jo,
                     masteritem.itemdesc detail_item,
                     masteritem.color detail_item_color,
                     masteritem.size detail_item_size,
@@ -772,6 +774,7 @@ class GeneralController extends Controller
             $scannedItem = ScannedItem::selectRaw("
                 scanned_item.id,
                 scanned_item.id_roll,
+                scanned_item.id_jo,
                 scanned_item.id_item,
                 scanned_item.detail_item,
                 scanned_item.detail_item_color,
@@ -872,6 +875,7 @@ class GeneralController extends Controller
                     [
                         "id_roll" => strtoupper($id),
                         "id_item" => $newItem[0]->id_item,
+                        "id_jo" => $newItem[0]->id_jo,
                         "color" => '-',
                         "detail_item" => $newItem[0]->detail_item,
                         "detail_item_color" => $newItem[0]->detail_item_color,
