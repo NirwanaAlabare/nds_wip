@@ -87,6 +87,7 @@ use App\Http\Controllers\Sewing\UndoOutputController;
 use App\Http\Controllers\Sewing\ReportDefectController;
 use App\Http\Controllers\Sewing\ReportRejectController;
 use App\Http\Controllers\Sewing\SewingToolsController;
+use App\Http\Controllers\Sewing\SewingSecondaryMasterController;
 
 // Production
 use App\Http\Controllers\Sewing\MasterKursBiController;
@@ -1144,6 +1145,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/import-master-plan', 'importMasterPlan')->name('import-master-plan');
     });
 
+    // Master Defect
     Route::controller(MasterDefectController::class)->prefix("master-defect")->middleware('role:sewing')->group(function () {
         Route::get('/', 'index')->name('master-defect');
 
@@ -1157,6 +1159,15 @@ Route::middleware('auth')->group(function () {
 
         Route::post('merge-defect-type', 'mergeDefectType')->name('merge-defect-type');
         Route::post('merge-defect-area', 'mergeDefectArea')->name('merge-defect-area');
+    });
+
+    //  Master Secondary
+    Route::controller(SewingSecondaryMasterController::class)->prefix("sewing-secondary-master")->middleware('role:sewing')->group(function () {
+        Route::get('/', 'index')->name('sewing-secondary-master');
+
+        Route::put('update-secondary-master', 'updateSecondaryMaster')->name('update-sewing-secondary-master');
+        Route::post('store-secondary-master', 'storeSecondaryMaster')->name('store-sewing-secondary-master');
+        Route::delete('destroy-secondary-master/{id?}', 'destroySecondaryMaster')->name('destroy-sewing-secondary-master');
     });
 
     // Report Daily
