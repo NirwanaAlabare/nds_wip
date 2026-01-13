@@ -34,8 +34,7 @@
             <ul class="navbar-nav">
                 @if ($page == 'dashboard-track')
                     <li class="nav-item dropdown">
-                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ preg_match('/track-ws|track-stocker/', $routeName) ? 'active' : '' }}">Track</a>
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ preg_match('/track-ws|track-stocker/', $routeName) ? 'active' : '' }}">Track</a>
                         <ul class="dropdown-menu border-0 shadow">
                             <li>
                                 <a href="{{ route('track-ws') }}"
@@ -549,6 +548,12 @@
                                     <a href="{{ route('master-defect') }}"
                                         class="dropdown-item {{ $routeName == 'master-defect' ? 'active' : '' }}">
                                         Master Defect <i class="fa-solid fa-circle-exclamation"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('sewing-secondary-master') }}"
+                                        class="dropdown-item {{ $routeName == 'sewing-secondary-master' ? 'active' : '' }}">
+                                        Secondary Sewing Master <i class="fa-solid fa-diagram-project"></i>
                                     </a>
                                 </li>
                             </ul>
