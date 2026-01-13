@@ -14,6 +14,8 @@ use Carbon\Carbon;
 use DNS1D;
 use PDF;
 use DB;
+//
+use Illuminate\Support\Facades\Auth;
 
 class RollController extends Controller
 {
@@ -113,7 +115,7 @@ class RollController extends Controller
         //             left join marker_input mrk on a.id_marker = mrk.kode
         //         where
         //             (a.cancel = 'N'  OR a.cancel IS NULL)
-	    //             AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
+        //             AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
         //             and b.status != 'not completed'
         //             and id_item is not null
         //             " . $additionalQuery . "
@@ -282,8 +284,8 @@ class RollController extends Controller
                     and b.id_item is not null
                     AND a.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
                     AND b.created_at >= DATE(NOW()-INTERVAL 6 MONTH)
-                    ".$additionalQuery."
-                    ".$keywordQuery."
+                    " . $additionalQuery . "
+                    " . $keywordQuery . "
                 group by
                     b.id
                 union
@@ -359,8 +361,8 @@ class RollController extends Controller
                     left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
                 where
                     id_item is not null
-                    ".$additionalQuery1."
-                    ".$keywordQuery1."
+                    " . $additionalQuery1 . "
+                    " . $keywordQuery1 . "
                 group by
                     form_cut_piping.id
                 union
@@ -438,8 +440,8 @@ class RollController extends Controller
                 where
                     scanned_item.id_item is not null and
                     form_cut_piece_detail.status = 'complete'
-                    ".$additionalQuery2."
-                    ".$keywordQuery2."
+                    " . $additionalQuery2 . "
+                    " . $keywordQuery2 . "
                 group by
                     form_cut_piece_detail.id
             ) roll_consumption
@@ -455,39 +457,21 @@ class RollController extends Controller
 
     public function getSupplier(Request $request)
     {
-        $suppliers = DB::connection('mysql_sb')->table('mastersupplier')->
-            selectRaw('Id_Supplier as id, Supplier as name')->
-            leftJoin('act_costing', 'act_costing.id_buyer', '=', 'mastersupplier.Id_Supplier')->
-            where('mastersupplier.tipe_sup', 'C')->
-            where('status', '!=', 'CANCEL')->
-            where('type_ws', 'STD')->
-            where('cost_date', '>=', '2023-01-01')->
-            orderBy('Supplier', 'ASC')->
-            groupBy('Id_Supplier', 'Supplier')->
-            get();
+        $suppliers = DB::connection('mysql_sb')->table('mastersupplier')->selectRaw('Id_Supplier as id, Supplier as name')->leftJoin('act_costing', 'act_costing.id_buyer', '=', 'mastersupplier.Id_Supplier')->where('mastersupplier.tipe_sup', 'C')->where('status', '!=', 'CANCEL')->where('type_ws', 'STD')->where('cost_date', '>=', '2023-01-01')->orderBy('Supplier', 'ASC')->groupBy('Id_Supplier', 'Supplier')->get();
 
         return $suppliers;
     }
 
     public function getOrder(Request $request)
     {
-        $orderSql = DB::connection('mysql_sb')->
-            table('act_costing')->
-            selectRaw('
+        $orderSql = DB::connection('mysql_sb')->table('act_costing')->selectRaw('
                 id as id_ws,
                 kpno as no_ws
-            ')->
-            where('status', '!=', 'CANCEL')->
-            where('cost_date', '>=', '2023-01-01')->
-            where('type_ws', 'STD');
-            if ($request->supplier) {
-                $orderSql->where('id_buyer', $request->supplier);
-            }
-            $orders = $orderSql->
-                orderBy('cost_date', 'desc')->
-                orderBy('kpno', 'asc')->
-                groupBy('kpno')->
-                get();
+            ')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD');
+        if ($request->supplier) {
+            $orderSql->where('id_buyer', $request->supplier);
+        }
+        $orders = $orderSql->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
         return $orders;
     }
@@ -497,7 +481,7 @@ class RollController extends Controller
         ini_set("memory_limit", "2048M");
         ini_set("max_execution_time", 36000);
 
-        return Excel::download(new ExportLaporanRoll($request->dateFrom, $request->dateTo, $request->supplier, $request->id_ws), 'Laporan pemakaian cutting '.$request->dateFrom.' - '.$request->dateTo.' ('.Carbon::now().').xlsx');
+        return Excel::download(new ExportLaporanRoll($request->dateFrom, $request->dateTo, $request->supplier, $request->id_ws), 'Laporan pemakaian cutting ' . $request->dateFrom . ' - ' . $request->dateTo . ' (' . Carbon::now() . ').xlsx');
     }
 
     public function sisaKainRoll(Request $request)
@@ -528,7 +512,7 @@ class RollController extends Controller
                 LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
                 LEFT JOIN whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
             WHERE
-                whs_bppb_det.id_roll = '".$request->id."'
+                whs_bppb_det.id_roll = '" . $request->id . "'
                 AND whs_bppb_h.tujuan = 'Production - Cutting'
                 AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
             GROUP BY
@@ -584,7 +568,7 @@ class RollController extends Controller
                 FROM
                     whs_bppb_det
                     LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
-                    LEFT JOIN (SELECT no_barcode, id_item, no_roll_buyer FROM whs_lokasi_inmaterial where no_barcode = '".$id."' GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                    LEFT JOIN (SELECT no_barcode, id_item, no_roll_buyer FROM whs_lokasi_inmaterial where no_barcode = '" . $id . "' GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
                     LEFT JOIN masteritem ON masteritem.id_item = whs_lokasi_inmaterial.id_item
                     LEFT JOIN bom_jo_item bji ON bji.id_item = masteritem.id_gen
                     LEFT JOIN so_det ON so_det.id = bji.id_so_det
@@ -592,13 +576,13 @@ class RollController extends Controller
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
                     LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
                 WHERE
-                    whs_bppb_det.id_roll = '".$id."'
+                    whs_bppb_det.id_roll = '" . $id . "'
                     AND whs_bppb_h.tujuan = 'Production - Cutting'
                     AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
                 GROUP BY
                     whs_bppb_det.id
             ) item
-            LEFT JOIN (select no_barcode, sum(qty_aktual) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.no_barcode = '".$id."' and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = item.id_roll
+            LEFT JOIN (select no_barcode, sum(qty_aktual) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.no_barcode = '" . $id . "' and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = item.id_roll
             GROUP BY
                     id_roll
             LIMIT 1
@@ -622,15 +606,7 @@ class RollController extends Controller
                 scanned_item.qty_stok,
                 scanned_item.unit,
                 COALESCE(scanned_item.updated_at, scanned_item.created_at) updated_at
-            ")->
-            leftJoin('form_cut_input_detail', 'form_cut_input_detail.id_roll', '=', 'scanned_item.id_roll')->
-            leftJoin('form_cut_input', 'form_cut_input.id', '=', 'form_cut_input_detail.form_cut_id')->
-            leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->
-            leftJoin('form_cut_piece_detail', 'form_cut_piece_detail.id_roll', '=', 'scanned_item.id_roll')->
-            leftJoin('form_cut_piece', 'form_cut_piece.id', '=', 'form_cut_piece_detail.form_id')->
-            where('scanned_item.id_roll', $id)->
-            where('scanned_item.id_item', $newItem[0]->id_item)->
-            first();
+            ")->leftJoin('form_cut_input_detail', 'form_cut_input_detail.id_roll', '=', 'scanned_item.id_roll')->leftJoin('form_cut_input', 'form_cut_input.id', '=', 'form_cut_input_detail.form_cut_id')->leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->leftJoin('form_cut_piece_detail', 'form_cut_piece_detail.id_roll', '=', 'scanned_item.id_roll')->leftJoin('form_cut_piece', 'form_cut_piece.id', '=', 'form_cut_piece_detail.form_id')->where('scanned_item.id_roll', $id)->where('scanned_item.id_item', $newItem[0]->id_item)->first();
 
             if ($scannedItem) {
                 $scannedItem->qty_stok = $newItem[0]->qty_stok;
@@ -701,13 +677,7 @@ class RollController extends Controller
                 scanned_item.qty_stok,
                 scanned_item.unit,
                 COALESCE(scanned_item.updated_at, scanned_item.created_at) updated_at
-            ")->
-            leftJoin('form_cut_input_detail', 'form_cut_input_detail.id_roll', '=', 'scanned_item.id_roll')->
-            leftJoin('form_cut_input', 'form_cut_input.id', '=', 'form_cut_input_detail.form_cut_id')->
-            leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->
-            where('scanned_item.id_roll', $id)->
-            where('scanned_item.id_item', $item[0]->id_item)->
-            first();
+            ")->leftJoin('form_cut_input_detail', 'form_cut_input_detail.id_roll', '=', 'scanned_item.id_roll')->leftJoin('form_cut_input', 'form_cut_input.id', '=', 'form_cut_input_detail.form_cut_id')->leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->where('scanned_item.id_roll', $id)->where('scanned_item.id_item', $item[0]->id_item)->first();
 
             if ($scannedItem && $scannedItem->buyer) {
                 return json_encode($scannedItem);
@@ -719,7 +689,8 @@ class RollController extends Controller
         return  null;
     }
 
-    public function getSisaKainForm(Request $request) {
+    public function getSisaKainForm(Request $request)
+    {
         $forms = DB::select("
             SELECT
                 form_cut_input.id id_form,
@@ -740,7 +711,7 @@ class RollController extends Controller
                 LEFT JOIN `form_cut_input` ON `form_cut_input`.`id` = `form_cut_input_detail`.`form_cut_id`
             WHERE
                 ( form_cut_input.status != 'SELESAI PENGERJAAN' OR ( form_cut_input.status = 'SELESAI PENGERJAAN' AND form_cut_input.status != 'not complete' AND form_cut_input.status != 'extension' ) )
-                AND `id_roll` = '".$request->id."'
+                AND `id_roll` = '" . $request->id . "'
                 AND ( id_roll IS NOT NULL AND id_roll != '' )
                 AND form_cut_input_detail.updated_at >= DATE ( NOW()- INTERVAL 2 YEAR )
             GROUP BY
@@ -767,7 +738,7 @@ class RollController extends Controller
                 LEFT JOIN `form_cut_piece` ON `form_cut_piece`.`id` = `form_cut_piece_detail`.`form_id`
             WHERE
                 ( form_cut_piece.status = 'complete' OR form_cut_piece_detail.status = 'complete' )
-                AND `id_roll` = '".$request->id."'
+                AND `id_roll` = '" . $request->id . "'
                 AND ( id_roll IS NOT NULL AND id_roll != '' )
                 AND form_cut_piece_detail.updated_at >= DATE ( NOW()- INTERVAL 2 YEAR )
             GROUP BY
@@ -792,7 +763,7 @@ class RollController extends Controller
             FROM
                 `form_cut_piping`
             WHERE
-                `id_roll` = '".$request->id."'
+                `id_roll` = '" . $request->id . "'
                 AND ( id_roll IS NOT NULL AND id_roll != '' )
                 AND form_cut_piping.updated_at >= DATE ( NOW()- INTERVAL 2 YEAR )
             GROUP BY
@@ -831,10 +802,10 @@ class RollController extends Controller
                 LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
                 LEFT JOIN masteritem ON masteritem.id_item = whs_bppb_det.id_item
                 LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
-                LEFT JOIN (SELECT * from whs_lokasi_inmaterial WHERE no_barcode = '".$id."' ORDER BY id DESC LIMIT 1) as whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
-                LEFT JOIN (select no_barcode, sum(qty_aktual) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.no_barcode = '".$id."' and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = whs_bppb_det.id_roll
+                LEFT JOIN (SELECT * from whs_lokasi_inmaterial WHERE no_barcode = '" . $id . "' ORDER BY id DESC LIMIT 1) as whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                LEFT JOIN (select no_barcode, sum(qty_aktual) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.no_barcode = '" . $id . "' and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = whs_bppb_det.id_roll
             WHERE
-                whs_bppb_det.id_roll = '".$id."'
+                whs_bppb_det.id_roll = '" . $id . "'
                 AND whs_bppb_h.tujuan = 'Production - Cutting'
                 AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
                 AND whs_bppb_det.no_bppb LIKE '%GK/OUT%'
@@ -886,18 +857,12 @@ class RollController extends Controller
                 COALESCE(scanned_item.qty, MIN(form_cut_input_detail.sisa_kain)) sisa_kain,
                 scanned_item.unit,
                 GROUP_CONCAT(DISTINCT CONCAT( form_cut_input.no_form, ' | ', COALESCE(form_cut_input.operator, '-')) SEPARATOR '^') AS no_form
-            ")->
-            leftJoin("form_cut_input_detail", "form_cut_input_detail.id_roll", "=", "scanned_item.id_roll")->
-            leftJoin("form_cut_input", "form_cut_input.id", "=", "form_cut_input_detail.form_cut_id")->
-            where("scanned_item.id_roll", $id)->
-            orderBy("scanned_item.id", "desc")->
-            groupBy("scanned_item.id_roll")->
-            first();
+            ")->leftJoin("form_cut_input_detail", "form_cut_input_detail.id_roll", "=", "scanned_item.id_roll")->leftJoin("form_cut_input", "form_cut_input.id", "=", "form_cut_input_detail.form_cut_id")->where("scanned_item.id_roll", $id)->orderBy("scanned_item.id", "desc")->groupBy("scanned_item.id_roll")->first();
 
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
         $pdf = PDF::loadView('cutting.roll.pdf.sisa-kain-roll', ["sbItem" => ($sbItem ? $sbItem[0] : null), "ndsItem" => $ndsItem])->setPaper('a7', 'landscape');
 
-        $fileName = 'Sisa_Kain_'.$id.'.pdf';
+        $fileName = 'Sisa_Kain_' . $id . '.pdf';
 
         return $pdf->download(str_replace("/", "_", $fileName));
     }
@@ -933,10 +898,10 @@ class RollController extends Controller
                 LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
                 LEFT JOIN masteritem ON masteritem.id_item = whs_bppb_det.id_item
                 LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
-                LEFT JOIN (SELECT * FROM whs_lokasi_inmaterial WHERE no_barcode in (".$idsStr.") GROUP BY no_barcode) as whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
-                LEFT JOIN (select no_barcode, sum(qty_aktual) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where no_barcode in (".$idsStr.") and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = whs_bppb_det.id_roll
+                LEFT JOIN (SELECT * FROM whs_lokasi_inmaterial WHERE no_barcode in (" . $idsStr . ") GROUP BY no_barcode) as whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                LEFT JOIN (select no_barcode, sum(qty_aktual) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where no_barcode in (" . $idsStr . ") and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = whs_bppb_det.id_roll
             WHERE
-                whs_bppb_det.id_roll in (".$idsStr.")
+                whs_bppb_det.id_roll in (" . $idsStr . ")
                 AND whs_bppb_h.tujuan = 'Production - Cutting'
                 AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
                 AND whs_bppb_det.no_bppb LIKE '%GK/OUT%'
@@ -976,7 +941,7 @@ class RollController extends Controller
                     INNER JOIN act_costing ac ON so.id_cost = ac.id
                     INNER JOIN master_rak mr ON br.id_rak_loc = mr.id
                 WHERE
-                    br.id in (".$idsStr.")
+                    br.id in (" . $idsStr . ")
                     AND cast(roll_qty AS DECIMAL ( 11, 3 )) > 0.000
             ");
         }
@@ -987,13 +952,7 @@ class RollController extends Controller
                 COALESCE(scanned_item.qty, MIN(form_cut_input_detail.sisa_kain)) sisa_kain,
                 scanned_item.unit,
                 GROUP_CONCAT(DISTINCT CONCAT( form_cut_input.no_form, ' | ', COALESCE(form_cut_input.operator, '-')) SEPARATOR '^') AS no_form
-            ")->
-            leftJoin("form_cut_input_detail", "form_cut_input_detail.id_roll", "=", "scanned_item.id_roll")->
-            leftJoin("form_cut_input", "form_cut_input.id", "=", "form_cut_input_detail.form_cut_id")->
-            whereRaw("scanned_item.id_roll in (".$idsStr.")")->
-            orderBy("scanned_item.id", "desc")->
-            groupBy("scanned_item.id_roll")->
-            get();
+            ")->leftJoin("form_cut_input_detail", "form_cut_input_detail.id_roll", "=", "scanned_item.id_roll")->leftJoin("form_cut_input", "form_cut_input.id", "=", "form_cut_input_detail.form_cut_id")->whereRaw("scanned_item.id_roll in (" . $idsStr . ")")->orderBy("scanned_item.id", "desc")->groupBy("scanned_item.id_roll")->get();
 
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
         $pdf = PDF::loadView('cutting.roll.pdf.mass-sisa-kain-roll', ["sbItems" => ($sbItems ? $sbItems : null), "ndsItems" => $ndsItems])->setPaper('a7', 'landscape');
@@ -1002,6 +961,117 @@ class RollController extends Controller
 
         return $pdf->download(str_replace("/", "_", $fileName));
     }
+
+
+    /// alokasi fabric gr panel
+    public function alokasi_fabric_gr_panel(Request $request)
+    {
+        $tgl_awal = $request->dateFrom;
+        $tgl_akhir = $request->dateTo;
+        $tgl_skrg = date('Y-m-d');
+        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
+        $user = Auth::user()->name;
+
+        if ($request->ajax()) {
+            $data_input = DB::select("SELECT
+a.tgl_trans,
+DATE_FORMAT(a.tgl_trans, '%d-%M-%Y') AS tgl_trans_fix,
+barcode,
+id_item,
+buyer,
+c.kpno as ws,
+c.styleno,
+color,
+a.qty_pakai,
+b.unit,
+a.created_by,
+a.updated_at
+from form_cut_alokasi_gr_panel_barcode a
+left join scanned_item b on a.barcode = b.id_roll
+left join (
+select supplier as buyer,ac.styleno,jd.id_jo, ac.kpno
+from signalbit_erp.jo_det jd
+         inner join signalbit_erp.so on jd.id_so = so.id
+         inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
+		    inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.id_supplier
+         where jd.cancel = 'N'
+         group by id_cost order by id_jo asc
+) c on b.id_jo = c.id_jo
+ where a.tgl_trans >= '$tgl_awal' and a.tgl_trans <= '$tgl_akhir'
+ order by a.tgl_trans desc
+            ");
+
+            return DataTables::of($data_input)->toJson();
+        }
+
+        return view(
+            'cutting.roll.alokasi_fabric_gr_panel',
+            [
+                'page' => 'dashboard-cutting',
+                "subPageGroup" => "laporan-cutting",
+                "subPage" => "alokasi-fabric-gr-panel",
+                'tgl_skrg_min_sebulan' => $tgl_skrg_min_sebulan,
+                'tgl_skrg' => $tgl_skrg,
+                "user" => $user
+            ]
+        );
+    }
+
+    public function create_alokasi_fabric_gr_panel(Request $request)
+    {
+        $user = Auth::user()->name;
+
+        return view(
+            'cutting.roll.create_alokasi_fabric_gr_panel',
+            [
+                'page' => 'dashboard-cutting',
+                "subPageGroup" => "laporan-cutting",
+                "subPage" => "alokasi-fabric-gr-panel",
+                "user" => $user
+            ]
+        );
+    }
+
+
+    public function save_alokasi_fabric_gr_panel(Request $request)
+    {
+        $user = Auth::user()->name;
+        $timestamp = Carbon::now();
+
+        $barcode = $request->barcode;
+        $qty_roll = $request->qty_roll;
+        $qty_sisa = $request->qty_sisa;
+        $qty_pakai = $request->qty_pakai;
+        $today     = date('Y-m-d');
+
+        // Update scanned item (roll detail & qty)
+        ScannedItem::updateOrCreate(
+            ["id_roll" => $barcode],
+            [
+                "qty" => $qty_sisa,
+            ]
+        );
+
+
+        $id = DB::table('form_cut_alokasi_gr_panel_barcode')->insertGetId([
+            'tgl_trans'             => $today,
+            'barcode'               => $barcode,
+            'qty_roll'              => $qty_roll,
+            'qty_pakai'             => $qty_pakai,
+            'sisa_kain'             => $qty_sisa,
+            'created_by'            => $user,
+            'created_at'            => $timestamp,
+            'updated_at'            => $timestamp,
+        ]);
+
+        // Return detailed response
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Form berhasil disimpan.'
+        ]);
+    }
+
+
 
     public function create()
     {

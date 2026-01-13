@@ -44,6 +44,7 @@ use App\Http\Controllers\Cutting\CuttingPlanController;
 use App\Http\Controllers\Cutting\ReportCuttingController;
 use App\Http\Controllers\Cutting\CompletedFormController;
 use App\Http\Controllers\Cutting\RollController;
+use App\Http\Controllers\Cutting\GantiRejectController;
 // Piping Process
 use App\Http\Controllers\Cutting\MasterPipingController;
 use App\Http\Controllers\Cutting\PipingProcessController;
@@ -735,6 +736,20 @@ Route::middleware('auth')->group(function () {
         // print
         Route::post('/sisa_kain/print/{id?}', 'printSisaKain')->name('print_sisa_kain');
         Route::post('/mass_sisa_kain/print', 'massPrintSisaKain')->name('mass_print_sisa_kain');
+        // alokasi fabric gr panel
+        Route::get('/alokasi_fabric_gr_panel', 'alokasi_fabric_gr_panel')->name('alokasi_fabric_gr_panel');
+        Route::get('/create_alokasi_fabric_gr_panel', 'create_alokasi_fabric_gr_panel')->name('create_alokasi_fabric_gr_panel');
+        Route::post('/save_alokasi_fabric_gr_panel', 'save_alokasi_fabric_gr_panel')->name('save_alokasi_fabric_gr_panel');
+    });
+
+    // Ganti Reject GR
+    Route::controller(GantiRejectController::class)->prefix("ganti_reject")->middleware('role:cutting')->group(function () {
+        // form ganti reject panel gr
+        Route::get('/form_gr_panel', 'form_gr_panel')->name('form_gr_panel');
+        Route::get('/create_form_gr_panel', 'create_form_gr_panel')->name('create_form_gr_panel');
+        Route::get('/get_barcode_form_gr_panel/{id?}', 'get_barcode_form_gr_panel')->name('get_barcode_form_gr_panel');
+        Route::get('/get_ws_all_form_gr_panel', 'get_ws_all_form_gr_panel')->name('get_ws_all_form_gr_panel');
+        Route::post('/save_form_gr_panel', 'save_form_gr_panel')->name('save_form_gr_panel');
     });
 
     // Cutting Tools

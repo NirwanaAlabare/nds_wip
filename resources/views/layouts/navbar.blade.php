@@ -178,6 +178,12 @@
                                             Bintex Sisa Kain <i class="fa-solid fa-toilet-paper-slash fa-sm"></i>
                                         </a>
                                     </li>
+                                    <li>
+                                        <a href="{{ route('alokasi_fabric_gr_panel') }}"
+                                            class="dropdown-item {{ $subPage == 'alokasi-fabric-gr-panel' ? 'active' : '' }}">
+                                            Alokasi Fabric GR Panel <i class="fa-solid fa-toilet-paper fa-sm"></i>
+                                        </a>
+                                    </li>
                                 </ul>
                             </li>
                             <li class="nav-item dropdown">
@@ -264,6 +270,12 @@
                                         Stocker <i class="fa-solid fa-receipt"></i>
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('form_gr_panel') }}"
+                                        class="dropdown-item {{ $routeName == 'form_gr_panel' ? 'active' : '' }}">
+                                        Form GR Panel <i class="fa-solid fa-file"></i>
+                                    </a>
+                                </li>
                             </ul>
                         </li>
                     @endrole
@@ -344,7 +356,8 @@
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
-                            <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'secondary-dc' ? 'active' : '' }}">Secondary</a>
+                            <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+                                class="nav-link dropdown-toggle {{ $subPageGroup == 'secondary-dc' ? 'active' : '' }}">Secondary</a>
                             <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                                 <li>
                                     <a href="{{ route('secondary-inhouse-in') }}"
