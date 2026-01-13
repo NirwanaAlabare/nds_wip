@@ -59,6 +59,59 @@ class TrackCuttingOutput extends Component
 
         $this->groupBy = $groupBy;
         $this->baseUrl = url('/');
+
+        // Get Range
+        if ($this->selectedOrder) {
+            $formCutFirstDate = DB::table("form_cut_input")
+                ->selectRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) AS tanggal")
+                ->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")
+                ->where("marker_input.act_costing_id", $this->selectedOrder)
+                ->orderByRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut)")
+                ->value("tanggal");
+
+            $formCutLastDate = DB::table("form_cut_input")
+                ->selectRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) AS tanggal")
+                ->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")
+                ->where("marker_input.act_costing_id", $this->selectedOrder)
+                ->orderByRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) DESC")
+                ->value("tanggal");
+
+            $formRejectFirstDate = DB::table("form_cut_reject")
+                ->selectRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) AS tanggal")
+                ->where("form_cut_reject.act_costing_id", $this->selectedOrder)
+                ->orderByRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal)")
+                ->value("tanggal");
+
+            $formRejectLastDate = DB::table("form_cut_reject")
+                ->selectRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) AS tanggal")
+                ->where("form_cut_reject.act_costing_id", $this->selectedOrder)
+                ->orderByRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) DESC")
+                ->value("tanggal");
+
+            $formPcsFirstDate = DB::table("form_cut_piece")
+                ->selectRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) AS tanggal")
+                ->where("form_cut_piece.act_costing_id", $this->selectedOrder)
+                ->orderByRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal)")
+                ->value("tanggal");
+
+            $formPcsLastDate = DB::table("form_cut_piece")
+                ->selectRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) AS tanggal")
+                ->where("form_cut_piece.act_costing_id", $this->selectedOrder)
+                ->orderByRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) DESC")
+                ->value("tanggal");
+
+            $dates = collect([
+                $formCutFirstDate,
+                $formCutLastDate,
+                $formRejectFirstDate,
+                $formRejectLastDate,
+                $formPcsFirstDate,
+                $formPcsLastDate
+            ])->filter(); // remove nulls
+
+            $this->dateFromFilter = $dates->min() ?? date("Y-m-d");
+            $this->dateToFilter   = $dates->max() ?? date("Y-m-d");
+        }
     }
 
     public function clearFilter()
@@ -120,8 +173,6 @@ class TrackCuttingOutput extends Component
 
         $this->dateFromFilter = $dates->min() ?? date("Y-m-d");
         $this->dateToFilter   = $dates->max() ?? date("Y-m-d");
-
-        $this->emit("reloadPage");
     }
 
     public function render()
