@@ -1209,7 +1209,15 @@ class ReportCuttingController extends Controller
             }
         }
 
-        return view('cutting.report.track-cutting-output', ["subPageGroup" => "cutting-report", "subPage" => "cutting-track", "page" => "dashboard-cutting"]);
+        $dateFromFilter = $request->dateFromFilter;
+        $dateToFilter = $request->dateToFilter;
+        $selectedOrder = $request->selectedOrder;
+        $colorFilter = $request->colorFilter;
+        $panelFilter = $request->panelFilter;
+        $mejaFilter = $request->mejaFilter;
+        $groupBy = $request->groupBy;
+
+        return view('cutting.report.track-cutting-output', ["subPageGroup" => "cutting-report", "subPage" => "cutting-track", "page" => "dashboard-cutting", "dateFromFilter" => $dateFromFilter, "dateToFilter" => $dateToFilter, "selectedOrder" => $selectedOrder, "colorFilter" => $colorFilter, "panelFilter" => $panelFilter, "mejaFilter" => $mejaFilter, "groupBy" => $groupBy]);
     }
 
     public function cuttingOrderOutputExport (Request $request) {

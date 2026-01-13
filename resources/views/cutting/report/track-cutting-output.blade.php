@@ -26,7 +26,7 @@
                 <h5 class="card-title fw-bold text-sb text-center"><i class="fa-solid fa-file"></i> Order Cutting Output</h5>
             </div>
             <div class="card-body">
-                @livewire('cutting.track-cutting-output')
+                @livewire('cutting.track-cutting-output', [$dateFromFilter, $dateToFilter, $selectedOrder, $colorFilter, $panelFilter, $mejaFilter, $groupBy])
             </div>
         </div>
     </div>

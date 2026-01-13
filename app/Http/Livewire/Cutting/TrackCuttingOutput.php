@@ -10,14 +10,16 @@ use DB;
 
 class TrackCuttingOutput extends Component
 {
+    public $tableJson;
+
     public $suppliers;
     public $orders;
     public $selectedSupplier;
     public $selectedOrder;
 
     public $orderFilter;
-    public $dailyOrderGroup;
-    public $dailyOrderOutputs;
+    // public $dailyOrderGroup;
+    // public $dailyOrderOutputs;
     public $loadingOrder;
 
     public $dateFromFilter;
@@ -32,25 +34,30 @@ class TrackCuttingOutput extends Component
 
     public $baseUrl;
 
-    public function mount()
+    public function mount($dateFromFilter, $dateToFilter, $selectedOrder, $colorFilter, $panelFilter, $mejaFilter, $groupBy)
     {
+        $this->dateFromFilter = $dateFromFilter;
+        $this->dateToFilter = $dateToFilter;
+
+        $this->tableJson = [];
+
         $this->suppliers = null;
         $this->orders = null;
         $this->selectedSupplier = null;
-        $this->selectedOrder = null;
-        $this->dailyOrderGroup = null;
-        $this->dailyOrderOutputs = null;
+        $this->selectedOrder = $selectedOrder;
+        // $this->dailyOrderGroup = null;
+        // $this->dailyOrderOutputs = null;
         $this->loadingOrderOutput = false;
 
-        $this->dateFromFilter = date('Y-m-d');
-        $this->dateToFilter = date("Y-m-d");
+        // $this->dateFromFilter = date('Y-m-d');
+        // $this->dateToFilter = date("Y-m-d");
 
-        $this->colorFilter = null;
-        $this->panelFilter = null;
-        $this->mejaFilter = null;
+        $this->colorFilter = $colorFilter;
+        $this->panelFilter = $panelFilter;
+        $this->mejaFilter = $mejaFilter;
         $this->sizeFilter = null;
 
-        $this->groupBy = "size";
+        $this->groupBy = $groupBy;
         $this->baseUrl = url('/');
     }
 
@@ -113,6 +120,8 @@ class TrackCuttingOutput extends Component
 
         $this->dateFromFilter = $dates->min() ?? date("Y-m-d");
         $this->dateToFilter   = $dates->max() ?? date("Y-m-d");
+
+        $this->emit("reloadPage");
     }
 
     public function render()
@@ -121,13 +130,15 @@ class TrackCuttingOutput extends Component
 
         $this->loadingOrderOutput = false;
 
+        // Filter
         $dateFilter = " AND COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) between '".$this->dateFromFilter."' and '".$this->dateToFilter."' ";
         $orderFilterQuery = $this->selectedOrder ? " AND marker_cutting.act_costing_id = '".$this->selectedOrder."' " : "";
         $colorFilterQuery = $this->colorFilter ? " AND marker_cutting.color = '".$this->colorFilter."' " : "";
         $panelFilterQuery = $this->panelFilter ? " AND marker_cutting.panel = '".$this->panelFilter."' " : "";
         $mejaFilterQuery = $this->mejaFilter ? " AND marker_cutting.id_meja = '".$this->mejaFilter."' " : "";
-        $sizeFilterQuery = $this->groupBy == "size" && $this->sizeFilter ? "AND marker_cutting.size = '".$this->mejaFilter."'" : "";
+        $sizeFilterQuery = $this->groupBy == "size" && $this->sizeFilter ? "AND marker_cutting.size = '".$this->sizeFilter."'" : "";
 
+        // Supplier List
         $this->suppliers = DB::connection('mysql_sb')->table('mastersupplier')->
             selectRaw('Id_Supplier as id, Supplier as name')->
             leftJoin('act_costing', 'act_costing.id_buyer', '=', 'mastersupplier.Id_Supplier')->
@@ -139,6 +150,7 @@ class TrackCuttingOutput extends Component
             groupBy('Id_Supplier', 'Supplier')->
             get();
 
+        // Order List
         $orderSql = DB::connection('mysql_sb')->
             table('act_costing')->
             selectRaw('
@@ -157,6 +169,7 @@ class TrackCuttingOutput extends Component
             groupBy('kpno')->
             get();
 
+        // Filter Query
         $orderFilterSql = DB::select("
             SELECT
                 meja.id id_meja,
@@ -172,27 +185,27 @@ class TrackCuttingOutput extends Component
             FROM
                 `form_cut_input`
                 LEFT JOIN (
-                SELECT
-                    meja.id id_meja,
-                    meja.`name` meja,
-                    COALESCE ( DATE ( waktu_selesai ), DATE ( waktu_mulai ), tgl_form_cut ) tgl_form,
-                    form_cut_input.id_marker,
-                    form_cut_input.id,
-                    form_cut_input.no_form,
-                    form_cut_input.qty_ply,
-                    form_cut_input.total_lembar,
-                    form_cut_input.notes,
-                    SUM( form_cut_input_detail.lembar_gelaran ) detail
-                FROM
-                    form_cut_input
-                    LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
-                    INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
-                WHERE
-                    form_cut_input.`status` = 'SELESAI PENGERJAAN'
-                    AND form_cut_input.id_marker IS NOT NULL
-                    ".$dateFilter."
-                GROUP BY
-                    form_cut_input.id
+                    SELECT
+                        meja.id id_meja,
+                        meja.`name` meja,
+                        COALESCE ( DATE ( waktu_selesai ), DATE ( waktu_mulai ), tgl_form_cut ) tgl_form,
+                        form_cut_input.id_marker,
+                        form_cut_input.id,
+                        form_cut_input.no_form,
+                        form_cut_input.qty_ply,
+                        form_cut_input.total_lembar,
+                        form_cut_input.notes,
+                        SUM( form_cut_input_detail.lembar_gelaran ) detail
+                    FROM
+                        form_cut_input
+                        LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
+                        INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
+                    WHERE
+                        form_cut_input.`status` = 'SELESAI PENGERJAAN'
+                        AND form_cut_input.id_marker IS NOT NULL
+                        ".$dateFilter."
+                    GROUP BY
+                        form_cut_input.id
                 ) form_cut ON `form_cut`.`id` = `form_cut_input`.`id`
                 LEFT JOIN `users` AS `meja` ON `meja`.`id` = `form_cut_input`.`no_meja`
                 LEFT JOIN `marker_input` ON `marker_input`.`kode` = `form_cut_input`.`id_marker`
@@ -272,148 +285,9 @@ class TrackCuttingOutput extends Component
                 `so_det_id` ASC,
                 `size` ASC
         ");
-
         $this->orderFilter = collect($orderFilterSql);
 
-        $dailyOrderGroupSql = DB::select("
-            SELECT
-                meja.id id_meja,
-                meja.NAME meja,
-                form_cut_input.id_marker,
-                form_cut_input.no_form,
-                COALESCE ( DATE ( waktu_selesai ), DATE ( waktu_mulai ), tgl_form_cut ) tanggal,
-                marker_input.act_costing_id,
-                marker_input.act_costing_ws ws,
-                marker_input.style,
-                marker_input.color,
-                marker_input.panel
-                ".($this->groupBy == 'size' ? ", marker_input_detail.so_det_id, CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size" : '')."
-            FROM
-                `form_cut_input`
-                LEFT JOIN (
-                    SELECT
-                        meja.id id_meja,
-                        meja.`name` meja,
-                        COALESCE ( DATE ( waktu_selesai ), DATE ( waktu_mulai ), tgl_form_cut ) tgl_form,
-                        form_cut_input.id_marker,
-                        form_cut_input.id,
-                        form_cut_input.no_form,
-                        form_cut_input.qty_ply,
-                        form_cut_input.total_lembar,
-                        form_cut_input.notes,
-                        SUM( form_cut_input_detail.lembar_gelaran ) detail
-                    FROM
-                        form_cut_input
-                        LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
-                        INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
-                    WHERE
-                        form_cut_input.`status` = 'SELESAI PENGERJAAN'
-                        AND form_cut_input.id_marker IS NOT NULL
-                        ".$dateFilter."
-                    GROUP BY
-                        form_cut_input.id
-                ) form_cut ON `form_cut`.`id` = `form_cut_input`.`id`
-                LEFT JOIN `users` AS `meja` ON `meja`.`id` = `form_cut_input`.`no_meja`
-                LEFT JOIN `marker_input` ON `marker_input`.`kode` = `form_cut_input`.`id_marker`
-                LEFT JOIN `marker_input_detail` ON `marker_input`.`id` = `marker_input_detail`.`marker_id`
-                AND `marker_input_detail`.`ratio` > 0
-                LEFT JOIN `master_sb_ws` ON `marker_input_detail`.`so_det_id` = `master_sb_ws`.`id_so_det`
-            WHERE
-                form_cut_input.`status` = 'SELESAI PENGERJAAN'
-                AND form_cut_input.id_marker IS NOT NULL
-                AND COALESCE ( form_cut.total_lembar, form_cut.detail ) > 0
-                AND COALESCE ( DATE ( waktu_selesai ), DATE ( waktu_mulai ), tgl_form_cut ) >= '".$this->dateFromFilter."'
-                AND COALESCE ( DATE ( waktu_selesai ), DATE ( waktu_mulai ), tgl_form_cut ) <= '".$this->dateToFilter."' AND form_cut_input.tgl_form_cut >= DATE ( NOW()- INTERVAL 2 YEAR )
-                ".($this->colorFilter ? "AND marker_input.color = '".$this->colorFilter."'" : "")."
-                ".($this->panelFilter ? "AND marker_input.panel = '".$this->panelFilter."'" : "")."
-                ".($this->mejaFilter ? "AND form_cut_input.no_meja = '".$this->mejaFilter."'" : "")."
-                ".($this->sizeFilter ? "AND master_sb_ws.size = '".$this->sizeFilter."'" : "")."
-                ".($this->selectedOrder ? "AND marker_input.act_costing_id = '".$this->selectedOrder."'" : "")."
-            GROUP BY
-                marker_input.act_costing_id,
-                marker_input.style,
-                marker_input.color,
-                marker_input.panel,
-                form_cut_input.no_meja,
-                marker_input_detail.so_det_id
-        UNION
-            SELECT
-                'reject' id_meja,
-                'reject' meja,
-                '-' id_marker,
-                form_cut_reject.no_form,
-                COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) tanggal,
-                form_cut_reject.act_costing_id,
-                form_cut_reject.act_costing_ws ws,
-                form_cut_reject.style,
-                form_cut_reject.color,
-                form_cut_reject.panel
-                ".($this->groupBy == 'size' ? ", form_cut_reject_detail.so_det_id, CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size" : '')."
-            FROM
-                `form_cut_reject`
-                LEFT JOIN `form_cut_reject_detail` ON `form_cut_reject_detail`.`form_id` = `form_cut_reject`.`id`
-                LEFT JOIN `master_sb_ws` ON `form_cut_reject_detail`.`so_det_id` = `master_sb_ws`.`id_so_det`
-            WHERE
-                form_cut_reject_detail.`qty` > 0
-                AND COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) >= '".$this->dateFromFilter."'
-                AND COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) <= '".$this->dateToFilter."' AND form_cut_reject.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
-                ".($this->colorFilter ? "AND form_cut_reject.color = '".$this->colorFilter."'" : "")."
-                ".($this->panelFilter ? "AND form_cut_reject.panel = '".$this->panelFilter."'" : "")."
-                ".($this->mejaFilter ? "AND '-' = '".$this->mejaFilter."'" : "")."
-                ".($this->sizeFilter ? "AND master_sb_ws.size = '".$this->sizeFilter."'" : "")."
-                ".($this->selectedOrder ? "AND form_cut_reject.act_costing_id = '".$this->selectedOrder."'" : "")."
-            GROUP BY
-                form_cut_reject.act_costing_id,
-                form_cut_reject.style,
-                form_cut_reject.color,
-                form_cut_reject.panel,
-                form_cut_reject_detail.so_det_id
-        UNION
-            SELECT
-                'piece' id_meja,
-                'piece' meja,
-                '-' id_marker,
-                form_cut_piece.no_form,
-                COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) tanggal,
-                form_cut_piece.act_costing_id,
-                form_cut_piece.act_costing_ws ws,
-                form_cut_piece.style,
-                form_cut_piece.color,
-                form_cut_piece.panel
-                ".($this->groupBy == 'size' ? ", form_cut_piece_detail_size.so_det_id, CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size" : '')."
-            FROM
-                `form_cut_piece`
-                LEFT JOIN `form_cut_piece_detail` ON `form_cut_piece_detail`.`form_id` = `form_cut_piece`.`id`
-                LEFT JOIN `form_cut_piece_detail_size` ON `form_cut_piece_detail_size`.`form_detail_id` = `form_cut_piece_detail`.`id`
-                LEFT JOIN `master_sb_ws` ON `form_cut_piece_detail_size`.`so_det_id` = `master_sb_ws`.`id_so_det`
-            WHERE
-                form_cut_piece.`status` = 'complete'
-                AND COALESCE ( form_cut_piece_detail_size.qty ) > 0
-                AND COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) >= '".$this->dateFromFilter."'
-                AND COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) <= '".$this->dateToFilter."' AND form_cut_piece.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
-                ".($this->colorFilter ? "AND form_cut_piece.color = '".$this->colorFilter."'" : "")."
-                ".($this->panelFilter ? "AND form_cut_piece.panel = '".$this->panelFilter."'" : "")."
-                ".($this->mejaFilter ? "AND '-' = '".$this->mejaFilter."'" : "")."
-                ".($this->sizeFilter ? "AND master_sb_ws.size = '".$this->sizeFilter."'" : "")."
-                ".($this->selectedOrder ? "AND form_cut_piece.act_costing_id = '".$this->selectedOrder."'" : "")."
-            GROUP BY
-                form_cut_piece.act_costing_id,
-                form_cut_piece.style,
-                form_cut_piece.color,
-                form_cut_piece.panel,
-                form_cut_piece_detail_size.so_det_id
-            ORDER BY
-                `act_costing_id` ASC,
-                `style` ASC,
-                `color` ASC,
-                id_meja ASC,
-                panel,
-                so_det_id ASC,
-                size ASC
-        ");
-
-        $this->dailyOrderGroup = collect($dailyOrderGroupSql);
-
+        // Output Cutting Query
         $dailyOrderOutputSql = collect(
             DB::select("
                 SELECT
@@ -591,16 +465,65 @@ class TrackCuttingOutput extends Component
                     marker_cutting.tgl_form_cut
             ")
         );
+        $dailyOrderOutputs = $dailyOrderOutputSql;
 
-            $this->dailyOrderOutputs = $dailyOrderOutputSql;
+        // Date List
+        $dates = $dailyOrderOutputs
+            ->pluck('tanggal')
+            ->unique()
+            ->sort()
+            ->values();
 
-        if ($this->dailyOrderOutputs->count() > 500) {
-            $this->emit("alert", "Big Data. '".$this->dailyOrderOutputs->count()."' data.");
+        // Group
+        $groupBy = $this->groupBy;
+        $dailyOrderGroup = $dailyOrderOutputs
+            ->groupBy(function ($item) use ($groupBy) {
+                return implode('|', [
+                    $item->ws,
+                    $item->style,
+                    $item->color,
+                    $item->panel,
+                    $item->id_meja,
+                    $groupBy === 'size' ? $item->size : 'all',
+                ]);
+            })
+            ->map(function ($items) {
+                return $items->first(); // representative row
+            })
+            ->values();
+
+        // Group Qty
+        $outputSums = [];
+        foreach ($dailyOrderOutputs as $row) {
+            $key = implode('|', [
+                $row->ws,
+                $row->style,
+                $row->color,
+                $row->panel,
+                $row->id_meja,
+                $groupBy === 'size' ? $row->size : 'all',
+                $row->tanggal,
+            ]);
+
+            if (!isset($outputSums[$key])) {
+                $outputSums[$key] = 0;
+            }
+
+            $outputSums[$key] += $row->qty;
+        }
+
+        if ($dailyOrderOutputs->count() > 500) {
+            $this->emit("alert", "Big Data. '".$dailyOrderOutputs->count()."' data.");
         }
 
         \Log::info("Query Completed");
 
-        return view('livewire.cutting.track-cutting-output');
+        return view('livewire.cutting.track-cutting-output', compact(
+            'dailyOrderGroup',
+            'dates',
+            'outputSums',
+            'groupBy'
+        ));
     }
 
     // public function dehydrate()

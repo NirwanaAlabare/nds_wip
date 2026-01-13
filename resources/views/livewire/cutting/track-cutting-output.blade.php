@@ -50,102 +50,117 @@
         </div>
     </div>
     <div class="table-responsive">
-        <table class="table table-bordered w-auto" id="trackdatatable">
-            <thead>
-                <tr>
-                    <td class="bg-sb text-light">No. WS</td>
-                    <td class="bg-sb text-light">Style</td>
-                    <td class="bg-sb text-light">Color</td>
-                    <td class="bg-sb text-light">Meja</td>
-                    <td class="bg-sb text-light">Panel</td>
-                    @if ($groupBy == 'size')
-                        <td class="bg-sb text-light">Size</td>
-                    @endif
-                    <?php
-                        if ( $dailyOrderOutputs && $dailyOrderOutputs->count() > 0 ) {
-                            foreach ($dailyOrderOutputs->sortBy("tanggal")->groupBy("tanggal") as $dailyDate) {
-                                ?>
-                                    <th class="bg-sb text-light">{{ date_format(date_create($dailyDate->first()->tanggal), "d-m-Y") }}</th>
-                                <?php
-                            }
-                    ?>
-                    <th class="bg-sb text-light text-center">TOTAL</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                        $currentWs = null;
-                        $currentStyle = null;
-                        $currentColor = null;
-                        $currentMeja = null;
-                        $currentPanel = null;
-                        $currentSize = null;
+        @if ($dailyOrderGroup)
+            <table class="table table-bordered w-auto" id="trackdatatable">
+                <thead>
+                    <tr>
+                        <td class="bg-sb text-light">No. WS</td>
+                        <td class="bg-sb text-light">Style</td>
+                        <td class="bg-sb text-light">Color</td>
+                        <td class="bg-sb text-light">Meja</td>
+                        <td class="bg-sb text-light">Panel</td>
 
+                        @if ($groupBy === 'size')
+                            <td class="bg-sb text-light">Size</td>
+                        @endif
+
+                        @foreach ($dates as $tanggal)
+                            <th class="bg-sb text-light">
+                                {{ \Carbon\Carbon::parse($tanggal)->format('d-m-Y') }}
+                            </th>
+                        @endforeach
+
+                        <th class="bg-sb text-light text-center">TOTAL</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @php
                         $dateOutputs = collect();
-                        $totalOutput = null;
+                        $totalOutput = 0;
+                    @endphp
 
-                        foreach ($dailyOrderGroup as $dailyGroup) {
-                            ?>
-                                <tr>
-                                        <td class="text-nowrap"><span class="bg-light text-dark sticky-span">{{ $dailyGroup->ws }}</span></td>
-                                        <td class="text-nowrap"><span class="bg-light text-dark sticky-span">{{ $dailyGroup->style }}</span></td>
-                                        <td class="text-nowrap"><span class="bg-light text-dark sticky-span">{{ $dailyGroup->color }}</span></td>
-                                        <td class="text-nowrap"><span class="bg-light text-dark sticky-span">{{ strtoupper(str_replace('_', ' ', $dailyGroup->meja)) }}</span></td>
-                                        <td class="text-nowrap"><span class="bg-light text-dark sticky-span">{{ $dailyGroup->panel }}</span></td>
-                                        <td class="text-nowrap">{{ $dailyGroup->size }}</td>
-                                    @php
-                                        $thisRowOutput = 0;
-                                    @endphp
-                                    @foreach ($dailyOrderOutputs->sortBy("tanggal")->groupBy("tanggal") as $dailyDate)
-                                        @php
-                                            $thisOutput = 0;
+                    @foreach ($dailyOrderGroup as $dailyGroup)
+                        @php
+                            $thisRowOutput = 0;
+                        @endphp
 
-                                            if ($groupBy == 'size') {
-                                                $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('panel', $dailyGroup->panel)->where('id_meja', $dailyGroup->id_meja)->where('tanggal', $dailyDate->first()->tanggal)->where('size', $dailyGroup->size)->sum("qty");
-                                            } else {
-                                                $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('panel', $dailyGroup->panel)->where('id_meja', $dailyGroup->id_meja)->where('tanggal', $dailyDate->first()->tanggal)->sum("qty");
-                                            }
+                        <tr wire:key="row-{{ $dailyGroup->ws }}-{{ $dailyGroup->style }}-{{ $dailyGroup->color }}-{{ $dailyGroup->panel }}-{{ $dailyGroup->id_meja }}-{{ $dailyGroup->size ?? 'all' }}">
+                            <td class="text-nowrap">
+                                <span class="bg-light text-dark sticky-span">{{ $dailyGroup->ws }}</span>
+                            </td>
+                            <td class="text-nowrap">
+                                <span class="bg-light text-dark sticky-span">{{ $dailyGroup->style }}</span>
+                            </td>
+                            <td class="text-nowrap">
+                                <span class="bg-light text-dark sticky-span">{{ $dailyGroup->color }}</span>
+                            </td>
+                            <td class="text-nowrap">
+                                <span class="bg-light text-dark sticky-span">
+                                    {{ strtoupper(str_replace('_', ' ', $dailyGroup->meja)) }}
+                                </span>
+                            </td>
+                            <td class="text-nowrap">
+                                <span class="bg-light text-dark sticky-span">{{ $dailyGroup->panel }}</span>
+                            </td>
 
-                                            if (isset($dateOutputs[$dailyDate->first()->tanggal])) {
-                                                $dateOutputs[$dailyDate->first()->tanggal] += $thisOutput;
-                                            } else {
-                                                $dateOutputs->put($dailyDate->first()->tanggal, $thisOutput);
-                                            }
-                                            $thisRowOutput += $thisOutput;
-                                        @endphp
+                            @if ($groupBy === 'size')
+                                <td class="text-nowrap">{{ $dailyGroup->size }}</td>
+                            @endif
 
-                                        <td class="text-end text-nowrap">
-                                            {{ num($thisOutput) }}
-                                        </td>
-                                    @endforeach
-                                    <td class="fw-bold text-end text-nowrap fs-5">
-                                        {{ num($thisRowOutput) }}
-                                    </td>
-                                    @php
-                                        $totalOutput += $thisRowOutput;
-                                    @endphp
-                                </tr>
-                            <?php
-                        }
-                    }
-                ?>
-            </tbody>
-            <tfoot>
-                <tr>
-                    <th colspan="{{ $groupBy == "size" ? '6' : '5' }}" class="bg-sb text-light text-end">
-                        TOTAL
-                    </th>
-                    @if ($dailyOrderOutputs && $dailyOrderOutputs->count() > 0)
-                        @foreach ($dateOutputs as $dateOutput)
+                            @foreach ($dates as $tanggal)
+                                @php
+                                    $key = implode('|', [
+                                        $dailyGroup->ws,
+                                        $dailyGroup->style,
+                                        $dailyGroup->color,
+                                        $dailyGroup->panel,
+                                        $dailyGroup->id_meja,
+                                        $groupBy === 'size' ? $dailyGroup->size : 'all',
+                                        $tanggal,
+                                    ]);
+
+                                    $thisOutput = $outputSums[$key] ?? 0;
+                                    $thisRowOutput += $thisOutput;
+
+                                    $dateOutputs[$tanggal] = ($dateOutputs[$tanggal] ?? 0) + $thisOutput;
+                                @endphp
+
+                                <td class="text-end text-nowrap">
+                                    {{ num($thisOutput) }}
+                                </td>
+                            @endforeach
+
+                            <td class="fw-bold text-end text-nowrap fs-5">
+                                {{ num($thisRowOutput) }}
+                            </td>
+
+                            @php
+                                $totalOutput += $thisRowOutput;
+                            @endphp
+                        </tr>
+                    @endforeach
+                </tbody>
+
+                <tfoot>
+                    <tr>
+                        <th colspan="{{ $groupBy === 'size' ? 6 : 5 }}" class="bg-sb text-light text-end">
+                            TOTAL
+                        </th>
+
+                        @foreach ($dates as $tanggal)
                             <td class="fw-bold text-end text-nowrap fs-5 bg-sb text-light">
-                                {{ num($dateOutput) }}
+                                {{ num($dateOutputs[$tanggal] ?? 0) }}
                             </td>
                         @endforeach
-                        <td class="fw-bold text-end text-nowrap fs-5 bg-sb text-light">{{ num($totalOutput) }}</td>
-                    @endif
-                </tr>
-            </tfoot>
-        </table>
+
+                        <td class="fw-bold text-end text-nowrap fs-5 bg-sb text-light">
+                            {{ num($totalOutput) }}
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        @endif
     </div>
     <!-- Modal -->
     <div class="modal fade" id="filter-modal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true" wire:ignore.self>
@@ -319,13 +334,16 @@
             });
 
             $('#order').on('change', async function (e) {
-                await clearFixedColumn();
+                // await clearFixedColumn();
 
-                @this.set('loadingOrderOutput', true);
+                // @this.set('loadingOrderOutput', true);
 
-                @this.set('selectedOrder', this.value);
+                // @this.set('selectedOrder', this.value);
 
-                Livewire.emit('loadingStart');
+                // Livewire.emit('loadingStart');
+
+                // Reload Page for Better Performance
+                reloadPage();
             });
 
             $('#color').on('change', async function (e) {
@@ -376,12 +394,32 @@
                     5
                 ]
             });
+
+            clearFixedColumn();
+            setFixedColumn();
+
+            $("#order").val(@js($selectedOrder)).trigger("change.select2");
         });
 
         function clearFixedColumn() {
             $('#trackdatatable').DataTable().destroy();
 
             console.log("clearFixedColumn");
+        }
+
+        // Use Reload Page for better performance
+        function reloadPage() {
+            let dateFromFilter = "&dateFromFilter="+$("#dateFrom").val();
+            let dateToFilter = "&dateToFilter="+$("#dateTo").val();
+            let selectedOrder = "&selectedOrder="+$("#order").val();
+            let colorFilter = "&colorFilter="+$("#color").val();
+            let panelFilter = "&panelFilter="+$("#panel").val();
+            let mejaFilter = "&mejaFilter="+$("#meja").val();
+            let groupBy = "&groupBy="+($("#group-by").val() ? $("#group-by").val() : "size");
+
+            let params = dateFromFilter+dateToFilter+selectedOrder+colorFilter+panelFilter+mejaFilter+groupBy
+
+            window.location.href = `{{ route('track-cutting-output') }}?${params}`;
         }
 
         async function setFixedColumn() {
@@ -415,6 +453,10 @@
 
             console.log("initFixedColumn");
         }
+
+        Livewire.on("reloadPage", () => {
+            reloadPage();
+        });
 
         Livewire.on("clearFixedColumn", () => {
             clearFixedColumn();
