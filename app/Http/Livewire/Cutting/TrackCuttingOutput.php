@@ -7,6 +7,7 @@ use App\Models\SignalBit\MasterPlan;
 use App\Models\SignalBit\ActCosting;
 use App\Models\Cutting\FormCutInput;
 use DB;
+use Carbon\Carbon;
 
 class TrackCuttingOutput extends Component
 {
@@ -34,7 +35,11 @@ class TrackCuttingOutput extends Component
 
     public $baseUrl;
 
-    public function mount($dateFromFilter, $dateToFilter, $selectedOrder, $colorFilter, $panelFilter, $mejaFilter, $groupBy)
+    public $aWeekForce;
+
+    public $onFilter;
+
+    public function mount($dateFromFilter, $dateToFilter, $selectedSupplier, $selectedOrder, $colorFilter, $panelFilter, $mejaFilter, $sizeFilter, $groupBy)
     {
         $this->dateFromFilter = $dateFromFilter;
         $this->dateToFilter = $dateToFilter;
@@ -43,7 +48,7 @@ class TrackCuttingOutput extends Component
 
         $this->suppliers = null;
         $this->orders = null;
-        $this->selectedSupplier = null;
+        $this->selectedSupplier = $selectedSupplier;
         $this->selectedOrder = $selectedOrder;
         // $this->dailyOrderGroup = null;
         // $this->dailyOrderOutputs = null;
@@ -55,63 +60,16 @@ class TrackCuttingOutput extends Component
         $this->colorFilter = $colorFilter;
         $this->panelFilter = $panelFilter;
         $this->mejaFilter = $mejaFilter;
-        $this->sizeFilter = null;
+        $this->sizeFilter = $sizeFilter;
+
+        if ($this->colorFilter || $this->panelFilter || $this->mejaFilter || $this->sizeFilter) {
+            $this->onFilter = true;
+        } else {
+            $this->onFilter = false;
+        }
 
         $this->groupBy = $groupBy;
         $this->baseUrl = url('/');
-
-        // Get Range
-        if ($this->selectedOrder) {
-            $formCutFirstDate = DB::table("form_cut_input")
-                ->selectRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) AS tanggal")
-                ->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")
-                ->where("marker_input.act_costing_id", $this->selectedOrder)
-                ->orderByRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut)")
-                ->value("tanggal");
-
-            $formCutLastDate = DB::table("form_cut_input")
-                ->selectRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) AS tanggal")
-                ->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")
-                ->where("marker_input.act_costing_id", $this->selectedOrder)
-                ->orderByRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) DESC")
-                ->value("tanggal");
-
-            $formRejectFirstDate = DB::table("form_cut_reject")
-                ->selectRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) AS tanggal")
-                ->where("form_cut_reject.act_costing_id", $this->selectedOrder)
-                ->orderByRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal)")
-                ->value("tanggal");
-
-            $formRejectLastDate = DB::table("form_cut_reject")
-                ->selectRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) AS tanggal")
-                ->where("form_cut_reject.act_costing_id", $this->selectedOrder)
-                ->orderByRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) DESC")
-                ->value("tanggal");
-
-            $formPcsFirstDate = DB::table("form_cut_piece")
-                ->selectRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) AS tanggal")
-                ->where("form_cut_piece.act_costing_id", $this->selectedOrder)
-                ->orderByRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal)")
-                ->value("tanggal");
-
-            $formPcsLastDate = DB::table("form_cut_piece")
-                ->selectRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) AS tanggal")
-                ->where("form_cut_piece.act_costing_id", $this->selectedOrder)
-                ->orderByRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) DESC")
-                ->value("tanggal");
-
-            $dates = collect([
-                $formCutFirstDate,
-                $formCutLastDate,
-                $formRejectFirstDate,
-                $formRejectLastDate,
-                $formPcsFirstDate,
-                $formPcsLastDate
-            ])->filter(); // remove nulls
-
-            $this->dateFromFilter = $dates->min() ?? date("Y-m-d");
-            $this->dateToFilter   = $dates->max() ?? date("Y-m-d");
-        }
     }
 
     public function clearFilter()
@@ -180,6 +138,70 @@ class TrackCuttingOutput extends Component
         ini_set('max_execution_time', 3600);
 
         $this->loadingOrderOutput = false;
+
+        // Date Range
+        if ($this->selectedOrder) {
+            $formCutFirstDate = DB::table("form_cut_input")
+                ->selectRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) AS tanggal")
+                ->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")
+                ->where("marker_input.act_costing_id", $this->selectedOrder)
+                ->orderByRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut)")
+                ->value("tanggal");
+
+            $formCutLastDate = DB::table("form_cut_input")
+                ->selectRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) AS tanggal")
+                ->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")
+                ->where("marker_input.act_costing_id", $this->selectedOrder)
+                ->orderByRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) DESC")
+                ->value("tanggal");
+
+            $formRejectFirstDate = DB::table("form_cut_reject")
+                ->selectRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) AS tanggal")
+                ->where("form_cut_reject.act_costing_id", $this->selectedOrder)
+                ->orderByRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal)")
+                ->value("tanggal");
+
+            $formRejectLastDate = DB::table("form_cut_reject")
+                ->selectRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) AS tanggal")
+                ->where("form_cut_reject.act_costing_id", $this->selectedOrder)
+                ->orderByRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) DESC")
+                ->value("tanggal");
+
+            $formPcsFirstDate = DB::table("form_cut_piece")
+                ->selectRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) AS tanggal")
+                ->where("form_cut_piece.act_costing_id", $this->selectedOrder)
+                ->orderByRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal)")
+                ->value("tanggal");
+
+            $formPcsLastDate = DB::table("form_cut_piece")
+                ->selectRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) AS tanggal")
+                ->where("form_cut_piece.act_costing_id", $this->selectedOrder)
+                ->orderByRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) DESC")
+                ->value("tanggal");
+
+            $dates = collect([
+                $formCutFirstDate,
+                $formCutLastDate,
+                $formRejectFirstDate,
+                $formRejectLastDate,
+                $formPcsFirstDate,
+                $formPcsLastDate
+            ])->filter(); // remove nulls
+
+            $this->dateFromFilter = $dates->min() ?? date("Y-m-d");
+            $this->dateToFilter   = $dates->max() ?? date("Y-m-d");
+        } else {
+            $dateFrom = Carbon::parse($this->dateFromFilter);
+            $dateTo = Carbon::parse($this->dateToFilter);
+            if ($dateFrom->diffInDays($dateTo) > 7) {
+                $this->dateFromFilter = date('Y-m-d', strtotime('-7 days'));
+                $this->dateToFilter = date('Y-m-d');
+
+                $this->emit("alert", "Date range terlalu luas untuk filter global, otomatis diset ke 7 hari terakhir.");
+
+                $this->aWeekForce = true;
+            }
+        }
 
         // Filter
         $dateFilter = " AND COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) between '".$this->dateFromFilter."' and '".$this->dateToFilter."' ";

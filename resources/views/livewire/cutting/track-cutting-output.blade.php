@@ -9,7 +9,13 @@
             <div class="loading"></div>
         </div>
     </div>
-    <div class="row justify-content-between align-items-end">
+    @if ($aWeekForce)
+        <div class="alert alert-warning alert-dismissible fade show" role="alert" data-bs-theme="light">
+            <strong>Range terlalu luas untuk filter global.</strong> otomatis diset ke 7 hari terakhir.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    <div class="row justify-content-between align-items-center">
         <div class="col-12 col-lg-6 col-xl-4">
             <div class="d-flex align-items-center justify-content-start gap-3 mb-3">
                 <div wire:ignore>
@@ -23,7 +29,10 @@
             </div>
         </div>
         <div class="col-12 col-lg-6 col-xl-8">
-            <div class="d-flex align-items-end justify-content-end gap-3 mb-3">
+            <div class="d-flex align-items-center justify-content-end gap-3 mb-3">
+                @if ($onFilter)
+                    <span class="badge text-bg-success">ON FILTER</span>
+                @endif
                 <button class="btn btn-sb btn-sm" data-bs-toggle="modal" data-bs-target="#filter-modal"><i class="fa fa-filter"></i></button>
                 <div wire:ignore>
                     <select class="form-select form-select-sm" name="supplier" id="supplier">
@@ -185,7 +194,7 @@
                                 <select class="form-select form-select-sm" name="color" id="color" wire:model="colorFilter">
                                     <option value="">Pilih Color</option>
                                     @if ($orderFilter)
-                                        @foreach ($orderFilter->groupBy('color') as $color)
+                                        @foreach ($orderFilter->sortBy('color')->groupBy('color') as $color)
                                             <option value="{{ $color->first()->color }}">{{ $color->first()->color }}</option>
                                         @endforeach
                                     @endif
@@ -196,7 +205,7 @@
                                 <select class="form-select form-select-sm" name="panel" id="panel" wire:model="panelFilter">
                                     <option value="">Pilih Panel</option>
                                     @if ($orderFilter)
-                                        @foreach ($orderFilter->groupBy('panel') as $panel)
+                                        @foreach ($orderFilter->sortBy('panel')->groupBy('panel') as $panel)
                                             <option value="{{ $panel->first()->panel }}">{{ $panel->first()->panel }}</option>
                                         @endforeach
                                     @endif
@@ -207,7 +216,7 @@
                                 <select class="form-select form-select-sm" name="meja" id="meja" wire:model="mejaFilter">
                                     <option value="">Pilih Meja</option>
                                     @if ($orderFilter)
-                                        @foreach ($orderFilter->groupBy('id_meja') as $meja)
+                                        @foreach ($orderFilter->sortBy('id_meja')->groupBy('id_meja') as $meja)
                                             <option value="{{ $meja->first()->id_meja }}">{{ $meja->first()->meja }}</option>
                                         @endforeach
                                     @endif
@@ -219,7 +228,7 @@
                                     <select class="form-select form-select-sm" name="size" id="size" wire:model="sizeFilter">
                                         <option value="">Pilih Size</option>
                                         @if ($orderFilter)
-                                            @foreach ($orderFilter->groupBy('size') as $size)
+                                            @foreach ($orderFilter->sortBy('size')->groupBy('size') as $size)
                                                 <option value="{{ $size->first()->size }}">{{ $size->first()->size }}</option>
                                             @endforeach
                                         @endif
@@ -231,7 +240,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa-solid fa-times"></i> Tutup</button>
-                    <button type="button" class="btn btn-sb" wire:click='clearFilter()'><i class="fa-solid fa-broom"></i> Bersihkan</button>
+                    <button type="button" class="btn btn-sb" onclick="clearFilter()"><i class="fa-solid fa-broom"></i> Bersihkan</button>
                 </div>
             </div>
         </div>
@@ -310,25 +319,29 @@
             });
 
             $('#dateFrom').on('change', async function (e) {
-                await clearFixedColumn();
+                // await clearFixedColumn();
 
-                @this.set('dateFromFilter', this.value);
+                // @this.set('dateFromFilter', this.value);
 
-                updateSupplierList($('#dateFrom').val(), $('#dateTo').val());
+                // updateSupplierList($('#dateFrom').val(), $('#dateTo').val());
+
+                reloadPage();
             });
 
             $('#dateTo').on('change', async function (e) {
-                await clearFixedColumn();
+                // await clearFixedColumn();
 
-                @this.set('dateToFilter', this.value);
+                // @this.set('dateToFilter', this.value);
 
-                updateSupplierList($('#dateFrom').val(), $('#dateTo').val());
+                // updateSupplierList($('#dateFrom').val(), $('#dateTo').val());
+
+                reloadPage();
             });
 
             $('#supplier').on('change', async function (e) {
-                await clearFixedColumn();
+                // await clearFixedColumn();
 
-                @this.set('selectedSupplier', this.value);
+                // @this.set('selectedSupplier', this.value);
 
                 updateWsList($('#dateFrom').val(), $('#dateTo').val(), this.value);
             });
@@ -347,35 +360,39 @@
             });
 
             $('#color').on('change', async function (e) {
-                await clearFixedColumn();
+                // await clearFixedColumn();
 
-                @this.set('loadingOrderOutput', true);
+                // @this.set('loadingOrderOutput', true);
 
-                Livewire.emit('loadingStart');
+                // Livewire.emit('loadingStart');
+                reloadPage();
             });
 
             $('#panel').on('change', async function (e) {
-                await clearFixedColumn();
+                // await clearFixedColumn();
 
-                @this.set('loadingOrderOutput', true);
+                // @this.set('loadingOrderOutput', true);
 
-                Livewire.emit('loadingStart');
+                // Livewire.emit('loadingStart');
+                reloadPage();
             });
 
             $('#meja').on('change', async function (e) {
-                await clearFixedColumn();
+                // await clearFixedColumn();
 
-                @this.set('loadingOrderOutput', true);
+                // @this.set('loadingOrderOutput', true);
 
-                Livewire.emit('loadingStart');
+                // Livewire.emit('loadingStart');
+                reloadPage();
             });
 
             $('#size').on('change', async function (e) {
-                await clearFixedColumn();
+                // await clearFixedColumn();
 
-                @this.set('loadingOrderOutput', true);
+                // @this.set('loadingOrderOutput', true);
 
-                Livewire.emit('loadingStart');
+                // Livewire.emit('loadingStart');
+                reloadPage();
             });
 
             var datatable = $('#trackdatatable').DataTable({
@@ -399,6 +416,7 @@
             setFixedColumn();
 
             $("#order").val(@js($selectedOrder)).trigger("change.select2");
+            $("#supplier").val(@js($selectedSupplier)).trigger("change.select2");
         });
 
         function clearFixedColumn() {
@@ -411,15 +429,34 @@
         function reloadPage() {
             let dateFromFilter = "&dateFromFilter="+$("#dateFrom").val();
             let dateToFilter = "&dateToFilter="+$("#dateTo").val();
+            let selectedSupplier = "&selectedSupplier="+$("#supplier").val();
             let selectedOrder = "&selectedOrder="+$("#order").val();
             let colorFilter = "&colorFilter="+$("#color").val();
             let panelFilter = "&panelFilter="+$("#panel").val();
             let mejaFilter = "&mejaFilter="+$("#meja").val();
+            let sizeFilter = "&sizeFilter="+$("#size").val();
             let groupBy = "&groupBy="+($("#group-by").val() ? $("#group-by").val() : "size");
 
-            let params = dateFromFilter+dateToFilter+selectedOrder+colorFilter+panelFilter+mejaFilter+groupBy
+            let params = dateFromFilter+dateToFilter+selectedSupplier+selectedOrder+colorFilter+panelFilter+mejaFilter+sizeFilter+groupBy
 
             window.location.href = `{{ route('track-cutting-output') }}?${params}`;
+        }
+
+        function clearFilter() {
+            $("#color").val("").trigger("change");
+            $("#panel").val("").trigger("change");
+            $("#meja").val("").trigger("change");
+            $("#size").val("").trigger("change");
+
+            // @this.set('colorFilter', null);
+            // @this.set('panelFilter', null);
+            // @this.set('mejaFilter', null);
+            // @this.set('sizeFilter', null);
+
+            // Livewire.emit('loadingStart');
+
+            // Reload Page for Better Performance
+            reloadPage();
         }
 
         async function setFixedColumn() {
@@ -585,11 +622,13 @@
                             });
                         })
 
-                        if ($('#order').find("option[value='"+currentValue+"']").length) {
-                            await $('#order').val(currentValue).trigger("change");
-                        } else {
-                            $('#order').val("").trigger("change");
-                        }
+                        // if ($('#order').find("option[value='"+currentValue+"']").length) {
+                        //     await $('#order').val(currentValue).trigger("change");
+                        // } else {
+                        //     $('#order').val("").trigger("change");
+                        // }
+
+                        $('#order').val("").trigger("change.select2");
                     }
                 },
                 error: function (jqXHR) {
