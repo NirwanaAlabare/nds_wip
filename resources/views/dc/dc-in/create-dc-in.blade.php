@@ -468,7 +468,6 @@
 
                                 $("#txtqr").val('');
                                 getdatatmp();
-                                initScan();
                             },
                             error: function(request, status, error) {
                                 if (document.getElementById("loading")) {
@@ -493,6 +492,8 @@
                             timerProgressBar: true
                         })
                     }
+
+                    initScan();
                 },
                 error: function(request, status, error) {
                     if (document.getElementById("loading")) {
@@ -500,6 +501,8 @@
                     }
 
                     alert(request.responseText);
+
+                    initScan();
                 },
             });
         };
