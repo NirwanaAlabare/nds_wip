@@ -1207,7 +1207,9 @@
                             else if (el.type === 'text') el.value = '';
                         }
 
-                        if (el.tagName === 'SELECT') el.selectedIndex = el.options.length - 1;
+                        if (el.tagName === 'SELECT') {
+                            el.selectedIndex = el.options.length - 1;
+                        };
                     });
 
                     // Update all hidden inputs that belong to this row (inside tbody)
@@ -1222,7 +1224,7 @@
 
                         // Reset hidden values
                         if (hidden.name.includes('mod_difference_qty')) hidden.value = 0;
-                        if (hidden.name.includes('mod_original_qty')) hidden.value = hidden.dataset.originalValue || hidden.value;
+                        if (hidden.name.includes('mod_original_qty')) hidden.value = hidden.value;
 
                         next = next.nextElementSibling;
                     }
