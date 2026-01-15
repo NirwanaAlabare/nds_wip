@@ -326,10 +326,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     form_cut_piece_detail.id
             ) roll_consumption
             order by
-                waktu_mulai asc,
-                waktu_selesai asc,
-                created_at asc,
-                updated_at asc
+                created_at asc
         ");
 
         $this->rowCount = count($data) + 3;
