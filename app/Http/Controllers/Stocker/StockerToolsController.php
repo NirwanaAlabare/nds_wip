@@ -277,7 +277,7 @@ class StockerToolsController extends Controller
             marker_input.act_costing_ws,
             marker_input.buyer,
             marker_input.style,
-            marker_input.color,
+            UPPER(TRIM(marker_input.color)) color,
             stocker_input.shade,
             stocker_input.group_stocker,
             COALESCE(stocker_input.notes) notes,
