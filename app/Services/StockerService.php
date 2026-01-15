@@ -37,12 +37,12 @@ class StockerService
     {
         ini_set('max_execution_time', 360000);
 
-        $colorFormCutFilter = $color ? " and marker_input.color = '".$color."'" : null;
-        $colorFormPieceFilter = $color ? " and form_cut_piece.color = '".$color."'" : null;
+        $colorFormCutFilter = $color ? " and UPPER(TRIM(marker_input.color)) = '".strtoupper(trim($color))."'" : null;
+        $colorFormPieceFilter = $color ? " and UPPER(TRIM(form_cut_piece.color)) = '".strtoupper(trim($color))."'" : null;
 
         $formCutInputs = collect(DB::select("
             SELECT
-                marker_input.color,
+                UPPER(TRIM(marker_input.color)) color,
                 form_cut_input.id AS id_form,
                 form_cut_input.no_cut,
                 form_cut_input.no_form AS no_form,
@@ -69,7 +69,7 @@ class StockerService
             UNION
 
             SELECT
-                form_cut_piece.color,
+                UPPER(TRIM(form_cut_piece.color)) color,
                 form_cut_piece.id AS id_form,
                 form_cut_piece.no_cut,
                 form_cut_piece.no_form AS no_form,
@@ -404,7 +404,7 @@ class StockerService
     }
 
     public function printYearSequence($year, $yearSequence, $rangeAwal, $rangeAkhir) {
-        $yearSequence = YearSequence::selectRaw("(CASE WHEN COALESCE(master_sb_ws.reff_no, '-') != '-' THEN master_sb_ws.reff_no ELSE master_sb_ws.styleno END) style, master_sb_ws.color, master_sb_ws.size, id_year_sequence, year, year_sequence, year_sequence_number")->
+        $yearSequence = YearSequence::selectRaw("(CASE WHEN COALESCE(master_sb_ws.reff_no, '-') != '-' THEN master_sb_ws.reff_no ELSE master_sb_ws.styleno END) style, UPPER(TRIM(master_sb_ws.color)) color, master_sb_ws.size, id_year_sequence, year, year_sequence, year_sequence_number")->
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
             where("year", $year)->
             where("year_sequence", $yearSequence)->

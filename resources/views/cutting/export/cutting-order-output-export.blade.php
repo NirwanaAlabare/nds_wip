@@ -35,26 +35,26 @@
         @endphp
 
         <tr>
-            <td class="text-nowrap">
-                <span class="bg-light text-dark sticky-span">{{ $dailyGroup->ws }}</span>
+            <td>
+                <span>{{ $dailyGroup->ws }}</span>
             </td>
-            <td class="text-nowrap">
-                <span class="bg-light text-dark sticky-span">{{ $dailyGroup->style }}</span>
+            <td>
+                <span>{{ $dailyGroup->style }}</span>
             </td>
-            <td class="text-nowrap">
-                <span class="bg-light text-dark sticky-span">{{ $dailyGroup->color }}</span>
+            <td>
+                <span>{{ $dailyGroup->color }}</span>
             </td>
-            <td class="text-nowrap">
-                <span class="bg-light text-dark sticky-span">
+            <td>
+                <span>
                     {{ strtoupper(str_replace('_', ' ', $dailyGroup->meja)) }}
                 </span>
             </td>
-            <td class="text-nowrap">
-                <span class="bg-light text-dark sticky-span">{{ $dailyGroup->panel }}</span>
+            <td>
+                <span>{{ $dailyGroup->panel }}</span>
             </td>
 
             @if ($groupBy === 'size')
-                <td class="text-nowrap">{{ $dailyGroup->size }}</td>
+                <td>{{ $dailyGroup->size }}</td>
             @endif
 
             @foreach ($dates as $tanggal)
@@ -75,13 +75,13 @@
                     $dateOutputs[$tanggal] = ($dateOutputs[$tanggal] ?? 0) + $thisOutput;
                 @endphp
 
-                <td class="text-end text-nowrap">
-                    {{ num($thisOutput) }}
+                <td style="text-align: right;">
+                    {{ $thisOutput }}
                 </td>
             @endforeach
 
-            <td class="fw-bold text-end text-nowrap fs-5">
-                {{ num($thisRowOutput) }}
+            <td style="font-weight: 800;">
+                {{ $thisRowOutput }}
             </td>
 
             @php
@@ -90,18 +90,18 @@
         </tr>
     @endforeach
     <tr>
-        <th colspan="{{ $groupBy === 'size' ? 6 : 5 }}" class="bg-sb text-light text-end">
+        <th colspan="{{ $groupBy === 'size' ? 6 : 5 }}" style="font-weight: 800;">
             TOTAL
         </th>
 
         @foreach ($dates as $tanggal)
-            <td class="fw-bold text-end text-nowrap fs-5 bg-sb text-light">
-                {{ num($dateOutputs[$tanggal] ?? 0) }}
+            <td style="font-weight: 800;">
+                {{$dateOutputs[$tanggal] ?? 0 }}
             </td>
         @endforeach
 
-        <td class="fw-bold text-end text-nowrap fs-5 bg-sb text-light">
-            {{ num($totalOutput) }}
+        <td style="font-weight: 800;">
+            {{$totalOutput }}
         </td>
     </tr>
 </table>

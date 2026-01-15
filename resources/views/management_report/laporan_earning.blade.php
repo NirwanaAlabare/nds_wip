@@ -186,7 +186,7 @@
                 ordering: false,
                 responsive: true,
                 serverSide: false,
-                paging: true,
+                paging: false,
                 searching: true,
                 scrollY: "500px",
                 scrollX: true,
