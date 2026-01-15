@@ -493,8 +493,8 @@ class RollController extends Controller
 
         $area = $sheet->beginArea();
 
-        $sheet->writeTo('A1', 'Laporan Pemakaian Roll Roll', ['font-size' => 16]);
-        $sheet->writeTo('A2', $request->dateFrom.' / '.$request->dateTo, ['font-size' => 16]);
+        $sheet->writeTo('A1', 'Laporan Pemakaian Roll Roll');
+        $sheet->writeTo('A2', $request->dateFrom.' / '.$request->dateTo);
         // $sheet->mergeCells('A1:S1');
 
         $sheet->writeTo("A4", "No.")->applyBgColor('#a9cff5')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
