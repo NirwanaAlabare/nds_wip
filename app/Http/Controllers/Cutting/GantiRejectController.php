@@ -219,8 +219,7 @@ left join lr on db.id_item = lr.id_item and  db.id_jo = lr.id_jo", [$id]);
         // ===============================
         // 1️⃣ HEADER WS (buyer & style)
         // ===============================
-        $ws = DB::connection('mysql_sb')->selectOne("
-        SELECT
+        $ws = DB::connection('mysql_sb')->selectOne("SELECT
             ms.supplier AS buyer,
             ac.styleno
         FROM jo_det jd
@@ -243,8 +242,7 @@ left join lr on db.id_item = lr.id_item and  db.id_jo = lr.id_jo", [$id]);
         // ===============================
         // 2️⃣ COLOR
         // ===============================
-        $colors = DB::connection('mysql_sb')->select("
-        SELECT color AS isi, color AS tampil
+        $colors = DB::connection('mysql_sb')->select("SELECT color AS isi, color AS tampil
         FROM so_det sd
         INNER JOIN so ON sd.id_so = so.id
         INNER JOIN act_costing ac ON so.id_cost = ac.id
@@ -262,8 +260,7 @@ left join lr on db.id_item = lr.id_item and  db.id_jo = lr.id_jo", [$id]);
         // ===============================
         // 3️⃣ PANEL
         // ===============================
-        $panels = DB::connection('mysql_sb')->select("
-        SELECT id_panel AS isi, mp.nama_panel AS tampil
+        $panels = DB::connection('mysql_sb')->select("SELECT id_panel AS isi, mp.nama_panel AS tampil
         FROM bom_jo_item k
         INNER JOIN masterpanel mp ON k.id_panel = mp.id
         WHERE k.id_jo = ?
@@ -279,13 +276,12 @@ left join lr on db.id_item = lr.id_item and  db.id_jo = lr.id_jo", [$id]);
         // ===============================
         // 4 SIZE
         // ===============================
-        $size = DB::connection('mysql_sb')->select("
-        SELECT sd.size AS isi, sd.size AS tampil
+        $size = DB::connection('mysql_sb')->select("SELECT sd.size AS isi, sd.size AS tampil
         FROM so_det sd
         INNER JOIN so ON sd.id_so = so.id
         INNER JOIN act_costing ac ON so.id_cost = ac.id
         INNER JOIN jo_det jd ON so.id = jd.id_so
-        INNER JOIN master_size_new msn on sd.size = msn.size
+        LEFT JOIN master_size_new msn on sd.size = msn.size
         WHERE jd.cancel = 'N'
           AND jd.id_jo = ?
         GROUP BY sd.size
