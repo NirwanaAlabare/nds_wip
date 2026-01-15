@@ -326,6 +326,8 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     form_cut_piece_detail.id
             ) roll_consumption
             order by
+                no_form_cut_input,
+                id_roll asc,
                 created_at asc
         ");
 
