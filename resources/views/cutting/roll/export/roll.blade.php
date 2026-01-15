@@ -126,8 +126,11 @@
                 $currentReject = $latestStatus != 'extension complete' ? $item->reject : round(($item->reject+$latestReject), 2);
                 $currentPiping = $latestStatus != 'extension complete' ? $item->piping : round(($item->piping+$latestPiping), 2);
 
-                $currentPemakaianLembar =  round(($item->status != 'extension complete' ? ($consLembar * $item->lembar_gelaran) : $item->sambungan) + $item->sisa_gelaran + $item->sambungan_roll + ($latestStatus != 'extension complete' ? 0 : $latestSambungan), 2);
-                $currentTotalPemakaian = round($currentPemakaianLembar + $currentKepalaKain + $currentSisaTidakBisa + $currentReject + $currentPiping, 2);
+                // $currentPemakaianLembar = round(($item->status != 'extension complete' ? ($consLembar * $item->lembar_gelaran) : $item->sambungan) + $item->sisa_gelaran + $item->sambungan_roll + ($latestStatus != 'extension complete' ? 0 : $latestSambungan), 2);
+                // $currentTotalPemakaian = round($currentPemakaianLembar + $currentKepalaKain + $currentSisaTidakBisa + $currentReject + $currentPiping, 2);
+
+                $currentPemakaianLembar = round($item->pemakaian_lembar + ($latestStatus != 'extension complete' ? 0 : $latestPemakaianLembar), 2);
+                $currentTotalPemakaian = round($item->total_pemakaian_roll + ($latestStatus != 'extension complete' ? 0 : $latestTotalPemakaian), 2);
 
                 $currentShortRoll = $latestStatus != 'extension complete' ? round((($currentTotalPemakaian+$item->sisa_kain)-$item->qty_roll), 2) : round((($currentTotalPemakaian+$item->sisa_kain)-$latestQty), 2);
                 $currentShortRollPercentage = $latestStatus != 'extension complete' ? ($item->qty_roll > 0 ? round((($currentTotalPemakaian+$item->sisa_kain)-$item->qty_roll)/$item->qty_roll*100) : 0 ) : ($latestQty > 0 ? round((($currentTotalPemakaian+$item->sisa_kain)-$latestQty)/$latestQty*100, 2) : 0);
