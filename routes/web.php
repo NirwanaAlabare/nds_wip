@@ -2540,6 +2540,9 @@ Route::controller(AccountingController::class)->prefix("accounting")->middleware
     Route::get('/export-rekonsiliasi-ceisa', 'ExportReportRekonsiliasi')->name('export-rekonsiliasi-ceisa');
     Route::get('/report-ceisa-detail', 'ReportCeisaDetail')->name('report-ceisa-detail');
     Route::get('/export-ceisa-detail', 'ExportReportCeisaDetail')->name('export-ceisa-detail');
+
+    Route::get('/report-signalbit-bc', 'ReportSignalbitBC')->name('report-signalbit-bc');
+    Route::get('/export-excel-report-signalbit-bc', 'ExportReportSignalbitBC')->name('export-excel-report-signalbit-bc');
 });
 
 // Route::get('/dashboard-chart', function () {

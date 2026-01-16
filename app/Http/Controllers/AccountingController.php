@@ -8,6 +8,8 @@ use Yajra\DataTables\Facades\DataTables;
 use App\Exports\ExportLaporanRekonsiliasi;
 use App\Exports\ExportLaporanCeisaDetail;
 use Maatwebsite\Excel\Facades\Excel;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 use Carbon\Carbon;
 use DB;
 use QrCode;
@@ -470,6 +472,116 @@ public function ExportReportCeisaDetail(Request $request)
     return Excel::download(new ExportLaporanCeisaDetail($request->from, $request->to, $request->jenis_dok, $request->status), 'Laporan.xlsx');
 }
 
+
+    public function ReportSignalbitBC(Request $request)
+    {
+        if ($request->ajax()) {
+            $additionalQuery = "";
+
+            $data = DB::connection('mysql_sb')->select("select a.bpbno_int, a.bpbdate, jenis_dok, bcno no_daftar, bcdate, nomor_aju, tanggal_aju , a.id_item, b.itemdesc, IFNULL(NULLIF(satuan_bc, ''), unit) AS satuan, IFNULL(NULLIF(qty_bc, ''), qty) AS qty, IFNULL(NULLIF(price_bc, ''), price) AS price, (IFNULL(NULLIF(qty_bc, ''), qty) * IFNULL(NULLIF(price_bc, ''), price)) total from bpb a INNER JOIN masteritem b on b.id_item = a.id_item where bcdate BETWEEN '".$request->dateFrom."' and '".$request->dateTo."' and jenis_dok != 'INHOUSE' and a.bpbno_int not like '%FG%'
+        UNION
+        select a.bpbno_int, a.bpbdate, jenis_dok, bcno no_daftar, bcdate, nomor_aju, tanggal_aju , a.id_item, CONCAT(b.itemname, ' ', IFNULL(b.color,''), ' ', IFNULL(b.size,'')) itemdesc, IFNULL(NULLIF(satuan_bc, ''), a.unit) AS satuan, IFNULL(NULLIF(qty_bc, ''), a.qty) AS qty, IFNULL(NULLIF(price_bc, ''), a.price) AS price, (IFNULL(NULLIF(qty_bc, ''), a.qty) * IFNULL(NULLIF(price_bc, ''), a.price)) total from bpb a INNER JOIN masterstyle b on b.id_item = a.id_item where bcdate BETWEEN '".$request->dateFrom."' and '".$request->dateTo."' and jenis_dok != 'INHOUSE' and a.bpbno_int like '%FG%'
+        UNION
+        select a.bppbno_int, a.bppbdate, jenis_dok, bcno no_daftar, bcdate, nomor_aju, tanggal_aju , a.id_item, b.itemdesc, IFNULL(NULLIF(satuan_bc, ''), unit) AS satuan, IFNULL(NULLIF(qty_bc, ''), qty) AS qty, IFNULL(NULLIF(price_bc, ''), price) AS price, (IFNULL(NULLIF(qty_bc, ''), qty) * IFNULL(NULLIF(price_bc, ''), price)) total from bppb a INNER JOIN masteritem b on b.id_item = a.id_item where bcdate BETWEEN '".$request->dateFrom."' and '".$request->dateTo."' and jenis_dok != 'INHOUSE' and a.bppbno_int not like '%FG%'
+        UNION
+        select a.bppbno_int, a.bppbdate, jenis_dok, bcno no_daftar, bcdate, nomor_aju, tanggal_aju , a.id_item, CONCAT(b.itemname, ' ', IFNULL(b.color,''), ' ', IFNULL(b.size,'')) itemdesc, IFNULL(NULLIF(satuan_bc, ''), a.unit) AS satuan, IFNULL(NULLIF(qty_bc, ''), a.qty) AS qty, IFNULL(NULLIF(price_bc, ''), a.price) AS price, (IFNULL(NULLIF(qty_bc, ''), a.qty) * IFNULL(NULLIF(price_bc, ''), a.price)) total from bppb a INNER JOIN masterstyle b on b.id_item = a.id_item where bcdate BETWEEN '".$request->dateFrom."' and '".$request->dateTo."' and jenis_dok != 'INHOUSE' and a.bppbno_int like '%FG%'");
+
+
+            return DataTables::of($data)->toJson();
+        }
+
+        return view("accounting.report-signalbit-bc", ["page" => "accounting"]);
+    }
+
+
+    public function ExportReportSignalbitBC(Request $request)
+{
+    $from = $request->from;
+    $to   = $request->to;
+
+    // ==============================
+    // SQL
+    // ==============================
+    $sql = "select a.bpbno_int, a.bpbdate, jenis_dok, bcno no_daftar, bcdate, nomor_aju, tanggal_aju , a.id_item, b.itemdesc, IFNULL(NULLIF(satuan_bc, ''), unit) AS satuan, IFNULL(NULLIF(qty_bc, ''), qty) AS qty, IFNULL(NULLIF(price_bc, ''), price) AS price, (IFNULL(NULLIF(qty_bc, ''), qty) * IFNULL(NULLIF(price_bc, ''), price)) total from bpb a INNER JOIN masteritem b on b.id_item = a.id_item where bcdate BETWEEN '".$request->from."' and '".$request->to."' and jenis_dok != 'INHOUSE' and a.bpbno_int not like '%FG%'
+        UNION
+        select a.bpbno_int, a.bpbdate, jenis_dok, bcno no_daftar, bcdate, nomor_aju, tanggal_aju , a.id_item, CONCAT(b.itemname, ' ', IFNULL(b.color,''), ' ', IFNULL(b.size,'')) itemdesc, IFNULL(NULLIF(satuan_bc, ''), a.unit) AS satuan, IFNULL(NULLIF(qty_bc, ''), a.qty) AS qty, IFNULL(NULLIF(price_bc, ''), a.price) AS price, (IFNULL(NULLIF(qty_bc, ''), a.qty) * IFNULL(NULLIF(price_bc, ''), a.price)) total from bpb a INNER JOIN masterstyle b on b.id_item = a.id_item where bcdate BETWEEN '".$request->from."' and '".$request->to."' and jenis_dok != 'INHOUSE' and a.bpbno_int like '%FG%'
+        UNION
+        select a.bppbno_int, a.bppbdate, jenis_dok, bcno no_daftar, bcdate, nomor_aju, tanggal_aju , a.id_item, b.itemdesc, IFNULL(NULLIF(satuan_bc, ''), unit) AS satuan, IFNULL(NULLIF(qty_bc, ''), qty) AS qty, IFNULL(NULLIF(price_bc, ''), price) AS price, (IFNULL(NULLIF(qty_bc, ''), qty) * IFNULL(NULLIF(price_bc, ''), price)) total from bppb a INNER JOIN masteritem b on b.id_item = a.id_item where bcdate BETWEEN '".$request->from."' and '".$request->to."' and jenis_dok != 'INHOUSE' and a.bppbno_int not like '%FG%'
+        UNION
+        select a.bppbno_int, a.bppbdate, jenis_dok, bcno no_daftar, bcdate, nomor_aju, tanggal_aju , a.id_item, CONCAT(b.itemname, ' ', IFNULL(b.color,''), ' ', IFNULL(b.size,'')) itemdesc, IFNULL(NULLIF(satuan_bc, ''), a.unit) AS satuan, IFNULL(NULLIF(qty_bc, ''), a.qty) AS qty, IFNULL(NULLIF(price_bc, ''), a.price) AS price, (IFNULL(NULLIF(qty_bc, ''), a.qty) * IFNULL(NULLIF(price_bc, ''), a.price)) total from bppb a INNER JOIN masterstyle b on b.id_item = a.id_item where bcdate BETWEEN '".$request->from."' and '".$request->to."' and jenis_dok != 'INHOUSE' and a.bppbno_int like '%FG%'";
+
+    $data = DB::connection('mysql_sb')->select($sql);
+
+    // convert object → array
+    $rows = array_map(fn($r) => (array)$r, $data);
+
+
+    // ==============================
+    // FastExcel – Hanya Data (NO Style)
+    // ==============================
+    $excel = FastExcel::create('Data');
+    $sheet = $excel->getSheet();
+
+
+    $sheet->writeRow(['Data BC Signalbit'])
+      ->applyFontStyleBold()
+      ->applyFontSize(16); 
+    $sheet->writeRow(["Tanggal Daftar: {$from} s/d {$to}"])->applyFontStyleBold(); 
+
+    $sheet->mergeCells('A1:M1');
+
+    $sheet->writeRow(['']);
+
+    $headers = [
+    'No BPB', 'BPB Date', 'Jenis Dokumen', 'No Daftar', 'Tgl Daftar', 'No Aju', 'Tgl Aju', 'Id Item', 'Item Descriptions', 'Unit', 'Qty', 'Price', 'Total'
+    ];
+
+$sheet->writeRow($headers)
+      ->applyFontStyleBold()
+      ->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+// hitung panjang header
+$maxLen = [];
+foreach ($headers as $i => $h) {
+    $maxLen[$i] = strlen($h);
+}
+
+foreach ($rows as $r) {
+    $rowData = [
+        $r['bpbno_int'] ?? '',
+        $r['bpbdate'] ?? '',
+        $r['jenis_dok'] ?? '',
+        $r['no_daftar'] ?? '',
+        $r['bcdate'] ?? '',
+        $r['nomor_aju'] ?? '',
+        $r['tanggal_aju'] ?? '',
+        $r['id_item'] ?? '',
+        $r['itemdesc'] ?? '',
+        $r['satuan'] ?? 0,
+        $r['qty'] ?? 0,
+        $r['price'] ?? 0,
+        $r['total'] ?? 0,
+    ];
+
+foreach ($rowData as $i => $v) {
+        $len = strlen((string)$v);
+        $maxLen[$i] = max($maxLen[$i] ?? 0, $len);
+    }
+
+    $sheet->writeRow($rowData)
+          ->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+}
+
+// Setelah semua row ditulis → atur width sesuai panjang isi
+foreach ($maxLen as $i => $len) {
+    $sheet->setColWidth($i + 1, $len + 3); // padding
+}
+
+
+    // DOWNLOAD
+    $filename = "Data_BC_Signalbit_dari_{$from}_sd_{$to}.xlsx";
+    return $excel->download($filename);
+}
 
 
 
