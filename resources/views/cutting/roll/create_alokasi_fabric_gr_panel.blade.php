@@ -269,6 +269,20 @@
                         class="form-control form-control-sm border-primary" readonly>
                 </div>
                 <div class="col-12 col-sm-4 col-lg-3">
+                    <label for="cbows_act" class="form-label mb-1">
+                        <small><strong>WS</strong></small>
+                    </label>
+                    <select class="form-control form-control-sm select2bs4 select-border-primary visual-input"
+                        id="cbows_act" name="cbows_act" style="width: 100%;">
+                        <option value="">Pilih WS Aktual</option>
+                        @foreach ($data_ws as $dw)
+                            <option value="{{ $dw->isi }}">
+                                {{ $dw->tampil }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-12 col-sm-4 col-lg-3 ms-auto">
                     <label for="btnAddBarcode" class="form-label mb-1">
                         <small><strong>&nbsp;</strong></small>
                     </label>
@@ -492,6 +506,7 @@
 
         function handleStart() {
             const barcode = document.getElementById('txtbarcode').value.trim();
+            const ws_act = document.getElementById('cbows_act').value.trim();
 
             if (!barcode) {
                 Swal.fire({
@@ -502,12 +517,22 @@
                 return;
             }
 
+            if (!ws_act) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'WS Actual kosong',
+                    text: 'Silahkan isi ws terlebih dahulu.',
+                });
+                return;
+            }
+
             add_barcode();
 
         }
 
         function add_barcode() {
             const barcode = document.getElementById('txtbarcode').value.trim();
+            const ws_act = document.getElementById('cbows_act').value.trim();
             const qty_roll = parseFloat(document.getElementById('txtqty_roll').value) || 0;
             const qty_sisa = parseFloat(document.getElementById('txtqty_sisa').value) || 0;
             const qty_pakai = parseFloat(document.getElementById('txtqty_pakai').value) || 0;
@@ -533,6 +558,7 @@
                         data: {
                             _token: '{{ csrf_token() }}',
                             barcode: barcode,
+                            ws_act: ws_act,
                             qty_roll: qty_roll,
                             qty_sisa: qty_sisa,
                             qty_pakai: qty_pakai
@@ -544,7 +570,7 @@
                                 html: `<p>Data berhasil disimpan.</p>`
                             }).then(() => {
                                 window.location.href =
-                                "{{ route('alokasi_fabric_gr_panel') }}";
+                                    "{{ route('alokasi_fabric_gr_panel') }}";
                             });
                         },
                         error: function(xhr) {

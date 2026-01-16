@@ -34,7 +34,8 @@
             <ul class="navbar-nav">
                 @if ($page == 'dashboard-track')
                     <li class="nav-item dropdown">
-                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ preg_match('/track-ws|track-stocker/', $routeName) ? 'active' : '' }}">Track</a>
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ preg_match('/track-ws|track-stocker/', $routeName) ? 'active' : '' }}">Track</a>
                         <ul class="dropdown-menu border-0 shadow">
                             <li>
                                 <a href="{{ route('track-ws') }}"
@@ -219,6 +220,12 @@
                                             class="dropdown-item {{ $subPage == 'form-cut-piping' ? 'active' : '' }}"
                                             target="_blank">
                                             Dashboard <i class="fa-solid fa-pager"></i>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('report_cutting_mutasi_fabric') }}"
+                                            class="dropdown-item {{ $routeName == 'report_cutting_mutasi_fabric' ? 'active' : '' }}">
+                                            Mutasi Fabric <i class="fa fa-list"></i>
                                         </a>
                                     </li>
                                 </ul>

@@ -1025,13 +1025,20 @@ from signalbit_erp.jo_det jd
     {
         $user = Auth::user()->name;
 
+        $data_ws = DB::connection('mysql_sb')->select("SELECT ac.kpno as isi, ac.kpno tampil from jo_det jd
+         inner join so on jd.id_so = so.id
+         inner join act_costing ac on so.id_cost = ac.id
+         where jd.cancel = 'N' and ac.cost_date >= '2025-01-01'
+         group by id_cost order by ac.kpno asc");
+
         return view(
             'cutting.roll.create_alokasi_fabric_gr_panel',
             [
                 'page' => 'dashboard-cutting',
                 "subPageGroup" => "laporan-cutting",
                 "subPage" => "alokasi-fabric-gr-panel",
-                "user" => $user
+                "user" => $user,
+                "data_ws" => $data_ws
             ]
         );
     }
@@ -1043,6 +1050,7 @@ from signalbit_erp.jo_det jd
         $timestamp = Carbon::now();
 
         $barcode = $request->barcode;
+        $ws_act = $request->ws_act;
         $qty_roll = $request->qty_roll;
         $qty_sisa = $request->qty_sisa;
         $qty_pakai = $request->qty_pakai;
@@ -1060,6 +1068,7 @@ from signalbit_erp.jo_det jd
         $id = DB::table('form_cut_alokasi_gr_panel_barcode')->insertGetId([
             'tgl_trans'             => $today,
             'barcode'               => $barcode,
+            'ws'                    => $ws_act,
             'qty_roll'              => $qty_roll,
             'qty_pakai'             => $qty_pakai,
             'sisa_kain'             => $qty_sisa,
