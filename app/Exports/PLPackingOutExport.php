@@ -15,6 +15,20 @@ class PLPackingOutExport implements FromView
         $this->id = $id;
     }
 
+    public function title(): string
+    {
+        $row = DB::connection('mysql_sb')->selectOne(
+            "SELECT no_bppb FROM packing_out_h WHERE id = ?",
+            [$this->id]
+        );
+
+        return substr(
+            str_replace(['\\','/',':','*','?','[',']'], '-', $row->no_bppb ?? 'PL Packing Out'),
+            0,
+            31
+        );
+    }
+
     public function view(): View
     {
         // ======================================
@@ -72,9 +86,14 @@ class PLPackingOutExport implements FromView
         $data = DB::connection('mysql_sb')->select($sql, [$this->id]);
         $rows = array_map(fn($r)=> (array)$r, $data);
 
+        $header = DB::connection('mysql_sb')->selectOne("SELECT a.no_bppb, a.berat_garment, a.berat_karton, ms.supplier, mi.itemdesc FROM packing_out_h a INNER JOIN mastersupplier ms ON ms.id_supplier = a.id_supplier INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb INNER JOIN masteritem mi on mi.id_item = b.id_item
+    WHERE a.id = ?
+", [$this->id]);
+
         return view('packing-subcont.pl-packing-out', [
             'sizes'   => $sizeCols,
             'rows'    => $rows,
+            'header'    => $header,
         ]);
     }
 }

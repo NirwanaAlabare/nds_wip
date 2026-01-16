@@ -130,8 +130,9 @@ class PackingSubcontController extends Controller
                 left join masteritem e on c.id_item = e.id_item 
                 left join so_det f on f.id_so = so.id
                 left join act_costing g on g.id = so.id_cost
-                                left join mastersupplier h on h.id_supplier = g.id_buyer
-                where b.id_po = '" . $request->id_po . "' and c.id_jo = '" . $request->id_jo . "' and a.app = 'A' and f.cancel = 'N' GROUP BY c.id_jo, f.color, f.size");
+                left join mastersupplier h on h.id_supplier = g.id_buyer
+                LEFT JOIN master_size_new i on i.size = f.size
+                where b.id_po = '" . $request->id_po . "' and c.id_jo = '" . $request->id_jo . "' and a.app = 'A' and f.cancel = 'N' GROUP BY c.id_jo, f.color, f.size order by e.itemdesc, f.color, i.urutan");
 
         $html = '<div class="table-responsive">
         <table id="tableshow" class="table table-head-fixed table-bordered table-striped w-100 text-nowrap">
@@ -648,7 +649,7 @@ detail_out as ( select a.no_po pono, kpno, styleno, jo_no,  b.id_jo, b.id_item, 
 
 detail_terima as (select id_po, id_jo, id_item, color, size, sum(qty + qty_reject) qty_terima from packing_in_det where id_po = '" . $request->id_po . "' and id_jo = '" . $request->id_jo . "' and id_item = '" . $request->id_item . "' and status = 'Y' GROUP BY id_jo, id_item, color, size)
 
-select a.*, COALESCE(qty_terima,0) qty_terima, (qty_out - COALESCE(qty_terima,0)) qty_balance from detail_out a left join detail_terima b on b.id_jo = a.id_jo and b.id_item = a.id_item and b.color = a.color and b.size = a.size where (qty_out - COALESCE(qty_terima,0)) > 0");
+select a.*, COALESCE(qty_terima,0) qty_terima, (qty_out - COALESCE(qty_terima,0)) qty_balance from detail_out a left join detail_terima b on b.id_jo = a.id_jo and b.id_item = a.id_item and b.color = a.color and b.size = a.size LEFT JOIN master_size_new c on c.size = a.size where (qty_out - COALESCE(qty_terima,0)) > 0 order by a.itemdesc, a.color, c.urutan");
 
         $html = '<div class="table-responsive">
         <table id="tableshow" class="table table-head-fixed table-bordered table-striped w-100 text-nowrap">
@@ -1593,6 +1594,135 @@ public function ApprovePackingInSubcont(Request $request)
             "additional" => [],
         ]);
     }
+
+
+    public function CancelPackingInSubcont(Request $request)
+{
+    $request->validate([
+        'no_bpb' => 'required|string'
+    ]);
+
+    DB::beginTransaction();
+
+    try {
+        $no_bpb = $request->no_bpb;
+        $timestamp = Carbon::now();
+
+        // 1️⃣ Cek sudah approve atau belum
+        $packing = PackingInH::where('no_bpb', $no_bpb)->first();
+
+        if (!$packing) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Data Packing In tidak ditemukan'
+            ]);
+        }
+
+        // 2️⃣ Update status Packing In
+        PackingInH::where('no_bpb', $no_bpb)->update([
+            'status' => 'CANCEL',
+            'cancel_by' => Auth::user()->name,
+            'cancel_date' => $timestamp,
+        ]);
+
+        DB::connection('mysql_sb')->table('packing_in_det')
+        ->where('no_bpb', $no_bpb)
+        ->update([
+            'status' => 'N',
+        ]);
+
+        // 3️⃣ Rollback BPB di signalbit
+        DB::connection('mysql_sb')->table('bpb')
+        ->where('bpbno_int', $no_bpb)
+        ->update([
+            'qty_old' => DB::raw('qty'),
+            'qty' => 0,
+            'cancel' => 'Y',
+            'cancel_by' => Auth::user()->name,
+            'cancel_date' => $timestamp,
+        ]);
+
+        DB::commit();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Packing In berhasil dibatalkan'
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        return response()->json([
+            'status' => 500,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+
+
+public function CancelPackingOutSubcont(Request $request)
+{
+    $request->validate([
+        'no_bppb' => 'required|string'
+    ]);
+
+    DB::beginTransaction();
+
+    try {
+        $no_bppb = $request->no_bppb;
+        $timestamp = Carbon::now();
+
+        // 1️⃣ Cek sudah approve atau belum
+        $packing = PackingOutH::where('no_bppb', $no_bppb)->first();
+
+        if (!$packing) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Data Packing In tidak ditemukan'
+            ]);
+        }
+
+        // 2️⃣ Update status Packing In
+        PackingOutH::where('no_bppb', $no_bppb)->update([
+            'status' => 'CANCEL',
+            'cancel_by' => Auth::user()->name,
+            'cancel_date' => $timestamp,
+        ]);
+
+        DB::connection('mysql_sb')->table('packing_out_det')
+        ->where('no_bppb', $no_bppb)
+        ->update([
+            'status' => 'N',
+        ]);
+
+        // 3️⃣ Rollback BPB di signalbit
+        DB::connection('mysql_sb')->table('bppb')
+        ->where('bppbno_int', $no_bppb)
+        ->update([
+            'qty_old' => DB::raw('qty'),
+            'qty' => 0,
+            'cancel' => 'Y',
+            'cancel_by' => Auth::user()->name,
+            'cancel_date' => $timestamp,
+        ]);
+
+        DB::commit();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Packing In berhasil dibatalkan'
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        return response()->json([
+            'status' => 500,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
 
 
     /**

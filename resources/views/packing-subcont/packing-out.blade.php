@@ -516,13 +516,12 @@ $('.select2type').select2({
 
                  if (row.status == 'DRAFT') {
                     return `<div class='d-flex gap-1 justify-content-center'>
-                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_bppb + `")'><i class="fa-solid fa-trash"></i></button>
+                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='CancelPackingOut("` + row.no_bppb + `")'><i class="fa-solid fa-trash"></i></button>
                     <button type='button' class='btn btn-sm btn-info' onclick='showDetail("${row.id}")'> <i class="fa-solid fa-eye"></i> Detail</button>
                     <a href='${exportUrl}' class='btn btn-sm btn-success'> <i class="fa-solid fa-file-excel"></i> PL</a>
                     </div>`;
                 }else if (row.status == 'APPROVED') {
                     return `<div class='d-flex gap-1 justify-content-center'>
-                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_bppb + `")'><i class="fa-solid fa-trash"></i></button>
                     <button type='button' class='btn btn-sm btn-info' onclick='showDetail("${row.id}")'> <i class="fa-solid fa-eye"></i> Detail</button>
                     <a href='${exportUrl}' class='btn btn-sm btn-success'> <i class="fa-solid fa-file-excel"></i> PL</a>
                     </div>`;
@@ -544,6 +543,72 @@ $('.select2type').select2({
 let detailDT = null;
 </script>
 <script type="text/javascript">
+
+    function CancelPackingOut(no_bppb) {
+
+    if (!no_bppb) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No BPB tidak valid'
+        });
+        return;
+    }
+
+    Swal.fire({
+        title: 'Konfirmasi',
+        text: 'Yakin ingin membatalkan Packing Out ' + no_bppb + ' ?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Batalkan',
+        cancelButtonText: 'Tidak',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        reverseButtons: true
+    }).then((result) => {
+
+        if (result.isConfirmed) {
+
+            $.ajax({
+                url: "{{ route('cancel-packing-out-subcont') }}",
+                type: "POST",
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    no_bppb: no_bppb
+                },
+                success: function(res) {
+                    if (res.status === 200) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: res.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+
+                        $('#datatable').DataTable().ajax.reload(null, false);
+
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: res.message
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: xhr.responseJSON?.message ?? 'Terjadi kesalahan'
+                    });
+                }
+            });
+
+        }
+
+    });
+}
 
 function showDetail(id) {
 

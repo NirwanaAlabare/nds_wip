@@ -32,19 +32,19 @@
 
 <table style="font-size: 11pt;width:100%;">
     <tr>
-        <td style="padding:4px;" colspan="2">No Transaksi : SPCK/OUT/1125/1
+        <td style="padding:4px;" colspan="2">No Transaksi : {{ $header->no_bppb ?? '-' }}
         </td>
-        <td style="padding:4px;" colspan="2">Item : PT HOLLIT INTERNATIONAL
+        <td style="padding:4px;" colspan="2">Item : {{ $header->itemdesc ?? '-' }}
         </td>
-        <td style="padding:4px;" colspan="4">Berat Garment : 0.5 kg
+        <td style="padding:4px;" colspan="4">Berat Garment : {{ $header->berat_garment ?? '-' }} kg
         </td>
     </tr>
     <tr>
-        <td style="padding:4px;" colspan="2">Supplier : Eco Laudry Hijau Indonesia
+        <td style="padding:4px;" colspan="2">Supplier : {{ $header->supplier ?? '-' }}
         </td>
-        <td style="padding:4px;" colspan="2">Qty Karton : 2
+        <td style="padding:4px;" colspan="2">Qty Karton : -
         </td>
-        <td style="padding:4px;" colspan="4">Berat Karton : 0.25 kg
+        <td style="padding:4px;" colspan="4">Berat Karton : {{ $header->berat_karton ?? '-' }} kg
         </td>
     </tr>
 </table>

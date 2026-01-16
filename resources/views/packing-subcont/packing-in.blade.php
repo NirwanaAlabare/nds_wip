@@ -46,7 +46,7 @@
             <div class="mt-4 ">
                 <button class="btn btn-sm btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Search</button>
                 <!-- <button class="btn btn-info" onclick="tambahdata()"> <i class="fas fa-plus"></i> Add Data</button> -->
-                <a href="{{ route('create-packing-out-subcont') }}" class="btn btn-sm btn-info">
+                <a href="{{ route('create-packing-in-subcont') }}" class="btn btn-sm btn-info">
                 <i class="fas fa-plus"></i>
                 Add Data
             </a>
@@ -518,12 +518,12 @@ $('.select2type').select2({
 
                  if (row.status == 'DRAFT') {
                     return `<div class='d-flex gap-1 justify-content-center'>
-                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_bpb + `")'><i class="fa-solid fa-trash"></i></button>
+                    <a href="{{ route('edit-inmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-warning'><i class="fa-solid fa-pen-to-square"></i></button></a>
+                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='CancelPackingIn("` + row.no_bpb + `")'><i class="fa-solid fa-trash"></i></button>
                     <button type='button' class='btn btn-sm btn-info' onclick='showDetail("${row.id}")'> <i class="fa-solid fa-eye"></i> Detail</button>
                     </div>`;
                 }else if (row.status == 'APPROVED') {
                     return `<div class='d-flex gap-1 justify-content-center'>
-                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_bpb + `")'><i class="fa-solid fa-trash"></i></button>
                     <button type='button' class='btn btn-sm btn-info' onclick='showDetail("${row.id}")'> <i class="fa-solid fa-eye"></i> Detail</button>
                     </div>`;
                 }else{
@@ -544,6 +544,72 @@ $('.select2type').select2({
 let detailDT = null;
 </script>
 <script type="text/javascript">
+function CancelPackingIn(no_bpb) {
+
+    if (!no_bpb) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No BPB tidak valid'
+        });
+        return;
+    }
+
+    Swal.fire({
+        title: 'Konfirmasi',
+        text: 'Yakin ingin membatalkan Packing In ' + no_bpb + ' ?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Batalkan',
+        cancelButtonText: 'Tidak',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        reverseButtons: true
+    }).then((result) => {
+
+        if (result.isConfirmed) {
+
+            $.ajax({
+                url: "{{ route('cancel-packing-in-subcont') }}",
+                type: "POST",
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    no_bpb: no_bpb
+                },
+                success: function(res) {
+                    if (res.status === 200) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: res.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+
+                        $('#datatable').DataTable().ajax.reload(null, false);
+
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: res.message
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: xhr.responseJSON?.message ?? 'Terjadi kesalahan'
+                    });
+                }
+            });
+
+        }
+
+    });
+}
+
 
 function showDetail(id) {
 

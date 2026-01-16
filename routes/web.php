@@ -1849,6 +1849,8 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/approve-packing-in-subcont', 'ApprovePackingInSubcont')->name('approve-packing-in-subcont');
         Route::get('/save-approve-packing-in', 'SaveApprovePackingIn')->name('save-approve-packing-in');
+        Route::post('/cancel-packing-in-subcont', 'CancelPackingInSubcont')->name('cancel-packing-in-subcont');
+        Route::post('/cancel-packing-out-subcont', 'CancelPackingOutSubcont')->name('cancel-packing-out-subcont');
 
 
     });
