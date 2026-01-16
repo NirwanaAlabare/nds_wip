@@ -1549,6 +1549,11 @@
                                     Ceisa Detail
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('report-signalbit-bc') }}" class="dropdown-item">
+                                    Data BC Signalbit
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif
