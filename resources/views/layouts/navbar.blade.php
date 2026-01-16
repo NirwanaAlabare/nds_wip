@@ -1544,7 +1544,7 @@
                             </li>
                             <li>
                                 <a href="{{ route('report-signalbit-bc') }}" class="dropdown-item">
-                                    Ceisa Detail
+                                    Data BC Signalbit
                                 </a>
                             </li>
                         </ul>
