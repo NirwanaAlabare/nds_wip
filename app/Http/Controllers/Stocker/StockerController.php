@@ -444,6 +444,7 @@ class StockerController extends Controller
                 where("stocker_ws_additional.panel", $dataAdditional->panel)->
                 where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
                 where("part_form.part_id", $dataSpreading->part_id)->
+                whereRaw("(stocker_input.cancel != 'y' OR stocker_input.cancel is null OR stocker_input.cancel = '')")->
                 // where("marker_input_detail.ratio", ">", "0")->
                 groupBy("form_cut_input.no_form", "form_cut_input.no_cut", "stocker_ws_additional_detail.so_det_id")->
                 orderBy("form_cut_input.no_cut", "desc")->
@@ -2917,14 +2918,14 @@ class StockerController extends Controller
                         $checkStocker->save();
                     }
 
-                    $lastRatio = $i + 1;
+                    $lastRatio = $j + 1;
                 }
             }
 
             if ($lastRatio > 0) {
                 $deleteStocker = Stocker::whereRaw("
                         part_detail_id = '" . $request['part_detail_id_add'][$index] . "' AND
-                        form_piece_id = '" . $request['form_cut_id'] . "' AND
+                        form_cut_id = '" . $request['form_cut_id'] . "' AND
                         so_det_id = '" . $request['so_det_id_add'][$index] . "' AND
                         color = '" . $request['color_add'] . "' AND
                         panel = '" . $request['panel_add'] . "' AND
@@ -3097,7 +3098,7 @@ class StockerController extends Controller
             orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.so_det_id", "asc")->
             orderByRaw("CAST(stocker_input.ratio AS UNSIGNED) asc")->
-            get();
+            get ();
 
         // generate pdf
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);

@@ -216,6 +216,12 @@ return [
             'path' => storage_path('logs/cuttingRollUsageProcessExtension/cuttingRollUsageProcessExtension.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
             'days' => 30,
+        ],
+        'reorderStockerNumbering' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/reorderStockerNumbering/reorderStockerNumbering.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
         ]
     ],
 ];

@@ -397,7 +397,7 @@ class StockerService
                 }
             }
 
-            \Log::info("row ".$formCut->no_form." & ".$formCut->no_cut);
+            \Log::channel("reorderStockerNumbering")->info("row ".$formCut->no_form." & ".$formCut->no_cut);
         }
 
         return $sizeRangeAkhir;
