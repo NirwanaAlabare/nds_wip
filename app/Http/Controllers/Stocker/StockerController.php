@@ -444,6 +444,7 @@ class StockerController extends Controller
                 where("stocker_ws_additional.panel", $dataAdditional->panel)->
                 where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
                 where("part_form.part_id", $dataSpreading->part_id)->
+                whereRaw("(stocker_input.cancel != 'y' OR stocker_input.cancel is null OR stocker_input.cancel = '')")->
                 // where("marker_input_detail.ratio", ">", "0")->
                 groupBy("form_cut_input.no_form", "form_cut_input.no_cut", "stocker_ws_additional_detail.so_det_id")->
                 orderBy("form_cut_input.no_cut", "desc")->
