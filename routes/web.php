@@ -719,6 +719,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/cutting-daily/export', 'cuttingDailyExport')->name('report-cutting-daily-export');
         Route::post('/pemakaian-roll/export', 'pemakaianRollExport')->name('pemakaian-roll-export');
         Route::post('/detail-pemakaian-roll/export', 'detailPemakaianRollExport')->name('detail-pemakaian-roll-export');
+        Route::get('/export_excel_report_cutting_mutasi_fabric', 'export_excel_report_cutting_mutasi_fabric')->name('export_excel_report_cutting_mutasi_fabric');
     });
 
     // Roll

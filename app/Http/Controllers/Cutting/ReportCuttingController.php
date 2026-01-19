@@ -10,6 +10,7 @@ use App\Exports\ExportReportCuttingSinglePage;
 use App\Exports\ExportPemakaianKain;
 use App\Exports\ExportDetailPemakaianKain;
 use App\Exports\ExportReportCuttingDaily;
+use App\Exports\export_excel_report_cutting_mutasi_fabric;
 use App\Exports\Cutting\CuttingOrderOutputExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
@@ -1237,9 +1238,7 @@ class ReportCuttingController extends Controller
             if ($start_date === null || $end_date === null) {
                 return response()->json(['data' => []]);
             } else {
-
-
-                $rawData = DB::connection('mysql_sb')->select("WITH gk_out_sa as (
+                $rawData = DB::select("WITH gk_out_sa as (
 SELECT
 id_roll,
 id_item,
@@ -1259,7 +1258,7 @@ ifnull(no_ws_aktual,no_ws) ws
 from signalbit_erp.whs_bppb_h a
 inner join signalbit_erp.whs_bppb_det b on a.no_bppb = b.no_bppb
 where tgl_bppb >= '2026-01-01' and tgl_bppb < '$start_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
-group by id_roll
+group by id_roll, ws
 ),
 gr_set_sa as (
 select
@@ -1280,10 +1279,10 @@ a.act_costing_ws as ws
 from form_cut_reject a
 inner join form_cut_reject_barcode b on a.id = b.form_id
 left join scanned_item s on b.barcode = s.id_roll
-where b.created_at >= '$start_date 00:00:00' and b.created_at <= '$end_date 23:59:59'
-group by barcode
+where b.created_at >= '2026-01-01 00:00:00' and b.created_at < '$start_date 00:00:00'
+group by barcode, ws
 ),
-gr_set_panel_sa as (
+gr_set_alokasi_sa as (
 SELECT
 barcode,
 id_item,
@@ -1298,24 +1297,12 @@ CASE
 		WHEN s.unit = 'KGM' THEN 'KGM'
 		ELSE s.unit
 		END as satuan,
-k.kpno as ws
-from form_cut_gr_panel_barcode a
+ws,
+min(sisa_kain) sisa_kain
+from form_cut_alokasi_gr_panel_barcode a
 left join scanned_item s on a.barcode = s.id_roll
-left join (
-				SELECT
-						jd.id_jo,
-						ac.kpno,
-            supplier as buyer,
-            styleno
-				FROM signalbit_erp.jo_det jd
-				INNER JOIN signalbit_erp.so ON jd.id_so = so.id
-				INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-                INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-				WHERE jd.cancel = 'N'
-				GROUP BY jd.id_jo
-			) k on a.id_jo = k.id_jo
-where a.created_at >= '2026-01-01 00:00:00' and a.created_at < '$end_date 00:00:00'
-group by barcode
+where a.created_at >= '2026-01-01 00:00:00' and a.created_at < '$start_date 00:00:00'
+group by barcode, ws
 ),
 gk_retur_sa as (
 SELECT
@@ -1517,7 +1504,8 @@ FROM (
 		form_cut_piping
 		LEFT JOIN form_cut_input_detail b on b.id_roll = form_cut_piping.id_roll AND b.created_at > form_cut_piping.created_at and b.created_at >= '2026-01-01 00:00:00'
 		and b.created_at < '$start_date 00:00:00'
-		LEFT JOIN form_cut_piping c on c.id_roll = form_cut_piping.id_roll AND c.id != form_cut_piping.id and c.created_at > form_cut_piping.created_at and c.created_at >= '2026-01-01 00:00:00' and c.created_at < '$start_date 00:00:00'
+		LEFT JOIN form_cut_piping c on c.id_roll = form_cut_piping.id_roll AND c.id != form_cut_piping.id and c.created_at > form_cut_piping.created_at and c.created_at >= '2026-01-01 00:00:00'
+        and c.created_at < '$start_date 00:00:00'
 		left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
 		left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
 	where
@@ -1635,7 +1623,7 @@ ifnull(no_ws_aktual,no_ws) ws
 from signalbit_erp.whs_bppb_h a
 inner join signalbit_erp.whs_bppb_det b on a.no_bppb = b.no_bppb
 where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
-group by id_roll
+group by id_roll, ws
 ),
 gr_set as (
 select
@@ -1656,10 +1644,10 @@ a.act_costing_ws as ws
 from form_cut_reject a
 inner join form_cut_reject_barcode b on a.id = b.form_id
 left join scanned_item s on b.barcode = s.id_roll
-where b.created_at >= '$start_date 00:00:00' and b.created_at <= '$start_date 23:59:59'
-group by barcode
+where b.created_at >= '$start_date 00:00:00' and b.created_at <= '$end_date 23:59:59'
+group by barcode, ws
 ),
-gr_set_panel as (
+gr_set_alokasi as (
 SELECT
 barcode,
 id_item,
@@ -1674,24 +1662,12 @@ CASE
 		WHEN s.unit = 'KGM' THEN 'KGM'
 		ELSE s.unit
 		END as satuan,
-k.kpno as ws
-from form_cut_gr_panel_barcode a
+ws,
+min(sisa_kain) sisa_kain
+from form_cut_alokasi_gr_panel_barcode a
 left join scanned_item s on a.barcode = s.id_roll
-left join (
-				SELECT
-						jd.id_jo,
-						ac.kpno,
-            supplier as buyer,
-            styleno
-				FROM signalbit_erp.jo_det jd
-				INNER JOIN signalbit_erp.so ON jd.id_so = so.id
-				INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-                INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-				WHERE jd.cancel = 'N'
-				GROUP BY jd.id_jo
-			) k on a.id_jo = k.id_jo
 where a.created_at >= '$start_date 00:00:00' and a.created_at <= '$end_date 23:59:59'
-group by barcode
+group by barcode, ws
 ),
 gk_retur as (
 SELECT
@@ -1993,67 +1969,82 @@ saldo_awal as (
 SELECT
 barcode,
 a.id_item,
-SUM(qty_out) - SUM(qty_pakai)  - SUM(qty_retur) - SUM(qty_reject_set) - SUM(qty_reject_panel) as qty_sa,
+MIN(NULLIF(sisa_kain, 0)) AS min_sisa_kain,
+SUM(qty_pakai) + SUM(qty_reject_set) + SUM(qty_reject_panel) + COALESCE(MIN(NULLIF(sisa_kain, 0)), 0) + SUM(qty_retur) - SUM(qty_out) as short_roll,
 ws,
 satuan
 FROM
 		(
-		SELECT id_roll as barcode,id_item, qty_out, 0 as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, satuan, ws FROM gk_out_sa
+		SELECT id_roll as barcode,id_item, qty_out, 0 as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, 0 as sisa_kain, satuan, ws FROM gk_out_sa
 		UNION ALL
-		SELECT id_roll as barcode,id_item, 0 qty_out, total_pemakaian_roll as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, unit_roll as satuan, act_costing_ws as ws  FROM cutt_sa
+		SELECT id_roll as barcode,id_item, 0 qty_out, total_pemakaian_roll as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel,sisa_kain, unit_roll as satuan, act_costing_ws as ws  FROM cutt_sa
 		UNION ALL
-		SELECT no_barcode as barcode,id_item, 0 qty_out, 0 as qty_pakai, qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, satuan, no_ws as ws  FROM gk_retur_sa
+		SELECT no_barcode as barcode,id_item, 0 qty_out, 0 as qty_pakai, qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel,0 as sisa_kain, satuan, no_ws as ws  FROM gk_retur_sa
 		UNION ALL
-		SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, qty_pakai as qty_reject_set, 0 as qty_reject_panel, satuan, ws  FROM gr_set_sa
+		SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, 0 qty_reject_set, qty_pakai as qty_reject_panel, sisa_kain, satuan, ws  FROM gr_set_alokasi_sa
 		UNION ALL
-		SELECT barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur,0 as qty_reject_set, qty_pakai as qty_reject_panel, satuan, ws  FROM gr_set_panel_sa
+		SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, qty_pakai as qty_reject_set, 0 as qty_reject_panel,0 as sisa_kain, satuan, ws  FROM gr_set_sa
 		) a
-group by a.id_item, ws, satuan
+group by barcode, ws, satuan
 ),
 mut as (
 SELECT
-mut.id_item,
-ROUND(SUM(qty_sa),2) as qty_sa,
+barcode,
+a.id_item,
+MIN(NULLIF(sisa_kain, 0)) AS min_sisa_kain,
+SUM(qty_pakai) + SUM(qty_reject_set) + SUM(qty_reject_panel) + COALESCE(MIN(NULLIF(sisa_kain, 0)), 0) + SUM(qty_retur) - SUM(qty_out) as short_roll,
+SUM(qty_out) as qty_out,
+SUM(qty_pakai) as qty_pakai,
+SUM(qty_retur) qty_retur,
+SUM(qty_reject_set) qty_reject_set,
+SUM(qty_reject_panel) qty_reject_panel,
+SUM(qty_out) - SUM(qty_pakai)  - SUM(qty_retur) - SUM(qty_reject_set) - SUM(qty_reject_panel) as qty_sakhir,
+SUM(sisa_kain) as sisa_kain,
+ws,
+satuan
+FROM
+		(
+		SELECT id_roll as barcode,id_item, qty_out, 0 as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, 0 as sisa_kain, satuan, ws FROM gk_out
+		UNION ALL
+		SELECT id_roll as barcode,id_item, 0 qty_out, total_pemakaian_roll as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel,sisa_kain, unit_roll as satuan, act_costing_ws as ws  FROM cutt
+		UNION ALL
+		SELECT no_barcode as barcode,id_item, 0 qty_out, 0 as qty_pakai, qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel,0 as sisa_kain, satuan, no_ws as ws  FROM gk_retur
+		UNION ALL
+		SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, 0 qty_reject_set, qty_pakai as qty_reject_panel, sisa_kain, satuan, ws  FROM gr_set_alokasi
+		UNION ALL
+		SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, qty_pakai as qty_reject_set, 0 as qty_reject_panel,0 as sisa_kain, satuan, ws  FROM gr_set
+		) a
+group by barcode, ws, satuan
+)
+
+
+SELECT
+mi.id_item,
+mi.itemdesc,
+buyer,
+styleno,
+mi.color,
+ROUND(SUM(qty_sawal),2) as qty_sawal,
 ROUND(SUM(qty_out),2) as qty_out,
 ROUND(SUM(qty_pakai),2) as qty_pakai,
 ROUND(SUM(qty_retur),2) as qty_retur,
 ROUND(SUM(qty_reject_set),2) as qty_reject_set,
 ROUND(SUM(qty_reject_panel),2) as qty_reject_panel,
+ROUND(SUM(short_roll_sawal) + SUM(short_roll),2) as short_roll,
+ROUND(SUM(qty_sawal) + SUM(sisa_kain),2) as saldo_akhir,
 ws,
 satuan
 FROM
 (
-SELECT id_roll as barcode,id_item, 0 qty_sa, qty_out, 0 as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, satuan, ws FROM gk_out
+select id_item, SUM(short_roll) as short_roll_sawal , SUM(min_sisa_kain) as qty_sawal, 0 as qty_out, 0 as qty_pakai, 0 as qty_retur, 0 as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, 0 as sisa_kain, ws, satuan
+from saldo_awal
+GROUP BY id_item, ws, satuan
 UNION ALL
-SELECT id_roll as barcode,id_item, 0 qty_sa, 0 qty_out, total_pemakaian_roll as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, unit_roll as satuan, act_costing_ws as ws  FROM cutt
-UNION ALL
-SELECT no_barcode as barcode,id_item, 0 qty_sa, 0 qty_out, 0 as qty_pakai, qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, satuan, no_ws as ws  FROM gk_retur
-UNION ALL
-SELECT  barcode,id_item, 0 qty_sa, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, qty_pakai as qty_reject_set, 0 as qty_reject_panel, satuan, ws  FROM gr_set
-UNION ALL
-SELECT barcode,id_item, 0 qty_sa, 0 qty_out, 0 as qty_pakai, 0 as qty_retur,0 as qty_reject_set, qty_pakai as qty_reject_panel, satuan, ws  FROM gr_set_panel
-UNION ALL
-SELECT barcode,id_item, qty_sa, 0 qty_out, 0 as qty_pakai, 0 as qty_retur,0 as qty_reject_set, 0 as qty_reject_panel, satuan, ws  FROM saldo_awal
-) mut
-group by mut.id_item, ws, satuan
-)
-
-SELECT
-mut.id_item,
-mi.itemdesc,
-mi.color,
-buyer,
-styleno,
-qty_sa,
-qty_out,
-qty_pakai,
-qty_retur,
-qty_reject_set,
-qty_reject_panel,
-ws,
-satuan
-FROM mut
-inner join signalbit_erp.masteritem mi on mut.id_item = mi.id_item
+select id_item, 0 as short_roll_sawal , 0 as qty_sawal, SUM(qty_out) as qty_out, SUM(qty_pakai) as qty_pakai, SUM(qty_retur) as qty_retur, SUM(qty_reject_set) as qty_reject_set, SUM(qty_reject_panel) as qty_reject_panel, SUM(short_roll) as short_roll, SUM(sisa_kain) as sisa_kain, ws, satuan
+from mut
+GROUP BY id_item, ws, satuan
+) a
+inner join signalbit_erp.masteritem mi on a.id_item = mi.id_item
 LEFT JOIN (SELECT
 						jd.id_jo,
 						ac.kpno,
@@ -2064,8 +2055,9 @@ LEFT JOIN (SELECT
 				INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
                 INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
 				WHERE jd.cancel = 'N'
-				GROUP BY jd.id_jo) k on mut.ws = k.kpno
-order by mi.itemdesc asc, mi.color asc
+				GROUP BY jd.id_jo) k on a.ws = k.kpno
+GROUP BY id_item, ws, satuan
+
         ");
 
                 return response()->json([
@@ -2082,5 +2074,11 @@ order by mi.itemdesc asc, mi.color asc
             'subPage' => '"cutting"]);',
             'containerFluid' => true,
         ]);
+    }
+
+
+    public function export_excel_report_cutting_mutasi_fabric(Request $request)
+    {
+        return Excel::download(new export_excel_report_cutting_mutasi_fabric($request->start_date, $request->end_date), 'Laporan_Penerimaan FG_Stok.xlsx');
     }
 }

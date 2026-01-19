@@ -17,6 +17,21 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    <style>
+        #datatable {
+            width: 100% !important;
+            table-layout: fixed;
+            /* KUNCI layout */
+        }
+
+        #datatable th,
+        #datatable td {
+            white-space: normal !important;
+            word-break: break-word;
+            vertical-align: middle;
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -60,36 +75,29 @@
 
 
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered w-100 text-nowrap">
+                <table id="datatable" class="table table-bordered table-striped table-hover w-100">
                     <thead class="bg-sb">
                         <tr>
-                            <th class="text-center align-middle" scope="col" style="color: black;">
-                                Worksheet
-                            </th>
-                            <th class="text-center align-middle" scope="col" style="color: black;">Buyer
-                            </th>
-                            <th class="text-center align-middle" scope="col" style="color: black;">Style
-                            </th>
-                            <th class="text-center align-middle" scope="col" style="color: black;">Color
-                            </th>
-                            <th class="text-center align-middle" scope="col" style="color: black;">ID Item
-                            </th>
-                            <th class="text-center align-middle" scope="col" style="color: black;">Item
-                                Name
-                            </th>
-                            <th class="text-center align-middle" scope="col">Saldo Awal</th>
-                            <th class="text-center align-middle" scope="col">Penerimaan</th>
-                            <th class="text-center align-middle" scope="col">Pemakaian Cutting</th>
-                            <th class="text-center align-middle" scope="col">Ganti Reject Set</th>
-                            <th class="text-center align-middle" scope="col">Ganti Reject Panel</th>
-                            <th class="text-center align-middle" scope="col">Retur</th>
-
-                            <th class="text-center align-middle"scope="col">Short Roll</th>
-                            <th class="text-center align-middle" scope="col">Satuan</th>
+                            <th class="text-center align-middle">Worksheet</th>
+                            <th class="text-center align-middle">Buyer</th>
+                            <th class="text-center align-middle">Style</th>
+                            <th class="text-center align-middle">Color</th>
+                            <th class="text-center align-middle">ID Item</th>
+                            <th class="text-center align-middle">Item Name</th>
+                            <th class="text-center align-middle">Saldo Awal</th>
+                            <th class="text-center align-middle">Penerimaan</th>
+                            <th class="text-center align-middle">Pemakaian Cutting</th>
+                            <th class="text-center align-middle">Ganti Reject Set</th>
+                            <th class="text-center align-middle">Ganti Reject Panel</th>
+                            <th class="text-center align-middle">Retur</th>
+                            <th class="text-center align-middle">Short Roll</th>
+                            <th class="text-center align-middle">Saldo Akhir</th>
+                            <th class="text-center align-middle">Satuan</th>
                         </tr>
                     </thead>
                 </table>
             </div>
+
 
         </div>
     </div>
@@ -140,49 +148,121 @@
             dataTableReload()
         });
 
-
         function dataTableReload() {
             let start_date = $('#start_date').val();
             let end_date = $('#end_date').val();
 
-            // Show loading Swal only if both fields are filled
             if (start_date && end_date) {
                 Swal.fire({
                     title: 'Loading...',
                     text: 'Please wait while data is loading.',
                     allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
+                    didOpen: () => Swal.showLoading()
                 });
             }
 
-            let table = $('#datatable').DataTable({
+            const table = $('#datatable').DataTable({
                 destroy: true,
                 ordering: false,
-                responsive: true,
+                responsive: false,
                 serverSide: false,
                 paging: false,
                 searching: true,
-                scrollY: "500px",
+
                 scrollX: true,
+                scrollY: '500px',
                 scrollCollapse: true,
+
+                autoWidth: false, // WAJIB false
                 deferRender: true,
-                language: {
-                    loadingRecords: "",
-                    processing: ""
+
+                processing: false,
+
+                ajax: {
+                    url: '{{ route('report_cutting_mutasi_fabric') }}',
+                    data(d) {
+                        d.start_date = start_date;
+                        d.end_date = end_date;
+                    },
+                    dataSrc(json) {
+                        if (start_date && end_date) Swal.close();
+                        return json.data;
+                    },
+                    error() {
+                        Swal.fire('Error', 'Failed to load data.', 'error');
+                    }
                 },
-                // <-- Ini bagian penting
-                lengthMenu: [
-                    [10, 25, 50, -1], // -1 = All
-                    [10, 25, 50, "All"] // label yang ditampilkan
+
+                columns: [{
+                        data: 'ws'
+                    },
+                    {
+                        data: 'buyer'
+                    },
+                    {
+                        data: 'styleno'
+                    },
+                    {
+                        data: 'color'
+                    },
+                    {
+                        data: 'id_item',
+                    },
+                    {
+                        data: 'itemdesc'
+                    },
+                    {
+                        data: 'qty_sawal',
+                        className: 'text-end'
+                    },
+                    {
+                        data: 'qty_out',
+                        className: 'text-end'
+                    },
+                    {
+                        data: 'qty_pakai',
+                        className: 'text-end'
+                    },
+                    {
+                        data: 'qty_reject_set',
+                        className: 'text-end'
+                    },
+                    {
+                        data: 'qty_reject_panel',
+                        className: 'text-end'
+                    },
+                    {
+                        data: 'qty_retur',
+                        className: 'text-end'
+                    },
+                    {
+                        data: 'short_roll',
+                        className: 'text-end'
+                    },
+                    {
+                        data: 'saldo_akhir',
+                        className: 'text-end'
+                    },
+                    {
+                        data: 'satuan',
+                        className: 'text-center'
+                    }
                 ],
-                processing: false, // keep processing true if you want to use processing events, just hide the text
-                fixedColumns: {
-                    leftColumns: 6
-                },
+
+                initComplete: function() {
+                    // 🔥 PAKSA RECALC SETELAH LOAD
+                    setTimeout(() => {
+                        this.api().columns.adjust();
+                    }, 100);
+                }
+            });
+
+            // 🔥 FIX ZOOM IN / OUT
+            $(window).off('resize.dt').on('resize.dt', function() {
+                table.columns.adjust();
             });
         }
+
 
         function export_excel() {
             let start_date = $('#start_date').val();
@@ -198,7 +278,7 @@
 
             $.ajax({
                 type: "get",
-                url: '{{ route('export_excel_laporan_earning') }}',
+                url: '{{ route('export_excel_report_cutting_mutasi_fabric') }}',
                 data: {
                     start_date: start_date,
                     end_date: end_date
@@ -218,7 +298,7 @@
                     var blob = new Blob([response]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Laporan Daily Earning " + start_date + " _ " + end_date + ".xlsx";
+                    link.download = "Laporan Mutasi Fabric " + start_date + " _ " + end_date + ".xlsx";
                     link.click();
                 },
                 error: function(xhr, status, error) {
