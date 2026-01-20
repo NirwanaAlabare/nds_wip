@@ -264,7 +264,8 @@ class RollController extends Controller
                     b.status,
                     a.operator,
                     a.tipe_form_cut,
-                    b.created_at
+                    b.created_at,
+                    b.updated_at
                 from
                     form_cut_input a
                     left join form_cut_input_detail b on a.id = b.form_cut_id
@@ -350,7 +351,8 @@ class RollController extends Controller
                     null `status`,
                     form_cut_piping.operator,
                     'PIPING' tipe_form_cut,
-                    form_cut_piping.created_at
+                    form_cut_piping.created_at,
+                    form_cut_piping.updated_at
                 from
                     form_cut_piping
                     left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
@@ -426,7 +428,8 @@ class RollController extends Controller
                     form_cut_piece_detail.status `status`,
                     form_cut_piece.employee_name,
                     'PCS' tipe_form_cut,
-                    form_cut_piece.created_at
+                    form_cut_piece.created_at,
+                    form_cut_piece.updated_at
                 from
                     form_cut_piece
                     left join form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
@@ -443,7 +446,8 @@ class RollController extends Controller
             order by
                 waktu_mulai asc,
                 waktu_selesai asc,
-                created_at asc
+                created_at asc,
+                updated_at asc
         ");
 
         return DataTables::of($data_pemakaian)->toJson();
@@ -539,35 +543,64 @@ class RollController extends Controller
     {
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
-                mastersupplier.Supplier buyer,
-                whs_bppb_h.no_ws_aktual no_ws,
-                act_costing.styleno style,
-                masteritem.color,
-                whs_bppb_det.id_roll,
-                masteritem.itemdesc detail_item,
-                masteritem.color detail_item_color,
-                masteritem.size detail_item_size,
-                whs_bppb_det.id_item,
-                whs_bppb_det.no_lot lot,
-                COALESCE(whs_lokasi_inmaterial.no_roll_buyer, whs_bppb_det.no_roll) no_roll,
-                whs_bppb_det.satuan unit,
-                whs_bppb_det.qty_stok,
-                SUM(whs_bppb_det.qty_out) qty
-            FROM
-                whs_bppb_det
-                LEFT JOIN (SELECT jo_det.* FROM jo_det WHERE cancel != 'Y' GROUP BY id_jo) jodet ON jodet.id_jo = whs_bppb_det.id_jo
-                LEFT JOIN so ON so.id = jodet.id_so
-                LEFT JOIN act_costing ON act_costing.id = so.id_cost
-                LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
-                LEFT JOIN masteritem ON masteritem.id_item = whs_bppb_det.id_item
-                LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
-                LEFT JOIN whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
-            WHERE
-                whs_bppb_det.id_roll = '".$id."'
-                AND whs_bppb_h.tujuan = 'Production - Cutting'
-                AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
+                buyer,
+                no_ws,
+                style,
+                color,
+                id_roll,
+                detail_item,
+                detail_item_color,
+                detail_item_size,
+                id_item,
+                lot,
+                roll,
+                roll_buyer,
+                qty_stok,
+                SUM(qty)-COALESCE(qty_ri, 0) as qty,
+                unit,
+                rule_bom,
+                so_det_list,
+                size_list
+            FROM (
+                SELECT
+                    mastersupplier.Supplier buyer,
+                    whs_bppb_h.no_ws_aktual no_ws,
+                    act_costing.styleno style,
+                    masteritem.color,
+                    whs_bppb_det.id_roll,
+                    masteritem.itemdesc detail_item,
+                    masteritem.color detail_item_color,
+                    masteritem.size detail_item_size,
+                    whs_bppb_det.id_item,
+                    whs_bppb_det.no_lot lot,
+                    whs_bppb_det.no_roll roll,
+                    whs_lokasi_inmaterial.no_roll_buyer roll_buyer,
+                    whs_bppb_det.qty_stok,
+                    whs_bppb_det.qty_out qty,
+                    whs_bppb_det.satuan unit,
+                    bji.rule_bom,
+                    GROUP_CONCAT(DISTINCT so_det.id ORDER BY so_det.id ASC SEPARATOR ', ') as so_det_list,
+                    GROUP_CONCAT(DISTINCT so_det.size ORDER BY so_det.id ASC SEPARATOR ', ') as size_list
+                FROM
+                    whs_bppb_det
+                    LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
+                    LEFT JOIN (SELECT no_barcode, id_item, no_roll_buyer FROM whs_lokasi_inmaterial where no_barcode = '".$id."' GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                    LEFT JOIN masteritem ON masteritem.id_item = whs_lokasi_inmaterial.id_item
+                    LEFT JOIN bom_jo_item bji ON bji.id_item = masteritem.id_gen
+                    LEFT JOIN so_det ON so_det.id = bji.id_so_det
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                WHERE
+                    whs_bppb_det.id_roll = '".$id."'
+                    AND whs_bppb_h.tujuan = 'Production - Cutting'
+                    AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
+                GROUP BY
+                    whs_bppb_det.id
+            ) item
+            LEFT JOIN (select no_barcode, sum(qty_aktual) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.no_barcode = '".$id."' and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = item.id_roll
             GROUP BY
-                whs_bppb_det.id_roll
+                    id_roll
             LIMIT 1
         ");
 
@@ -789,7 +822,7 @@ class RollController extends Controller
                 whs_lokasi_inmaterial.kode_lok lokasi,
                 whs_bppb_det.satuan unit,
                 whs_bppb_det.qty_stok,
-                SUM(whs_bppb_det.qty_out) qty
+                SUM(whs_bppb_det.qty_out)-COALESCE(qty_ri, 0) qty
             FROM
                 whs_bppb_det
                 LEFT JOIN (SELECT jo_det.* FROM jo_det WHERE cancel != 'Y' GROUP BY id_jo) jodet ON jodet.id_jo = whs_bppb_det.id_jo
@@ -798,11 +831,13 @@ class RollController extends Controller
                 LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
                 LEFT JOIN masteritem ON masteritem.id_item = whs_bppb_det.id_item
                 LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
-                LEFT JOIN whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                LEFT JOIN (SELECT * from whs_lokasi_inmaterial WHERE no_barcode = '".$id."' ORDER BY id DESC LIMIT 1) as whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                LEFT JOIN (select no_barcode, sum(qty_aktual) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.no_barcode = '".$id."' and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = whs_bppb_det.id_roll
             WHERE
                 whs_bppb_det.id_roll = '".$id."'
                 AND whs_bppb_h.tujuan = 'Production - Cutting'
                 AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
+                AND whs_bppb_det.no_bppb LIKE '%GK/OUT%'
             GROUP BY
                 whs_bppb_det.id_roll
             LIMIT 1
@@ -889,7 +924,7 @@ class RollController extends Controller
                 whs_lokasi_inmaterial.kode_lok lokasi,
                 whs_bppb_det.satuan unit,
                 whs_bppb_det.qty_stok,
-                SUM(whs_bppb_det.qty_out) qty
+                SUM(whs_bppb_det.qty_out)-COALESCE(qty_ri, 0) qty
             FROM
                 whs_bppb_det
                 LEFT JOIN (SELECT jo_det.* FROM jo_det WHERE cancel != 'Y' GROUP BY id_jo) jodet ON jodet.id_jo = whs_bppb_det.id_jo
@@ -898,11 +933,13 @@ class RollController extends Controller
                 LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
                 LEFT JOIN masteritem ON masteritem.id_item = whs_bppb_det.id_item
                 LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
-                LEFT JOIN whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                LEFT JOIN (SELECT * FROM whs_lokasi_inmaterial WHERE no_barcode in (".$idsStr.") GROUP BY no_barcode) as whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                LEFT JOIN (select no_barcode, sum(qty_aktual) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where no_barcode in (".$idsStr.") and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = whs_bppb_det.id_roll
             WHERE
                 whs_bppb_det.id_roll in (".$idsStr.")
                 AND whs_bppb_h.tujuan = 'Production - Cutting'
                 AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
+                AND whs_bppb_det.no_bppb LIKE '%GK/OUT%'
             GROUP BY
                 whs_bppb_det.id_roll
         ");

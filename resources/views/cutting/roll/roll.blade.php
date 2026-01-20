@@ -23,13 +23,13 @@
                         <div class="d-flex align-items-end gap-3 mb-3">
                             <div class="mb-3">
                                 <label class="form-label"><small>Tanggal Awal</small></label>
-                                <input type="date" class="form-control form-control-sm" id="from" name="from" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
+                                <input type="date" class="form-control form-control-sm" id="from" name="from" value="{{ date('Y-m-d') }}">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label"><small>Tanggal Akhir</small></label>
-                                <input type="date" class="form-control form-control-sm" id="to" name="to" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
+                                <input type="date" class="form-control form-control-sm" id="to" name="to" value="{{ date('Y-m-d') }}">
                             </div>
-                            <button type="button" class="btn btn-primary btn-sm mb-3"><i class="fa fa-search fa-sm"></i></button>
+                            <button type="button" class="btn btn-primary btn-sm mb-3" onclick="datatableReload()"><i class="fa fa-search fa-sm"></i></button>
                         </div>
                     </div>
                     <div class="col-12 col-lg-6">
@@ -353,7 +353,7 @@
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" />');
 
-                $('input', this).on('keyup change', function() {
+                $('input', this).on('change', function() {
                     if (datatable.column(i).search() !== this.value) {
                         datatable
                             .column(i)

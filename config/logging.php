@@ -100,76 +100,122 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'completedFormBypassStocker' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/completedFormBypassStocker/completedFormBypassStocker.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
+        ],
+
         'deletePartDetail' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/deletePartDetail/deletePartDetail.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
         ],
 
         'fixRollQty' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/fixRollQty/fixRollQty.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
         ],
 
         'resetStockerForm' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/resetStockerForm/resetStockerForm.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
         ],
 
         'transferOutput' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/transferOutput/transferOutput.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
         ],
 
         'missReworkOutput' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/missReworkOutput/missReworkOutput.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
         ],
 
         'missRejectOutput' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/missRejectOutput/missRejectOutput.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
         ],
 
         'missMasterPlanOutput' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/missMasterPlanOutput/missMasterPlanOutput.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
         ],
 
         'missUserOutput' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/missUserOutput/missUserOutput.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
         ],
 
         'missPackingPo' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/missPackingPo/missPackingPo.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
         ],
 
         'deleteStockerAbout' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/stockerAbout/deleteStockerAbout.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
         ],
 
         'updateHrisLabor' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/hris/updateHrisLabor.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
         ],
 
         'modifyYearSequence' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/modifyYearSequence/modifyYearSequence.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
         ],
+
+        'importStockerManual' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/importStockerManual/importStockerManual.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
+        ],
+
+        'deleteRedundantRollUsage' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/deleteRedundantRollUsage/deleteRedundantRollUsage.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
+        ],
+
+        'cuttingRollUsageProcess' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/cuttingRollUsageProcess/cuttingRollUsageProcess.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
+        ],
+        'cuttingRollUsageProcessExtension' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/cuttingRollUsageProcessExtension/cuttingRollUsageProcessExtension.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
+        ]
     ],
 ];

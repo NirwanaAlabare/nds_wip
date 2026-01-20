@@ -14,6 +14,8 @@ use Yajra\DataTables\Facades\DataTables;
 use App\Models\Stocker\Stocker;
 use App\Models\MarkerInput;
 use App\Models\Part\Part;
+use App\Models\Part\PartDetail;
+use App\Models\Part\PartDetailItem;
 use App\Models\CuttingPlanOutput;
 use App\Models\Stocker\StockerAdditional;
 use App\Models\Cutting\Piping;
@@ -29,6 +31,7 @@ use App\Models\Dc\LoadingLinePlan;
 use App\Models\SignalBit\MasterPlan;
 use App\Models\SignalBit\RejectIn;
 use App\Models\Hris\MasterEmployee;
+use App\Services\GeneralService;
 use PDF;
 
 class GeneralController extends Controller
@@ -470,6 +473,10 @@ class GeneralController extends Controller
         ]);
     }
 
+    public function updateMasterSbWs(GeneralService $generalService) {
+        return $generalService->updateMasterSbWs();
+    }
+
     public function updateGeneralOrder(Request $request) {
         ini_set('max_execution_time', 3600); // 1 hour
 
@@ -670,6 +677,25 @@ class GeneralController extends Controller
         return $employee;
     }
 
+    public function getPartItemList(Request $request)
+    {
+        if ($request->act_costing_id) {
+            $items = DB::connection("mysql_sb")->select("
+                select bom_jo_item.id, masteritem.itemdesc from bom_jo_item
+                left join jo_det on jo_det.id_jo = bom_jo_item.id_jo
+                left join so on so.id = jo_det.id_so
+                left join act_costing on act_costing.id = so.id_cost
+                left join masteritem on bom_jo_item.id_item = masteritem.id_item
+                where act_costing.id = '".$request->act_costing_id."' and bom_jo_item.`status` = 'P' and matclass != 'CMT'
+                group by bom_jo_item.id_item
+            ");
+
+            return $items;
+        }
+
+        return null;
+    }
+
     public function getScannedItem($id = 0, Request $request)
     {
         $newItemAdditional = "";
@@ -699,7 +725,7 @@ class GeneralController extends Controller
                 roll,
                 roll_buyer,
                 qty_stok,
-                SUM(qty) as qty,
+                SUM(qty)-COALESCE(qty_ri, 0) as qty,
                 unit,
                 rule_bom,
                 so_det_list,
@@ -723,7 +749,7 @@ class GeneralController extends Controller
                 FROM
                     whs_bppb_det
                     LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
-                    LEFT JOIN (SELECT * FROM whs_lokasi_inmaterial GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                    LEFT JOIN (SELECT no_barcode, id_item, no_roll_buyer FROM whs_lokasi_inmaterial where no_barcode = '".$id."' GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
                     LEFT JOIN masteritem ON masteritem.id_item = whs_lokasi_inmaterial.id_item
                     LEFT JOIN bom_jo_item bji ON bji.id_item = masteritem.id_gen
                     LEFT JOIN so_det ON so_det.id = bji.id_so_det
@@ -733,10 +759,11 @@ class GeneralController extends Controller
                     whs_bppb_det.id_roll = '".$id."'
                     AND whs_bppb_h.tujuan = 'Production - Cutting'
                     AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
-                    ".$newItemAdditional."
+                    AND whs_bppb_det.no_bppb LIKE '%GK/OUT%'
                 GROUP BY
                     whs_bppb_det.id
             ) item
+            LEFT JOIN (select no_barcode, sum(qty_aktual) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.no_barcode = '".$id."' and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = item.id_roll
             GROUP BY
                 id_roll
             LIMIT 1

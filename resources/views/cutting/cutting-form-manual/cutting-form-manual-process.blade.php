@@ -958,7 +958,9 @@
                                 </div>
                             </div>
                             <div class="col-md-12">
-                                <button type="button" class="btn btn-sb btn-sm btn-block my-3" id="stopLapButton" onclick="stopTimeRecord()">Simpan</button>
+                                <button type="button" class="btn btn-sb btn-sm btn-block my-3" id="stopLapButton" onclick="this.setAttribute('disabled', true);stopTimeRecord();">
+                                    Simpan
+                                </button>
                             </div>
                         </div>
                     </form>
@@ -1192,6 +1194,9 @@
 
         // -Method-
         var method = "scan";
+
+        // -Is Processing-
+        var isProcessing = false;
 
         // Step One (WS) on change event
         $('#act_costing_id').on('change', function(e) {
@@ -1973,6 +1978,10 @@
 
             // -Store Time Record Transaction-
             async function storeTimeRecord (isContinue = 0) {
+                if (isProcessing) return alert("Prevent Redundant data, Reload the page to Try Again.");
+
+                isProcessing = true;
+
                 document.getElementById("loading").classList.remove("d-none");
 
                 clearModified();
@@ -1998,6 +2007,8 @@
                     document.getElementById("loading").classList.add("d-none");
                     document.getElementById("stopLapButton").removeAttribute("disabled");
 
+                    isProcessing = false;
+
                     return Swal.fire({
                         icon: 'error',
                         title: 'Harap isi berat amparan',
@@ -2015,6 +2026,8 @@
                             document.getElementById("stopLapButton").removeAttribute("disabled");
 
                             lockForm();
+
+                            isProcessing = false;
 
                             return Swal.fire({
                                 icon: 'error',
@@ -2041,6 +2054,8 @@
                         dataType: 'json',
                         data: dataObj,
                         success: function(res) {
+                            isProcessing = false;
+
                             document.getElementById("loading").classList.add("d-none");
                             document.getElementById("stopLapButton").removeAttribute("disabled");
 
@@ -2079,6 +2094,8 @@
                             }
                         },
                         error: function(jqXHR) {
+                            isProcessing = false;
+
                             document.getElementById("loading").classList.add("d-none");
                             document.getElementById("stopLapButton").removeAttribute("disabled");
 
@@ -2109,6 +2126,8 @@
                         dataType: 'json',
                         data: dataObj,
                         success: function(res) {
+                            isProcessing = false;
+
                             document.getElementById("loading").classList.add("d-none");
                             document.getElementById("stopLapButton").removeAttribute("disabled");
 
@@ -2143,6 +2162,8 @@
                             }
                         },
                         error: function(jqXHR) {
+                            isProcessing = false;
+
                             document.getElementById("loading").classList.add("d-none");
                             document.getElementById("stopLapButton").removeAttribute("disabled");
 
@@ -2646,7 +2667,7 @@
 
                 let estAmpar = pActualConverted > 0.00 ? qtyVar / pActualConverted : 0;
 
-                document.getElementById("current_est_amparan").value = estAmpar.round(2);
+                document.getElementById("current_est_amparan").value = Number(estAmpar).round(2);
             }
 
             // -Calculate Pemakaian Lembar
@@ -4192,8 +4213,10 @@
 
                 // -Next Lap Time Record-
                 async function addNewTimeRecord(data = null) {
+                    nextLapButton.disabled = true;
+
                     if ($("#status_sambungan").val() == "extension") {
-                        pauseTimeRecordButtons();
+                        // pauseTimeRecordButtons();
 
                         summarySeconds += totalSeconds;
                         totalSeconds = 0;
@@ -4218,14 +4241,14 @@
 
                         timeRecordTableTbody.prepend(tr);
 
-                        stopLapButton.disabled = false;
-
                         if (!(await stopTimeRecord())) {
                             resetTimeRecord();
-                            resetSambungan();
                         }
+
+                        nextLapButton.disabled = false;
+                        stopLapButton.disabled = false;
                     } else {
-                        pauseTimeRecordButtons();
+                        // pauseTimeRecordButtons();
 
                         summarySeconds += totalSeconds;
                         totalSeconds = 0;
@@ -4252,10 +4275,9 @@
 
                         await storeThisTimeRecord();
 
+                        nextLapButton.disabled = false;
                         stopLapButton.disabled = false;
                     }
-
-                    updatePlyProgress();
                 }
 
                 function openStopTimeRecord() {
@@ -4270,7 +4292,7 @@
 
                 // -Stop Time Record-
                 async function stopTimeRecord() {
-                    document.getElementById("stopLapButton").setAttribute("disabled", true);
+                    // document.getElementById("stopLapButton").setAttribute("disabled", true);
 
                     backToProcessThree();
                 }

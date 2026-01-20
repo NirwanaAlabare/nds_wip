@@ -193,7 +193,7 @@
                                 </a>
                             </div>
                             <div class="table-responsive">
-                                <table id="datatable_det_karton" class="table table-bordered 100 text-nowrap">
+                                <table id="datatable_det_karton" class="table table-bordered text-nowrap w-100">
                                     <thead class="table-warning">
                                         <tr>
                                             <th>PO #</th>
@@ -224,7 +224,7 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table id="datatable_summary" class="table table-bordered 100 text-nowrap">
+                                <table id="datatable_summary" class="table table-bordered w-100 text-nowrap">
                                     <thead class="table-warning">
                                         <tr>
                                             <th>WS #</th>
@@ -262,7 +262,7 @@
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table id="datatable_det_terinput_karton"
-                                    class="table table-bordered 100 text-nowrap">
+                                    class="table table-bordered w-100 text-nowrap">
                                     <thead class="table-success">
                                         <tr>
                                             <th>PO #</th>
@@ -293,7 +293,7 @@
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table id="datatable_summary_terinput"
-                                    class="table table-bordered 100 text-nowrap">
+                                    class="table table-bordered w-100 text-nowrap">
                                     <thead class="table-success">
                                         <tr>
                                             <th>WS #</th>
@@ -510,8 +510,8 @@
             },
             ordering: false,
             processing: true,
-            serverSide: true,
-            paging: false,
+            serverSide: false,
+            paging: true,
             destroy: true,
             autoWidth: true,
             scrollX: '300px',
@@ -591,8 +591,8 @@
             },
             ordering: false,
             processing: true,
-            serverSide: true,
-            paging: false,
+            serverSide: false,
+            paging: true,
             destroy: true,
             autoWidth: true,
             scrollX: '300px',
@@ -771,8 +771,8 @@
             },
             ordering: false,
             processing: true,
-            serverSide: true,
-            paging: false,
+            serverSide: false,
+            paging: true,
             destroy: true,
             autoWidth: true,
             scrollX: '300px',
@@ -837,7 +837,7 @@
 
                 // computing column Total of the complete result
                 var sumTotal = api
-                    .column(3)
+                    .column(4)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -845,12 +845,12 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(3).footer()).html(sumTotal);
+                $(api.column(4).footer()).html(sumTotal);
             },
             ordering: false,
             processing: true,
-            serverSide: true,
-            paging: false,
+            serverSide: false,
+            paging: true,
             destroy: true,
             autoWidth: true,
             scrollX: '300px',

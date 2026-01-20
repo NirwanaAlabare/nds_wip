@@ -78,7 +78,8 @@ class ExportDcIn implements FromView, WithEvents, ShouldAutoSize
                 left join part p on pd.part_id = p.id
                 left join master_part mp on mp.id = pd.master_part_id
             where
-                a.tgl_trans is not null
+                a.tgl_trans is not null AND
+                (s.cancel IS NULL OR s.cancel != 'y')
                 ".$additionalQuery."
             order by
                 a.tgl_trans desc
@@ -103,7 +104,7 @@ class ExportDcIn implements FromView, WithEvents, ShouldAutoSize
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A1:R' . ($event->getConcernable()->rowCount+2),
+            'A1:S' . ($event->getConcernable()->rowCount+2),
             [
                 'borders' => [
                     'allBorders' => [

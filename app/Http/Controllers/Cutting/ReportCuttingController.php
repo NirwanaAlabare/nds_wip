@@ -29,15 +29,14 @@ class ReportCuttingController extends Controller
             $additionalQuery = "";
             $additionalQuery1 = "";
 
-            if ($request->dateFrom) {
-                $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '".$request->dateFrom."'";
-                $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) >= '".$request->dateFrom."'";
-            }
+            $dateFrom = ($request->dateFrom ?  $request->dateFrom : date("Y-m-d"));
+            $dateTo = ($request->dateFrom ? ($request->dateTo ? $request->dateTo : null) : ($request->dateTo ? $request->dateTo : date("Y-m-d")));
 
-            if ($request->dateTo) {
-                $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) <= '".$request->dateTo."'";
-                $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) <= '".$request->dateTo."'";
-            }
+            $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '".($dateFrom)."'";
+            $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) >= '".($dateFrom)."'";
+
+            $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) <= '".($dateTo)."'";
+            $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) <= '".($dateTo)."'";
 
             $keywordQuery = "";
             if ($request->search["value"]) {

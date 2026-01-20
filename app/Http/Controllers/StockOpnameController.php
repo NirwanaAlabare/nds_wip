@@ -217,7 +217,7 @@ public function getListpartialso(Request $request)
             UNION
             select 'OMS' id, a.id idnya,no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, qty_mutasi qty_in, 0 qty_in_bfr,b.unit from whs_mut_lokasi a inner join whs_sa_fabric b on b.no_barcode = a.idbpb_det where tgl_mut BETWEEN '".$request->tgl_filter."' and '".$request->tgl_filter."' and a.status = 'Y'
             UNION
-            select 'OMSB' id, a.id idnya,no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, 0 qty_in, qty_mutasi qty_in_bfr,b.unit from whs_mut_lokasi a inner join whs_sa_fabric b on b.no_barcode = a.idbpb_det where tgl_mut >= DATE_FORMAT('".$request->tgl_filter."', '%Y-%m-01') and tgl_mut < '".$request->tgl_filter."' and a.status = 'Y') a GROUP BY id_roll) b on b.id_roll = a.no_barcode) a left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) b on b.id_jo=a.id_jo INNER JOIN masteritem mi on mi.id_item = a.id_item where sal_awal != 0 OR qty_in != 0 OR qty_out != 0) a where sal_akhir != 0 order by kode_lok asc");
+            select 'OMSB' id, a.id idnya,no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, 0 qty_in, qty_mutasi qty_in_bfr,b.unit from whs_mut_lokasi a inner join whs_sa_fabric b on b.no_barcode = a.idbpb_det where tgl_mut >= DATE_FORMAT('".$request->tgl_filter."', '%Y-%m-01') and tgl_mut < '".$request->tgl_filter."' and a.status = 'Y') a GROUP BY id_roll) b on b.id_roll = a.no_barcode) a left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) b on b.id_jo=a.id_jo INNER JOIN masteritem mi on mi.id_item = a.id_item where sal_awal != 0 OR qty_in != 0 OR qty_out != 0) a where ROUND(sal_akhir, 2) != 0 order by kode_lok asc");
 }elseif ($request->item_so == 'Sparepart') {
 
     $data_rak = DB::connection('mysql_sb')->select("select DISTINCT id_item data
@@ -351,26 +351,43 @@ public function copysaldostok(Request $request)
     ]);
 
     if ($request->item_so == 'Fabric') {
-        $sql_barcode = DB::connection('mysql_sb')->select("insert into whs_saldo_stockopname select '','".$no_transaksi."','".$request->item_so."','".$request->tgl_filter."',no_barcode,kode_lok,id_jo,id_item,no_lot,no_roll,sal_akhir qty_sisa, satuan unit,'OPEN' status,'".$timestamp."','".$timestamp."','' from (select a.*, kpno, styleno, mi.itemdesc from (select no_barcode, no_dok, tgl_dok, supplier, kode_lok, id_jo, id_item, no_lot, no_roll, satuan, round((qty_in_bfr - coalesce(qty_out_bfr,0)),2) sal_awal,round(qty_in,2) qty_in,ROUND(coalesce(qty_out_bfr,0),2) qty_out_sbl,ROUND(coalesce(qty_out,0),2) qty_out, round((qty_in_bfr + qty_in - coalesce(qty_out_bfr,0) - coalesce(qty_out,0)),2) sal_akhir  from (select no_dok, tgl_dok,supplier, no_barcode, kode_lok, id_jo, id_item, no_lot, no_roll, sum(qty_in) qty_in, sum(qty_in_bfr) qty_in_bfr, satuan from (select 'T'id, a.id idnya,b.supplier, b.no_dok, b.tgl_dok, no_barcode,kode_lok,id_jo,id_item,no_lot,no_roll,sum(qty_sj) qty_in, 0 qty_in_bfr,satuan from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and tgl_dok BETWEEN '".$request->tgl_filter."' and '".$request->tgl_filter."' GROUP BY no_barcode
-            UNION
-            select 'TB' id, a.id idnya,b.supplier, b.no_dok, b.tgl_dok, no_barcode,kode_lok,id_jo,id_item,no_lot,no_roll, 0 qty_in, sum(qty_sj) qty_in_bfr,satuan from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and tgl_dok >= DATE_FORMAT('".$request->tgl_filter."', '%Y-%m-01') and tgl_dok < '".$request->tgl_filter."' GROUP BY no_barcode
-            UNION
-            select 'SA' id, id idnya, supplier, no_dok, tgl_dok,no_barcode,kode_lok,id_jo,id_item,no_lot,no_roll,0 qty_in, qty qty_in_bfr,satuan from whs_sa_fabric_copy where tgl_periode = DATE_FORMAT('".$request->tgl_filter."', '%Y-%m-01') GROUP BY no_barcode
-            UNION
-            select 'IM' id, a.id idnya, '-' supplier,a.no_mut, tgl_mut, no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, qty_sj qty_in, 0 qty_in_bfr,satuan from whs_mut_lokasi a inner join whs_lokasi_inmaterial b on b.no_barcode_old = a.idbpb_det where tgl_mut BETWEEN '".$request->tgl_filter."' and '".$request->tgl_filter."' and a.status = 'Y' GROUP BY no_barcode
-            UNION
-            select 'IMB' id, a.id idnya, '-' supplier,a.no_mut, tgl_mut, no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, 0 qty_in, qty_sj qty_in_bfr,satuan from whs_mut_lokasi a inner join whs_lokasi_inmaterial b on b.no_barcode_old = a.idbpb_det where tgl_mut >= DATE_FORMAT('".$request->tgl_filter."', '%Y-%m-01') and tgl_mut < '".$request->tgl_filter."' and a.status = 'Y' GROUP BY no_barcode) a GROUP BY no_barcode) a LEFT JOIN
-            (select id_roll, SUM(qty_out) qty_out, SUM(qty_out_bfr) qty_out_bfr from (select 'O' id, a.id idnya, id_roll, no_rak, id_jo, id_item, no_lot, no_roll, qty_out, 0 qty_out_bfr, satuan from whs_bppb_det a inner join whs_bppb_h b on b.no_bppb = a.no_bppb where b.tgl_bppb BETWEEN '".$request->tgl_filter."' and '".$request->tgl_filter."' and a.status = 'Y'
-            UNION
-            select 'OB' id, a.id idnya, id_roll, no_rak, id_jo, id_item, no_lot, no_roll, 0 qty_out, qty_out qty_out_bfr, satuan from whs_bppb_det a inner join whs_bppb_h b on b.no_bppb = a.no_bppb where b.tgl_bppb >= DATE_FORMAT('".$request->tgl_filter."', '%Y-%m-01') and b.tgl_bppb < '".$request->tgl_filter."' and a.status = 'Y'
-            UNION
-            select 'OM' id, a.id idnya,no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, a.qty_mutasi qty_in, 0 qty_in_bfr,satuan from whs_mut_lokasi a inner join whs_lokasi_inmaterial b on b.no_barcode = a.idbpb_det where tgl_mut BETWEEN '".$request->tgl_filter."' and '".$request->tgl_filter."' and a.status = 'Y'
-            UNION
-            select 'OMB' id, a.id idnya,no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, 0 qty_in, a.qty_mutasi qty_in_bfr,satuan from whs_mut_lokasi a inner join whs_lokasi_inmaterial b on b.no_barcode = a.idbpb_det where tgl_mut >= DATE_FORMAT('".$request->tgl_filter."', '%Y-%m-01') and tgl_mut < '".$request->tgl_filter."' and a.status = 'Y'
-            UNION
-            select 'OMS' id, a.id idnya,no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, qty_mutasi qty_in, 0 qty_in_bfr,b.unit from whs_mut_lokasi a inner join whs_sa_fabric b on b.no_barcode = a.idbpb_det where tgl_mut BETWEEN '".$request->tgl_filter."' and '".$request->tgl_filter."' and a.status = 'Y'
-            UNION
-            select 'OMSB' id, a.id idnya,no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, 0 qty_in, qty_mutasi qty_in_bfr,b.unit from whs_mut_lokasi a inner join whs_sa_fabric b on b.no_barcode = a.idbpb_det where tgl_mut >= DATE_FORMAT('".$request->tgl_filter."', '%Y-%m-01') and tgl_mut < '".$request->tgl_filter."' and a.status = 'Y') a GROUP BY id_roll) b on b.id_roll = a.no_barcode) a left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) b on b.id_jo=a.id_jo INNER JOIN masteritem mi on mi.id_item = a.id_item where sal_awal != 0 OR qty_in != 0 OR qty_out != 0) a where sal_akhir != 0");
+        $sql_barcode = DB::connection('mysql_sb')->select("insert into whs_saldo_stockopname  select * ,'".$timestamp."' ,'".$timestamp."','' from (WITH
+buyer as (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier ms on ms.id_supplier = ac.id_buyer group by id_jo),
+
+saldo_awal as (select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, a.id_jo, c.kpno, c.styleno, a.id_item, b.itemdesc, no_roll, '' no_roll_buyer, no_lot, satuan, qty, 0 qty_in  from whs_sa_fabric_copy a INNER JOIN masteritem b on b.id_item = a.id_item INNER JOIN  buyer c on c.id_jo=a.id_jo where tgl_periode = (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= '".$request->tgl_filter."') GROUP BY no_barcode, kode_lok),
+
+in_before as (select b.no_barcode, a.no_dok, a.tgl_dok, supplier, d.buyer, b.kode_lok, b.id_jo, d.kpno, d.styleno, b.id_item, c.itemdesc, b.no_roll, b.no_roll_buyer, b.no_lot, b.satuan, sum(qty_aktual) qty, 0 qty_in from whs_inmaterial_fabric a INNER JOIN whs_lokasi_inmaterial b on b.no_dok = a.no_dok INNER JOIN masteritem c on c.id_item = b.id_item INNER JOIN  buyer d on d.id_jo=b.id_jo where tgl_dok >= (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= '".$request->tgl_filter."') and tgl_dok < '".$request->tgl_filter."' and a.status != 'Cancel' and b.status = 'Y' GROUP BY b.no_barcode, b.kode_lok
+UNION ALL
+select b.no_barcode, a.no_mut, a.tgl_mut, 'Mutasi Lokasi' supplier, d.buyer, b.kode_lok, b.id_jo, d.kpno, d.styleno, b.id_item, c.itemdesc, b.no_roll, b.no_roll_buyer, b.no_lot, b.satuan, sum(qty_aktual) qty, 0 qty_in from whs_mut_lokasi_h a INNER JOIN whs_lokasi_inmaterial b on b.no_dok = a.no_mut INNER JOIN masteritem c on c.id_item = b.id_item INNER JOIN buyer d on d.id_jo=b.id_jo where tgl_mut >= (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= '".$request->tgl_filter."') and tgl_mut < '".$request->tgl_filter."' and a.status != 'Cancel' and b.status = 'Y' GROUP BY b.no_barcode, b.kode_lok),
+
+in_act as (select b.no_barcode, a.no_dok, a.tgl_dok, supplier, d.buyer, b.kode_lok, b.id_jo, d.kpno, d.styleno, b.id_item, c.itemdesc, b.no_roll, b.no_roll_buyer, b.no_lot, b.satuan, 0 qty, sum(qty_aktual) qty_in from whs_inmaterial_fabric a INNER JOIN whs_lokasi_inmaterial b on b.no_dok = a.no_dok INNER JOIN masteritem c on c.id_item = b.id_item INNER JOIN  buyer d on d.id_jo=b.id_jo where tgl_dok BETWEEN '".$request->tgl_filter."' and '".$request->tgl_filter."' and a.status != 'Cancel' and b.status = 'Y' GROUP BY b.no_barcode, b.kode_lok
+UNION ALL
+select b.no_barcode, a.no_mut, a.tgl_mut, 'Mutasi Lokasi' supplier, d.buyer, b.kode_lok, b.id_jo, d.kpno, d.styleno, b.id_item, c.itemdesc, b.no_roll, b.no_roll_buyer, b.no_lot, b.satuan, 0 qty, sum(qty_aktual) qty_in from whs_mut_lokasi_h a INNER JOIN whs_lokasi_inmaterial b on b.no_dok = a.no_mut INNER JOIN masteritem c on c.id_item = b.id_item INNER JOIN buyer d on d.id_jo=b.id_jo where tgl_mut BETWEEN '".$request->tgl_filter."' and '".$request->tgl_filter."' and a.status != 'Cancel' and b.status = 'Y' GROUP BY b.no_barcode, b.kode_lok
+),
+
+out_before as (select id_roll, no_rak, id_jo, id_item, sum(COALESCE(qty_out,0)) qty_out_bfr, 0 qty_out from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb where tgl_bppb >= (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= '".$request->tgl_filter."') and tgl_bppb < '".$request->tgl_filter."' and a.status != 'Cancel' and b.status = 'Y' GROUP BY id_roll, no_rak
+UNION ALL
+select id_roll, no_rak, id_jo, id_item, sum(COALESCE(qty_out,0)) qty_out_bfr, 0 qty_out from whs_mut_lokasi_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_mut where tgl_mut >= (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= '".$request->tgl_filter."') and tgl_mut < '".$request->tgl_filter."' and a.status != 'Cancel' and b.status = 'Y' GROUP BY id_roll, no_rak
+),
+
+out_act as (select id_roll, no_rak, id_jo, id_item, 0 qty_out_bfr, sum(COALESCE(qty_out,0)) qty_out from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb where tgl_bppb BETWEEN '".$request->tgl_filter."' and '".$request->tgl_filter."' and a.status != 'Cancel' and b.status = 'Y' GROUP BY id_roll, no_rak
+UNION ALL
+select id_roll, no_rak, id_jo, id_item, 0 qty_out_bfr, sum(COALESCE(qty_out,0)) qty_out from whs_mut_lokasi_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_mut where tgl_mut BETWEEN '".$request->tgl_filter."' and '".$request->tgl_filter."' and a.status != 'Cancel' and b.status = 'Y' GROUP BY id_roll, no_rak
+),
+
+pemasukan as (select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id_jo, kpno, styleno, id_item, itemdesc, no_roll, no_roll_buyer, no_lot, satuan, sum(COALESCE(qty,0)) qty_awal, sum(COALESCE(qty_in,0)) qty_in from (SELECT * FROM saldo_awal
+UNION ALL
+SELECT * FROM in_before
+UNION ALL
+SELECT * FROM in_act) a GROUP BY no_barcode, kode_lok),
+
+pengeluaran as (select id_roll, no_rak, id_jo, id_item, sum(COALESCE(qty_out_bfr,0)) qty_out_bfr, sum(COALESCE(qty_out,0)) qty_out from (SELECT * FROM out_before
+UNION ALL
+SELECT * FROM out_act) a GROUP BY id_roll, no_rak),
+
+mutasi as (select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, a.id_jo, kpno, styleno, a.id_item, itemdesc, no_roll, no_roll_buyer, no_lot, satuan, qty_awal sal_awal, qty_in, COALESCE(qty_out_bfr,0) qty_out_sbl, COALESCE(qty_out,0) qty_out, (qty_awal + qty_in - COALESCE(qty_out_bfr,0) - COALESCE(qty_out,0)) sal_akhir from pemasukan a left join pengeluaran b on b.id_roll = a.no_barcode and b.no_rak = a.kode_lok)
+
+select '' id ,'".$no_transaksi."','".$request->item_so."','".$request->tgl_filter."', no_barcode, kode_lok, id_jo, id_item, no_lot, no_roll, sal_akhir qty_sisa, satuan unit,'OPEN' status from mutasi where ROUND(sal_akhir, 2) > 0 ) a");
 }elseif ($request->item_so == 'Sparepart') {
     $sql_barcode = DB::connection('mysql_sb')->select("insert into whs_saldo_stockopname select '','".$no_transaksi."','".$request->item_so."','".$request->tgl_filter."','' no_barcode,'' kode_lok,'' id_jo,id_item,'' no_lot,'' no_roll,sum(qty_sa) + sum(qty_in) - sum(qty_out) qty,unit,'OPEN' status,'".$timestamp."','".$timestamp."',''
         FROM (
@@ -465,26 +482,43 @@ public function copysaldostokpartial(Request $request)
     ]);
 
     if ($request->item_so == 'Fabric') {
-        $sql_barcode = DB::connection('mysql_sb')->select("insert into whs_saldo_stockopname select '','".$no_transaksi."','".$request->item_so."','".$request->tgl_filter."',no_barcode,kode_lok,id_jo,id_item,no_lot,no_roll,sal_akhir qty_sisa, satuan unit,'OPEN' status,'".$timestamp."','".$timestamp."','' from (select a.*, kpno, styleno, mi.itemdesc from (select no_barcode, no_dok, tgl_dok, supplier, kode_lok, id_jo, id_item, no_lot, no_roll, satuan, round((qty_in_bfr - coalesce(qty_out_bfr,0)),2) sal_awal,round(qty_in,2) qty_in,ROUND(coalesce(qty_out_bfr,0),2) qty_out_sbl,ROUND(coalesce(qty_out,0),2) qty_out, round((qty_in_bfr + qty_in - coalesce(qty_out_bfr,0) - coalesce(qty_out,0)),2) sal_akhir  from (select no_dok, tgl_dok,supplier, no_barcode, kode_lok, id_jo, id_item, no_lot, no_roll, sum(qty_in) qty_in, sum(qty_in_bfr) qty_in_bfr, satuan from (select 'T'id, a.id idnya,b.supplier, b.no_dok, b.tgl_dok, no_barcode,kode_lok,id_jo,id_item,no_lot,no_roll,sum(qty_sj) qty_in, 0 qty_in_bfr,satuan from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and tgl_dok BETWEEN '".$request->tgl_filter."' and '".$request->tgl_filter."' GROUP BY no_barcode
-            UNION
-            select 'TB' id, a.id idnya,b.supplier, b.no_dok, b.tgl_dok, no_barcode,kode_lok,id_jo,id_item,no_lot,no_roll, 0 qty_in, sum(qty_sj) qty_in_bfr,satuan from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and tgl_dok >= DATE_FORMAT('".$request->tgl_filter."', '%Y-%m-01') and tgl_dok < '".$request->tgl_filter."' GROUP BY no_barcode
-            UNION
-            select 'SA' id, id idnya, supplier, no_dok, tgl_dok,no_barcode,kode_lok,id_jo,id_item,no_lot,no_roll,0 qty_in, qty qty_in_bfr,satuan from whs_sa_fabric_copy where tgl_periode = DATE_FORMAT('".$request->tgl_filter."', '%Y-%m-01') GROUP BY no_barcode
-            UNION
-            select 'IM' id, a.id idnya, '-' supplier,a.no_mut, tgl_mut, no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, qty_sj qty_in, 0 qty_in_bfr,satuan from whs_mut_lokasi a inner join whs_lokasi_inmaterial b on b.no_barcode_old = a.idbpb_det where tgl_mut BETWEEN '".$request->tgl_filter."' and '".$request->tgl_filter."' and a.status = 'Y' GROUP BY no_barcode
-            UNION
-            select 'IMB' id, a.id idnya, '-' supplier,a.no_mut, tgl_mut, no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, 0 qty_in, qty_sj qty_in_bfr,satuan from whs_mut_lokasi a inner join whs_lokasi_inmaterial b on b.no_barcode_old = a.idbpb_det where tgl_mut >= DATE_FORMAT('".$request->tgl_filter."', '%Y-%m-01') and tgl_mut < '".$request->tgl_filter."' and a.status = 'Y' GROUP BY no_barcode) a GROUP BY no_barcode) a LEFT JOIN
-            (select id_roll, SUM(qty_out) qty_out, SUM(qty_out_bfr) qty_out_bfr from (select 'O' id, a.id idnya, id_roll, no_rak, id_jo, id_item, no_lot, no_roll, qty_out, 0 qty_out_bfr, satuan from whs_bppb_det a inner join whs_bppb_h b on b.no_bppb = a.no_bppb where b.tgl_bppb BETWEEN '".$request->tgl_filter."' and '".$request->tgl_filter."' and a.status = 'Y'
-            UNION
-            select 'OB' id, a.id idnya, id_roll, no_rak, id_jo, id_item, no_lot, no_roll, 0 qty_out, qty_out qty_out_bfr, satuan from whs_bppb_det a inner join whs_bppb_h b on b.no_bppb = a.no_bppb where b.tgl_bppb >= DATE_FORMAT('".$request->tgl_filter."', '%Y-%m-01') and b.tgl_bppb < '".$request->tgl_filter."' and a.status = 'Y'
-            UNION
-            select 'OM' id, a.id idnya,no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, a.qty_mutasi qty_in, 0 qty_in_bfr,satuan from whs_mut_lokasi a inner join whs_lokasi_inmaterial b on b.no_barcode = a.idbpb_det where tgl_mut BETWEEN '".$request->tgl_filter."' and '".$request->tgl_filter."' and a.status = 'Y'
-            UNION
-            select 'OMB' id, a.id idnya,no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, 0 qty_in, a.qty_mutasi qty_in_bfr,satuan from whs_mut_lokasi a inner join whs_lokasi_inmaterial b on b.no_barcode = a.idbpb_det where tgl_mut >= DATE_FORMAT('".$request->tgl_filter."', '%Y-%m-01') and tgl_mut < '".$request->tgl_filter."' and a.status = 'Y'
-            UNION
-            select 'OMS' id, a.id idnya,no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, qty_mutasi qty_in, 0 qty_in_bfr,b.unit from whs_mut_lokasi a inner join whs_sa_fabric b on b.no_barcode = a.idbpb_det where tgl_mut BETWEEN '".$request->tgl_filter."' and '".$request->tgl_filter."' and a.status = 'Y'
-            UNION
-            select 'OMSB' id, a.id idnya,no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, 0 qty_in, qty_mutasi qty_in_bfr,b.unit from whs_mut_lokasi a inner join whs_sa_fabric b on b.no_barcode = a.idbpb_det where tgl_mut >= DATE_FORMAT('".$request->tgl_filter."', '%Y-%m-01') and tgl_mut < '".$request->tgl_filter."' and a.status = 'Y') a GROUP BY id_roll) b on b.id_roll = a.no_barcode) a left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) b on b.id_jo=a.id_jo INNER JOIN masteritem mi on mi.id_item = a.id_item where sal_awal != 0 OR qty_in != 0 OR qty_out != 0) a where sal_akhir != 0 and kode_lok in (".$request->data_partial.")");
+        $sql_barcode = DB::connection('mysql_sb')->select("insert into whs_saldo_stockopname  select * ,'".$timestamp."' ,'".$timestamp."','' from (WITH
+buyer as (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier ms on ms.id_supplier = ac.id_buyer group by id_jo),
+
+saldo_awal as (select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, a.id_jo, c.kpno, c.styleno, a.id_item, b.itemdesc, no_roll, '' no_roll_buyer, no_lot, satuan, qty, 0 qty_in  from whs_sa_fabric_copy a INNER JOIN masteritem b on b.id_item = a.id_item INNER JOIN  buyer c on c.id_jo=a.id_jo where tgl_periode = (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= '".$request->tgl_filter."') GROUP BY no_barcode, kode_lok),
+
+in_before as (select b.no_barcode, a.no_dok, a.tgl_dok, supplier, d.buyer, b.kode_lok, b.id_jo, d.kpno, d.styleno, b.id_item, c.itemdesc, b.no_roll, b.no_roll_buyer, b.no_lot, b.satuan, sum(qty_aktual) qty, 0 qty_in from whs_inmaterial_fabric a INNER JOIN whs_lokasi_inmaterial b on b.no_dok = a.no_dok INNER JOIN masteritem c on c.id_item = b.id_item INNER JOIN  buyer d on d.id_jo=b.id_jo where tgl_dok >= (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= '".$request->tgl_filter."') and tgl_dok < '".$request->tgl_filter."' and a.status != 'Cancel' and b.status = 'Y' GROUP BY b.no_barcode, b.kode_lok
+UNION ALL
+select b.no_barcode, a.no_mut, a.tgl_mut, 'Mutasi Lokasi' supplier, d.buyer, b.kode_lok, b.id_jo, d.kpno, d.styleno, b.id_item, c.itemdesc, b.no_roll, b.no_roll_buyer, b.no_lot, b.satuan, sum(qty_aktual) qty, 0 qty_in from whs_mut_lokasi_h a INNER JOIN whs_lokasi_inmaterial b on b.no_dok = a.no_mut INNER JOIN masteritem c on c.id_item = b.id_item INNER JOIN buyer d on d.id_jo=b.id_jo where tgl_mut >= (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= '".$request->tgl_filter."') and tgl_mut < '".$request->tgl_filter."' and a.status != 'Cancel' and b.status = 'Y' GROUP BY b.no_barcode, b.kode_lok),
+
+in_act as (select b.no_barcode, a.no_dok, a.tgl_dok, supplier, d.buyer, b.kode_lok, b.id_jo, d.kpno, d.styleno, b.id_item, c.itemdesc, b.no_roll, b.no_roll_buyer, b.no_lot, b.satuan, 0 qty, sum(qty_aktual) qty_in from whs_inmaterial_fabric a INNER JOIN whs_lokasi_inmaterial b on b.no_dok = a.no_dok INNER JOIN masteritem c on c.id_item = b.id_item INNER JOIN  buyer d on d.id_jo=b.id_jo where tgl_dok BETWEEN '".$request->tgl_filter."' and '".$request->tgl_filter."' and a.status != 'Cancel' and b.status = 'Y' GROUP BY b.no_barcode, b.kode_lok
+UNION ALL
+select b.no_barcode, a.no_mut, a.tgl_mut, 'Mutasi Lokasi' supplier, d.buyer, b.kode_lok, b.id_jo, d.kpno, d.styleno, b.id_item, c.itemdesc, b.no_roll, b.no_roll_buyer, b.no_lot, b.satuan, 0 qty, sum(qty_aktual) qty_in from whs_mut_lokasi_h a INNER JOIN whs_lokasi_inmaterial b on b.no_dok = a.no_mut INNER JOIN masteritem c on c.id_item = b.id_item INNER JOIN buyer d on d.id_jo=b.id_jo where tgl_mut BETWEEN '".$request->tgl_filter."' and '".$request->tgl_filter."' and a.status != 'Cancel' and b.status = 'Y' GROUP BY b.no_barcode, b.kode_lok
+),
+
+out_before as (select id_roll, no_rak, id_jo, id_item, sum(COALESCE(qty_out,0)) qty_out_bfr, 0 qty_out from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb where tgl_bppb >= (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= '".$request->tgl_filter."') and tgl_bppb < '".$request->tgl_filter."' and a.status != 'Cancel' and b.status = 'Y' GROUP BY id_roll, no_rak
+UNION ALL
+select id_roll, no_rak, id_jo, id_item, sum(COALESCE(qty_out,0)) qty_out_bfr, 0 qty_out from whs_mut_lokasi_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_mut where tgl_mut >= (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= '".$request->tgl_filter."') and tgl_mut < '".$request->tgl_filter."' and a.status != 'Cancel' and b.status = 'Y' GROUP BY id_roll, no_rak
+),
+
+out_act as (select id_roll, no_rak, id_jo, id_item, 0 qty_out_bfr, sum(COALESCE(qty_out,0)) qty_out from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb where tgl_bppb BETWEEN '".$request->tgl_filter."' and '".$request->tgl_filter."' and a.status != 'Cancel' and b.status = 'Y' GROUP BY id_roll, no_rak
+UNION ALL
+select id_roll, no_rak, id_jo, id_item, 0 qty_out_bfr, sum(COALESCE(qty_out,0)) qty_out from whs_mut_lokasi_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_mut where tgl_mut BETWEEN '".$request->tgl_filter."' and '".$request->tgl_filter."' and a.status != 'Cancel' and b.status = 'Y' GROUP BY id_roll, no_rak
+),
+
+pemasukan as (select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id_jo, kpno, styleno, id_item, itemdesc, no_roll, no_roll_buyer, no_lot, satuan, sum(COALESCE(qty,0)) qty_awal, sum(COALESCE(qty_in,0)) qty_in from (SELECT * FROM saldo_awal
+UNION ALL
+SELECT * FROM in_before
+UNION ALL
+SELECT * FROM in_act) a GROUP BY no_barcode, kode_lok),
+
+pengeluaran as (select id_roll, no_rak, id_jo, id_item, sum(COALESCE(qty_out_bfr,0)) qty_out_bfr, sum(COALESCE(qty_out,0)) qty_out from (SELECT * FROM out_before
+UNION ALL
+SELECT * FROM out_act) a GROUP BY id_roll, no_rak),
+
+mutasi as (select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, a.id_jo, kpno, styleno, a.id_item, itemdesc, no_roll, no_roll_buyer, no_lot, satuan, qty_awal sal_awal, qty_in, COALESCE(qty_out_bfr,0) qty_out_sbl, COALESCE(qty_out,0) qty_out, (qty_awal + qty_in - COALESCE(qty_out_bfr,0) - COALESCE(qty_out,0)) sal_akhir from pemasukan a left join pengeluaran b on b.id_roll = a.no_barcode and b.no_rak = a.kode_lok)
+
+select '' id ,'".$no_transaksi."','".$request->item_so."','".$request->tgl_filter."', no_barcode, kode_lok, id_jo, id_item, no_lot, no_roll, sal_akhir qty_sisa, satuan unit,'OPEN' status from mutasi where ROUND(sal_akhir, 2) > 0 and kode_lok in (".$request->data_partial.")) a");
 }elseif ($request->item_so == 'Sparepart') {
     $sql_barcode = DB::connection('mysql_sb')->select("insert into whs_saldo_stockopname select * from (select '','".$no_transaksi."','".$request->item_so."','".$request->tgl_filter."','' no_barcode,'' kode_lok,'' id_jo,id_item,'' no_lot,'' no_roll,sum(qty_sa) + sum(qty_in) - sum(qty_out) qty,unit,'OPEN' status,'".$timestamp."' q,'".$timestamp."',''
         FROM (
@@ -750,7 +784,7 @@ public function undosotempall(Request $request)
 
 public function getbarcodeso(Request $request)
 {
-    $barcode = DB::connection('mysql_sb')->select("select SUBSTRING_INDEX(d.no_dokumen, '-', 1) no_dokumen, d.no_barcode as barcode_so, s.no_barcode, s.kode_lok, s.id_item, s.id_jo, s.no_lot, s.no_roll, s.qty, s.unit, m.itemdesc from   whs_saldo_stockopname s LEFT JOIN masteritem m on m.id_item = s.id_item LEFT JOIN whs_so_detail d on d.no_barcode = s.no_barcode and SUBSTRING_INDEX(d.no_dokumen, '-', 1) = s.no_transaksi WHERE s.no_barcode = '$request->no_barcode' and s.no_transaksi = '$request->no_transaksi' limit 1");
+    $barcode = DB::connection('mysql_sb')->select("select SUBSTRING_INDEX(d.no_dokumen, '-', 1) no_dokumen, d.no_barcode as barcode_so, s.no_barcode, s.kode_lok, s.id_item, s.id_jo, s.no_lot, s.no_roll, s.qty, s.unit, m.itemdesc from   whs_saldo_stockopname s LEFT JOIN masteritem m on m.id_item = s.id_item LEFT JOIN whs_so_detail d on d.no_barcode = s.no_barcode and SUBSTRING_INDEX(d.no_dokumen, '-', 1) = s.no_transaksi WHERE s.no_barcode = '$request->no_barcode' and s.no_transaksi = '$request->no_transaksi' and s.qty != 0 limit 1");
 
 
     return response()->json($barcode);

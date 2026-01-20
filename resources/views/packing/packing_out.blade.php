@@ -50,15 +50,20 @@
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Awal</b></small></label>
                     <input type="date" class="form-control form-control-sm " id="tgl-awal" name="tgl_awal"
-                        oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
+                        value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Akhir</b></small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
+                        value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <a onclick="export_excel_packing_out()" class="btn btn-outline-success position-relative btn-sm">
+                    <button class="btn btn-primary btn-sm" onclick="dataTableReload()">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+                <div class="mb-3">
+                    <a onclick="export_excel()" class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel
                     </a>
@@ -70,6 +75,7 @@
                     <thead class="table-primary">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>Tgl. Trans</th>
+                            <th>Tgl. Shipment</th>
                             <th>No. Carton</th>
                             <th>Barcode</th>
                             <th>PO</th>
@@ -84,7 +90,7 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="8"></th>
+                            <th colspan="9"></th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_chk'> </th>
                             <th>PCS</th>
@@ -104,6 +110,7 @@
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="{{ asset('plugins/export_excel_js/exceljs.min.js') }}"></script>
     <script>
         // Select2 Autofocus
         $(document).on('select2:open', () => {
@@ -162,7 +169,7 @@
 
                 // computing column Total of the complete result
                 var sumTotal = api
-                    .column(8)
+                    .column(9)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -170,7 +177,7 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(8).footer()).html(sumTotal);
+                $(api.column(9).footer()).html(sumTotal);
             },
             ordering: false,
             processing: true,
@@ -190,6 +197,9 @@
             columns: [{
                     data: 'tgl_trans_fix'
 
+                },
+                {
+                    data: 'tgl_shipment'
                 },
                 {
                     data: 'no_carton'
@@ -219,7 +229,7 @@
                     data: 'created_by'
                 },
                 {
-                    data: 'created_at'
+                    data: 'tgl_akt_input'
                 },
             ],
             columnDefs: [{
@@ -272,6 +282,103 @@
 
                     }
                 },
+            });
+        }
+
+        function export_excel() {
+            let dateFrom = $('#tgl-awal').val();
+            let dateTo = $('#tgl-akhir').val();
+
+            const startTime = new Date().getTime();
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => Swal.showLoading(),
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "GET",
+                url: '{{ route('export_excel_packing_out') }}',
+                data: {
+                    dateFrom,
+                    dateTo
+                },
+
+                success: function(data) {
+
+                    // -----------------------------------------
+                    // CREATE CSV
+                    // -----------------------------------------
+                    let csv = "";
+
+                    // Title rows
+                    csv += "Laporan Packing Scan\n";
+                    csv += `Tgl Transaksi: ${dateFrom} - ${dateTo}\n\n`;
+
+                    // Headers
+                    const headers = [
+                        "No", "Tgl. Trans", "No. Carton", "Barcode", "PO",
+                        "WS", "Color", "Size", "Dest", "Tgl. Shipment",
+                        "Total", "User", "Tgl. Input"
+                    ];
+                    csv += headers.join(",") + "\n";
+
+                    // Data rows
+                    data.forEach((row, index) => {
+                        csv += [
+                            index + 1,
+                            row.tgl_trans_fix,
+                            row.no_carton,
+                            row.barcode,
+                            row.po,
+                            row.ws,
+                            row.color,
+                            row.size,
+                            row.dest,
+                            row.tgl_shipment,
+                            row.tot,
+                            row.created_by,
+                            row.tgl_akt_input
+                        ].map(v => `"${v}"`).join(",") + "\n";
+                    });
+
+                    // -----------------------------------------
+                    // DOWNLOAD CSV
+                    // -----------------------------------------
+                    const blob = new Blob([csv], {
+                        type: "text/csv;charset=utf-8;"
+                    });
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(blob);
+                    link.download = "Laporan_Packing_Scan.csv";
+                    link.click();
+
+                    // -----------------------------------------
+                    // FINISH
+                    // -----------------------------------------
+                    const endTime = new Date().getTime();
+                    const elapsedTime = Math.round((endTime - startTime) / 1000);
+
+                    Swal.close();
+                    Swal.fire({
+                        title: 'Success!',
+                        text: `Data has been successfully exported in ${elapsedTime} seconds.`,
+                        icon: 'success',
+                        confirmButtonText: 'Okay'
+                    });
+
+                },
+
+                error: function() {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'There was an error exporting the data.',
+                        icon: 'error',
+                        confirmButtonText: 'Okay'
+                    });
+                }
             });
         }
     </script>

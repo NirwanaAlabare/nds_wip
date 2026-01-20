@@ -73,6 +73,7 @@
                             <th>Qty In</th>
                             <th>Buyer</th>
                             <th>Created By</th>
+                            <th>Created At</th>
                         </tr>
                     </thead>
                     <tfoot>
@@ -82,7 +83,7 @@
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_reject'> </th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_replace'> </th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_in'> </th>
-                            <th colspan="2"></th>
+                            <th colspan="3"></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -797,6 +798,9 @@
                 },
                 {
                     data: 'user',
+                },
+                {
+                    data: 'created_at',
                 },
             ],
             columnDefs: [{

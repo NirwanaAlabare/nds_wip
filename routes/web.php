@@ -199,8 +199,10 @@ use App\Http\Controllers\MgtReportProfitLineController;
 
 // Industrial Engineering
 use App\Http\Controllers\IEDashboardController;
-use App\Http\Controllers\IEMasterController;
+use App\Http\Controllers\IEMasterProcessController;
+use App\Http\Controllers\IEMasterPartProcessController;
 use App\Http\Controllers\IE_Proses_OB_Controller;
+use App\Http\Controllers\IE_Laporan_Controller;
 
 
 //maintain-bpb
@@ -266,6 +268,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-panels-new', 'getPanelListNew')->name('get-panels');
 
         Route::get('/general-tools', 'generalTools')->middleware('role:superadmin')->name('general-tools');
+        Route::post('/update-master-sb-ws', 'updateMasterSbWs')->middleware('role:superadmin')->name('update-master-sb-ws');
         Route::post('/update-general-order', 'updateGeneralOrder')->middleware('role:superadmin')->name('update-general-order');
 
         // get scanned employee
@@ -288,6 +291,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-reject-in', 'getRejectIn')->name('get-reject-in');
         // defect in out
         Route::get('/get-defect-in-out', 'getDefectInOut')->name('get-defect-in-out');
+
+        // Part Item
+        Route::get('/get-part-item', 'getPartItemList')->name('get-part-item');
     });
 
     // Worksheet
@@ -685,6 +691,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/cutting/update-finish/{id?}', 'updateFinish')->name('finish-update-spreading-form');
         Route::delete('/cutting/destroy-roll/{id?}', 'destroySpreadingRoll')->name('destroy-spreading-roll');
         Route::post('/cutting/recalculate-form/{id?}', 'recalculateForm')->name('recalculate-spreading-form');
+        Route::get('/check-stocker-form', 'checkStockerForm')->name('check-stocker-form');
     });
 
     // ReportCutting
@@ -746,6 +753,9 @@ Route::middleware('auth')->group(function () {
 
         // modify group
         Route::post('/update-form-group', 'updateFormGroup')->name('update-form-group');
+
+        // Delete redundant roll
+        Route::post('/delete-redundant-roll', 'deleteRedundantRoll')->name('delete-redundant-roll');
     });
 
     // Stocker :
@@ -1059,6 +1069,11 @@ Route::middleware('auth')->group(function () {
         Route::post('export', 'exportExcel')->name('export-master-line');
 
         Route::post('update-image', 'updateImage')->name('update-master-line-image');
+
+        Route::post('import-master-line', 'importMasterLine')->name('import-master-line');
+        Route::get("tmp-master-line", 'tmpMasterLine')->name("tmp-master-line");
+        Route::delete("destroy-tmp-master-line/{id?}", 'destroyTmpMasterLine')->name("destroy-tmp-master-line");
+        Route::post('submit-imported-master-line', "submitImportedMasterLine")->name("submit-imported-master-line");
     });
 
     // Master Plan
@@ -1302,7 +1317,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/check-output-detail-list', 'checkOutputDetailList')->name("check-output-detail-list");
         Route::post('/check-output-detail-export', 'checkOutputDetailExport')->name("check-output-detail-export");
 
-
         Route::get('/line-migration', 'lineMigration')->name("line-migration");
         Route::post('/line-migration-submit', 'lineMigrationSubmit')->name("line-migration-submit");
 
@@ -1320,6 +1334,8 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/undo-defect-in-out', 'undoDefectInOut')->name("undo-defect-in-out");
         Route::post('/undo-defect-in-out-submit', 'undoDefectInOutSubmit')->name("undo-defect-in-out-submit");
+
+        Route::post('/print-line-label', 'printLineLabel')->name("print-line-label");
     });
 
     // Mutasi Mesin
@@ -1381,7 +1397,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/simpanedit', 'simpanedit')->name('simpan-edit');
         Route::post('/print-lokasi/{id?}', 'printlokasi')->name('print-lokasi');
         Route::post('/print-lokasi-all', 'printLokasiAll')->name('print-lokasi-all');
-
     });
 
     //dashboard fabric
@@ -1471,7 +1486,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/delete-detail-barcode-rak', 'DeleteDataBarcode')->name('delete-detail-barcode-rak');
         Route::get('/export-format-upload-roll', 'ExportUploadRoll')->name('export-format-upload-roll');
         Route::post('/update-all-barcode-rak', 'updateAllLokasi')->name('update-all-barcode-rak');
-
     });
 
     //permintaan
@@ -2329,14 +2343,39 @@ Route::middleware('auth')->group(function () {
     });
 
     // Proses Industrial Engineering Master Process
-    Route::controller(IEMasterController::class)->prefix("master")->middleware('role:management')->group(function () {
+    Route::controller(IEMasterProcessController::class)->prefix("master")->middleware('role:management')->group(function () {
         Route::get('/IE_master_process', 'IE_master_process')->name('IE_master_process');
         Route::post('/IE_save_master_process', 'IE_save_master_process')->name('IE_save_master_process');
+        Route::get('/IE_show_master_process', 'IE_show_master_process')->name('IE_show_master_process');
+        Route::post('/IE_edit_master_process', 'IE_edit_master_process')->name('IE_edit_master_process');
+        Route::get('/contoh_upload_master_process', 'contoh_upload_master_process')->name('contoh_upload_master_process');
+        Route::post('/upload_excel_master_process', 'upload_excel_master_process')->name('upload_excel_master_process');
+    });
+    // Proses Industrial Engineering Master Part Process
+    Route::controller(IEMasterPartProcessController::class)->prefix("master")->middleware('role:management')->group(function () {
+        Route::get('/IE_master_part_process', 'IE_master_part_process')->name('IE_master_part_process');
+        Route::get('/IE_master_part_process_show_new', 'IE_master_part_process_show_new')->name('IE_master_part_process_show_new');
+        Route::post('/IE_save_master_part_process', 'IE_save_master_part_process')->name('IE_save_master_part_process');
+        Route::get('/IE_show_master_part_process', 'IE_show_master_part_process')->name('IE_show_master_part_process');
+        Route::get('/IE_master_part_process_show_edit', 'IE_master_part_process_show_edit')->name('IE_master_part_process_show_edit');
+        Route::post('/IE_update_master_part_process', 'IE_update_master_part_process')->name('IE_update_master_part_process');
     });
 
     // Proses Industrial Engineering Operational Breakdown
     Route::controller(IE_Proses_OB_Controller::class)->prefix("proses")->middleware('role:management')->group(function () {
         Route::get('/IE_proses_op_breakdown', 'IE_proses_op_breakdown')->name('IE_proses_op_breakdown');
+        Route::get('/show_modal_proses_breakdown_new', 'show_modal_proses_breakdown_new')->name('show_modal_proses_breakdown_new');
+        Route::get('/show_modal_summary_breakdown', 'show_modal_summary_breakdown')->name('show_modal_summary_breakdown');
+        Route::post('/IE_save_op_breakdown', 'IE_save_op_breakdown')->name('IE_save_op_breakdown');
+        Route::get('/IE_show_op_breakdown', 'IE_show_op_breakdown')->name('IE_show_op_breakdown');
+        Route::get('/IE_show_op_breakdown_edit', 'IE_show_op_breakdown_edit')->name('IE_show_op_breakdown_edit');
+        Route::post('/IE_update_op_breakdown', 'IE_update_op_breakdown')->name('IE_update_op_breakdown');
+    });
+
+    // Laporan Industrial Engineering Recap SMV
+    Route::controller(IE_Laporan_Controller::class)->prefix("laporan")->middleware('role:management')->group(function () {
+        Route::get('/IE_lap_recap_smv', 'IE_lap_recap_smv')->name('IE_lap_recap_smv');
+        Route::get('/IE_lap_recap_cm_price', 'IE_lap_recap_cm_price')->name('IE_lap_recap_cm_price');
     });
 });
 

@@ -603,6 +603,8 @@
                 link.click();
             },
             error: function (jqXHR) {
+                Swal.close();
+
                 console.error(jqXHR);
             }
         });

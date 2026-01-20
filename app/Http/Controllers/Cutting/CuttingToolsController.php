@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
+use App\Models\Cutting\FormCutInputDetail;
 use App\Models\Cutting\ScannedItem;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Marker\Marker;
@@ -12,6 +13,7 @@ use App\Models\Part\PartForm;
 use App\Models\Stocker\Stocker;
 use App\Models\SignalBit\ActCosting;
 use App\Services\StockerService;
+use App\Services\CuttingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -65,6 +67,22 @@ class CuttingToolsController extends Controller
     public function fixRollQty(Request $request) {
         $rollId = $request->id_roll;
         $rollQty = $request->qty;
+        $rollUse = null;
+
+        if (!$rollQty) {
+            $lastInput = FormCutInputDetail::selectRaw("
+                SUM(total_pemakaian_roll) total_lembar,
+                MIN(sisa_kain) as sisa_kain
+            ")->
+            where("id_roll", $request->id_roll)->
+            groupBy("id_roll")->
+            first();
+
+            if ($lastInput) {
+                $rollQty = $lastInput->sisa_kain;
+                $rollUse = $lastInput->total_lembar;
+            }
+        }
 
         $additionalQuery = "";
         if ($rollId) {
@@ -115,6 +133,10 @@ class CuttingToolsController extends Controller
                                 $scannedItem->qty = $currentRoll->sisa_kain;
                             }
                         }
+                    }
+
+                    if ($rollUse > 0 && $scannedItem->qty_pakai != $rollUse) {
+                        $scannedItem->qty_pakai = $rollUse;
                     }
 
                     $scannedItem->save();
@@ -540,14 +562,16 @@ class CuttingToolsController extends Controller
                                             if (count($filtered) < 1) {
                                                 // Update Stocker
                                                 Stocker::where("form_cut_id", $validatedRequest["modify_marker_form_id"])
-                                                ->where("so_det_id", $markerDetail->masterSbWs->id_so_det)
-                                                ->update([
-                                                    "act_costing_ws" => $currentSoDet->kpno,
-                                                    "color" => $currentSoDet->color,
-                                                    "so_det_id" => $currentSoDet->so_det_id,
-                                                    "size" => $currentSoDet->size . ($currentSoDet->dest && $currentSoDet->dest != "-" ? " - " . $currentSoDet->dest : ""),
-                                                    "notes" => DB::raw("CONCAT(notes, ' MODIFY MARKER')")
-                                                ]);
+                                                    ->where("so_det_id", $markerDetail->masterSbWs->id_so_det)
+                                                    ->update([
+                                                        // "part_id" => $currentSoDet->kpno,
+                                                        // "act_costing_ws" => $currentSoDet->kpno,
+                                                        // "color" => $currentSoDet->color,
+                                                        // "so_det_id" => $currentSoDet->so_det_id,
+                                                        // "size" => $currentSoDet->size . ($currentSoDet->dest && $currentSoDet->dest != "-" ? " - " . $currentSoDet->dest : ""),
+                                                        "notes" => DB::raw("CONCAT(notes, ' MODIFY MARKER CANCEL')"),
+                                                        "cancel" => 'Y'
+                                                    ]);
                                             }
                                         }
                                     }
@@ -795,5 +819,16 @@ class CuttingToolsController extends Controller
             'table' => '',
             'additional' => [],
         );
+    }
+
+    public function deleteRedundantRoll(Request $request, CuttingService $cuttingService) {
+        if ($request->id_roll) {
+            return $cuttingService->deleteRedundantRoll($request->id_roll);
+        }
+
+        return array([
+            "status" => 400,
+            "message" => "Gagal"
+        ]);
     }
 }

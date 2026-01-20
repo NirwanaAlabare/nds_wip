@@ -610,7 +610,7 @@
                         divider = 230;
                     } else if ($("#report_type").val().includes("defect_rate") && $("#report_type").val()
                         .includes("top_defect")) {
-                        divider = 130;
+                        divider = 100;
                     }
 
                     if ($("#report_type").val().includes("top_reject")) {
@@ -623,11 +623,11 @@
                     const progress = Swal.getPopup().querySelector("div.progress-bar");
 
                     estimatedTimeInterval = setInterval(() => {
-                        if (percent < 95) {
+                        if (percent < 90) {
                             percent += cumulative;
                             progress.style.width = percent + "%";
                         }
-                    }, 1000);
+                    }, 1500);
                 },
                 allowOutsideClick: false,
             });

@@ -457,6 +457,17 @@
                         name= "data_cek_avail" readonly>
                 </div>
             </div>
+            <div class="mt-2">
+                <small>
+                    <strong>Info:</strong><br>
+                    <span class="text-danger">id_so_det</span> : WS, Color, Style, atau Dest tidak sesuai dengan master
+                    SB<br>
+                    <span class="text-danger">tgl_shipment</span> : Tanggal shipment belum diisi / masih 0000-00-00<br>
+                    <span class="text-danger">Double</span> : Data yang diupload ada double<br>
+                    <span class="text-danger">Sudah Terinput</span> : Data sudah ada terinput di system<br>
+                    <span class="text-success">Ok</span> : Data aman / lengkap
+                </small>
+            </div>
 
             <div class="table-responsive">
                 <table id="datatable_preview" class="table table-bordered text-nowrap" style="width: 100%;">
@@ -475,6 +486,7 @@
                             <th>Buyer</th>
                             <th>Tgl Shipment</th>
                             <th>Status</th>
+                            <th>Keterangan</th>
                             <th>Act</th>
                         </tr>
                     </thead>
@@ -484,6 +496,7 @@
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_chk'> </th>
                             <th>PCS</th>
+                            <th></th>
                             <th></th>
                             <th></th>
                             <th></th>
@@ -882,6 +895,9 @@
                     data: 'status'
                 },
                 {
+                    data: 'keterangan'
+                },
+                {
                     data: 'id_tmp'
                 }
             ],
@@ -890,7 +906,7 @@
                     targets: "_all"
                 },
                 {
-                    targets: [13],
+                    targets: [14],
                     render: (data, type, row, meta) => {
                         return `
                     <div class='d-flex gap-1 justify-content-center'>
@@ -905,7 +921,7 @@
                     targets: '_all',
                     className: 'text-nowrap',
                     render: (data, type, row, meta) => {
-                        const color = row.status === 'Ok' ? '#087521' : 'red';
+                        const color = row.keterangan === 'Ok' ? '#087521' : 'red';
                         return `<span style="font-weight: 600; color: ${color}">${data}</span>`;
                     }
                 }

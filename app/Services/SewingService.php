@@ -8,6 +8,7 @@ use App\Models\SignalBit\Defect;
 use App\Models\SignalBit\DefectPacking;
 use App\Models\SignalBit\Reject;
 use App\Models\SignalBit\RejectPacking;
+use App\Models\SignalBit\RftPackingPo;
 use App\Models\Stocker\YearSequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -50,7 +51,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     COALESCE(userpassword.username, master_plan.sewing_line) line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_rfts.updated_at)) tgl_plan
+                    COALESCE(DATE(output_rfts.created_at), master_plan.tgl_plan) tgl_plan
                 FROM
                     output_rfts
                     LEFT JOIN user_sb_wip on user_sb_wip.id = output_rfts.created_by
@@ -102,7 +103,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     COALESCE(userpassword.username, master_plan.sewing_line) line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_defects.updated_at)) tgl_plan
+                    COALESCE(DATE(output_defects.created_at), master_plan.tgl_plan) tgl_plan
                 FROM
                     output_defects
                     LEFT JOIN user_sb_wip on user_sb_wip.id = output_defects.created_by
@@ -154,7 +155,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     COALESCE(userpassword.username, master_plan.sewing_line) line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_rejects.updated_at)) tgl_plan
+                    COALESCE(DATE(output_rejects.created_at), master_plan.tgl_plan) tgl_plan
                 FROM
                     output_rejects
                     LEFT JOIN user_sb_wip on user_sb_wip.id = output_rejects.created_by
@@ -372,7 +373,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     COALESCE(master_plan.sewing_line, userpassword.username) line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_rfts.updated_at)) as tgl_plan
+                    COALESCE(DATE(output_rfts.created_at), master_plan.tgl_plan) as tgl_plan
                 FROM
                     output_rfts_packing as output_rfts
                     LEFT JOIN userpassword on userpassword.username = output_rfts.created_by
@@ -423,7 +424,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     COALESCE(master_plan.sewing_line, userpassword.username) line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_defects.updated_at)) as tgl_plan
+                    COALESCE(DATE(output_defects.created_at), master_plan.tgl_plan) as tgl_plan
                 FROM
                     output_defects_packing as output_defects
                     LEFT JOIN userpassword on userpassword.username = output_defects.created_by
@@ -478,7 +479,7 @@ class SewingService
                     so_det.size,
                     so_det.dest,
                     COALESCE(master_plan.sewing_line, userpassword.username) line,
-                    COALESCE(master_plan.tgl_plan, DATE(output_rejects.updated_at)) as tgl_plan
+                    COALESCE(DATE(output_rejects.created_at), master_plan.tgl_plan) as tgl_plan
                 FROM
                     output_rejects_packing as output_rejects
                     LEFT JOIN userpassword on userpassword.username = output_rejects.created_by
@@ -505,13 +506,7 @@ class SewingService
         "));
 
         if (($masterPlanPac->count() + $masterPlanDefPac->count() + $masterPlanRejPac->count()) < 1) {
-            return array(
-                'status' => 400,
-                'message' => 'Tidak ada master plan yang miss',
-                'redirect' => '',
-                'table' => '',
-                'additional' => [],
-            );
+            goto packingPo;
         }
 
         // RFT
@@ -535,13 +530,13 @@ class SewingService
                         $yearSequence = YearSequence::where("id_year_sequence", $rft->kode_numbering)->update(["so_det_id" => $rft->so_det_id]);
 
                         if ($yearSequence) {
-                            array_push($success, [$mpPac, "change output origin"]);
+                            array_push($success, [$mpPac, "change output origin packing"]);
                         }
                     } else {
-                        array_push($fails, [$mpPac, "change output origin"]);
+                        array_push($fails, [$mpPac, "change output origin packing"]);
                     }
                 } else {
-                    array_push($fails, [$mpPac, "change output master plan"]);
+                    array_push($fails, [$mpPac, "change output origin packing"]);
                 }
             } else {
                 if ($mpPac->act_plan_id) {
@@ -558,10 +553,10 @@ class SewingService
 
                         array_push($success, [$mpPac, "change output master plan"]);
                     } else {
-                        array_push($fails, [$mpPac, "change output master plan"]);
+                        array_push($fails, [$mpPac, "change output master plan packing"]);
                     }
                 } else {
-                    array_push($fails, [$mpPac, "change output master plan"]);
+                    array_push($fails, [$mpPac, "change output master plan packing"]);
                 }
             }
         }
@@ -587,13 +582,13 @@ class SewingService
                         $yearSequence = YearSequence::where("id_year_sequence", $defect->kode_numbering)->update(["so_det_id" => $defect->so_det_id]);
 
                         if ($yearSequence) {
-                            array_push($success, [$mpDefPac, "change output origin defect"]);
+                            array_push($success, [$mpDefPac, "change output origin defect packing"]);
                         }
                     } else {
-                        array_push($fails, [$mpDefPac, "change output origin defect"]);
+                        array_push($fails, [$mpDefPac, "change output origin defect packing"]);
                     }
                 } else {
-                    array_push($fails, [$mpDefPac, "change output master plan"]);
+                    array_push($fails, [$mpDefPac, "change output origin defect packing"]);
                 }
             } else {
                 if ($mpDefPac->act_plan_id) {
@@ -610,10 +605,10 @@ class SewingService
 
                         array_push($success, [$mpDefPac, "change output master plan defect"]);
                     } else {
-                        array_push($fails, [$mpDefPac, "change output master plan defect"]);
+                        array_push($fails, [$mpDefPac, "change output master plan defect packing"]);
                     }
                 } else {
-                    array_push($fails, [$mpDefPac, "change output master plan"]);
+                    array_push($fails, [$mpDefPac, "change output master plan defect packing"]);
                 }
             }
         }
@@ -638,13 +633,13 @@ class SewingService
                         $yearSequence = YearSequence::where("id_year_sequence", $reject->kode_numbering)->update(["so_det_id" => $reject->so_det_id]);
 
                         if ($yearSequence) {
-                            array_push($success, [$mpRejPac, "change output origin reject"]);
+                            array_push($success, [$mpRejPac, "change output origin reject packing"]);
                         }
                     } else {
-                        array_push($fails, [$mpRejPac, "change output origin reject"]);
+                        array_push($fails, [$mpRejPac, "change output origin reject packing"]);
                     }
                 } else {
-                    array_push($fails, [$mpRejPac, "change output master plan"]);
+                    array_push($fails, [$mpRejPac, "change output origin reject packing"]);
                 }
             } else {
                 if ($mpRejPac->act_plan_id) {
@@ -660,10 +655,123 @@ class SewingService
 
                         array_push($success, [$mpRejPac, "change output master plan reject"]);
                     } else {
-                        array_push($fails, [$mpRejPac, "change output master plan reject"]);
+                        array_push($fails, [$mpRejPac, "change output master plan reject packing"]);
                     }
                 } else {
-                    array_push($fails, [$mpRejPac, "change output master plan"]);
+                    array_push($fails, [$mpRejPac, "change output master plan reject packing"]);
+                }
+            }
+        }
+
+        packingPo:
+
+        // Rft
+        $masterPlanPacPo = collect(DB::connection("mysql_sb")->select("
+            SELECT
+                output.id,
+                output.plan_id,
+                output.plan_color,
+                output.plan_act_costing_id,
+                MAX(actual.id) as act_plan_id,
+                MAX(actual.color) as act_color,
+                MAX(actual.id_ws) as act_act_costing_id,
+                output.actual_color as color,
+                output.po,
+                output.size,
+                output.dest
+            FROM
+            (
+                SELECT
+                    output_rfts.id,
+                    master_plan.id plan_id,
+                    master_plan.color plan_color,
+                    master_plan.id_ws plan_act_costing_id,
+                    TRIM(so_det.color) actual_color,
+                    act_costing.id actual_act_costing_id,
+                    so_det.size,
+                    so_det.dest,
+                    ppic_master_so.po,
+                    COALESCE(master_plan.sewing_line, userpassword.username) line,
+                    COALESCE(DATE(output_rfts.created_at), master_plan.tgl_plan) as tgl_plan
+                FROM
+                    output_rfts_packing_po as output_rfts
+                    LEFT JOIN userpassword on userpassword.username = output_rfts.created_by
+                    LEFT JOIN so_det ON so_det.id = output_rfts.so_det_id
+                    LEFT JOIN so ON so.id = so_det.id_so
+                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    LEFT JOIN master_plan on master_plan.id = output_rfts.master_plan_id
+                    LEFT JOIN laravel_nds.ppic_master_so on ppic_master_so.id = output_rfts.po_id
+                WHERE
+                    output_rfts.updated_at BETWEEN '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
+                    and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
+                    ".$additionalQuery."
+                GROUP BY
+                    output_rfts.id
+            ) output
+            LEFT JOIN master_plan actual on
+                actual.id_ws = output.actual_act_costing_id AND
+                actual.color = output.actual_color and
+                actual.sewing_line = output.line and
+                actual.tgl_plan <= output.tgl_plan
+            WHERE
+                actual.id IS NULL OR output.plan_id is null OR actual.id != output.plan_id
+            GROUP BY
+                output.id
+        "));
+
+        if (($masterPlanPacPo->count()) < 1) {
+            return array(
+                'status' => 400,
+                'message' => 'Tidak ada master plan yang miss',
+                'redirect' => '',
+                'table' => '',
+                'additional' => [],
+            );
+        }
+
+        // RFT
+        foreach ($masterPlanPacPo as $mpPacPo) {
+            $soDet = DB::connection("mysql_sb")->table("so_det")->selectRaw("so_det.id, ppic_master_so.id as po_id")->leftJoin("so", "so.id", "=", "so_det.id_so")->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->leftJoin("laravel_nds.ppic_master_so", "ppic_master_so.id_so_det", "=", "so_det.id")->where("act_costing.id", $mpPacPo->plan_act_costing_id)->where("so_det.color", $mpPacPo->plan_color)->where("so_det.size", $mpPacPo->size)->where("so_det.dest", $mpPacPo->dest)->where("ppic_master_so.po", $mpPacPo->po)->first();
+
+            if (!$soDet) {
+                $soDet = DB::connection("mysql_sb")->table("so_det")->selectRaw("so_det.id, ppic_master_so.id as po_id")->leftJoin("so", "so.id", "=", "so_det.id_so")->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->leftJoin("laravel_nds.ppic_master_so", "ppic_master_so.id_so_det", "=", "so_det.id")->where("act_costing.id", $mpPacPo->plan_act_costing_id)->where("so_det.color", $mpPacPo->plan_color)->where("so_det.size", $mpPacPo->size)->where("ppic_master_so.po", $mpPacPo->po)->first();
+            }
+
+            if ($updateOrigin) {
+                if ($soDet) {
+                    // Update Origin
+                    $rft = RftPackingPo::where("id", $mpPacPo->id)->first();
+
+                    if ($rft) {
+                        $rft->timestamps = false;
+                        $rft->so_det_id = $soDet->id;
+                        $rft->save();
+
+                        $yearSequence = YearSequence::where("id_year_sequence", $rft->kode_numbering)->update(["so_det_id" => $rft->so_det_id]);
+
+                        if ($yearSequence) {
+                            array_push($success, [$mpPac, "change output origin packing po"]);
+                        }
+                    } else {
+                        array_push($fails, [$mpPac, "change output origin packing po"]);
+                    }
+                } else {
+                    array_push($fails, [$mpPac, "change output origin packing po"]);
+                }
+            } else {
+                if ($mpPacPo->act_plan_id) {
+                    // Update Master Plan
+                    $updateRft = DB::connection("mysql_sb")->table("output_rfts_packing_po")->where("id", $mpPacPo->id)->update([
+                        "master_plan_id" => $mpPacPo->act_plan_id,
+                    ]);
+
+                    if ($updateRft) {
+                        array_push($success, [$mpPacPo, "change output master plan packing po"]);
+                    } else {
+                        array_push($fails, [$mpPacPo, "change output master plan packing po"]);
+                    }
+                } else {
+                    array_push($fails, [$mpPacPo, "change output master plan packing po"]);
                 }
             }
         }

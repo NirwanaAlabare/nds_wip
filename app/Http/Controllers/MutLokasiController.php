@@ -86,8 +86,8 @@ class MutLokasiController extends Controller
     public function editmutlok($id)
     {
 
-        $det_data = DB::connection('mysql_sb')->select("select a.id,id_item,kode_item,item_desc,a.no_ws,no_bpb,no_lot,no_roll,ROUND(qty_roll,2) qty_roll,ROUND(qty_mutasi,2) qty_mutasi,unit,a.rak_asal,rak_tujuan from whs_mut_lokasi a inner join whs_mut_lokasi_h b on b.no_mut = a.no_mut where a.status = 'Y' and b.id = '$id'");
-        $sum_data = DB::connection('mysql_sb')->select("select count(id_item)jml from (select id_item,kode_item,item_desc,a.no_ws,no_bpb,no_lot,no_roll,ROUND(qty_roll,2) qty_roll,ROUND(qty_mutasi,2) qty_mutasi,unit,a.rak_asal,rak_tujuan from whs_mut_lokasi a inner join whs_mut_lokasi_h b on b.no_mut = a.no_mut where a.status = 'Y' and b.id = '$id') a");
+        $det_data = DB::connection('mysql_sb')->select("select a.id,id_item,kode_item,item_desc,a.no_ws,no_bpb,no_lot,no_roll,ROUND(qty_roll,2) qty_roll,ROUND(qty_mutasi,2) qty_mutasi,unit,a.rak_asal,b.rak_tujuan from whs_mut_lokasi a inner join whs_mut_lokasi_h b on b.no_mut = a.no_mut where a.status = 'Y' and b.id = '$id'");
+        $sum_data = DB::connection('mysql_sb')->select("select count(id_item)jml from (select id_item,kode_item,item_desc,a.no_ws,no_bpb,no_lot,no_roll,ROUND(qty_roll,2) qty_roll,ROUND(qty_mutasi,2) qty_mutasi,unit,a.rak_asal,b.rak_tujuan from whs_mut_lokasi a inner join whs_mut_lokasi_h b on b.no_mut = a.no_mut where a.status = 'Y' and b.id = '$id') a");
         $d_header = DB::connection('mysql_sb')->select("select no_mut kode,tgl_mut,no_ws,rak_asal,deskripsi from whs_mut_lokasi_h where id = '$id'");
         $lokasi = DB::connection('mysql_sb')->table('whs_master_lokasi')->select('id', 'kode_lok')->where('status', '=', 'active')->get();
 
@@ -435,11 +435,11 @@ class MutLokasiController extends Controller
                 "updated_at" => $timestamp,
             ]);
 
-            $mutasi_detail = DB::connection('mysql_sb')->insert("insert into whs_mut_lokasi select '', '".$no_mut."' no_mut, '".$request['txt_tgl_mut']."' tgl_mut, a.id_jo, a.id_item, b.goods_code, b.itemdesc, no_ws, no_bpb, no_lot, no_roll, qty, qty, a.unit, rak_asal, rak_tujuan, 'Y' status, idbpb_det, '".$timestamp."' created_at, '".$timestamp."' updated_at from whs_mut_lokasi_temp a INNER JOIN masteritem b on b.id_item = a.id_item where created_by = '".Auth::user()->name."'");
+            $mutasi_detail = DB::connection('mysql_sb')->insert("insert into whs_mut_lokasi select '', '".$no_mut."' no_mut, '".$request['txt_tgl_mut']."' tgl_mut, a.id_jo, a.id_item, b.goods_code, b.itemdesc, no_ws, no_bpb, no_lot, no_roll ,no_roll_buyer, qty, qty, a.unit, rak_asal, rak_tujuan, 'Y' status, idbpb_det, '".$timestamp."' created_at, '".$timestamp."' updated_at from whs_mut_lokasi_temp a INNER JOIN masteritem b on b.id_item = a.id_item where created_by = '".Auth::user()->name."'");
 
-            $trx_in = DB::connection('mysql_sb')->insert("insert into whs_lokasi_inmaterial select '',idbpb_det, '".$no_mut."' no_mut, no_ws, a.id_jo, a.id_item, b.goods_code, b.itemdesc, no_roll, '' roll_buyer, no_lot, qty, qty, '' , '', no_bpb, a.unit, rak_tujuan, 'Y' status, created_by, '".$timestamp."' created_at, '".$timestamp."' updated_at, '','','','','' from whs_mut_lokasi_temp a INNER JOIN masteritem b on b.id_item = a.id_item where created_by = '".Auth::user()->name."'");
+            $trx_in = DB::connection('mysql_sb')->insert("insert into whs_lokasi_inmaterial select '',idbpb_det, '".$no_mut."' no_mut, no_ws, a.id_jo, a.id_item, b.goods_code, b.itemdesc, no_roll, no_roll_buyer, no_lot, qty, qty, '' , '', no_bpb, a.unit, rak_tujuan, 'Y' status, created_by, '".$timestamp."' created_at, '".$timestamp."' updated_at, '','',np_curr, np_tgl_in, np_price, null, null from whs_mut_lokasi_temp a INNER JOIN masteritem b on b.id_item = a.id_item where created_by = '".Auth::user()->name."'");
 
-            $trx_out = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select '', '".$no_mut."' no_mut, idbpb_det, a.id_jo, a.id_item, a.rak_asal, no_lot, no_roll, b.itemdesc, qty, a.unit, qty, '' curr, '0' price, 'Y' status, created_by, 'mutasi lokasi' deskripsi, '".$timestamp."' created_at, '".$timestamp."' updated_at, '','','','','','','' from whs_mut_lokasi_temp a INNER JOIN masteritem b on b.id_item = a.id_item where created_by = '".Auth::user()->name."'");
+            $trx_out = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select '', '".$no_mut."' no_mut, idbpb_det, a.id_jo, a.id_item, a.rak_asal, no_lot, no_roll, no_roll_buyer, b.itemdesc, qty, a.unit, qty, '' curr, '0' price, 'Y' status, created_by, 'mutasi lokasi' deskripsi, '".$timestamp."' created_at, '".$timestamp."' updated_at, '','','','','','','',np_curr, np_tgl_in, np_price, null, null from whs_mut_lokasi_temp a INNER JOIN masteritem b on b.id_item = a.id_item where created_by = '".Auth::user()->name."'");
 
             $mut_detail_temp = MutasiDetailTemp::where('created_by',Auth::user()->name)->delete();
 
@@ -464,7 +464,7 @@ class MutLokasiController extends Controller
 
     public function getbarcodemutasi(Request $request)
 {
-    $barcode = DB::connection('mysql_sb')->select("select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id_jo, id_item, no_lot, no_roll, satuan, sal_akhir qty, kpno no_ws, styleno, color, itemdesc from data_stock_fabric where no_barcode = '$request->no_barcode' limit 1");
+    $barcode = DB::connection('mysql_sb')->select("select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id_jo, id_item, no_lot, no_roll, satuan, sal_akhir qty, kpno no_ws, styleno, color, itemdesc from data_stock_fabric where no_barcode = '$request->no_barcode' and sal_akhir > 0 limit 1");
 
 
     return response()->json($barcode);
@@ -486,6 +486,12 @@ public function simpanbarcodemutasi(Request $request)
     $cek_barcode = DB::connection('mysql_sb')->select("select * from whs_mut_lokasi_temp where idbpb_det = '" . $validatedRequest['no_barcode'] . "'");
     $no_barcode = $cek_barcode ? $cek_barcode[0]->idbpb_det : 0;
 
+    $barcode_in = DB::connection('mysql_sb')->select("select no_roll_buyer, IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price from whs_lokasi_inmaterial where no_barcode = '" . $validatedRequest['no_barcode'] . "' ORDER BY id ASC LIMIT 1");
+    $no_roll_buyer = $barcode_in ? $barcode_in[0]->no_roll_buyer : null;
+    $np_curr = $barcode_in ? $barcode_in[0]->np_curr : null;
+    $np_tgl_in = $barcode_in ? $barcode_in[0]->np_tgl_in : null;
+    $np_price = $barcode_in ? $barcode_in[0]->np_price : null;
+
     if ($no_barcode == '0') {
 
         if ($validatedRequest["qty"] > 0) {
@@ -497,6 +503,7 @@ public function simpanbarcodemutasi(Request $request)
                 'no_bpb' => $request['no_dok'],
                 'no_lot' => $request['no_lot'],
                 'no_roll' => $request['no_roll'],
+                'no_roll_buyer' => $no_roll_buyer,
                 'qty' => $validatedRequest['qty'],
                 'unit' => $request['unit'],
                 'rak_asal' => $request['lokasi_barcode'],
@@ -505,6 +512,9 @@ public function simpanbarcodemutasi(Request $request)
                 'created_by' => Auth::user()->name,
                 "created_at" => $timestamp,
                 "updated_at" => $timestamp,
+                "np_curr" => $np_curr,
+                "np_price" => $np_price,
+                "np_tgl_in" => $np_tgl_in,
             ]);
 
             if ($MutasiDetailTempStore) {

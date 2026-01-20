@@ -135,7 +135,8 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 style,
                 color,
                 panel,
-                id_so_det
+                id_so_det,
+                group_stocker
         ");
 
         $this->rowCount = count($data);

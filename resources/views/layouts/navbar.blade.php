@@ -914,7 +914,7 @@
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
                             class="nav-link dropdown-toggle">Report</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-
+                            <?php if(auth()->user()->username != 'acc'){ ?>
                             <li>
                                 <a href="{{ route('detail-stok-opname') }}" class="dropdown-item">
                                     List Stock Opname
@@ -926,6 +926,13 @@
                                     Report Stock Opname
                                 </a>
                             </li>
+                            <?php }else{ ?>
+                                <li>
+                                    <a href="{{ route('laporan-stok-opname') }}" class="dropdown-item">
+                                        Report Stock Opname
+                                    </a>
+                                </li>
+                            <?php } ?>
                         </ul>
                     </li>
                 @endif
@@ -1589,6 +1596,12 @@
                                     <i class="fa-solid fa-list-ul fa-sm"></i> Master Process
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('IE_master_part_process') }}"
+                                    class="dropdown-item {{ $subPage == 'IE-master-part-process' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Master Part Process
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -1599,6 +1612,24 @@
                                 <a href="{{ route('IE_proses_op_breakdown') }}"
                                     class="dropdown-item {{ $subPage == 'IE-proses-op-breakdown' ? 'active' : '' }}">
                                     <i class="fa-solid fa-list-ul fa-sm"></i> Operational Breakdown
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'IE-laporan' ? 'active' : '' }}">Laporan</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('IE_lap_recap_smv') }}"
+                                    class="dropdown-item {{ $subPage == 'IE-laporan-recap-smv' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Recap SMV
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('IE_lap_recap_cm_price') }}"
+                                    class="dropdown-item {{ $subPage == 'IE-laporan-recap-cm-price' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-list-ul fa-sm"></i> Recap CM Price
                                 </a>
                             </li>
                         </ul>

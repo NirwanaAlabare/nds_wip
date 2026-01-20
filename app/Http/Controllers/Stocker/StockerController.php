@@ -211,7 +211,7 @@ class StockerController extends Controller
                 marker_input.po_marker,
                 marker_input.urutan_marker,
                 marker_input.cons_marker,
-                form_cut_input.total_lembar,
+                form_detail.total_lembar,
                 form_cut_input.no_cut,
                 UPPER(form_cut_input.shell) shell,
                 GROUP_CONCAT(DISTINCT COALESCE(master_size_new.size, marker_input_detail.size) ORDER BY master_size_new.urutan ASC SEPARATOR ', ') sizes,
@@ -219,6 +219,7 @@ class StockerController extends Controller
                 GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) SEPARATOR ', ') part,
                 part.panel_status
             ")->
+            leftJoin(DB::raw("(SELECT form_cut_id, SUM(form_cut_input_detail.lembar_gelaran) as total_lembar from form_cut_input_detail group by form_cut_id) as form_detail"), "form_detail.form_cut_id", "=", "form_cut_input.id")->
             leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
             leftJoin("part", "part.id", "=", "part_form.part_id")->
             leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
@@ -3930,7 +3931,7 @@ class StockerController extends Controller
 
     // Fixing Things...
     public function rearrangeGroup(Request $request) {
-        $formCutDetails = FormCutInputDetail::where("form_cut_id", $request->form_cut_id)->where("no_form_cut_input", $request->no_form)->orderBy("created_at", "asc")->get();
+        $formCutDetails = FormCutInputDetail::where("form_cut_id", $request->form_cut_id)->where("no_form_cut_input", $request->no_form)->orderBy("created_at", "asc")->orderBy("updated_at", "asc")->get();
 
         $currentGroup = "";
         $groupNumber = 0;
@@ -4011,7 +4012,7 @@ class StockerController extends Controller
     //         ]);
 
     //         // Adjust form cut detail data
-    //         $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->get();
+    //         $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->orderBy("updated_at", "asc")->get();
 
     //         $currentGroup = "";
     //         $currentGroupNumber = 0;
@@ -4334,7 +4335,7 @@ class StockerController extends Controller
         //         ]);
 
         //         // Adjust form cut detail data
-        //         $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->get();
+        //         $formCutInputDetails = FormCutInputDetail::where("form_cut_id", $formCut->id_form)->where("no_form_cut_input", $formCut->no_form)->orderBy("created_at", "asc")->orderBy("updated_at", "asc")->get();
 
         //         $currentGroup = "";
         //         $currentGroupNumber = 0;
@@ -4914,7 +4915,7 @@ class StockerController extends Controller
         }
 
         $months = [['angka' => '01','nama' => 'Januari'],['angka' => '02','nama' => 'Februari'],['angka' => '03','nama' => 'Maret'],['angka' => '04','nama' => 'April'],['angka' => '05','nama' => 'Mei'],['angka' => '06','nama' => 'Juni'],['angka' => '07','nama' => 'Juli'],['angka' => '08','nama' => 'Agustus'],['angka' => '09','nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
-        $years = array_reverse(range(1999, date('Y')));
+        $years = array_reverse(range(1999, date('Y', strtotime('+1 years'))));
 
         return view("stocker.stocker.stocker-list", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "stocker-list", "months" => $months, "years" => $years]);
     }
@@ -6051,7 +6052,7 @@ class StockerController extends Controller
     }
 
     public function yearSequence() {
-        $years = array_reverse(range(1999, date('Y')));
+        $years = array_reverse(range(1999, date('Y', strtotime('+1 years'))));
 
         return view("stocker.stocker.year-sequence", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "year-sequence", "years" => $years]);
     }
@@ -6172,7 +6173,7 @@ class StockerController extends Controller
 
                 $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
 
-                return $pdf->download(str_replace("/", "_", $fileName));;
+                return $pdf->download(str_replace("/", "_", $fileName));
             }
 
             return array(
@@ -6582,6 +6583,15 @@ class StockerController extends Controller
 
         $stocker = Stocker::selectRaw("stocker_input.id_qr_stocker, stocker_input.form_cut_id, stocker_input.form_reject_id, stocker_input.form_piece_id, stocker_input.so_det_id, stocker_input.size, stocker_input.range_akhir, (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe")->where("stocker_input.id_qr_stocker", $request->stocker)->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->first();
 
+        if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() < 1) {
+            if (!$stocker) {
+                return array(
+                    "status" => 400,
+                    "message" => "Stocker tidak ditemukan",
+                );
+            }
+        }
+
         $request->size = $stocker ? $stocker->so_det_id : $request->size;
         $request->size_text = $stocker ? $stocker->size : $request->size_text;
 
@@ -6685,7 +6695,7 @@ class StockerController extends Controller
                 // When the updated Size Was in different Plan
                 $sewingService->missMasterPlan(addQuotesAround(implode("\n", $yearSequenceArr)), false);
 
-                 // When the updated Size Was in different PO
+                // When the updated Size Was in different PO
                 $sewingService->missPackingPo();
 
                 if ($request['method'] == "list") {

@@ -120,7 +120,7 @@
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-4">
+                                    <div class="col-3">
                                         <label class="form-label"><small>Part</small></label>
                                         <select class="form-control select2bs4" name="part_details[0]" id="part_details_0">
                                             <option value="">Pilih Part</option>
@@ -129,7 +129,7 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="col-4">
+                                    <div class="col-3">
                                         <label class="form-label"><small>Cons</small></label>
                                         <div class="d-flex mb-3">
                                             <div style="width: 50%;">
@@ -145,7 +145,12 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-4">
+                                    <div class="col-3" id="parent-detail-0">
+                                        <label class="form-label"><small>Item</small></label>
+                                        <select class="form-control select2bs4 part-item-list" style="border-radius: 0 3px 3px 0;" name="item[0][]" id="item_0" data-index="0" multiple>
+                                        </select>
+                                    </div>
+                                    <div class="col-3">
                                         <label class="form-label"><small>Tujuan</small></label>
                                         <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="tujuan[0]" id="tujuan_0" onchange="switchTujuan(this, 0)">
                                             <option value="">Pilih Tujuan</option>
@@ -164,13 +169,13 @@
                                     </div>
                                     <div class="col d-none" id="secondary_container_0">
                                         <label class="form-label"><small>Proses</small></label>
-                                        <div class="d-flex gap-1">
-                                            <select class="form-control select2bs4" id="secondaries_0" name="secondaries[0][]" data-width="100%" multiple onchange="orderSecondary(this, 0)">
+                                        <div class="d-flex w-100 gap-1">
+                                            <select class="form-control select2bs4 w-75" id="secondaries_0" name="secondaries[0][]" data-width="100%" multiple onchange="orderSecondary(this, 0)">
                                                 @foreach ($masterSecondary->where("tujuan", "!=", "NON SECONDARY") as $secondary)
                                                     <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
                                                 @endforeach
                                             </select>
-                                            <button type="button" class="btn btn-sm btn-dark ps-1 ms-2" onclick="clearSelectOptions(0)">
+                                            <button type="button" class="btn btn-sm btn-dark ps-1 ms-2 w-25" onclick="clearSelectOptions(0)">
                                                 <i class="fa fa-rotate-left"></i>
                                             </button>
                                         </div>
@@ -190,7 +195,7 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="col">
+                                    <div class="col" id="is-main-part-container">
                                         <label class="form-label is-main-part-label"><small>Main Part</small></label>
                                         <br>
                                         <div class="form-check">
@@ -247,6 +252,11 @@
                                     @foreach ($masterSecondary as $secondary)
                                         <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
                                     @endforeach
+                                </select>
+                            </div>
+                            <div class="col" id="com-parent-detail-0">
+                                <label class="form-label"><small>Item</small></label>
+                                <select class="form-control select2bs4 part-item-list" style="border-radius: 0 3px 3px 0;" name="com_item[0][]" id="com_item_0" data-index="0" multiple>
                                 </select>
                             </div>
                             <div class="col d-none">
@@ -321,13 +331,14 @@
 
                 $(".select2").val('').trigger('change');
                 $(".select2bs4").val('').trigger('change');
-                $(".select2bs4custom").val('').trigger('change');
+                $(".select2bs4").val('').trigger('change');
 
                 $("#ws_id").val(null).trigger("change");
                 $('#part_details').val(null).trigger('change');
 
                 await getMasterParts();
                 await getTujuan();
+                await updatePartItemList();
                 await getProsesNonSecondary();
                 await getProsesSecondary();
 
@@ -347,9 +358,9 @@
         });
 
         // Select2 Autofocus
-        $(document).on('select2:open', () => {
-            document.querySelector('.select2-search__field').focus();
-        });
+        // $(document).on('select2:open', () => {
+        //     document.querySelector('.select2-search__field').focus();
+        // });
 
         // Initialize Select2 Elements
         $('.select2').select2();
@@ -359,6 +370,14 @@
             theme: 'bootstrap4'
         });
 
+        $('.select2bs4multi').select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            closeOnSelect: false,
+            placeholder: "Pilih Item",
+            allowClear: true,
+        });
+
         // Step One (WS) on change event
         $('#ws_id').on('change', async function(e) {
             document.getElementById("loading").classList.remove("d-none");
@@ -366,6 +385,7 @@
             if (this.value) {
                 await updateOrderInfo();
                 await updatePanelList();
+                await updatePartItemList();
             }
 
             document.getElementById("loading").classList.add("d-none");
@@ -725,6 +745,36 @@
             }
         }
 
+        // Update Panel Select Option Based on Order WS and Color WS
+        var partItemListOptions = "";
+        function updatePartItemList() {
+            partItemListOptions = "";
+            document.getElementById('panel_id').value = null;
+            return $.ajax({
+                url: '{{ route("get-part-item") }}',
+                type: 'get',
+                data: {
+                    act_costing_id: $('#ws_id').val(),
+                },
+                success: function (res) {
+                    if (res) {
+                        // Generate Options
+                        res.forEach(element => {
+                            partItemListOptions += "<option value='"+element.id+"'>"+element.itemdesc+"</option>"
+                        });
+
+                        // Append Options
+                        let partItemList = document.getElementsByClassName('part-item-list');
+                        for (let i = 0; i < partItemList.length; i++) {
+                            partItemList[i].innerHTML = partItemListOptions;
+                        }
+                    }
+
+                    console.log(res, partItemListOptions);
+                },
+            });
+        }
+
         function changeComplementTujuan(element) {
             let thisIndex = element.getAttribute('data-index');
             let thisSelected = element.options[element.selectedIndex];
@@ -745,13 +795,22 @@
                 return;
             }
 
+            let panelStatusVal = document.getElementById("panel_status").value;
+
             let index = parseInt(jumlahPartDetail.value);
 
             // Create card container
             let card = document.createElement('div');
             card.classList.add('card', 'mt-3');
 
-            // --- Card Header ---
+            // Part Detail
+            let partDetail = document.createElement("select");
+            partDetail.setAttribute('class', 'form-select');
+            partDetail.setAttribute('name', 'part_details['+jumlahPartDetail.value+']');
+            partDetail.setAttribute('id', 'part_details_'+jumlahPartDetail.value);
+            partDetail.innerHTML = partOptions;
+
+            // Card Header
             let cardHeader = document.createElement('div');
             cardHeader.classList.add('card-header', 'bg-sb-secondary');
             cardHeader.innerHTML = `<h6 class="mb-0">Part ${index + 1}</h6>`; // 1-based numbering
@@ -760,12 +819,13 @@
             let cardBody = document.createElement('div');
             cardBody.classList.add('card-body');
 
+
             let row = document.createElement('div');
             row.classList.add('row');
 
             // --- 1. Part ---
             let colPart = document.createElement('div');
-            colPart.classList.add('col-4');
+            colPart.classList.add('col-3');
             colPart.innerHTML = `
                 <label class="form-label"><small>Part</small></label>
                 <select class="form-control select2bs4" name="part_details[${index}]" id="part_details_${index}">
@@ -775,7 +835,7 @@
 
             // --- 2. Cons + Unit ---
             let colCons = document.createElement('div');
-            colCons.classList.add('col-4');
+            colCons.classList.add('col-3');
             colCons.innerHTML = `
                 <label class="form-label"><small>Cons</small></label>
                 <div class="d-flex mb-3">
@@ -795,7 +855,7 @@
 
             // --- 3. Tujuan ---
             let colTujuan = document.createElement('div');
-            colTujuan.classList.add('col-4');
+            colTujuan.classList.add('col-3');
             colTujuan.innerHTML = `
                 <label class="form-label"><small>Tujuan</small></label>
                 <select class="form-control select2bs4" name="tujuan[${index}]" id="tujuan_${index}" onchange="switchTujuan(this, ${index})">
@@ -823,11 +883,11 @@
             colSecondary.id = `secondary_container_${index}`;
             colSecondary.innerHTML = `
                 <label class="form-label"><small>Proses</small></label>
-                <div class="d-flex gap-1">
-                    <select class="form-control select2bs4" id="secondaries_${index}" name="secondaries[${index}][]" data-width="100%" multiple onchange="orderSecondary(this, ${index})">
+                <div class="d-flex w-100 gap-1">
+                    <select class="form-control w-75 select2bs4" id="secondaries_${index}" name="secondaries[${index}][]" data-width="100%" multiple onchange="orderSecondary(this, ${index})">
                         ${prosesSecondaryOptions}
                     </select>
-                    <button type="button" class="btn btn-sm btn-dark ps-1 ms-2" onclick="clearSelectOptions(${index})">
+                    <button type="button" class="btn btn-sm btn-dark w-25 ps-1 ms-2" onclick="clearSelectOptions(${index})">
                         <i class="fa fa-rotate-left"></i>
                     </button>
                 </div>
@@ -835,7 +895,7 @@
 
             // --- 6. Urutan container ---
             let colUrutan = document.createElement('div');
-            colUrutan.classList.add('col', 'd-none');
+            colUrutan.classList.add('col-3', 'd-none');
             colUrutan.id = `urutan_container_${index}`;
             colUrutan.innerHTML = `
                 <label class="form-label"><small>Urutan</small></label>
@@ -845,7 +905,7 @@
 
             // --- 7. Proses Secondary Luar ---
             let colProsesLuar = document.createElement('div');
-            colProsesLuar.classList.add('col', 'd-none');
+            colProsesLuar.classList.add('col-3', 'd-none');
             colProsesLuar.innerHTML = `
                 <label class="form-label"><small>Proses Secondary Luar</small></label>
                 <select class="form-control select2bs4" name="proses_secondary_luar[${index}]" id="proses_secondary_luar_${index}" data-index="${index}">
@@ -856,17 +916,38 @@
 
             // --- 8. Main Part checkbox ---
             let colMain = document.createElement('div');
-            colMain.classList.add('col');
+            colMain.classList.add('col-3');
             colMain.innerHTML = `
                 <label class="form-label"><small>Main Part</small></label><br>
                 <div class="form-check">
-                    <input class="form-check-input is-main-part" type="checkbox" value="true" id="main_part_${index}" name="main_part[${index}]" onchange="uncheckOtherMainPart(${index})">
+                    <input class="form-check-input is-main-part `+(panelStatusVal ? (panelStatusVal == 'main' ? '' : 'd-none') : '')+`" type="checkbox" value="true" id="main_part_${index}" name="main_part[${index}]" onchange="uncheckOtherMainPart(${index})">
                 </div>
             `;
+
+            // --- 9. Item ---
+            let colPartItem = document.createElement('div');
+            colPartItem.setAttribute('id', 'parent-detail-'+jumlahPartDetail.value);
+            colPartItem.setAttribute('class', 'col-3');
+
+            let labelPartItem = document.createElement('label');
+            labelPartItem.setAttribute('class', 'form-label');
+            labelPartItem.innerHTML = '<small>Item</small>';
+
+            let item = document.createElement("select");
+            item.setAttribute('class', 'form-select part-item-list');
+            item.setAttribute('name', 'item['+jumlahPartDetail.value+'][]');
+            item.setAttribute('id', 'item_'+jumlahPartDetail.value);
+            item.setAttribute('data-index', jumlahPartDetail.value);
+            item.setAttribute('multiple', true);
+            item.innerHTML = partItemListOptions;
+
+            colPartItem.appendChild(labelPartItem);
+            colPartItem.appendChild(item);
 
             // Append all columns to row
             row.appendChild(colPart);
             row.appendChild(colCons);
+            row.appendChild(colPartItem);
             row.appendChild(colTujuan);
             row.appendChild(colNonSecondary);
             row.appendChild(colSecondary);
@@ -889,6 +970,11 @@
             $(`#proses_${index}`).select2({ theme: 'bootstrap4' });
             $(`#secondaries_${index}`).select2({ theme: 'bootstrap4', width: '100%' });
             $(`#proses_secondary_luar_${index}`).select2({ theme: 'bootstrap4' });
+            $(`#item_${index}`).select2({
+                theme: 'bootstrap4',
+                multiple: true,
+                closeOnSelect: false,
+            });
 
             // Increment counter
             jumlahPartDetail.value++;
@@ -977,10 +1063,31 @@
                     </select>
                 `;
 
+                // --- 8. Item ---
+                let divColPartItem = document.createElement('div');
+                divColPartItem.setAttribute('id', 'com-parent-detail-'+index);
+                divColPartItem.setAttribute('class', 'col');
+
+                let labelPartItem = document.createElement('label');
+                labelPartItem.setAttribute('class', 'form-label');
+                labelPartItem.innerHTML = '<small>Item</small>';
+
+                let item = document.createElement("select");
+                item.setAttribute('class', 'form-select part-item-list');
+                item.setAttribute('name', 'com_item['+index+'][]');
+                item.setAttribute('id', 'com_item_'+index);
+                item.setAttribute('data-index', index);
+                item.setAttribute('multiple', true);
+                item.innerHTML = partItemListOptions;
+
+                divColPartItem.appendChild(labelPartItem);
+                divColPartItem.appendChild(item);
+
                 // Append all to the row
                 divRow.appendChild(divColPart);
                 divRow.appendChild(divColFromPanel);
                 divRow.appendChild(divColFromPart);
+                divRow.appendChild(divColPartItem);
                 divRow.appendChild(divColTujuan);
                 divRow.appendChild(divColProses);
                 divRow.appendChild(divColUrutan);
@@ -996,6 +1103,7 @@
                 $(`#com_tujuan_${index}`).select2({ theme: 'bootstrap4' });
                 $(`#com_proses_${index}`).select2({ theme: 'bootstrap4' });
                 $(`#com_proses_secondary_luar_${index}`).select2({ theme: 'bootstrap4' });
+                $(`#com_item_${index}`).select2({ theme: 'bootstrap4' });
 
                 // Increment counter
                 jumlahComplementPartDetail.value++;

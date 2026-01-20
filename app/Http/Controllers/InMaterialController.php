@@ -87,6 +87,24 @@ class InMaterialController extends Controller
         return view("inmaterial.in-material", ['status' => $status,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,"page" => "dashboard-warehouse"]);
     }
 
+
+    public function in_barcode_fabric(Request $request)
+    {
+
+
+            $data_inmaterial = DB::connection('mysql_sb')->select("WITH
+                out_h as (select a.no_dok, a.tgl_dok, b.id_jo, b.id_item, c.itemdesc, c.color, c.size, IFNULL(type_bc,'-') type_bc, IFNULL(no_invoice,'-') no_invoice, IFNULL(no_aju,'-') no_aju, tgl_aju, IFNULL(no_daftar,'-') no_daftar, tgl_daftar, a.supplier, IFNULL(a.no_po,'-') no_po, '' tipe_com, IFNULL(no_invoice,'-') no_sj, IFNULL(a.deskripsi,'-') deskripsi, CONCAT(a.created_by,' (',a.created_at, ') ') username, kpno, styleno, a.type_pch, b.price from whs_inmaterial_fabric a INNER JOIN whs_inmaterial_fabric_det b on b.no_dok = a.no_dok INNER JOIN masteritem c on c.id_item = b.id_item INNER JOIN (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) d on d.id_jo=b.id_jo LEFT JOIN (select pono, tipe_com from po_header po LEFT join po_header_draft pod on pod.id = po.id_draft where podate >= '2025-01-01') po on po.pono = a.no_po where a.tgl_dok BETWEEN '" . $request->start_date . "' and '" . $request->end_date . "' and a.status != 'Cancel' and b.status != 'N' GROUP BY b.id_item, b.id_jo, b.no_dok),
+
+                out_det as (select no_dok, id_jo, id_item, no_barcode, no_roll, no_lot, kode_lok, sum(qty_aktual) qty_in, satuan, np_curr, np_tgl_in, IFNULL(np_price,0) np_price, IF(np_curr = 'IDR',1,IFNULL(rate,1)) rate from (select b.id, a.no_dok, b.id_jo, b.id_item, b.no_barcode, b.no_roll, b.no_lot, b.kode_lok, b.qty_aktual, satuan, IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price from whs_inmaterial_fabric a INNER JOIN whs_lokasi_inmaterial b on b.no_dok = a.no_dok where a.tgl_dok BETWEEN '" . $request->start_date . "' and '" . $request->end_date . "' and a.status != 'Cancel' and b.status != 'N') a left join (select tanggal, curr, rate from masterrate where v_codecurr = 'PAJAK' and tanggal BETWEEN '" . $request->start_date . "' and '" . $request->end_date . "' GROUP BY tanggal, curr ) cr on cr.tanggal = a.np_tgl_in and cr.curr = np_curr GROUP BY a.id)
+
+                select a.no_dok, a.tgl_dok, no_barcode, no_roll, no_lot, CONCAT(kode_lok,' FABRIC WAREHOUSE RACK') kode_lok, a.id_item, itemdesc, color, size, no_invoice, type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar, supplier, no_po, tipe_com, no_sj, b.qty_in, b.satuan, 0 berat_bersih, deskripsi, username, kpno, styleno, np_curr, price, np_price, type_pch, np_price price_unit, 0 jasa, np_price total_price, (np_price * qty_in) total_in, 0 jasa_in, (np_price * qty_in) jumlah_in, rate, ((np_price * qty_in) * rate) total_in_idr, 0 jasa_in_idr, ((np_price * qty_in) * rate) jumlah_in_idr from out_h a INNER JOIN out_det b on b.no_dok = a.no_dok and b.id_item = a.id_item and b.id_jo = a.id_jo");
+
+
+            return DataTables::of($data_inmaterial)->toJson();
+            // return [$request->start_date, $request->end_date];
+
+    }
+
     /**
      * Show the form for creating a new resource.
      *
@@ -536,7 +554,7 @@ public function updatedet(Request $request)
                 'qty_reject' => $request["qty_reject"][$i],
             ]);
 
-            $get_det_bpb = DB::connection('mysql_sb')->select("select id_item, id_jo from whs_inmaterial_fabric_det where id = '" .$request['txt_idgr']. "'");
+            $get_det_bpb = DB::connection('mysql_sb')->select("select id_item, id_jo from whs_inmaterial_fabric_det where id = '" .$request["id_det"][$i]. "'");
             $sb_id_item = $get_det_bpb ? $get_det_bpb[0]->id_item : 0;
             $sb_id_jo = $get_det_bpb ? $get_det_bpb[0]->id_jo : 0;
 

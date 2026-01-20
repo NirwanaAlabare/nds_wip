@@ -12,6 +12,10 @@
             <h5 class="text-sb fw-bold mb-1">Form Cut / {{ $formCutInputData->no_form . " / ". strtoupper($formCutInputData->name) }}</h5>
             <a href="{{ route('manage-cutting') }}" class="btn btn-sb-secondary btn-sm"><i class="fa fa-reply"></i> Kembali ke Completed Form</a>
         </div>
+        <div class="visually-hidden">
+            <input type="checkbox" name="bypass" id="bypass" value="bypass">
+            <label for="bypass">Bypass Stocker</label>
+        </div>
         <div class="col-md-6">
             <div class="card card-sb h-100" id="header-data-card">
                 <div class="card-header">
@@ -877,6 +881,7 @@
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Sisa Kain</b></small></label>
                                     <div class="input-group input-group-sm mb-3">
+                                        <input type="hidden" id="current_sisa_kain_ori" name="current_sisa_kain_ori">
                                         <input type="number" class="form-control form-control-sm border-input" id="current_sisa_kain" name="current_sisa_kain" step=".01"
                                             onkeyup="
                                                 calculateShortRoll();
@@ -999,6 +1004,8 @@
 
             await getSummary();
 
+            document.getElementById("bypass").checked = false;
+
             document.getElementById("loading").classList.add("d-none");
 
             // Select2 Autofocus
@@ -1062,6 +1069,7 @@
 
                             document.getElementById("current_id_roll").value = document.getElementById("current_id_roll_ori").value;
                         }
+
                     }, error: function(jqXHR) {
                         Swal.fire({
                             icon: 'error',
@@ -1286,8 +1294,8 @@
                 td19.innerHTML = (latestStatus != 'extension complete' ? (data.reject ? data.reject : 0) : Number(data.reject ? data.reject : 0)+Number(latestReject));
                 td20.innerHTML = (latestStatus != 'extension complete' ? (data.piping ? data.piping : 0) : Number(data.piping ? data.piping : 0)+Number(latestPiping));
                 td21.innerHTML = (latestStatus != 'extension complete' ? (data.sisa_kain ? data.sisa_kain : 0) : Number(data.sisa_kain ? data.sisa_kain : 0)+Number(latestSisaKain));
-                td22.innerHTML = (latestStatus != 'extension complete' ? (data.pemakaian_lembar ? data.pemakaian_lembar : 0) : Number(data.pemakaian_lembar ? data.pemakaian_lembar : 0)+Number(latestPemakaianLembar));
-                td23.innerHTML = (latestStatus != 'extension complete' ? (data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) : Number(data.total_pemakaian_roll ? data.total_pemakaian_roll : 0)+Number(latestTotalPemakaian));
+                td22.innerHTML = (latestStatus != 'extension complete' ? Number(data.pemakaian_lembar ? data.pemakaian_lembar : 0).round(2) : Number(Number(data.pemakaian_lembar ? data.pemakaian_lembar : 0)+Number(latestPemakaianLembar)).round(2));
+                td23.innerHTML = (latestStatus != 'extension complete' ? Number(data.total_pemakaian_roll ? data.total_pemakaian_roll : 0).round(2) : Number(Number(data.total_pemakaian_roll ? data.total_pemakaian_roll : 0)+Number(latestTotalPemakaian)).round(2));
                 td24.innerHTML = (latestStatus != 'extension complete' ? Number(Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )) - ( data.qty ? data.qty : 0 )).round(2) : Number(Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + (latestTotalPemakaian ? latestTotalPemakaian : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )) - ( latestQty ? latestQty : 0 )).round(2));
                 td25.innerHTML = (latestStatus != 'extension complete' ? Number((Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )) - ( data.qty ? data.qty : 0 )) / ( data.qty ? data.qty : 0 ) * 100 ).round(2) : Number((Number((data.total_pemakaian_roll ? data.total_pemakaian_roll : 0 )  + (latestTotalPemakaian ? latestTotalPemakaian : 0) + ( data.sisa_kain ? data.sisa_kain : 0 )) - ( latestQty ? latestQty : 0 )) / ( latestQty ? latestQty : 0 ) * 100).round(2));
             } else {
@@ -1392,6 +1400,7 @@
             latestTotalPemakaian = Number(data.total_pemakaian_roll);
             latestShortRoll = Number(data.short_roll);
 
+            let currentLatestStatus = latestStatus;
             latestStatus = data.status;
             latestQty = Number(data.qty);
             latestUnit = data.unit;
@@ -1406,7 +1415,7 @@
 
                 this.classList.add('selected');
 
-                setSpreadingForm(data, false);
+                setSpreadingForm(data, false, currentLatestStatus);
 
                 location.href = '#spreading-form-card';
             };
@@ -1431,8 +1440,8 @@
         }
 
         // -Set Spreading Form-
-        function setSpreadingForm(data, item) {
-            openItemSpreading();
+        function setSpreadingForm(data, item, latestStatus = null) {
+            openItemSpreading(latestStatus);
 
             // spreading form data set
             let convertedQty = rollQtyConversion(data.qty, data.unit);
@@ -1442,6 +1451,7 @@
                 data.id_roll ? document.getElementById("current_id_roll_ori").value = data.id_roll : '';
                 data.qty ? document.getElementById("current_qty_ori").value = data.qty : '';
                 data.unit ? document.getElementById("current_unit_ori").value = data.unit : '';
+                data.sisa_kain ? document.getElementById("current_sisa_kain_ori").value = data.sisa_kain : '';
             }
             data.id_roll ? document.getElementById("current_id_roll").value = data.id_roll : '';
             data.group_roll ? document.getElementById("current_group").value = data.group_roll : '';
@@ -1757,7 +1767,7 @@
 
             let estAmpar = pActualConverted > 0 ? qtyVar / pActualConverted : 0;
 
-            document.getElementById("current_est_amparan").value = estAmpar;
+            document.getElementById("current_est_amparan").value = Number(estAmpar).round(2);
         }
 
         // -Calculate Pemakaian Lembar
@@ -1791,7 +1801,7 @@
 
             let totalPemakaian = ((pActualConverted * lembarGelaranVar) + sambunganRollVar + sisaGelaranVar);
 
-            document.getElementById("current_pemakaian_lembar").value = totalPemakaian;
+            document.getElementById("current_pemakaian_lembar").value = totalPemakaian ? Number(totalPemakaian).round(2) : 0;
         }
 
         // -Calculate Total Pemakaian Roll-
@@ -1863,7 +1873,7 @@
 
             let totalPemakaian = ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + pipingVar + sambunganRollVar);
 
-            document.getElementById("current_total_pemakaian_roll").value = totalPemakaian;
+            document.getElementById("current_total_pemakaian_roll").value = totalPemakaian ? Number(totalPemakaian).round(2) : 0;
         }
 
         // -Calculate Short Roll-
@@ -1908,7 +1918,7 @@
             }
 
             // let shortRoll = pActualConverted * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
-            let shortRoll = ((pActualConverted * lembarGelaranVar) + sambunganVar + sisaGelaranVar + sambunganRollVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar) - qtyVar;
+            let shortRoll = Number(((pActualConverted * lembarGelaranVar) + sambunganVar + sisaGelaranVar + sambunganRollVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar) - qtyVar).round(2);
 
             if (sambunganVar != 0) {
                 shortRoll = 0;
@@ -1934,8 +1944,8 @@
                 }
             }
 
-            document.getElementById("current_short_roll").value = isNaN(shortRoll) ? 0 : shortRoll;
-            document.getElementById("current_short_roll_percentage").value = isNaN(shortRollPercentage) ? 0 : shortRollPercentage;
+            document.getElementById("current_short_roll").value = isNaN(shortRoll) ? 0 : Number(shortRoll).round(2);
+            document.getElementById("current_short_roll_percentage").value = isNaN(shortRollPercentage) ? 0 : Number(shortRollPercentage).round(2);
         }
 
         // -Calculate Sisa Kain-
@@ -2048,72 +2058,146 @@
             document.getElementById("current_ply_progress").style.width = Number(qtyPly) > 0 ? ((Number( totalLembar - originalLembar) + currentLembar) / Number(qtyPly) * 100) + "%" : "0%";
         }
 
-        // -Store Time Record Transaction-
-        function storeTimeRecord() {
+        async function checkStockerForm() {
             document.getElementById("loading").classList.remove("d-none");
 
-            clearModified();
+            return new Promise((resolve, reject) => {
+                let superadmin = '{{ Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() }}'
+                if (Number(superadmin) > 0) {
+                    $.ajax({
+                        type: "get",
+                        url: "{{ route('check-stocker-form') }}",
+                        data: { id: $("#id").val() },
+                        dataType: "json",
+                        success: function (response) {
+                            document.getElementById("loading").classList.add("d-none");
 
-            let spreadingForm = new FormData(document.getElementById("spreading-form"));
+                            document.getElementById("bypass").checked = false;
 
-            let dataObj = {
-                "id": $("#id").val(),
-                "p_act": $("#p_act").val(),
-                "comma_act": $("#comma_act").val(),
-                "l_act": $("#l_act").val(),
-                "no_form_cut_input": $("#no_form").val(),
-                "start": $("#start-time").val(),
-                "finish": $("#finish-time").val(),
-                "no_meja": $("#no_meja").val(),
-                "color_act": $("#color_act").val(),
-                "detail_item": $("#detail_item").val(),
-                "operator": $('#operator').val(),
-                "consAct": $('#cons_actual_gelaran').val(),
-                "unitConsAct": $('#unit_cons_actual_gelaran').val(),
-                "totalLembar": totalLembar
-            }
+                            if (response.status == 200) {
+                                resolve(true);
+                            } else {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'WARNING',
+                                    html: response.message,
+                                    showCancelButton: true,
+                                    showConfirmButton: true,
+                                    cancelButtonText: 'Batalkan',
+                                    confirmButtonText: 'Lanjutkan',
+                                    confirmButtonColor: '#fa4456',
+                                }).then(result => {
+                                    if (result.isConfirmed) {
+                                        resolve(true);
+                                    } else {
+                                        resolve(false);
+                                    }
+                                });
+                            }
+                        },
+                        error: function (jqXHR) {
+                            document.getElementById("loading").classList.add("d-none");
 
-            spreadingForm.forEach((value, key) => dataObj[key] = value);
+                            console.error(jqXHR);
 
-            return $.ajax({
-                url: '{{ route('update-spreading-form') }}',
-                type: 'post',
-                dataType: 'json',
-                data: dataObj,
-                success: async function(res) {
-                    if (res) {
-                        await clearSpreadingForm();
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'ERROR',
+                                html: "Terjadi Kesalahan.",
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
 
-                        await getSummary(true);
-
-                        await finishProcess();
-                    } else {
-                        document.getElementById("loading").classList.add("d-none");
-                    }
-                },
-                error: function(jqXHR) {
+                            resolve(false);
+                        }
+                    });
+                } else {
                     document.getElementById("loading").classList.add("d-none");
 
-                    console.log(jqXHR);
-
-                    let res = jqXHR.responseJSON;
-                    let message = '';
-                    let i = 0;
-
-                    for (let key in res.errors) {
-                        message = res.errors[key];
-                        document.getElementById(key).classList.add('is-invalid');
-                        modified.push(
-                            [key, '.classList', '.remove(', "'is-invalid')"],
-                        )
-
-                        if (i == 0) {
-                            document.getElementById(key).focus();
-                            i++;
-                        }
-                    };
+                    resolve(true);
                 }
             });
+        }
+
+        // -Store Time Record Transaction-
+        async function storeTimeRecord() {
+            let proceed = await checkStockerForm();
+
+            if (proceed) {
+                document.getElementById("loading").classList.remove("d-none");
+
+                clearModified();
+
+                let spreadingForm = new FormData(document.getElementById("spreading-form"));
+
+                let dataObj = {
+                    "id": $("#id").val(),
+                    "p_act": $("#p_act").val(),
+                    "comma_act": $("#comma_act").val(),
+                    "l_act": $("#l_act").val(),
+                    "no_form_cut_input": $("#no_form").val(),
+                    "start": $("#start-time").val(),
+                    "finish": $("#finish-time").val(),
+                    "no_meja": $("#no_meja").val(),
+                    "color_act": $("#color_act").val(),
+                    "detail_item": $("#detail_item").val(),
+                    "operator": $('#operator').val(),
+                    "consAct": $('#cons_actual_gelaran').val(),
+                    "unitConsAct": $('#unit_cons_actual_gelaran').val(),
+                    "totalLembar": totalLembar
+                }
+
+                spreadingForm.forEach((value, key) => dataObj[key] = value);
+
+                return $.ajax({
+                    url: '{{ route('update-spreading-form') }}',
+                    type: 'post',
+                    dataType: 'json',
+                    data: dataObj,
+                    success: async function(res) {
+                        if (res) {
+                            await clearSpreadingForm();
+
+                            await getSummary(true);
+
+                            await finishProcess();
+                        } else {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+                    },
+                    error: function(jqXHR) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        console.log(jqXHR);
+
+                        let res = jqXHR.responseJSON;
+                        let message = '';
+                        let i = 0;
+
+                        for (let key in res.errors) {
+                            message = res.errors[key];
+                            document.getElementById(key).classList.add('is-invalid');
+                            modified.push(
+                                [key, '.classList', '.remove(', "'is-invalid')"],
+                            )
+
+                            if (i == 0) {
+                                document.getElementById(key).focus();
+                                i++;
+                            }
+                        };
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Form sudah memiliki Stocker',
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                    confirmButtonColor: "#6531a0",
+                });
+            }
         }
 
         function checkLockExtension() {
@@ -2166,8 +2250,13 @@
         }
 
         // -Open Item input on Spreading Form-
-        function openItemSpreading() {
-            document.getElementById("current_id_roll").removeAttribute("readonly");
+        function openItemSpreading(latestStatus = null) {
+            // alert(latestStatus);
+            if (latestStatus != 'extension complete') {
+                document.getElementById("current_id_roll").removeAttribute("readonly");
+            } else {
+                document.getElementById("current_id_roll").setAttribute("readonly");
+            }
             document.getElementById("current_id_item").removeAttribute("readonly");
             document.getElementById("current_lot").removeAttribute("readonly");
             document.getElementById("current_roll").removeAttribute("readonly");
@@ -2175,69 +2264,81 @@
             document.getElementById("current_qty_real").removeAttribute("readonly");
         }
 
-        function deleteTimeRecord() {
-            let idRoll = document.getElementById("current_id").value;
+        async function deleteTimeRecord() {
+            let proceed = await checkStockerForm();
 
-            Swal.fire({
-                icon: 'error',
-                title: 'Hapus roll?',
-                showCancelButton: true,
-                showConfirmButton: true,
-                confirmButtonText: 'Hapus',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#fa4456',
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById("loading").classList.remove("d-none");
+            if (proceed) {
+                let idRoll = document.getElementById("current_id").value;
 
-                    $.ajax({
-                        url: '{{ route('destroy-spreading-roll') }}/'+idRoll,
-                        type: 'POST',
-                        data: {
-                            _method: 'DELETE'
-                        },
-                        success: async function(res) {
-                            if (res.status == 200) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Hapus roll?',
+                    showCancelButton: true,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Hapus',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#fa4456',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById("loading").classList.remove("d-none");
 
-                                await clearSpreadingForm();
+                        $.ajax({
+                            url: '{{ route('destroy-spreading-roll') }}/'+idRoll,
+                            type: 'POST',
+                            data: {
+                                _method: 'DELETE'
+                            },
+                            success: async function(res) {
+                                if (res.status == 200) {
 
-                                await getSummary(true);
+                                    await clearSpreadingForm();
 
-                                await finishProcess();
-                            } else {
+                                    await getSummary(true);
+
+                                    await finishProcess();
+                                } else {
+                                    document.getElementById("loading").classList.add("d-none");
+
+                                    if (res.status == 400) {
+                                        iziToast.error({
+                                            title: 'Error',
+                                            message: res.message,
+                                            position: 'topCenter'
+                                        });
+                                    }
+                                }
+                            }, error: function (jqXHR) {
                                 document.getElementById("loading").classList.add("d-none");
 
-                                if (res.status == 400) {
-                                    iziToast.error({
-                                        title: 'Error',
-                                        message: res.message,
-                                        position: 'topCenter'
-                                    });
+                                let res = jqXHR.responseJSON;
+                                let message = '';
+
+                                for (let key in res.errors) {
+                                    message = res.errors[key];
                                 }
+
+                                iziToast.error({
+                                    title: 'Error',
+                                    message: 'Terjadi kesalahan. '+message,
+                                    position: 'topCenter'
+                                });
                             }
-                        }, error: function (jqXHR) {
-                            document.getElementById("loading").classList.remove("d-none");
-
-                            let res = jqXHR.responseJSON;
-                            let message = '';
-
-                            for (let key in res.errors) {
-                                message = res.errors[key];
-                            }
-
-                            iziToast.error({
-                                title: 'Error',
-                                message: 'Terjadi kesalahan. '+message,
-                                position: 'topCenter'
-                            });
-                        }
-                    })
-                }
-            })
+                        })
+                    }
+                })
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Form sudah memiliki Stocker',
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                    confirmButtonColor: "#6531a0",
+                });
+            }
         }
 
         // -Finish Process-
-        function finishProcess() {
+        async function finishProcess() {
             if ($("#operator").val() == "" || $("#cons_actual_gelaran").val() == "") {
                 document.getElementById("loading").classList.add("d-none");
 
@@ -2255,7 +2356,7 @@
         }
 
         // -Finish Process Transaction-
-        function updateToFinishProcess() {
+        async function updateToFinishProcess() {
             $.ajax({
                 url: '{{ route('finish-update-spreading-form') }}/' + id,
                 type: 'put',
@@ -2275,20 +2376,32 @@
                 success: function(res) {
                     document.getElementById("loading").classList.add("d-none");
 
-                    if (res) {
+                    if (res && res.status && res.status == 400) {
                         Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil',
-                            text: 'Data berhasil diubah',
+                            icon: 'info',
+                            title: 'Info',
+                            text: res.message,
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
-                            timer: 5000,
-                            timerProgressBar: true
-                        }).then((result) => {
-                            location.reload();
-                        })
+                        });
+                    } else {
+                        if (res) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: 'Data berhasil diubah',
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                                timer: 5000,
+                                timerProgressBar: true
+                            }).then((result) => {
+                                location.reload();
+                            })
+                        }
                     }
+
                 },
                 error: function(jqXHR) {
                     document.getElementById("loading").classList.add("d-none");
@@ -2324,14 +2437,27 @@
                 dataType: 'json',
                 data: dataObj,
                 success: async function(res) {
-                    if (res) {
-                        await clearSpreadingForm();
-
-                        await getSummary(true);
-
-                        await finishProcess();
-                    } else {
+                    if (res && res.status && res.status == 400) {
                         document.getElementById("loading").classList.add("d-none");
+
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Info',
+                            text: res.message,
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        });
+                    } else {
+                        if (res) {
+                            await clearSpreadingForm();
+
+                            await getSummary(true);
+
+                            await finishProcess();
+                        } else {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
                     }
                 },
                 error: function(jqXHR) {
@@ -2377,14 +2503,27 @@
                 dataType: 'json',
                 data: dataObj,
                 success: async function(res) {
-                    if (res) {
-                        await clearSpreadingForm();
-
-                        await getSummary(true);
-
-                        await finishProcess();
-                    } else {
+                    if (res && res.status && res.status == 400) {
                         document.getElementById("loading").classList.add("d-none");
+
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Info',
+                            text: res.message,
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        });
+                    } else {
+                        if (res) {
+                            await clearSpreadingForm();
+
+                            await getSummary(true);
+
+                            await finishProcess();
+                        } else {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
                     }
                 },
                 error: function(jqXHR) {
@@ -2609,36 +2748,87 @@
             //     jumlahSambungan.value = 1;
             // }
 
-        function recalculateForm() {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Recalculate Form?',
-                showCancelButton: true,
-                showConfirmButton: true,
-                confirmButtonText: 'Recalculate',
-                cancelButtonText: 'Cancel',
-            }).then((result) => {
-                document.getElementById("loading").classList.remove('d-none');
+        async function recalculateForm() {
+            let proceed = await checkStockerForm();
 
+            if (proceed) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Recalculate Form?',
+                    showCancelButton: true,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Recalculate',
+                    cancelButtonText: 'Cancel',
+                }).then((result) => {
+                    document.getElementById("loading").classList.remove('d-none');
+
+                    $.ajax({
+                        url: '{{ route('recalculate-spreading-form') }}/' + id,
+                        type: 'post',
+                        dataType: 'json',
+                        success: function(res) {
+                            document.getElementById("loading").classList.add('d-none');
+
+                            console.log(res);
+
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'Info',
+                                text: 'Recalculate Finished.',
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            }).then(() => {
+                                location.reload();
+                            });
+                        },
+                        error: function(jqXHR) {
+                            document.getElementById("loading").classList.add('d-none');
+
+                            console.error(jqXHR);
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Terjadi Kesalahan.',
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+                        }
+                    })
+                })
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Form sudah memiliki Stocker',
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                    confirmButtonColor: "#6531a0",
+                });
+            }
+        }
+
+        async function updateStatus() {
+            let proceed = await checkStockerForm();
+
+            if (proceed) {
                 $.ajax({
-                    url: '{{ route('recalculate-spreading-form') }}/' + id,
-                    type: 'post',
+                    url: '{{ route('update-status-redirect') }}',
+                    type: 'put',
+                    data: {
+                        edit_id_status: id,
+                        edit_status: $('#edit_status').val(),
+                    },
                     dataType: 'json',
                     success: function(res) {
                         document.getElementById("loading").classList.add('d-none');
 
-                        console.log(res);
-
-                        Swal.fire({
-                            icon: 'info',
-                            title: 'Info',
-                            text: 'Recalculate Finished.',
-                            showCancelButton: false,
-                            showConfirmButton: true,
-                            confirmButtonText: 'Oke',
-                        }).then(() => {
-                            location.reload();
-                        });
+                        if (res.redirect) {
+                            window.open(res.redirect, '_blank');
+                        } else {
+                            window.location.reload();
+                        }
                     },
                     error: function(jqXHR) {
                         document.getElementById("loading").classList.add('d-none');
@@ -2655,42 +2845,15 @@
                         });
                     }
                 })
-            })
-        }
-
-        function updateStatus() {
-            $.ajax({
-                url: '{{ route('update-status-redirect') }}',
-                type: 'put',
-                data: {
-                    edit_id_status: id,
-                    edit_status: $('#edit_status').val(),
-                },
-                dataType: 'json',
-                success: function(res) {
-                    document.getElementById("loading").classList.add('d-none');
-
-                    if (res.redirect) {
-                        window.open(res.redirect, '_blank');
-                    } else {
-                        window.location.reload();
-                    }
-                },
-                error: function(jqXHR) {
-                    document.getElementById("loading").classList.add('d-none');
-
-                    console.error(jqXHR);
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Terjadi Kesalahan.',
-                        showCancelButton: false,
-                        showConfirmButton: true,
-                        confirmButtonText: 'Oke',
-                    });
-                }
-            })
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Form sudah memiliki Stocker',
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                    confirmButtonColor: "#6531a0",
+                });
+            }
         }
     </script>
 @endsection

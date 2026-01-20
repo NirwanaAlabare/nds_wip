@@ -20,29 +20,37 @@ class PackingPackingOutController extends Controller
         if ($request->ajax()) {
             $additionalQuery = '';
             $data_input = DB::select("
-select
-tot,
-o.po,
+SELECT
+o.tot,
+DATE_FORMAT(o.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
+p.po,
+p.barcode,
+sd.color,
+sd.size,
 no_carton,
-o.barcode,
-m.color,
-m.size,
-m.ws,
-o.dest,
-concat((DATE_FORMAT(o.tgl_trans,  '%d')), '-', left(DATE_FORMAT(o.tgl_trans,  '%M'),3),'-',DATE_FORMAT(o.tgl_trans,  '%Y')
- ) tgl_trans_fix,
- o.created_by,
- o.created_at
- from
+ac.kpno as ws,
+ac.styleno,
+sd.reff_no,
+p.dest,
+DATE_FORMAT(o.tgl_akt_input, '%d-%m-%Y %H:%i:%s') AS tgl_akt_input,
+DATE_FORMAT(p.tgl_shipment, '%d-%m-%Y') AS tgl_shipment,
+o.created_by
+from
 (
-select tgl_trans,count(barcode) tot, barcode, po, dest, no_carton, created_by, max(created_at)created_at
-from packing_packing_out_scan
-where tgl_trans >= '$tgl_awal' and tgl_trans <= '$tgl_akhir'
-group by tgl_trans, po, barcode, dest, no_carton
+select
+count(barcode) as tot,
+created_by,
+po, no_carton, tgl_trans, barcode, dest,max(created_at)tgl_akt_input
+from packing_packing_out_scan where tgl_trans >= '$tgl_awal' and tgl_trans <=  '$tgl_akhir'
+group by po, no_carton, tgl_trans, barcode, dest
 ) o
-left join ppic_master_so p on o.po = p.po and o.barcode = p.barcode
-left join master_sb_ws m on p.id_so_det = m.id_so_det
-order by o.created_at desc
+inner join laravel_nds.ppic_master_so p on o.barcode = p.barcode and o.po = p.po
+inner join signalbit_erp.so_det sd on p.id_so_det = sd.id
+inner join signalbit_erp.so on sd.id_so = so.id
+inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
+inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
+where sd.cancel = 'N' and so.cancel_h = 'N'
+order by o.tgl_trans desc
             ");
 
             return DataTables::of($data_input)->toJson();
@@ -361,9 +369,7 @@ group by a.po, a.dest
             from ppic_master_so p
             left join
             (
-                select sum(qty) tot_in, id_ppic_master_so from packing_packing_in
-                where barcode = '$barcode' and po = '$cek_dest_po' and dest = '$dest'
-                group by id_ppic_master_so
+                SELECT sum( packing_packing_in.qty ) tot_in, packing_packing_in.id_ppic_master_so FROM packing_packing_in inner join ppic_master_so on ppic_master_so.id = packing_packing_in.id_ppic_master_so WHERE packing_packing_in.barcode = '$barcode' AND ppic_master_so.po = '$cek_dest_po' AND ppic_master_so.dest = '$dest' GROUP BY id_ppic_master_so
             ) pack_in on p.id = pack_in.id_ppic_master_so
             left join
             (
@@ -376,7 +382,6 @@ group by a.po, a.dest
             where p.barcode = '$barcode' and p.po = '$cek_dest_po' and dest = '$dest'
             ");
             $cek_stok_fix = $cek_stok[0]->tot_s;
-
 
             $cek_qty_isi_karton = DB::select("SELECT qty, coalesce(tot_input,0) tot_input from
 (select po, no_carton, barcode, dest ,qty from packing_master_packing_list
@@ -522,7 +527,45 @@ where po = '$cek_dest_po' and no_carton = '$no_carton' and barcode = '$barcode' 
 
     public function export_excel_packing_out(Request $request)
     {
-        return Excel::download(new ExportLaporanPackingOut($request->from, $request->to), 'Laporan_Hasil_Scan.xlsx');
+
+        $tgl_awal = $request->dateFrom;
+        $tgl_akhir = $request->dateTo;
+        // return Excel::download(new ExportLaporanPackingOut($request->from, $request->to), 'Laporan_Hasil_Scan.xlsx');
+        $data = DB::select("
+SELECT
+o.tot,
+DATE_FORMAT(o.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
+p.po,
+p.barcode,
+sd.color,
+sd.size,
+no_carton,
+ac.kpno as ws,
+ac.styleno,
+sd.reff_no,
+p.dest,
+DATE_FORMAT(o.tgl_akt_input, '%d-%m-%Y %H:%i:%s') AS tgl_akt_input,
+DATE_FORMAT(p.tgl_shipment, '%d-%m-%Y') AS tgl_shipment,
+o.created_by
+from
+(
+select
+count(barcode) as tot,
+created_by,
+po, no_carton, tgl_trans, barcode, dest,max(created_at)tgl_akt_input
+from packing_packing_out_scan where tgl_trans >= '$tgl_awal' and tgl_trans <=  '$tgl_akhir'
+group by po, no_carton, tgl_trans, barcode, dest
+) o
+inner join laravel_nds.ppic_master_so p on o.barcode = p.barcode and o.po = p.po
+inner join signalbit_erp.so_det sd on p.id_so_det = sd.id
+inner join signalbit_erp.so on sd.id_so = so.id
+inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
+inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
+where sd.cancel = 'N' and so.cancel_h = 'N'
+order by o.tgl_trans desc, po asc
+        ");
+
+        return response()->json($data);
     }
 
 

@@ -104,7 +104,7 @@
                 <div class="card-body">
                     <form method="post" id="store-secondary" name='form'>
                         <div class="row mb-3">
-                            <div class="col-4">
+                            <div class="col-3">
                                 <label><small><b>Part</b></small></label>
                                 <select class="form-control select2bs4" id="txtpart" name="txtpart" style="width: 100%;">
                                     <option selected="selected" value="">Pilih Part</option>
@@ -115,7 +115,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-4">
+                            <div class="col-3">
                                 <label><small><b>Cons</b></small></label>
                                 <div class="input-group mb-3">
                                     <input type="text" class="form-control" name="txtcons" id="txtcons">
@@ -129,8 +129,16 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-4">
-                                <label class="form-label"><small>Tujuan</small></label>
+                            <div class="col-3" id="parent-detail">
+                                <label class="form-label"><small><b>Item</b></small></label>
+                                <select class="form-control select2bs4 part-item-list" style="border-radius: 0 3px 3px 0;" name="item[]" id="item" multiple>
+                                    @foreach ($partItemList as $partItem)
+                                        <option value="{{ $partItem->id }}">{{ $partItem->itemdesc }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <label class="form-label"><small><b>Tujuan</b></small></label>
                                 <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="tujuan" id="tujuan" onchange="switchTujuan(this)">
                                     <option value="">Pilih Tujuan</option>
                                     <option value="NON SECONDARY">NON SECONDARY</option>
@@ -138,7 +146,7 @@
                                 </select>
                             </div>
                             <div class="col-6 d-none" id="non_secondary_container">
-                                <label class="form-label"><small>Proses</small></label>
+                                <label class="form-label"><small><b>Proses</b></small></label>
                                 <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="proses" id="proses" onchange="orderNonSecondary(this)">
                                     <option value="">Pilih Proses</option>
                                     @foreach ($data_secondary->where("tujuan", "NON SECONDARY") as $secondary)
@@ -147,7 +155,7 @@
                                 </select>
                             </div>
                             <div class="col-6 d-none" id="secondary_container">
-                                <label class="form-label"><small>Proses</small></label>
+                                <label class="form-label"><small><b>Proses</b></small></label>
                                 <div class="d-flex gap-1">
                                     <select class="form-control select2bs4" id="secondaries" name="secondaries[]" data-width="100%" multiple onchange="orderSecondary(this)">
                                         @foreach ($data_secondary->where("tujuan", "!=", "NON SECONDARY") as $secondary)
@@ -160,7 +168,7 @@
                                 </div>
                             </div>
                             <div class="col-6 d-none" id="urutan_container">
-                                <label class="form-label"><small>Urutan</small></label>
+                                <label class="form-label"><small><b>Urutan</b></small></label>
                                 <ul class="list-group" id="urutan_show">
                                 </ul>
                                 <input type="text" class="form-control d-none" id="urutan" name="urutan[]" readonly>
@@ -205,6 +213,7 @@
                                     <th>Tujuan</th>
                                     <th>Proses</th>
                                     <th>Status</th>
+                                    <th>Item</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -271,6 +280,12 @@
                                     <option value="">Pilih Part</option>
                                 </select>
                             </div>
+                            <div class="col">
+                                <label class="form-label"><small>Item</small></label>
+                                <select class="form-control select2bs4" name="com_item" id="com_item">
+                                    <option value="">Pilih Part</option>
+                                </select>
+                            </div>
                             <div class="col-12 col-md-12 mt-3">
                                 <button type="button" class="btn btn-block btn-sb btn-sm" name="com_simpan" id="com_simpan" onclick="simpan_data_com();">SIMPAN <i class="fa fa-save"></i></button>
                                 {{-- <input type="button" class="btn bg-primary w-100" name="simpan" id="simpan" value="Simpan" onclick="simpan_data();"> --}}
@@ -313,6 +328,7 @@
                                     <th>Proses</th>
                                     <th>Status</th>
                                     <th>From</th>
+                                    <th>Item</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -405,6 +421,14 @@
                             </ul>
                             <input type="text" class="form-control d-none" id="edit_urutan" name="edit_urutan" readonly>
                         </div>
+                        <div class="mb-3" id="edit-parent-detail">
+                            <label class="form-label">Item</label>
+                            <select class="form-control select2bs4edit part-item-list" style="border-radius: 0 3px 3px 0;" name="edit_item[]" id="edit_item" multiple>
+                                @foreach ($partItemList as $partItem)
+                                    <option value="{{ $partItem->id }}">{{ $partItem->itemdesc }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         {{-- <div class="mb-3">
                             <label class="form-label">Tujuan</label>
                             <select class="form-select select2bs4" name="edit_tujuan" id="edit_tujuan" onchange="getproses(document.getElementById('edit_proses'), this);">
@@ -473,6 +497,14 @@
                             <label class="form-label"><small>From Part</small></label>
                             <select class="form-control select2bs4editcom" name="edit_com_from_part_id" id="edit_com_from_part_id">
                                 <option value="">Pilih Part</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="edit-com-parent-detail">
+                            <label class="form-label"><small>Item</small></label>
+                            <select class="form-control select2bs4editcom part-item-list" style="border-radius: 0 3px 3px 0;" name="edit_com_item[]" id="edit_com_item" multiple>
+                                @foreach ($partItemList as $partItem)
+                                    <option value="{{ $partItem->id }}">{{ $partItem->itemdesc }}</option>
+                                @endforeach
                             </select>
                         </div>
                         {{-- <div class="mb-3">
@@ -759,6 +791,9 @@
                     {
                         data: 'part_status',
                     },
+                    {
+                        data: 'item',
+                    },
                 ],
                 columnDefs: [
                     {
@@ -980,6 +1015,9 @@
                     },
                     {
                         data: 'com_from_part',
+                    },
+                    {
+                        data: 'com_item',
                     },
                 ],
                 columnDefs: [

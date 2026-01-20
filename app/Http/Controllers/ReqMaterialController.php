@@ -306,7 +306,7 @@ class ReqMaterialController extends Controller
         $det_item = DB::connection('mysql_sb')->select("WITH
 stok as (select a.id_item, a.kpno, b.jo_no, c.goods_code, a.id_jo, c.mattype, c.matclass, c.itemdesc, sum(sal_akhir) qty_bpb, 0 qty_bppb, sum(sal_akhir) qty_stok, satuan unit from data_stock_fabric a INNER JOIN jo b on a.id_jo = b.id INNER JOIN masteritem c on c.id_item = a.id_item where a.id_jo = '" . $request->id_jo . "' GROUP BY a.id_jo, a.id_item),
 request as (select id_item, id_jo, sum(qty) qty, sum(coalesce(qty_out,0)) qty_out from bppb_req where bppbno like '%RQ-F%' and cancel = 'N' and bppbdate >='2025-01-01' and id_jo = '" . $request->id_jo . "' GROUP BY id_item, id_jo)
-select a.*, b.qty qty_br, b.qty_out qty_br_out, (b.qty - b.qty_out) sisa_req, (qty_stok - (b.qty - b.qty_out)) sisa_stok from stok a LEFT JOIN request b on a.id_jo = b.id_jo and a.id_item = b.id_item");
+select a.*, b.qty qty_br, b.qty_out qty_br_out, (COALESCE(b.qty,0) - COALESCE(b.qty_out,0)) sisa_req, (COALESCE(qty_stok,0) - (COALESCE(b.qty,0) - COALESCE(b.qty_out,0))) sisa_stok from stok a LEFT JOIN request b on a.id_jo = b.id_jo and a.id_item = b.id_item");
 
 
         $html = '';
@@ -553,8 +553,8 @@ select a.*, b.qty qty_br, b.qty_out qty_br_out, (b.qty - b.qty_out) sisa_req, (q
         $updaterequest = BppbReq::where('bppbno', $request['bppbno'])->update([
             'cancel' => 'Y',
             'qty_old'  => DB::raw('qty'),
-            'qty' => '0', 
-            'qty_out' => '0', 
+            'qty' => '0',
+            'qty_out' => '0',
             'cancel_by' => Auth::user()->name,
             'cancel_date' => $timestamp,
         ]);

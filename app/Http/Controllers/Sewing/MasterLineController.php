@@ -6,8 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Hris\MasterEmployee;
 use App\Models\SignalBit\EmployeeLine;
 use App\Models\SignalBit\EmployeeProduction;
+use App\Models\SignalBit\EmployeeLineTmp;
 use App\Models\SignalBit\UserLine;
+use App\Models\SignalBit\MasterPlan;
 use App\Exports\Sewing\MasterLineExport;
+use App\Imports\ImportMasterLine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -16,6 +19,7 @@ use Intervention\Image\Facades\Image;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Excel;
+use Carbon\Carbon;
 
 class MasterLineController extends Controller
 {
@@ -157,7 +161,7 @@ class MasterLineController extends Controller
             "technical_name" => "nullable",
         ]);
 
-        if ($validatedRequest["chief_id"] || $validatedRequest["leader_id"]) {
+        // if ($validatedRequest["chief_id"] || $validatedRequest["leader_id"]) {
             $storeEmployeeLine = EmployeeLine::create([
                 "tanggal" => $validatedRequest["tanggal"],
                 "line_id" => $validatedRequest["line_id"],
@@ -271,7 +275,7 @@ class MasterLineController extends Controller
                     "additional" => [$storeEmployeeLine],
                 );
             }
-        }
+        // }
 
         return array(
             "status" => 400,
@@ -516,5 +520,147 @@ class MasterLineController extends Controller
         $to = $request->to;
 
         return Excel::download(new MasterLineExport($from, $to), 'master-line.xlsx');
+    }
+
+    public function masterLineTmp(Request $request) {
+        $user = Auth::user();
+
+        $dataTmp = DB::connection("mysql_sb")->table("output_employee_line_tmp")->where("created_by", $user->id ?? null)->get();
+
+        return Datatables::of($dataTmp);
+    }
+
+    public function importMasterLine(Request $request) {
+        // validasi
+        $this->validate($request, [
+            'file' => 'required|mimes:csv,xls,xlsx'
+        ]);
+
+        $file = $request->file('file');
+
+        $nama_file = rand().$file->getClientOriginalName();
+
+        $file->move('file_upload',$nama_file);
+
+        Excel::import(new ImportMasterLine, public_path('/file_upload/'.$nama_file));
+
+        return array(
+            "status" => 200,
+            "message" => 'Data Berhasil Di Upload',
+            "additional" => [],
+        );
+    }
+
+    public function tmpMasterLine(Request $request) {
+        $user = Auth::user();
+        $data = EmployeeLineTmp::where("created_by", "=", Auth::user()->id);
+
+        return Datatables::eloquent($data)->toJson();
+    }
+
+    public function destroyTmpMasterLine($id = null) {
+        if ($id) {
+            $destroyEmployeeLineTmp = EmployeeLineTmp::where("id", $id)->delete();
+
+            if ($destroyEmployeeLineTmp) {
+                return array(
+                    "status" => 200,
+                    "message" => "Data berhasil dihapus.",
+                    "table" => "datatable-tmp"
+                );
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Data tidak terhapus.",
+            "table" => "datatable-tmp"
+        );
+    }
+
+    public function submitImportedMasterLine(Request $request) {
+        $user = Auth::user();
+
+        if ($user) {
+            $tmpData = EmployeeLineTmp::where("created_by", $user->id)->get();
+
+            if ($tmpData) {
+                $masterPlanSuccess = [];
+                $masterLineSuccess = [];
+
+                foreach ($tmpData as $data) {
+                    $storeMasterPlan = MasterPlan::create([
+                        "id_plan" => str_replace("-", "", $data->tanggal),
+                        "sewing_line" => $data->sewing_line,
+                        "tgl_plan" => $data->tanggal,
+                        "id_ws" => $data->id_ws,
+                        "color" => $data->color,
+                        "smv" => $data->smv,
+                        "jam_kerja" => $data->jam_kerja,
+                        "man_power" => $data->man_power,
+                        "plan_target" => $data->plan_target,
+                        "target_effy" => $data->target_effy,
+                        "tgl_input" => Carbon::now(),
+                        "create_by" => $user->username,
+                        "cancel" => "N",
+                    ]);
+
+                    if ($storeMasterPlan) {
+                        array_push($masterPlanSuccess, $storeMasterPlan->id);
+
+                        $lineData = UserLine::where("username", $data->sewing_line)->first();
+
+                        $storeEmployeeLine = EmployeeLine::updateOrCreate([
+                                "tanggal" => $data->tanggal,
+                                "line_id" => $lineData->line_id,
+                            ],[
+                                "line_name" => strtoupper(str_replace("_", " ", $lineData->username)),
+                                "chief_id" => $data->chief_id && $data->chief_id != 'null' ? $data->chief_id : null,
+                                "chief_nik" => $data->chief_nik && $data->chief_nik != 'null' ? $data->chief_nik : null,
+                                "chief_name" => $data->chief_name && $data->chief_name != 'null' ? $data->chief_name : null,
+                                "leader_id" => $data->leader_id && $data->leader_id != 'null' ? $data->leader_id : null,
+                                "leader_nik" => $data->leader_nik && $data->leader_nik != 'null' ? $data->leader_nik : null,
+                                "leader_name" => $data->leader_name && $data->leader_name != 'null' ? $data->leader_name : null,
+                                "ie_id" => $data->ie_id && $data->ie_id != 'null' ? $data->ie_id : null,
+                                "ie_nik" => $data->ie_nik && $data->ie_nik != 'null' ? $data->ie_nik : null,
+                                "ie_name" => $data->ie_name && $data->ie_name != 'null' ? $data->ie_name : null,
+                                "leaderqc_id" => $data->leaderqc_id && $data->leaderqc_id != 'null' ? $data->leaderqc_id : null,
+                                "leaderqc_nik" => $data->leaderqc_nik && $data->leaderqc_nik != 'null' ? $data->leaderqc_nik : null,
+                                "leaderqc_name" => $data->leaderqc_name && $data->leaderqc_name != 'null' ? $data->leaderqc_name : null,
+                                "mechanic_id" => $data->mechanic_id && $data->mechanic_id != 'null' ? $data->mechanic_id : null,
+                                "mechanic_nik" => $data->mechanic_nik && $data->mechanic_nik != 'null' ? $data->mechanic_nik : null,
+                                "mechanic_name" => $data->mechanic_name && $data->mechanic_name != 'null' ? $data->mechanic_name : null,
+                                "technical_id" => $data->technical_id && $data->technical_id != 'null' ? $data->technical_id : null,
+                                "technical_nik" => $data->technical_nik && $data->technical_nik != 'null' ? $data->technical_nik : null,
+                                "technical_name" => $data->technical_name && $data->technical_name != 'null' ? $data->technical_name : null,
+                                "created_by" => Auth::user()->id,
+                                "created_by_username" => Auth::user()->username,
+                        ]);
+
+                        if ($storeEmployeeLine) {
+                            array_push($masterLineSuccess, $storeEmployeeLine->id);
+                        }
+                    }
+                }
+
+                // Delete Tmp After Uploading
+                EmployeeLineTmp::where("created_by", $user->id)->delete();
+
+                return array(
+                    "status" => 200,
+                    "message" => "Berhasil Import <br> ".count($masterPlanSuccess)." Master Plan <br> ".count($masterLineSuccess). " Master Line.",
+                );
+            }
+
+            return array(
+                "status" => 400,
+                "message" => "Tmp Data not Found."
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Unauthenticated"
+        );
     }
 }

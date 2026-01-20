@@ -8,6 +8,8 @@ use App\Models\Part\MasterTujuan;
 use App\Models\Part\MasterSecondary;
 use App\Models\Part\Part;
 use App\Models\Part\PartDetail;
+use App\Models\Part\PartDetailItem;
+use App\Models\Part\PartItem;
 use App\Models\Part\PartDetailSecondary;
 use App\Models\Part\PartForm;
 use App\Models\Cutting\FormCutInput;
@@ -282,6 +284,8 @@ class PartController extends Controller
         }
 
         if ($totalPartDetail > 0) {
+            DB::beginTransaction();
+
             $partStore = Part::create([
                 "kode" => $partCode,
                 "act_costing_id" => $validatedRequest['ws_id'],
@@ -303,7 +307,7 @@ class PartController extends Controller
             $partId = $partStore->id;
             $partDetailSecondaryData = [];
             for ($i = 0; $i < $totalPartDetail; $i++) {
-                if ($request["part_details"][$i] && $request["cons"][$i] && $request["cons_unit"][$i] && $request["tujuan"][$i]) {
+                if (isset($request["part_details"][$i]) && isset($request["cons"][$i]) && isset($request["cons_unit"][$i]) && isset($request["tujuan"][$i])) {
                     // Store to Part Detail
                     $currentPartDetail = PartDetail::create( [
                         "part_id" => $partId,
@@ -318,23 +322,41 @@ class PartController extends Controller
                         "created_by_username" => Auth::user()->username,
                         "unit" => $request["cons_unit"][$i],
                         "created_at" => $timestamp,
-                        "updated_at" => $timestamp,
+                        "updated_at" => $timestamp
                     ]);
 
-                    // Store Secondaries
-                    if ($request["urutan"][$i]) {
-                        $currentSecondaries = explode(',', $request["urutan"][$i]);
-                        for ($j = 0; $j < count($currentSecondaries); $j++) {
-                            array_push($partDetailSecondaryData, [
-                                "part_detail_id" => $currentPartDetail->id,
-                                "master_secondary_id" => $currentSecondaries[$j],
-                                "urutan" => $j+1,
-                                "batch" => $batch,
-                                "created_by" => Auth::user()->id,
-                                "created_by_username" => Auth::user()->username,
-                                "created_at" => $timestamp,
-                                "updated_at" => $timestamp,
-                            ]);
+                    // Part Detail Item
+                    if ($currentPartDetail) {
+                        if (isset($request["item"][$i]) && $request["item"][$i] && count($request["item"][$i]) > 0) {
+                            $partItemData = [];
+
+                            for ($j = 0; $j < count($request["item"][$i]); $j++) {
+                                array_push($partItemData, [
+                                    "part_detail_id" => $currentPartDetail->id,
+                                    "bom_jo_item_id" => $request["item"][$i][$j],
+                                    "created_at" => $timestamp,
+                                    "updated_at" => $timestamp,
+                                ]);
+                            }
+
+                            PartDetailItem::insert($partItemData);
+                        }
+
+                        // Store Secondaries
+                        if (isset($request["urutan"][$i])) {
+                            $currentSecondaries = explode(',', $request["urutan"][$i]);
+                            for ($j = 0; $j < count($currentSecondaries); $j++) {
+                                array_push($partDetailSecondaryData, [
+                                    "part_detail_id" => $currentPartDetail->id,
+                                    "master_secondary_id" => $currentSecondaries[$j],
+                                    "urutan" => $j+1,
+                                    "batch" => $batch,
+                                    "created_by" => Auth::user()->id,
+                                    "created_by_username" => Auth::user()->username,
+                                    "created_at" => $timestamp,
+                                    "updated_at" => $timestamp,
+                                ]);
+                            }
                         }
                     }
                 }
@@ -425,6 +447,8 @@ class PartController extends Controller
                     ]);
                 }
             }
+
+            DB::commit();
 
             return array(
                 "status" => 200,
@@ -681,7 +705,17 @@ class PartController extends Controller
 
         $complementPanels = Part::select("part.id", "part.panel")->where("part.act_costing_id", $part->act_costing_id)->where("part.color", $part->color)->where("part.panel", "!=", $part->panel)->get();
 
-        return view("marker.part.manage-part-secondary", ["part" => $part, "data_part" => $data_part, "data_tujuan" => $data_tujuan, "data_secondary" => $data_secondary, "complementPanels" => $complementPanels, "page" => "dashboard-marker",  "subPageGroup" => "proses-marker", "subPage" => "part"]);
+        $partItemList = DB::connection("mysql_sb")->select("
+                select bom_jo_item.id, masteritem.itemdesc from bom_jo_item
+                left join jo_det on jo_det.id_jo = bom_jo_item.id_jo
+                left join so on so.id = jo_det.id_so
+                left join act_costing on act_costing.id = so.id_cost
+                left join masteritem on bom_jo_item.id_item = masteritem.id_item
+                where act_costing.id = '".$part->act_costing_id."' and bom_jo_item.`status` = 'P' and matclass != 'CMT'
+                group by bom_jo_item.id_item
+            ");
+
+        return view("marker.part.manage-part-secondary", ["part" => $part, "partItemList" => $partItemList, "data_part" => $data_part, "data_tujuan" => $data_tujuan, "data_secondary" => $data_secondary, "complementPanels" => $complementPanels, "page" => "dashboard-marker",  "subPageGroup" => "proses-marker", "subPage" => "part"]);
     }
 
     public function get_proses(Request $request)
@@ -939,6 +973,25 @@ class PartController extends Controller
                                 "part_status" => "regular"
                             ]);
                     }
+                }
+
+                // Phase 5 (Update Part Item)
+                if ($request->edit_item && count($request->edit_item) > 0) {
+                    // Delete Current Part Detail
+                    PartDetailItem::where("part_detail_id", $partDetail->id)->delete();
+
+                    // Repopulate Part Detail Item
+                    $partItemData = [];
+                    for ($i = 0; $i < count($request->edit_item); $i++) {
+                        array_push($partItemData, [
+                            "part_detail_id" => $partDetail->id,
+                            "bom_jo_item_id" => $request->edit_item[$i],
+                            "created_at" => $timestamp,
+                            "updated_at" => $timestamp,
+                        ]);
+                    }
+
+                    PartDetailItem::upsert($partItemData, ['part_detail_id', 'bom_jo_item_id'], ["updated_at"]);
                 }
 
                 return array(
@@ -1341,14 +1394,18 @@ class PartController extends Controller
                 master_secondary_id,
                 UPPER(COALESCE(pd.tujuan, ms.tujuan)) as tujuan,
                 COALESCE(pds.proses, ms.proses) as proses,
-                cons,
-                UPPER(unit) unit,
+                pd.cons,
+                UPPER(pd.unit) unit,
                 COALESCE(pd.part_status, '-') part_status,
-                stocker.total total_stocker
+                stocker.total total_stocker,
+                GROUP_CONCAT(DISTINCT masteritem.itemdesc) item
             FROM
                 `part_detail` pd
                 inner join master_part mp on pd.master_part_id = mp.id
                 left join master_secondary ms on pd.master_secondary_id = ms.id
+                left join part_detail_item on part_detail_item.part_detail_id = pd.id
+                left join signalbit_erp.bom_jo_item on bom_jo_item.id = part_detail_item.bom_jo_item_id
+                left join signalbit_erp.masteritem on masteritem.id_item = bom_jo_item.id_item
                 left join (
                     select
                         part_detail_id,
@@ -1371,8 +1428,10 @@ class PartController extends Controller
             where
                 part_id = '" . $request->id . "' and
                 (part_status != 'complement')
+            GROUP BY
+                pd.id
             order by
-                id asc
+                pd.id asc
             "
         );
 
@@ -1394,11 +1453,15 @@ class PartController extends Controller
                 pd.cons com_cons,
                 UPPER(pd.unit) com_unit,
                 COALESCE(pd.part_status, '-') com_part_status,
-                stocker.total com_total_stocker
+                stocker.total com_total_stocker,
+                GROUP_CONCAT(DISTINCT masteritem.itemdesc) com_item
             FROM
                 `part_detail` pd
                 inner join master_part mp on pd.master_part_id = mp.id
                 left join master_secondary ms on pd.master_secondary_id = ms.id
+                left join part_detail_item on part_detail_item.part_detail_id = pd.id
+                left join signalbit_erp.bom_jo_item on bom_jo_item.id = part_detail_item.bom_jo_item_id
+                left join signalbit_erp.masteritem on masteritem.id_item = bom_jo_item.id_item
                 left join part_detail as from_part_detail on from_part_detail.id = pd.from_part_detail
                 left join master_part as from_master_part on from_master_part.id = from_part_detail.master_part_id
                 left join (
@@ -1423,6 +1486,8 @@ class PartController extends Controller
             where
                 pd.part_id = '" . $request->id . "' and
                 (pd.part_status = 'complement')
+            GROUP BY
+                pd.id
             order by
                 pd.id asc
             "

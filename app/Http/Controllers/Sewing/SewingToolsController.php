@@ -38,8 +38,10 @@ use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 use App\Exports\Sewing\CheckOutputDetailListExport;
 use Carbon\Carbon;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
 use DB;
 use Excel;
+use PDF;
 
 class SewingToolsController extends Controller
 {
@@ -1039,130 +1041,25 @@ class SewingToolsController extends Controller
             $callbackFilterPacking = " and master_plan.tgl_plan > CURRENT_DATE()";
         }
 
-        ini_set("max_execution_time", 120);
+        ini_set("max_execution_time", 3600);
 
-        $outputQuery = DB::connection("mysql_sb")->select("
-            SELECT
-                DISTINCT kode_numbering
-            FROM (
-                -- Output defects
-                SELECT
-                    output_defects.kode_numbering
-                FROM output_defects
-                    LEFT JOIN master_plan ON master_plan.id = output_defects.master_plan_id
-                    LEFT JOIN so_det ON so_det.id = output_defects.so_det_id
-                    LEFT JOIN so ON so.id = so_det.id_so
-                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
-                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
-                    LEFT JOIN user_sb_wip ON user_sb_wip.id = output_defects.created_by
-                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
-                    LEFT JOIN output_defect_types ON output_defect_types.id = output_defects.defect_type_id
-                WHERE
-                    output_defects.id IS NOT NULL
-                    {$filterDefectOutput}
-                    {$callbackFilterOutput}
-
-                UNION ALL
-
-                -- Output RFT
-                SELECT
-                    output_rfts.kode_numbering
-                FROM output_rfts
-                    LEFT JOIN master_plan ON master_plan.id = output_rfts.master_plan_id
-                    LEFT JOIN so_det ON so_det.id = output_rfts.so_det_id
-                    LEFT JOIN so ON so.id = so_det.id_so
-                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
-                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
-                    LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts.created_by
-                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
-                WHERE
-                    output_rfts.id IS NOT NULL
-                    AND output_rfts.status = 'NORMAL'
-                    {$filterRftOutput}
-                    {$callbackFilterOutput}
-
-                UNION ALL
-
-                -- Output rejects
-                SELECT
-                    output_rejects.kode_numbering
-                FROM output_rejects
-                    LEFT JOIN master_plan ON master_plan.id = output_rejects.master_plan_id
-                    LEFT JOIN so_det ON so_det.id = output_rejects.so_det_id
-                    LEFT JOIN so ON so.id = so_det.id_so
-                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
-                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
-                    LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rejects.created_by
-                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
-                    LEFT JOIN output_defect_types ON output_defect_types.id = output_rejects.reject_type_id
-                WHERE
-                    output_rejects.reject_status = 'mati'
-                    {$filterRejectOutput}
-                    {$callbackFilterOutput}
-
-                UNION ALL
-
-                -- Output defects packing
-                SELECT
-                    output_defects.kode_numbering
-                FROM output_defects_packing AS output_defects
-                    LEFT JOIN master_plan ON master_plan.id = output_defects.master_plan_id
-                    LEFT JOIN so_det ON so_det.id = output_defects.so_det_id
-                    LEFT JOIN so ON so.id = so_det.id_so
-                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
-                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
-                    LEFT JOIN userpassword ON userpassword.username = output_defects.created_by
-                    LEFT JOIN output_defect_types ON output_defect_types.id = output_defects.defect_type_id
-                WHERE
-                    output_defects.id IS NOT NULL
-                    {$filterDefectPck}
-                    {$callbackFilterPacking}
-
-                UNION ALL
-
-                -- Output RFT packing
-                SELECT
-                    output_rfts.kode_numbering
-                FROM output_rfts_packing AS output_rfts
-                    LEFT JOIN master_plan ON master_plan.id = output_rfts.master_plan_id
-                    LEFT JOIN so_det ON so_det.id = output_rfts.so_det_id
-                    LEFT JOIN so ON so.id = so_det.id_so
-                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
-                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
-                    LEFT JOIN userpassword ON userpassword.username = output_rfts.created_by
-                WHERE
-                    output_rfts.id IS NOT NULL
-                    AND output_rfts.status = 'NORMAL'
-                    {$filterRftPck}
-                    {$callbackFilterPacking}
-
-                UNION ALL
-
-                -- Output rejects packing
-                SELECT
-                    output_rejects.kode_numbering
-                FROM output_rejects_packing AS output_rejects
-                    LEFT JOIN master_plan ON master_plan.id = output_rejects.master_plan_id
-                    LEFT JOIN so_det ON so_det.id = output_rejects.so_det_id
-                    LEFT JOIN so ON so.id = so_det.id_so
-                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
-                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
-                    LEFT JOIN userpassword ON userpassword.username = output_rejects.created_by
-                    LEFT JOIN output_defect_types ON output_defect_types.id = output_rejects.reject_type_id
-                WHERE
-                    output_rejects.reject_status = 'mati'
-                    {$filterRejectPck}
-                    {$callbackFilterPacking}
-            ) AS kode_list
-        ");
-
-        $kodeList = "'none'";
-        if (count($outputQuery) > 0) {
-            $kodeList = addQuotesAround(implode("\n", array_column($outputQuery, 'kode_numbering')));
-        }
-
-        $outputList = DB::connection("mysql_sb")->select("
-            select
+        $outputList = DB::connection("mysql_sb")->table(DB::raw("
+                (
+                    select
+                        ys.*,
+                        msb.buyer,
+                        msb.ws,
+                        msb.styleno,
+                        msb.color
+                    from
+                        laravel_nds.year_sequence as ys
+                        left join laravel_nds.master_sb_ws as msb on msb.id_so_det = ys.so_det_id
+                    where
+                        ys.id is not null
+                        ".$filterYs."
+                        ".$callbackFilterYs."
+                ) as ys
+            "))->selectRaw("
                 COALESCE(output.kode_numbering, output_packing.kode_numbering, id_year_sequence) kode,
                 COALESCE(output.Supplier, ys.buyer) buyer,
                 COALESCE(output.ws, ys.ws) ws,
@@ -1183,23 +1080,7 @@ class SewingToolsController extends Controller
                 output_packing.status status_output_packing,
                 output_packing.defect_type as defect_output_packing,
                 output_packing.allocation as allocation_output_packing
-            from
-                (
-                    select
-                        ys.*,
-                        msb.buyer,
-                        msb.ws,
-                        msb.styleno,
-                        msb.color
-                    from
-                        laravel_nds.year_sequence as ys
-                        left join laravel_nds.master_sb_ws as msb on msb.id_so_det = ys.so_det_id
-                    where
-                        ys.id is not null
-                        ".$filterYs."
-                        ".$callbackFilterYs."
-                ) as ys
-                left join (
+            ")->leftJoin(DB::raw("(
                     select
                         mastersupplier.Supplier,
                         act_costing.kpno ws,
@@ -1225,7 +1106,8 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
                     where
                         output_defects.id is not null
-                        and kode_numbering in (".$kodeList.")
+                        {$filterDefectOutput}
+                        {$callbackFilterOutput}
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -1251,8 +1133,9 @@ class SewingToolsController extends Controller
                         left join userpassword on userpassword.line_id = user_sb_wip.line_id
                     where
                         output_rfts.id is not null
-                        and output_rfts.status = 'NORMAL'
-                        and kode_numbering in (".$kodeList.")
+                        AND output_rfts.status = 'NORMAL'
+                        {$filterRftOutput}
+                        {$callbackFilterOutput}
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -1279,9 +1162,11 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
                     where
                         output_rejects.reject_status = 'mati'
-                        and kode_numbering in (".$kodeList.")
-                ) output ON output.kode_numbering = ys.id_year_sequence
-                left join (
+                        {$filterRejectOutput}
+                        {$callbackFilterOutput}
+                ) output
+            "), "output.kode_numbering", "=", "ys.id_year_sequence")->
+            leftJoin(DB::raw("(
                     select
                         mastersupplier.Supplier,
                         act_costing.kpno ws,
@@ -1306,7 +1191,8 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
                     where
                         output_defects.id is not null
-                        and kode_numbering in (".$kodeList.")
+                        {$filterDefectPck}
+                        {$callbackFilterPacking}
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -1332,7 +1218,8 @@ class SewingToolsController extends Controller
                     where
                         output_rfts.id is not null
                         and output_rfts.status = 'NORMAL'
-                        and kode_numbering in (".$kodeList.")
+                        {$filterRftPck}
+                        {$callbackFilterPacking}
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -1358,27 +1245,758 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
                     where
                         output_rejects.reject_status = 'mati'
-                        and kode_numbering in (".$kodeList.")
-                ) output_packing ON output_packing.kode_numbering = output.kode_numbering
-            left join laravel_nds.stocker_input as stk on stk.id_qr_stocker = ys.id_qr_stocker
-            left join laravel_nds.stocker_input as stk_bk on (stk_bk.form_cut_id = ys.form_cut_id and stk_bk.form_reject_id = ys.form_reject_id and stk_bk.form_piece_id = ys.form_piece_id) and stk_bk.so_det_id = ys.so_det_id and CAST(stk_bk.range_awal AS UNSIGNED) <= CAST(ys.number AS UNSIGNED) and CAST(stk_bk.range_akhir AS UNSIGNED) >= CAST(ys.number AS UNSIGNED)
-            left join laravel_nds.loading_line as loading on loading.stocker_id = stk.id
-            left join laravel_nds.loading_line as loading_bk on loading_bk.stocker_id = stk_bk.id
-            WHERE
-                ys.id is not null
-                ".$tglLoading."
-                ".$lineLoading."
-                ".$statusOutput."
-                ".$statusPacking."
-                ".$crossLineLoading."
-                ".$crossLineOutput."
-                ".$additionalFilter."
-        ");
+                        {$filterRejectPck}
+                        {$callbackFilterPacking}
+                ) output_packing
+            "), "output_packing.kode_numbering", "=", "output.kode_numbering")->
+            leftJoin(DB::raw("laravel_nds.stocker_input as stk"), "stk.id_qr_stocker", "=", "ys.id_qr_stocker")->
+            leftJoin(DB::raw("laravel_nds.stocker_input as stk_bk"), function ($join) {
+                $join->on("stk_bk.form_cut_id", "=", "ys.form_cut_id");
+                $join->on("stk_bk.form_reject_id", "=", "ys.form_reject_id");
+                $join->on("stk_bk.form_piece_id", "=", "ys.form_piece_id");
+                $join->on("stk_bk.so_det_id", "=", "ys.so_det_id");
+                $join->on(DB::raw("CAST(stk_bk.range_awal AS UNSIGNED)"), "<=", DB::raw("CAST(ys.number AS UNSIGNED)"));
+                $join->on(DB::raw("CAST(stk_bk.range_akhir AS UNSIGNED)"), ">=", DB::raw("CAST(ys.number AS UNSIGNED)"));
+            })->
+            leftJoin(DB::raw("laravel_nds.loading_line as loading"), "loading.stocker_id", "=", "stk.id")->
+            leftJoin(DB::raw("laravel_nds.loading_line as loading_bk"), "loading_bk.stocker_id", "=", "stk_bk.id");
 
-        return Datatables::of($outputList)->toJson();
+        return Datatables::queryBuilder($outputList)->toJson();
     }
 
+    // public function checkOutputDetailExportOld(Request $request) {
+    //     $buyerFilterYs = "";
+    //     $buyerFilterOutput = "";
+    //     if ($request->buyer) {
+    //         $buyerFilterYs = " and msb.buyer = '".$request->buyer."'";
+    //         $buyerFilterOutput = " and mastersupplier.Supplier = '".$request->buyer."'";
+    //     }
+
+    //     $wsFilterYs = "";
+    //     $wsFilterOutput = "";
+    //     if ($request->ws) {
+    //         $wsFilterYs = " and msb.id_act_cost = '".$request->ws."'";
+    //         $wsFilterOutput = " and act_costing.id = '".$request->ws."'";
+    //     }
+
+    //     $styleFilterYs = "";
+    //     $styleFilterOutput = "";
+    //     if ($request->style) {
+    //         $styleFilterYs = " and msb.styleno = '".$request->style."'";
+    //         $styleFilterOutput = " and act_costing.styleno = '".$request->style."'";
+    //     }
+
+    //     $colorFilterYs = "";
+    //     $colorFilterOutput = "";
+    //     if ($request->color) {
+    //         $colorFilterYs = " and msb.color = '".$request->color."'";
+    //         $colorFilterOutput = " and so_det.color = '".$request->color."'";
+    //     }
+
+    //     $sizeFilterYs = "";
+    //     $sizeFilterOutput = "";
+    //     if ($request->size && count($request->size) > 0) {
+    //         $sizeList = addQuotesAround(implode("\n", $request->size));
+
+    //         $sizeFilterYs = " and msb.id_so_det in (".$sizeList.")";
+    //         $sizeFilterOutput = " and so_det.id in (".$sizeList.")";
+    //     }
+
+    //     $kodeFilterYs = "";
+    //     $kodeFilterOutput = "";
+    //     if ($request->kode && strlen($request->kode) > 0) {
+    //         $kodeList = addQuotesAround($request->kode);
+
+    //         $kodeFilterYs = " and ys.id_year_sequence in (".$kodeList.")";
+    //         $kodeFilterOutput = " and kode_numbering in (".$kodeList.")";
+    //     }
+
+    //     $additionalFilter = "";
+
+    //     $tglLoading = "";
+    //     if ($request->tanggal_loading_awal) {
+    //         $tglLoading .= " and COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading) >= '".$request->tanggal_loading_awal."'";
+    //     }
+
+    //     if ($request->tanggal_loading_akhir) {
+    //         $tglLoading .= " and COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading)<= '".$request->tanggal_loading_akhir."'";
+    //     }
+
+    //     $lineLoading = "";
+    //     if ($request->line_loading) {
+    //         $lineLoading = " and COALESCE(loading.nama_line, loading_bk.nama_line) = '".$request->line_loading."'";
+    //     }
+
+    //     $tglPlan = "";
+    //     if ($request->tanggal_plan_awal || $request->tanggal_plan_akhir) {
+    //         if ($request->tanggal_plan_awal) {
+    //             $tglPlan .= " and master_plan.tgl_plan >= '".$request->tanggal_plan_awal."'";
+    //         }
+    //         if ($request->tanggal_plan_akhir) {
+    //             $tglPlan .= " and master_plan.tgl_plan <= '".$request->tanggal_plan_akhir."'";
+    //         }
+    //         $additionalFilter .= "output.kode_numbering is not null";
+    //     }
+
+    //     // Sewing/Packing
+    //     $tglOutput = "";
+    //     $tglDefect = "";
+    //     $tglReject = "";
+    //     if ($request->tanggal_output_awal || $request->tanggal_output_akhir) {
+    //         $tglAwalOutput = $request->tanggal_output_awal ? $request->tanggal_output_awal : date("Y-m-d");
+    //         $tglAkhirOutput = $request->tanggal_output_akhir ? $request->tanggal_output_akhir : date("Y-m-d");
+
+    //         $tglOutput = " and output_rfts.updated_at between '".$tglAwalOutput." 00:00:00' and '".$tglAkhirOutput." 23:59:59'";
+    //         $tglDefect = " and output_defects.updated_at between '".$tglAwalOutput." 00:00:00' and '".$tglAkhirOutput." 23:59:59'";
+    //         $tglReject = " and output_rejects.updated_at between '".$tglAwalOutput." 00:00:00' and '".$tglAkhirOutput." 23:59:59'";
+
+    //         $additionalFilter .= " and output.tgl is not null";
+    //     }
+
+    //     $tglOutputPck = "";
+    //     $tglDefectPck = "";
+    //     $tglRejectPck = "";
+    //     if ($request->tanggal_packing_awal || $request->tanggal_packing_akhir) {
+    //         $tglAwalPacking = $request->tanggal_packing_awal ? $request->tanggal_packing_awal : date("Y-m-d");
+    //         $tglAkhirPacking = $request->tanggal_packing_akhir ? $request->tanggal_packing_akhir : date("Y-m-d");
+
+    //         $tglOutputPck = " and output_rfts.updated_at between '".$tglAwalPacking." 00:00:00' and '".$tglAkhirPacking." 23:59:59'";
+    //         $tglDefectPck = " and output_defects.updated_at between '".$tglAwalPacking." 00:00:00' and '".$tglAkhirPacking." 23:59:59'";
+    //         $tglRejectPck = " and output_rejects.updated_at between '".$tglAwalPacking." 00:00:00' and '".$tglAkhirPacking." 23:59:59'";
+
+    //         $additionalFilter .= " and output_packing.tgl is not null";
+    //     }
+
+    //     // Sewing
+    //     $lineOutput = "";
+    //     if ($request->line_output) {
+    //         $lineOutput = " and userpassword.username = '".$request->line_output."'";
+    //         $additionalFilter .= " and output.line is not null";
+    //     }
+
+    //     $statusOutput = "";
+    //     if ($request->status_output && count($request->status_output) > 0) {
+    //         $statusList = addQuotesAround(implode("\n", $request->status_output));
+
+    //         $statusOutput = " and output.status in (".$statusList.")";
+    //     }
+
+    //     $defectOutput = "";
+    //     if ($request->defect_output && count($request->defect_output) > 0) {
+    //         $defectList = addQuotesAround(implode("\n", $request->defect_output));
+
+    //         $defectOutput = " and output_defect_types.id in (".$defectList.")";
+    //         $additionalFilter .= " and output.defect_type is not null";
+    //     }
+
+    //     $allocationOutput = "";
+    //     if ($request->allocation_output && count($request->allocation_output) > 0) {
+    //         $allocationList = addQuotesAround(implode("\n", $request->allocation_output));
+
+    //         $allocationOutput = " and output_defect_types.allocation in (".$allocationList.")";
+    //         $additionalFilter .= " and output.allocation is not null";
+    //     }
+
+    //     // Packing
+    //     $linePacking = "";
+    //     if ($request->line_packing) {
+    //         $linePacking = " and userpassword.username = '".$request->line_packing."'";
+    //         $additionalFilter .= " and output_packing.line is not null";
+    //     }
+
+    //     $statusPacking = "";
+    //     if ($request->status_packing && count($request->status_packing) > 0) {
+    //         $statusList = addQuotesAround(implode("\n", $request->status_packing));
+
+    //         $statusPacking = " and output_packing.status in (".$statusList.")";
+    //     }
+
+    //     $defectPacking = "";
+    //     if ($request->defect_packing && count($request->defect_packing) > 0) {
+    //         $defectList = addQuotesAround(implode("\n", $request->defect_packing));
+
+    //         $defectPacking = " and output_defect_types.id in (".$defectList.")";
+    //         $additionalFilter .= " and output_packing.defect_type is not null";
+    //     }
+
+    //     $allocationPacking = "";
+    //     if ($request->allocation_packing && count($request->allocation_packing) > 0) {
+    //         $allocationList = addQuotesAround(implode("\n", $request->allocation_packing));
+
+    //         $allocationPacking = " and output_defect_types.allocation in (".$allocationList.")";
+    //         $additionalFilter .= " and output_packing.allocation is not null";
+    //     }
+
+    //     // Cross-line loading
+    //     $crossLineLoading = "";
+    //     if ($request->crossline_loading) {
+    //         $crossLineLoading = " and output.line != COALESCE(loading.nama_line, loading_bk.nama_line)";
+    //         $additionalFilter .= " and output.line is not null and COALESCE(loading.nama_line, loading_bk.nama_line) is not null";
+    //     }
+
+    //     // Cross-line output
+    //     $crossLineOutput = "";
+    //     if ($request->crossline_output) {
+    //         $crossLineOutput = " and output.line != output_packing.line";
+    //         $additionalFilter .= " and output.line is not null and output_packing.line is not null";
+    //     }
+
+    //     // Missmatch
+    //     $missmatchOutput = "";
+    //     $missmatchDefect = "";
+    //     $missmatchReject = "";
+    //     if ($request->missmatch_code) {
+    //         $missmatchOutput = " and output_rfts.kode_numbering != output_rfts.no_cut_size";
+    //         $missmatchDefect = " and output_defects.kode_numbering != output_defects.no_cut_size";
+    //         $missmatchReject = " and output_rejects.kode_numbering != output_rejects.no_cut_size";
+    //         $additionalFilter .= " and output.kode_numbering is not null";
+    //     }
+
+    //     // Missmatch
+    //     $missmatchOutputPck = "";
+    //     $missmatchDefectPck = "";
+    //     $missmatchRejectPck = "";
+    //     if ($request->missmatch_code_packing) {
+    //         $missmatchOutputPck = " and output_rfts.kode_numbering != output_rfts.no_cut_size";
+    //         $missmatchDefectPck = " and output_defects.kode_numbering != output_defects.no_cut_size";
+    //         $missmatchRejectPck = " and output_rejects.kode_numbering != output_rejects.no_cut_size";
+    //         $additionalFilter .= " and output_packing.kode_numbering is not null";
+    //     }
+
+    //     // Backdate
+    //     $backDateOutput = "";
+    //     $backDateDefect = "";
+    //     $backDateReject = "";
+    //     if ($request->back_date) {
+    //         $backDateOutput = " and DATE(output_rfts.updated_at) != master_plan.tgl_plan";
+    //         $backDateDefect = " and DATE(output_defects.updated_at) != master_plan.tgl_plan";
+    //         $backDateReject = " and DATE(output_rejects.updated_at) != master_plan.tgl_plan";
+    //         $additionalFilter .= " and output.tgl is not null";
+    //     }
+
+    //     // Backdate
+    //     $backDateOutputPck = "";
+    //     $backDateDefectPck = "";
+    //     $backDateRejectPck = "";
+    //     if ($request->back_date_packing) {
+    //         $backDateOutputPck = " and DATE(output_rfts.updated_at) != master_plan.tgl_plan";
+    //         $backDateDefectPck = " and DATE(output_defects.updated_at) != master_plan.tgl_plan";
+    //         $backDateRejectPck = " and DATE(output_rejects.updated_at) != master_plan.tgl_plan";
+    //         $additionalFilter .= " and output_packing.tgl is not null";
+    //     }
+
+    //     $filterYs = $buyerFilterYs."
+    //                 ".$wsFilterYs."
+    //                 ".$styleFilterYs."
+    //                 ".$colorFilterYs."
+    //                 ".$sizeFilterYs."
+    //                 ".$kodeFilterYs;
+
+    //     $filterDefectOutput = $tglPlan."
+    //                 ".$tglDefect."
+    //                 ".$backDateDefect."
+    //                 ".$buyerFilterOutput."
+    //                 ".$wsFilterOutput."
+    //                 ".$styleFilterOutput."
+    //                 ".$colorFilterOutput."
+    //                 ".$sizeFilterOutput."
+    //                 ".$kodeFilterOutput."
+    //                 ".$lineOutput."
+    //                 ".$defectOutput."
+    //                 ".$allocationOutput."
+    //                 ".$missmatchDefect."
+    //                 ".$backDateDefect;
+
+    //     $filterRftOutput = $tglPlan."
+    //                 ".$tglOutput."
+    //                 ".$buyerFilterOutput."
+    //                 ".$wsFilterOutput."
+    //                 ".$styleFilterOutput."
+    //                 ".$colorFilterOutput."
+    //                 ".$sizeFilterOutput."
+    //                 ".$kodeFilterOutput."
+    //                 ".$lineOutput."
+    //                 ".$missmatchOutput."
+    //                 ".$backDateOutput;
+
+    //     $filterRejectOutput = $tglPlan."
+    //                 ".$tglReject."
+    //                 ".$buyerFilterOutput."
+    //                 ".$wsFilterOutput."
+    //                 ".$styleFilterOutput."
+    //                 ".$colorFilterOutput."
+    //                 ".$sizeFilterOutput."
+    //                 ".$kodeFilterOutput."
+    //                 ".$lineOutput."
+    //                 ".$defectOutput."
+    //                 ".$allocationOutput."
+    //                 ".$missmatchReject."
+    //                 ".$backDateReject;
+
+    //     $filterDefectPck = $tglPlan."
+    //                 ".$tglDefectPck."
+    //                 ".$buyerFilterOutput."
+    //                 ".$wsFilterOutput."
+    //                 ".$styleFilterOutput."
+    //                 ".$colorFilterOutput."
+    //                 ".$sizeFilterOutput."
+    //                 ".$kodeFilterOutput."
+    //                 ".$lineOutput."
+    //                 ".$linePacking."
+    //                 ".$defectPacking."
+    //                 ".$allocationPacking."
+    //                 ".$missmatchDefectPck."
+    //                 ".$backDateDefectPck;
+
+    //     $filterRftPck = $tglPlan."
+    //                 ".$tglOutputPck."
+    //                 ".$buyerFilterOutput."
+    //                 ".$wsFilterOutput."
+    //                 ".$styleFilterOutput."
+    //                 ".$colorFilterOutput."
+    //                 ".$sizeFilterOutput."
+    //                 ".$kodeFilterOutput."
+    //                 ".$lineOutput."
+    //                 ".$linePacking."
+    //                 ".$missmatchOutputPck."
+    //                 ".$backDateOutputPck;
+
+    //     $filterRejectPck = $tglPlan."
+    //                 ".$tglRejectPck."
+    //                 ".$buyerFilterOutput."
+    //                 ".$wsFilterOutput."
+    //                 ".$styleFilterOutput."
+    //                 ".$colorFilterOutput."
+    //                 ".$sizeFilterOutput."
+    //                 ".$kodeFilterOutput."
+    //                 ".$lineOutput."
+    //                 ".$linePacking."
+    //                 ".$defectPacking."
+    //                 ".$allocationPacking."
+    //                 ".$missmatchRejectPck."
+    //                 ".$backDateRejectPck;
+
+    //     // Callback
+    //     $callbackFilterYs = "";
+    //     if (!trim(str_replace("\n", "", $filterYs)) && !trim(str_replace("\n", "", $filterDefectOutput)) && !trim(str_replace("\n", "", $filterRftOutput)) && !trim(str_replace("\n", "", $filterRejectOutput)) && !trim(str_replace("\n", "", $filterDefectPck)) && !trim(str_replace("\n", "", $filterRftPck)) && !trim(str_replace("\n", "", $filterRejectPck))) {
+    //         $callbackFilterYs = " and DATE(ys.updated_at) > CURRENT_DATE()";
+    //     }
+
+    //     $callbackFilterOutput = "";
+    //     if (!trim(str_replace("\n", "", $filterRftOutput)) && !trim(str_replace("\n", "", $filterDefectOutput)) && !trim(str_replace("\n", "", $filterRejectOutput))) {
+    //         $callbackFilterOutput = " and master_plan.tgl_plan > CURRENT_DATE()";
+    //     }
+
+    //     $callbackFilterPacking = "";
+    //     if (!trim(str_replace("\n", "", $filterRftPck)) && !trim(str_replace("\n", "", $filterDefectPck)) && !trim(str_replace("\n", "", $filterRejectPck))) {
+    //         $callbackFilterPacking = " and master_plan.tgl_plan > CURRENT_DATE()";
+    //     }
+
+    //     $outputQuery = DB::connection("mysql_sb")->select("
+    //         SELECT
+    //             DISTINCT kode_numbering
+    //         FROM (
+    //             -- Output defects
+    //             SELECT
+    //                 output_defects.kode_numbering
+    //             FROM output_defects
+    //                 LEFT JOIN master_plan ON master_plan.id = output_defects.master_plan_id
+    //                 LEFT JOIN so_det ON so_det.id = output_defects.so_det_id
+    //                 LEFT JOIN so ON so.id = so_det.id_so
+    //                 LEFT JOIN act_costing ON act_costing.id = so.id_cost
+    //                 LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+    //                 LEFT JOIN user_sb_wip ON user_sb_wip.id = output_defects.created_by
+    //                 LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+    //                 LEFT JOIN output_defect_types ON output_defect_types.id = output_defects.defect_type_id
+    //             WHERE
+    //                 output_defects.id IS NOT NULL
+    //                 {$filterDefectOutput}
+    //                 {$callbackFilterOutput}
+
+    //             UNION ALL
+
+    //             -- Output RFT
+    //             SELECT
+    //                 output_rfts.kode_numbering
+    //             FROM output_rfts
+    //                 LEFT JOIN master_plan ON master_plan.id = output_rfts.master_plan_id
+    //                 LEFT JOIN so_det ON so_det.id = output_rfts.so_det_id
+    //                 LEFT JOIN so ON so.id = so_det.id_so
+    //                 LEFT JOIN act_costing ON act_costing.id = so.id_cost
+    //                 LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+    //                 LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts.created_by
+    //                 LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+    //             WHERE
+    //                 output_rfts.id IS NOT NULL
+    //                 AND output_rfts.status = 'NORMAL'
+    //                 {$filterRftOutput}
+    //                 {$callbackFilterOutput}
+
+    //             UNION ALL
+
+    //             -- Output rejects
+    //             SELECT
+    //                 output_rejects.kode_numbering
+    //             FROM output_rejects
+    //                 LEFT JOIN master_plan ON master_plan.id = output_rejects.master_plan_id
+    //                 LEFT JOIN so_det ON so_det.id = output_rejects.so_det_id
+    //                 LEFT JOIN so ON so.id = so_det.id_so
+    //                 LEFT JOIN act_costing ON act_costing.id = so.id_cost
+    //                 LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+    //                 LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rejects.created_by
+    //                 LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+    //                 LEFT JOIN output_defect_types ON output_defect_types.id = output_rejects.reject_type_id
+    //             WHERE
+    //                 output_rejects.reject_status = 'mati'
+    //                 {$filterRejectOutput}
+    //                 {$callbackFilterOutput}
+
+    //             UNION ALL
+
+    //             -- Output defects packing
+    //             SELECT
+    //                 output_defects.kode_numbering
+    //             FROM output_defects_packing AS output_defects
+    //                 LEFT JOIN master_plan ON master_plan.id = output_defects.master_plan_id
+    //                 LEFT JOIN so_det ON so_det.id = output_defects.so_det_id
+    //                 LEFT JOIN so ON so.id = so_det.id_so
+    //                 LEFT JOIN act_costing ON act_costing.id = so.id_cost
+    //                 LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+    //                 LEFT JOIN userpassword ON userpassword.username = output_defects.created_by
+    //                 LEFT JOIN output_defect_types ON output_defect_types.id = output_defects.defect_type_id
+    //             WHERE
+    //                 output_defects.id IS NOT NULL
+    //                 {$filterDefectPck}
+    //                 {$callbackFilterPacking}
+
+    //             UNION ALL
+
+    //             -- Output RFT packing
+    //             SELECT
+    //                 output_rfts.kode_numbering
+    //             FROM output_rfts_packing AS output_rfts
+    //                 LEFT JOIN master_plan ON master_plan.id = output_rfts.master_plan_id
+    //                 LEFT JOIN so_det ON so_det.id = output_rfts.so_det_id
+    //                 LEFT JOIN so ON so.id = so_det.id_so
+    //                 LEFT JOIN act_costing ON act_costing.id = so.id_cost
+    //                 LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+    //                 LEFT JOIN userpassword ON userpassword.username = output_rfts.created_by
+    //             WHERE
+    //                 output_rfts.id IS NOT NULL
+    //                 AND output_rfts.status = 'NORMAL'
+    //                 {$filterRftPck}
+    //                 {$callbackFilterPacking}
+
+    //             UNION ALL
+
+    //             -- Output rejects packing
+    //             SELECT
+    //                 output_rejects.kode_numbering
+    //             FROM output_rejects_packing AS output_rejects
+    //                 LEFT JOIN master_plan ON master_plan.id = output_rejects.master_plan_id
+    //                 LEFT JOIN so_det ON so_det.id = output_rejects.so_det_id
+    //                 LEFT JOIN so ON so.id = so_det.id_so
+    //                 LEFT JOIN act_costing ON act_costing.id = so.id_cost
+    //                 LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+    //                 LEFT JOIN userpassword ON userpassword.username = output_rejects.created_by
+    //                 LEFT JOIN output_defect_types ON output_defect_types.id = output_rejects.reject_type_id
+    //             WHERE
+    //                 output_rejects.reject_status = 'mati'
+    //                 {$filterRejectPck}
+    //                 {$callbackFilterPacking}
+    //         ) AS kode_list
+    //     ");
+
+    //     $kodeList = "'none'";
+    //     if (count($outputQuery) > 0) {
+    //         $kodeList = addQuotesAround(implode("\n", array_column($outputQuery, 'kode_numbering')));
+    //     }
+
+    //     $outputList ="
+    //         select
+    //             COALESCE(output.kode_numbering, output_packing.kode_numbering, id_year_sequence) kode,
+    //             COALESCE(output.Supplier, ys.buyer) buyer,
+    //             COALESCE(output.ws, ys.ws) ws,
+    //             COALESCE(output.styleno, ys.styleno) style,
+    //             COALESCE(output.color, ys.color) color,
+    //             COALESCE(output.size, ys.size) size,
+    //             COALESCE(stk.id_qr_stocker, stk_bk.id_qr_stocker) as stocker,
+    //             COALESCE(loading.nama_line, loading_bk.nama_line) as line_loading,
+    //             COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading) as tanggal_loading,
+    //             output.tgl_plan tanggal_plan,
+    //             output.tgl tanggal_output,
+    //             output.line line_output,
+    //             output.status status_output,
+    //             output.defect_type as defect_output,
+    //             output.allocation as allocation_output,
+    //             output_packing.tgl tanggal_output_packing,
+    //             output_packing.line line_output_packing,
+    //             output_packing.status status_output_packing,
+    //             output_packing.defect_type as defect_output_packing,
+    //             output_packing.allocation as allocation_output_packing
+    //         from
+    //             (
+    //                 select
+    //                     ys.*,
+    //                     msb.buyer,
+    //                     msb.ws,
+    //                     msb.styleno,
+    //                     msb.color
+    //                 from
+    //                     laravel_nds.year_sequence as ys
+    //                     left join laravel_nds.master_sb_ws as msb on msb.id_so_det = ys.so_det_id
+    //                 where
+    //                     ys.id is not null
+    //                     ".$filterYs."
+    //                     ".$callbackFilterYs."
+    //             ) as ys
+    //             left join (
+    //                 select
+    //                     mastersupplier.Supplier,
+    //                     act_costing.kpno ws,
+    //                     act_costing.styleno,
+    //                     master_plan.tgl_plan,
+    //                     DATE(output_defects.updated_at) as tgl,
+    //                     so_det.color,
+    //                     so_det.size,
+    //                     userpassword.username line,
+    //                     kode_numbering,
+    //                     UPPER(defect_status) as status,
+    //                     CONCAT(UPPER(output_defects.defect_status), ' - ', output_defect_types.defect_type) defect_type,
+    //                     output_defect_types.allocation
+    //                 from
+    //                     output_defects
+    //                     left join master_plan on master_plan.id = output_defects.master_plan_id
+    //                     left join so_det on so_det.id = output_defects.so_det_id
+    //                     left join so on so.id = so_det.id_so
+    //                     left join act_costing on act_costing.id = so.id_cost
+    //                     left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+    //                     left join user_sb_wip on user_sb_wip.id = output_defects.created_by
+    //                     left join userpassword on userpassword.line_id = user_sb_wip.line_id
+    //                     left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
+    //                 where
+    //                     output_defects.id is not null
+    //                     and kode_numbering in (".$kodeList.")
+    //             UNION ALL
+    //                 select
+    //                     mastersupplier.Supplier,
+    //                     act_costing.kpno ws,
+    //                     act_costing.styleno,
+    //                     master_plan.tgl_plan,
+    //                     DATE(output_rfts.updated_at) as tgl,
+    //                     so_det.color,
+    //                     so_det.size,
+    //                     userpassword.username line,
+    //                     output_rfts.kode_numbering,
+    //                     'RFT' as status,
+    //                     'RFT',
+    //                     '-'
+    //                 from
+    //                     output_rfts
+    //                     left join master_plan on master_plan.id = output_rfts.master_plan_id
+    //                     left join so_det on so_det.id = output_rfts.so_det_id
+    //                     left join so on so.id = so_det.id_so
+    //                     left join act_costing on act_costing.id = so.id_cost
+    //                     left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+    //                     left join user_sb_wip on user_sb_wip.id = output_rfts.created_by
+    //                     left join userpassword on userpassword.line_id = user_sb_wip.line_id
+    //                 where
+    //                     output_rfts.id is not null
+    //                     and output_rfts.status = 'NORMAL'
+    //                     and kode_numbering in (".$kodeList.")
+    //             UNION ALL
+    //                 select
+    //                     mastersupplier.Supplier,
+    //                     act_costing.kpno ws,
+    //                     act_costing.styleno,
+    //                     master_plan.tgl_plan,
+    //                     DATE(output_rejects.updated_at) as tgl,
+    //                     so_det.color,
+    //                     so_det.size,
+    //                     userpassword.username line,
+    //                     output_rejects.kode_numbering,
+    //                     'REJECT' as status,
+    //                     CONCAT('REJECT - ', output_defect_types.defect_type),
+    //                     output_defect_types.allocation
+    //                 from
+    //                     output_rejects
+    //                     left join master_plan on master_plan.id = output_rejects.master_plan_id
+    //                     left join so_det on so_det.id = output_rejects.so_det_id
+    //                     left join so on so.id = so_det.id_so
+    //                     left join act_costing on act_costing.id = so.id_cost
+    //                     left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+    //                     left join user_sb_wip on user_sb_wip.id = output_rejects.created_by
+    //                     left join userpassword on userpassword.line_id = user_sb_wip.line_id
+    //                     left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
+    //                 where
+    //                     output_rejects.reject_status = 'mati'
+    //                     and kode_numbering in (".$kodeList.")
+    //             ) output ON output.kode_numbering = ys.id_year_sequence
+    //             left join (
+    //                 select
+    //                     mastersupplier.Supplier,
+    //                     act_costing.kpno ws,
+    //                     act_costing.styleno,
+    //                     master_plan.tgl_plan,
+    //                     DATE(output_defects.updated_at) as tgl,
+    //                     so_det.color,
+    //                     so_det.size,
+    //                     userpassword.username line,
+    //                     kode_numbering,
+    //                     UPPER(defect_status) as status,
+    //                     CONCAT(UPPER(output_defects.defect_status), ' - ', output_defect_types.defect_type) defect_type,
+    //                     output_defect_types.allocation
+    //                 from
+    //                     output_defects_packing as output_defects
+    //                     left join master_plan on master_plan.id = output_defects.master_plan_id
+    //                     left join so_det on so_det.id = output_defects.so_det_id
+    //                     left join so on so.id = so_det.id_so
+    //                     left join act_costing on act_costing.id = so.id_cost
+    //                     left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+    //                     left join userpassword on userpassword.username = output_defects.created_by
+    //                     left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
+    //                 where
+    //                     output_defects.id is not null
+    //                     and kode_numbering in (".$kodeList.")
+    //             UNION ALL
+    //                 select
+    //                     mastersupplier.Supplier,
+    //                     act_costing.kpno ws,
+    //                     act_costing.styleno,
+    //                     master_plan.tgl_plan,
+    //                     DATE(output_rfts.updated_at) as tgl,
+    //                     so_det.color,
+    //                     so_det.size,
+    //                     userpassword.username line,
+    //                     output_rfts.kode_numbering,
+    //                     'RFT' as status,
+    //                     'RFT',
+    //                     '-'
+    //                 from
+    //                     output_rfts_packing as output_rfts
+    //                     left join master_plan on master_plan.id = output_rfts.master_plan_id
+    //                     left join so_det on so_det.id = output_rfts.so_det_id
+    //                     left join so on so.id = so_det.id_so
+    //                     left join act_costing on act_costing.id = so.id_cost
+    //                     left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+    //                     left join userpassword on userpassword.username = output_rfts.created_by
+    //                 where
+    //                     output_rfts.id is not null
+    //                     and output_rfts.status = 'NORMAL'
+    //                     and kode_numbering in (".$kodeList.")
+    //             UNION ALL
+    //                 select
+    //                     mastersupplier.Supplier,
+    //                     act_costing.kpno ws,
+    //                     act_costing.styleno,
+    //                     master_plan.tgl_plan,
+    //                     DATE(output_rejects.updated_at) as tgl,
+    //                     so_det.color,
+    //                     so_det.size,
+    //                     userpassword.username line,
+    //                     output_rejects.kode_numbering,
+    //                     'REJECT' as status,
+    //                     CONCAT('REJECT - ', output_defect_types.defect_type),
+    //                     output_defect_types.allocation
+    //                 from
+    //                     output_rejects_packing as output_rejects
+    //                     left join master_plan on master_plan.id = output_rejects.master_plan_id
+    //                     left join so_det on so_det.id = output_rejects.so_det_id
+    //                     left join so on so.id = so_det.id_so
+    //                     left join act_costing on act_costing.id = so.id_cost
+    //                     left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
+    //                     left join userpassword on userpassword.username = output_rejects.created_by
+    //                     left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
+    //                 where
+    //                     output_rejects.reject_status = 'mati'
+    //                     and kode_numbering in (".$kodeList.")
+    //             ) output_packing ON output_packing.kode_numbering = output.kode_numbering
+    //         left join laravel_nds.stocker_input as stk on stk.id_qr_stocker = ys.id_qr_stocker
+    //         left join laravel_nds.stocker_input as stk_bk on (stk_bk.form_cut_id = ys.form_cut_id and stk_bk.form_reject_id = ys.form_reject_id and stk_bk.form_piece_id = ys.form_piece_id) and stk_bk.so_det_id = ys.so_det_id and CAST(stk_bk.range_awal AS UNSIGNED) <= CAST(ys.number AS UNSIGNED) and CAST(stk_bk.range_akhir AS UNSIGNED) >= CAST(ys.number AS UNSIGNED)
+    //         left join laravel_nds.loading_line as loading on loading.stocker_id = stk.id
+    //         left join laravel_nds.loading_line as loading_bk on loading_bk.stocker_id = stk_bk.id
+    //         WHERE
+    //             ys.id is not null
+    //             ".$tglLoading."
+    //             ".$lineLoading."
+    //             ".$statusOutput."
+    //             ".$statusPacking."
+    //             ".$crossLineLoading."
+    //             ".$crossLineOutput."
+    //             ".$additionalFilter."
+    //     ";
+
+    //     $buyer = $request->buyer;
+    //     $ws = $request->ws;
+    //     $style = $request->style;
+    //     $color = $request->color;
+    //     $size = $request->size;
+    //     $kode = $request->kode;
+    //     $tanggal_loading = $request->tanggal_loading;
+    //     $line_loading = $request->line_loading;
+    //     $tanggal_plan = $request->tanggal_plan;
+    //     $tanggal_output = $request->tanggal_output;
+    //     $tanggal_packing = $request->tanggal_packing;
+    //     $line_output = $request->line_output;
+    //     $status_output = $request->status_output;
+    //     $defect_output = $request->defect_output;
+    //     $allocation_output = $request->allocation_output;
+    //     $line_packing = $request->line_packing;
+    //     $status_packing = $request->status_packing;
+    //     $defect_packing = $request->defect_packing;
+    //     $allocation_packing = $request->allocation_packing;
+    //     $crossline_loading = $request->crossline_loading;
+    //     $crossline_output = $request->crossline_output;
+    //     $missmatch_code = $request->missmatch_code;
+    //     $missmatch_code_packing = $request->missmatch_code_packing;
+    //     $back_date = $request->back_date;
+    //     $back_date_packing = $request->back_date_packing;
+
+    //     return Excel::download(new CheckOutputDetailListExport($outputList, $buyer, $ws, $style, $color, $size, $kode, $tanggal_loading, $line_loading, $tanggal_plan, $tanggal_output, $tanggal_packing, $line_output, $status_output, $defect_output, $allocation_output, $line_packing, $status_packing, $defect_packing, $allocation_packing, $crossline_loading, $crossline_output, $missmatch_code, $missmatch_code_packing, $back_date, $back_date_packing), 'Laporan Output Detail.xlsx');
+    // }
+
+    // public function checkOutputDetailExport(Request $request) {
+    //     $buyer = $request->buyer;
+    //     $ws = $request->ws;
+    //     $style = $request->style;
+    //     $color = $request->color;
+    //     $size = $request->size;
+    //     $kode = $request->kode;
+    //     $tanggal_loading = $request->tanggal_loading;
+    //     $line_loading = $request->line_loading;
+    //     $tanggal_plan = $request->tanggal_plan;
+    //     $tanggal_output = $request->tanggal_output;
+    //     $tanggal_packing = $request->tanggal_packing;
+    //     $line_output = $request->line_output;
+    //     $status_output = $request->status_output;
+    //     $defect_output = $request->defect_output;
+    //     $allocation_output = $request->allocation_output;
+    //     $line_packing = $request->line_packing;
+    //     $status_packing = $request->status_packing;
+    //     $defect_packing = $request->defect_packing;
+    //     $allocation_packing = $request->allocation_packing;
+    //     $crossline_loading = $request->crossline_loading;
+    //     $crossline_output = $request->crossline_output;
+    //     $missmatch_code = $request->missmatch_code;
+    //     $missmatch_code_packing = $request->missmatch_code_packing;
+    //     $back_date = $request->back_date;
+    //     $back_date_packing = $request->back_date_packing;
+    //     $tanggal_loading_awal = $request->tanggal_loading_awal;
+    //     $tanggal_loading_akhir = $request->tanggal_loading_akhir;
+    //     $tanggal_plan_awal = $request->tanggal_plan_awal;
+    //     $tanggal_plan_akhir = $request->tanggal_plan_akhir;
+    //     $tanggal_output_awal = $request->tanggal_output_awal;
+    //     $tanggal_output_akhir = $request->tanggal_output_akhir;
+    //     $tanggal_packing_awal = $request->tanggal_packing_awal;
+    //     $tanggal_packing_akhir = $request->tanggal_packing_akhir;
+
+    //     return Excel::download(new CheckOutputDetailListExport($buyer, $ws, $style, $color, $size, $kode, $tanggal_loading_awal, $tanggal_loading_akhir, $line_loading, $tanggal_plan_awal, $tanggal_plan_akhir, $tanggal_output_awal, $tanggal_output_akhir, $tanggal_packing_awal, $tanggal_packing_akhir, $line_output, $status_output, $defect_output, $allocation_output, $line_packing, $status_packing, $defect_packing, $allocation_packing, $crossline_loading, $crossline_output, $missmatch_code, $missmatch_code_packing, $back_date, $back_date_packing), 'Laporan Output Detail.xlsx');
+    // }
+
     public function checkOutputDetailExport(Request $request) {
+        ini_set("max_execution_time", 3600000);
+        ini_set('memory_limit', '5120000M');
+
         $buyerFilterYs = "";
         $buyerFilterOutput = "";
         if ($request->buyer) {
@@ -1706,128 +2324,51 @@ class SewingToolsController extends Controller
             $callbackFilterPacking = " and master_plan.tgl_plan > CURRENT_DATE()";
         }
 
-        $outputQuery = DB::connection("mysql_sb")->select("
-            SELECT
-                DISTINCT kode_numbering
-            FROM (
-                -- Output defects
-                SELECT
-                    output_defects.kode_numbering
-                FROM output_defects
-                    LEFT JOIN master_plan ON master_plan.id = output_defects.master_plan_id
-                    LEFT JOIN so_det ON so_det.id = output_defects.so_det_id
-                    LEFT JOIN so ON so.id = so_det.id_so
-                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
-                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
-                    LEFT JOIN user_sb_wip ON user_sb_wip.id = output_defects.created_by
-                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
-                    LEFT JOIN output_defect_types ON output_defect_types.id = output_defects.defect_type_id
-                WHERE
-                    output_defects.id IS NOT NULL
-                    {$filterDefectOutput}
-                    {$callbackFilterOutput}
+        $excel = FastExcel::create('data');
+        $sheet = $excel->getSheet();
 
-                UNION ALL
+        $area = $sheet->beginArea();
 
-                -- Output RFT
-                SELECT
-                    output_rfts.kode_numbering
-                FROM output_rfts
-                    LEFT JOIN master_plan ON master_plan.id = output_rfts.master_plan_id
-                    LEFT JOIN so_det ON so_det.id = output_rfts.so_det_id
-                    LEFT JOIN so ON so.id = so_det.id_so
-                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
-                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
-                    LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts.created_by
-                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
-                WHERE
-                    output_rfts.id IS NOT NULL
-                    AND output_rfts.status = 'NORMAL'
-                    {$filterRftOutput}
-                    {$callbackFilterOutput}
+        $sheet->writeTo('A1', 'Check Output Detail', ['font-size' => 16]);
+        $sheet->mergeCells('A1:S1');
 
-                UNION ALL
+        $sheet->writeTo('A2', "Kode")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('B2', "Buyer")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('C2', "WS")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('D2', "Style")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('E2', "Color")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('F2', "Size")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('G2', "Tanggal Loading")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('H2', "Line Loading")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('I2', "Tanggal Plan")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('J2', "Tanggal Sewing")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('K2', "Line Sewing")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('L2', "Status Sewing")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('M2', "Defect Sewing")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('N2', "Alokasi Sewing")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('O2', "Tanggal Finishing")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('P2', "Line Finishing")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Q2', "Status Finishing")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('R2', "Defect Finishing")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('S2', "Alokasi Finishing")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-                -- Output rejects
-                SELECT
-                    output_rejects.kode_numbering
-                FROM output_rejects
-                    LEFT JOIN master_plan ON master_plan.id = output_rejects.master_plan_id
-                    LEFT JOIN so_det ON so_det.id = output_rejects.so_det_id
-                    LEFT JOIN so ON so.id = so_det.id_so
-                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
-                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
-                    LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rejects.created_by
-                    LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
-                    LEFT JOIN output_defect_types ON output_defect_types.id = output_rejects.reject_type_id
-                WHERE
-                    output_rejects.reject_status = 'mati'
-                    {$filterRejectOutput}
-                    {$callbackFilterOutput}
-
-                UNION ALL
-
-                -- Output defects packing
-                SELECT
-                    output_defects.kode_numbering
-                FROM output_defects_packing AS output_defects
-                    LEFT JOIN master_plan ON master_plan.id = output_defects.master_plan_id
-                    LEFT JOIN so_det ON so_det.id = output_defects.so_det_id
-                    LEFT JOIN so ON so.id = so_det.id_so
-                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
-                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
-                    LEFT JOIN userpassword ON userpassword.username = output_defects.created_by
-                    LEFT JOIN output_defect_types ON output_defect_types.id = output_defects.defect_type_id
-                WHERE
-                    output_defects.id IS NOT NULL
-                    {$filterDefectPck}
-                    {$callbackFilterPacking}
-
-                UNION ALL
-
-                -- Output RFT packing
-                SELECT
-                    output_rfts.kode_numbering
-                FROM output_rfts_packing AS output_rfts
-                    LEFT JOIN master_plan ON master_plan.id = output_rfts.master_plan_id
-                    LEFT JOIN so_det ON so_det.id = output_rfts.so_det_id
-                    LEFT JOIN so ON so.id = so_det.id_so
-                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
-                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
-                    LEFT JOIN userpassword ON userpassword.username = output_rfts.created_by
-                WHERE
-                    output_rfts.id IS NOT NULL
-                    AND output_rfts.status = 'NORMAL'
-                    {$filterRftPck}
-                    {$callbackFilterPacking}
-
-                UNION ALL
-
-                -- Output rejects packing
-                SELECT
-                    output_rejects.kode_numbering
-                FROM output_rejects_packing AS output_rejects
-                    LEFT JOIN master_plan ON master_plan.id = output_rejects.master_plan_id
-                    LEFT JOIN so_det ON so_det.id = output_rejects.so_det_id
-                    LEFT JOIN so ON so.id = so_det.id_so
-                    LEFT JOIN act_costing ON act_costing.id = so.id_cost
-                    LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
-                    LEFT JOIN userpassword ON userpassword.username = output_rejects.created_by
-                    LEFT JOIN output_defect_types ON output_defect_types.id = output_rejects.reject_type_id
-                WHERE
-                    output_rejects.reject_status = 'mati'
-                    {$filterRejectPck}
-                    {$callbackFilterPacking}
-            ) AS kode_list
-        ");
-
-        $kodeList = "'none'";
-        if (count($outputQuery) > 0) {
-            $kodeList = addQuotesAround(implode("\n", array_column($outputQuery, 'kode_numbering')));
-        }
-
-        $outputList ="
-            select
+        DB::connection("mysql_sb")->table(DB::raw("
+                (
+                    select
+                        ys.*,
+                        msb.buyer,
+                        msb.ws,
+                        msb.styleno,
+                        msb.color
+                    from
+                        laravel_nds.year_sequence as ys
+                        left join laravel_nds.master_sb_ws as msb on msb.id_so_det = ys.so_det_id
+                    where
+                        ys.id is not null
+                        ".$filterYs."
+                        ".$callbackFilterYs."
+                ) as ys
+            "))->selectRaw("
                 COALESCE(output.kode_numbering, output_packing.kode_numbering, id_year_sequence) kode,
                 COALESCE(output.Supplier, ys.buyer) buyer,
                 COALESCE(output.ws, ys.ws) ws,
@@ -1848,23 +2389,7 @@ class SewingToolsController extends Controller
                 output_packing.status status_output_packing,
                 output_packing.defect_type as defect_output_packing,
                 output_packing.allocation as allocation_output_packing
-            from
-                (
-                    select
-                        ys.*,
-                        msb.buyer,
-                        msb.ws,
-                        msb.styleno,
-                        msb.color
-                    from
-                        laravel_nds.year_sequence as ys
-                        left join laravel_nds.master_sb_ws as msb on msb.id_so_det = ys.so_det_id
-                    where
-                        ys.id is not null
-                        ".$filterYs."
-                        ".$callbackFilterYs."
-                ) as ys
-                left join (
+            ")->leftJoin(DB::raw("(
                     select
                         mastersupplier.Supplier,
                         act_costing.kpno ws,
@@ -1890,7 +2415,8 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
                     where
                         output_defects.id is not null
-                        and kode_numbering in (".$kodeList.")
+                        {$filterDefectOutput}
+                        {$callbackFilterOutput}
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -1916,8 +2442,9 @@ class SewingToolsController extends Controller
                         left join userpassword on userpassword.line_id = user_sb_wip.line_id
                     where
                         output_rfts.id is not null
-                        and output_rfts.status = 'NORMAL'
-                        and kode_numbering in (".$kodeList.")
+                        AND output_rfts.status = 'NORMAL'
+                        {$filterRftOutput}
+                        {$callbackFilterOutput}
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -1944,9 +2471,11 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
                     where
                         output_rejects.reject_status = 'mati'
-                        and kode_numbering in (".$kodeList.")
-                ) output ON output.kode_numbering = ys.id_year_sequence
-                left join (
+                        {$filterRejectOutput}
+                        {$callbackFilterOutput}
+                ) output
+            "), "output.kode_numbering", "=", "ys.id_year_sequence")->
+            leftJoin(DB::raw("(
                     select
                         mastersupplier.Supplier,
                         act_costing.kpno ws,
@@ -1971,7 +2500,8 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_defects.defect_type_id
                     where
                         output_defects.id is not null
-                        and kode_numbering in (".$kodeList.")
+                        {$filterDefectPck}
+                        {$callbackFilterPacking}
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -1997,7 +2527,8 @@ class SewingToolsController extends Controller
                     where
                         output_rfts.id is not null
                         and output_rfts.status = 'NORMAL'
-                        and kode_numbering in (".$kodeList.")
+                        {$filterRftPck}
+                        {$callbackFilterPacking}
                 UNION ALL
                     select
                         mastersupplier.Supplier,
@@ -2023,50 +2554,55 @@ class SewingToolsController extends Controller
                         left join output_defect_types on output_defect_types.id = output_rejects.reject_type_id
                     where
                         output_rejects.reject_status = 'mati'
-                        and kode_numbering in (".$kodeList.")
-                ) output_packing ON output_packing.kode_numbering = output.kode_numbering
-            left join laravel_nds.stocker_input as stk on stk.id_qr_stocker = ys.id_qr_stocker
-            left join laravel_nds.stocker_input as stk_bk on (stk_bk.form_cut_id = ys.form_cut_id and stk_bk.form_reject_id = ys.form_reject_id and stk_bk.form_piece_id = ys.form_piece_id) and stk_bk.so_det_id = ys.so_det_id and CAST(stk_bk.range_awal AS UNSIGNED) <= CAST(ys.number AS UNSIGNED) and CAST(stk_bk.range_akhir AS UNSIGNED) >= CAST(ys.number AS UNSIGNED)
-            left join laravel_nds.loading_line as loading on loading.stocker_id = stk.id
-            left join laravel_nds.loading_line as loading_bk on loading_bk.stocker_id = stk_bk.id
-            WHERE
-                ys.id is not null
-                ".$tglLoading."
-                ".$lineLoading."
-                ".$statusOutput."
-                ".$statusPacking."
-                ".$crossLineLoading."
-                ".$crossLineOutput."
-                ".$additionalFilter."
-        ";
+                        {$filterRejectPck}
+                        {$callbackFilterPacking}
+                ) output_packing
+            "), "output_packing.kode_numbering", "=", "output.kode_numbering")->
+            leftJoin(DB::raw("laravel_nds.stocker_input as stk"), "stk.id_qr_stocker", "=", "ys.id_qr_stocker")->
+            leftJoin(DB::raw("laravel_nds.stocker_input as stk_bk"), function ($join) {
+                $join->on("stk_bk.form_cut_id", "=", "ys.form_cut_id");
+                $join->on("stk_bk.form_reject_id", "=", "ys.form_reject_id");
+                $join->on("stk_bk.form_piece_id", "=", "ys.form_piece_id");
+                $join->on("stk_bk.so_det_id", "=", "ys.so_det_id");
+                $join->on(DB::raw("CAST(stk_bk.range_awal AS UNSIGNED)"), "<=", DB::raw("CAST(ys.number AS UNSIGNED)"));
+                $join->on(DB::raw("CAST(stk_bk.range_akhir AS UNSIGNED)"), ">=", DB::raw("CAST(ys.number AS UNSIGNED)"));
+            })->
+            leftJoin(DB::raw("laravel_nds.loading_line as loading"), "loading.stocker_id", "=", "stk.id")->
+            leftJoin(DB::raw("laravel_nds.loading_line as loading_bk"), "loading_bk.stocker_id", "=", "stk_bk.id")->
+            orderBy("ys.id_year_sequence")->
+            chunk(100000, function ($rows) use ($sheet) {
+                $sheet->writeAreas();
 
-        $buyer = $request->buyer;
-        $ws = $request->ws;
-        $style = $request->style;
-        $color = $request->color;
-        $size = $request->size;
-        $kode = $request->kode;
-        $tanggal_loading = $request->tanggal_loading;
-        $line_loading = $request->line_loading;
-        $tanggal_plan = $request->tanggal_plan;
-        $tanggal_output = $request->tanggal_output;
-        $tanggal_packing = $request->tanggal_packing;
-        $line_output = $request->line_output;
-        $status_output = $request->status_output;
-        $defect_output = $request->defect_output;
-        $allocation_output = $request->allocation_output;
-        $line_packing = $request->line_packing;
-        $status_packing = $request->status_packing;
-        $defect_packing = $request->defect_packing;
-        $allocation_packing = $request->allocation_packing;
-        $crossline_loading = $request->crossline_loading;
-        $crossline_output = $request->crossline_output;
-        $missmatch_code = $request->missmatch_code;
-        $missmatch_code_packing = $request->missmatch_code_packing;
-        $back_date = $request->back_date;
-        $back_date_packing = $request->back_date_packing;
+                foreach ($rows as $row) {
+                    $rowArr = [
+                        $row->kode ?? "-",
+                        $row->buyer ?? "-",
+                        $row->ws ?? "-",
+                        $row->style ?? "-",
+                        $row->color ?? "-",
+                        $row->size ?? "-",
+                        $row->tanggal_loading ?? "-",
+                        $row->line_loading ?? "-",
+                        $row->tanggal_plan ?? "-",
+                        $row->tanggal_output ?? "-",
+                        $row->line_output ?? "-",
+                        $row->status_output ?? "-",
+                        $row->defect_output ?? "-",
+                        $row->allocation_output ?? "-",
+                        $row->tanggal_output_packing ?? "-",
+                        $row->line_output_packing ?? "-",
+                        $row->status_output_packing ?? "-",
+                        $row->defect_output_packing ?? "-",
+                        $row->allocation_output_packing ?? "-",
+                    ];
 
-        return Excel::download(new CheckOutputDetailListExport($outputList, $buyer, $ws, $style, $color, $size, $kode, $tanggal_loading, $line_loading, $tanggal_plan, $tanggal_output, $tanggal_packing, $line_output, $status_output, $defect_output, $allocation_output, $line_packing, $status_packing, $defect_packing, $allocation_packing, $crossline_loading, $crossline_output, $missmatch_code, $missmatch_code_packing, $back_date, $back_date_packing), 'Laporan Output Detail.xlsx');
+                    $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+                }
+            });
+
+        $filename = date('Y-m-d') . ' Check Output Detail.xlsx';
+
+        return $excel->download($filename);
     }
 
     public function undoOutput(Request $request) {
@@ -2134,12 +2670,12 @@ class SewingToolsController extends Controller
                             // Undo RFT
                             $rft = DB::connection("mysql_sb")->table("output_rfts".$department)->where('id', $output->id)->first();
 
-                            if ($rft) {
+                            if ($rft && $rft->id) {
                                 $deleteRft = DB::connection("mysql_sb")->table("output_rfts".$department)->where('id', $rft->id)->delete();
 
                                 if ($deleteRft) {
                                     if ($department == "_packing_po") {
-                                        DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'po_id' => $rft->po_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'alokasi' => $rft->alokasi, 'created_by' => $rft->created_by, 'created_by_username' => $rft->created_by_username, 'created_by_line' => $rft->created_by_line, 'created_at' => $rft->created_at, 'updated_at' => $rft->updated_at, 'undo_by_nds' => Auth::user()->id]);
+                                        DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $rft ? $rft->master_plan_id : null, 'so_det_id' => $rft ? $rft->so_det_id : null, 'po_id' => $rft ? $rft->po_id : null, 'output_rft_id' => $rft ? $rft->id : null, 'kode_numbering' => $rft ? $rft->kode_numbering : null, 'keterangan' => 'rft', 'alokasi' => $rft ? $rft->alokasi : null, 'created_by' => $rft ? $rft->created_by : null, 'created_by_username' => $rft ? $rft->created_by_username : null, 'created_by_line' => $rft ? $rft->created_by_line : null, 'created_at' => $rft ? $rft->created_at : null, 'updated_at' => $rft ? $rft->updated_at : null, 'undo_by_nds' => Auth::user()->id]);
 
                                         // Delete Gudang Stok on Packing Po GudangStok
                                         if ($rft->alokasi == "gudang stok") {
@@ -2176,17 +2712,19 @@ class SewingToolsController extends Controller
                             if ($defect) {
                                 $reject = DB::connection("mysql_sb")->table("output_rejects".$department)->where('defect_id', $defect->id)->first();
 
-                                if ($reject) {
+                                if ($reject && $reject->id) {
                                     $deleteReject = DB::connection("mysql_sb")->table("output_rejects".$department)->where("id", $reject->id)->delete();
 
                                     if ($deleteReject) {
-                                        DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_defect_id' => $defect->id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'keterangan' => 'defect-reject', 'created_by' => $reject->created_by, 'created_at' => $reject->created_at, 'updated_at' => $reject->updated_at, 'undo_by_nds' => Auth::user()->id]);
+                                        DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $reject ? $reject->master_plan_id : null, 'so_det_id' => $reject ? $reject->so_det_id : null, 'output_defect_id' => $defect ? $defect->id : null, 'output_reject_id' => $reject ? $reject->id : null, 'kode_numbering' => $reject ? $reject->kode_numbering : null, 'defect_type_id' => $reject ? $reject->reject_type_id : null, 'defect_area_id' => $reject ? $reject->reject_area_id : null, 'defect_area_x' => $reject ? $reject->reject_area_x : null, 'defect_area_y' => $reject ? $reject->reject_area_y : null, 'keterangan' => 'defect-reject', 'created_by' => $reject ? $reject->created_by : null, 'created_at' => $reject ? $reject->created_at : null, 'updated_at' => $reject ? $reject->updated_at : null, 'undo_by_nds' => Auth::user()->id]);
 
-                                        DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->update([
-                                            "defect_status" => "defect"
-                                        ]);
+                                        if ($defect && $defect->id) {
+                                            DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->update([
+                                                "defect_status" => "defect"
+                                            ]);
 
-                                        array_push($result, "REJECT '".$reject->kode_numbering."' -> DEFECT");
+                                            array_push($result, "REJECT '".$reject->kode_numbering."' -> DEFECT");
+                                        }
                                     }
                                 }
                             }
@@ -2196,22 +2734,34 @@ class SewingToolsController extends Controller
                             // Undo REWORK
                             $defect = DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $output->id)->first();
 
-                            $rework = DB::connection("mysql_sb")->table("output_reworks".$department)->where('defect_id', $defect->id)->first();
+                            $rework = null;
+                            if ($defect && $defect->id) {
+                                $rework = DB::connection("mysql_sb")->table("output_reworks".$department)->where('defect_id', $defect->id)->first();
+                            }
 
-                            $rft = DB::connection("mysql_sb")->table("output_rfts".$department)->where('rework_id', $rework->id)->first();
+                            $rft = null;
+                            if ($rework && $rework->id) {
+                                $rft = DB::connection("mysql_sb")->table("output_rfts".$department)->where('rework_id', $rework->id)->first();
+                            }
 
-                            $deleteRework = DB::connection("mysql_sb")->table("output_reworks".$department)->where('id', $rework->id)->delete();
+                            // Delete Rework
+                            $deleteRework = null;
+                            if ($rework && $rework->id) {
+                                $deleteRework = DB::connection("mysql_sb")->table("output_reworks".$department)->where('id', $rework->id)->delete();
+                            }
 
-                            if ($deleteRework) {
-                                DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_defect_id' => $defect->id, 'output_rft_id' => $rft->id, 'output_rework_id' => $rework->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect-rework', 'created_by' => $defect->created_by, 'created_at' => $defect->created_at, 'updated_at' => $defect->updated_at, 'undo_by_nds' => Auth::user()->id]);
-
+                            // Update Defect
+                            if ($defect && $defect->id) {
                                 DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->update([
                                     "defect_status" => "defect"
                                 ]);
 
-                                DB::connection("mysql_sb")->table("output_rfts".$department)->where("rework_id", $rework->id)->delete();
-
                                 array_push($result, "REWORK '".$defect->kode_numbering."' -> DEFECT");
+                            }
+
+                            // Delete Rft
+                            if ($rework && $rework->id) {
+                                DB::connection("mysql_sb")->table("output_rfts".$department)->where("rework_id", $rework->id)->delete();
                             }
 
                             break;
@@ -2219,7 +2769,10 @@ class SewingToolsController extends Controller
                             // Undo REJECT
                             $reject = DB::connection("mysql_sb")->table("output_rejects".$department)->where('id', $output->id)->first();
 
-                            $deleteReject = DB::connection("mysql_sb")->table("output_rejects".$department)->where('id', $reject->id)->delete();
+                            $deleteReject = null;
+                            if ($reject && $reject->id) {
+                                $deleteReject = DB::connection("mysql_sb")->table("output_rejects".$department)->where('id', $reject->id)->delete();
+                            }
 
                             if ($deleteReject) {
                                 DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'created_by' => $reject->created_by, 'created_at' => $reject->created_at, 'updated_at' => $reject->updated_at, 'undo_by_nds' => Auth::user()->id]);
@@ -3363,4 +3916,64 @@ class SewingToolsController extends Controller
         }
     }
 
+    public function printLineLabel() {
+        $customPaper = array(0, 0, 35.35, 110.90);
+        $data = [
+            'LINE 01',
+            'LINE 02',
+            'LINE 03',
+            'LINE 04',
+            'LINE 05',
+            'LINE 06',
+            'LINE 07',
+            'LINE 08',
+            'LINE 09',
+            'LINE 10',
+            'LINE 11',
+            'LINE 12',
+            'LINE 13',
+            'LINE 14',
+            'LINE 15',
+            'LINE 16',
+            'LINE 17',
+            'LINE 18',
+            'LINE 19',
+            'LINE 20',
+            'LINE 21',
+            'LINE 22',
+            'LINE 23',
+            'LINE 24',
+            'LINE 25',
+            'LINE 26',
+            'LINE 27',
+            'LINE 28',
+            'LINE 29',
+            'LINE 30',
+            'LINE 31',
+            'LINE 32',
+            'LINE 33',
+            'LINE 34',
+            'LINE 35',
+            'LINE 36',
+            'LINE 37',
+            'LINE 38',
+            'LINE 39',
+            'LINE 40',
+            'LINE 41',
+            'LINE 42',
+            'LINE 43',
+            'LINE 44',
+            'LINE 45',
+            'CUTTING',
+            'MENDING',
+            'SPOT CLEANING',
+            'IT',
+            'DC'
+        ];
+        $pdf = PDF::loadView('sewing.pdf.print-line-label', ["data" => $data])->setPaper($customPaper);
+
+        $fileName = str_replace("/", "-", ('Line Label.pdf'));
+
+        return $pdf->download(str_replace("/", "_", $fileName));
+    }
 }

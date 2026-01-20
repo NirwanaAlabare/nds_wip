@@ -65,6 +65,76 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#deleteRedundantRoll">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Delete Redundant</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Delete Redundant Roll --}}
+    <div class="modal fade" id="deleteRedundantRoll" tabindex="-1" aria-labelledby="deleteRedundantRollLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="deleteRedundantRollLabel">Delete Redundant Roll</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">ID Roll</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="delete_roll_id">
+                            <button class="btn btn-sb" onclick="fetchScan(document.getElementById('delete_roll_id'), 'delete_roll_')">Get</button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">ID Item</label>
+                        <input type="text" class="form-control" id="delete_roll_id_item" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <input type="text" class="form-control" id="delete_roll_detail_item" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Color</label>
+                        <input type="text" class="form-control" id="delete_roll_color" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Buyer</label>
+                        <input type="text" class="form-control" id="delete_roll_buyer" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">No. WS</label>
+                        <input type="text" class="form-control" id="delete_roll_no_ws" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Style</label>
+                        <input type="text" class="form-control" id="delete_roll_style" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Lot</label>
+                        <input type="text" class="form-control" id="delete_roll_lot" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">No. Roll</label>
+                        <input type="text" class="form-control" id="delete_roll_no_roll" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Qty</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="delete_roll_qty" readonly>
+                            <input type="text" class="form-control" id="delete_roll_unit" readonly>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-sb btn-block" onclick="deleteRedundantRoll()">Delete Redundant Roll</button>
+                </div>
             </div>
         </div>
     </div>
@@ -82,7 +152,7 @@
                         <label class="form-label">ID Roll</label>
                         <div class="input-group">
                             <input type="text" class="form-control" id="fix_roll_id">
-                            <button class="btn btn-sb" onclick="fetchScan(document.getElementById('fix_roll_id'))">Get</button>
+                            <button class="btn btn-sb" onclick="fetchScan(document.getElementById('fix_roll_id'), 'fix_roll_')">Get</button>
                         </div>
                     </div>
                     <div class="mb-3">
@@ -415,14 +485,14 @@
 
         document.getElementById("fix_roll_id").addEventListener("onkeydown", (event) => {
             if (event.keyCode == 13) {
-                fetchScan(this);
+                fetchScan(this, "fix_roll_");
             }
         })
 
-        function fetchScan(element) {
+        function fetchScan(element, prefix) {
             let idRoll = element.value;
 
-            getScannedItem(idRoll, "fix_roll_");
+            getScannedItem(idRoll, prefix);
         }
 
         async function getScannedItem(id, prefix) {
@@ -504,11 +574,11 @@
             let idRoll = document.getElementById("fix_roll_id").value;
             let qtyRoll = document.getElementById("fix_roll_qty").value;
 
-            if (!idRoll || !qtyRoll || isNaN(qtyRoll)) {
+            if (!idRoll) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Invalid Input',
-                    text: 'Please enter a valid Roll ID and Quantity.',
+                    text: 'Please enter a valid Roll ID.',
                 });
                 return;
             }
@@ -614,7 +684,7 @@
                                             <tr>
                                                 <td><input type='text' class='form-control' value='`+item.so_det_id+`' id='`+prefix+`so_det_id_`+i+`' data-index='`+i+`' name='`+prefix+`so_det_id[`+i+`]' readonly /></td>
                                                 <td><input type='text' class='form-control' value='`+item.size+`' id='`+prefix+`size_`+i+`' data-index='`+i+`' name='`+prefix+`size[`+i+`]' readonly /></td>
-                                                <td><input type='number' class='form-control' value='`+item.ratio+`' id='`+prefix+`ratio_`+i+`' data-index='`+i+`' name='`+prefix+`ratio[`+i+`]' onkeyup='calculateRatio(this)'/></td>
+                                                <td><input type='number' class='form-control' value='`+item.ratio+`' id='`+prefix+`ratio_`+i+`' data-index='`+i+`' name='`+prefix+`ratio[`+i+`]' onkeyup='calculateRatio(this)' onchange='calculateRatio(this)'/></td>
                                                 <td><input type='number' class='form-control' value='`+item.cut_qty+`' id='`+prefix+`cut_qty_`+i+`' data-index='`+i+`' name='`+prefix+`cut_qty[`+i+`]' readonly /></td>
                                             </tr>
                                         `;
@@ -967,6 +1037,69 @@
             $('#form_group_modify_group').val("").trigger("change");
             $('#form_group_modify_group').val("").trigger("change");
             $('#form_group_new_modify_group').val("").trigger("change");
+        }
+
+        function deleteRedundantRoll() {
+            Swal.fire({
+                title: 'Hapus Redundant Roll?',
+                html: 'Yakin akan menghapus redundant roll? <br> '+$('#delete_roll_id').val()+'?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'UBAH',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#dc3545"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById("loading").classList.remove("d-none");
+
+                    $.ajax({
+                        type: "post",
+                        url: "{{ route("delete-redundant-roll") }}",
+                        data: {
+                            id_roll: $('#delete_roll_id').val(),
+                        },
+                        dataType: "json",
+                        success: function (response) {
+                            document.getElementById("loading").classList.add("d-none");
+
+                            console.log(response);
+
+                            if (response.status == 200) {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Proses Selesai",
+                                    html: response.message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Proses Gagal",
+                                    html: response.message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                });
+                            }
+                        },
+                        error: function (jqXHR) {
+                            document.getElementById("loading").classList.add("d-none");
+
+                            console.error(jqXHR);
+
+                            Swal.fire({
+                                icon: "error",
+                                title: "Terjadi Kesalahan",
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+                        }
+                    });
+                }
+            });
         }
     </script>
 @endsection

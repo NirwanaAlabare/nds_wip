@@ -28,6 +28,9 @@ class DefectRateExport implements FromView, ShouldAutoSize, WithCharts, WithTitl
     protected $rowCount;
 
     function __construct($query, $dateFrom, $dateTo, $ws, $style, $color, $sewingLine, $department) {
+        ini_set('max_execution_time', 36000); // boost only once here
+        ini_set('memory_limit', '2048M'); // adjust as needed
+
         $this->query = $query;
         $this->dateFrom = $dateFrom;
         $this->dateTo = $dateTo;

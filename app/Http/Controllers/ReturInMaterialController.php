@@ -349,9 +349,9 @@ class ReturInMaterialController extends Controller
 
     //  $bpb_detail = DB::connection('mysql_sb')->insert("insert into whs_lokasi_inmaterial select a.*,(price_in + nilai_barang) nilai_barang from (select '' id, no_barcode,'".$bpbno_int."' no_dok, no_ws, id_jo, id_item, kode_item, item_desc, no_roll, no_roll_buyer, no_lot,qty_sj, qty_aktual, qty_mutasi, qty_out, no_mut, satuan, kode_lok, status,created_by,created_at,updated_at from whs_lokasi_inmaterial_temp where created_by = '".Auth::user()->name."' GROUP BY no_barcode) a inner join (select id_roll,COALESCE(price_in,0) price_in, COALESCE(nilai_barang,0) nilai_barang from whs_bppb_det where status = 'Y' GROUP BY id_roll) b on b.id_roll = a.no_barcode");
 
-    $cari_temp = DB::connection('mysql_sb')->select("select a.*,(coalesce(price_in,0) + coalesce(nilai_barang,0)) nilai_barang from (select '' id, no_barcode,'".$bpbno_int."' no_dok, no_ws, id_jo, id_item, kode_item, item_desc, no_roll, no_roll_buyer, no_lot,qty_sj, qty_aktual, qty_mutasi, qty_out, no_mut, satuan, kode_lok, status,created_by,created_at,updated_at from whs_lokasi_inmaterial_temp where created_by = '".Auth::user()->name."' GROUP BY no_barcode) a inner join (select id_roll,COALESCE(price_in,0) price_in, COALESCE(nilai_barang,0) nilai_barang from whs_bppb_det where status = 'Y' GROUP BY id_roll) b on b.id_roll = a.no_barcode");
+     $cari_temp = DB::connection('mysql_sb')->select("select a.*,(coalesce(price_in,0) + coalesce(nilai_barang,0)) nilai_barang from (select '' id, no_barcode,'".$bpbno_int."' no_dok, no_ws, id_jo, id_item, kode_item, item_desc, no_roll, no_roll_buyer, no_lot,qty_sj, qty_aktual, qty_mutasi, qty_out, no_mut, satuan, kode_lok, status,created_by,created_at,updated_at from whs_lokasi_inmaterial_temp where created_by = '".Auth::user()->name."' GROUP BY no_barcode) a inner join (select id_roll,COALESCE(price_in,0) price_in, COALESCE(nilai_barang,0) nilai_barang from whs_bppb_det where status = 'Y' GROUP BY id_roll) b on b.id_roll = a.no_barcode");
          // $kode_ins = $kodeins ? $kodeins[0]->kode : null;
-    foreach ($cari_temp as $caritemp) {
+     foreach ($cari_temp as $caritemp) {
         $t_no_barcode = $caritemp->no_barcode;
         $t_no_ws = $caritemp->no_ws;
         $t_id_jo = $caritemp->id_jo;
@@ -375,56 +375,67 @@ class ReturInMaterialController extends Controller
         $t_nilai_barang = $caritemp->nilai_barang;
 
 
-    $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
-                $barcode = $sql_barcode[0]->kode;
+        $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
+        $barcode = $sql_barcode[0]->kode;
 
-                $save_lokasi = InMaterialLokasi::create([
-                    "no_barcode" => $t_no_barcode,
-                    "no_dok" => $bpbno_int,
-                    "no_ws" => $t_no_ws,
-                    "id_jo" => $t_id_jo,
-                    "id_item" => $t_id_item,
-                    "kode_item" => $t_kode_item,
-                    "item_desc" => $t_item_desc,
-                    "no_roll" => $t_no_roll,
-                    "no_roll_buyer" => $t_no_roll_buyer,
-                    "no_lot" => $t_no_lot,
-                    "qty_sj" => $t_qty_sj,
-                    "qty_aktual" => $t_qty_aktual,
-                    "satuan" => $t_satuan,
-                    "kode_lok" => $t_kode_lok,
-                    "status" => 'Y',
-                    "created_by" => Auth::user()->name,
-                    "created_at" => $t_created_at,
-                    "updated_at" => $t_updated_at,
-                    "nilai_barang" => $t_nilai_barang,
-                    "no_barcode_old" => $t_no_barcode,
-                ]);
+        $barcode_in = DB::connection('mysql_sb')->select("select no_roll_buyer, IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price from whs_lokasi_inmaterial where no_barcode = '" . $t_no_barcode . "' ORDER BY id ASC LIMIT 1");
+        $no_roll_buyer = $barcode_in ? $barcode_in[0]->no_roll_buyer : null;
+        $np_curr = $barcode_in ? $barcode_in[0]->np_curr : null;
+        $np_tgl_in = $barcode_in ? $barcode_in[0]->np_tgl_in : null;
+        $np_price = $barcode_in ? $barcode_in[0]->np_price : null;
 
-    $bpb_temp = InMaterialLokasiTemp::where('created_by',Auth::user()->name)->where('no_barcode',$t_no_barcode)->delete();
-            }
+        $save_lokasi = InMaterialLokasi::create([
+            "no_barcode" => $t_no_barcode,
+            "no_dok" => $bpbno_int,
+            "no_ws" => $t_no_ws,
+            "id_jo" => $t_id_jo,
+            "id_item" => $t_id_item,
+            "kode_item" => $t_kode_item,
+            "item_desc" => $t_item_desc,
+            "no_roll" => $t_no_roll,
+            "no_roll_buyer" => $t_no_roll_buyer,
+            "no_lot" => $t_no_lot,
+            "qty_sj" => $t_qty_sj,
+            "qty_aktual" => $t_qty_aktual,
+            "satuan" => $t_satuan,
+            "kode_lok" => $t_kode_lok,
+            "status" => 'Y',
+            "created_by" => Auth::user()->name,
+            "created_at" => $t_created_at,
+            "updated_at" => $t_updated_at,
+            "nilai_barang" => $t_nilai_barang,
+            "no_barcode_old" => $t_no_barcode,
+            "np_curr" => $np_curr,
+            "np_tgl_in" => $np_tgl_in,
+            "np_price" => $np_price,
+            "np_curr_rev" => null,
+            "np_price_rev" => null,
+        ]);
+
+        $bpb_temp = InMaterialLokasiTemp::where('created_by',Auth::user()->name)->where('no_barcode',$t_no_barcode)->delete();
+    }
 
 
-     $massage = $bpbno_int . ' Saved Succesfully';
-     $stat = 200;
+    $massage = $bpbno_int . ' Saved Succesfully';
+    $stat = 200;
     // }else{
     //     $massage = ' Please Input Data';
     //     $stat = 400;
     // }
 
 
-     return array(
+    return array(
         "status" =>  $stat,
         "message" => $massage,
         "additional" => [],
         "redirect" => url('/retur-inmaterial')
     );
 
- }
+}
 
 
- public function lokreturmaterial($id)
- {
+public function lokreturmaterial($id)
+{
 
     $kode_gr = DB::connection('mysql_sb')->select("select * from whs_inmaterial_fabric where id = '$id'");
     $det_data = DB::connection('mysql_sb')->select("select *, round((a.qty_good - COALESCE(b.qty_lok,0)),2) qty_sisa  from (select a.* from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y') a left join
@@ -763,17 +774,17 @@ public function showdetailbarcodeout(Request $request)
 
     // Ambil data item berdasarkan barcode yang dipilih
     $det_item = DB::connection('mysql_sb')
-        ->table('whs_bppb_det as a')
-        ->join('masteritem as b', 'b.id_item', '=', 'a.id_item')
-        ->select(
-            'a.id_roll', 'a.id_item', 'a.id_jo', 'a.no_roll as roll_no', 'a.no_lot as lot_no',
-            'b.goods_code', 'b.itemdesc', 'a.qty_out as sisa', 'a.satuan as unit', 'a.no_rak as kode_rak',
-            DB::raw("'' as kpno")
-        )
-        ->where('a.no_bppb', $no_bppb)
-        ->whereIn('a.id_roll', $id_barcode_array)
-        ->groupBy('a.id_roll')
-        ->get();
+    ->table('whs_bppb_det as a')
+    ->join('masteritem as b', 'b.id_item', '=', 'a.id_item')
+    ->select(
+        'a.id_roll', 'a.id_item', 'a.id_jo', 'a.no_roll as roll_no', 'a.no_lot as lot_no',
+        'b.goods_code', 'b.itemdesc', 'a.qty_out as sisa', 'a.satuan as unit', 'a.no_rak as kode_rak',
+        DB::raw("'' as kpno")
+    )
+    ->where('a.no_bppb', $no_bppb)
+    ->whereIn('a.id_roll', $id_barcode_array)
+    ->groupBy('a.id_roll')
+    ->get();
 
     // Hitung jumlah roll
     $ttl_roll = count($det_item);
@@ -781,10 +792,10 @@ public function showdetailbarcodeout(Request $request)
 
     // Ambil data lokasi
     $lokasi = DB::connection('mysql_sb')
-        ->table('whs_master_lokasi')
-        ->select('id', 'kode_lok')
-        ->where('status', '=', 'active')
-        ->get();
+    ->table('whs_master_lokasi')
+    ->select('id', 'kode_lok')
+    ->where('status', '=', 'active')
+    ->get();
 
     $pilih_lokasi = '';
     foreach ($lokasi as $lok) {
@@ -846,11 +857,11 @@ public function showdetailbarcodeout(Request $request)
 public function savebarcoderiscan(Request $request)
 {
     $tglbpb = $request['m_tgl_bppb2'];
-        $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('GK-IN-', DATE_FORMAT('" . $tglbpb . "', '%Y')) Mattype,IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0)) nomor,CONCAT('GK/RI/',DATE_FORMAT('" . $tglbpb . "', '%m'),DATE_FORMAT('" . $tglbpb . "', '%y'),'/',IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0))) bpbno_int FROM bpb WHERE MONTH(bpbdate) = MONTH('" . $tglbpb . "') AND YEAR(bpbdate) = YEAR('" . $tglbpb . "') AND LEFT(bpbno_int,2) = 'GK'");
+    $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('GK-IN-', DATE_FORMAT('" . $tglbpb . "', '%Y')) Mattype,IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0)) nomor,CONCAT('GK/RI/',DATE_FORMAT('" . $tglbpb . "', '%m'),DATE_FORMAT('" . $tglbpb . "', '%y'),'/',IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0))) bpbno_int FROM bpb WHERE MONTH(bpbdate) = MONTH('" . $tglbpb . "') AND YEAR(bpbdate) = YEAR('" . $tglbpb . "') AND LEFT(bpbno_int,2) = 'GK'");
          // $kode_ins = $kodeins ? $kodeins[0]->kode : null;
-        $m_type = $Mattype1[0]->Mattype;
-        $no_type = $Mattype1[0]->nomor;
-        $bpbno_int = $Mattype1[0]->bpbno_int;
+    $m_type = $Mattype1[0]->Mattype;
+    $no_type = $Mattype1[0]->nomor;
+    $bpbno_int = $Mattype1[0]->bpbno_int;
 
     $timestamp = Carbon::now();
     $no_bppb = $request['m_no_bppb2'];
@@ -918,11 +929,11 @@ public function savebarcoderiscan(Request $request)
 }
 
 public function deletescanritemp(Request $request)
-    {
+{
 
-        $deletescan = InMaterialLokasiTemp::where('id_jo',$request['id_jo'])->where('id_item',$request['id_item'])->where('created_by',Auth::user()->name)->delete();
+    $deletescan = InMaterialLokasiTemp::where('id_jo',$request['id_jo'])->where('id_item',$request['id_item'])->where('created_by',Auth::user()->name)->delete();
 
-    }
+}
 
 
     /**

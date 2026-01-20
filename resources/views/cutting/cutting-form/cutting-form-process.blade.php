@@ -1141,6 +1141,9 @@
             // -Method-
             var method = "scan";
 
+            // -Is Processing-
+            var isProcessing = false;
+
         // Function List :
             // -On Load-
             $(document).ready(async () => {
@@ -1420,6 +1423,10 @@
 
             // -Store Time Record Transaction-
             async function storeTimeRecord(isContinue = 0) {
+                if (isProcessing) return alert("Prevent Redundant data, Reload the page to Try Again.");
+
+                isProcessing = true;
+
                 document.getElementById("loading").classList.remove("d-none");
 
                 clearModified();
@@ -1444,6 +1451,8 @@
                     document.getElementById("loading").classList.add("d-none");
                     document.getElementById("stopLapButton").removeAttribute("disabled");
 
+                    isProcessing = false;
+
                     return Swal.fire({
                         icon: 'error',
                         title: 'Harap isi berat amparan',
@@ -1460,6 +1469,8 @@
                             document.getElementById("stopLapButton").removeAttribute("disabled");
 
                             lockForm();
+
+                            isProcessing = false;
 
                             return Swal.fire({
                                 icon: 'error',
@@ -1486,6 +1497,7 @@
                         dataType: 'json',
                         data: dataObj,
                         success: function(res) {
+                            isProcessing = false;
                             document.getElementById("loading").classList.add("d-none");
                             document.getElementById("stopLapButton").removeAttribute("disabled");
 
@@ -1520,6 +1532,7 @@
                             }
                         },
                         error: function(jqXHR) {
+                            isProcessing = false;
                             document.getElementById("loading").classList.add("d-none");
                             document.getElementById("stopLapButton").removeAttribute("disabled");
 
@@ -1551,6 +1564,7 @@
                         dataType: 'json',
                         data: dataObj,
                         success: function(res) {
+                            isProcessing = false;
                             document.getElementById("loading").classList.add("d-none");
                             document.getElementById("stopLapButton").removeAttribute("disabled");
 
@@ -1585,6 +1599,8 @@
                             }
                         },
                         error: function(jqXHR) {
+                            isProcessing = false;
+
                             document.getElementById("loading").classList.add("d-none");
                             document.getElementById("stopLapButton").removeAttribute("disabled");
 
@@ -2086,7 +2102,7 @@
 
                 let estAmpar = pActualConverted > 0 ? qtyVar / pActualConverted : 0;
 
-                document.getElementById("current_est_amparan").value = estAmpar.round(2);
+                document.getElementById("current_est_amparan").value = Number(estAmpar).round(2);
             }
 
             // -Calculate Pemakaian Lembar
@@ -2120,7 +2136,7 @@
 
                 let totalPemakaian = ((pActualConverted * lembarGelaranVar) + sambunganRollVar + sisaGelaranVar);
 
-                document.getElementById("current_pemakaian_lembar").value = totalPemakaian.round(2);
+                document.getElementById("current_pemakaian_lembar").value = Number(totalPemakaian).round(2);
             }
 
             // -Calculate Total Pemakaian Roll-
@@ -3660,6 +3676,8 @@
 
             // -Next Lap Time Record-
             async function addNewTimeRecord(data = null) {
+                nextLapButton.disabled - true;
+
                 if ($("#status_sambungan").val() == "extension") {
                     pauseTimeRecordButtons();
 
@@ -3686,11 +3704,12 @@
 
                     timeRecordTableTbody.prepend(tr);
 
-                    stopLapButton.disabled = false;
-
                     if (!(await stopTimeRecord())) {
                         resetTimeRecord();
                     }
+
+                    nextLapButton.disabled = false;
+                    stopLapButton.disabled = false;
                 } else {
                     pauseTimeRecordButtons();
 
@@ -3719,6 +3738,7 @@
 
                     await storeThisTimeRecord();
 
+                    nextLapButton.disabled = false;
                     stopLapButton.disabled = false;
                 }
 

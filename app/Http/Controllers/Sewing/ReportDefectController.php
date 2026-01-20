@@ -409,7 +409,8 @@ class ReportDefectController extends Controller
     }
 
     public function reportDefectExport(Request $request) {
-        ini_set("max_execution_time", 3600);
+        ini_set("memory_limit", "2048M");
+        ini_set("max_execution_time", 36000);
 
         $types = $request->types ? $request->types : ['defect_rate'];
         $dateFrom = $request->dateFrom ? $request->dateFrom : date("Y-m-d");
