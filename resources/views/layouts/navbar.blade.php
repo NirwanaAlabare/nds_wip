@@ -363,30 +363,6 @@
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
-                            <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
-                                class="nav-link dropdown-toggle {{ $subPageGroup == 'rak-dc' ? 'active' : '' }}">Rak</a>
-                            <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                                <li>
-                                    <a href="{{ route('rack') }}"
-                                        class="dropdown-item {{ $routeName == 'rack' ? 'active' : '' }}">
-                                        Master Rak <i class="fa-solid fa-plus-square fa-sm"></i>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('stock-rack') }}"
-                                        class="dropdown-item {{ $routeName == 'stock-rack' ? 'active' : '' }}">
-                                        Rak <i class="fa-solid fa-table fa-sm"></i>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('stock-rack-visual') }}"
-                                        class="dropdown-item {{ $routeName == 'stock-rack-visual' ? 'active' : '' }}">
-                                        Stok Rak <i class="fa-solid fa-th-list"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
                             <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
                                 class="nav-link dropdown-toggle {{ $subPageGroup == 'stok-dc' ? 'active' : '' }}">Stok
                                 DC</a>
@@ -407,6 +383,30 @@
                                     <a href="{{ route('stock-dc-wip') }}"
                                         class="dropdown-item {{ $routeName == 'stok-dc-wip' ? 'active' : '' }}">
                                         WIP <i class="fa-solid fa-shuffle"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+                                class="nav-link dropdown-toggle {{ $subPageGroup == 'rak-dc' ? 'active' : '' }}">Rak</a>
+                            <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                                <li>
+                                    <a href="{{ route('rack') }}"
+                                        class="dropdown-item {{ $routeName == 'rack' ? 'active' : '' }}">
+                                        Master Rak <i class="fa-solid fa-plus-square fa-sm"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('stock-rack') }}"
+                                        class="dropdown-item {{ $routeName == 'stock-rack' ? 'active' : '' }}">
+                                        Rak <i class="fa-solid fa-table fa-sm"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('stock-rack-visual') }}"
+                                        class="dropdown-item {{ $routeName == 'stock-rack-visual' ? 'active' : '' }}">
+                                        Stok Rak <i class="fa-solid fa-th-list"></i>
                                     </a>
                                 </li>
                             </ul>

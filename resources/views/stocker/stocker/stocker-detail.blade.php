@@ -100,12 +100,22 @@
                             <input type="text" class="form-control form-control-sm" id="panel" name="panel" value="{{ $dataSpreading->panel }}" readonly>
                         </div>
                     </div>
-                    <div class="col-6 col-md-6">
+                    <div class="col-6 col-md-3">
                         <div class="row">
                             <div class="col-12 col-md-12">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Part</small></label>
                                     <input type="text" class="form-control form-control-sm" id="part" name="part" value="{{ $dataSpreading->part }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="row">
+                            <div class="col-12 col-md-12">
+                                <div class="mb-1">
+                                    <label class="form-label"><small>Status</small></label>
+                                    <input type="text" class="form-control form-control-sm" id="part" name="part" value="{{ $dataSpreading->panel_status ? strtoupper($dataSpreading->panel_status)." PANEL" : "-"  }}" readonly>
                                 </div>
                             </div>
                         </div>
@@ -1097,6 +1107,704 @@
             </div>
         </div>
     </div>
+
+    {{-- Complement Section --}}
+
+    @php
+        $i = 0;
+    @endphp
+    @if ($dataStockerCom && $dataStockerCom->count() > 0)
+        @foreach ($dataStockerCom as $stockerCom)
+            @if ($stockerCom && $stockerCom['dataSpreading'])
+                @php
+                    $currentDataSpreading = $stockerCom['dataSpreading'];
+                    $currentDataPartForm = $stockerCom['dataPartForm'];
+                    $currentDataPartDetail = $stockerCom['dataPartDetail'];
+                    $currentDataRatio = $stockerCom['dataRatio'];
+                    $currentDataStocker = $stockerCom['dataStocker'];
+                    $currentDataNumbering = $stockerCom['dataNumbering'];
+                    $currentDataAdditional = $stockerCom['dataAdditional'];
+                    $currentDataPartDetailAdditional = $stockerCom['dataPartDetailAdditional'];
+                    $currentDataRatioAdditional = $stockerCom['dataRatioAdditional'];
+                    $currentDataStockerAdditional = $stockerCom['dataStockerAdditional'];
+                @endphp
+                <form action="#" method="post" id="stocker-form-com-{{ $i }}">
+                    <div class="card card-sb">
+                        <div class="card-header">
+                            <h5 class="card-title">{{ $currentDataSpreading->panel }}</h5>
+                        </div>
+                        <div class="card-body">
+                            {{-- Stocker --}}
+                            <div class="row mb-3">
+                                <div class="col-6 col-md-3">
+                                    <div class="mb-1">
+                                        <label class="form-label"><small>WS Number</small></label>
+                                        <input type="text" class="form-control form-control-sm" id="no_ws_com_{{ $i }}" name="no_ws" value="{{ $currentDataSpreading->ws }}" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="mb-1">
+                                        <label class="form-label"><small>Buyer</small></label>
+                                        <input type="text" class="form-control form-control-sm" id="buyer_com_{{ $i }}" name="buyer" value="{{ $currentDataSpreading->buyer }}" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="mb-1">
+                                        <label class="form-label"><small>Style</small></label>
+                                        <input type="text" class="form-control form-control-sm" id="style_com_{{ $i }}" name="style" value="{{ $currentDataSpreading->style }}" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="mb-1">
+                                        <label class="form-label"><small>Color</small></label>
+                                        <input type="text" class="form-control form-control-sm" id="color_com_{{ $i }}" name="color" value="{{ $currentDataSpreading->color }}" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="mb-1">
+                                        <label class="form-label"><small>Size</small></label>
+                                        <input type="text" class="form-control form-control-sm" id="size_com_{{ $i }}" name="size" value="{{ $currentDataSpreading->sizes }}" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="mb-1">
+                                        <label class="form-label"><small>Panel</small></label>
+                                        <input type="text" class="form-control form-control-sm" id="panel_com_{{ $i }}" name="panel" value="{{ $currentDataSpreading->panel }}" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="row">
+                                        <div class="col-12 col-md-12">
+                                            <div class="mb-1">
+                                                <label class="form-label"><small>Part</small></label>
+                                                <input type="text" class="form-control form-control-sm" id="part_com_{{ $i }}" name="part" value="{{ $currentDataSpreading->part }}" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="row">
+                                        <div class="col-12 col-md-12">
+                                            <div class="mb-1">
+                                                <label class="form-label"><small>Status</small></label>
+                                                <input type="text" class="form-control form-control-sm" id="part_com_{{ $i }}" name="part" value="{{ $currentDataSpreading->panel_status ? strtoupper($currentDataSpreading->panel_status)." PANEL" : "-"  }}" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6">
+                                    <div class="row">
+                                        <div class="col-4 col-md-4">
+                                            <div class="mb-1">
+                                                <label class="form-label"><small>Form Cut</small></label>
+                                                <input type="hidden" id="form_cut_id_com_{{ $i }}" name="form_cut_id" value="{{ $currentDataSpreading->id }}" readonly>
+                                                <input type="text" class="form-control form-control-sm" id="no_form_cut_com_{{ $i }}" name="no_form_cut" value="{{ $currentDataSpreading->no_form }}" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 col-md-4">
+                                            <div class="mb-1">
+                                                <label class="form-label"><small>Total Lembar</small></label>
+                                                <input type="text" class="form-control form-control-sm" id="qty_ply_total_com_{{ $i }}" name="qty_ply_total" value="{{ $currentDataSpreading->total_lembar }}" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 col-md-4">
+                                            <div class="mb-1">
+                                                <label class="form-label"><small>No. Cut</small></label>
+                                                <input type="text" class="form-control form-control-sm" id="no_cut_com_{{ $i }}" name="no_cut" value="{{ $currentDataSpreading->no_cut }}" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="mb-1">
+                                        <label class="form-label"><small>Tanggal Cutting</small></label>
+                                        <input type="date" class="form-control form-control-sm" id="tgl_form_cut_com_{{ $i }}" name="tgl_form_cut" value="{{ $currentDataSpreading->tgl_form_cut }}" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="mb-1">
+                                        <label class="form-label"><small>Catatan</small></label>
+                                        <textarea class="form-control form-control-sm" id="note_com_{{ $i }}" name="note" rows="2"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-5">
+                                <h5 class="fw-bold text-sb mb-3 ps-1">Print Stocker</h5>
+                                <div class="card">
+                                    <div class="card-body">
+                                        @php
+                                            $index = 0;
+                                            $partIndex = 0;
+
+                                            $currentGroup = "";
+                                            $currentGroupStocker = 0;
+                                            $currentTotal = 0;
+                                            $currentBefore = 0;
+                                            $currentModifySize = collect(["so_det_id" => null, "group_stocker" => null, "difference_qty" => null]);
+
+                                            $currentModifySizeQty = $modifySizeQty->filter(function ($item) {
+                                                return !is_null($item->group_stocker);
+                                            })->count();
+
+                                            $groupStockerList = [];
+                                        @endphp
+                                        @foreach ($currentDataSpreading->formCutInputDetails->where('status', '!=', 'not complete')->sortByDesc('group_roll')->sortByDesc('group_stocker') as $detail)
+                                            @if (!$detail->group_stocker)
+                                            {{-- Without group stocker condition --}}
+
+                                                @if ($loop->first)
+                                                {{-- Initial group --}}
+                                                    @php
+                                                        $currentGroup = $detail->group_roll;
+                                                        $currentGroupStocker = $detail->group_stocker;
+                                                    @endphp
+                                                @endif
+
+                                                @if ($detail->group_roll != $currentGroup)
+                                                    {{-- Create element when switching group --}}
+                                                    <div class="d-flex gap-3">
+                                                        <div class="mb-3">
+                                                            <label><small>Group</small></label>
+                                                            <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label><small>Qty</small></label>
+                                                            <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
+                                                        </div>
+                                                    </div>
+                                                    @php
+                                                        array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                                    @endphp
+
+                                                    @if ($currentModifySizeQty > 0)
+                                                        @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                    @else
+                                                        @include('stocker.stocker.stocker-detail-part-complement')
+                                                    @endif
+                                                    @php
+                                                        $index += $currentDataRatio->count() * $currentDataPartDetail->count();
+                                                        $partIndex += $currentDataPartDetail->count();
+                                                    @endphp
+
+                                                    {{-- Change initial group --}}
+                                                    @php
+                                                        $currentBefore += $currentTotal;
+
+                                                        $currentGroup = $detail->group_roll;
+                                                        $currentGroupStocker = $detail->group_stocker;
+                                                        $currentTotal = $detail->lembar_gelaran;
+
+                                                        $currentModifySize = $modifySizeQty->where("group_stocker", $currentGroupStocker)->first() ? $modifySizeQty->where("group_stocker", $currentGroupStocker)->first()->difference_qty : 0;
+                                                    @endphp
+
+                                                    @if ($loop->last)
+                                                        {{-- Create last element when it comes to an end of this loop --}}
+                                                        <div class="d-flex gap-3">
+                                                            <div class="mb-3">
+                                                                <label><small>Group</small></label>
+                                                                <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label><small>Qty</small></label>
+                                                                <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
+                                                            </div>
+                                                        </div>
+                                                        @php
+                                                            array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                                        @endphp
+
+                                                        @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                        @php
+                                                            $index += $currentDataRatio->count() * $currentDataPartDetail->count();
+                                                            $partIndex += $currentDataPartDetail->count();
+                                                        @endphp
+                                                    @endif
+                                                @else
+                                                    {{-- Accumulate when it still in the same group --}}
+                                                    @php
+                                                        $currentTotal += $detail->lembar_gelaran;
+                                                    @endphp
+
+                                                    {{-- Create last element when it comes to an end of this loop --}}
+                                                    @if ($loop->last)
+                                                        <div class="d-flex gap-3">
+                                                            <div class="mb-3">
+                                                                <label><small>Group</small></label>
+                                                                <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label><small>Qty</small></label>
+                                                                <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
+                                                            </div>
+                                                        </div>
+                                                        @php
+                                                            array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                                        @endphp
+
+                                                        @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                        @php
+                                                            $index += $currentDataRatio->count() * $currentDataPartDetail->count();
+                                                            $partIndex += $currentDataPartDetail->count();
+                                                        @endphp
+                                                    @endif
+                                                @endif
+                                            @else
+                                            {{-- With group stocker condition --}}
+
+                                                @if ($loop->first)
+                                                {{-- Initial Group --}}
+                                                    @php
+                                                        $currentGroup = $detail->group_roll;
+                                                        $currentGroupStocker = $detail->group_stocker;
+                                                    @endphp
+                                                @endif
+
+                                                @if ($detail->group_stocker != $currentGroupStocker)
+                                                    {{-- Create element when switching group --}}
+                                                    <div class="d-flex gap-3">
+                                                        <div class="mb-3">
+                                                            <label><small>Group</small></label>
+                                                            <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label><small>Qty</small></label>
+                                                            <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
+                                                        </div>
+                                                    </div>
+                                                    @php
+                                                        array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                                    @endphp
+
+                                                    @if ($currentModifySizeQty > 0)
+                                                        @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                    @else
+                                                        @include('stocker.stocker.stocker-detail-part-complement')
+                                                    @endif
+                                                    @php
+                                                        $index += $currentDataRatio->count() * $currentDataPartDetail->count();
+                                                        $partIndex += $currentDataPartDetail->count();
+                                                    @endphp
+
+                                                    {{-- Change initial group --}}
+                                                    @php
+                                                        $currentBefore += $currentTotal;
+
+                                                        $currentGroup = $detail->group_roll;
+                                                        $currentGroupStocker = $detail->group_stocker;
+                                                        $currentTotal = $detail->lembar_gelaran;
+                                                    @endphp
+
+                                                    {{-- Create last element when it comes to an end of this loop --}}
+                                                    @if ($loop->last)
+                                                        <div class="d-flex gap-3">
+                                                            <div class="mb-3">
+                                                                <label><small>Group</small></label>
+                                                                <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label><small>Qty</small></label>
+                                                                <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
+                                                            </div>
+                                                        </div>
+                                                        @php
+                                                            array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                                        @endphp
+
+                                                        @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                        @php
+                                                            $index += $currentDataRatio->count() * $currentDataPartDetail->count();
+                                                            $partIndex += $currentDataPartDetail->count();
+                                                        @endphp
+                                                    @endif
+                                                @else
+                                                    {{-- Accumulate when it still in the group --}}
+                                                    @php
+                                                        $currentTotal += $detail->lembar_gelaran;
+                                                    @endphp
+
+                                                    @if ($loop->last)
+                                                    {{-- Create last element when it comes to an end of this loop --}}
+                                                        <div class="d-flex gap-3">
+                                                            <div class="mb-3">
+                                                                <label><small>Group</small></label>
+                                                                <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label><small>Qty</small></label>
+                                                                <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
+                                                            </div>
+                                                        </div>
+                                                        @php
+                                                            array_push($groupStockerList, ["group_stocker" => $currentGroupStocker, "qty" => $currentTotal]);
+                                                        @endphp
+
+                                                        @include('stocker.stocker.stocker-detail-part-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                        @php
+                                                            $index += $currentDataRatio->count() * $currentDataPartDetail->count();
+                                                            $partIndex += $currentDataPartDetail->count();
+                                                        @endphp
+                                                    @endif
+                                                @endif
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                    <div class="d-flex justify-content-end p-3">
+                                        <button type="button" class="btn btn-danger btn-sm mb-3 w-auto" onclick="generateCheckedStockerCom({{ $i }})"><i class="fa fa-print"></i> Generate Checked Stocker</button>
+                                    </div>
+                                </div>
+                            </div>
+                            {{-- Additional Stocker --}}
+                            <div class="mb-5">
+                                <h5 class="text-sb-secondary fw-bold mb-3 ps-1">Additional Stocker</h5>
+                                <div class="card">
+                                    <div class="card-body">
+                                        @if (!$currentDataAdditional)
+                                            <div class="d-flex justify-content-end">
+                                                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#additional-modal">
+                                                    <i class="fa-solid fa-plus fa-sm"></i> Add Additional Stocker
+                                                </button>
+                                            </div>
+                                        @endif
+                                        @if ($currentDataAdditional)
+                                            <input type="hidden" value="{{ $currentDataAdditional->act_costing_ws }}" id="id_ws_add_com_{{ $i }}" readonly>
+                                            <div class="row my-3">
+                                                <div class="col-md-3">
+                                                    <label><small>No. WS</small></label>
+                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentDataAdditional->act_costing_ws }}" id="no_ws_add_com_{{ $i }}" name="no_ws_add" readonly>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label><small>Style</small></label>
+                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentDataAdditional->style }}" id="style_add_com_{{ $i }}" name="style_add" readonly>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label><small>Color</small></label>
+                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentDataAdditional->color }}" id="color_add_com_{{ $i }}" name="color_add" readonly>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label><small>Panel</small></label>
+                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentDataAdditional->panel }}" id="panel_add_com_{{ $i }}" name="panel_add" readonly>
+                                                </div>
+                                            </div>
+                                            <hr style="margin-top: 1rem; margin-bottom: 1rem; border: 1px; border-top-width: 1px; border-top-style: none; border-top-color: currentcolor; border-top: 1px solid rgb(149, 149, 149);">
+                                            @php
+                                                $indexAdditional = 0;
+                                                $partIndexAdditional = 0;
+
+                                                $currentGroupAdditional = "";
+                                                $currentGroupStockerAdditional = 0;
+                                                $currentTotalAdditional = 0;
+                                                $currentBeforeAdditional = 0;
+
+                                                $currentModifySizeAdditional = collect(["so_det_id" => null, "group_stocker" => null, "difference_qty" => null]);
+
+                                                $currentModifySizeQtyAdditional = $modifySizeQty->filter(function ($item) {
+                                                    return !is_null($item->group_stocker);
+                                                })->count();
+                                            @endphp
+                                            @foreach ($currentDataSpreading->formCutInputDetails->where('status', '!=', 'not complete')->sortByDesc('group_roll')->sortByDesc('group_stocker') as $detail)
+                                                @if (!$detail->group_stocker)
+                                                {{-- Without group stocker condition --}}
+
+                                                    @if ($loop->first)
+                                                    {{-- Initial group --}}
+                                                        @php
+                                                            $currentGroupAdditional = $detail->group_roll;
+                                                            $currentGroupStockerAdditional = $detail->group_stocker;
+                                                        @endphp
+                                                    @endif
+
+                                                    @if ($detail->group_roll != $currentGroupAdditional)
+                                                        {{-- Create element when switching group --}}
+                                                        <div class="d-flex gap-3">
+                                                            <div class="mb-3">
+                                                                <label><small>Group</small></label>
+                                                                <input type="text" class="form-control form-control-sm" value="{{ $currentGroupAdditional }}" readonly>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label><small>Qty</small></label>
+                                                                <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                            </div>
+                                                        </div>
+
+                                                        @if ($currentModifySizeQtyAdditional > 0)
+                                                            @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                        @else
+                                                            @include('stocker.stocker.stoc-complementker-detail-part-additional')
+                                                        @endif
+                                                        @php
+                                                            $indexAdditional += $currentDataRatioAdditional->count() * $currentDataPartDetailAdditional->count();
+                                                            $partIndexAdditional += $currentDataPartDetailAdditional->count();
+                                                        @endphp
+
+                                                        {{-- Change initial group --}}
+                                                        @php
+                                                            $currentBeforeAdditional += $currentTotal;
+
+                                                            $currentGroupAdditional = $detail->group_roll;
+                                                            $currentGroupStockerAdditional = $detail->group_stocker;
+                                                            $currentTotalAdditional = $detail->lembar_gelaran;
+                                                        @endphp
+
+                                                        @if ($loop->last)
+                                                            {{-- Create last element when it comes to an end of this loop --}}
+                                                            <div class="d-flex gap-3">
+                                                                <div class="mb-3">
+                                                                    <label><small>Group</small></label>
+                                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentGroupAdditional }}" readonly>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label><small>Qty</small></label>
+                                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                                </div>
+                                                            </div>
+
+                                                            @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                            @php
+                                                                $indexAdditional += $currentDataRatioAdditional->count() * $currentDataPartDetailAdditional->count();
+                                                                $partIndexAdditional += $currentDataPartDetailAdditional->count();
+                                                            @endphp
+                                                        @endif
+                                                    @else
+                                                        {{-- Accumulate when it still in the same group --}}
+                                                        @php
+                                                            $currentTotalAdditional += $detail->lembar_gelaran;
+                                                        @endphp
+
+                                                        {{-- Create last element when it comes to an end of this loop --}}
+                                                        @if ($loop->last)
+                                                            <div class="d-flex gap-3">
+                                                                <div class="mb-3">
+                                                                    <label><small>Group</small></label>
+                                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentGroupAdditional }}" readonly>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label><small>Qty</small></label>
+                                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                                </div>
+                                                            </div>
+
+                                                            @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                            @php
+                                                                $indexAdditional += $currentDataRatioAdditional->count() * $currentDataPartDetailAdditional->count();
+                                                                $partIndexAdditional += $currentDataPartDetailAdditional->count();
+                                                            @endphp
+                                                        @endif
+                                                    @endif
+                                                @else
+                                                {{-- With group stocker condition --}}
+
+                                                    @if ($loop->first)
+                                                    {{-- Initial Group --}}
+                                                        @php
+                                                            $currentGroupAdditional = $detail->group_roll;
+                                                            $currentGroupStockerAdditional = $detail->group_stocker;
+                                                        @endphp
+                                                    @endif
+
+                                                    @if ($detail->group_stocker != $currentGroupStockerAdditional)
+                                                        {{-- Create element when switching group --}}
+                                                        <div class="d-flex gap-3">
+                                                            <div class="mb-3">
+                                                                <label><small>Group</small></label>
+                                                                <input type="text" class="form-control form-control-sm" value="{{ $currentGroupAdditional }}" readonly>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label><small>Qty</small></label>
+                                                                <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                            </div>
+                                                        </div>
+
+                                                        @if ($currentModifySizeQtyAdditional > 0)
+                                                            @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                        @else
+                                                            @include('stocker.stocker.stoc-complementker-detail-part-additional')
+                                                        @endif
+                                                        @php
+                                                            $indexAdditional += $currentDataRatioAdditional->count() * $currentDataPartDetailAdditional->count();
+                                                            $partIndexAdditional += $currentDataPartDetailAdditional->count();
+                                                        @endphp
+
+                                                        {{-- Change initial group --}}
+                                                        @php
+                                                            $currentBeforeAdditional += $currentTotalAdditional;
+
+                                                            $currentGroupAdditional = $detail->group_roll;
+                                                            $currentGroupStockerAdditional = $detail->group_stocker;
+                                                            $currentTotalAdditional = $detail->lembar_gelaran;
+                                                        @endphp
+
+                                                        {{-- Create last element when it comes to an end of this loop --}}
+                                                        @if ($loop->last)
+                                                            <div class="d-flex gap-3">
+                                                                <div class="mb-3">
+                                                                    <label><small>Group</small></label>
+                                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentGroupAdditional }}" readonly>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label><small>Qty</small></label>
+                                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                                </div>
+                                                            </div>
+
+                                                            @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                            @php
+                                                                $indexAdditional += $currentDataRatioAdditional->count() * $currentDataPartDetailAdditional->count();
+                                                                $partIndexAdditional += $currentDataPartDetailAdditional->count();
+                                                            @endphp
+                                                        @endif
+                                                    @else
+                                                        {{-- Accumulate when it still in the group --}}
+                                                        @php
+                                                            $currentTotalAdditional += $detail->lembar_gelaran;
+                                                        @endphp
+
+                                                        @if ($loop->last)
+                                                        {{-- Create last element when it comes to an end of this loop --}}
+                                                            <div class="d-flex gap-3">
+                                                                <div class="mb-3">
+                                                                    <label><small>Group</small></label>
+                                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentGroupAdditional }}" readonly>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label><small>Qty</small></label>
+                                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                                </div>
+                                                            </div>
+
+                                                            @include('stocker.stocker.stocker-detail-part-additional-complement', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                            @php
+                                                                $indexAdditional += $currentDataRatio->count() * $currentDataPartDetailAdditional->count();
+                                                                $partIndexAdditional += $currentDataPartDetailAdditional->count();
+                                                            @endphp
+                                                        @endif
+                                                    @endif
+                                                @endif
+                                            @endforeach
+                                        @endif
+                                    </div>
+                                    <div class="d-flex justify-content-end p-3">
+                                        <button type="button" class="btn btn-no btn-sm mb-3 w-auto" onclick="generateCheckedStockerAddCom($i)"><i class="fa fa-print"></i> Generate Checked Stocker Additional</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Numbering --}}
+                            <div class="mb-5">
+                                <h5 class="fw-bold mb-3 ps-1">Print Numbering</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table" id="table-ratio-numbering-com-{{ $i }}">
+                                        <thead>
+                                            <th>Size</th>
+                                            <th>Ratio</th>
+                                            <th>Qty Cut</th>
+                                            <th>Range Awal</th>
+                                            <th>Range Akhir</th>
+                                            <th>Generated</th>
+                                            <th>Print Numbering</th>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($currentDataRatio as $ratio)
+                                                @php
+                                                    $qty = intval($ratio->ratio) * intval($currentDataSpreading->total_lembar);
+
+                                                    if (isset($modifySizeQty) && $modifySizeQty) {
+                                                        $modifyThis = $modifySizeQty->where("so_det_id", $ratio->so_det_id)->first();
+
+                                                        if ($modifyThis) {
+                                                            $qty=$modifyThis->modified_qty;
+                                                        }
+                                                    }
+
+                                                    if ($qty > 0) :
+                                                        $numberingThis = $currentDataNumbering ? $currentDataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", $currentDataSpreading->no_cut)->where("color", $currentDataSpreading->color)->filter(function ($item) { return $item->ratio > 0 || $item->difference_qty > 0; })->first() : null;
+                                                        $numberingBefore = $currentDataNumbering ? $currentDataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $currentDataSpreading->no_cut)->where("color", $currentDataSpreading->color)->sortByDesc('no_cut')->filter(function ($item) { return $item->ratio > 0 || $item->difference_qty > 0; })->first() : null;
+
+                                                        $rangeAwal = ($currentDataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + 1 : "-") : 1) : 1);
+                                                        $rangeAkhir = ($currentDataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + $qty : "-") : $qty) : $qty);
+
+                                                        $numGeneratable = true;
+                                                @endphp
+                                                        <tr>
+                                                            <input type="hidden" name="ratio[{{ $index }}]" id="ratio_com_{{ $i }}_{{ $index }}" value="{{ $ratio->ratio }}">
+                                                            <input type="hidden" name="so_det_id[{{ $index }}]" id="so_det_id_com_{{ $i }}_{{ $index }}" value="{{ $ratio->so_det_id }}">
+                                                            <input type="hidden" name="size[{{ $index }}]" id="size_com_{{ $i }}_{{ $index }}" value="{{ $ratio->size }}">
+                                                            <input type="hidden" name="qty_cut[{{ $index }}]" id="qty_cut_com_{{ $i }}_{{ $index }}" value="{{ $qty }}">
+                                                            <input type="hidden" name="range_awal[{{ $index }}]" id="range_awal_com_{{ $i }}_{{ $index }}" value="{{ $rangeAwal }}">
+                                                            <input type="hidden" name="range_akhir[{{ $index }}]" id="range_akhir_com_{{ $i }}_{{ $index }}" value="{{ $rangeAkhir }}">
+
+                                                            <td>{{ $ratio->size_dest}}</td>
+                                                            <td>{{ $ratio->ratio }}</td>
+                                                            <td>{{ (intval($ratio->ratio) * intval($currentDataSpreading->total_lembar)) != $qty ? $qty." (".(intval($ratio->ratio) * intval($currentDataSpreading->total_lembar))."".(($qty - (intval($ratio->ratio) * intval($currentDataSpreading->total_lembar))) > 0 ? "+".($qty - (intval($ratio->ratio) * intval($currentDataSpreading->total_lembar))) : ($qty - (intval($ratio->ratio) * intval($currentDataSpreading->total_lembar)))).")" : $qty }}</td>
+                                                            <td>{{ $rangeAwal }}</td>
+                                                            <td>{{ $rangeAkhir }}</td>
+                                                            <td>
+                                                                @if ($currentDataSpreading->no_cut > 1)
+                                                                    @if ($numberingBefore)
+                                                                        @if ($numberingBefore->numbering_id != null)
+                                                                            @if ($numberingThis && $numberingThis->numbering_id != null)
+                                                                                <i class="fa fa-check"></i>
+                                                                            @else
+                                                                                <i class="fa fa-times"></i>
+                                                                            @endif
+                                                                        @else
+                                                                            @php $numGeneratable = false; @endphp
+                                                                            <i class="fa fa-minus"></i>
+                                                                        @endif
+                                                                    @else
+                                                                        @if ($numberingThis && $numberingThis->numbering_id != null)
+                                                                            <i class="fa fa-check"></i>
+                                                                        @else
+                                                                            <i class="fa fa-times"></i>
+                                                                        @endif
+                                                                    @endif
+                                                                @else
+                                                                    @if ($numberingThis && $numberingThis->numbering_id != null)
+                                                                        <i class="fa fa-check"></i>
+                                                                    @else
+                                                                        <i class="fa fa-times"></i>
+                                                                    @endif
+                                                                @endif
+                                                            <td>
+                                                                <div class="d-flex gap-3">
+                                                                    <button type="button" class="btn btn-sm btn-danger" onclick="printNumbering({{ $index }});" {{ $numGeneratable ? '' : 'disabled' }}>
+                                                                        <i class="fa fa-print fa-s"></i> {{-- Numbering --}}
+                                                                    </button>
+                                                                    {{-- <button type="button" class="btn btn-sm btn-primary" onclick="printNumbering({{ $index }}, 'month_count');" {{ $numGeneratable ? '' : 'disabled' }}>
+                                                                        <i class="fa fa-print fa-s"></i> Month Count
+                                                                    </button> --}}
+                                                                    <div class="form-check mt-1 mb-0">
+                                                                        <input class="form-check-input generate-num-check" type="checkbox" name="generate_num[{{ $index }}]" id="generate_num_com_{{ $i }}{{ $index }}" value="{{ $ratio->so_det_id }}" {{ $numGeneratable ? '' : 'disabled' }}>
+                                                                        <label class="form-check-label" for="flexCheckDefault">
+                                                                            Select
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                @php
+                                                        $index++;
+                                                    endif;
+                                                @endphp
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="d-flex justify-content-end gap-3 p-3">
+                                    <button type="button" class="btn btn-danger btn-sm w-auto" onclick="generateCheckedNumberingCom()"><i class="fa fa-print"></i> Generate Numbering</button>
+                                    {{-- <button type="button" class="btn btn-primary btn-sm w-auto" onclick="generateCheckedNumbering('month_count')"><i class="fa fa-print"></i> Generate Month Count</button>
+                                    <button type="button" class="btn btn-sb btn-sm w-auto" onclick="generateCheckedNumbering('both')"><i class="fa fa-print"></i> Generate All</button> --}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                @php
+                    $i++;
+                @endphp
+            @endif
+        @endforeach
+    @endif
 @endsection
 
 @section('custom-script')
@@ -1591,6 +2299,7 @@
             await $("#add_panel_id").prop("disabled", true);
         }
 
+        // MAIN
         function printStocker(index) {
             generating = true;
 
@@ -1832,6 +2541,7 @@
             };
         }
 
+        // MAIN
         function generateCheckedStocker() {
             let generateStockerCheck = document.getElementsByClassName('generate-stocker-check');
 
@@ -2189,6 +2899,597 @@
                     html: 'Harap ceklis numbering yang akan di print',
                 });
             }
+        }
+
+        // COMPLEMENT
+        function generateCheckedStockerCom(idx) {
+            let generateStockerCheck = document.getElementsByClassName('generate-stocker-check-com-'+idx);
+
+            let checkedCount = 0;
+            for (let i = 0; i < generateStockerCheck.length; i++) {
+                if (generateStockerCheck[i].checked) {
+                    checkedCount++;
+                }
+            }
+
+            console.log()
+
+            if (checkedCount > 0) {
+                generating = true;
+
+                let stockerForm = new FormData(document.getElementById("stocker-form-com-"+idx));
+
+                let no_ws = document.getElementById("no_ws_com_"+idx).value;
+                let style = document.getElementById("style_com_"+idx).value;
+                let color = document.getElementById("color_com_"+idx).value;
+                let panel = document.getElementById("panel_com_"+idx).value;
+                let no_form_cut = document.getElementById("no_form_cut_com_"+idx).value;
+
+                let fileName = [
+                    no_ws,
+                    style,
+                    color,
+                    panel,
+                    no_form_cut
+                ].join('-');
+
+                Swal.fire({
+                    title: 'Please Wait...',
+                    html: 'Exporting Data...',
+                    didOpen: () => {
+                        Swal.showLoading()
+                    },
+                    allowOutsideClick: false,
+                });
+
+                $.ajax({
+                    url: '{{ route('print-stocker-checked') }}',
+                    type: 'post',
+                    processData: false,
+                    contentType: false,
+                    data: stockerForm,
+                    xhrFields:
+                    {
+                        responseType: 'blob'
+                    },
+                    success: function(res) {
+                        if (res) {
+                            console.log(res);
+
+                            var blob = new Blob([res], {type: 'application/pdf'});
+                            var link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.download = fileName+".pdf";
+                            link.click();
+
+                            swal.close();
+
+                            window.location.reload();
+                        }
+
+                        generating = false;
+                    },
+                    error: function(jqXHR) {
+                        console.log(jqXHR);
+
+                        generating = false;
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Terjadi kesalahan',
+                            confirmButtonText: 'Coba Lagi',
+                            showCancelButton: true,
+                            cancelButtonText: 'Batalkan',
+                        }).then(result => {
+                            if (result.isConfirmed) {
+                                generateCheckedStocker(); // Retry the request
+                            }
+                        });
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon:'warning',
+                    title: 'Warning',
+                    html: 'Harap ceklis stocker yang akan di print',
+                });
+            }
+        }
+
+        function generateCheckedStockerAddCom(idx) {
+            let generateStockerCheck = document.getElementsByClassName('generate-stocker-check-add-com-'+idx);
+
+            let checkedCount = 0;
+            for (let i = 0; i < generateStockerCheck.length; i++) {
+                if (generateStockerCheck[i].checked) {
+                    checkedCount++;
+                }
+            }
+
+            if (checkedCount > 0) {
+                generating = true;
+
+                let stockerForm = new FormData(document.getElementById("stocker-form="+idx));
+
+                let no_ws = document.getElementById("no_ws_add_com_"+idx).value;
+                let style = document.getElementById("style_add_com_"+idx).value;
+                let color = document.getElementById("color_add_com_"+idx).value;
+                let panel = document.getElementById("panel_add_com_"+idx).value;
+                let no_form_cut = document.getElementById("no_form_cut_com_"+idx).value;
+
+                let fileName = [
+                    no_ws,
+                    style,
+                    color,
+                    panel,
+                    no_form_cut
+                ].join('-');
+
+                Swal.fire({
+                    title: 'Please Wait...',
+                    html: 'Exporting Data...',
+                    didOpen: () => {
+                        Swal.showLoading()
+                    },
+                    allowOutsideClick: false,
+                });
+
+                $.ajax({
+                    url: '{{ route('print-stocker-checked-add') }}',
+                    type: 'post',
+                    processData: false,
+                    contentType: false,
+                    data: stockerForm,
+                    xhrFields:
+                    {
+                        responseType: 'blob'
+                    },
+                    success: function(res) {
+                        if (res) {
+                            console.log(res);
+
+                            var blob = new Blob([res], {type: 'application/pdf'});
+                            var link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.download = fileName+".pdf";
+                            link.click();
+
+                            swal.close();
+
+                            window.location.reload();
+                        }
+
+                        generating = false;
+                    },
+                    error: function(jqXHR) {
+                        console.log(jqXHR);
+
+                        generating = false;
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Terjadi kesalahan',
+                            confirmButtonText: 'Coba Lagi',
+                            showCancelButton: true,
+                            cancelButtonText: 'Batalkan',
+                        }).then(result => {
+                            if (result.isConfirmed) {
+                                generateCheckedStockerAdd(idx); // Retry the request
+                            }
+                        });
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon:'warning',
+                    title: 'Warning',
+                    html: 'Harap ceklis stocker yang akan di print',
+                });
+            }
+        }
+
+        function printNumberingCom(index, type=null) {
+            generating = true;
+
+            let stockerForm = new FormData(document.getElementById("stocker-form"));
+
+            stockerForm.append("type", type);
+
+            let no_ws = document.getElementById("no_ws").value;
+            let style = document.getElementById("style").value;
+            let color = document.getElementById("color").value;
+            let panel = document.getElementById("panel").value;
+            let no_form_cut = document.getElementById("no_form_cut").value;
+            let current_size = document.getElementById("size_"+index).value;
+
+            let fileName = [
+                no_ws,
+                style,
+                color,
+                panel,
+                no_form_cut,
+                current_size,
+            ].join('-');
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                url: '{{ route('print-numbering') }}/'+index,
+                type: 'post',
+                processData: false,
+                contentType: false,
+                data: stockerForm,
+                xhrFields:
+                {
+                    responseType: 'blob'
+                },
+                success: function(res) {
+                    if (res) {
+                        console.log(res);
+
+                        var blob = new Blob([res], {type: 'application/pdf'});
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = fileName+".pdf";
+                        link.click();
+                    }
+
+                    window.location.reload();
+
+                    generating = false;
+                },
+                error: function(jqXHR) {
+                    console.log(jqXHR);
+
+                    generating = false;
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Terjadi kesalahan',
+                        confirmButtonText: 'Coba Lagi',
+                        showCancelButton: true,
+                        cancelButtonText: 'Batalkan',
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            printNumbering(index, type); // Retry the request
+                        }
+                    });
+                }
+            });
+        }
+
+        function generateCheckedNumberingCom(type = null) {
+            type ? type = type : type = 'numbering';
+
+            generating = true;
+
+            let generateNumberingCheck = document.getElementsByClassName('generate-num-check');
+
+            let checkedCount = 0;
+            for (let i = 0; i < generateNumberingCheck.length; i++) {
+                if (generateNumberingCheck[i].checked) {
+                    checkedCount++;
+                }
+            }
+
+            if (checkedCount > 0) {
+                let stockerForm = new FormData(document.getElementById("stocker-form"));
+
+                stockerForm.append('type', type);
+
+                let no_ws = document.getElementById("no_ws").value;
+                let style = document.getElementById("style").value;
+                let color = document.getElementById("color").value;
+                let panel = document.getElementById("panel").value;
+                let no_form_cut = document.getElementById("no_form_cut").value;
+
+                let fileName = [
+                    no_ws,
+                    style,
+                    color,
+                    panel,
+                    no_form_cut,
+                ].join('-');
+
+                Swal.fire({
+                    title: 'Please Wait...',
+                    html: 'Exporting Data...',
+                    didOpen: () => {
+                        Swal.showLoading()
+                    },
+                    allowOutsideClick: false,
+                });
+
+                $.ajax({
+                    url: '{{ route('print-numbering-checked') }}',
+                    type: 'post',
+                    processData: false,
+                    contentType: false,
+                    data: stockerForm,
+                    xhrFields:
+                    {
+                        responseType: 'blob'
+                    },
+                    success: function(res) {
+                        if (res) {
+                            console.log(res);
+
+                            var blob = new Blob([res], {type: 'application/pdf'});
+                            var link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.download = fileName+".pdf";
+                            link.click();
+                        }
+
+                        window.location.reload();
+
+                        generating = false;
+                    },
+                    error: function(jqXHR) {
+                        console.log(jqXHR);
+
+                        generating = false;
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Terjadi kesalahan',
+                            confirmButtonText: 'Coba Lagi',
+                            showCancelButton: true,
+                            cancelButtonText: 'Batalkan',
+                        }).then(result => {
+                            if (result.isConfirmed) {
+                                generateCheckedNumberingCom(); // Retry the request
+                            }
+                        });
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon:'warning',
+                    title: 'Warning',
+                    html: 'Harap ceklis numbering yang akan di print',
+                });
+            }
+        }
+
+        // COMPLEMENT
+        function printStockerCom(i, index) {
+            generating = true;
+
+            let stockerForm = new FormData(document.getElementById("stocker-form-com-"+i));
+
+            let no_ws = document.getElementById("no_ws_com_"+i).value;
+            let style = document.getElementById("style_com_"+i).value;
+            let color = document.getElementById("color_com_"+i).value;
+            let panel = document.getElementById("panel_com_"+i).value;
+            let no_form_cut = document.getElementById("no_form_cut_com_"+i).value;
+            let current_size = document.getElementById("size_com_"+i).value;
+
+            let fileName = [
+                no_ws,
+                style,
+                color,
+                panel,
+                no_form_cut,
+                current_size,
+            ].join('-');
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                url: '{{ route('print-stocker') }}/'+index,
+                type: 'post',
+                processData: false,
+                contentType: false,
+                data: stockerForm,
+                xhrFields:
+                {
+                    responseType: 'blob'
+                },
+                success: function(res) {
+                    if (res) {
+                        console.log(res);
+
+                        var blob = new Blob([res], {type: 'application/pdf'});
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = fileName+".pdf";
+                        link.click();
+
+                        swal.close();
+
+                        window.location.reload();
+                    }
+
+                    generating = false;
+                },
+                error: function(jqXHR) {
+                    console.log(jqXHR);
+
+                    generating = false;
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Terjadi kesalahan',
+                        confirmButtonText: 'Coba Lagi',
+                        showCancelButton: true,
+                        cancelButtonText: 'Batalkan',
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            printStockerCom(i, index); // Retry the request
+                        }
+                    });
+                }
+            });
+        }
+
+        function printStockerAllSizeCom(i, part) {
+            generating = true;
+
+            let stockerForm = new FormData(document.getElementById("stocker-form-com-"+i));
+
+            let no_ws = document.getElementById("no_ws_com_"+i).value;
+            let style = document.getElementById("style_com_"+i).value;
+            let color = document.getElementById("color_com_"+i).value;
+            let panel = document.getElementById("panel_com_"+i).value;
+            let no_form_cut = document.getElementById("no_form_cut_com_"+i).value;
+
+            let fileName = [
+                no_ws,
+                style,
+                color,
+                panel,
+                part,
+                no_form_cut
+            ].join('-');
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                url: '{{ route('print-stocker-all-size') }}/'+part,
+                type: 'post',
+                processData: false,
+                contentType: false,
+                data: stockerForm,
+                xhrFields:
+                {
+                    responseType: 'blob'
+                },
+                success: function(res) {
+                    if (res) {
+                        console.log(res);
+
+                        var blob = new Blob([res], {type: 'application/pdf'});
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = fileName+".pdf";
+                        link.click();
+
+                        swal.close();
+
+                        window.location.reload();
+                    }
+                    generating = false;
+                },
+                error: function(jqXHR) {
+                    console.log(jqXHR);
+
+                    generating = false;
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Terjadi kesalahan',
+                        confirmButtonText: 'Coba Lagi',
+                        showCancelButton: true,
+                        cancelButtonText: 'Batalkan',
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            printStockerAllSize(part); // Retry the request
+                        }
+                    });
+                }
+            });
+        }
+
+        function printStockerAllSizeAddCom(i) {
+            generating = true;
+
+            let stockerForm = new FormData(document.getElementById("stocker-form-com-"+i));
+
+            let no_ws = document.getElementById("no_ws_add_com_"+i).value;
+            let style = document.getElementById("style_add_com_"+i).value;
+            let color = document.getElementById("color_add_com_"+i).value;
+            let panel = document.getElementById("panel_add_com_"+i).value;
+            let no_form_cut = document.getElementById("no_form_cut_com_"+i).value;
+
+            let fileName = [
+                no_ws,
+                style,
+                color,
+                panel,
+                part,
+                no_form_cut
+            ].join('-');
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                url: '{{ route('print-stocker-all-size-add') }}',
+                type: 'post',
+                processData: false,
+                contentType: false,
+                data: stockerForm,
+                xhrFields:
+                {
+                    responseType: 'blob'
+                },
+                success: function(res) {
+                    if (res) {
+                        var blob = new Blob([res], {type: 'application/pdf'});
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = fileName+".pdf";
+                        link.click();
+
+                        swal.close();
+
+                        window.location.reload();
+                    }
+                    generating = false;
+                },
+                error: function(jqXHR) {
+                    console.log(jqXHR);
+
+                    generating = false;
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Terjadi kesalahan',
+                        confirmButtonText: 'Coba Lagi',
+                        showCancelButton: true,
+                        cancelButtonText: 'Batalkan',
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            printStockerAllSizeAddCom(i); // Retry the request
+                        }
+                    });
+                }
+            });
         }
 
         function rearrangeGroup(id, no_form) {
