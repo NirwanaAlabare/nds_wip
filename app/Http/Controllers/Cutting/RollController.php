@@ -494,7 +494,7 @@ class RollController extends Controller
         $area = $sheet->beginArea();
 
         $sheet->writeTo('A1', 'Laporan Pemakaian Roll Roll');
-        $sheet->writeTo('A2', $request->dateFrom.' / '.$request->dateTo);
+        $sheet->writeTo('A2', $request->dateFrom . ' / ' . $request->dateTo);
         // $sheet->mergeCells('A1:S1');
 
         $sheet->writeTo("A4", "No.")->applyBgColor('#a9cff5')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
@@ -873,8 +873,10 @@ class RollController extends Controller
             // =======================
             // RESET PER FORM
             // =======================
-            if ($item->no_form_cut_input !== 'PIPING' &&
-                $currentForm !== $item->no_form_cut_input) {
+            if (
+                $item->no_form_cut_input !== 'PIPING' &&
+                $currentForm !== $item->no_form_cut_input
+            ) {
 
                 $latestKepalaKain = 0;
                 $latestSisaTidakBisa = 0;
@@ -930,13 +932,13 @@ class RollController extends Controller
             // =======================
             $currentPemakaianLembar = round(
                 (float) $item->pemakaian_lembar +
-                ($latestStatus !== 'extension complete' ? 0 : $latestPemakaianLembar),
+                    ($latestStatus !== 'extension complete' ? 0 : $latestPemakaianLembar),
                 2
             );
 
             $currentTotalPemakaian = round(
                 (float) $item->total_pemakaian_roll +
-                ($latestStatus !== 'extension complete' ? 0 : $latestTotalPemakaian),
+                    ($latestStatus !== 'extension complete' ? 0 : $latestTotalPemakaian),
                 2
             );
 
@@ -1029,15 +1031,29 @@ class RollController extends Controller
                         $currentShortRoll,
                         $currentShortRollPercentage . ' %',
                     ]);
-
                 } else {
 
-                   $row = array_merge($row, [
-                        '-', '-', '-', '-',
+                    $row = array_merge($row, [
+                        '-',
+                        '-',
+                        '-',
+                        '-',
                         $item->lembar_gelaran,
                         $item->total_ratio,
                         $item->qty_cut,
-                        '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-',
+                        '-',
+                        '-',
+                        '-',
+                        '-',
+                        '-',
+                        '-',
+                        '-',
+                        '-',
+                        '-',
+                        '-',
+                        '-',
+                        '-',
+                        '-',
                     ]);
                 }
 
@@ -1055,7 +1071,6 @@ class RollController extends Controller
                 $latestStatus = $item->status;
                 $latestQty = $item->qty_roll;
                 $latestUnit = $item->unit_roll;
-
             } else {
 
                 $row = array_merge($row, [
@@ -1587,7 +1602,7 @@ DATE_FORMAT(a.tgl_trans, '%d-%M-%Y') AS tgl_trans_fix,
 barcode,
 id_item,
 buyer,
-c.kpno as ws,
+a.ws,
 c.styleno,
 color,
 a.qty_pakai,
