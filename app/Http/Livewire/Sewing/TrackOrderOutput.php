@@ -191,6 +191,12 @@ class TrackOrderOutput extends Component
             $masterPlanDateFilter = " between '".$this->dateFromFilter." 00:00:00' and '".$this->dateToFilter." 23:59:59'";
             $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-10 days', strtotime($this->dateFromFilter)))."' and '".$this->dateToFilter."'";
 
+        $dates = [];
+        $outputMap = [];
+        $rowTotals = [];
+        $dateTotals = [];
+        $grandTotal = 0;
+
         if ($this->search) {
             $this->search = false;
 
@@ -327,10 +333,53 @@ class TrackOrderOutput extends Component
                 $this->emit("alert", "Big Data. '".$this->dailyOrderOutputs->sum("output")."' data.");
             }
 
+            // Pre-aggregation
+            $useSize = $this->groupBy === 'size';
+
+            // Dates
+            $dates = $this->dailyOrderOutputs
+                ->pluck('tanggal')
+                ->unique()
+                ->sort()
+                ->values();
+
+            // Content
+            $outputMap  = [];
+            $rowTotals  = [];
+            $dateTotals = [];
+            $grandTotal = 0;
+
+            foreach ($this->dailyOrderOutputs as $row) {
+                $key = implode('|', [
+                    $row->ws,
+                    $row->style,
+                    $row->color,
+                    $row->sewing_line,
+                    $useSize ? $row->size : '_',
+                ]);
+
+                $date = $row->tanggal;
+                $qty  = (int) $row->output;
+
+                $outputMap[$key][$date] = ($outputMap[$key][$date] ?? 0) + $qty;
+
+                $rowTotals[$key] = ($rowTotals[$key] ?? 0) + $qty;
+
+                $dateTotals[$date] = ($dateTotals[$date] ?? 0) + $qty;
+
+                $grandTotal += $qty;
+            }
+
             \Log::info("Query Completed");
         }
 
-        return view('livewire.sewing.track-order-output');
+        return view('livewire.sewing.track-order-output', [
+            "dates" => $dates,
+            "outputMap" => $outputMap,
+            "rowTotals" => $rowTotals,
+            "dateTotals" => $dateTotals,
+            "grandTotal" => $grandTotal,
+        ]);
     }
 
     public function dehydrate()
