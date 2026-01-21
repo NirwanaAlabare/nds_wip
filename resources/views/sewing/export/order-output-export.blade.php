@@ -64,7 +64,7 @@
                     </td>
                 @endforeach
 
-                <td>
+                <td style="font-weight: 800;">
                     {{ $rowTotals[$key] ?? 0 }}
                 </td>
             </tr>
