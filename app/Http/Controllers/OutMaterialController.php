@@ -27,6 +27,7 @@ use DB;
 use QrCode;
 use DNS1D;
 use PDF;
+use Illuminate\Validation\Rule;
 
 class OutMaterialController extends Controller
 {
@@ -295,9 +296,7 @@ class OutMaterialController extends Controller
     public function showdetailitem(Request $request)
     {
 
-        $det_item = DB::connection('mysql_sb')->select("select * from (select id_roll,id_item,id_jo,kode_rak,itemdesc,raknya,lot_no,roll_no,ROUND(COALESCE(qty_in,0) - COALESCE(qty_out,0),2) qty_sisa,unit from (select a.no_barcode id_roll,a.id_item,a.id_jo,a.kode_lok kode_rak,b.itemdesc,a.kode_lok raknya,no_lot lot_no,no_roll roll_no,sum(qty) qty_in,c.qty_out,a.unit from (select * from whs_sa_fabric where id_jo='" . $request->id_jo . "' and id_item='" . $request->id_item . "') a inner join masteritem b on b.id_item = a.id_item left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det where id_jo='" . $request->id_jo . "' and id_item='" . $request->id_item . "' GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.qty != 0 and qty_mut is null GROUP BY a.no_barcode) a) a where a.qty_sisa > 0
-            UNION
-            select id, id_item, id_jo, kode_lok, item_desc, raknya, no_lot,no_roll, qty_sisa,satuan from (select a.no_barcode id, a.id_item, a.id_jo, a.kode_lok, a.item_desc, a.kode_lok raknya, a.no_lot,a.no_roll, sum(a.qty_aktual) qty_aktual,a.satuan,COALESCE(c.qty_out,0) qty_out,(sum(a.qty_aktual) - COALESCE(a.qty_mutasi,0) - COALESCE(c.qty_out,0)) qty_sisa from ( select * from whs_lokasi_inmaterial where id_jo='" . $request->id_jo . "' and id_item='" . $request->id_item . "') a left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det where id_jo='" . $request->id_jo . "' and id_item='" . $request->id_item . "' GROUP BY id_roll) c on c.id_roll = a.no_barcode GROUP BY a.no_barcode) a where a.qty_sisa > 0");
+        $det_item = DB::connection('mysql_sb')->select("select no_barcode id_roll, id_item, id_jo, kode_lok kode_rak, itemdesc, kode_lok raknya, no_lot lot_no, no_roll roll_no, sal_akhir qty_sisa, satuan unit from data_stock_fabric where id_jo='" . $request->id_jo . "' and id_item='" . $request->id_item . "'");
 
         // $det_item = DB::connection('mysql_sb')->select("select id_roll,id_item,id_jo,kode_rak,itemdesc,raknya,lot_no, roll_no, qty_sisa, unit from (select br.id id_roll,br.id_h,brh.id_item,brh.id_jo,roll_no,lot_no,roll_qty,roll_qty_used,roll_qty - roll_qty_used qty_sisa,roll_foc,br.unit, concat(kode_rak,' ',nama_rak) raknya,kode_rak,br.barcode, mi.itemdesc from bpb_roll br inner join
         //         bpb_roll_h brh on br.id_h=brh.id
@@ -535,7 +534,7 @@ class OutMaterialController extends Controller
         } else{
             DB::connection('mysql_sb')->update("
                 UPDATE bppb_req
-                SET qty_out = null
+                SET qty_out = 0
                 WHERE bppbno = (
                 SELECT bppbno_req FROM bppb WHERE bppbno_int = ? limit 1
                 )
@@ -648,11 +647,19 @@ class OutMaterialController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedRequest = $request->validate([
-            "txt_noreq" => "required",
-            "txt_jns_klr" => "required",
-            "txt_dok_bc" => "required",
-        ]);
+       $validatedRequest = $request->validate([
+    'txt_noreq'   => 'required',
+    'txt_jns_klr' => 'required',
+    'txt_dok_bc'  => 'required',
+    'txt_po_sub'  => Rule::requiredIf(function () use ($request) {
+        return str_contains(
+            strtolower($request->txt_jns_klr),
+            'subkontraktor'
+        );
+    }),
+], [
+    'txt_po_sub.required' => 'PO Sub wajib diisi jika jenis keluar Subkontraktor',
+]);
         // if (intval($request['jumlah_qty']) > 0) {
 
         $tglbppb = $request['txt_tgl_bppb'];

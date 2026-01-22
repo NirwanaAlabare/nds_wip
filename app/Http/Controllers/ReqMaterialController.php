@@ -409,6 +409,7 @@ select a.*, b.qty qty_br, b.qty_out qty_br_out, (b.qty - b.qty_out) sisa_req, (q
     $validatedRequest = $request->validate([
             "dikirim_ke" => "required",
             "job_order" => "required",
+            "ws_act" => "required",
         ]);
 
         $tglbpb = $request['txt_tgl_gr'];
