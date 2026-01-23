@@ -1094,6 +1094,20 @@
                                     Packing In <i class="fa-solid fa-people-carry fa-sm"></i>
                                 </a>
                             </li>
+                            <!-- packing subcont -->
+                            <li>
+                                <a href="{{ route('packing-in-subcont') }}"
+                                    class="dropdown-item {{ $subPage == 'packing-in-subcont' ? 'active' : '' }}">
+                                    Packing In Subcont <i class="fas fa-truck-loading"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('approve-packing-in-subcont') }}"
+                                    class="dropdown-item {{ $subPage == 'approve-packing-in-subcont' ? 'active' : '' }}">
+                                    Approval Packing In Subcont <i class="fas fa-thumbs-up"></i>
+                                </a>
+                            </li>
+
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -1113,6 +1127,20 @@
                                     Packing Out <i class="fa-solid fa-compress fa-sm"></i>
                                 </a>
                             </li>
+                            <!-- packing subcont -->
+                            <li>
+                                <a href="{{ route('packing-out-subcont') }}"
+                                    class="dropdown-item {{ $subPage == 'packing-out-subcont' ? 'active' : '' }}">
+                                    Packing Out Subcont <i class="fas fa-shipping-fast"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('approve-packing-out-subcont') }}"
+                                    class="dropdown-item {{ $subPage == 'approve-packing-out-subcont' ? 'active' : '' }}">
+                                    Approval Packing Out Subcont <i class="fas fa-thumbs-up"></i>
+                                </a>
+                            </li>
+
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -1154,6 +1182,33 @@
                                     <i class="fas fa-file-upload fa-sm"></i> Mutasi Packing (WIP)
                                 </a>
                             </li>
+
+                            <!-- packing subcont -->
+                            <li>
+                                <a href="{{ route('report-packing-out-subcont') }}"
+                                    class="dropdown-item {{ $subPage == 'report-packing-out-subcont' ? 'active' : '' }}">
+                                    <i class="fas fa-file-excel"></i> Packing Out Subcont
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('report-packing-in-subcont') }}"
+                                    class="dropdown-item {{ $subPage == 'report-packing-in-subcont' ? 'active' : '' }}">
+                                    <i class="fas fa-file-excel"></i> Packing In Subcont
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('report-packing-monitoring-subcont') }}"
+                                    class="dropdown-item {{ $subPage == 'report-packing-monitoring-subcont' ? 'active' : '' }}">
+                                   <i class="fas fa-file-excel"></i> Monitoring Packing Subcont
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('report-packing-mutasi-subcont') }}"
+                                    class="dropdown-item {{ $subPage == 'report-packing-mutasi-subcont' ? 'active' : '' }}">
+                                   <i class="fas fa-file-excel"></i> Mutasi Packing Subcont
+                                </a>
+                            </li>
+
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
