@@ -579,9 +579,10 @@ class SecondaryInController extends Controller
             $partDetail = $stocker->partDetail;
             if ($partDetail) {
 
+
                 // Check Part Detail Secondary
                 $partDetailSecondary = $partDetail->secondaries;
-                if ($partDetailSecondary) {
+                if ($partDetailSecondary && $partDetailSecondary->count() > 0) {
                     // If there ain't no urutan
                     if ($stocker->urutan == null) {
                         $cekdata = DB::select("
@@ -1177,22 +1178,35 @@ class SecondaryInController extends Controller
                 // Default
                 else {
                     $cekdata =  DB::select("
-                        SELECT
-                            dc.id_qr_stocker,
+                        select
+                            s.id_qr_stocker,
                             s.act_costing_ws,
                             msb.buyer,
                             COALESCE(a.no_cut, c.no_cut, '-') as no_cut,
                             msb.styleno as style,
                             s.color,
                             COALESCE(msb.size, s.size) size,
-                            mp.nama_part,
                             dc.tujuan,
                             dc.lokasi,
-                            coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace qty_awal,
-                            ifnull(si.id_qr_stocker,'x'),
-                            1 as urutan
-                        from dc_in_input dc
-                            left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+                            mp.nama_part,
+                            if(dc.tujuan = 'SECONDARY LUAR', (dc.qty_awal - dc.qty_reject + dc.qty_replace), (si.qty_awal - si.qty_reject + si.qty_replace)) qty_awal,
+                            s.lokasi lokasi_tujuan,
+                            s.tempat tempat_tujuan,
+                            md.sec_in_stocker,
+                            md.sec_in_created_at
+                        from
+                            (
+                                select dc.id_qr_stocker,ifnull(si.id_qr_stocker,'x') cek_1, ifnull(sii.id_qr_stocker,'x') cek_2, sii.id_qr_stocker sec_in_stocker, sii.created_at sec_in_created_at from dc_in_input dc
+                                left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
+                                left join secondary_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
+                                where dc.tujuan = 'SECONDARY DALAM' and
+                                ifnull(si.id_qr_stocker,'x') != 'x'
+                                union
+                                select dc.id_qr_stocker, 'x' cek_1, if(sii.id_qr_stocker is null ,dc.id_qr_stocker,'x') cek_2, sii.id_qr_stocker sec_in_stocker, sii.created_at sec_in_created_at from dc_in_input dc
+                                left join secondary_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
+                                where dc.tujuan = 'SECONDARY LUAR'
+                            ) md
+                            left join stocker_input s on md.id_qr_stocker = s.id_qr_stocker
                             left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                             left join form_cut_input a on s.form_cut_id = a.id
                             left join form_cut_reject b on s.form_reject_id = b.id
@@ -1200,10 +1214,9 @@ class SecondaryInController extends Controller
                             left join part_detail p on s.part_detail_id = p.id
                             left join master_part mp on p.master_part_id = mp.id
                             left join marker_input mi on a.id_marker = mi.kode
-                            left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
-                        where
-                            dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
-                            and ifnull(si.id_qr_stocker,'x') = 'x'
+                            left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
+                            left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
+                            where s.id_qr_stocker = '" . $request->txtqrstocker . "'
                     ");
 
                     return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
@@ -1310,7 +1323,7 @@ class SecondaryInController extends Controller
         );
 
         DB::update(
-            "update stocker_input set status = 'non secondary' ".($request->txturutan ? ", urutan = '".($request->txturutan + 1)."' " : "")." where id_qr_stocker = '" . $request->txtno_stocker . "'"
+            "update stocker_input set status = 'non secondary' ".($request->txturutan ? ", urutan = '".(intval($request->txturutan) + 1)."' " : "")." where id_qr_stocker = '" . $request->txtno_stocker . "'"
         );
         // dd($savemutasi);
         // $message .= "$tglpindah <br>";
@@ -1338,7 +1351,7 @@ class SecondaryInController extends Controller
             first();
 
         if ($thisStocker) {
-            $cekdata =  DB::select("
+            $cekdata = DB::select("
                 SELECT
                     s.id_qr_stocker,
                     s.act_costing_ws,

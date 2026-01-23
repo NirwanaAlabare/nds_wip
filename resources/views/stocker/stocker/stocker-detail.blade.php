@@ -1110,6 +1110,8 @@
 
     {{-- Complement Section --}}
 
+    <hr>
+
     @php
         $i = 0;
     @endphp
