@@ -35,7 +35,7 @@ class IEMasterProcessController extends Controller
     {
         $user = Auth::user()->name;
         $timestamp = Carbon::now();
-
+        $kategori = strtoupper($request->kategori);
         $process_name = strtoupper($request->process_name);
         $class_name = strtoupper($request->class_name);
         $type = strtoupper($request->type);
@@ -67,16 +67,18 @@ class IEMasterProcessController extends Controller
         machine_type,
         smv,
         amv,
+        kategori,
         remark,
         created_by,
         created_at,
         updated_at
-    ) VALUES (?,?,?,?,?,?,?,?,?)", [
+    ) VALUES (?,?,?,?,?,?,?,?,?,?)", [
             $process_name,
             $class_name,
             $type,
             $smv,
             $amv,
+            $kategori,
             $remark,
             $user,
             $timestamp,
@@ -105,6 +107,7 @@ class IEMasterProcessController extends Controller
         $process_name = strtoupper($request->process_name);
         $class_name = strtoupper($request->class_name);
         $txttype = strtoupper($request->txttype);
+        $kategori = strtoupper($request->kategori);
         $remark = strtoupper($request->remark);
         $id_c = $request->id_c;
         $smv = $request->smv;
@@ -119,6 +122,7 @@ class IEMasterProcessController extends Controller
         machine_type = ?,
         smv = ?,
         amv = ?,
+        kategori = ?,
         remark = ?,
         updated_by = ?,
         updated_at = ?
@@ -129,6 +133,7 @@ class IEMasterProcessController extends Controller
             $txttype,
             $smv,
             $amv,
+            $kategori,
             $remark,
             $user,
             $timestamp,

@@ -78,7 +78,7 @@ class StockerController extends Controller
                     marker_input.buyer,
                     marker_input.urutan_marker,
                     marker_input.style,
-                    marker_input.color,
+                    UPPER(TRIM(marker_input.color)) color,
                     marker_input.panel,
                     form_cut_input.no_cut,
                     form_cut_input.total_lembar,
@@ -116,7 +116,7 @@ class StockerController extends Controller
                     form_cut_piece.buyer,
                     null as urutan_marker,
                     form_cut_piece.style,
-                    form_cut_piece.color,
+                    UPPER(TRIM(form_cut_piece.color)),
                     form_cut_piece.panel,
                     form_cut_piece.no_cut,
                     SUM(form_cut_piece_detail_size.qty) as total_lembar,
@@ -196,7 +196,7 @@ class StockerController extends Controller
                 marker_input.act_costing_ws ws,
                 marker_input.buyer,
                 marker_input.panel,
-                marker_input.color,
+                UPPER(TRIM(marker_input.color)) color,
                 marker_input.style,
                 form_cut_input.status,
                 users.name nama_meja,
@@ -235,7 +235,7 @@ class StockerController extends Controller
         $dataPartForm = PartForm::selectRaw("part_form.form_id, form_cut_input.no_cut")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "part_form.form_id")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-            where("marker_input.color", $dataSpreading->color)->
+            whereRaw("UPPER(TRIM(marker_input.color)) = '".strtoupper(trim($dataSpreading->color))."'")->
             where("part_form.part_id", $dataSpreading->part_id)->
             whereRaw("(form_cut_input.no_cut <= ".$dataSpreading->no_cut." or form_cut_input.no_cut > ".$dataSpreading->no_cut.")")->
             get();
@@ -280,7 +280,7 @@ class StockerController extends Controller
 
         $dataStocker = MarkerDetail::selectRaw("
                 MAX(stocker_input.id_qr_stocker) id_qr_stocker,
-                marker_input.color,
+                UPPER(TRIM(marker_input.color)) color,
                 marker_input_detail.so_det_id,
                 COALESCE(stocker_input.ratio, marker_input_detail.ratio) ratio,
                 MAX(form_cut_input.no_form) no_form,
@@ -306,7 +306,7 @@ class StockerController extends Controller
                 $join->on("modify_size_qty.so_det_id", "=", "marker_input_detail.so_det_id");
             })->
             where("marker_input.act_costing_ws", $dataSpreading->ws)->
-            where("marker_input.color", $dataSpreading->color)->
+            whereRaw("UPPER(TRIM(marker_input.color)) = '".strtoupper(trim($dataSpreading->color))."'")->
             where("marker_input.panel", $dataSpreading->panel)->
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
             where("part_form.part_id", $dataSpreading->part_id)->
@@ -317,7 +317,7 @@ class StockerController extends Controller
             get();
 
         $dataNumbering = MarkerDetail::selectRaw("
-                marker_input.color,
+                UPPER(TRIM(marker_input.color)) color,
                 marker_input_detail.so_det_id,
                 marker_input_detail.ratio,
                 MAX(form_cut_input.no_form) no_form,
@@ -345,7 +345,7 @@ class StockerController extends Controller
                             INNER JOIN `stocker_numbering` ON form_cut_input.id = stocker_numbering.form_cut_id
                         WHERE
                             `marker_input`.`act_costing_ws` = '".$dataSpreading->ws."'
-                            AND `marker_input`.`color` = '".$dataSpreading->color."'
+                            AND UPPER(TRIM(`marker_input`.`color`)) = '".strtoupper(trim($dataSpreading->color))."'
                             AND `marker_input`.`panel` = '".$dataSpreading->panel."'
                             AND ( stocker_numbering.cancel IS NULL OR stocker_numbering.cancel != 'Y' )
                             AND `form_cut_input`.`no_cut` <= ".$dataSpreading->no_cut."
@@ -363,7 +363,7 @@ class StockerController extends Controller
                 $join->on("modify_size_qty.so_det_id", "=", "marker_input_detail.so_det_id");
             })->
             where("marker_input.act_costing_ws", $dataSpreading->ws)->
-            where("marker_input.color", $dataSpreading->color)->
+            whereRaw("UPPER(TRIM(`marker_input`.`color`)) = '".$dataSpreading->color."'")->
             where("marker_input.panel", $dataSpreading->panel)->
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
             where("part_form.part_id", $dataSpreading->part_id)->
@@ -399,7 +399,7 @@ class StockerController extends Controller
             $dataRatioAdditional = DB::table("stocker_ws_additional_detail")->selectRaw("
                     stocker_ws_additional_detail.id additional_detail_id,
                     stocker_ws_additional_detail.so_det_id,
-                    master_sb_ws.color,
+                    UPPER(TRIM(master_sb_ws.color)) color,
                     COALESCE(master_sb_ws.size, stocker_ws_additional_detail.size) size,
                     master_sb_ws.dest dest,
                     COALESCE((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END), stocker_ws_additional_detail.size) size_dest,
@@ -416,9 +416,9 @@ class StockerController extends Controller
 
             $dataStockerAdditional = DB::table("stocker_ws_additional_detail")->selectRaw("
                     MAX(stocker_input.id_qr_stocker) id_qr_stocker,
-                    stocker_ws_additional.color,
+                    UPPER(TRIM(stocker_ws_additional.color)) color,
                     stocker_ws_additional_detail.so_det_id,
-                    CONCAT(master_sb_ws.color, master_sb_ws.size, master_sb_ws.dest) info,
+                    UPPER(TRIM(CONCAT(master_sb_ws.color, master_sb_ws.size, master_sb_ws.dest))) info,
                     COALESCE(stocker_input.ratio, stocker_ws_additional_detail.ratio) ratio,
                     MAX(form_cut_input.no_form) no_form,
                     form_cut_input.no_cut,
@@ -444,10 +444,11 @@ class StockerController extends Controller
                     $join->on("modify_size_qty.so_det_id", "=", "stocker_ws_additional_detail.so_det_id");
                 })->
                 where("stocker_ws_additional.act_costing_ws", $dataAdditional->act_costing_ws)->
-                where("stocker_ws_additional.color", $dataAdditional->color)->
+                whereRaw("UPPER(TRIM(stocker_ws_additional.color)) = '".strtoupper(trim($dataAdditional->color))."'")->
                 where("stocker_ws_additional.panel", $dataAdditional->panel)->
                 where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
                 where("part_form.part_id", $dataSpreading->part_id)->
+                whereRaw("(stocker_input.cancel != 'y' OR stocker_input.cancel is null OR stocker_input.cancel = '')")->
                 // where("marker_input_detail.ratio", ">", "0")->
                 groupBy("form_cut_input.no_form", "form_cut_input.no_cut", "stocker_ws_additional_detail.so_det_id")->
                 orderBy("form_cut_input.no_cut", "desc")->
@@ -504,7 +505,7 @@ class StockerController extends Controller
                 form_cut_piece.act_costing_ws ws,
                 form_cut_piece.buyer,
                 form_cut_piece.panel,
-                form_cut_piece.color,
+                UPPER(TRIM(form_cut_piece.color)) as color,
                 form_cut_piece.style,
                 form_cut_piece.status,
                 form_cut_piece.employee_name,
@@ -528,7 +529,7 @@ class StockerController extends Controller
 
         $dataPartForm = PartForm::selectRaw("part_form.form_pcs_id, form_cut_piece.no_cut")->
             leftJoin("form_cut_piece", "form_cut_piece.id", "=", "part_form.form_pcs_id")->
-            where("form_cut_piece.color", $dataSpreading->color)->
+            whereRaw("UPPER(TRIM(form_cut_piece.color)) = '".strtoupper(trim($dataSpreading->color))."'")->
             where("part_form.part_id", $dataSpreading->part_id)->
             whereRaw("(form_cut_piece.no_cut <= ".$dataSpreading->no_cut." or form_cut_piece.no_cut > ".$dataSpreading->no_cut.")")->
             groupBy("part_form.form_pcs_id")->
@@ -573,7 +574,7 @@ class StockerController extends Controller
 
         $dataStocker = FormCutPieceDetailSize::selectRaw("
                 MAX(stocker_input.id_qr_stocker) id_qr_stocker,
-                form_cut_piece.color,
+                UPPER(TRIM(form_cut_piece.color)) as color,
                 form_cut_piece_detail_size.so_det_id,
                 MAX(form_cut_piece.no_form) no_form,
                 form_cut_piece.no_cut,
@@ -594,7 +595,7 @@ class StockerController extends Controller
                 $join->on("stocker_input.so_det_id", "=", "form_cut_piece_detail_size.so_det_id");
             })->
             where("form_cut_piece.act_costing_ws", $dataSpreading->ws)->
-            where("form_cut_piece.color", $dataSpreading->color)->
+            whereRaw("UPPER(TRIM(form_cut_piece.color)) = '".strtoupper(trim($dataSpreading->color))."'")->
             where("form_cut_piece.panel", $dataSpreading->panel)->
             where("form_cut_piece.no_cut", "<=", $dataSpreading->no_cut)->
             where("part_form.part_id", $dataSpreading->part_id)->
@@ -962,7 +963,7 @@ class StockerController extends Controller
                 marker_input.act_costing_ws,
                 marker_input.buyer,
                 marker_input.style,
-                marker_input.color,
+                UPPER(TRIM(marker_input.color)) color,
                 stocker_input.shade,
                 stocker_input.group_stocker,
                 COALESCE(stocker_input.notes) notes,
@@ -1341,7 +1342,7 @@ class StockerController extends Controller
                 marker_input.act_costing_ws,
                 marker_input.buyer,
                 marker_input.style,
-                marker_input.color,
+                UPPER(TRIM(marker_input.color)) as color,
                 stocker_input.shade,
                 stocker_input.group_stocker,
                 stocker_input.notes,
@@ -1719,7 +1720,7 @@ class StockerController extends Controller
                 marker_input.act_costing_ws,
                 marker_input.buyer,
                 marker_input.style,
-                marker_input.color,
+                UPPER(TRIM(marker_input.color)) as color,
                 stocker_input.shade,
                 stocker_input.group_stocker,
                 stocker_input.notes,
@@ -1917,7 +1918,7 @@ class StockerController extends Controller
                 form_cut_piece.act_costing_ws,
                 form_cut_piece.buyer,
                 form_cut_piece.style,
-                form_cut_piece.color,
+                UPPER(TRIM(form_cut_piece.color)) color,
                 stocker_input.shade,
                 stocker_input.group_stocker,
                 COALESCE(stocker_input.notes) notes,
@@ -2141,7 +2142,7 @@ class StockerController extends Controller
                 form_cut_piece.act_costing_ws,
                 form_cut_piece.buyer,
                 form_cut_piece.style,
-                form_cut_piece.color,
+                UPPER(TRIM(form_cut_piece.color)) color,
                 stocker_input.shade,
                 stocker_input.group_stocker,
                 stocker_input.notes,
@@ -2361,7 +2362,7 @@ class StockerController extends Controller
                 form_cut_piece.act_costing_ws,
                 form_cut_piece.buyer,
                 form_cut_piece.style,
-                form_cut_piece.color,
+                UPPER(TRIM(form_cut_piece.color)) color,
                 stocker_input.shade,
                 stocker_input.group_stocker,
                 stocker_input.notes,
@@ -2731,7 +2732,7 @@ class StockerController extends Controller
                 stocker_ws_additional.act_costing_ws,
                 stocker_ws_additional.buyer,
                 stocker_ws_additional.style,
-                stocker_ws_additional.color,
+                UPPER(TRIM(stocker_ws_additional.color)) color,
                 stocker_input.shade,
                 stocker_input.group_stocker,
                 stocker_input.notes,
@@ -2752,7 +2753,7 @@ class StockerController extends Controller
             where("form_cut_input.status", "SELESAI PENGERJAAN")->
             where("stocker_ws_additional.act_costing_ws", $request['no_ws_add'])->
             where("stocker_ws_additional.style", $request['style_add'])->
-            where("stocker_ws_additional.color", $request['color_add'])->
+            whereRaw("UPPER(TRIM(stocker_ws_additional.color)) = '".strtoupper(trim($request['color_add']))."'")->
             where("form_cut_input.id", $request['form_cut_id'])->
             groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
             orderBy("stocker_input.group_stocker", "desc")->
@@ -2804,8 +2805,8 @@ class StockerController extends Controller
 
             // Check Separate Stocker
             $stockerSeparate = StockerSeparate::where("form_cut_id", $request['form_cut_id'])->
-                where("so_det_id", $request['so_det_id'][$index])->
-                whereRaw("group_roll = '".$request['group'][$index]."' ".($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? " and group_stocker = '" . $request['group_stocker'][$index] . "'" : ""))->
+                where("so_det_id", $request['so_det_id_add'][$index])->
+                whereRaw("group_roll = '".$request['group_add'][$index]."' ".($request['group_stocker_add'][$index] && $request['group_stocker_add'][$index] != "" ? " and group_stocker = '" . $request['group_stocker_add'][$index] . "'" : ""))->
                 orderBy("updated_at", "desc")->
                 first();
 
@@ -2926,7 +2927,7 @@ class StockerController extends Controller
                                 ]);
                             }
                         }
-                    } else if ($checkStocker && ($checkStocker->qty_ply != ($request['ratio_add'][$index] < 1 ? 0 : $request['qty_ply_group_add'][$index]) || $checkStocker->range_awal != $cumRangeAwal || $checkStocker->range_akhir != ($request['group_stocker_add'][$index] == (min($request['group_stocker_add'])) && (($j == ($request['ratio_add'][$index] - 1) && $modifySizeQty) || ($request['ratio_add'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) || (($cumRangeAwal > (($request['group_stocker'][$index] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty)  || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) && $checkStocker->cancel != 'y')) )) {
+                    } else if ($checkStocker && ($checkStocker->qty_ply != ($request['ratio_add'][$index] < 1 ? 0 : $request['qty_ply_group_add'][$index]) || $checkStocker->range_awal != $cumRangeAwal || $checkStocker->range_akhir != ($request['group_stocker_add'][$index] == (min($request['group_stocker_add'])) && (($j == ($request['ratio_add'][$index] - 1) && $modifySizeQty) || ($request['ratio_add'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) || (($cumRangeAwal > (($request['group_stocker_add'][$index] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker_add))) && (($j == ($request['ratio_add'][$index] - 1) && $modifySizeQty)  || ($request['ratio_add'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) && $checkStocker->cancel != 'y')) )) {
                         $checkStocker->qty_ply = ($request['ratio_add'][$index] < 1 ? 0 : $request['qty_ply_group_add'][$index]);
                         $checkStocker->qty_ply_mod = (($request['group_stocker_add'][$index] == min($request['group_stocker_add'])) && (($j == ($request['ratio_add'][$index] - 1) && $modifySizeQty) || ($request['ratio_add'][$index] < 1 && $modifySizeQty)) ? ($request['ratio_add'][$index] < 1 ? 0 : $request['qty_ply_group_add'][$index]) + $modifySizeQty->difference_qty : null);
                         $checkStocker->range_awal = $cumRangeAwal;
@@ -2950,14 +2951,14 @@ class StockerController extends Controller
                         $checkStocker->save();
                     }
 
-                    $lastRatio = $i + 1;
+                    $lastRatio = $j + 1;
                 }
             }
 
             if ($lastRatio > 0) {
                 $deleteStocker = Stocker::whereRaw("
                         part_detail_id = '" . $request['part_detail_id_add'][$index] . "' AND
-                        form_piece_id = '" . $request['form_cut_id'] . "' AND
+                        form_cut_id = '" . $request['form_cut_id'] . "' AND
                         so_det_id = '" . $request['so_det_id_add'][$index] . "' AND
                         color = '" . $request['color_add'] . "' AND
                         panel = '" . $request['panel_add'] . "' AND
@@ -3105,7 +3106,7 @@ class StockerController extends Controller
                 stocker_ws_additional.act_costing_ws,
                 stocker_ws_additional.buyer,
                 stocker_ws_additional.style,
-                stocker_ws_additional.color,
+                UPPER(TRIM(stocker_ws_additional.color)) color,
                 stocker_input.shade,
                 stocker_input.group_stocker,
                 stocker_input.notes,
@@ -3130,7 +3131,7 @@ class StockerController extends Controller
             orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.so_det_id", "asc")->
             orderByRaw("CAST(stocker_input.ratio AS UNSIGNED) asc")->
-            get();
+            get ();
 
         // generate pdf
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
@@ -3385,7 +3386,7 @@ class StockerController extends Controller
         ini_set('max_execution_time', 360000);
 
         $formCutInputs = FormCutInput::selectRaw("
-                marker_input.color,
+                UPPER(TRIM(marker_input.color)) color,
                 form_cut_input.id as id_form,
                 form_cut_input.no_form as no_form
             ")->
@@ -3400,7 +3401,7 @@ class StockerController extends Controller
             whereRaw("part_form.id is not null")->
             where("part.id", $request->id)->
             groupBy("form_cut_input.id")->
-            orderBy("marker_input.color", "asc")->
+            orderByRaw("UPPER(TRIM(marker_input.color)) asc")->
             orderBy("form_cut_input.no_cut", "asc")->
             get();
 
@@ -3422,7 +3423,7 @@ class StockerController extends Controller
                     marker_input.act_costing_ws ws,
                     marker_input.buyer,
                     marker_input.panel,
-                    marker_input.color,
+                    UPPER(TRIM(marker_input.color)) color,
                     marker_input.style,
                     form_cut_input.status,
                     users.name nama_meja,
@@ -3492,7 +3493,7 @@ class StockerController extends Controller
                 get();
 
             $dataStocker = MarkerDetail::selectRaw("
-                    marker_input.color,
+                    UPPER(TRIM(marker_input.color)) color,
                     marker_input_detail.so_det_id,
                     marker_input_detail.ratio,
                     part_detail.id part_detail_id,
@@ -3515,10 +3516,10 @@ class StockerController extends Controller
                     $join->on("stocker_input.so_det_id", "=", "marker_input_detail.so_det_id");
                 })->
                 where("marker_input.act_costing_ws", $dataSpreading->ws)->
-                where("marker_input.color", $dataSpreading->color)->
+                whereRaw("UPPER(TRIM(marker_input.color)) = '".strtoupper(trim($dataSpreading->color))."'")->
                 where("marker_input.panel", $dataSpreading->panel)->
                 where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
-                groupBy("form_cut_input.no_cut", "marker_input.color", "marker_input_detail.so_det_id", "part_detail.id", "stocker_input.ratio", "stocker_input.range_awal", "stocker_input.range_akhir")->
+                groupByRaw("form_cut_input.no_cut, UPPER(TRIM(marker_input.color)), marker_input_detail.so_det_id, part_detail.id, stocker_input.ratio, stocker_input.range_awal, stocker_input.range_akhir")->
                 orderBy("form_cut_input.no_cut", "desc")->
                 orderBy("stocker_input.shade", "asc")->
                 orderBy("stocker_input.size", "desc")->
@@ -3528,7 +3529,7 @@ class StockerController extends Controller
                 get();
 
             $dataNumbering = MarkerDetail::selectRaw("
-                    marker_input.color,
+                    UPPER(TRIM(marker_input.color)) color,
                     marker_input_detail.so_det_id,
                     marker_input_detail.ratio,
                     form_cut_input.no_cut,
@@ -3541,11 +3542,11 @@ class StockerController extends Controller
                     $join->on("stocker_numbering.so_det_id", "=", "marker_input_detail.so_det_id");
                 })->
                 where("marker_input.act_costing_ws", $dataSpreading->ws)->
-                where("marker_input.color", $dataSpreading->color)->
+                whereRaw("UPPER(TRIM(marker_input.color)) = '".strtoupper(trim($dataSpreading->color))."'")->
                 where("marker_input.panel", $dataSpreading->panel)->
                 where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
                 whereRaw("(stocker_numbering.cancel IS NULL OR stocker_numbering.cancel != 'Y')")->
-                groupBy("form_cut_input.no_cut", "marker_input.color", "marker_input_detail.so_det_id")->
+                groupByRaw("form_cut_input.no_cut, UPPER(TRIM(marker_input.color)), marker_input_detail.so_det_id")->
                 orderBy("form_cut_input.no_cut", "desc")->
                 get();
 
@@ -3571,7 +3572,7 @@ class StockerController extends Controller
                             'no_cut_size' => $noCutSize . sprintf('%04s', ($i)),
                             'so_det_id' => $ratio->so_det_id,
                             'act_costing_ws' => $dataSpreading->ws,
-                            'color' => $dataSpreading->color,
+                            'color' => strtoupper(trim($dataSpreading->color)),
                             'size' => $ratio->size,
                             'panel' => $dataSpreading->panel,
                             'number' => $i,
@@ -3684,7 +3685,7 @@ class StockerController extends Controller
                     part.buyer,
                     part.act_costing_ws ws,
                     part.style,
-                    part.color,
+                    UPPER(TRIM(part.color)) color,
                     part.panel,
                     COUNT(DISTINCT form_cut_input.id) total_form,
                     GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) ORDER BY master_part.nama_part SEPARATOR ', ') part_details,
@@ -3716,7 +3717,7 @@ class StockerController extends Controller
                 })->filterColumn('style', function ($query, $keyword) {
                     $query->whereRaw("LOWER(style) LIKE LOWER('%" . $keyword . "%')");
                 })->filterColumn('color', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(color) LIKE LOWER('%" . $keyword . "%')");
+                    $query->whereRaw("LOWER(TRIM(color)) LIKE LOWER('%" . strtolower(trim($keyword)) . "%')");
                 })->filterColumn('panel', function ($query, $keyword) {
                     $query->whereRaw("LOWER(panel) LIKE LOWER('%" . $keyword . "%')");
                 })->order(function ($query) {
@@ -3769,7 +3770,7 @@ class StockerController extends Controller
                     marker_input.buyer,
                     marker_input.urutan_marker,
                     marker_input.style,
-                    marker_input.color,
+                    UPPER(TRIM(marker_input.color)) color,
                     marker_input.panel,
                     GROUP_CONCAT(DISTINCT CONCAT((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE master_sb_ws.size  END  ), '(', marker_input_detail.ratio, ')'  )  ORDER BY master_size_new.urutan ASC SEPARATOR ' / '  ) marker_details,
                     form_cut_input.qty_ply,
@@ -3804,7 +3805,7 @@ class StockerController extends Controller
                     form_cut_piece.buyer,
                     null as urutan_marker,
                     form_cut_piece.style,
-                    form_cut_piece.color,
+                    UPPER(TRIM(form_cut_piece.color)) color,
                     form_cut_piece.panel,
                     GROUP_CONCAT(DISTINCT CONCAT((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE master_sb_ws.size  END  ), '(', form_cut_piece_detail_size.qty, ')'  )  ORDER BY master_size_new.urutan ASC SEPARATOR ' / '  ) marker_details,
                     SUM(form_cut_piece_detail.qty) total_qty,
@@ -3840,7 +3841,7 @@ class StockerController extends Controller
                 part.buyer,
                 part.act_costing_ws,
                 part.style,
-                part.color,
+                UPPER(TRIM(part.color)) color,
                 part.panel,
                 GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) ORDER BY master_part.nama_part SEPARATOR ', ') part_details
             ")->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->leftJoin("master_part", "master_part.id", "part_detail.master_part_id")->where("part.id", $id)->groupBy("part.id")->first();
@@ -3861,7 +3862,7 @@ class StockerController extends Controller
                     marker_input.buyer,
                     marker_input.urutan_marker,
                     marker_input.style,
-                    marker_input.color,
+                    UPPER(TRIM(marker_input.color)) color,
                     marker_input.panel,
                     GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') SEPARATOR ', ') marker_details,
                     form_cut_input.qty_ply,
@@ -3903,7 +3904,7 @@ class StockerController extends Controller
                 part.buyer,
                 part.act_costing_ws,
                 part.style,
-                part.color,
+                UPPER(TRIM(part.color)) color,
                 part.panel,
                 GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) ORDER BY master_part.nama_part SEPARATOR ', ') part_details
             ")->
@@ -4707,7 +4708,7 @@ class StockerController extends Controller
                         stocker_input.so_det_id,
                         stocker_input.buyer,
                         stocker_input.style,
-                        stocker_input.color,
+                        UPPER(TRIM(stocker_input.color)) color,
                         stocker_input.size,
                         stocker_input.dest,
                         stocker_input.group_stocker,
@@ -4754,7 +4755,7 @@ class StockerController extends Controller
                                 stocker_input.so_det_id,
                                 master_sb_ws.buyer buyer,
                                 master_sb_ws.styleno style,
-                                master_sb_ws.color,
+                                UPPER(TRIM(master_sb_ws.color)) color,
                                 master_sb_ws.size,
                                 master_sb_ws.dest,
                                 stocker_input.part_detail_id,
@@ -4827,7 +4828,7 @@ class StockerController extends Controller
                         stocker_input.so_det_id,
                         master_sb_ws.buyer buyer,
                         master_sb_ws.styleno style,
-                        master_sb_ws.color,
+                        UPPER(TRIM(master_sb_ws.color)) color,
                         master_sb_ws.size,
                         master_sb_ws.dest,
                         COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
@@ -4950,7 +4951,7 @@ class StockerController extends Controller
         }
         $color_filter = "";
         if ($request->color_filter) {
-            $color_filter = "AND master_sb_ws.color LIKE '%".$request->color_filter."%' ";
+            $color_filter = "AND UPPER(TRIM(master_sb_ws.color)) LIKE '%".strtoupper(trim($request->color_filter))."%' ";
         }
         $size_filter = "";
         if ($request->size_filter) {
@@ -5034,7 +5035,7 @@ class StockerController extends Controller
                         stocker_input.so_det_id,
                         stocker_input.buyer,
                         stocker_input.style,
-                        stocker_input.color,
+                        UPPER(TRIM(stocker_input.color)) color,
                         stocker_input.size,
                         stocker_input.dest,
                         stocker_input.group_stocker,
@@ -5081,7 +5082,7 @@ class StockerController extends Controller
                                 stocker_input.so_det_id,
                                 master_sb_ws.buyer buyer,
                                 master_sb_ws.styleno style,
-                                master_sb_ws.color,
+                                UPPER(TRIM(master_sb_ws.color)) color,
                                 master_sb_ws.size,
                                 master_sb_ws.dest,
                                 stocker_input.part_detail_id,
@@ -5180,7 +5181,7 @@ class StockerController extends Controller
                         stocker_input.so_det_id,
                         master_sb_ws.buyer buyer,
                         master_sb_ws.styleno style,
-                        master_sb_ws.color,
+                        UPPER(TRIM(master_sb_ws.color)) color,
                         master_sb_ws.size,
                         master_sb_ws.dest,
                         COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
@@ -5311,7 +5312,7 @@ class StockerController extends Controller
                     stocker_input.so_det_id,
                     master_sb_ws.buyer buyer,
                     master_sb_ws.styleno style,
-                    master_sb_ws.color,
+                    UPPER(TRIM(master_sb_ws.color)) color,
                     master_sb_ws.size,
                     master_sb_ws.dest,
                     COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
@@ -5683,7 +5684,7 @@ class StockerController extends Controller
         }
         $color_filter = "";
         if ($request->color_filter) {
-            $color_filter = "AND master_sb_ws.color LIKE '%".$request->color_filter."%' ";
+            $color_filter = "AND UPPER(TRIM(master_sb_ws.color)) LIKE '%".strtoupper(trim($request->color_filter))."%' ";
         }
         $size_filter = "";
         if ($request->size_filter) {
@@ -5757,7 +5758,7 @@ class StockerController extends Controller
                     stocker_input.so_det_id,
                     stocker_input.buyer,
                     stocker_input.style,
-                    stocker_input.color,
+                    UPPER(TRIM(stocker_input.color)) color,
                     stocker_input.size,
                     stocker_input.dest,
                     stocker_input.group_stocker,
@@ -5804,7 +5805,7 @@ class StockerController extends Controller
                             stocker_input.so_det_id,
                             master_sb_ws.buyer buyer,
                             master_sb_ws.styleno style,
-                            master_sb_ws.color,
+                            UPPER(TRIM(master_sb_ws.color)) color,
                             master_sb_ws.size,
                             master_sb_ws.dest,
                             stocker_input.part_detail_id,
@@ -5898,7 +5899,7 @@ class StockerController extends Controller
                     stocker_input.so_det_id,
                     master_sb_ws.buyer buyer,
                     master_sb_ws.styleno style,
-                    master_sb_ws.color,
+                    UPPER(TRIM(master_sb_ws.color)) color,
                     master_sb_ws.size,
                     master_sb_ws.dest,
                     COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
@@ -6235,7 +6236,7 @@ class StockerController extends Controller
     }
 
     public function printYearSequenceNewFormat(Request $request) {
-        $yearSequence = YearSequence::selectRaw("(CASE WHEN COALESCE(master_sb_ws.reff_no, '-') != '-' THEN master_sb_ws.reff_no ELSE master_sb_ws.styleno END) style, master_sb_ws.color, master_sb_ws.size, id_year_sequence, year, year_sequence, year_sequence_number")->
+        $yearSequence = YearSequence::selectRaw("(CASE WHEN COALESCE(master_sb_ws.reff_no, '-') != '-' THEN master_sb_ws.reff_no ELSE master_sb_ws.styleno END) style, UPPER(TRIM(master_sb_ws.color)) color, master_sb_ws.size, id_year_sequence, year, year_sequence, year_sequence_number")->
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
             where("year", $request->year)->
             where("year_sequence", $request->yearSequence)->
@@ -6263,7 +6264,7 @@ class StockerController extends Controller
                     stocker_input.act_costing_ws,
                     part.act_costing_id,
                     part.style,
-                    stocker_input.color,
+                    UPPER(TRIM(stocker_input.color)) color,
                     stocker_input.size,
                     master_part.nama_part part,
                     COALESCE(form_cut_input.no_form, form_cut_piece.no_form, form_cut_reject.no_form) no_form,
@@ -6410,7 +6411,7 @@ class StockerController extends Controller
     }
 
     public function getRangeYearSequence(Request $request) {
-        if ($request->year && $request->sequence) {
+        if (($request->year != null || $request->year != "") && $request->sequence) {
 
             $availableYearSequence = collect(DB::select("
                 SELECT
@@ -6442,7 +6443,7 @@ class StockerController extends Controller
 
     // Modify Year Sequence Module
     public function modifyYearSequence(Request $request) {
-        $years = array_reverse(range(1999, date('Y')));
+        $years = array_reverse(range(1999, date('Y', strtotime('+1 years'))));
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno', 'styleno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
@@ -6464,7 +6465,7 @@ class StockerController extends Controller
                 year_sequence.id_year_sequence,
                 master_sb_ws.ws,
                 master_sb_ws.styleno,
-                master_sb_ws.color,
+                UPPER(TRIM(master_sb_ws.color)) color,
                 master_sb_ws.size,
                 master_sb_ws.dest
             ")->
@@ -6503,7 +6504,7 @@ class StockerController extends Controller
                 year_sequence.id_year_sequence,
                 master_sb_ws.ws,
                 master_sb_ws.styleno,
-                master_sb_ws.color,
+                UPPER(TRIM(master_sb_ws.color)) color,
                 master_sb_ws.size,
                 master_sb_ws.dest
             ")->
@@ -6559,7 +6560,7 @@ class StockerController extends Controller
                 $query->whereRaw("master_sb_ws.styleno LIKE '%".$keyword."%'" );
             })->
             filterColumn('color', function($query, $keyword) {
-                $query->whereRaw("master_sb_ws.color LIKE '%".$keyword."%'" );
+                $query->whereRaw("UPPER(TRIM(master_sb_ws.color)) LIKE '%".$keyword."%'" );
             })->
             filterColumn('size', function($query, $keyword) {
                 $query->whereRaw("master_sb_ws.size LIKE '%".$keyword."%'" );
@@ -6804,20 +6805,20 @@ class StockerController extends Controller
                         if ($currentYearSequence) {
 
                             // Check current so det
-                            $currentSoDet = SoDet::select("so_det.id", "act_costing.id as id_ws", "so_det.color", "so_det.size")->
+                            $currentSoDet = SoDet::selectRaw("so_det.id, act_costing.id as id_ws, UPPER(TRIM(so_det.color)) color, so_det.size")->
                                 leftJoin("so", "so.id", "=", "so_det.id_so")->
                                 leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
                                 where("act_costing.id", $idWs)->
-                                where("so_det.color", $color)->
+                                whereRaw("UPPER(TRIM(so_det.color)) = '".strtoupper(trim($color))."'")->
                                 where("so_det.size", $currentYearSequence->size)->
                                 where("so_det.dest", $currentYearSequence->dest)->
                                 first();
                             if (!$currentSoDet) {
-                                $currentSoDet = SoDet::select("so_det.id", "act_costing.id as id_ws", "so_det.color", "so_det.size")->
+                                $currentSoDet = SoDet::selectRaw("so_det.id, act_costing.id as id_ws, UPPER(TRIM(so_det.color)) color, so_det.siz")->
                                     leftJoin("so", "so.id", "=", "so_det.id_so")->
                                     leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
                                     where("act_costing.id", $idWs)->
-                                    where("so_det.color", $color)->
+                                    whereRaw("UPPER(TRIM(so_det.color)) = '".strtoupper(trim($color))."'")->
                                     where("so_det.size", $currentYearSequence->size)->
                                     first();
                             }
@@ -7058,7 +7059,7 @@ class StockerController extends Controller
                 form_cut_reject.act_costing_ws,
                 form_cut_reject.buyer,
                 form_cut_reject.style,
-                form_cut_reject.color,
+                UPPER(TRIM(form_cut_reject.color)) as color,
                 form_cut_reject.no_form,
                 stocker_input.shade,
                 stocker_input.notes,
@@ -7149,7 +7150,7 @@ class StockerController extends Controller
                 form_cut_reject.act_costing_ws,
                 form_cut_reject.buyer,
                 form_cut_reject.style,
-                form_cut_reject.color,
+                UPPER(TRIM(form_cut_reject.color)) color,
                 form_cut_reject.no_form,
                 stocker_input.shade,
                 stocker_input.notes,
@@ -7189,7 +7190,7 @@ class StockerController extends Controller
                 form_cut_reject.act_costing_ws,
                 form_cut_reject.buyer,
                 form_cut_reject.style,
-                form_cut_reject.color,
+                UPPER(TRIM(form_cut_reject.color)) color,
                 form_cut_reject.no_form,
                 stocker_input.shade,
                 stocker_input.notes,
@@ -7216,6 +7217,7 @@ class StockerController extends Controller
 
         return $pdf->download(str_replace("/", "_", $fileName));
     }
+
     public function separateStocker(Request $request) {
         $validatedRequest = $request->validate([
             "form_cut_id" => "required",

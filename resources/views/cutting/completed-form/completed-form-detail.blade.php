@@ -1644,7 +1644,7 @@
                     rollQtyConverted = rollQtyVar;
                 }
 
-                return Number(rollQtyConverted);
+                return Number(rollQtyConverted).round(2);
             }
 
             return null;

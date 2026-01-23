@@ -768,7 +768,7 @@ class SewingToolsController extends Controller
         }
 
         if ($request->tanggal_loading_akhir) {
-            $tglLoading .= " and COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading)<= '".$request->tanggal_loading_akhir."'";
+            $tglLoading .= " and COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading) <= '".$request->tanggal_loading_akhir."'";
         }
 
         $lineLoading = "";
@@ -784,7 +784,7 @@ class SewingToolsController extends Controller
             if ($request->tanggal_plan_akhir) {
                 $tglPlan .= " and master_plan.tgl_plan <= '".$request->tanggal_plan_akhir."'";
             }
-            $additionalFilter .= "output.kode_numbering is not null";
+            $additionalFilter .= " and output.kode_numbering is not null";
         }
 
         // Sewing/Packing
@@ -1259,7 +1259,18 @@ class SewingToolsController extends Controller
                 $join->on(DB::raw("CAST(stk_bk.range_akhir AS UNSIGNED)"), ">=", DB::raw("CAST(ys.number AS UNSIGNED)"));
             })->
             leftJoin(DB::raw("laravel_nds.loading_line as loading"), "loading.stocker_id", "=", "stk.id")->
-            leftJoin(DB::raw("laravel_nds.loading_line as loading_bk"), "loading_bk.stocker_id", "=", "stk_bk.id");
+            leftJoin(DB::raw("laravel_nds.loading_line as loading_bk"), "loading_bk.stocker_id", "=", "stk_bk.id")->
+            whereRaw("
+                ys.id is not null
+                ".$tglLoading."
+                ".$lineLoading."
+                ".$statusOutput."
+                ".$statusPacking."
+                ".$crossLineLoading."
+                ".$crossLineOutput."
+                ".$crossLineOutput."
+                ".$additionalFilter."
+            ");
 
         return Datatables::queryBuilder($outputList)->toJson();
     }

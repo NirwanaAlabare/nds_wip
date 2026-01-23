@@ -36,8 +36,10 @@ Route::controller(MgtReportProsesController::class)->prefix("mgt-report-proses")
 // FGStok Report
 Route::controller(FGStokLaporanController::class)->prefix("laporan-fg-stock")->group(function () {
     Route::get('/', 'index');
-    Route::get('/export_excel_mutasi_fg_stok', 'export_excel_mutasi_fg_stok');
     Route::get('/show_fg_stok_mutasi', 'show_fg_stok_mutasi');
+    Route::get('/export_excel_mutasi_fg_stok', 'export_excel_mutasi_fg_stok');
+    Route::get('/export_excel_mutasi_fg_stok_new', 'exportExcelMutasiFgStok');
+    Route::get('/export_excel_mutasi_fg_stok_sb', 'exportExcelMutasiFgStokSb');
 });
 
 // DASHBOARD WIP LINE
@@ -55,7 +57,17 @@ Route::controller(OutMaterialController::class)->prefix("out-barcode-fabric")->g
     Route::post('out-material/out-barcode-fabric', 'out_barcode_fabric');
 });
 
-//out barcode Fabric
+//mutasi barcode Fabric
 Route::controller(OutMaterialController::class)->prefix("mutasi-barcode-fabric")->group(function () {
     Route::post('mutasi-material/mutasi-barcode-fabric', 'mutasi_barcode_fabric');
+});
+
+//mutasi item Fabric
+Route::controller(OutMaterialController::class)->prefix("mutasi-item-fabric")->group(function () {
+    Route::post('mutasi-material/mutasi-item-fabric', 'mutasi_item_fabric');
+});
+
+//mutasi item Fabric
+Route::controller(OutMaterialController::class)->prefix("mutasi-fabric-subcont")->group(function () {
+    Route::post('mutasi-material/mutasi-fabric-subcont', 'mutasi_fabric_subcont');
 });

@@ -3056,7 +3056,7 @@
                 });
 
                 var datatableDc = $("#datatable-dc").DataTable({
-                    serverSide: false,
+                    serverSide: true,
                     processing: true,
                     ordering: false,
                     pageLength: 50,

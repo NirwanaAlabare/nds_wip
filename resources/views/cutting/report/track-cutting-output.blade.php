@@ -16,6 +16,12 @@
         table.dataTable {
             margin: 0 !important;
         }
+
+        .alert-warning {
+            color: #856404 !important;
+            background-color: #fff3cd !important;
+            border-color: #ffeeba !important;
+        }
     </style>
 @endsection
 
@@ -26,7 +32,7 @@
                 <h5 class="card-title fw-bold text-sb text-center"><i class="fa-solid fa-file"></i> Order Cutting Output</h5>
             </div>
             <div class="card-body">
-                @livewire('cutting.track-cutting-output')
+                @livewire('cutting.track-cutting-output', [$dateFromFilter, $dateToFilter, $selectedSupplier, $selectedOrder, $colorFilter, $panelFilter, $mejaFilter, $sizeFilter, $groupBy])
             </div>
         </div>
     </div>

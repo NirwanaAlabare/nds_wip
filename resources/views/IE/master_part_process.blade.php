@@ -491,8 +491,8 @@
                 totalAMV += parseFloat($(this).data("amv")) || 0;
             });
 
-            $("#total_smv").val(totalSMV);
-            $("#total_amv").val(totalAMV);
+            $("#total_smv").val(totalSMV.toFixed(3));
+            $("#total_amv").val(totalAMV.toFixed(3));
         }
 
         function save_master_part_process() {
@@ -595,8 +595,8 @@
                 totalAMV += parseFloat($(this).data("amv")) || 0;
             });
 
-            $("#total_smv_edit").val(totalSMV);
-            $("#total_amv_edit").val(totalAMV);
+            $("#total_smv_edit").val(totalSMV.toFixed(3));
+             $("#total_amv_edit").val(totalAMV.toFixed(3));
         }
 
         $(document).on("change", "#datatable_edit .row-check", function() {

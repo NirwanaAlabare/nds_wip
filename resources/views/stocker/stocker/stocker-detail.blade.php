@@ -786,7 +786,7 @@
                                                 </td>
                                             </tr>
 
-                                            <input type="hidden" name="mod_original_qty[{{ $index }}]" id="mod_original_qty_{{ $index }}" value="{{ $ratio->ratio * ($groupStockerList[count($groupStockerList)-1] ? $groupStockerList[count($groupStockerList)-1]['qty'] : 0) }}">
+                                            <input type="hidden" name="mod_original_qty[{{ $index }}]" id="mod_original_qty_{{ $index }}" data-original-value="{{ $ratio->ratio * ($groupStockerList[count($groupStockerList)-1] ? $groupStockerList[count($groupStockerList)-1]['qty'] : 0) }}" value="{{ $ratio->ratio * ($groupStockerList[count($groupStockerList)-1] ? $groupStockerList[count($groupStockerList)-1]['qty'] : 0) }}" value="{{ $ratio->ratio * ($groupStockerList[count($groupStockerList)-1] ? $groupStockerList[count($groupStockerList)-1]['qty'] : 0) }}">
                                             <input type="hidden" name="mod_difference_qty[{{ $index }}]" id="mod_difference_qty_{{ $index }}" value="{{ 0 }}">
                                             <input type="hidden" name="mod_ratio[{{ $index }}]" id="mod_ratio_{{ $index }}" value="{{ $ratio->ratio }}">
                                             <input type="hidden" name="mod_so_det_id[{{ $index }}]" id="mod_so_det_id_{{ $index }}" value="{{ $ratio->so_det_id }}">
@@ -1915,7 +1915,9 @@
                             else if (el.type === 'text') el.value = '';
                         }
 
-                        if (el.tagName === 'SELECT') el.selectedIndex = el.options.length - 1;
+                        if (el.tagName === 'SELECT') {
+                            el.selectedIndex = el.options.length - 1;
+                        };
                     });
 
                     // Update all hidden inputs that belong to this row (inside tbody)
@@ -1930,7 +1932,7 @@
 
                         // Reset hidden values
                         if (hidden.name.includes('mod_difference_qty')) hidden.value = 0;
-                        if (hidden.name.includes('mod_original_qty')) hidden.value = hidden.dataset.originalValue || hidden.value;
+                        if (hidden.name.includes('mod_original_qty')) hidden.value = hidden.dataset.originalValue;
 
                         next = next.nextElementSibling;
                     }

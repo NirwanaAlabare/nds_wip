@@ -14,7 +14,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use DB;
 
-class SecondaryInhouseController extends Controller
+class SecondaryInhouseOutController extends Controller
 {
     public function index(Request $request)
     {
@@ -157,6 +157,7 @@ class SecondaryInhouseController extends Controller
 
             return DataTables::of($data_input)->toJson();
         }
+
         return view('dc.secondary-inhouse.secondary-inhouse', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-inhouse", "data_rak" => $data_rak], ['tgl_skrg' => $tgl_skrg]);
     }
 
@@ -175,9 +176,7 @@ class SecondaryInhouseController extends Controller
         $data_input = collect(DB::select("
             SELECT
                 a.*,
-                (CASE WHEN fp.id > 0 THEN 'PIECE'
-                        WHEN fr.id > 0 THEN 'REJECT'
-                        ELSE 'NORMAL' END) AS tipe,
+                (CASE WHEN fp.id > 0 THEN 'PIECE' WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) AS tipe,
                 DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') AS tgl_trans_fix,
                 a.tgl_trans,
                 s.act_costing_ws,
@@ -208,24 +207,24 @@ class SecondaryInhouseController extends Controller
             FROM secondary_inhouse_input a
             LEFT JOIN (
                 SELECT
-                    secondary_inhouse_input.id_qr_stocker,
-                    MAX(other_sec_in.qty_awal) as qty_awal,
-                    SUM(other_sec_in.qty_reject) qty_reject,
-                    SUM(other_sec_in.qty_replace) qty_replace,
-                    MAX(secondary_inhouse_input.qty_in) as qty_akhir,
-                    MAX(secondary_inhouse_input.urutan) AS max_urutan,
+                    a.id_qr_stocker,
+                    MAX(other_sec_inhouse.qty_awal) as qty_awal,
+                    SUM(other_sec_inhouse.qty_reject) qty_reject,
+                    SUM(other_sec_inhouse.qty_replace) qty_replace,
+                    MAX(a.qty_in) as qty_akhir,
+                    MAX(a.urutan) AS max_urutan,
                     GROUP_CONCAT(master_secondary.tujuan SEPARATOR ' | ') as tujuan,
                     GROUP_CONCAT(master_secondary.proses SEPARATOR ' | ') as proses
-                FROM secondary_inhouse_input
-                LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_inhouse_input.id_qr_stocker
-                LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id and part_detail_secondary.urutan = secondary_inhouse_input.urutan
+                FROM secondary_inhouse_input a
+                LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = a.id_qr_stocker
+                LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id and part_detail_secondary.urutan = a.urutan
                 LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
                 left join secondary_inhouse_input as other_sec_inhouse on other_sec_inhouse.id_qr_stocker = stocker_input.id_qr_stocker
                     $additionalQuery
                 GROUP BY
-                    secondary_inhouse_input.id
+                    a.id
                 having
-                    MAX(secondary_inhouse_input.urutan) is not null
+                    MAX(a.urutan) is not null
             ) mx ON a.id_qr_stocker = mx.id_qr_stocker AND a.urutan = mx.max_urutan
             LEFT JOIN stocker_input s ON a.id_qr_stocker = s.id_qr_stocker
             LEFT JOIN master_sb_ws msb ON msb.id_so_det = s.so_det_id
@@ -531,7 +530,10 @@ class SecondaryInhouseController extends Controller
                 mp.nama_part,
                 dc.tujuan,
                 dc.lokasi,
-                coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace qty_awal,
+                COALESCE(sii.id, '-') as in_id,
+                COALESCE(sii.updated_at, sii.created_at, '-') as waktu_in,
+                COALESCE(sii.user, '-') as author_in,
+                COALESCE(sii.qty_in, coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace) qty_awal,
                 ifnull(si.id_qr_stocker,'x')
             from dc_in_input dc
                 left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
@@ -542,11 +544,14 @@ class SecondaryInhouseController extends Controller
                 left join part_detail p on s.part_detail_id = p.id
                 left join master_part mp on p.master_part_id = mp.id
                 left join marker_input mi on a.id_marker = mi.kode
+                left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
                 left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
             where
-                dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
+                dc.id_qr_stocker =  '" . $request->txtqrstocker . "'
+                and dc.tujuan = 'SECONDARY DALAM'
                 and ifnull(si.id_qr_stocker,'x') = 'x'
         ");
+
         return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
     }
 
@@ -561,7 +566,8 @@ class SecondaryInhouseController extends Controller
 
                 // Check Part Detail Secondary
                 $partDetailSecondary = $partDetail->secondaries;
-                if ($partDetailSecondary) {
+
+                if ($partDetailSecondary && $partDetailSecondary->count() > 0) {
 
                     // If there ain't no urutan
                     if ($stocker->urutan == null) {
@@ -577,7 +583,10 @@ class SecondaryInhouseController extends Controller
                                 mp.nama_part,
                                 dc.tujuan,
                                 dc.lokasi,
-                                coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace qty_awal,
+                                COALESCE(sii.id, '-') as in_id,
+                                COALESCE(sii.updated_at, sii.created_at, '-') as waktu_in,
+                                COALESCE(sii.user, '-') as author_in,
+                                COALESCE(sii.qty_in, coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace) qty_awal,
                                 ifnull(si.id_qr_stocker,'x'),
                                 1 as urutan
                             from dc_in_input dc
@@ -589,6 +598,7 @@ class SecondaryInhouseController extends Controller
                                 left join part_detail p on s.part_detail_id = p.id
                                 left join master_part mp on p.master_part_id = mp.id
                                 left join marker_input mi on a.id_marker = mi.kode
+                                left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
                                 left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
                             where
                                 dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
@@ -647,6 +657,9 @@ class SecondaryInhouseController extends Controller
                                                 mp.nama_part,
                                                 ms.tujuan,
                                                 ms.proses lokasi,
+                                                COALESCE(sii.id, '-') as in_id,
+                                                COALESCE(sii.updated_at, sii.created_at, '-') as waktu_in,
+                                                COALESCE(sii.user, '-') as author_in,
                                                 ".($multiSecondaryBeforeSecondaryIn->qty_in)." qty_awal,
                                                 ifnull(si.id_qr_stocker,'x'),
                                                 (pds.urutan) as urutan
@@ -662,6 +675,7 @@ class SecondaryInhouseController extends Controller
                                                 left join master_part mp on p.master_part_id = mp.id
                                                 left join master_secondary ms on pds.master_secondary_id = ms.id
                                                 left join marker_input mi on a.id_marker = mi.kode
+                                                left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
                                                 left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
                                             where
                                                 dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and
@@ -702,6 +716,9 @@ class SecondaryInhouseController extends Controller
                                             mp.nama_part,
                                             ms.tujuan,
                                             ms.proses lokasi,
+                                            COALESCE(sii.id, '-') as in_id,
+                                            COALESCE(sii.updated_at, sii.created_at, '-') as waktu_in,
+                                            COALESCE(sii.user, '-') as author_in,
                                             '".($multiSecondaryBeforeSecondary->qty_in)."' qty_awal,
                                             ifnull(si.id_qr_stocker,'x'),
                                             (pds.urutan) as urutan
@@ -717,6 +734,7 @@ class SecondaryInhouseController extends Controller
                                             left join master_part mp on p.master_part_id = mp.id
                                             left join master_secondary ms on pds.master_secondary_id = ms.id
                                             left join marker_input mi on a.id_marker = mi.kode
+                                            left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
                                             left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
                                         where
                                             dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and
@@ -739,7 +757,10 @@ class SecondaryInhouseController extends Controller
                                         mp.nama_part,
                                         dc.tujuan,
                                         dc.lokasi,
-                                        coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace qty_awal,
+                                        COALESCE(sii.id, '-') as in_id,
+                                        COALESCE(sii.updated_at, sii.created_at, '-') as waktu_in,
+                                        COALESCE(sii.user, '-') as author_in,
+                                        COALESCE(sii.qty_in, coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace) qty_awal,
                                         ifnull(si.id_qr_stocker,'x'),
                                         1 as urutan
                                     from dc_in_input dc
@@ -751,6 +772,7 @@ class SecondaryInhouseController extends Controller
                                         left join part_detail p on s.part_detail_id = p.id
                                         left join master_part mp on p.master_part_id = mp.id
                                         left join marker_input mi on a.id_marker = mi.kode
+                                        left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
                                         left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
                                     where
                                         dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
@@ -778,7 +800,10 @@ class SecondaryInhouseController extends Controller
                             mp.nama_part,
                             dc.tujuan,
                             dc.lokasi,
-                            coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace qty_awal,
+                            COALESCE(sii.id, '-') as in_id,
+                            COALESCE(sii.updated_at, sii.created_at, '-') as waktu_in,
+                            COALESCE(sii.user, '-') as author_in,
+                            COALESCE(sii.qty_in, coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace) qty_awal,
                             ifnull(si.id_qr_stocker,'x'),
                             1 as urutan
                         from dc_in_input dc
@@ -790,6 +815,7 @@ class SecondaryInhouseController extends Controller
                             left join part_detail p on s.part_detail_id = p.id
                             left join master_part mp on p.master_part_id = mp.id
                             left join marker_input mi on a.id_marker = mi.kode
+                            left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
                             left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
                         where
                             dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'

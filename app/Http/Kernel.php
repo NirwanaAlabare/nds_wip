@@ -89,6 +89,6 @@ class Kernel extends HttpKernel
         'ga' => \App\Http\Middleware\IsGa::class,
         'so' => \App\Http\Middleware\IsStockOpname::class,
         'marketing' => \App\Http\Middleware\IsMarketing::class,
-        'role' => \App\Http\Middleware\RoleMiddleWare::class,
+        'role' => \App\Http\Middleware\RoleMiddleware::class,
     ];
 }

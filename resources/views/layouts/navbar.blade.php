@@ -179,6 +179,12 @@
                                             Bintex Sisa Kain <i class="fa-solid fa-toilet-paper-slash fa-sm"></i>
                                         </a>
                                     </li>
+                                    <li>
+                                        <a href="{{ route('alokasi_fabric_gr_panel') }}"
+                                            class="dropdown-item {{ $subPage == 'alokasi-fabric-gr-panel' ? 'active' : '' }}">
+                                            Alokasi Fabric GR Panel <i class="fa-solid fa-toilet-paper fa-sm"></i>
+                                        </a>
+                                    </li>
                                 </ul>
                             </li>
                             <li class="nav-item dropdown">
@@ -214,6 +220,12 @@
                                             class="dropdown-item {{ $subPage == 'form-cut-piping' ? 'active' : '' }}"
                                             target="_blank">
                                             Dashboard <i class="fa-solid fa-pager"></i>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('report_cutting_mutasi_fabric') }}"
+                                            class="dropdown-item {{ $routeName == 'report_cutting_mutasi_fabric' ? 'active' : '' }}">
+                                            Mutasi Fabric <i class="fa fa-list"></i>
                                         </a>
                                     </li>
                                 </ul>
@@ -263,6 +275,12 @@
                                     <a href="{{ route('stock-cutting-reject') }}"
                                         class="dropdown-item {{ $routeName == 'stock-cutting-reject' ? 'active' : '' }}">
                                         Stocker <i class="fa-solid fa-receipt"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('form_gr_panel') }}"
+                                        class="dropdown-item {{ $routeName == 'form_gr_panel' ? 'active' : '' }}">
+                                        Form GR Panel <i class="fa-solid fa-file"></i>
                                     </a>
                                 </li>
                             </ul>
@@ -349,9 +367,15 @@
                                 class="nav-link dropdown-toggle {{ $subPageGroup == 'secondary-dc' ? 'active' : '' }}">Secondary</a>
                             <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                                 <li>
+                                    <a href="{{ route('secondary-inhouse-in') }}"
+                                        class="dropdown-item {{ $routeName == 'secondary-inhouse-in' ? 'active' : '' }}">
+                                        In Secondary Dalam <i class="fas fa-house-user"></i>
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ route('secondary-inhouse') }}"
                                         class="dropdown-item {{ $routeName == 'secondary-inhouse' ? 'active' : '' }}">
-                                        Secondary Dalam <i class="fas fa-house-user"></i>
+                                        Out Secondary Dalam <i class="fas fa-house-user"></i>
                                     </a>
                                 </li>
                                 <li>
@@ -451,14 +475,18 @@
                                         Modify Loading <i class="fa-solid fa-sliders"></i>
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('loading_out') }}"
+                                        class="dropdown-item {{ $subPage == 'loading_out' ? 'active' : '' }}">
+                                        Loading Out / WIP Out <i class="fas fa-long-arrow-alt-right"></i>
+                                    </a>
+                                </li>
                                 {{-- Deprecated --}}
-                                {{--
-                                    <li>
-                                        <a href="{{ route('bon-loading-line') }}" class="dropdown-item {{ $subPage == 'bon-loading-line' ? 'active' : '' }}">
-                                            Bon Loading <i class="fa-solid fa-ticket-simple"></i>
-                                        </a>
-                                    </li>
-                                --}}
+                                {{-- <li>
+                                    <a href="{{ route('bon-loading-line') }}" class="dropdown-item {{ $subPage == 'bon-loading-line' ? 'active' : '' }}">
+                                        Bon Loading <i class="fa-solid fa-ticket-simple"></i>
+                                    </a>
+                                </li> --}}
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
@@ -527,6 +555,12 @@
                                     <a href="{{ route('master-defect') }}"
                                         class="dropdown-item {{ $routeName == 'master-defect' ? 'active' : '' }}">
                                         Master Defect <i class="fa-solid fa-circle-exclamation"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('sewing-secondary-master') }}"
+                                        class="dropdown-item {{ $routeName == 'sewing-secondary-master' ? 'active' : '' }}">
+                                        Secondary Sewing Master <i class="fa-solid fa-diagram-project"></i>
                                     </a>
                                 </li>
                             </ul>
@@ -927,11 +961,11 @@
                                 </a>
                             </li>
                             <?php }else{ ?>
-                                <li>
-                                    <a href="{{ route('laporan-stok-opname') }}" class="dropdown-item">
-                                        Report Stock Opname
-                                    </a>
-                                </li>
+                            <li>
+                                <a href="{{ route('laporan-stok-opname') }}" class="dropdown-item">
+                                    Report Stock Opname
+                                </a>
+                            </li>
                             <?php } ?>
                         </ul>
                     </li>
@@ -1513,6 +1547,11 @@
                             <li>
                                 <a href="{{ route('report-ceisa-detail') }}" class="dropdown-item">
                                     Ceisa Detail
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('report-signalbit-bc') }}" class="dropdown-item">
+                                    Data BC Signalbit
                                 </a>
                             </li>
                         </ul>

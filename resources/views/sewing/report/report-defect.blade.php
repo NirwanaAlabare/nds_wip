@@ -309,7 +309,8 @@
                     d.department = $('#department').val();
                 }
             },
-            columns: [{
+            columns: [
+                {
                     data: 'kode_numbering',
                     name: 'kode_numbering'
                 },

@@ -720,8 +720,7 @@ class PartController extends Controller
 
     public function get_proses(Request $request)
     {
-        $data_proses = DB::select("select id isi, proses tampil from master_secondary
-        where tujuan = '" . $request->cbotuj . "'");
+        $data_proses = DB::select("select id isi, proses tampil from master_secondary where tujuan = '" . $request->cbotuj . "'");
         $html = "<option value=''>Pilih Proses</option>";
 
         foreach ($data_proses as $dataproses) {
@@ -890,6 +889,30 @@ class PartController extends Controller
             'icon' => 'salah',
             'msg' => 'Data Part "' . $request->txtpart . '" gagal diupdate',
         );
+    }
+
+    public function getEditPartDetailProcess(Request $request) {
+        if ($request->edit_id) {
+            $currentPartDetail = PartDetail::select("master_secondary_id")->where("id", $request->edit_id)->first();
+
+            if ($currentPartDetail && $currentPartDetail->master_secondary_id) {
+                return $currentPartDetail->master_secondary_id;
+            }
+        }
+
+        return null;
+    }
+
+    public function getEditPartDetailItems(Request $request) {
+        if ($request->edit_id) {
+            $currentPartDetailItems = PartDetailItem::select("bom_jo_item_id")->where("part_detail_id", $request->edit_id)->pluck('bom_jo_item_id');
+
+            if ($currentPartDetailItems) {
+                return $currentPartDetailItems;
+            }
+        }
+
+        return null;
     }
 
     public function updatePartSecondary(Request $request)
@@ -1389,7 +1412,7 @@ class PartController extends Controller
             "
             SELECT
                 pd.id,
-                CONCAT(nama_part, ' - ', bag) nama_part,
+                CONCAT(mp.nama_part, ' - ', mp.bag) nama_part,
                 master_part_id,
                 master_secondary_id,
                 UPPER(COALESCE(pd.tujuan, ms.tujuan)) as tujuan,
@@ -1425,6 +1448,9 @@ class PartController extends Controller
                     group by
                         part_detail_id
                 ) stocker on stocker.part_detail_id = pd.id
+                left join part_detail_item pdi on pdi.part_detail_id = pd.id
+                left join signalbit_erp.bom_jo_item bji on bji.id = pdi.bom_jo_item_id
+                left join signalbit_erp.masteritem mi on mi.id_item = bji.id_item
             where
                 part_id = '" . $request->id . "' and
                 (part_status != 'complement')

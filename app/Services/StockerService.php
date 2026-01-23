@@ -316,9 +316,12 @@ class StockerService
     {
         ini_set('max_execution_time', 360000);
 
+        $colorFormCutFilter = $color ? " and UPPER(TRIM(marker_input.color)) = '".strtoupper(trim($color))."'" : null;
+        $colorFormPieceFilter = $color ? " and UPPER(TRIM(form_cut_piece.color)) = '".strtoupper(trim($color))."'" : null;
+
         $formCutInputs = collect(DB::select("
             SELECT
-                marker_input.color,
+                UPPER(TRIM(marker_input.color)) color,
                 form_cut_input.id AS id_form,
                 form_cut_input.no_cut,
                 form_cut_input.no_form AS no_form,
@@ -337,6 +340,7 @@ class StockerService
             WHERE
                 part_form.id IS NOT NULL
                 AND `part`.`id` = ".$partId."
+                ".$colorFormCutFilter."
                 AND form_cut_input.tgl_form_cut >= DATE ( NOW()- INTERVAL 2 YEAR )
             GROUP BY
                 `form_cut_input`.`id`
@@ -344,7 +348,7 @@ class StockerService
             UNION
 
             SELECT
-                form_cut_piece.color,
+                UPPER(TRIM(form_cut_piece.color)) color,
                 form_cut_piece.id AS id_form,
                 form_cut_piece.no_cut,
                 form_cut_piece.no_form AS no_form,
@@ -362,6 +366,7 @@ class StockerService
             WHERE
                 part_form.id IS NOT NULL
                 AND `part`.`id` = ".$partId."
+                ".$colorFormPieceFilter."
                 AND form_cut_piece.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
             GROUP BY
                 `form_cut_piece`.`id`
@@ -526,7 +531,7 @@ class StockerService
                     $formPartWs = $checkFormPart ? ($checkFormPart->act_costing_ws ?? null) : null;
                     $maxFormRatio = $checkFormRatio ? ($checkFormRatio->ratio ?? null) : null;
 
-                    if (($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1) || ($formPartWs && $formPartWs != $stocker->act_costing_ws) || ($maxFormRatio && $stocker->ratio > $maxFormRatio)) {
+                    if (($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1) || ($maxFormRatio && $stocker->ratio > $maxFormRatio)) {
                         $stocker->cancel = "y";
                         $stocker->save();
                     } else {
@@ -596,8 +601,16 @@ class StockerService
                     $stocker->range_akhir = isset($sizeRangeAkhirAdd[$stocker->so_det_id]) ? $sizeRangeAkhirAdd[$stocker->so_det_id] : $rangeAwalAdd + $lembarGelaran;
                     $stocker->save();
 
-                    if ($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1) {
+                    $checkFormRatio = $stocker->formCut->marker->markerDetails()->where("so_det_id", $stocker->so_det_id)->orderBy("ratio", "desc")->first();
+                    $checkFormPart = $stocker->partDetail->part;
+                    $formPartWs = $checkFormPart ? ($checkFormPart->act_costing_ws ?? null) : null;
+                    $maxFormRatio = $checkFormRatio ? ($checkFormRatio->ratio ?? null) : null;
+
+                    if ($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1 || ($formPartWs && $formPartWs != $stocker->act_costing_ws) || ($maxFormRatio && $stocker->ratio > $maxFormRatio)) {
                         $stocker->cancel = "y";
+                        $stocker->save();
+                    } else {
+                        $stocker->cancel = "n";
                         $stocker->save();
                     }
                 }
@@ -662,13 +675,15 @@ class StockerService
                     }
                 }
             }
+
+            \Log::channel("reorderStockerNumbering")->info("row ".$formCut->no_form." & ".$formCut->no_cut);
         }
 
         return $sizeRangeAkhir;
     }
 
     public function printYearSequence($year, $yearSequence, $rangeAwal, $rangeAkhir) {
-        $yearSequence = YearSequence::selectRaw("(CASE WHEN COALESCE(master_sb_ws.reff_no, '-') != '-' THEN master_sb_ws.reff_no ELSE master_sb_ws.styleno END) style, master_sb_ws.color, master_sb_ws.size, id_year_sequence, year, year_sequence, year_sequence_number")->
+        $yearSequence = YearSequence::selectRaw("(CASE WHEN COALESCE(master_sb_ws.reff_no, '-') != '-' THEN master_sb_ws.reff_no ELSE master_sb_ws.styleno END) style, UPPER(TRIM(master_sb_ws.color)) color, master_sb_ws.size, id_year_sequence, year, year_sequence, year_sequence_number")->
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
             where("year", $year)->
             where("year_sequence", $yearSequence)->

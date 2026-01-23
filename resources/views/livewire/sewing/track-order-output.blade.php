@@ -417,39 +417,43 @@
             });
         });
 
-        function clearFixedColumn() {
-            $('#trackdatatable').DataTable().destroy();
+        async function clearFixedColumn() {
+            if ( $.fn.dataTable.isDataTable('#trackdatatable') ) {
+                $('#trackdatatable').DataTable().destroy();
+            }
 
             console.log("clearFixedColumn");
         }
 
         async function setFixedColumn() {
-            setTimeout(function () {
-                // Initialize DataTable again
-                var datatable = $('#trackdatatable').DataTable({
-                    fixedColumns: {
-                        start: {{ $groupBy == 'size' ? 5 : 4 }},
-                        end: 1
-                    },
-                    paging: false,
-                    ordering: false,
-                    searching: false,
-                    scrollX: true,
-                    scrollY: "400px",
-                    serverSide: false,
-                    rowsGroup: [
-                        0,
-                        1,
-                        2,
-                        3,
-                        {{ $groupBy == 'size' ? 4 : null }}
-                    ]
-                });
-            }, 500);
+            if ( !$.fn.dataTable.isDataTable('#trackdatatable') ) {
+                setTimeout(function () {
+                    // Initialize DataTable again
+                    var datatable = $('#trackdatatable').DataTable({
+                        fixedColumns: {
+                            start: {{ $groupBy == 'size' ? 5 : 4 }},
+                            end: 1
+                        },
+                        paging: false,
+                        ordering: false,
+                        searching: false,
+                        scrollX: true,
+                        scrollY: "400px",
+                        serverSide: false,
+                        rowsGroup: [
+                            0,
+                            1,
+                            2,
+                            3,
+                            {{ $groupBy == 'size' ? 4 : null }}
+                        ]
+                    });
+                }, 500);
 
-            setTimeout(function () {
-                $('#trackdatatable').DataTable().columns.adjust();
-            }, 1000);
+                setTimeout(function () {
+                    $('#trackdatatable').DataTable().columns.adjust();
+                }, 1000);
+            }
 
             console.log("initFixedColumn");
         }

@@ -32,8 +32,8 @@ class IE_Proses_OB_Controller extends Controller
             round(sum(c.smv),3) tot_smv,
             request_by,
             request_date,
-            DATE_FORMAT(a.updated_at, '%d-%m-%y') AS request_date_fix,
-            DATE_FORMAT(a.updated_at, '%d-%m-%y') AS due_date_fix,
+            DATE_FORMAT(a.request_date, '%d-%m-%y') AS request_date_fix,
+            DATE_FORMAT(a.due_date, '%d-%m-%y') AS due_date_fix,
             a.status,
             a.created_by,
             DATE_FORMAT(a.created_at, '%d-%m-%y %H:%i:%s') AS tgl_create_fix
@@ -78,8 +78,8 @@ ORDER BY employee_name asc");
             picture,
             nm_part_process,
             count(a.id) tot_process,
-            sum(b.smv) tot_smv,
-            sum(b.amv) tot_amv,
+            ROUND(SUM(b.smv), 3) AS tot_smv,
+            ROUND(SUM(b.amv), 3) AS tot_amv,
             a.created_by,
             DATE_FORMAT(a.updated_at, '%d-%m-%y %H:%i:%s') AS tgl_update_fix
             FROM ie_master_part_process a
@@ -254,8 +254,8 @@ ORDER BY employee_name asc");
                 a.picture,
                 a.nm_part_process,
                 COUNT(a.id) AS tot_process,
-                SUM(b.smv) AS tot_smv,
-                SUM(b.amv) AS tot_amv
+    ROUND(SUM(b.smv), 3) AS tot_smv,
+    ROUND(SUM(b.amv), 3) AS tot_amv
             FROM ie_master_part_process a
             INNER JOIN ie_master_process b
                 ON a.id_process = b.id

@@ -577,9 +577,10 @@ async function editData(e, modal, addons = []) {
         }
     }
 
+    console.log(addons, addons.length, typeof addons);
     if (addons.length > 0) {
         for (let i = 0; i < addons.length; i++) {
-            if (typeof addons == "object") {
+            if (typeof addons[i] == "object") {
                 for (let addonsKey in addons[i]) {
                     if (addonsKey == "function") {
                         eval(addons[i][addonsKey]);

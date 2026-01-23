@@ -18,14 +18,14 @@
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
-                        <h1 class="modal-title fs-5">Scan QR Secondary Dalam</h1>
+                        <h1 class="modal-title fs-5">Scan QR OUT Secondary Dalam</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="row">
+                        <div class="row mx-3">
                             <div class="col-sm-12">
                                 <div class="mb-3">
-                                    <label class="form-label label-input">Scan QR Stocker</label>
+                                    <label class="form-label label-input">Scan QR OUT Stocker</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control form-control-sm border-input" name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go" onkeyup="if (event.keyCode == 13) document.getElementById('scanqr').click()" autofocus>
                                         {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
@@ -108,6 +108,22 @@
                                 </div>
                             </div>
                             <div class='col-sm-4'>
+                                <label class='form-label'><small>ID IN</small></label>
+                                <input type='text' class='form-control form-control-sm' id='txtin_id' name='txtin_id' value = '' readonly>
+                            </div>
+                            <div class='col-sm-4'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Waktu Scan IN</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='txtwaktu_in' name='txtwaktu_in' value = '' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-4'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Scan IN oleh</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='txtauthor_in' name='txtauthor_in' value = '' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-4'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Tujuan Asal</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txttujuan' name='txttujuan' value = '' readonly>
@@ -172,7 +188,6 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
@@ -185,7 +200,7 @@
 
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">Secondary Dalam <i class="fas fa-house-user"></i></h5>
+            <h5 class="card-title fw-bold mb-0">OUT Secondary Dalam <i class="fas fa-house-user"></i></h5>
         </div>
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
@@ -211,7 +226,7 @@
                 </div>
             </div>
 
-            <h5 class="card-title fw-bold mb-0" id="judul" name="judul">List Transaksi Inhouse / Dalam</h5>
+            <h5 class="card-title fw-bold mb-0" id="judul" name="judul">List Transaksi OUT Inhouse / Dalam</h5>
             <br>
             <br>
             <div class="table-responsive" id = "show_datatable_input">
@@ -869,7 +884,6 @@
         function reset() {
             $("#form").trigger("reset");
             // initScan();
-
         }
 
         function scan_qr() {
@@ -894,6 +908,9 @@
                     document.getElementById('txtsize').value = response.size;
                     document.getElementById('txtpart').value = response.nama_part;
                     document.getElementById('txttujuan').value = response.tujuan;
+                    document.getElementById('txtin_id').value = response.in_id;
+                    document.getElementById('txtwaktu_in').value = response.waktu_in;
+                    document.getElementById('txtauthor_in').value = response.author_in;
                     document.getElementById('txtalokasi').value = response.lokasi;
                     document.getElementById('txtqtyawal').value = response.qty_awal;
                     document.getElementById('txturutan').value = response.urutan;
@@ -937,6 +954,8 @@
                 error: function(request, status, error) {
                     console.error(request, status, error);
 
+                    reset();
+
                     Swal.fire({
                         icon: 'warning',
                         title: 'Data Tidak Ada',
@@ -960,13 +979,13 @@
 
 
         function list() {
-            document.getElementById("judul").textContent = "List Transaksi Inhouse / Dalam";
+            document.getElementById("judul").textContent = "List Transaksi OUT Inhouse / Dalam";
             document.getElementById("show_datatable_input").style.display = 'block';
             document.getElementById("show_datatable_detail").style.display = 'none';
         }
 
         function detail() {
-            document.getElementById("judul").textContent = "Detail Transaksi Inhouse / Dalam";
+            document.getElementById("judul").textContent = "Detail Transaksi OUT Inhouse / Dalam";
             document.getElementById("show_datatable_input").style.display = 'none';
             document.getElementById("show_datatable_detail").style.display = 'block';
             $('#datatable-detail').DataTable().ajax.reload();
