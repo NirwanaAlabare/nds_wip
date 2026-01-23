@@ -87,10 +87,10 @@
                             <th class="text-center align-middle">Saldo Awal</th>
                             <th class="text-center align-middle">Penerimaan</th>
                             <th class="text-center align-middle">Pemakaian Cutting</th>
+                            <th class="text-center align-middle">Short Roll</th>
                             <th class="text-center align-middle">Ganti Reject Set</th>
                             <th class="text-center align-middle">Ganti Reject Panel</th>
                             <th class="text-center align-middle">Retur</th>
-                            <th class="text-center align-middle">Short Roll</th>
                             <th class="text-center align-middle">Saldo Akhir</th>
                             <th class="text-center align-middle">Satuan</th>
                         </tr>
@@ -224,6 +224,10 @@
                         className: 'text-end'
                     },
                     {
+                        data: 'short_roll',
+                        className: 'text-end'
+                    },
+                    {
                         data: 'qty_reject_set',
                         className: 'text-end'
                     },
@@ -233,10 +237,6 @@
                     },
                     {
                         data: 'qty_retur',
-                        className: 'text-end'
-                    },
-                    {
-                        data: 'short_roll',
                         className: 'text-end'
                     },
                     {

@@ -19,10 +19,10 @@
                 <th class="text-center align-middle">Saldo Awal</th>
                 <th class="text-center align-middle">Penerimaan</th>
                 <th class="text-center align-middle">Pemakaian Cutting</th>
+                <th class="text-center align-middle">Short Roll</th>
                 <th class="text-center align-middle">Ganti Reject Set</th>
                 <th class="text-center align-middle">Ganti Reject Panel</th>
                 <th class="text-center align-middle">Retur</th>
-                <th class="text-center align-middle">Short Roll</th>
                 <th class="text-center align-middle">Saldo Akhir</th>
                 <th class="text-center align-middle">Satuan</th>
             </tr>
@@ -39,10 +39,10 @@
                     <td class="text-end">{{ $row->qty_sawal }}</td>
                     <td class="text-end">{{ $row->qty_out }}</td>
                     <td class="text-end">{{ $row->qty_pakai }}</td>
+                    <td class="text-end">{{ $row->short_roll }}</td>
                     <td class="text-end">{{ $row->qty_reject_set }}</td>
                     <td class="text-end">{{ $row->qty_reject_panel }}</td>
                     <td class="text-end">{{ $row->qty_retur }}</td>
-                    <td class="text-end">{{ $row->short_roll }}</td>
                     <td class="text-end">{{ $row->saldo_akhir }}</td>
                     <td class="text-end">{{ $row->satuan }}</td>
                 </tr>

@@ -52,108 +52,128 @@
         </div>
     </div>
     <div class="table-responsive">
-        <table class="table table-bordered w-100" id="trackdatatable">
-            <thead>
-                <tr>
-                    <th class="bg-sb fw-bold">No. WS</th>
-                    <th class="bg-sb fw-bold">Style</th>
-                    <th class="bg-sb fw-bold">Color</th>
-                    <th class="bg-sb fw-bold">Line</th>
-                    @if ($groupBy == 'size')
-                        <th class="bg-sb">Size</th>
-                    @endif
-                    <?php
-                        if ( $dailyOrderOutputs && $dailyOrderOutputs->count() > 0 ) {
-                            foreach ($dailyOrderOutputs->sortBy("tanggal")->groupBy("tanggal") as $dailyDate) {
-                                if ($dailyDate && is_object($dailyDate->first())) {
-                                ?>
-                                    <th class="bg-sb">{{ date_format(date_create(($dailyDate->first()->tanggal)), "d-m-Y") }}</th>
-                                <?php
-                                }
-                            }
-                    ?>
-                    <th class="bg-sb text-center">TOTAL</th>
-                </tr>
-            <thead>
-            <tbody>
-                <?php
-                        $currentWs = null;
-                        $currentStyle = null;
-                        $currentColor = null;
-                        $currentLine = null;
-                        $currentSize = null;
+        @if ($dailyOrderGroup && is_object($dailyOrderGroup))
+            <table class="table table-bordered w-100" id="trackdatatable">
+                <thead>
+                    <tr>
+                        <th class="bg-sb fw-bold">No. WS</th>
+                        <th class="bg-sb fw-bold">Style</th>
+                        <th class="bg-sb fw-bold">Color</th>
+                        <th class="bg-sb fw-bold">Line</th>
 
-                        $dateOutputs = collect();
-                        $totalOutput = null;
+                        @if ($groupBy === 'size')
+                            <th class="bg-sb fw-bold">Size</th>
+                        @endif
 
-                        foreach ($dailyOrderGroup as $dailyGroup) {
-                            if ($dailyGroup && is_object($dailyGroup)) {
-                            ?>
-                                <tr>
-                                    <td class="text-nowrap"><span class="sticky-span">{{ $dailyGroup->ws }}</span></td>
-                                    <td class="text-nowrap"><span class="sticky-span">{{ $dailyGroup->style }}</span></td>
-                                    <td class="text-nowrap"><span class="sticky-span">{{ $dailyGroup->color }}</span></td>
-                                    <td class="text-nowrap"><span class="sticky-span">{{ strtoupper(str_replace('_', ' ', $dailyGroup->sewing_line)) }}</span></td>
-                                    <td class="text-nowrap">{{ $dailyGroup->size }}</td>
+                        @foreach ($dates as $date)
+                            <th class="bg-sb fw-bold text-center">
+                                {{ \Carbon\Carbon::parse($date)->format('d-m-Y') }}
+                            </th>
+                        @endforeach
 
-                                    @php
-                                        $thisRowOutput = 0;
-                                    @endphp
-                                    @foreach ($dailyOrderOutputs->sortBy("tanggal")->groupBy("tanggal") as $dailyDate)
-                                        @php
-                                            $thisOutput = 0;
+                        <th class="bg-sb fw-bold text-center">TOTAL</th>
+                    </tr>
+                </thead>
 
-                                            if ($dailyDate && is_object($dailyDate->first())) {
-                                                if ($groupBy == 'size') {
-                                                    $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->where('size', $dailyGroup->size)->sum("output");
-                                                } else {
-                                                    $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->where('tanggal', $dailyDate->first()->tanggal)->sum("output");
-                                                }
+                <tbody>
+                    @php $useSize = $groupBy === 'size'; @endphp
 
-                                                if (isset($dateOutputs[$dailyDate->first()->tanggal])) {
-                                                    $dateOutputs[$dailyDate->first()->tanggal] += $thisOutput;
-                                                } else {
-                                                    $dateOutputs->put($dailyDate->first()->tanggal, $thisOutput);
-                                                }
+                    @foreach ($dailyOrderGroup as $row)
+                        @if (is_object($row))
+                            @php
+                                $key = implode('|', [
+                                    $row->ws,
+                                    $row->style,
+                                    $row->color,
+                                    $row->sewing_line,
+                                    $useSize ? $row->size : '_',
+                                ]);
+                            @endphp
 
-                                                $thisRowOutput += $thisOutput;
-                                            }
-                                        @endphp
+                            <tr>
+                                <td class="text-nowrap">
+                                    <span class="sticky-span">{{ $row->ws }}</span>
+                                </td>
+                                <td class="text-nowrap">
+                                    <span class="sticky-span">{{ $row->style }}</span>
+                                </td>
+                                <td class="text-nowrap">
+                                    <span class="sticky-span">{{ $row->color }}</span>
+                                </td>
+                                <td class="text-nowrap">
+                                    <span class="sticky-span">
+                                        {{ strtoupper(str_replace('_', ' ', $row->sewing_line)) }}
+                                    </span>
+                                </td>
 
-                                        <td class="text-end text-nowrap">
-                                            {{ num($thisOutput) }}
-                                        </td>
-                                    @endforeach
-                                    <td class="fw-bold text-end text-nowrap fs-5">
-                                        {{ num($thisRowOutput) }}
+                                @if ($useSize)
+                                    <td class="text-nowrap">{{ $row->size }}</td>
+                                @endif
+
+                                @foreach ($dates as $date)
+                                    <td class="text-end text-nowrap">
+                                        {{ num($outputMap[$key][$date] ?? 0) }}
                                     </td>
-                                    @php
-                                        $totalOutput += $thisRowOutput;
-                                    @endphp
-                                </tr>
-                            <?php
-                            }
-                        }
-                    }
-                ?>
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="{{ $groupBy == "size" ? '5' : '4' }}" class="fixed-column text-end">
-                        TOTAL
-                    </td>
-                    @if ($dailyOrderOutputs && $dailyOrderOutputs->count() > 0)
-                        @foreach ($dateOutputs as $dateOutput)
+                                @endforeach
+
+                                <td class="fw-bold text-end text-nowrap fs-5">
+                                    {{ num($rowTotals[$key] ?? 0) }}
+                                </td>
+                            </tr>
+                        @endif
+                    @endforeach
+                </tbody>
+
+                <tfoot>
+                    <tr>
+                        <td
+                            colspan="{{ $useSize ? 5 : 4 }}"
+                            class="fixed-column fw-bold text-end"
+                        >
+                            TOTAL
+                        </td>
+
+                        @foreach ($dates as $date)
                             <td class="fw-bold text-end text-nowrap fs-5">
-                                {{ num($dateOutput) }}
+                                {{ num($dateTotals[$date] ?? 0) }}
                             </td>
                         @endforeach
-                        <td class="fw-bold text-end text-nowrap fs-5">{{ num($totalOutput) }}</td>
-                    @endif
-                </tr>
-            </tfoot>
-        </table>
 
+                        <td class="fw-bold text-end text-nowrap fs-5">
+                            {{ num($grandTotal) }}
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        @else
+            <table class="table table-bordered w-100">
+                <thead>
+                    <tr>
+                        <th class="bg-sb fw-bold">No. WS</th>
+                        <th class="bg-sb fw-bold">Style</th>
+                        <th class="bg-sb fw-bold">Color</th>
+                        <th class="bg-sb fw-bold">Line</th>
+
+                        @if ($groupBy === 'size')
+                            <th class="bg-sb fw-bold">Size</th>
+                        @endif
+
+                        @foreach ($dates as $date)
+                            <th class="bg-sb fw-bold text-center">
+                                {{ \Carbon\Carbon::parse($date)->format('d-m-Y') }}
+                            </th>
+                        @endforeach
+
+                        <th class="bg-sb fw-bold text-center">TOTAL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="{{ count($dates) + ($groupBy == 'size' ? 6 : 5) }}">Data tidak ada</td>
+                    </tr>
+                </tbody>
+            </table>
+        @endif
     </div>
     <!-- Modal -->
     <div class="modal fade" id="filter-modal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true" wire:ignore.self>
