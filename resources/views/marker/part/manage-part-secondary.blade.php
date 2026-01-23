@@ -62,10 +62,26 @@
                             <input type="text" class="form-control form-control-sm" name="panel" id="panel" value="{{ $part->panel }}" readonly>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label><small><b>Panel Status</b></small></label>
+                            <input type="text" class="form-control form-control-sm" name="panel_status" id="panel_status" value="{{ strtoupper($part->panel_status) }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
                         <div class="mb-3">
                             <label><small><b>Parts</b></small></label>
-                            <input type="text" class="form-control form-control-sm" name="part_details" id="part_details" value="{{ $part->part_details }}" readonly>
+                            @php
+                                $partDetails = explode(",", $part->part_details);
+                            @endphp
+                            <ul class="list-group">
+                                @if ($partDetails)
+                                    @for ($i = 0; $i < count($partDetails); $i++)
+                                        <li class="list-group-item">{{ $partDetails[$i] }}</li>
+                                    @endfor
+                                @endif
+                            </ul>
+                            {{-- <input type="text" class="form-control form-control-sm" name="part_details" id="part_details" value="{{ $part->part_details }}" readonly> --}}
                         </div>
                     </div>
                 </div>
@@ -87,37 +103,80 @@
                 </div>
                 <div class="card-body">
                     <form method="post" id="store-secondary" name='form'>
-                        <div class="row">
-                            <div class="col">
-                                <div class="mb-4">
-                                    <label><small><b>Part</b></small></label>
-                                    <select class="form-control select2bs4" id="txtpart" name="txtpart" style="width: 100%;">
-                                        <option selected="selected" value="">Pilih Part</option>
-                                        @foreach ($data_part as $datapart)
-                                            <option value="{{ $datapart->id }}">
-                                                {{ $datapart->nama_part . ' - ' . $datapart->bag }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                        <div class="row mb-3">
+                            <div class="col-3">
+                                <label><small><b>Part</b></small></label>
+                                <select class="form-control select2bs4" id="txtpart" name="txtpart" style="width: 100%;">
+                                    <option selected="selected" value="">Pilih Part</option>
+                                    @foreach ($data_part as $datapart)
+                                        <option value="{{ $datapart->id }}">
+                                            {{ $datapart->nama_part . ' - ' . $datapart->bag }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
-                            <div class="col">
-                                <div class="mb-4">
-                                    <label><small><b>Cons</b></small></label>
-                                    <div class="input-group mb-3">
-                                        <input type="text" class="form-control" name="txtcons" id="txtcons">
-                                        <div class="input-group-prepend">
-                                            <select class="form-select" style="border-radius: 0 3px 3px 0;" name="txtconsunit" id="txtconsunit">
-                                                <option value="meter">METER</option>
-                                                <option value="yard">YARD</option>
-                                                <option value="kgm">KGM</option>
-                                                <option value="pcs">PCS</option>
-                                            </select>
-                                        </div>
+                            <div class="col-3">
+                                <label><small><b>Cons</b></small></label>
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control" name="txtcons" id="txtcons">
+                                    <div class="input-group-prepend">
+                                        <select class="form-select" style="border-radius: 0 3px 3px 0;" name="txtconsunit" id="txtconsunit">
+                                            <option value="meter">METER</option>
+                                            <option value="yard">YARD</option>
+                                            <option value="kgm">KGM</option>
+                                            <option value="pcs">PCS</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col">
+                            <div class="col-3" id="parent-detail">
+                                <label class="form-label"><small><b>Item</b></small></label>
+                                <select class="form-control select2bs4 part-item-list" style="border-radius: 0 3px 3px 0;" name="item[]" id="item" multiple>
+                                    @foreach ($partItemList as $partItem)
+                                        <option value="{{ $partItem->id }}">{{ $partItem->itemdesc }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <label class="form-label"><small><b>Tujuan</b></small></label>
+                                <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="tujuan" id="tujuan" onchange="switchTujuan(this)">
+                                    <option value="">Pilih Tujuan</option>
+                                    <option value="NON SECONDARY">NON SECONDARY</option>
+                                    <option value="SECONDARY">SECONDARY</option>
+                                </select>
+                            </div>
+                            <div class="col-6 d-none" id="non_secondary_container">
+                                <label class="form-label"><small><b>Proses</b></small></label>
+                                <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="proses" id="proses" onchange="orderNonSecondary(this)">
+                                    <option value="">Pilih Proses</option>
+                                    @foreach ($data_secondary->where("tujuan", "NON SECONDARY") as $secondary)
+                                        <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-6 d-none" id="secondary_container">
+                                <label class="form-label"><small><b>Proses</b></small></label>
+                                <div class="d-flex gap-1">
+                                    <select class="form-control select2bs4" id="secondaries" name="secondaries[]" data-width="100%" multiple onchange="orderSecondary(this)">
+                                        @foreach ($data_secondary->where("tujuan", "!=", "NON SECONDARY") as $secondary)
+                                            <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
+                                        @endforeach
+                                    </select>
+                                    <button type="button" class="btn btn-sm btn-dark ps-1 ms-2" onclick="clearSelectOptions(this)">
+                                        <i class="fa fa-rotate-left"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-6 d-none" id="urutan_container">
+                                <label class="form-label"><small><b>Urutan</b></small></label>
+                                <ul class="list-group" id="urutan_show">
+                                </ul>
+                                <input type="text" class="form-control d-none" id="urutan" name="urutan[]" readonly>
+                            </div>
+                            <div class="col-12 col-md-12 mt-3">
+                                <button type="button" class="btn btn-block btn-sb-secondary btn-sm" name="simpan" id="simpan" onclick="simpan_data();">SIMPAN <i class="fa fa-save"></i></button>
+                            </div>
+                            {{-- <div class="col-6 col-md-3">
                                 <div class="mb-4">
                                     <label><small><b>Tujuan</b></small></label>
                                     <select class="form-control select2bs4" id="cbotuj" name="cbotuj" style="width: 100%;" onchange="getproses();">
@@ -129,31 +188,18 @@
                                         @endforeach
                                     </select>
                                 </div>
-                            </div>
-                            <div class="col">
-                                <div class="mb-4">
-                                    <label><small><b>Proses</b></small></label>
-                                    <select class="form-control select2bs4 w-100" id="cboproses" name="cboproses" style="width: 100%;">
-                                    </select>
+                            </div> --}}
+                            {{-- <div class="col-6 col-md-3">
+                                <div class="row align-items-end">
+                                    <div class="col-9">
+                                        <div class="mb-4">
+                                            <label><small><b>Proses</b></small></label>
+                                            <select class="form-control select2bs4 w-100" id="cboproses" name="cboproses" style="width: 100%;">
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col">
-                                <div class="mb-4">
-                                    <label><small><b>Item</b></small></label>
-                                    <select class="form-control select2bs4 w-100" id="items" name="items[]" style="width: 100%;" multiple>
-                                        @foreach ($data_item as $item)
-                                            <option value="{{ $item->id }}">{{ $item->itemdesc }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <div class="mb-4">
-                                    <label><small><b>&nbsp</b></small></label>
-                                    <button type="button" class="btn btn-block bg-primary" name="simpan" id="simpan" onclick="simpan_data();"><i class="fa fa-save"></i></button>
-                                    {{-- <input type="button" class="btn bg-primary w-100" name="simpan" id="simpan" value="Simpan" onclick="simpan_data();"> --}}
-                                </div>
-                            </div>
+                            </div> --}}
                         </div>
                     </form>
                     <div class="table-responsive">
@@ -166,6 +212,122 @@
                                     <th>Satuan</th>
                                     <th>Tujuan</th>
                                     <th>Proses</th>
+                                    <th>Status</th>
+                                    <th>Item</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Tambah Part Secondary Complement --}}
+    <div class="row mb-3 {{ $part->panel_status != 'main' ? 'd-none' : '' }}">
+        <div class="col-12">
+            <div class="card h-100">
+                <div class="card-header bg-sb">
+                    <h5 class="card-title fw-bold">
+                        <i class="fa fa-list fa-sm"></i> Tambah Complement Part Secondary
+                    </h5>
+                    <div class='card-tools'>
+                        <button type='button' class='btn btn-tool' data-card-widget='collapse'><i class='fas fa-plus'></i></button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="store-complement-secondary" name='form'>
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label><small><b>Part</b></small></label>
+                                <select class="form-control select2bs4" id="com_txtpart" name="com_txtpart" style="width: 100%;">
+                                    <option selected="selected" value="">Pilih Part</option>
+                                    @foreach ($data_part as $datapart)
+                                        <option value="{{ $datapart->id }}">
+                                            {{ $datapart->nama_part . ' - ' . $datapart->bag }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col d-none">
+                                <label><small><b>Cons</b></small></label>
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control" name="com_txtcons" id="com_txtcons">
+                                    <div class="input-group-prepend">
+                                        <select class="form-select" style="border-radius: 0 3px 3px 0;" name="com_txtconsunit" id="com_txtconsunit">
+                                            <option value="meter">METER</option>
+                                            <option value="yard">YARD</option>
+                                            <option value="kgm">KGM</option>
+                                            <option value="pcs">PCS</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label class="form-label"><small>From Panel</small></label>
+                                <select class="form-control select2bs4 com_from_panel_id" name="com_from_panel_id" id="com_from_panel_id" onchange="updateComplementPanelPartList()">
+                                    <option value="">Pilih Panel</option>
+                                    @foreach ($complementPanels as $panels)
+                                        <option value="{{ $panels->id }}">{{ $panels->panel }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label class="form-label"><small>From Part</small></label>
+                                <select class="form-control select2bs4" name="com_from_part_id" id="com_from_part_id">
+                                    <option value="">Pilih Part</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label class="form-label"><small>Item</small></label>
+                                <select class="form-control select2bs4" name="com_item" id="com_item">
+                                    <option value="">Pilih Part</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-12 mt-3">
+                                <button type="button" class="btn btn-block btn-sb btn-sm" name="com_simpan" id="com_simpan" onclick="simpan_data_com();">SIMPAN <i class="fa fa-save"></i></button>
+                                {{-- <input type="button" class="btn bg-primary w-100" name="simpan" id="simpan" value="Simpan" onclick="simpan_data();"> --}}
+                            </div>
+                            {{-- <div class="col-6 col-md-3">
+                                <div class="mb-4">
+                                    <label><small><b>Tujuan</b></small></label>
+                                    <select class="form-control select2bs4" id="cbotuj" name="cbotuj" style="width: 100%;" onchange="getproses();">
+                                        <option selected="selected" value="">Pilih Tujuan</option>
+                                        @foreach ($data_tujuan as $datatujuan)
+                                            <option value="{{ $datatujuan->isi }}">
+                                                {{ $datatujuan->tampil }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div> --}}
+                            {{-- <div class="col-6 col-md-3">
+                                <div class="row align-items-end">
+                                    <div class="col-9">
+                                        <div class="mb-4">
+                                            <label><small><b>Proses</b></small></label>
+                                            <select class="form-control select2bs4 w-100" id="cboproses" name="cboproses" style="width: 100%;">
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> --}}
+                        </div>
+                    </form>
+                    <div class="table-responsive">
+                        <table id="datatable_list_part_complement" class="table table-bordered table w-100">
+                            <thead>
+                                <tr>
+                                    <th>Action</th>
+                                    <th>Part</th>
+                                    <th>Cons.</th>
+                                    <th>Satuan</th>
+                                    <th>Tujuan</th>
+                                    <th>Proses</th>
+                                    <th>Status</th>
+                                    <th>From</th>
                                     <th>Item</th>
                                 </tr>
                             </thead>
@@ -182,7 +344,7 @@
     <form action="{{ route('update-part-secondary') }}" method="post" id="update_part_secondary_form" onsubmit="submitForm(this, event)">
         @method("PUT")
         <div class="modal fade" id="editPartSecondaryModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="editPartSecondaryModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-dialog-scrollable modal-xl">
                 <div class="modal-content">
                     <div class="modal-header bg-sb">
                         <h1 class="modal-title fs-5" id="editPartSecondaryModalLabel"><i class="fa fa-edit"></i> Edit Part Detail</h1>
@@ -214,7 +376,60 @@
                                 <input type="text" class="form-control" id="edit_unit" name="edit_unit" readonly>
                             </div>
                         </div>
+                        <div class="mb-3" id="edit_part_status_container">
+                            <label class="form-label">Status</label>
+                            <div class="input-group">
+                                <select class="form-select select2bs4" id="edit_part_status" name="edit_part_status">
+                                    <option value="main">MAIN</option>
+                                    <option value="regular">REGULAR</option>
+                                </select>
+                            </div>
+                        </div>
                         <div class="mb-3">
+                            <label class="form-label">Tujuan</label>
+                            <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="edit_tujuan" id="edit_tujuan" onchange="switchTujuan(this, 'edit_')">
+                                <option value="">Pilih Tujuan</option>
+                                <option value="NON SECONDARY">NON SECONDARY</option>
+                                <option value="SECONDARY">SECONDARY</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 d-none" id="edit_non_secondary_container">
+                            <label class="form-label">Proses</label>
+                            <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="edit_proses" id="edit_proses" onchange="orderNonSecondary(this, 'edit_')">
+                                <option value="">Pilih Proses</option>
+                                @foreach ($data_secondary->where("tujuan", "NON SECONDARY") as $secondary)
+                                    <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3 d-none" id="edit_secondary_container">
+                            <label class="form-label">Proses</label>
+                            <div class="d-flex gap-1">
+                                <select class="form-control select2bs4" id="edit_secondaries" name="edit_secondaries[]" data-width="100%" multiple onchange="orderSecondary(this, 'edit_')">
+                                    @foreach ($data_secondary->where("tujuan", "!=", "NON SECONDARY") as $secondary)
+                                        <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="button" class="btn btn-sm btn-dark ps-1 ms-2" onclick="clearSelectOptions(this,'edit_')">
+                                    <i class="fa fa-rotate-left"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3 d-none" id="edit_urutan_container">
+                            <label class="form-label">Urutan</label>
+                            <ul class="list-group" id="edit_urutan_show">
+                            </ul>
+                            <input type="text" class="form-control d-none" id="edit_urutan" name="edit_urutan" readonly>
+                        </div>
+                        <div class="mb-3" id="edit-parent-detail">
+                            <label class="form-label">Item</label>
+                            <select class="form-control select2bs4edit part-item-list" style="border-radius: 0 3px 3px 0;" name="edit_item[]" id="edit_item" multiple>
+                                @foreach ($partItemList as $partItem)
+                                    <option value="{{ $partItem->id }}">{{ $partItem->itemdesc }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        {{-- <div class="mb-3">
                             <label class="form-label">Tujuan</label>
                             <select class="form-select select2bs4" name="edit_tujuan" id="edit_tujuan" onchange="getproses(document.getElementById('edit_proses'), this);">
                                 @foreach ($data_tujuan as $datatujuan)
@@ -227,17 +442,128 @@
                         <div class="mb-3">
                             <label class="form-label">Proses</label>
                             <select class="form-select select2bs4" name="edit_proses" id="edit_proses"></select>
+                        </div> --}}
+                    </div>
+                    <div class="modal-footer">
+                        <div class="d-flex gap-1">
+                            <button type="button" class="btn btn-sb-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-sb">Simpan</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Edit Modal -->
+    <form action="{{ route('update-part-secondary-complement') }}" method="post" id="update_part_secondary_form" onsubmit="submitForm(this, event)">
+        @method("PUT")
+        <div class="modal fade" id="editPartSecondaryComplementModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="editPartSecondaryComplementModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb">
+                        <h1 class="modal-title fs-5" id="editPartSecondaryComplementModalLabel"><i class="fa fa-edit"></i> Edit Part Detail Complement</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <input type="hidden" class="form-control" readonly id="edit_com_id" name="edit_com_id">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Item</label>
-                            <select class="form-select select2bs4" name="edit_item[]" id="edit_item" multiple>
-                                @foreach ($data_item as $item)
-                                    <option value="{{ $item->id }}">
-                                        {{ $item->itemdesc }}
+                            <label class="form-label">Nama Part</label>
+                            <input type="text" class="form-control" id="edit_com_nama_part" name="edit_com_nama_part" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ubah Part</label>
+                            <select class="form-select select2bs4editcom" name="edit_com_master_part_id" id="edit_com_master_part_id">
+                                <option selected="selected" value="">Pilih Part</option>
+                                @foreach ($data_part as $datapart)
+                                    <option value="{{ $datapart->id }}">
+                                        {{ $datapart->nama_part . ' - ' . $datapart->bag }}
                                     </option>
                                 @endforeach
                             </select>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label"><small>From Panel</small></label>
+                            <select class="form-control select2bs4editcom edit_com_from_panel_id" name="edit_com_from_panel_id" id="edit_com_from_panel_id" onchange="updateComplementPanelPartList('edit_')">
+                                <option value="">Pilih Panel</option>
+                                @foreach ($complementPanels as $panels)
+                                    <option value="{{ $panels->id }}">{{ $panels->panel }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><small>From Part</small></label>
+                            <select class="form-control select2bs4editcom" name="edit_com_from_part_id" id="edit_com_from_part_id">
+                                <option value="">Pilih Part</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="edit-com-parent-detail">
+                            <label class="form-label"><small>Item</small></label>
+                            <select class="form-control select2bs4editcom part-item-list" style="border-radius: 0 3px 3px 0;" name="edit_com_item[]" id="edit_com_item" multiple>
+                                @foreach ($partItemList as $partItem)
+                                    <option value="{{ $partItem->id }}">{{ $partItem->itemdesc }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        {{-- <div class="mb-3">
+                            <label class="form-label">Cons</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="edit_com_cons" name="edit_com_cons" step="0.001">
+                                <input type="text" class="form-control" id="edit_com_unit" name="edit_com_unit" readonly>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tujuan</label>
+                            <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="edit_com_tujuan" id="edit_com_tujuan" onchange="switchTujuan(this, 'edit_')">
+                                <option value="">Pilih Tujuan</option>
+                                <option value="NON SECONDARY">NON SECONDARY</option>
+                                <option value="SECONDARY">SECONDARY</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 d-none" id="edit_non_secondary_container">
+                            <label class="form-label">Proses</label>
+                            <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="edit_proses" id="edit_proses" onchange="orderNonSecondary(this, 'edit_')">
+                                <option value="">Pilih Proses</option>
+                                @foreach ($data_secondary->where("tujuan", "NON SECONDARY") as $secondary)
+                                    <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3 d-none" id="edit_secondary_container">
+                            <label class="form-label">Proses</label>
+                            <div class="d-flex gap-1">
+                                <select class="form-control select2bs4" id="edit_secondaries" name="edit_secondaries[]" data-width="100%" multiple onchange="orderSecondary(this, 'edit_')">
+                                    @foreach ($data_secondary->where("tujuan", "!=", "NON SECONDARY") as $secondary)
+                                        <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses." / ".$secondary->tujuan }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="button" class="btn btn-sm btn-dark ps-1 ms-2" onclick="clearSelectOptions(this,'edit_')">
+                                    <i class="fa fa-rotate-left"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3 d-none" id="edit_urutan_container">
+                            <label class="form-label">Urutan</label>
+                            <ul class="list-group" id="edit_urutan_show">
+                            </ul>
+                            <input type="text" class="form-control d-none" id="edit_urutan" name="edit_urutan" readonly>
+                        </div> --}}
+                        {{-- <div class="mb-3">
+                            <label class="form-label">Tujuan</label>
+                            <select class="form-select select2bs4" name="edit_tujuan" id="edit_tujuan" onchange="getproses(document.getElementById('edit_proses'), this);">
+                                @foreach ($data_tujuan as $datatujuan)
+                                    <option value="{{ $datatujuan->isi }}">
+                                        {{ $datatujuan->tampil }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Proses</label>
+                            <select class="form-select select2bs4" name="edit_proses" id="edit_proses"></select>
+                        </div> --}}
                     </div>
                     <div class="modal-footer">
                         <div class="d-flex gap-1">
@@ -387,8 +713,14 @@
             dropdownParent: $('#editPartSecondaryModal')
         })
 
+        $('.select2bs4editcom').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('#editPartSecondaryComplementModal')
+        })
+
         cleardata();
         dataTableReload();
+        dataTableComplementReload();
 
         function cleardata() {
             $("#cboproses").val('').trigger('change');
@@ -457,6 +789,9 @@
                         data: 'proses',
                     },
                     {
+                        data: 'part_status',
+                    },
+                    {
                         data: 'item',
                     },
                 ],
@@ -467,28 +802,139 @@
                         render: (data, type, row, meta) => {
                             let disableDelete = (row.total_stocker > 0 ? 'disabled' : '');
                             return `
-                                <button class='btn btn-primary btn-sm' onclick='editData(`+JSON.stringify(row)+`, "editPartSecondaryModal", [{function: "setPartDetailProcess()"}])'>
+                                <button class='btn btn-primary btn-sm mb-1' onclick='editData(`+JSON.stringify(row)+`, "editPartSecondaryModal")'>
                                     <i class='fa fa-edit'></i>
                                 </button>
-                                <button class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
+                                <button class='btn btn-danger btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
                                     <i class='fa fa-trash'></i>
                                 </button>
                             `;
                         }
                     },
+                    {
+                        targets: [6],
+                        render: (data, type, row, meta) => {
+                            return data ? data.toUpperCase() : '-';
+                        }
+                    }
                 ]
             });
         }
 
         function simpan_data() {
             let id = document.getElementById("id").value;
-            let cbotuj = document.form.cbotuj.value;
-            let txtpart = document.form.txtpart.value;
-            let txtcons = document.form.txtcons.value;
-            let txtconsunit = document.form.txtconsunit.value;
-            let cboproses = document.form.cboproses.value;
-            let items = $("#items").val();
-            console.log(items);
+            // let cbotuj = document.getElementById('cbotuj') ? document.getElementById('cbotuj').value : '';
+            // let cboproses = document.getElementById('cboproses') ? document.getElementById('cboproses').value : '';
+            let txtpart = document.getElementById('txtpart') ? document.getElementById('txtpart').value : '';
+            let txtcons = document.getElementById('txtcons') ? document.getElementById('txtcons').value : '';
+            let txtconsunit = document.getElementById('txtconsunit') ? document.getElementById('txtconsunit').value : '';
+            // New
+            let tujuan = document.getElementById('tujuan') ? document.getElementById('tujuan').value : '';
+            let urutan = document.getElementById('urutan') ? document.getElementById('urutan').value : '';
+
+            // Loading
+            document.getElementById("loading").classList.remove("d-none");
+
+            $.ajax({
+                type: "post",
+                url: '{{ route('store_part_secondary') }}',
+                data: {
+                    id: id,
+                    txtpart: txtpart,
+                    txtcons: txtcons,
+                    txtconsunit: txtconsunit,
+                    tujuan: tujuan,
+                    urutan: urutan
+                },
+                success: function(response) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    if (response.icon == 'salah') {
+                        iziToast.warning({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                    } else {
+                        iziToast.success({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                    }
+                    dataTableReload();
+                    dataTableComplementReload();
+                    cleardata();
+                },
+                error: function(request, status, error) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    alert(request.responseText);
+                },
+            });
+        };
+
+        function simpan_data_com() {
+            let id = document.getElementById("id").value;
+            let txtpart = document.getElementById('com_txtpart') ? document.getElementById('com_txtpart').value : '';
+            let txtcons = document.getElementById('com_txtcons') ? document.getElementById('com_txtcons').value : '';
+            let txtconsunit = document.getElementById('com_txtpart') ? document.getElementById('com_txtpart').value : '';
+            // New
+            let partSource = document.getElementById('com_from_part_id') ? document.getElementById('com_from_part_id').value : '';
+            // let cboproses = document.getElementById('cboproses') ? document.getElementById('cboproses').value : '';
+
+            // Loading
+            document.getElementById("loading").classList.remove("d-none");
+
+            $.ajax({
+                type: "post",
+                url: '{{ route('store_part_secondary') }}',
+                data: {
+                    id: id,
+                    txtpart: txtpart,
+                    txtcons: txtcons,
+                    txtconsunit: txtconsunit,
+                    partSource: partSource,
+                    is_complement: 1
+                },
+                success: function(response) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    if (response.icon == 'salah') {
+                        iziToast.warning({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                    } else {
+                        iziToast.success({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                    }
+                    dataTableReload();
+                    dataTableComplementReload();
+                    cleardata();
+                },
+                error: function(request, status, error) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    alert(request.responseText);
+                },
+            });
+        };
+
+        function update_data() {
+            let id = document.getElementById("id").value;
+            let cbotuj = document.getElementById('cbotuj') ? document.getElementById('cbotuj').value : '';
+            let txtpart = document.getElementById('txtpart') ? document.getElementById('txtpart').value : '';
+            let txtcons = document.getElementById('txtcons') ? document.getElementById('txtcons').value : '';
+            let txtconsunit = document.getElementById('txtconsunit') ? document.getElementById('txtconsunit').value : '';
+            // New
+            let tujuan = document.getElementById('tujuan') ? document.getElementById('tujuan').value : '';
+            let urutan = document.getElementById('urutan') ? document.getElementById('urutan').value : '';
+            // let cboproses = document.getElementById('cboproses') ? document.getElementById('cboproses').value : '';
+
+            // Loading
+            document.getElementById("loading").classList.remove("d-none");
+
             $.ajax({
                 type: "post",
                 url: '{{ route('store_part_secondary') }}',
@@ -498,10 +944,143 @@
                     txtpart: txtpart,
                     txtcons: txtcons,
                     txtconsunit: txtconsunit,
-                    cboproses: cboproses,
-                    items: items
+                    tujuan: tujuan,
+                    urutan: urutan
                 },
                 success: function(response) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    if (response.icon == 'salah') {
+                        iziToast.warning({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                    } else {
+                        iziToast.success({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                    }
+                    dataTableReload();
+                    dataTableComplementReload();
+                    cleardata();
+                },
+                error: function(request, status, error) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    alert(request.responseText);
+                },
+            });
+        };
+
+        function dataTableComplementReload() {
+            let datatable = $("#datatable_list_part_complement").DataTable({
+                ordering: false,
+                processing: true,
+                serverSide: true,
+                paging: false,
+                destroy: true,
+                ajax: {
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '{{ route('datatable_list_part_complement') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: function(d) {
+                        d.id = $('#id').val();
+                    },
+                },
+                columns: [
+                    {
+                        data: 'com_id',
+                    },
+                    {
+                        data: 'com_nama_part',
+                    },
+                    {
+                        data: 'com_cons',
+                    },
+                    {
+                        data: 'com_unit',
+                    },
+                    {
+                        data: 'com_tujuan',
+                    },
+                    {
+                        data: 'com_proses',
+                    },
+                    {
+                        data: 'com_part_status',
+                    },
+                    {
+                        data: 'com_from_part',
+                    },
+                    {
+                        data: 'com_item',
+                    },
+                ],
+                columnDefs: [
+                    {
+                        targets: [0],
+                        className: "text-center",
+                        render: (data, type, row, meta) => {
+                            let disableDelete = (row.total_stocker > 0 ? 'disabled' : '');
+                            return `
+                                <button class='btn btn-primary btn-sm mb-1' onclick='editData(`+JSON.stringify(row)+`, "editPartSecondaryComplementModal")'>
+                                    <i class='fa fa-edit'></i>
+                                </button>
+                                <button class='btn btn-danger btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
+                                    <i class='fa fa-trash'></i>
+                                </button>
+                            `;
+                        }
+                    },
+                    {
+                        targets: [4],
+                        render: (data, type, row, meta) => {
+                            return data ? data.toUpperCase() : '-';
+                        }
+                    },
+                    {
+                        targets: [6],
+                        render: (data, type, row, meta) => {
+                            return data ? data.toUpperCase() : '-';
+                        }
+                    }
+                ]
+            });
+        }
+
+         function simpan_data_complement() {
+            let id = document.getElementById("id").value;
+            let cbotuj = document.getElementById('cbotuj') ? document.getElementById('cbotuj').value : '';
+            let txtpart = document.getElementById('txtpart') ? document.getElementById('txtpart').value : '';
+            let txtcons = document.getElementById('txtcons') ? document.getElementById('txtcons').value : '';
+            let txtconsunit = document.getElementById('txtconsunit') ? document.getElementById('txtconsunit').value : '';
+            // New
+            let tujuan = document.getElementById('tujuan') ? document.getElementById('tujuan').value : '';
+            let urutan = document.getElementById('urutan') ? document.getElementById('urutan').value : '';
+            // let cboproses = document.getElementById('cboproses') ? document.getElementById('cboproses').value : '';
+
+            // Loading
+            document.getElementById("loading").classList.remove("d-none");
+
+            $.ajax({
+                type: "post",
+                url: '{{ route('store_part_secondary') }}',
+                data: {
+                    id: id,
+                    cbotuj: cbotuj,
+                    txtpart: txtpart,
+                    txtcons: txtcons,
+                    txtconsunit: txtconsunit,
+                    tujuan: tujuan,
+                    urutan: urutan
+                },
+                success: function(response) {
+                    document.getElementById("loading").classList.add("d-none");
+
                     if (response.icon == 'salah') {
                         iziToast.warning({
                             message: response.msg,
@@ -516,9 +1095,11 @@
                     dataTableReload();
                     cleardata();
                 },
-                // error: function(request, status, error) {
-                //     alert(request.responseText);
-                // },
+                error: function(request, status, error) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    alert(request.responseText);
+                },
             });
         };
     </script>
@@ -1020,53 +1601,177 @@
             }
         }
 
-        function setPartDetailProcess() {
-            showLoading();
-            $.ajax({
-                type: "get",
-                url: "{{ route('get-edit-part-detail-process') }}",
-                data: {
-                    edit_id: $("#edit_id").val()
-                },
-                dataType: "json",
-                success: function (response) {
-                    console.log(response);
-                    if (response) {
-                        $("#edit_proses").val(response).trigger("change");
-                    }
+        function orderSecondary(element, prefix = '') {
+            console.log(element, prefix, document.getElementById(`${prefix}urutan_show`), `${prefix}urutan_show`);
+            const orderShow = document.getElementById(`${prefix}urutan_show`);
+            const order = document.getElementById(`${prefix}urutan`);
 
-                    setPartDetailItems();
+            if (orderShow && order) {
+                // remove the default placeholder if it exists
+                const placeholder = orderShow.querySelector('li');
+                if (placeholder && placeholder.textContent.trim() === '-') {
+                    placeholder.remove();
+                }
+
+                let currentValues = order.value ? order.value.split(',') : [];
+
+                const selectedValues = Array.from(element.selectedOptions).map(opt => opt.value);
+                const selectedTexts = Array.from(element.selectedOptions).map(opt => opt.textContent);
+
+                const newlySelected = selectedValues.filter(v => !currentValues.includes(v));
+                const deselected = currentValues.filter(v => !selectedValues.includes(v));
+
+                // Add new selections
+                newlySelected.forEach(value => {
+                    const optionText = selectedTexts[selectedValues.indexOf(value)];
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item';
+                    li.dataset.value = value;
+                    li.textContent = optionText;
+                    li.draggable = true;
+                    orderShow.appendChild(li);
+                    currentValues.push(value);
+                });
+
+                // Remove deselected items
+                deselected.forEach(value => {
+                    currentValues = currentValues.filter(v => v !== value);
+                    const liToRemove = orderShow.querySelector(`li[data-value="${value}"]`);
+                    if (liToRemove) liToRemove.remove();
+                });
+
+                order.value = currentValues.join(',');
+                console.log(`Select ${prefix} current values:`, currentValues);
+            }
+        }
+
+        function orderNonSecondary(element, prefix='') {
+            const orderShow = document.getElementById(`${prefix}urutan_show`);
+            const order = document.getElementById(`${prefix}urutan`);
+
+            if (order && orderShow) {
+                orderShow.innerHTML = '';
+
+                const selectedValue = element.value;
+
+                // Add to list
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.dataset.value = selectedValue;
+                li.textContent = selectedValue;
+                li.draggable = true;
+                orderShow.appendChild(li);
+
+                order.value = selectedValue;
+                console.log(`Select current values:`, selectedValue);
+            }
+        }
+
+        function clearSelectOptions(button, prefix = '') {
+            // get select, list, hidden input based on index
+            const select = document.getElementById(`${prefix}secondaries`);
+            const list = document.getElementById(`${prefix}urutan_show`);
+            const hidden = document.getElementById(`${prefix}urutan`);
+
+            if (!select || !list || !hidden) return;
+
+            // Deselect all options
+            Array.from(select.options).forEach(option => option.selected = false);
+
+            // Clear the list
+            list.innerHTML = '';
+
+            // Reset hidden input
+            hidden.value = '';
+
+            // Restore placeholder
+            const li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.textContent = '-';
+            list.appendChild(li);
+
+            $(`#${prefix}secondaries`).val(null).trigger("change");
+
+            console.log(`Cleared select and list for ${prefix} index`);
+        }
+
+        function switchTujuan(element, prefix='') {
+            let nonSecondaryContainer = document.getElementById(prefix+"non_secondary_container");
+            let secondaryContainer = document.getElementById(prefix+"secondary_container");
+            let urutanContainer = document.getElementById(prefix+"urutan_container");
+            let prosesElement = null;
+
+            if (nonSecondaryContainer && secondaryContainer && urutanContainer) {
+                if (element.value == "NON SECONDARY") {
+                    nonSecondaryContainer.classList.remove("d-none");
+                    secondaryContainer.classList.add("d-none");
+                    urutanContainer.classList.add("d-none");
+
+                    // Clear Non Secondary
+                    prosesElement = document.getElementById(prefix+"proses");
+                    orderNonSecondary(prosesElement);
+                } else if (element.value == "SECONDARY") {
+                    nonSecondaryContainer.classList.add("d-none");
+                    secondaryContainer.classList.remove("d-none");
+                    urutanContainer.classList.remove("d-none");
+
+                    // Clear Secondary
+                    prosesElement = document.getElementById(prefix+"secondaries");
+                    clearSelectOptions(prefix);
+                    orderSecondary(prosesElement, prefix);
+                } else {
+                    nonSecondaryContainer.classList.remove("d-none");
+                    secondaryContainer.classList.remove("d-none");
+                    urutanContainer.classList.remove("d-none");
+
+                    nonSecondaryContainer.classList.add("d-none");
+                    secondaryContainer.classList.add("d-none");
+                    urutanContainer.classList.add("d-none");
+
+                    clearSelectOptions(prefix);
+                }
+            }
+        }
+
+        function updateComplementPanelPartList(prefix='') {
+            document.getElementById("loading").classList.remove("d-none");
+
+            document.getElementById(prefix+'com_from_part_id').innerHTML = null;
+            return $.ajax({
+                url: '{{ route("get-part-complement-panel-parts") }}',
+                type: 'get',
+                data: {
+                    part_id: $('#'+prefix+'com_from_panel_id').val(),
+                },
+                success: function (res) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    if (res) {
+                        // Update this step
+                        let complementPanelParts = document.getElementById(prefix+'com_from_part_id');
+
+                        complementPanelParts.innerHTML = res;
+
+                        complementPanelParts.disabled = false;
+                    }
                 },
                 error: function (jqXHR) {
                     console.error(jqXHR);
 
-                    hideLoading();
+                    document.getElementById("loading").classList.add("d-none");
                 }
             });
         }
 
-        function setPartDetailItems() {
-            $.ajax({
-                type: "get",
-                url: "{{ route('get-edit-part-detail-items') }}",
-                data: {
-                    edit_id: $("#edit_id").val()
-                },
-                dataType: "json",
-                success: function (response) {
-                    console.log(response);
-                    if (response) {
-                        $("#edit_item").val(response).trigger("change");
-                    }
+        $('#editPartSecondaryModal').on('shown.bs.modal', function () {
+            let editPartStatusContainer = document.getElementById("edit_part_status_container");
+            let editPartStatus = document.getElementById("edit_part_status");
 
-                    hideLoading();
-                },
-                error: function (jqXHR) {
-                    console.error(jqXHR);
-
-                    hideLoading();
-                }
-            });
-        }
+            if (editPartStatus.value == "main") {
+                editPartStatusContainer.classList.add("d-none");
+            } else {
+                editPartStatusContainer.classList.remove("d-none");
+            }
+        });
     </script>
 @endsection

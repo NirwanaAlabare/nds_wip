@@ -34,13 +34,11 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
 
     public function view(): View
     {
-        ini_set("max_execution_time", 3600);
-
-        $dateFilter = "";
+         $dateFilter = "";
         if ($this->dateFrom || $this->dateTo) {
             $dateFilter = "HAVING ";
-            $dateFromFilter = " loading_stock.tanggal_loading >= '".$this->dateFrom."' ";
-            $dateToFilter = " loading_stock.tanggal_loading <= '".$this->dateTo."' ";
+            $dateFromFilter = " loading_stock.tanggal_loading >= '".($this->dateFrom ? $this->dateFrom : date("Y-m-d"))."' ";
+            $dateToFilter = " loading_stock.tanggal_loading <= '".($this->dateTo ? $this->dateTo : date("Y-m-d"))."' ";
 
             if ($this->dateFrom && $this->dateTo) {
                 $dateFilter .= $dateFromFilter." AND ".$dateToFilter;
@@ -58,8 +56,8 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
         $innerDateFilter = "";
         if ($this->dateFrom || $this->dateTo) {
             $innerDateFilter = "WHERE ";
-            $innerDateFromFilter = " loading_line.tanggal_loading >= '".$this->dateFrom."' ";
-            $innerDateToFilter = " loading_line.tanggal_loading <= '".$this->dateTo."' ";
+            $innerDateFromFilter = " loading_line.tanggal_loading >= '".($this->dateFrom ? $this->dateFrom : date("Y-m-d"))."' ";
+            $innerDateToFilter = " loading_line.tanggal_loading <= '".($this->dateTo ? $this->dateTo : date("Y-m-d"))."' ";
 
             if ($this->dateFrom && $this->dateTo) {
                 $innerDateFilter .= $innerDateFromFilter." AND ".$innerDateToFilter;
@@ -98,7 +96,7 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
                             ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
                             ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
                         ) qty_old,
-                        MIN(loading_line.qty) qty,
+                        loading_line.qty qty,
                         trolley.id trolley_id,
                         trolley.nama_trolley,
                         stocker_input.so_det_id,
@@ -107,6 +105,7 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
                     FROM
                         loading_line
                         LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
+                        LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
                         LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
                         LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
                         LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
@@ -122,6 +121,8 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
                         stocker_input.so_det_id,
                         stocker_input.group_stocker,
                         stocker_input.ratio
+                    ORDER BY
+                        FIELD(part_detail.part_status, 'main', 'regular', 'complement') ASC
                 ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
             WHERE
                 loading_stock.tanggal_loading IS NOT NULL
@@ -135,7 +136,8 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
                 loading_line_plan.line_id,
                 loading_line_plan.act_costing_ws,
                 loading_line_plan.color,
-                COALESCE(loading_stock.urutan, loading_stock.so_det_id)
+                loading_stock.so_det_id,
+                loading_stock.urutan
         ");
 
         $this->rowCount = count($data) + 4;

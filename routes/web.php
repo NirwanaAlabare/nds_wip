@@ -344,9 +344,11 @@ Route::middleware('auth')->group(function () {
         // part secondary
         Route::get('/manage-part-secondary/{id?}', 'managePartSecondary')->name('manage-part-secondary');
         Route::get('/datatable_list_part/{id?}', 'datatable_list_part')->name('datatable_list_part');
+        Route::get('/datatable_list_part_complement/{id?}', 'datatable_list_part_complement')->name('datatable_list_part_complement');
         Route::get('/get_proses', 'get_proses')->name('get_proses');
         Route::post('/store_part_secondary', 'store_part_secondary')->name('store_part_secondary');
         Route::put('/update-part-secondary', 'updatePartSecondary')->name('update-part-secondary');
+        Route::put('/update-part-secondary-complement', 'updatePartSecondaryComplement')->name('update-part-secondary-complement');
 
         // part detail
         Route::delete('/destroy-part-detail/{id?}', 'destroyPartDetail')->name('destroy-part-detail');
@@ -363,6 +365,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-master-tujuan', 'getMasterTujuan')->name('get-master-tujuan');
         // get master secondary
         Route::get('/get-master-secondary', 'getMasterSecondary')->name('get-master-secondary');
+        // get complement panels
+        Route::get('/get-complement-panels', 'getComplementPanelList')->name('get-part-complement-panels');
+        // get complement panel parts
+        Route::get('/get-complement-panel-parts', 'getComplementPanelPartList')->name('get-part-complement-panel-parts');
 
         // get part detail process
         Route::get('/get-edit-part-detail-process', 'getEditPartDetailProcess')->name('get-edit-part-detail-process');

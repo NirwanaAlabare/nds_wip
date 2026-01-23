@@ -46,40 +46,75 @@ class ExportSecondaryInHouse implements FromView, WithEvents, ShouldAutoSize
         }
 
         $data = DB::select("
-            SELECT a.*,
-            DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
-            a.tgl_trans,
-            s.act_costing_ws,
-            s.color,
-            p.buyer,
-            p.style,
-            a.qty_awal,
-            a.qty_reject,
-            a.qty_replace,
-            a.qty_in,
-            a.created_at,
-            dc.tujuan,
-            dc.lokasi,
-            dc.tempat,
-            COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
-            COALESCE(msb.size, s.size) size,
-            a.user,
-            mp.nama_part,
-            CONCAT(s.range_awal, ' - ', s.range_akhir, (CASE WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range
-            from secondary_inhouse_input a
-            left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
-            left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-            left join form_cut_input f on f.id = s.form_cut_id
-            left join form_cut_reject fr on fr.id = s.form_reject_id
-            left join form_cut_piece fp on fp.id = s.form_piece_id
-            left join part_detail pd on s.part_detail_id = pd.id
-            left join part p on pd.part_id = p.id
-            left join master_part mp on mp.id = pd.master_part_id
-            left join (select id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
-            where
-            a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
-            ".$additionalQuery."
-            order by a.tgl_trans desc
+            SELECT
+                a.*,
+                (CASE WHEN fp.id > 0 THEN 'PIECE' WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) AS tipe,
+                DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') AS tgl_trans_fix,
+                a.tgl_trans,
+                s.act_costing_ws,
+                s.color,
+                p.buyer,
+                p.style,
+                COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
+                COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
+                COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
+                COALESCE(a.qty_in) qty_in,
+                a.created_at,
+                COALESCE(mx.tujuan, dc.tujuan) as tujuan,
+                COALESCE(mx.proses, dc.lokasi) lokasi,
+                dc.tempat,
+                COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
+                COALESCE(msb.size, s.size) AS size,
+                a.user,
+                mp.nama_part,
+                CONCAT(
+                    s.range_awal, ' - ', s.range_akhir,
+                    CASE
+                    WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL
+                        THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ')
+                    ELSE ' (0)'
+                    END
+                ) AS stocker_range_old,
+                CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range
+            FROM secondary_inhouse_input a
+            LEFT JOIN (
+                SELECT
+                    secondary_inhouse_input.id_qr_stocker,
+                    MAX(qty_awal) as qty_awal,
+                    SUM(qty_reject) qty_reject,
+                    SUM(qty_replace) qty_replace,
+                    (MAX(qty_awal) - SUM(qty_reject) + SUM(qty_replace)) as qty_akhir,
+                    MAX(secondary_inhouse_input.urutan) AS max_urutan,
+                    GROUP_CONCAT(master_secondary.tujuan SEPARATOR ' | ') as tujuan,
+                    GROUP_CONCAT(master_secondary.proses SEPARATOR ' | ') as proses
+                FROM secondary_inhouse_input
+                LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_inhouse_input.id_qr_stocker
+                LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id and part_detail_secondary.urutan = secondary_inhouse_input.urutan
+                LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
+                GROUP BY id_qr_stocker
+                having MAX(secondary_inhouse_input.urutan) is not null
+            ) mx ON a.id_qr_stocker = mx.id_qr_stocker AND a.urutan = mx.max_urutan
+            LEFT JOIN stocker_input s ON a.id_qr_stocker = s.id_qr_stocker
+            LEFT JOIN master_sb_ws msb ON msb.id_so_det = s.so_det_id
+            LEFT JOIN form_cut_input f ON f.id = s.form_cut_id
+            LEFT JOIN form_cut_reject fr ON fr.id = s.form_reject_id
+            LEFT JOIN form_cut_piece fp ON fp.id = s.form_piece_id
+            LEFT JOIN part_detail pd ON s.part_detail_id = pd.id
+            LEFT JOIN part p ON pd.part_id = p.id
+            LEFT JOIN master_part mp ON mp.id = pd.master_part_id
+            LEFT JOIN (
+                SELECT id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat
+                FROM dc_in_input
+            ) dc ON a.id_qr_stocker = dc.id_qr_stocker
+            WHERE
+                a.tgl_trans IS NOT NULL
+                AND (
+                    a.urutan IS NULL
+                    OR a.urutan = mx.max_urutan
+                )
+                $additionalQuery
+            ORDER BY
+                a.tgl_trans DESC
         ");
         $this->rowCount = count($data);
 

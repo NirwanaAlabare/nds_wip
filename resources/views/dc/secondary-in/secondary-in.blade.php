@@ -368,13 +368,19 @@
                         </div>
 
                         <div class="row">
-                            <div class='col-sm-6'>
+                            <div class='col-md-4'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Urutan</small></label>
+                                    <input type='text' class='form-control' id='txturutan' name='txturutan' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-4'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Tujuan Asal</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txttujuan' name='txttujuan' value='' readonly>
                                 </div>
                             </div>
-                            <div class='col-sm-6'>
+                            <div class='col-sm-4'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Lokasi Asal</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txtalokasi' name='txtalokasi' value='' readonly>
@@ -414,7 +420,7 @@
                         </div>
 
                         <div class="row">
-                            <div class='col-md-6' id="rak-input">
+                            <div class='col-md-4' id="rak-input">
                                 <div class='form-group'>
                                     <label class='form-label'><small>Rak</small></label>
                                     <select class="form-control select2bs4" name="cborak" id="cborak" style="width: 100%;">
@@ -427,7 +433,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class='col-md-6' id="trolley-input">
+                            <div class='col-md-4' id="trolley-input">
                                 <div class='form-group'>
                                     <label class='form-label'><small>Trolley</small></label>
                                     <select class="form-control select2bs4" name="cbotrolley" id="cbotrolley" style="width: 100%;">
@@ -440,7 +446,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class='col-md-6'>
+                            <div class='col-md-4'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Keterangan</small></label>
                                     <input type='text' class='form-control' id='txtket' name='txtket' value='' style = 'border-color:blue;' autocomplete="off">
@@ -1159,17 +1165,23 @@
                     document.getElementById('txttujuan').value = response.tujuan;
                     document.getElementById('txtalokasi').value = response.lokasi;
                     document.getElementById('txtqtyawal').value =  response.qty_awal;
+                    document.getElementById('txturutan').value = response.urutan;
 
-                    console.log(response.tempat_tujuan);
+                    console.log(response.status, response.max_urutan, response.tempat_tujuan);
 
-                    if (response.tempat_tujuan == "RAK") {
-                        $("#rak-input").removeClass("d-none");
-                        $("#trolley-input").addClass("d-none");
-                        $("#cborak").val(response.lokasi_tujuan).trigger('change');
+                    if (response.status == 'finish') {
+                        if (response.tempat_tujuan == "RAK") {
+                            $("#rak-input").removeClass("d-none");
+                            $("#trolley-input").addClass("d-none");
+                            $("#cborak").val(response.lokasi_tujuan).trigger('change');
+                        } else if (response.tempat_tujuan == "TROLLEY") {
+                            $("#trolley-input").removeClass("d-none");
+                            $("#rak-input").addClass("d-none");
+                            $("#cbotrolley").val(response.lokasi_tujuan).trigger('change');
+                        }
                     } else {
-                        $("#trolley-input").removeClass("d-none");
+                        $("#trolley-input").addClass("d-none");
                         $("#rak-input").addClass("d-none");
-                        $("#cbotrolley").val(response.lokasi_tujuan).trigger('change');
                     }
                     // let txtqtyreject = $("#txtqtyreject").val();
                     // let txtqtyreplace = $("#txtqtyreplace").val();
@@ -1213,7 +1225,7 @@
 
                     Swal.fire({
                         icon: 'warning',
-                        title: 'Data Tidak Ada',
+                        title: request.responseText ? request.responseText : 'Data Tidak Ada',
                         showConfirmButton: true,
                     })
                 },
@@ -1251,7 +1263,7 @@
                 error: function(request, status, error) {
                     Swal.fire({
                         icon: 'warning',
-                        title: 'Data Tidak Ada',
+                        title: request.responseText ? request.responseText : 'Data Tidak Ada',
                         showConfirmButton: true,
                     })
                 },

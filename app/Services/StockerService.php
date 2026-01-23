@@ -33,7 +33,286 @@ use PDF;
 
 class StockerService
 {
-    public function reorderStockerNumbering($partId, $color = null)
+    public function getStockerGenerate($formCutId)
+    {
+        $dataSpreading = FormCutInput::selectRaw("
+                part.id part_id,
+                part_detail.id part_detail_id,
+                form_cut_input.id as form_cut_id,
+                form_cut_input.id,
+                form_cut_input.no_meja,
+                form_cut_input.id_marker,
+                form_cut_input.no_form,
+                DATE(form_cut_input.waktu_selesai) tgl_form_cut,
+                marker_input.id marker_id,
+                marker_input.act_costing_ws ws,
+                marker_input.buyer,
+                marker_input.panel,
+                marker_input.color,
+                marker_input.style,
+                form_cut_input.status,
+                users.name nama_meja,
+                marker_input.panjang_marker,
+                UPPER(marker_input.unit_panjang_marker) unit_panjang_marker,
+                marker_input.comma_marker,
+                UPPER(marker_input.unit_comma_marker) unit_comma_marker,
+                marker_input.lebar_marker,
+                UPPER(marker_input.unit_lebar_marker) unit_lebar_marker,
+                form_cut_input.qty_ply,
+                marker_input.gelar_qty,
+                marker_input.po_marker,
+                marker_input.urutan_marker,
+                marker_input.cons_marker,
+                form_cut_input.total_lembar,
+                form_cut_input.no_cut,
+                UPPER(form_cut_input.shell) shell,
+                GROUP_CONCAT(DISTINCT COALESCE(master_size_new.size, marker_input_detail.size) ORDER BY master_size_new.urutan ASC SEPARATOR ', ') sizes,
+                GROUP_CONCAT(DISTINCT CONCAT(' ', COALESCE(master_size_new.size, marker_input_detail.size), '(', marker_input_detail.ratio * form_cut_input.total_lembar, ')') ORDER BY master_size_new.urutan ASC) marker_details,
+                GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) SEPARATOR ', ') part,
+                part.panel_status
+            ")->
+            leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+            leftJoin("part", "part.id", "=", "part_form.part_id")->
+            leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
+            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
+            leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+            where("form_cut_input.id", $formCutId)->
+            groupBy("form_cut_input.id")->
+            first();
+
+        $dataPartForm = PartForm::selectRaw("part_form.form_id, form_cut_input.no_cut")->
+            leftJoin("form_cut_input", "form_cut_input.id", "=", "part_form.form_id")->
+            leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            where("marker_input.color", $dataSpreading->color)->
+            where("part_form.part_id", $dataSpreading->part_id)->
+            whereRaw("(form_cut_input.no_cut <= ".$dataSpreading->no_cut." or form_cut_input.no_cut > ".$dataSpreading->no_cut.")")->
+            get();
+
+        $dataPartDetail = PartDetail::selectRaw("
+                part_detail.id,
+                master_part.nama_part,
+                master_part.bag,
+                GROUP_CONCAT(DISTINCT COALESCE(master_secondary.tujuan, '-') SEPARATOR ' | ') tujuan,
+                GROUP_CONCAT(COALESCE(master_secondary.proses, '-') SEPARATOR ' | ') proses,
+                GROUP_CONCAT(DISTINCT COALESCE(master_secondary.proses, '-') ORDER BY part_detail_secondary.urutan SEPARATOR ' , ') proses_tujuan
+            ")->
+            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            leftJoin("part", "part.id", "part_detail.part_id")->
+            leftJoin("part_form", "part_form.part_id", "part.id")->
+            leftJoin("form_cut_input", "form_cut_input.id", "part_form.form_id")->
+            leftJoin("part_detail_secondary", "part_detail_secondary.part_detail_id", "=", "part_detail.id")->
+            leftJoin("master_secondary", "master_secondary.id", "=", "part_detail_secondary.master_secondary_id")->
+            where("form_cut_input.id", $formCutId)->
+            groupBy("master_part.id")->
+            get();
+
+        $dataRatio = MarkerDetail::selectRaw("
+                marker_input_detail.id marker_detail_id,
+                marker_input_detail.so_det_id,
+                COALESCE(master_sb_ws.size, marker_input_detail.size) size,
+                COALESCE((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END), marker_input_detail.size) size_dest,
+                marker_input_detail.ratio
+            ")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
+            leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
+            leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
+            leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+            leftJoin("part", "part.id", "=", "part_form.part_id")->
+            leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
+            where("marker_input.id", $dataSpreading->marker_id)->
+            // where("marker_input_detail.ratio", ">", "0")->
+            orderBy("marker_input_detail.id", "asc")->
+            groupBy("marker_input_detail.id")->
+            get();
+
+        $dataStocker = MarkerDetail::selectRaw("
+                MAX(stocker_input.id_qr_stocker) id_qr_stocker,
+                marker_input.color,
+                marker_input_detail.so_det_id,
+                COALESCE(stocker_input.ratio, marker_input_detail.ratio) ratio,
+                MAX(form_cut_input.no_form) no_form,
+                form_cut_input.no_cut,
+                MAX(stocker_input.id) stocker_id,
+                MAX(stocker_input.shade) shade,
+                MAX(stocker_input.group_stocker) group_stocker,
+                MAX(stocker_input.qty_ply) qty_ply,
+                MIN(CAST(stocker_input.range_awal as UNSIGNED)) range_awal,
+                MAX(CAST(stocker_input.range_akhir as UNSIGNED)) range_akhir,
+                modify_size_qty.modified_qty,
+                modify_size_qty.difference_qty
+            ")->
+            leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
+            leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
+            leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+            leftJoin("stocker_input", function ($join) {
+                $join->on("stocker_input.form_cut_id", "=", "form_cut_input.id");
+                $join->on("stocker_input.so_det_id", "=", "marker_input_detail.so_det_id");
+            })->
+            leftJoin("modify_size_qty", function ($join) {
+                $join->on("modify_size_qty.form_cut_id", "=", "form_cut_input.id");
+                $join->on("modify_size_qty.so_det_id", "=", "marker_input_detail.so_det_id");
+            })->
+            where("marker_input.act_costing_ws", $dataSpreading->ws)->
+            where("marker_input.color", $dataSpreading->color)->
+            where("marker_input.panel", $dataSpreading->panel)->
+            where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
+            where("part_form.part_id", $dataSpreading->part_id)->
+            // where("marker_input_detail.ratio", ">", "0")->
+            groupBy("form_cut_input.no_form", "form_cut_input.no_cut", "marker_input_detail.so_det_id")->
+            orderBy("form_cut_input.no_cut", "desc")->
+            orderBy("form_cut_input.no_form", "desc")->
+            get();
+
+        $dataNumbering = MarkerDetail::selectRaw("
+                marker_input.color,
+                marker_input_detail.so_det_id,
+                marker_input_detail.ratio,
+                MAX(form_cut_input.no_form) no_form,
+                form_cut_input.no_cut,
+                MAX(number.numbering_id) numbering_id,
+                MAX(number.no_cut_size) no_cut_size,
+                MAX(number.range_akhir) range_akhir,
+                modify_size_qty.difference_qty
+            ")->
+            leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
+            leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
+            leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+            leftJoin(
+                DB::raw(
+                    "(
+                        SELECT
+                            stocker_numbering.form_cut_id,
+                            stocker_numbering.so_det_id,
+                            MAX( stocker_numbering.no_cut_size ) no_cut_size,
+                            MAX( stocker_numbering.id ) numbering_id,
+                            MAX( stocker_numbering.number ) range_akhir
+                        FROM
+                            form_cut_input
+                            INNER JOIN marker_input ON form_cut_input.id_marker = marker_input.kode
+                            INNER JOIN `stocker_numbering` ON form_cut_input.id = stocker_numbering.form_cut_id
+                        WHERE
+                            `marker_input`.`act_costing_ws` = '".$dataSpreading->ws."'
+                            AND `marker_input`.`color` = '".$dataSpreading->color."'
+                            AND `marker_input`.`panel` = '".$dataSpreading->panel."'
+                            AND ( stocker_numbering.cancel IS NULL OR stocker_numbering.cancel != 'Y' )
+                            AND `form_cut_input`.`no_cut` <= ".$dataSpreading->no_cut."
+                        GROUP BY
+                            stocker_numbering.form_cut_id,
+                            stocker_numbering.so_det_id
+                    ) number"
+                ), function ($join) {
+                    $join->on("number.form_cut_id", "=", "form_cut_input.id");
+                    $join->on("number.so_det_id", "=", "marker_input_detail.so_det_id");
+                }
+            )->
+            leftJoin("modify_size_qty", function ($join) {
+                $join->on("modify_size_qty.form_cut_id", "=", "form_cut_input.id");
+                $join->on("modify_size_qty.so_det_id", "=", "marker_input_detail.so_det_id");
+            })->
+            where("marker_input.act_costing_ws", $dataSpreading->ws)->
+            where("marker_input.color", $dataSpreading->color)->
+            where("marker_input.panel", $dataSpreading->panel)->
+            where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
+            where("part_form.part_id", $dataSpreading->part_id)->
+            // where("marker_input_detail.ratio", ">", "0")->
+            groupBy("form_cut_input.no_form", "form_cut_input.no_cut", "marker_input_detail.so_det_id")->
+            orderBy("form_cut_input.no_cut", "desc")->
+            orderBy("form_cut_input.no_form", "desc")->
+            get();
+
+        $modifySizeQty = ModifySizeQty::selectRaw("modify_size_qty.*, master_sb_ws.size, master_sb_ws.dest ")->leftJoin("master_sb_ws","master_sb_ws.id_so_det", "=", "modify_size_qty.so_det_id")->where("form_cut_id", $dataSpreading->form_cut_id)->where("difference_qty", "!=", 0)->get();
+
+        $dataAdditional = DB::table("stocker_ws_additional")->where("form_cut_id", $dataSpreading->form_cut_id)->first();
+
+        if ($dataAdditional) {
+            $dataPartDetailAdditional = StockerAdditional::selectRaw("
+                    part_detail.id,
+                    master_part.nama_part,
+                    master_part.bag,
+                    COALESCE(master_secondary.tujuan, '-') tujuan,
+                    COALESCE(master_secondary.proses, '-') proses
+                ")->
+                leftJoin("part", function($join) {
+                    $join->on("stocker_ws_additional.act_costing_id", "=", "part.act_costing_id");
+                    $join->on("stocker_ws_additional.panel", "=", "part.panel");
+                })->
+                leftJoin("part_detail", "part_detail.part_id", "part.id")->
+                leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+                leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
+                where("stocker_ws_additional.id", $dataAdditional->id)->
+                groupBy("master_part.id")->
+                get();
+
+            $dataRatioAdditional = DB::table("stocker_ws_additional_detail")->selectRaw("
+                    stocker_ws_additional_detail.id additional_detail_id,
+                    stocker_ws_additional_detail.so_det_id,
+                    master_sb_ws.color,
+                    COALESCE(master_sb_ws.size, stocker_ws_additional_detail.size) size,
+                    master_sb_ws.dest dest,
+                    COALESCE((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END), stocker_ws_additional_detail.size) size_dest,
+                    stocker_ws_additional_detail.ratio
+                ")->
+                leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_ws_additional_detail.so_det_id")->
+                leftJoin("stocker_ws_additional", "stocker_ws_additional.id", "=", "stocker_ws_additional_detail.stocker_additional_id")->
+                leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_ws_additional.form_cut_id")->
+                where("stocker_ws_additional.id", $dataAdditional->id)->
+                // where("marker_input_detail.ratio", ">", "0")->
+                orderBy("stocker_ws_additional_detail.id", "asc")->
+                groupBy("stocker_ws_additional_detail.id")->
+                get();
+
+            $dataStockerAdditional = DB::table("stocker_ws_additional_detail")->selectRaw("
+                    MAX(stocker_input.id_qr_stocker) id_qr_stocker,
+                    stocker_ws_additional.color,
+                    stocker_ws_additional_detail.so_det_id,
+                    CONCAT(master_sb_ws.color, master_sb_ws.size, master_sb_ws.dest) info,
+                    COALESCE(stocker_input.ratio, stocker_ws_additional_detail.ratio) ratio,
+                    MAX(form_cut_input.no_form) no_form,
+                    form_cut_input.no_cut,
+                    MAX(stocker_input.id) stocker_id,
+                    MAX(stocker_input.shade) shade,
+                    MAX(stocker_input.group_stocker) group_stocker,
+                    MAX(stocker_input.qty_ply) qty_ply,
+                    MIN(CAST(stocker_input.range_awal as UNSIGNED)) range_awal,
+                    MAX(CAST(stocker_input.range_akhir as UNSIGNED)) range_akhir,
+                    modify_size_qty.modified_qty,
+                    modify_size_qty.difference_qty
+                ")->
+                leftJoin("stocker_ws_additional", "stocker_ws_additional.id", "=", "stocker_ws_additional_detail.stocker_additional_id")->
+                leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_ws_additional.form_cut_id")->
+                leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+                leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_ws_additional_detail.so_det_id")->
+                leftJoin("stocker_input", function ($join) {
+                    $join->on("stocker_input.form_cut_id", "=", "form_cut_input.id");
+                    $join->on("stocker_input.so_det_id", "=", "stocker_ws_additional_detail.so_det_id");
+                })->
+                leftJoin("modify_size_qty", function ($join) {
+                    $join->on("modify_size_qty.form_cut_id", "=", "form_cut_input.id");
+                    $join->on("modify_size_qty.so_det_id", "=", "stocker_ws_additional_detail.so_det_id");
+                })->
+                where("stocker_ws_additional.act_costing_ws", $dataAdditional->act_costing_ws)->
+                where("stocker_ws_additional.color", $dataAdditional->color)->
+                where("stocker_ws_additional.panel", $dataAdditional->panel)->
+                where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
+                where("part_form.part_id", $dataSpreading->part_id)->
+                // where("marker_input_detail.ratio", ">", "0")->
+                groupBy("form_cut_input.no_form", "form_cut_input.no_cut", "stocker_ws_additional_detail.so_det_id")->
+                orderBy("form_cut_input.no_cut", "desc")->
+                orderBy("form_cut_input.no_form", "desc")->
+                get();
+        } else {
+            $dataPartDetailAdditional = null;
+            $dataRatioAdditional = null;
+            $dataStockerAdditional = null;
+        }
+
+        return ["dataSpreading" => $dataSpreading, "dataPartForm" => $dataPartForm, "dataPartDetail" => $dataPartDetail, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "dataNumbering" => $dataNumbering, "modifySizeQty" => $modifySizeQty, "dataAdditional" => $dataAdditional, "dataPartDetailAdditional" => $dataPartDetailAdditional, "dataRatioAdditional" => $dataRatioAdditional, "dataStockerAdditional" => $dataStockerAdditional];
+    }
+
+    public function reorderStockerNumbering($partId)
     {
         ini_set('max_execution_time', 360000);
 
