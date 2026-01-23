@@ -157,9 +157,9 @@ class RollController extends Controller
         }
 
         if ($request->supplier) {
-            $additionalQuery .= " and msb.buyer LIKE '%" . $request->supplier . "%'";
-            $additionalQuery1 .= " and msb.buyer LIKE '%" . $request->supplier . "%'";
-            $additionalQuery2 .= " and msb.buyer LIKE '%" . $request->supplier . "%'";
+            $additionalQuery .= " and master_sb_ws.buyer LIKE '%" . $request->supplier . "%'";
+            $additionalQuery1 .= " and master_sb_ws.buyer LIKE '%" . $request->supplier . "%'";
+            $additionalQuery2 .= " and master_sb_ws.buyer LIKE '%" . $request->supplier . "%'";
         }
 
         if ($request->id_ws) {

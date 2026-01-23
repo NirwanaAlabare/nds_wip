@@ -312,7 +312,7 @@ class StockerService
         return ["dataSpreading" => $dataSpreading, "dataPartForm" => $dataPartForm, "dataPartDetail" => $dataPartDetail, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "dataNumbering" => $dataNumbering, "modifySizeQty" => $modifySizeQty, "dataAdditional" => $dataAdditional, "dataPartDetailAdditional" => $dataPartDetailAdditional, "dataRatioAdditional" => $dataRatioAdditional, "dataStockerAdditional" => $dataStockerAdditional];
     }
 
-    public function reorderStockerNumbering($partId)
+    public function reorderStockerNumbering($partId, $color = null)
     {
         ini_set('max_execution_time', 360000);
 

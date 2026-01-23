@@ -1114,7 +1114,7 @@ class CuttingFormController extends Controller
         $formCutInputData = FormCutInput::where("id", $id)->first();
 
         // Get latest no. cut
-        $formCutInputSimilarLatest = DB::table("form_cut_input")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+        $formCutInputSimilarLatest = DB::table("form_cut_input")->leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->
             where("marker_input.act_costing_ws", $formCutInputData->marker->act_costing_ws)->
             where("marker_input.color", $formCutInputData->marker->color)->
             where("marker_input.panel", $formCutInputData->marker->panel)->
