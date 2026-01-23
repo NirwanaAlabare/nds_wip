@@ -42,7 +42,7 @@ tujuan,
 mi.id_item,
 mi.itemdesc,
 barcode,
-panel,
+nama_panel,
 kpno as ws,
 styleno,
 a.color,
@@ -61,6 +61,7 @@ from form_cut_gr_panel_barcode a
 left join form_cut_gr_panel_barcode_det b on a.id = b.id_form
 left join scanned_item s on a.barcode = s.id_roll
 left join signalbit_erp.masteritem mi on s.id_item = mi.id_item
+left join signalbit_erp.masterpanel mp on a.panel = mp.id
 LEFT JOIN (SELECT
 				jd.id_jo,
 				ac.kpno,

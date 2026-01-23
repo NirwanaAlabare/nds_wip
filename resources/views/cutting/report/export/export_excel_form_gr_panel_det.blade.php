@@ -35,7 +35,7 @@
                     <td>{{ $row->id_item }}</td>
                     <td>{{ $row->itemdesc }}</td>
                     <td>{{ $row->barcode }}</td>
-                    <td>{{ $row->panel }}</td>
+                    <td>{{ $row->nama_panel }}</td>
                     <td>{{ $row->ws }}</td>
                     <td>{{ $row->styleno }}</td>
                     <td>{{ $row->color }}</td>
