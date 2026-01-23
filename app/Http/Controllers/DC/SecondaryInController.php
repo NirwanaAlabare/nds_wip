@@ -1229,6 +1229,61 @@ class SecondaryInController extends Controller
         return "No Stocker Data Found.";
     }
 
+    public function cek_data_stocker_in_edit(Request $request)
+    {
+        $cekdata =  DB::select("
+            select
+            s.id_qr_stocker,
+            s.act_costing_ws,
+            msb.buyer,
+            COALESCE(a.no_cut, c.no_cut, '-') as no_cut,
+            msb.styleno as style,
+            s.color,
+            COALESCE(msb.size, s.size) size,
+            dc.tujuan,
+            dc.lokasi,
+            mp.nama_part,
+            COALESCE(sii.qty_awal, si.qty_in, (dc.qty_awal - dc.qty_reject - dc.qty_replace), 0) as qty_awal,
+            sii.qty_reject,
+            sii.qty_replace,
+            sii.qty_in,
+            s.lokasi lokasi_tujuan,
+            s.tempat tempat_tujuan
+            from
+            (
+                select dc.id_qr_stocker,ifnull(si.id_qr_stocker,'x') cek_1, ifnull(sii.id_qr_stocker,'x') cek_2  from dc_in_input dc
+                left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
+                left join secondary_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
+                where
+                    (
+                        dc.tujuan = 'SECONDARY DALAM'
+                        or
+                        dc.tujuan = 'SECONDARY LUAR'
+                    )
+                    and
+                    (
+                        ifnull(si.id_qr_stocker,'x') != 'x'
+                        or
+                        ifnull(sii.id_qr_stocker,'x') != 'x'
+                    )
+            ) md
+            left join stocker_input s on md.id_qr_stocker = s.id_qr_stocker
+            left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+            left join form_cut_input a on s.form_cut_id = a.id
+            left join form_cut_reject b on s.form_reject_id = b.id
+            left join form_cut_piece c on s.form_piece_id = c.id
+            left join part_detail p on s.part_detail_id = p.id
+            left join master_part mp on p.master_part_id = mp.id
+            left join marker_input mi on a.id_marker = mi.kode
+            left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
+            left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
+            left join secondary_in_input sii on s.id_qr_stocker = sii.id_qr_stocker
+            where s.id_qr_stocker = '" . $request->txtqrstocker . "'
+        ");
+
+        return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
+    }
+
     // public function get_rak(Request $request)
     // {
     //     $data_rak = DB::select("select nama_detail_rak isi, nama_detail_rak tampil from rack_detail");
