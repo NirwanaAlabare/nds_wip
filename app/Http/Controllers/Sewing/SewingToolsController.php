@@ -768,7 +768,7 @@ class SewingToolsController extends Controller
         }
 
         if ($request->tanggal_loading_akhir) {
-            $tglLoading .= " and COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading)<= '".$request->tanggal_loading_akhir."'";
+            $tglLoading .= " and COALESCE(loading.tanggal_loading, loading_bk.tanggal_loading) <= '".$request->tanggal_loading_akhir."'";
         }
 
         $lineLoading = "";
@@ -784,7 +784,7 @@ class SewingToolsController extends Controller
             if ($request->tanggal_plan_akhir) {
                 $tglPlan .= " and master_plan.tgl_plan <= '".$request->tanggal_plan_akhir."'";
             }
-            $additionalFilter .= "output.kode_numbering is not null";
+            $additionalFilter .= " and output.kode_numbering is not null";
         }
 
         // Sewing/Packing
@@ -1259,7 +1259,18 @@ class SewingToolsController extends Controller
                 $join->on(DB::raw("CAST(stk_bk.range_akhir AS UNSIGNED)"), ">=", DB::raw("CAST(ys.number AS UNSIGNED)"));
             })->
             leftJoin(DB::raw("laravel_nds.loading_line as loading"), "loading.stocker_id", "=", "stk.id")->
-            leftJoin(DB::raw("laravel_nds.loading_line as loading_bk"), "loading_bk.stocker_id", "=", "stk_bk.id");
+            leftJoin(DB::raw("laravel_nds.loading_line as loading_bk"), "loading_bk.stocker_id", "=", "stk_bk.id")->
+            whereRaw("
+                ys.id is not null
+                ".$tglLoading."
+                ".$lineLoading."
+                ".$statusOutput."
+                ".$statusPacking."
+                ".$crossLineLoading."
+                ".$crossLineOutput."
+                ".$crossLineOutput."
+                ".$additionalFilter."
+            ");
 
         return Datatables::queryBuilder($outputList)->toJson();
     }
@@ -2670,12 +2681,12 @@ class SewingToolsController extends Controller
                             // Undo RFT
                             $rft = DB::connection("mysql_sb")->table("output_rfts".$department)->where('id', $output->id)->first();
 
-                            if ($rft) {
+                            if ($rft && $rft->id) {
                                 $deleteRft = DB::connection("mysql_sb")->table("output_rfts".$department)->where('id', $rft->id)->delete();
 
                                 if ($deleteRft) {
                                     if ($department == "_packing_po") {
-                                        DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'po_id' => $rft->po_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'alokasi' => $rft->alokasi, 'created_by' => $rft->created_by, 'created_by_username' => $rft->created_by_username, 'created_by_line' => $rft->created_by_line, 'created_at' => $rft->created_at, 'updated_at' => $rft->updated_at, 'undo_by_nds' => Auth::user()->id]);
+                                        DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $rft ? $rft->master_plan_id : null, 'so_det_id' => $rft ? $rft->so_det_id : null, 'po_id' => $rft ? $rft->po_id : null, 'output_rft_id' => $rft ? $rft->id : null, 'kode_numbering' => $rft ? $rft->kode_numbering : null, 'keterangan' => 'rft', 'alokasi' => $rft ? $rft->alokasi : null, 'created_by' => $rft ? $rft->created_by : null, 'created_by_username' => $rft ? $rft->created_by_username : null, 'created_by_line' => $rft ? $rft->created_by_line : null, 'created_at' => $rft ? $rft->created_at : null, 'updated_at' => $rft ? $rft->updated_at : null, 'undo_by_nds' => Auth::user()->id]);
 
                                         // Delete Gudang Stok on Packing Po GudangStok
                                         if ($rft->alokasi == "gudang stok") {
@@ -2712,17 +2723,19 @@ class SewingToolsController extends Controller
                             if ($defect) {
                                 $reject = DB::connection("mysql_sb")->table("output_rejects".$department)->where('defect_id', $defect->id)->first();
 
-                                if ($reject) {
+                                if ($reject && $reject->id) {
                                     $deleteReject = DB::connection("mysql_sb")->table("output_rejects".$department)->where("id", $reject->id)->delete();
 
                                     if ($deleteReject) {
-                                        DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_defect_id' => $defect->id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'keterangan' => 'defect-reject', 'created_by' => $reject->created_by, 'created_at' => $reject->created_at, 'updated_at' => $reject->updated_at, 'undo_by_nds' => Auth::user()->id]);
+                                        DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $reject ? $reject->master_plan_id : null, 'so_det_id' => $reject ? $reject->so_det_id : null, 'output_defect_id' => $defect ? $defect->id : null, 'output_reject_id' => $reject ? $reject->id : null, 'kode_numbering' => $reject ? $reject->kode_numbering : null, 'defect_type_id' => $reject ? $reject->reject_type_id : null, 'defect_area_id' => $reject ? $reject->reject_area_id : null, 'defect_area_x' => $reject ? $reject->reject_area_x : null, 'defect_area_y' => $reject ? $reject->reject_area_y : null, 'keterangan' => 'defect-reject', 'created_by' => $reject ? $reject->created_by : null, 'created_at' => $reject ? $reject->created_at : null, 'updated_at' => $reject ? $reject->updated_at : null, 'undo_by_nds' => Auth::user()->id]);
 
-                                        DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->update([
-                                            "defect_status" => "defect"
-                                        ]);
+                                        if ($defect && $defect->id) {
+                                            DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->update([
+                                                "defect_status" => "defect"
+                                            ]);
 
-                                        array_push($result, "REJECT '".$reject->kode_numbering."' -> DEFECT");
+                                            array_push($result, "REJECT '".$reject->kode_numbering."' -> DEFECT");
+                                        }
                                     }
                                 }
                             }
@@ -2732,22 +2745,34 @@ class SewingToolsController extends Controller
                             // Undo REWORK
                             $defect = DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $output->id)->first();
 
-                            $rework = DB::connection("mysql_sb")->table("output_reworks".$department)->where('defect_id', $defect->id)->first();
+                            $rework = null;
+                            if ($defect && $defect->id) {
+                                $rework = DB::connection("mysql_sb")->table("output_reworks".$department)->where('defect_id', $defect->id)->first();
+                            }
 
-                            $rft = DB::connection("mysql_sb")->table("output_rfts".$department)->where('rework_id', $rework->id)->first();
+                            $rft = null;
+                            if ($rework && $rework->id) {
+                                $rft = DB::connection("mysql_sb")->table("output_rfts".$department)->where('rework_id', $rework->id)->first();
+                            }
 
-                            $deleteRework = DB::connection("mysql_sb")->table("output_reworks".$department)->where('id', $rework->id)->delete();
+                            // Delete Rework
+                            $deleteRework = null;
+                            if ($rework && $rework->id) {
+                                $deleteRework = DB::connection("mysql_sb")->table("output_reworks".$department)->where('id', $rework->id)->delete();
+                            }
 
-                            if ($deleteRework) {
-                                DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_defect_id' => $defect->id, 'output_rft_id' => $rft->id, 'output_rework_id' => $rework->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect-rework', 'created_by' => $defect->created_by, 'created_at' => $defect->created_at, 'updated_at' => $defect->updated_at, 'undo_by_nds' => Auth::user()->id]);
-
+                            // Update Defect
+                            if ($defect && $defect->id) {
                                 DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->update([
                                     "defect_status" => "defect"
                                 ]);
 
-                                DB::connection("mysql_sb")->table("output_rfts".$department)->where("rework_id", $rework->id)->delete();
-
                                 array_push($result, "REWORK '".$defect->kode_numbering."' -> DEFECT");
+                            }
+
+                            // Delete Rft
+                            if ($rework && $rework->id) {
+                                DB::connection("mysql_sb")->table("output_rfts".$department)->where("rework_id", $rework->id)->delete();
                             }
 
                             break;
@@ -2755,7 +2780,10 @@ class SewingToolsController extends Controller
                             // Undo REJECT
                             $reject = DB::connection("mysql_sb")->table("output_rejects".$department)->where('id', $output->id)->first();
 
-                            $deleteReject = DB::connection("mysql_sb")->table("output_rejects".$department)->where('id', $reject->id)->delete();
+                            $deleteReject = null;
+                            if ($reject && $reject->id) {
+                                $deleteReject = DB::connection("mysql_sb")->table("output_rejects".$department)->where('id', $reject->id)->delete();
+                            }
 
                             if ($deleteReject) {
                                 DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'created_by' => $reject->created_by, 'created_at' => $reject->created_at, 'updated_at' => $reject->updated_at, 'undo_by_nds' => Auth::user()->id]);

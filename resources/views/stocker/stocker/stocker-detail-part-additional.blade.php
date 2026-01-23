@@ -65,7 +65,7 @@
 
                                         if ($qtyAdditional > 0) :
                                             $stockerThis = $dataStockerAdditional ? $dataStockerAdditional->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->filter(function ($item) { return $item->ratio > 0 && ($item->difference_qty > 0 || $item->difference_qty == null); })->first() : null;
-                                            $stockerBefore = $dataStockerAdditional ? $dataStockerAdditional->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->sortByDesc('no_cut')->filter(function ($item) { return $item->ratio > 0 && ($item->difference_qty > 0 || $item->difference_qty == null); })->first() : null;
+                                            $stockerBefore = $dataStockerAdditional ? $dataStockerAdditional->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->sortByDesc('no_cut')->filter(function ($item) { return $item->ratio > 0 || ($item->ratio < 1 && $item->difference_qty > 0); })->first() : null;
 
                                             $rangeAwalAdditional = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + 1 + ($qtyBeforeAdditional) : "-") : 1 + ($qtyBeforeAdditional)) : 1 + ($qtyBeforeAdditional));
                                             $rangeAkhirAdditional = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + $qtyAdditional + ($qtyBeforeAdditional) : "-") : $qtyAdditional + ($qtyBeforeAdditional)) : $qtyAdditional + ($qtyBeforeAdditional));

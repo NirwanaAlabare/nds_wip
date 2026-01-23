@@ -145,7 +145,7 @@ class MarkerController extends Controller
         $html = "<option value=''>Pilih Color</option>";
 
         foreach ($colors as $color) {
-            $html .= " <option value='" . $color->color . "'>" . $color->color . "</option> ";
+            $html .= " <option value='" . strtoupper(trim($color->color)) . "'>" . strtoupper(trim($color->color)) . "</option> ";
         }
 
         return $html;

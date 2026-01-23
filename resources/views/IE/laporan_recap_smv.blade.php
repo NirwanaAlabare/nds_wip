@@ -33,7 +33,7 @@
                             <tr>
                                 <th class="text-center align-middle" style="color: black;">Buyer</th>
                                 <th class="text-center align-middle" style="color: black;">WS</th>
-                                <th class="text-center align-middle" style="color: black;">Styleno</th>
+                                <th class="text-center align-middle" style="color: black;">Style</th>
                                 <th class="text-center align-middle" style="color: black;">Number of Changes</th>
                                 <th>Date Plan</th>
                                 <th>SMV</th>
@@ -84,8 +84,8 @@
                     </table>
                 </div>
             </div>
+        </div>
     </form>
-    </div>
 @endsection
 
 @section('custom-script')

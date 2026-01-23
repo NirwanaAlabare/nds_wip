@@ -124,6 +124,15 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#restoreStockerLogModal">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Restore Stocker Log</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -185,6 +194,38 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
                     <button type="button" class="btn btn-sb" onclick="resetStockerId()"><i class="fa fa-rotate-left"></i> Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Restore Stocker Log -->
+    <div class="modal fade" id="restoreStockerLogModal" tabindex="-1" aria-labelledby="restoreStockerLogModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="restoreStockerLogModalLabel">Restore Stocker Log</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Table</label>
+                        <select name="table" id="table" class="form-control select2bs4restorestockerlog" style="width: 100%;">
+                            <option value="">Pilih Table</option>
+                            <option value="stocker_input">Stocker</option>
+                            <option value="dc_in_input">DC In Input</option>
+                            <option value="secondary_in_input">Secondary In Input</option>
+                            <option value="secondary_inhouse_input">Secondary Inhouse Input</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Log</label>
+                        <textarea class="form-control" name="stocker_log" id="stocker_log" cols="30" rows="10"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
+                    <button type="button" class="btn btn-sb" onclick="restoreStockerLog()"><i class="fa fa-rotate-left"></i> Restore</button>
                 </div>
             </div>
         </div>
@@ -289,6 +330,10 @@
         $('.select2bs4recalc').select2({
             theme: 'bootstrap4',
             dropdownParent: $('#recalculateStockerTransaction')
+        });
+        $('.select2bs4restorestockerlog').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('#restoreStockerLogModal')
         });
 
         $(document).ready(function () {
@@ -496,6 +541,58 @@
                             confirmButtonColor: "#082149",
                         });
                     }
+                }
+            });
+        }
+
+        function restoreStockerLog() {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Fixing Data...  <br><br> <b>0</b>s elapsed...',
+                didOpen: () => {
+                    Swal.showLoading();
+
+                    let estimatedTime = 0;
+                    const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                    estimatedTimeInterval = setInterval(() => {
+                        estimatedTime++;
+                        estimatedTimeElement.textContent = estimatedTime;
+                    }, 1000);
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "post",
+                url: "{{ route('restore-stocker-log') }}",
+                data: {
+                    stocker_log: $('#stocker_log').val(),
+                },
+                dataType: "json",
+                success: function (response) {
+                    let totalRow = response ? response : 0;
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'INFO',
+                        html: totalRow+" Row(s) Affected.",
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                        confirmButtonColor: "#082149",
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        html: 'Terjadi kesalahan',
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                        confirmButtonColor: "#082149",
+                    });
                 }
             });
         }

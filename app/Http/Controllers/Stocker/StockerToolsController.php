@@ -18,6 +18,8 @@ use App\Services\StockerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Illuminate\Support\Collection;
 use App\Imports\ImportStockerManual;
 use Maatwebsite\Excel\Facades\Excel;
 use PDF;
@@ -275,7 +277,7 @@ class StockerToolsController extends Controller
             marker_input.act_costing_ws,
             marker_input.buyer,
             marker_input.style,
-            marker_input.color,
+            UPPER(TRIM(marker_input.color)) color,
             stocker_input.shade,
             stocker_input.group_stocker,
             COALESCE(stocker_input.notes) notes,
@@ -364,5 +366,62 @@ class StockerToolsController extends Controller
 
     function recalculateStockerTransaction(Request $request, StockerService $stockerService) {
         return $stockerService->recalculateStockerTransaction($request->formCutId);
+    }
+
+    function restoreStockerLog(Request $request)
+    {
+        $tableName = $request->table;
+
+        // 1. Intent check
+        $dump = trim($request->stocker_log);
+
+        if (! Str::startsWith($dump, 'Illuminate\Support\Collection::__set_state')) {
+            return 'Input is not a Collection dump.';
+        }
+
+        // 2. Strip the wrapper and eval ONLY the array
+        // Find first "(" and last ")"
+        $start = strpos($dump, '(');
+        $end   = strrpos($dump, ')');
+
+        if ($start === false || $end === false || $end <= $start) {
+            return 'Malformed collection dump.';
+        }
+
+        // Extract only the array(...) part
+        $arrayCode = substr($dump, $start + 1, $end - $start - 1);
+
+        // Evaluate ONLY the array
+        $data = eval('return ' . $arrayCode . ';');
+
+        // 3. Validate structure
+        if (! is_array($data) || ! isset($data['items']) || ! is_array($data['items'])) {
+            return 'Parsed data does not contain items.';
+        }
+
+        // 4. Rebuild a fresh collection
+        $collection = collect($data['items']);
+
+        if (! $collection instanceof Collection) {
+            return 'Eval did not return a Collection.';
+        }
+
+        // 3. Insert rows
+        $inserted = 0;
+
+        DB::transaction(function () use ($collection, $tableName, &$inserted) {
+            foreach ($collection as $item) {
+                // stdClass → array
+                $row = (array) $item;
+
+                // Optional: remove primary key to avoid collisions
+                unset($row['id']);
+
+                DB::table($tableName)->insert($row);
+                $inserted++;
+            }
+        });
+
+        return $inserted;
     }
 }

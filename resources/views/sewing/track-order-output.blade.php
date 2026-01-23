@@ -1,6 +1,13 @@
 @extends('layouts.index', ["containerFluid" => true])
 
 @section('custom-link')
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/jquery.dataTables.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/dataTables.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/fixedColumns.bootstrap4.min.css') }}">
+
+    <!-- jQuery -->
+    <script src="{{ asset('plugins/datatables 2.0/jquery-3.3.1.js') }}"></script>
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
@@ -20,6 +27,12 @@
 @endsection
 
 @section('custom-script')
+    <!-- DataTables & Plugins -->
+    <script src="{{ asset('plugins/datatables 2.0/dataTables.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables 2.0/dataTables.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables 2.0/dataTables.fixedColumns.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
+
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
         $('.select2').select2({

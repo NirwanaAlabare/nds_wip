@@ -27,6 +27,7 @@ use DB;
 use QrCode;
 use DNS1D;
 use PDF;
+use Illuminate\Validation\Rule;
 
 class OutMaterialController extends Controller
 {
@@ -295,9 +296,7 @@ class OutMaterialController extends Controller
     public function showdetailitem(Request $request)
     {
 
-        $det_item = DB::connection('mysql_sb')->select("select * from (select id_roll,id_item,id_jo,kode_rak,itemdesc,raknya,lot_no,roll_no,ROUND(COALESCE(qty_in,0) - COALESCE(qty_out,0),2) qty_sisa,unit from (select a.no_barcode id_roll,a.id_item,a.id_jo,a.kode_lok kode_rak,b.itemdesc,a.kode_lok raknya,no_lot lot_no,no_roll roll_no,sum(qty) qty_in,c.qty_out,a.unit from (select * from whs_sa_fabric where id_jo='" . $request->id_jo . "' and id_item='" . $request->id_item . "') a inner join masteritem b on b.id_item = a.id_item left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det where id_jo='" . $request->id_jo . "' and id_item='" . $request->id_item . "' GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.qty != 0 and qty_mut is null GROUP BY a.no_barcode) a) a where a.qty_sisa > 0
-            UNION
-            select id, id_item, id_jo, kode_lok, item_desc, raknya, no_lot,no_roll, qty_sisa,satuan from (select a.no_barcode id, a.id_item, a.id_jo, a.kode_lok, a.item_desc, a.kode_lok raknya, a.no_lot,a.no_roll, sum(a.qty_aktual) qty_aktual,a.satuan,COALESCE(c.qty_out,0) qty_out,(sum(a.qty_aktual) - COALESCE(a.qty_mutasi,0) - COALESCE(c.qty_out,0)) qty_sisa from ( select * from whs_lokasi_inmaterial where id_jo='" . $request->id_jo . "' and id_item='" . $request->id_item . "') a left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det where id_jo='" . $request->id_jo . "' and id_item='" . $request->id_item . "' GROUP BY id_roll) c on c.id_roll = a.no_barcode GROUP BY a.no_barcode) a where a.qty_sisa > 0");
+        $det_item = DB::connection('mysql_sb')->select("select no_barcode id_roll, id_item, id_jo, kode_lok kode_rak, itemdesc, kode_lok raknya, no_lot lot_no, no_roll roll_no, sal_akhir qty_sisa, satuan unit from data_stock_fabric where id_jo='" . $request->id_jo . "' and id_item='" . $request->id_item . "'");
 
         // $det_item = DB::connection('mysql_sb')->select("select id_roll,id_item,id_jo,kode_rak,itemdesc,raknya,lot_no, roll_no, qty_sisa, unit from (select br.id id_roll,br.id_h,brh.id_item,brh.id_jo,roll_no,lot_no,roll_qty,roll_qty_used,roll_qty - roll_qty_used qty_sisa,roll_foc,br.unit, concat(kode_rak,' ',nama_rak) raknya,kode_rak,br.barcode, mi.itemdesc from bpb_roll br inner join
         //         bpb_roll_h brh on br.id_h=brh.id
@@ -460,9 +459,8 @@ class OutMaterialController extends Controller
     public function getDetailList(Request $request)
     {
         $user = Auth::user()->name;
-        $data_detail = DB::connection('mysql_sb')->select("select styleno, a.id_item, a.id_jo, itemdesc, qtyitem_sisa, qtyreq, qty_sdh_out, (qtyreq - qty_sdh_out) qty_sisa_out, Coalesce(qty_input,0) qty_input, unit from (select a.bppbno, ac.styleno, a.id_item, mi.itemdesc, a.qty qtyreq, COALESCE(a.qty_out,0) qty_sdh_out, a.id_jo,a.unit  from bppb_req a inner join mastersupplier s on a.id_supplier=s.id_supplier inner join jo on a.id_jo=jo.id left join jo_det jod on a.id_jo=jod.id_jo left join so on jod.id_so=so.id left join act_costing ac on so.id_cost=ac.id inner join mastersupplier b on ac.id_bu
-            yer=b.id_supplier inner join masteritem mi on a.id_item=mi.id_item where bppbno='".$request->no_req."' GROUP BY a.id) a LEFT JOIN
-            (select id_jo, id_item, sum(sal_akhir) qtyitem_sisa from data_stock_fabric GROUP BY id_jo, id_item) b on a.id_item = b.id_item and a.id_jo = b.id_jo LEFT JOIN 
+        $data_detail = DB::connection('mysql_sb')->select("select styleno, a.id_item, a.id_jo, itemdesc, qtyitem_sisa, qtyreq, qty_sdh_out, (qtyreq - qty_sdh_out) qty_sisa_out, Coalesce(qty_input,0) qty_input, unit from (select a.bppbno, ac.styleno, a.id_item, mi.itemdesc, a.qty qtyreq, COALESCE(a.qty_out,0) qty_sdh_out, a.id_jo,a.unit  from bppb_req a inner join mastersupplier s on a.id_supplier=s.id_supplier inner join jo on a.id_jo=jo.id left join jo_det jod on a.id_jo=jod.id_jo left join so on jod.id_so=so.id left join act_costing ac on so.id_cost=ac.id inner join mastersupplier b on ac.id_buyer=b.id_supplier inner join masteritem mi on a.id_item=mi.id_item where bppbno='".$request->no_req."' GROUP BY a.id) a LEFT JOIN
+            (select id_jo, id_item, sum(sal_akhir) qtyitem_sisa from data_stock_fabric GROUP BY id_jo, id_item) b on a.id_item = b.id_item and a.id_jo = b.id_jo LEFT JOIN
             (select id_item iditem,sum(qty_out) qty_input from whs_bppb_det_temp where created_by = '".$user."' GROUP BY id_item) c on c.iditem = a.id_item");
 
         return json_encode([
@@ -520,23 +518,23 @@ class OutMaterialController extends Controller
 
     // Update detail tabel lain
         DB::connection('mysql_sb')->update("
-            UPDATE bppb 
-            SET qty_old = qty, qty = 0, cancel = 'Y' 
+            UPDATE bppb
+            SET qty_old = qty, qty = 0, cancel = 'Y'
             WHERE bppbno_int = ?
             ", [$request['txt_nodok']]);
 
         if ($request->type === 'cancel_with_mr') {
             DB::connection('mysql_sb')->update("
-                UPDATE bppb_req 
-                SET qty_old = qty, qty = 0, cancel = 'Y', qty_out = 0 
+                UPDATE bppb_req
+                SET qty_old = qty, qty = 0, cancel = 'Y', qty_out = 0
                 WHERE bppbno = (
                 SELECT bppbno_req FROM bppb WHERE bppbno_int = ? limit 1
                 )
                 ", [$request['txt_nodok']]);
         } else{
             DB::connection('mysql_sb')->update("
-                UPDATE bppb_req 
-                SET qty_out = null
+                UPDATE bppb_req
+                SET qty_out = 0
                 WHERE bppbno = (
                 SELECT bppbno_req FROM bppb WHERE bppbno_int = ? limit 1
                 )
@@ -544,14 +542,14 @@ class OutMaterialController extends Controller
         }
 
         DB::connection('mysql_sb')->update("
-            UPDATE whs_bppb_h 
-            SET status = 'Cancel' 
+            UPDATE whs_bppb_h
+            SET status = 'Cancel'
             WHERE no_bppb = ?
             ", [$request['txt_nodok']]);
 
         DB::connection('mysql_sb')->update("
-            UPDATE whs_bppb_det 
-            SET qty_stok = qty_out, qty_out = 0, status = 'N' 
+            UPDATE whs_bppb_det
+            SET qty_stok = qty_out, qty_out = 0, status = 'N'
             WHERE no_bppb = ?
             ", [$request['txt_nodok']]);
 
@@ -649,11 +647,19 @@ class OutMaterialController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedRequest = $request->validate([
-            "txt_noreq" => "required",
-            "txt_jns_klr" => "required",
-            "txt_dok_bc" => "required",
-        ]);
+       $validatedRequest = $request->validate([
+    'txt_noreq'   => 'required',
+    'txt_jns_klr' => 'required',
+    'txt_dok_bc'  => 'required',
+    'txt_po_sub'  => Rule::requiredIf(function () use ($request) {
+        return str_contains(
+            strtolower($request->txt_jns_klr),
+            'subkontraktor'
+        );
+    }),
+], [
+    'txt_po_sub.required' => 'PO Sub wajib diisi jika jenis keluar Subkontraktor',
+]);
         // if (intval($request['jumlah_qty']) > 0) {
 
         $tglbppb = $request['txt_tgl_bppb'];
@@ -761,7 +767,7 @@ class OutMaterialController extends Controller
 
         // $bppb_detail = DB::connection('mysql_sb')->insert("insert into whs_bppb_det
         //     select a.*, price, nilai_barang, type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar from (select '','".$bppbno_int."' no_bppb, id_roll,id_jo,id_item, no_rak, no_lot,no_roll,item_desc,qty_stok,satuan,qty_out,'' a,'0',status,created_by,deskripsi,created_at,updated_at from whs_bppb_det_temp where created_by = '".Auth::user()->name."') a INNER JOIN (select b.no_dok,a.type_pch, b.no_barcode ,type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar,price, nilai_barang from (select a.*,id_jo, id_item, price, nilai_barang from whs_inmaterial_fabric a INNER JOIN whs_inmaterial_fabric_det c on c.no_dok = a.no_dok) a INNER JOIN whs_lokasi_inmaterial b on b.no_dok = a.no_dok and a.id_jo = b.id_jo and a.id_item = b.id_item where b.status = 'Y' ) b on b.no_barcode = a.id_roll");
-        $bppb_detail = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select '',no_bppb, id_roll, id_jo, id_item, no_rak, no_lot, no_roll, no_roll_buyer,item_desc,qty_stok,satuan,qty_out,curr,'0',status,created_by,deskripsi,created_at,updated_at, price, nilai_barang, type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar, np_curr, np_tgl_in, np_price, null, null from (select '','".$bppbno_int."' no_bppb, id_roll,id_jo,id_item, no_rak, no_lot,no_roll,item_desc,qty_stok,satuan,qty_out,'0',status,created_by,deskripsi,created_at,updated_at from whs_bppb_det_temp where created_by = '".Auth::user()->name."') a left JOIN (select a.* from (select b.id,b.no_dok,a.type_pch, b.no_barcode , b.kode_lok,type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar,IF(price is null or price = '',b.nilai_barang,price) price, a.nilai_barang,qty_aktual,curr, IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price, no_roll_buyer from (select a.*,id_jo, id_item, price, nilai_barang,curr from whs_inmaterial_fabric a INNER JOIN whs_inmaterial_fabric_det c on c.no_dok = a.no_dok) a INNER JOIN whs_lokasi_inmaterial b on b.no_dok = a.no_dok and a.id_jo = b.id_jo and a.id_item = b.id_item where b.status = 'Y') a left join (select id_roll, no_rak, SUM(qty_out) qty_out from whs_bppb_det where status = 'Y' GROUP BY id_roll) b on b.id_roll = a.no_barcode and b.no_rak = a.kode_lok where (qty_aktual - coalesce(qty_out,0)) > 0 ORDER BY no_barcode asc) b on b.no_barcode = a.id_roll");
+        $bppb_detail = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select '',no_bppb, id_roll, id_jo, id_item, no_rak, no_lot, no_roll, no_roll_buyer,item_desc,qty_stok,satuan,qty_out,curr,'0',status,created_by,deskripsi,created_at,updated_at, price, nilai_barang, type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar, np_curr, np_tgl_in, np_price, null, null from (select '','".$bppbno_int."' no_bppb, id_roll,id_jo,id_item, no_rak, no_lot,no_roll,item_desc,qty_stok,satuan,qty_out,'0',status,created_by,deskripsi,created_at,updated_at from whs_bppb_det_temp where created_by = '".Auth::user()->name."') a left JOIN (select a.* from (select b.id,b.no_dok,a.type_pch, b.no_barcode , b.kode_lok,type_bc, no_aju, tgl_aju, no_daftar, tgl_daftar,IF(price is null or price = '',b.nilai_barang,price) price, a.nilai_barang,qty_aktual,curr, IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price, no_roll_buyer from (select a.*,id_jo, id_item, price, nilai_barang,curr from whs_inmaterial_fabric a INNER JOIN whs_inmaterial_fabric_det c on c.no_dok = a.no_dok) a INNER JOIN (select a.* from whs_lokasi_inmaterial a INNER JOIN data_stock_fabric b on b.no_barcode = a.no_barcode and b.kode_lok = a.kode_lok) b on b.no_dok = a.no_dok and a.id_jo = b.id_jo and a.id_item = b.id_item where b.status = 'Y') a left join (select id_roll, no_rak, SUM(qty_out) qty_out from whs_bppb_det where status = 'Y' GROUP BY id_roll) b on b.id_roll = a.no_barcode and b.no_rak = a.kode_lok where (qty_aktual - coalesce(qty_out,0)) > 0 ORDER BY no_barcode asc) b on b.no_barcode = a.id_roll");
         $bppb_temp = BppbDetTemp::where('created_by',Auth::user()->name)->delete();
 
         $massage = $bppbno_int . ' Saved Succesfully';
@@ -1340,7 +1346,7 @@ public function pdfoutmaterial(Request $request, $id)
             ->where('id_jo', $id_jo)
             ->update([
                 'qty_old' => DB::raw('qty'),
-                'qty'     => $totalQty,      
+                'qty'     => $totalQty,
             ]);
         }
 
@@ -1436,7 +1442,7 @@ public function pdfoutmaterial(Request $request, $id)
                 ->where('id_jo', $id_jo)
                 ->update([
                     'qty_old' => DB::raw('qty'),
-                    'qty'     => $totalQty,      
+                    'qty'     => $totalQty,
                 ]);
             }
 
@@ -1468,7 +1474,7 @@ public function pdfoutmaterial(Request $request, $id)
     {
 
 
-            $data_inmaterial = DB::connection('mysql_sb')->select("select no_bppb, tgl_bppb, id_roll, no_lot, no_roll, CONCAT(no_rak,'  FABRIC WAREHOUSE RACK') no_rak, id_item, itemdesc, color, size, IFNULL(no_invoice,'-') no_invoice, dok_bc, no_aju, tgl_aju, no_daftar, tgl_daftar, tujuan, qty_out, satuan, berat_bersih, IFNULL(catatan,'-') catatan, username, kpno, styleno, IFNULL(np_curr,'-') np_curr, IFNULL(np_price,0) np_price, jenis_pengeluaran, IFNULL(np_price,0) price_unit, (qty_out * IFNULL(np_price,0)) total, IFNULL(rate,1) rate, ((qty_out * IFNULL(np_price,0)) * IFNULL(rate,1)) total_idr from (select  a.no_bppb, a.tgl_bppb, id_roll, no_lot, no_roll, no_rak, b.id_item, c.itemdesc, c.color, c.size, a.no_invoice, a.dok_bc, no_aju, tgl_aju, no_daftar, tgl_daftar, a.tujuan, b.qty_out, b.satuan, 0 berat_bersih, a.catatan, CONCAT(a.created_by,' (',a.created_at, ') ') username, kpno, styleno, IFNULL(b.np_curr_rev,b.np_curr) np_curr, np_tgl_in, IFNULL(b.np_price_rev,b.np_price) np_price, jenis_pengeluaran from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb INNER JOIN masteritem c on c.id_item = b.id_item left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) tmpjo on tmpjo.id_jo=b.id_jo where a.tgl_bppb BETWEEN '" . $request->start_date . "' and '" . $request->end_date . "' and a.status != 'Cancel' and b.status = 'Y') a left join (select tanggal, curr, rate from masterrate where v_codecurr = 'PAJAK' GROUP BY tanggal, curr ) cr on cr.tanggal = a.tgl_bppb and cr.curr = a.np_curr");
+            $data_inmaterial = DB::connection('mysql_sb')->select("select no_bppb, tgl_bppb, id_roll, no_lot, no_roll, CONCAT(no_rak,'  FABRIC WAREHOUSE RACK') no_rak, id_item, itemdesc, color, size, IFNULL(no_invoice,'-') no_invoice, dok_bc, no_aju, tgl_aju, no_daftar, tgl_daftar, tujuan, qty_out, satuan, berat_bersih, IFNULL(catatan,'-') catatan, username, kpno, no_ws_aktual, styleno, IFNULL(np_curr,'-') np_curr, IFNULL(np_price,0) np_price, jenis_pengeluaran, IFNULL(np_price,0) price_unit, (qty_out * IFNULL(np_price,0)) total, IFNULL(rate,1) rate, ((qty_out * IFNULL(np_price,0)) * IFNULL(rate,1)) total_idr from (select  a.no_bppb, a.tgl_bppb, id_roll, no_lot, no_roll, no_rak, b.id_item, c.itemdesc, c.color, c.size, a.no_invoice, a.dok_bc, no_aju, tgl_aju, no_daftar, tgl_daftar, a.tujuan, b.qty_out, b.satuan, 0 berat_bersih, a.catatan, CONCAT(a.created_by,' (',a.created_at, ') ') username, kpno, styleno, IFNULL(b.np_curr_rev,b.np_curr) np_curr, np_tgl_in, IFNULL(b.np_price_rev,b.np_price) np_price, jenis_pengeluaran, no_ws_aktual from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb INNER JOIN masteritem c on c.id_item = b.id_item left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) tmpjo on tmpjo.id_jo=b.id_jo where a.tgl_bppb BETWEEN '" . $request->start_date . "' and '" . $request->end_date . "' and a.status != 'Cancel' and b.status = 'Y') a left join (select tanggal, curr, rate from masterrate where v_codecurr = 'PAJAK' GROUP BY tanggal, curr ) cr on cr.tanggal = a.np_tgl_in and cr.curr = a.np_curr");
 
 
             return DataTables::of($data_inmaterial)->toJson();
@@ -1480,162 +1486,189 @@ public function pdfoutmaterial(Request $request, $id)
     {
 
 
-            $data_inmaterial = DB::connection('mysql_sb')->select("WITH 
-saldo_awal as (select no_barcode, id_jo, a.id_item, b.goods_code, b.itemdesc, satuan, ws, price, rate, ROUND(sum(qty),4) saldo_awal_qty, ROUND(IF(qty > 0,(price * rate)/count(no_barcode),0),4) saldo_awal_price, (qty * (price * rate)) saldo_awal_total from whs_saldo_awal_nilai_persediaan a INNER JOIN masteritem b on b.id_item = a.id_item where tgl_periode = (SELECT MAX(tgl_periode) FROM whs_saldo_awal_nilai_persediaan WHERE tgl_periode <= '" . $request->start_date . "') GROUP BY no_barcode),
+            $data_inmaterial = DB::connection('mysql_sb')->select("WITH
+            saldo_awal as (select a.no_barcode, IFNULL(CASE
+                WHEN map.no_barcode = 'F244111' THEN 'F246063'
+                WHEN map.no_barcode = 'F246105' THEN 'F246785'
+                WHEN map.no_barcode = 'F244115' THEN 'F246065'
+                WHEN map.no_barcode = 'F244107' THEN 'F246061'
+                WHEN map.no_barcode = 'F244108' THEN 'F246062'
+                WHEN map.no_barcode = 'F244112' THEN 'F246064'
+                WHEN map.no_barcode = 'F246099' THEN 'F246779'
+                WHEN map.no_barcode = 'F246100' THEN 'F246780'
+                WHEN map.no_barcode = 'F246101' THEN 'F246781'
+                WHEN map.no_barcode = 'F246102' THEN 'F246782'
+                WHEN map.no_barcode = 'F246103' THEN 'F246783'
+                WHEN map.no_barcode = 'F246104' THEN 'F246784'
+                WHEN map.no_barcode = 'F246106' THEN 'F246786'
+                WHEN map.no_barcode = 'F245995' THEN 'F249329'
+                WHEN map.no_barcode = 'F245996' THEN 'F249330'
+                WHEN map.no_barcode = 'F245997' THEN 'F249331'
+                ELSE map.no_barcode END ,a.no_barcode) barcode_mapping, id_jo, a.id_item, b.goods_code, b.itemdesc, satuan, ws, price, rate, ROUND(sum(qty),4) saldo_awal_qty, ROUND(IF(qty > 0,(price * rate)/count(a.no_barcode),0),4) saldo_awal_price, (qty * (price * rate)) saldo_awal_total from whs_saldo_awal_nilai_persediaan a INNER JOIN masteritem b on b.id_item = a.id_item LEFT JOIN (select idbpb_det, no_barcode from whs_mut_lokasi a INNER JOIN whs_lokasi_inmaterial b on b.no_barcode_old = a.idbpb_det where a.status = 'Y' GROUP BY no_barcode) map on map.idbpb_det = a.no_barcode where tgl_periode = (SELECT MAX(tgl_periode) FROM whs_saldo_awal_nilai_persediaan WHERE tgl_periode <= '" . $request->start_date . "') GROUP BY a.no_barcode),
 
-trx_in AS (select no_barcode, b.id_jo, b.id_item, mi.goods_code, mi.itemdesc, b.satuan, kpno no_ws, type_pch, qty_sj, COALESCE(IFNULL(np_curr_rev,np_curr),'-') curr, ROUND(COALESCE(IFNULL(np_price_rev,np_price),0),4) price, (qty_sj * (COALESCE(IFNULL(np_price_rev,np_price),0))) total_price, np_tgl_in, IFNULL(rate,1) rate from whs_inmaterial_fabric a INNER JOIN whs_lokasi_inmaterial b on b.no_dok = a.no_dok INNER JOIN masteritem mi on mi.id_item = b.id_item INNER JOIN (select id_jo, kpno, styleno from act_costing ac inner join so on ac.id = so.id_cost inner join jo_det jod on so.id = jod.id_so group by id_jo) tmpjo on tmpjo.id_jo = b.id_jo LEFT JOIN (select tanggal, curr curr_rate, rate from masterrate where v_codecurr = 'PAJAK' GROUP BY tanggal, curr ) cr on cr.tanggal = b.np_tgl_in and cr.curr_rate = COALESCE(IFNULL(b.np_curr_rev,b.np_curr),'-') where a.tgl_dok BETWEEN '" . $request->start_date . "' and '" . $request->end_date . "' and b.status = 'Y'),
+            trx_in AS (select b.no_barcode, IFNULL(map.no_barcode,b.no_barcode) barcode_mapping, b.id_jo, b.id_item, mi.goods_code, mi.itemdesc, b.satuan, kpno no_ws, type_pch, qty_sj, COALESCE(IFNULL(np_curr_rev,np_curr),'-') curr, ROUND(COALESCE(IFNULL(np_price_rev,np_price),0),4) price, (qty_sj * (COALESCE(IFNULL(np_price_rev,np_price),0))) total_price, np_tgl_in, IFNULL(rate,1) rate from whs_inmaterial_fabric a INNER JOIN whs_lokasi_inmaterial b on b.no_dok = a.no_dok INNER JOIN masteritem mi on mi.id_item = b.id_item INNER JOIN (select id_jo, kpno, styleno from act_costing ac inner join so on ac.id = so.id_cost inner join jo_det jod on so.id = jod.id_so group by id_jo) tmpjo on tmpjo.id_jo = b.id_jo LEFT JOIN (select tanggal, curr curr_rate, rate from masterrate where v_codecurr = 'PAJAK' GROUP BY tanggal, curr ) cr on cr.tanggal = b.np_tgl_in and cr.curr_rate = COALESCE(IFNULL(b.np_curr_rev,b.np_curr),'-') LEFT JOIN (select idbpb_det, no_barcode from whs_mut_lokasi a INNER JOIN whs_lokasi_inmaterial b on b.no_barcode_old = a.idbpb_det where a.status = 'Y' GROUP BY no_barcode) map on map.idbpb_det = b.no_barcode where a.tgl_dok BETWEEN '" . $request->start_date . "' and '" . $request->end_date . "' and b.status = 'Y'),
 
-trx_out AS (select id_roll, id_jo, id_item, jenis_pengeluaran type_pch, sum(COALESCE(qty_out,0)) qty_sj, COALESCE(IFNULL(np_curr_rev,np_curr),'-') curr, ROUND(COALESCE(IFNULL(np_price_rev,np_price),0),4) price, (qty_out * (COALESCE(IFNULL(np_price_rev,np_price),0))) total_price, np_tgl_in, IFNULL(rate,1) rate from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb LEFT JOIN (select tanggal, curr curr_rate, rate from masterrate where v_codecurr = 'PAJAK' GROUP BY tanggal, curr ) cr on cr.tanggal = b.np_tgl_in and cr.curr_rate = COALESCE(IFNULL(b.np_curr_rev,b.np_curr),'-') where tgl_bppb BETWEEN '" . $request->start_date . "' and '" . $request->end_date . "' and a.status != 'Cancel' and b.status = 'Y' GROUP BY id_roll
-),
+            trx_out AS (select CASE
+                WHEN id_roll = 'F229331' THEN 'F246048'
+                WHEN id_roll = 'F238451' THEN 'F246050'
+                ELSE id_roll END
+                id_roll, id_jo, id_item, CASE
+                WHEN a.jenis_pengeluaran IS NULL THEN '-'
+                WHEN a.jenis_pengeluaran = 'penjualan' AND sg.supplier IS NULL THEN 'Sales Nongroup'
+                WHEN a.jenis_pengeluaran = 'penjualan' AND sg.supplier IS NOT NULL THEN 'Sales Group'
+                ELSE a.jenis_pengeluaran
+                END type_pch, (COALESCE(qty_out,0)) qty_sj, COALESCE(IFNULL(np_curr_rev,np_curr),'-') curr, ROUND(COALESCE(IFNULL(np_price_rev,np_price),0),4) price, (qty_out * (COALESCE(IFNULL(np_price_rev,np_price),0))) total_price, np_tgl_in, IFNULL(rate,1) rate from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb LEFT JOIN (select tanggal, curr curr_rate, rate from masterrate where v_codecurr = 'PAJAK' GROUP BY tanggal, curr ) cr on cr.tanggal = b.np_tgl_in and cr.curr_rate = COALESCE(IFNULL(b.np_curr_rev,b.np_curr),'-') left join (select id_supplier, supplier from ca_sales_group) sg on sg.supplier = a.tujuan where tgl_bppb BETWEEN '" . $request->start_date . "' and '" . $request->end_date . "' and a.status != 'Cancel' and b.status = 'Y'
+            ),
 
-trx_in_detail as (SELECT 
-    no_barcode, id_jo, id_item, goods_code, itemdesc, satuan, no_ws,
+            trx_in_detail as (SELECT
+                no_barcode, barcode_mapping, id_jo, id_item, goods_code, itemdesc, satuan, no_ws,
     -- Pembelian Lokal
     SUM(CASE WHEN type_pch='Pembelian Lokal' THEN qty_sj ELSE 0 END) AS in_lokal_qty,
-    CASE 
-        WHEN SUM(CASE WHEN type_pch='Pembelian Lokal' THEN qty_sj ELSE 0 END) > 0
-        THEN ROUND(SUM(CASE WHEN type_pch='Pembelian Lokal' THEN (price * rate) ELSE 0 END)
-             / COUNT(CASE WHEN type_pch='Pembelian Lokal' THEN 1 END),4)
-        ELSE 0
+    CASE
+    WHEN SUM(CASE WHEN type_pch='Pembelian Lokal' THEN qty_sj ELSE 0 END) > 0
+    THEN ROUND(SUM(CASE WHEN type_pch='Pembelian Lokal' THEN (price * rate) ELSE 0 END)
+       / COUNT(CASE WHEN type_pch='Pembelian Lokal' THEN 1 END),4)
+    ELSE 0
     END AS in_lokal_price,
     SUM(CASE WHEN type_pch='Pembelian Lokal' THEN ROUND(total_price * rate,4) ELSE 0 END) AS in_lokal_total,
-        
+
         -- Pembelian Impor
-    SUM(CASE WHEN type_pch='Pembelian Impor' THEN qty_sj ELSE 0 END) AS in_impor_qty,
-    CASE 
+        SUM(CASE WHEN type_pch='Pembelian Impor' THEN qty_sj ELSE 0 END) AS in_impor_qty,
+        CASE
         WHEN SUM(CASE WHEN type_pch='Pembelian Impor' THEN qty_sj ELSE 0 END) > 0
         THEN ROUND(SUM(CASE WHEN type_pch='Pembelian Impor' THEN (price * rate) ELSE 0 END)
-             / COUNT(CASE WHEN type_pch='Pembelian Impor' THEN 1 END),4)
+           / COUNT(CASE WHEN type_pch='Pembelian Impor' THEN 1 END),4)
         ELSE 0
-    END AS in_impor_price,
-    SUM(CASE WHEN type_pch='Pembelian Impor' THEN ROUND(total_price * rate,4) ELSE 0 END) AS in_impor_total,
-        
+        END AS in_impor_price,
+        SUM(CASE WHEN type_pch='Pembelian Impor' THEN ROUND(total_price * rate,4) ELSE 0 END) AS in_impor_total,
+
         -- Pengembalian dari Subkontraktor Jasa
-    SUM(CASE WHEN type_pch='Pengembalian dari Subkontraktor Jasa' THEN qty_sj ELSE 0 END) AS in_subcont_qty,
-    CASE 
-        WHEN SUM(CASE WHEN type_pch='Pengembalian dari Subkontraktor Jasa' THEN qty_sj ELSE 0 END) > 0
-        THEN ROUND(SUM(CASE WHEN type_pch='Pengembalian dari Subkontraktor Jasa' THEN (price * rate) ELSE 0 END)
-             / COUNT(CASE WHEN type_pch='Pengembalian dari Subkontraktor Jasa' THEN 1 END),4)
+        SUM(CASE WHEN type_pch IN ('Pengembalian dari Subkontraktor CMT', 'Pengembalian dari Subkontraktor Jasa') THEN qty_sj ELSE 0 END) AS in_subcont_qty,
+        CASE
+        WHEN SUM(CASE WHEN type_pch IN ('Pengembalian dari Subkontraktor CMT', 'Pengembalian dari Subkontraktor Jasa') THEN qty_sj ELSE 0 END) > 0
+        THEN ROUND(SUM(CASE WHEN type_pch IN ('Pengembalian dari Subkontraktor CMT', 'Pengembalian dari Subkontraktor Jasa') THEN (price * rate) ELSE 0 END)
+           / COUNT(CASE WHEN type_pch IN ('Pengembalian dari Subkontraktor CMT', 'Pengembalian dari Subkontraktor Jasa') THEN 1 END),4)
         ELSE 0
-    END AS in_subcont_price,
-    SUM(CASE WHEN type_pch='Pengembalian dari Subkontraktor Jasa' THEN ROUND(total_price * rate,4) ELSE 0 END) AS in_subcont_total,
-        
+        END AS in_subcont_price,
+        SUM(CASE WHEN type_pch IN ('Pengembalian dari Subkontraktor CMT', 'Pengembalian dari Subkontraktor Jasa') THEN ROUND(total_price * rate,4) ELSE 0 END) AS in_subcont_total,
+
         -- Pengembalian dari Produksi
-    SUM(CASE WHEN type_pch='Pengembalian dari Produksi' THEN qty_sj ELSE 0 END) AS in_produksi_qty,
-    CASE 
+        SUM(CASE WHEN type_pch='Pengembalian dari Produksi' THEN qty_sj ELSE 0 END) AS in_produksi_qty,
+        CASE
         WHEN SUM(CASE WHEN type_pch='Pengembalian dari Produksi' THEN qty_sj ELSE 0 END) > 0
         THEN ROUND(SUM(CASE WHEN type_pch='Pengembalian dari Produksi' THEN (price * rate) ELSE 0 END)
-             / COUNT(CASE WHEN type_pch='Pengembalian dari Produksi' THEN 1 END),4)
+           / COUNT(CASE WHEN type_pch='Pengembalian dari Produksi' THEN 1 END),4)
         ELSE 0
-    END AS in_produksi_price,
-    SUM(CASE WHEN type_pch='Pengembalian dari Produksi' THEN ROUND(total_price * rate,4) ELSE 0 END) AS in_produksi_total,
-        
+        END AS in_produksi_price,
+        SUM(CASE WHEN type_pch='Pengembalian dari Produksi' THEN ROUND(total_price * rate,4) ELSE 0 END) AS in_produksi_total,
+
         -- Pengembalian dari Sample Room
-    SUM(CASE WHEN type_pch='Pengembalian dari Sample Room' THEN qty_sj ELSE 0 END) AS in_sample_qty,
-    CASE 
+        SUM(CASE WHEN type_pch='Pengembalian dari Sample Room' THEN qty_sj ELSE 0 END) AS in_sample_qty,
+        CASE
         WHEN SUM(CASE WHEN type_pch='Pengembalian dari Sample Room' THEN qty_sj ELSE 0 END) > 0
         THEN ROUND(SUM(CASE WHEN type_pch='Pengembalian dari Sample Room' THEN (price * rate) ELSE 0 END)
-             / COUNT(CASE WHEN type_pch='Pengembalian dari Sample Room' THEN 1 END),4)
+           / COUNT(CASE WHEN type_pch='Pengembalian dari Sample Room' THEN 1 END),4)
         ELSE 0
-    END AS in_sample_price,
-    SUM(CASE WHEN type_pch='Pengembalian dari Sample Room' THEN ROUND(total_price * rate,4) ELSE 0 END) AS in_sample_total
-FROM trx_in GROUP BY no_barcode),
+        END AS in_sample_price,
+        SUM(CASE WHEN type_pch='Pengembalian dari Sample Room' THEN ROUND(total_price * rate,4) ELSE 0 END) AS in_sample_total
+        FROM trx_in GROUP BY no_barcode),
 
-trx_in_fix as (select *, (in_lokal_qty + in_impor_qty + in_subcont_qty + in_produksi_qty + in_sample_qty) jumlah_in_qty, ROUND((in_lokal_total + in_impor_total + in_subcont_total + in_produksi_total + in_sample_total) / (in_lokal_qty + in_impor_qty + in_subcont_qty + in_produksi_qty + in_sample_qty),4) jumlah_in_price, (in_lokal_total + in_impor_total + in_subcont_total + in_produksi_total + in_sample_total) jumlah_in_total from trx_in_detail),
+            trx_in_fix as (select *, (in_lokal_qty + in_impor_qty + in_subcont_qty + in_produksi_qty + in_sample_qty) jumlah_in_qty, ROUND((in_lokal_total + in_impor_total + in_subcont_total + in_produksi_total + in_sample_total) / (in_lokal_qty + in_impor_qty + in_subcont_qty + in_produksi_qty + in_sample_qty),4) jumlah_in_price, (in_lokal_total + in_impor_total + in_subcont_total + in_produksi_total + in_sample_total) jumlah_in_total from trx_in_detail),
 
-trx_out_detail as (SELECT 
-    id_roll, id_jo, id_item,
+            trx_out_detail as (SELECT
+                id_roll, id_jo, id_item,
     -- Pemakaian produksi
     SUM(CASE WHEN type_pch='Pemakaian Produksi' THEN qty_sj ELSE 0 END) AS out_prod_qty,
-    CASE 
-        WHEN SUM(CASE WHEN type_pch='Pemakaian Produksi' THEN qty_sj ELSE 0 END) > 0
-        THEN ROUND(SUM(CASE WHEN type_pch='Pemakaian Produksi' THEN (price * rate) ELSE 0 END)
-             / COUNT(CASE WHEN type_pch='Pemakaian Produksi' THEN 1 END),4)
-        ELSE 0
+    CASE
+    WHEN SUM(CASE WHEN type_pch='Pemakaian Produksi' THEN qty_sj ELSE 0 END) > 0
+    THEN ROUND(SUM(CASE WHEN type_pch='Pemakaian Produksi' THEN (price * rate) ELSE 0 END)
+       / COUNT(CASE WHEN type_pch='Pemakaian Produksi' THEN 1 END),4)
+    ELSE 0
     END AS out_prod_price,
-    SUM(CASE WHEN type_pch='Pembelian Lokal' THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_prod_total,
-        
+    SUM(CASE WHEN type_pch='Pemakaian Produksi' THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_prod_total,
+
         -- Jasa Subcont
-    SUM(CASE WHEN type_pch IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa') THEN qty_sj ELSE 0 END) AS out_subcont_qty,
-    CASE 
+        SUM(CASE WHEN type_pch IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa') THEN qty_sj ELSE 0 END) AS out_subcont_qty,
+        CASE
         WHEN SUM(CASE WHEN type_pch IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa') THEN qty_sj ELSE 0 END) > 0
         THEN ROUND(SUM(CASE WHEN type_pch IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa') THEN (price * rate) ELSE 0 END)
-             / COUNT(CASE WHEN type_pch IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa') THEN 1 END),4)
+           / COUNT(CASE WHEN type_pch IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa') THEN 1 END),4)
         ELSE 0
-    END AS out_subcont_price,
-    SUM(CASE WHEN type_pch IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa') THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_subcont_total,
-        
+        END AS out_subcont_price,
+        SUM(CASE WHEN type_pch IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa') THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_subcont_total,
+
         -- Retur Pembelian Lokal
-    SUM(CASE WHEN type_pch = 'Retur Pembelian Lokal' THEN qty_sj ELSE 0 END) AS out_lokal_qty,
-    CASE 
+        SUM(CASE WHEN type_pch = 'Retur Pembelian Lokal' THEN qty_sj ELSE 0 END) AS out_lokal_qty,
+        CASE
         WHEN SUM(CASE WHEN type_pch = 'Retur Pembelian Lokal' THEN qty_sj ELSE 0 END) > 0
         THEN ROUND(SUM(CASE WHEN type_pch = 'Retur Pembelian Lokal' THEN (price * rate) ELSE 0 END)
-             / COUNT(CASE WHEN type_pch = 'Retur Pembelian Lokal' THEN 1 END),4)
+           / COUNT(CASE WHEN type_pch = 'Retur Pembelian Lokal' THEN 1 END),4)
         ELSE 0
-    END AS out_lokal_price,
-    SUM(CASE WHEN type_pch = 'Retur Pembelian Lokal' THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_lokal_total,
-        
+        END AS out_lokal_price,
+        SUM(CASE WHEN type_pch = 'Retur Pembelian Lokal' THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_lokal_total,
+
         -- Retur Pembelian Import
-    SUM(CASE WHEN type_pch='Retur Pembelian Impor' THEN qty_sj ELSE 0 END) AS out_impor_qty,
-    CASE 
+        SUM(CASE WHEN type_pch='Retur Pembelian Impor' THEN qty_sj ELSE 0 END) AS out_impor_qty,
+        CASE
         WHEN SUM(CASE WHEN type_pch='Retur Pembelian Impor' THEN qty_sj ELSE 0 END) > 0
         THEN ROUND(SUM(CASE WHEN type_pch='Retur Pembelian Impor' THEN (price * rate) ELSE 0 END)
-             / COUNT(CASE WHEN type_pch='Retur Pembelian Impor' THEN 1 END),4)
+           / COUNT(CASE WHEN type_pch='Retur Pembelian Impor' THEN 1 END),4)
         ELSE 0
-    END AS out_impor_price,
-    SUM(CASE WHEN type_pch='Retur Pembelian Impor' THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_impor_total,
-        
+        END AS out_impor_price,
+        SUM(CASE WHEN type_pch='Retur Pembelian Impor' THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_impor_total,
+
         -- Pemakaian Sample Room
-    SUM(CASE WHEN type_pch='Pemakaian Sample Room' THEN qty_sj ELSE 0 END) AS out_sample_qty,
-    CASE 
+        SUM(CASE WHEN type_pch='Pemakaian Sample Room' THEN qty_sj ELSE 0 END) AS out_sample_qty,
+        CASE
         WHEN SUM(CASE WHEN type_pch='Pemakaian Sample Room' THEN qty_sj ELSE 0 END) > 0
         THEN ROUND(SUM(CASE WHEN type_pch='Pemakaian Sample Room' THEN (price * rate) ELSE 0 END)
-             / COUNT(CASE WHEN type_pch='Pemakaian Sample Room' THEN 1 END),4)
+           / COUNT(CASE WHEN type_pch='Pemakaian Sample Room' THEN 1 END),4)
         ELSE 0
-    END AS out_sample_price,
-    SUM(CASE WHEN type_pch='Pemakaian Sample Room' THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_sample_total,
+        END AS out_sample_price,
+        SUM(CASE WHEN type_pch='Pemakaian Sample Room' THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_sample_total,
         -- Sales Nongroup
-    SUM(CASE WHEN type_pch='Pemakaian Sample Room' THEN qty_sj ELSE 0 END) AS out_salnongroup_qty,
-    CASE 
+        SUM(CASE WHEN type_pch='Sales Nongroup' THEN qty_sj ELSE 0 END) AS out_salnongroup_qty,
+        CASE
         WHEN SUM(CASE WHEN type_pch='Sales Nongroup' THEN qty_sj ELSE 0 END) > 0
         THEN ROUND(SUM(CASE WHEN type_pch='Sales Nongroup' THEN (price * rate) ELSE 0 END)
-             / COUNT(CASE WHEN type_pch='Sales Nongroup' THEN 1 END),4)
+           / COUNT(CASE WHEN type_pch='Sales Nongroup' THEN 1 END),4)
         ELSE 0
-    END AS out_salnongroup_price,
-    SUM(CASE WHEN type_pch='Sales Nongroup' THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_salnongroup_total,
+        END AS out_salnongroup_price,
+        SUM(CASE WHEN type_pch='Sales Nongroup' THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_salnongroup_total,
         -- Sales Group
-    SUM(CASE WHEN type_pch='Sales Group' THEN qty_sj ELSE 0 END) AS out_salgroup_qty,
-    CASE 
+        SUM(CASE WHEN type_pch='Sales Group' THEN qty_sj ELSE 0 END) AS out_salgroup_qty,
+        CASE
         WHEN SUM(CASE WHEN type_pch='Sales Group' THEN qty_sj ELSE 0 END) > 0
         THEN ROUND(SUM(CASE WHEN type_pch='Sales Group' THEN (price * rate) ELSE 0 END)
-             / COUNT(CASE WHEN type_pch='Sales Nongroup' THEN 1 END),4)
+           / COUNT(CASE WHEN type_pch='Sales Group' THEN 1 END),4)
         ELSE 0
-    END AS out_salgroup_price,
-    SUM(CASE WHEN type_pch='Sales Nongroup' THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_salgroup_total,
+        END AS out_salgroup_price,
+        SUM(CASE WHEN type_pch='Sales Nongroup' THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_salgroup_total,
         -- Other
-    SUM(CASE WHEN type_pch NOT IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa', 
-                'Retur Pembelian Lokal', 'Pemakaian Produksi', 'Retur Pembelian Impor', 'Pemakaian Sample Room','Sales Nongroup', 'Sales Group') THEN qty_sj ELSE 0 END) AS out_other_qty,
-    CASE 
-        WHEN SUM(CASE WHEN type_pch NOT IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa', 
-                'Retur Pembelian Lokal', 'Pemakaian Produksi', 'Retur Pembelian Impor', 'Pemakaian Sample Room','Sales Nongroup', 'Sales Group') THEN qty_sj ELSE 0 END) > 0
-        THEN ROUND(SUM(CASE WHEN type_pch NOT IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa', 
-                'Retur Pembelian Lokal', 'Pemakaian Produksi', 'Retur Pembelian Impor', 'Pemakaian Sample Room','Sales Nongroup', 'Sales Group') THEN (price * rate) ELSE 0 END)
-             / COUNT(CASE WHEN type_pch NOT IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa', 
-                'Retur Pembelian Lokal', 'Pemakaian Produksi', 'Retur Pembelian Impor', 'Pemakaian Sample Room','Sales Nongroup', 'Sales Group') THEN 1 END),4)
+        SUM(CASE WHEN type_pch NOT IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa',
+            'Retur Pembelian Lokal', 'Pemakaian Produksi', 'Retur Pembelian Impor', 'Pemakaian Sample Room','Sales Nongroup', 'Sales Group') THEN qty_sj ELSE 0 END) AS out_other_qty,
+        CASE
+        WHEN SUM(CASE WHEN type_pch NOT IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa',
+            'Retur Pembelian Lokal', 'Pemakaian Produksi', 'Retur Pembelian Impor', 'Pemakaian Sample Room','Sales Nongroup', 'Sales Group') THEN qty_sj ELSE 0 END) > 0
+        THEN ROUND(SUM(CASE WHEN type_pch NOT IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa',
+            'Retur Pembelian Lokal', 'Pemakaian Produksi', 'Retur Pembelian Impor', 'Pemakaian Sample Room','Sales Nongroup', 'Sales Group') THEN (price * rate) ELSE 0 END)
+        / COUNT(CASE WHEN type_pch NOT IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa',
+            'Retur Pembelian Lokal', 'Pemakaian Produksi', 'Retur Pembelian Impor', 'Pemakaian Sample Room','Sales Nongroup', 'Sales Group') THEN 1 END),4)
         ELSE 0
-    END AS out_other_price,
-    SUM(CASE WHEN type_pch NOT IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa', 
-                'Retur Pembelian Lokal', 'Pemakaian Produksi', 'Retur Pembelian Impor', 'Pemakaian Sample Room','Sales Nongroup', 'Sales Group') THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_other_total
-FROM trx_out GROUP BY id_roll),
+        END AS out_other_price,
+        SUM(CASE WHEN type_pch NOT IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa',
+            'Retur Pembelian Lokal', 'Pemakaian Produksi', 'Retur Pembelian Impor', 'Pemakaian Sample Room','Sales Nongroup', 'Sales Group') THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_other_total
+        FROM trx_out GROUP BY id_roll),
 
 trx_out_fix as (select *, (out_prod_qty + out_subcont_qty + out_lokal_qty + out_impor_qty + out_sample_qty + out_salnongroup_qty + out_salgroup_qty + out_other_qty) jumlah_out_qty, ROUND((out_prod_total + out_subcont_total + out_lokal_total + out_impor_total + out_sample_total + out_salnongroup_total + out_salgroup_total + out_other_total) / (out_prod_qty + out_subcont_qty + out_lokal_qty + out_impor_qty + out_sample_qty + out_salnongroup_qty + out_salgroup_qty + out_other_qty),4) jumlah_out_price, (out_prod_total + out_subcont_total + out_lokal_total + out_impor_total + out_sample_total + out_salnongroup_total + out_salgroup_total + out_other_total) jumlah_out_total from trx_out_detail),
 
-pemasukan as (select a.no_barcode, a.id_jo, a.id_item, a.goods_code, a.itemdesc, a.satuan, a.ws no_ws, COALESCE(saldo_awal_qty,0) saldo_awal_qty, COALESCE(saldo_awal_price,0) saldo_awal_price, COALESCE(saldo_awal_total,0) saldo_awal_total, COALESCE(in_lokal_qty,0) in_lokal_qty, COALESCE(in_lokal_price,0) in_lokal_price, COALESCE(in_lokal_total,0) in_lokal_total, COALESCE(in_impor_qty,0) in_impor_qty, COALESCE(in_impor_price,0) in_impor_price, COALESCE(in_impor_total,0) in_impor_total, COALESCE(in_subcont_qty,0) in_subcont_qty, COALESCE(in_subcont_price,0) in_subcont_price, COALESCE(in_subcont_total,0) in_subcont_total, COALESCE(in_produksi_qty,0) in_produksi_qty, COALESCE(in_produksi_price,0) in_produksi_price, COALESCE(in_produksi_total,0) in_produksi_total, COALESCE(in_sample_qty,0) in_sample_qty, COALESCE(in_sample_price,0) in_sample_price, COALESCE(in_sample_total,0) in_sample_total, COALESCE(jumlah_in_qty,0) jumlah_in_qty, COALESCE(jumlah_in_price,0) jumlah_in_price, COALESCE(jumlah_in_total,0) jumlah_in_total from saldo_awal a left join trx_in_fix b on b.no_barcode = a.no_barcode
-UNION
-select a.no_barcode, a.id_jo, a.id_item, a.goods_code, a.itemdesc, a.satuan, a.no_ws, COALESCE(saldo_awal_qty,0) saldo_awal_qty, COALESCE(saldo_awal_price,0) saldo_awal_price, COALESCE(saldo_awal_total,0) saldo_awal_total, COALESCE(in_lokal_qty,0) in_lokal_qty, COALESCE(in_lokal_price,0) in_lokal_price, COALESCE(in_lokal_total,0) in_lokal_total, COALESCE(in_impor_qty,0) in_impor_qty, COALESCE(in_impor_price,0) in_impor_price, COALESCE(in_impor_total,0) in_impor_total, COALESCE(in_subcont_qty,0) in_subcont_qty, COALESCE(in_subcont_price,0) in_subcont_price, COALESCE(in_subcont_total,0) in_subcont_total, COALESCE(in_produksi_qty,0) in_produksi_qty, COALESCE(in_produksi_price,0) in_produksi_price, COALESCE(in_produksi_total,0) in_produksi_total, COALESCE(in_sample_qty,0) in_sample_qty, COALESCE(in_sample_price,0) in_sample_price, COALESCE(in_sample_total,0) in_sample_total, COALESCE(jumlah_in_qty,0) jumlah_in_qty, COALESCE(jumlah_in_price,0) jumlah_in_price, COALESCE(jumlah_in_total,0) jumlah_in_total from trx_in_fix a left join saldo_awal b on b.no_barcode = a.no_barcode where b.no_barcode IS NULL), 
+pemasukan as (select a.no_barcode, a.barcode_mapping, a.id_jo, a.id_item, a.goods_code, a.itemdesc, a.satuan, a.ws no_ws, COALESCE(saldo_awal_qty,0) saldo_awal_qty, COALESCE(saldo_awal_price,0) saldo_awal_price, COALESCE(saldo_awal_total,0) saldo_awal_total, COALESCE(in_lokal_qty,0) in_lokal_qty, COALESCE(in_lokal_price,0) in_lokal_price, COALESCE(in_lokal_total,0) in_lokal_total, COALESCE(in_impor_qty,0) in_impor_qty, COALESCE(in_impor_price,0) in_impor_price, COALESCE(in_impor_total,0) in_impor_total, COALESCE(in_subcont_qty,0) in_subcont_qty, COALESCE(in_subcont_price,0) in_subcont_price, COALESCE(in_subcont_total,0) in_subcont_total, COALESCE(in_produksi_qty,0) in_produksi_qty, COALESCE(in_produksi_price,0) in_produksi_price, COALESCE(in_produksi_total,0) in_produksi_total, COALESCE(in_sample_qty,0) in_sample_qty, COALESCE(in_sample_price,0) in_sample_price, COALESCE(in_sample_total,0) in_sample_total, COALESCE(jumlah_in_qty,0) jumlah_in_qty, COALESCE(jumlah_in_price,0) jumlah_in_price, COALESCE(jumlah_in_total,0) jumlah_in_total from saldo_awal a left join trx_in_fix b on b.no_barcode = a.no_barcode
+    UNION
+    select a.no_barcode, a.barcode_mapping, a.id_jo, a.id_item, a.goods_code, a.itemdesc, a.satuan, a.no_ws, COALESCE(saldo_awal_qty,0) saldo_awal_qty, COALESCE(saldo_awal_price,0) saldo_awal_price, COALESCE(saldo_awal_total,0) saldo_awal_total, COALESCE(in_lokal_qty,0) in_lokal_qty, COALESCE(in_lokal_price,0) in_lokal_price, COALESCE(in_lokal_total,0) in_lokal_total, COALESCE(in_impor_qty,0) in_impor_qty, COALESCE(in_impor_price,0) in_impor_price, COALESCE(in_impor_total,0) in_impor_total, COALESCE(in_subcont_qty,0) in_subcont_qty, COALESCE(in_subcont_price,0) in_subcont_price, COALESCE(in_subcont_total,0) in_subcont_total, COALESCE(in_produksi_qty,0) in_produksi_qty, COALESCE(in_produksi_price,0) in_produksi_price, COALESCE(in_produksi_total,0) in_produksi_total, COALESCE(in_sample_qty,0) in_sample_qty, COALESCE(in_sample_price,0) in_sample_price, COALESCE(in_sample_total,0) in_sample_total, COALESCE(jumlah_in_qty,0) jumlah_in_qty, COALESCE(jumlah_in_price,0) jumlah_in_price, COALESCE(jumlah_in_total,0) jumlah_in_total from trx_in_fix a left join saldo_awal b on b.no_barcode = a.no_barcode where b.no_barcode IS NULL),
 
-Pemasukan_fix as (SELECT 
+Pemasukan_fix as (SELECT
     no_barcode,
+    barcode_mapping,
     id_jo,
     id_item,
     goods_code,
@@ -1678,10 +1711,10 @@ Pemasukan_fix as (SELECT
     COALESCE(SUM(jumlah_in_total),0) AS jumlah_in_total,
     IF(SUM(jumlah_in_qty)=0, 0, SUM(jumlah_in_total)/SUM(jumlah_in_qty)) AS jumlah_in_price
 
-FROM pemasukan
-GROUP BY no_barcode),
+    FROM pemasukan
+    GROUP BY barcode_mapping),
 
-pengeluaran_fix as (SELECT 
+pengeluaran_fix as (SELECT
     id_roll,
     id_jo,
     id_item,
@@ -1731,10 +1764,10 @@ pengeluaran_fix as (SELECT
     COALESCE(SUM(jumlah_out_total),0) AS jumlah_out_total,
     IF(SUM(jumlah_out_qty)=0, 0, SUM(jumlah_out_total)/SUM(jumlah_out_qty)) AS jumlah_out_price
 
-FROM trx_out_fix
-GROUP BY id_roll),
+    FROM trx_out_fix
+    GROUP BY id_roll),
 
-mutasi as (select a.*, COALESCE(out_prod_qty,0) out_prod_qty,   COALESCE(out_prod_total,0) out_prod_total,   COALESCE(out_prod_price,0) out_prod_price,   COALESCE(out_subcont_qty,0) out_subcont_qty,   COALESCE(out_subcont_total,0) out_subcont_total,   COALESCE(out_subcont_price,0) out_subcont_price,   COALESCE(out_lokal_qty,0) out_lokal_qty,   COALESCE(out_lokal_total,0) out_lokal_total,   COALESCE(out_lokal_price,0) out_lokal_price,   COALESCE(out_impor_qty,0) out_impor_qty,   COALESCE(out_impor_total,0) out_impor_total,   COALESCE(out_impor_price,0) out_impor_price,   COALESCE(out_sample_qty,0) out_sample_qty,   COALESCE(out_sample_total,0) out_sample_total,   COALESCE(out_sample_price,0) out_sample_price,   COALESCE(out_salnongroup_qty,0) out_salnongroup_qty,   COALESCE(out_salnongroup_total,0) out_salnongroup_total,   COALESCE(out_salnongroup_price,0) out_salnongroup_price,   COALESCE(out_salgroup_qty,0) out_salgroup_qty,   COALESCE(out_salgroup_total,0) out_salgroup_total,   COALESCE(out_salgroup_price,0) out_salgroup_price,   COALESCE(out_other_qty,0) out_other_qty,   COALESCE(out_other_total,0) out_other_total,   COALESCE(out_other_price,0) out_other_price,   COALESCE(jumlah_out_qty,0) jumlah_out_qty,   COALESCE(jumlah_out_total,0) jumlah_out_total,   COALESCE(jumlah_out_price,0) jumlah_out_price from pemasukan_fix a left join pengeluaran_fix b on b.id_roll = a.no_barcode)
+mutasi as (select a.*, COALESCE(out_prod_qty,0) out_prod_qty,   COALESCE(out_prod_total,0) out_prod_total,   COALESCE(out_prod_price,0) out_prod_price,   COALESCE(out_subcont_qty,0) out_subcont_qty,   COALESCE(out_subcont_total,0) out_subcont_total,   COALESCE(out_subcont_price,0) out_subcont_price,   COALESCE(out_lokal_qty,0) out_lokal_qty,   COALESCE(out_lokal_total,0) out_lokal_total,   COALESCE(out_lokal_price,0) out_lokal_price,   COALESCE(out_impor_qty,0) out_impor_qty,   COALESCE(out_impor_total,0) out_impor_total,   COALESCE(out_impor_price,0) out_impor_price,   COALESCE(out_sample_qty,0) out_sample_qty,   COALESCE(out_sample_total,0) out_sample_total,   COALESCE(out_sample_price,0) out_sample_price,   COALESCE(out_salnongroup_qty,0) out_salnongroup_qty,   COALESCE(out_salnongroup_total,0) out_salnongroup_total,   COALESCE(out_salnongroup_price,0) out_salnongroup_price,   COALESCE(out_salgroup_qty,0) out_salgroup_qty,   COALESCE(out_salgroup_total,0) out_salgroup_total,   COALESCE(out_salgroup_price,0) out_salgroup_price,   COALESCE(out_other_qty,0) out_other_qty,   COALESCE(out_other_total,0) out_other_total,   COALESCE(out_other_price,0) out_other_price,   COALESCE(jumlah_out_qty,0) jumlah_out_qty,   COALESCE(jumlah_out_total,0) jumlah_out_total,   COALESCE(jumlah_out_price,0) jumlah_out_price from pemasukan_fix a left join pengeluaran_fix b on b.id_roll = a.barcode_mapping)
 
 select *, (saldo_awal_qty + jumlah_in_qty - jumlah_out_qty) saldo_akhir_qty, (saldo_awal_total + jumlah_in_total - jumlah_out_total) saldo_akhir_total, ((saldo_awal_total + jumlah_in_total - jumlah_out_total) / (saldo_awal_qty + jumlah_in_qty - jumlah_out_qty)) saldo_akhir_price from mutasi");
 
@@ -1742,6 +1775,329 @@ select *, (saldo_awal_qty + jumlah_in_qty - jumlah_out_qty) saldo_akhir_qty, (sa
             return DataTables::of($data_inmaterial)->toJson();
 
     }
+
+     public function mutasi_item_fabric(Request $request)
+    {
+
+
+            $data_inmaterial = DB::connection('mysql_sb')->select("WITH
+            saldo_awal as (select a.no_barcode, IFNULL(CASE
+                WHEN map.no_barcode = 'F244111' THEN 'F246063'
+                WHEN map.no_barcode = 'F246105' THEN 'F246785'
+                ELSE map.no_barcode END ,a.no_barcode) barcode_mapping, id_jo, a.id_item, b.goods_code, b.itemdesc, satuan, ws, price, rate, ROUND(sum(qty),4) saldo_awal_qty, ROUND(IF(qty > 0,(price * rate)/count(a.no_barcode),0),4) saldo_awal_price, (qty * (price * rate)) saldo_awal_total from whs_saldo_awal_nilai_persediaan a INNER JOIN masteritem b on b.id_item = a.id_item LEFT JOIN (select idbpb_det, no_barcode from whs_mut_lokasi a INNER JOIN whs_lokasi_inmaterial b on b.no_barcode_old = a.idbpb_det where a.status = 'Y' GROUP BY no_barcode) map on map.idbpb_det = a.no_barcode where tgl_periode = (SELECT MAX(tgl_periode) FROM whs_saldo_awal_nilai_persediaan WHERE tgl_periode <= '" . $request->start_date . "') GROUP BY a.no_barcode),
+
+            trx_in AS (select b.no_barcode, IFNULL(map.no_barcode,b.no_barcode) barcode_mapping, b.id_jo, b.id_item, mi.goods_code, mi.itemdesc, b.satuan, kpno no_ws, type_pch, qty_sj, COALESCE(IFNULL(np_curr_rev,np_curr),'-') curr, ROUND(COALESCE(IFNULL(np_price_rev,np_price),0),4) price, (qty_sj * (COALESCE(IFNULL(np_price_rev,np_price),0))) total_price, np_tgl_in, IFNULL(rate,1) rate from whs_inmaterial_fabric a INNER JOIN whs_lokasi_inmaterial b on b.no_dok = a.no_dok INNER JOIN masteritem mi on mi.id_item = b.id_item INNER JOIN (select id_jo, kpno, styleno from act_costing ac inner join so on ac.id = so.id_cost inner join jo_det jod on so.id = jod.id_so group by id_jo) tmpjo on tmpjo.id_jo = b.id_jo LEFT JOIN (select tanggal, curr curr_rate, rate from masterrate where v_codecurr = 'PAJAK' GROUP BY tanggal, curr ) cr on cr.tanggal = b.np_tgl_in and cr.curr_rate = COALESCE(IFNULL(b.np_curr_rev,b.np_curr),'-') LEFT JOIN (select idbpb_det, no_barcode from whs_mut_lokasi a INNER JOIN whs_lokasi_inmaterial b on b.no_barcode_old = a.idbpb_det where a.status = 'Y' GROUP BY no_barcode) map on map.idbpb_det = b.no_barcode where a.tgl_dok BETWEEN '" . $request->start_date . "' and '" . $request->end_date . "' and b.status = 'Y'),
+
+            trx_out AS (select CASE
+                WHEN id_roll = 'F229331' THEN 'F246048'
+                WHEN id_roll = 'F238451' THEN 'F246050'
+                ELSE id_roll END
+                id_roll, id_jo, id_item, CASE
+                WHEN a.jenis_pengeluaran IS NULL THEN '-'
+                WHEN a.jenis_pengeluaran = 'penjualan' AND sg.supplier IS NULL THEN 'Sales Nongroup'
+                WHEN a.jenis_pengeluaran = 'penjualan' AND sg.supplier IS NOT NULL THEN 'Sales Group'
+                ELSE a.jenis_pengeluaran
+                END type_pch, (COALESCE(qty_out,0)) qty_sj, COALESCE(IFNULL(np_curr_rev,np_curr),'-') curr, ROUND(COALESCE(IFNULL(np_price_rev,np_price),0),4) price, (qty_out * (COALESCE(IFNULL(np_price_rev,np_price),0))) total_price, np_tgl_in, IFNULL(rate,1) rate from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb LEFT JOIN (select tanggal, curr curr_rate, rate from masterrate where v_codecurr = 'PAJAK' GROUP BY tanggal, curr ) cr on cr.tanggal = b.np_tgl_in and cr.curr_rate = COALESCE(IFNULL(b.np_curr_rev,b.np_curr),'-') left join (select id_supplier, supplier from ca_sales_group) sg on sg.supplier = a.tujuan where tgl_bppb BETWEEN '" . $request->start_date . "' and '" . $request->end_date . "' and a.status != 'Cancel' and b.status = 'Y'
+            ),
+
+            trx_in_detail as (SELECT
+                no_barcode, barcode_mapping, id_jo, id_item, goods_code, itemdesc, satuan, no_ws,
+    -- Pembelian Lokal
+    SUM(CASE WHEN type_pch='Pembelian Lokal' THEN qty_sj ELSE 0 END) AS in_lokal_qty,
+    CASE
+    WHEN SUM(CASE WHEN type_pch='Pembelian Lokal' THEN qty_sj ELSE 0 END) > 0
+    THEN ROUND(SUM(CASE WHEN type_pch='Pembelian Lokal' THEN (price * rate) ELSE 0 END)
+       / COUNT(CASE WHEN type_pch='Pembelian Lokal' THEN 1 END),4)
+    ELSE 0
+    END AS in_lokal_price,
+    SUM(CASE WHEN type_pch='Pembelian Lokal' THEN ROUND(total_price * rate,4) ELSE 0 END) AS in_lokal_total,
+
+        -- Pembelian Impor
+        SUM(CASE WHEN type_pch='Pembelian Impor' THEN qty_sj ELSE 0 END) AS in_impor_qty,
+        CASE
+        WHEN SUM(CASE WHEN type_pch='Pembelian Impor' THEN qty_sj ELSE 0 END) > 0
+        THEN ROUND(SUM(CASE WHEN type_pch='Pembelian Impor' THEN (price * rate) ELSE 0 END)
+           / COUNT(CASE WHEN type_pch='Pembelian Impor' THEN 1 END),4)
+        ELSE 0
+        END AS in_impor_price,
+        SUM(CASE WHEN type_pch='Pembelian Impor' THEN ROUND(total_price * rate,4) ELSE 0 END) AS in_impor_total,
+
+        -- Pengembalian dari Subkontraktor Jasa
+        SUM(CASE WHEN type_pch='Pengembalian dari Subkontraktor Jasa' THEN qty_sj ELSE 0 END) AS in_subcont_qty,
+        CASE
+        WHEN SUM(CASE WHEN type_pch='Pengembalian dari Subkontraktor Jasa' THEN qty_sj ELSE 0 END) > 0
+        THEN ROUND(SUM(CASE WHEN type_pch='Pengembalian dari Subkontraktor Jasa' THEN (price * rate) ELSE 0 END)
+           / COUNT(CASE WHEN type_pch='Pengembalian dari Subkontraktor Jasa' THEN 1 END),4)
+        ELSE 0
+        END AS in_subcont_price,
+        SUM(CASE WHEN type_pch='Pengembalian dari Subkontraktor Jasa' THEN ROUND(total_price * rate,4) ELSE 0 END) AS in_subcont_total,
+
+        -- Pengembalian dari Produksi
+        SUM(CASE WHEN type_pch='Pengembalian dari Produksi' THEN qty_sj ELSE 0 END) AS in_produksi_qty,
+        CASE
+        WHEN SUM(CASE WHEN type_pch='Pengembalian dari Produksi' THEN qty_sj ELSE 0 END) > 0
+        THEN ROUND(SUM(CASE WHEN type_pch='Pengembalian dari Produksi' THEN (price * rate) ELSE 0 END)
+           / COUNT(CASE WHEN type_pch='Pengembalian dari Produksi' THEN 1 END),4)
+        ELSE 0
+        END AS in_produksi_price,
+        SUM(CASE WHEN type_pch='Pengembalian dari Produksi' THEN ROUND(total_price * rate,4) ELSE 0 END) AS in_produksi_total,
+
+        -- Pengembalian dari Sample Room
+        SUM(CASE WHEN type_pch='Pengembalian dari Sample Room' THEN qty_sj ELSE 0 END) AS in_sample_qty,
+        CASE
+        WHEN SUM(CASE WHEN type_pch='Pengembalian dari Sample Room' THEN qty_sj ELSE 0 END) > 0
+        THEN ROUND(SUM(CASE WHEN type_pch='Pengembalian dari Sample Room' THEN (price * rate) ELSE 0 END)
+           / COUNT(CASE WHEN type_pch='Pengembalian dari Sample Room' THEN 1 END),4)
+        ELSE 0
+        END AS in_sample_price,
+        SUM(CASE WHEN type_pch='Pengembalian dari Sample Room' THEN ROUND(total_price * rate,4) ELSE 0 END) AS in_sample_total
+        FROM trx_in GROUP BY no_barcode),
+
+            trx_in_fix as (select *, (in_lokal_qty + in_impor_qty + in_subcont_qty + in_produksi_qty + in_sample_qty) jumlah_in_qty, ROUND((in_lokal_total + in_impor_total + in_subcont_total + in_produksi_total + in_sample_total) / (in_lokal_qty + in_impor_qty + in_subcont_qty + in_produksi_qty + in_sample_qty),4) jumlah_in_price, (in_lokal_total + in_impor_total + in_subcont_total + in_produksi_total + in_sample_total) jumlah_in_total from trx_in_detail),
+
+            trx_out_detail as (SELECT
+                id_roll, id_jo, id_item,
+    -- Pemakaian produksi
+    SUM(CASE WHEN type_pch='Pemakaian Produksi' THEN qty_sj ELSE 0 END) AS out_prod_qty,
+    CASE
+    WHEN SUM(CASE WHEN type_pch='Pemakaian Produksi' THEN qty_sj ELSE 0 END) > 0
+    THEN ROUND(SUM(CASE WHEN type_pch='Pemakaian Produksi' THEN (price * rate) ELSE 0 END)
+       / COUNT(CASE WHEN type_pch='Pemakaian Produksi' THEN 1 END),4)
+    ELSE 0
+    END AS out_prod_price,
+    SUM(CASE WHEN type_pch='Pemakaian Produksi' THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_prod_total,
+
+        -- Jasa Subcont
+        SUM(CASE WHEN type_pch IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa') THEN qty_sj ELSE 0 END) AS out_subcont_qty,
+        CASE
+        WHEN SUM(CASE WHEN type_pch IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa') THEN qty_sj ELSE 0 END) > 0
+        THEN ROUND(SUM(CASE WHEN type_pch IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa') THEN (price * rate) ELSE 0 END)
+           / COUNT(CASE WHEN type_pch IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa') THEN 1 END),4)
+        ELSE 0
+        END AS out_subcont_price,
+        SUM(CASE WHEN type_pch IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa') THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_subcont_total,
+
+        -- Retur Pembelian Lokal
+        SUM(CASE WHEN type_pch = 'Retur Pembelian Lokal' THEN qty_sj ELSE 0 END) AS out_lokal_qty,
+        CASE
+        WHEN SUM(CASE WHEN type_pch = 'Retur Pembelian Lokal' THEN qty_sj ELSE 0 END) > 0
+        THEN ROUND(SUM(CASE WHEN type_pch = 'Retur Pembelian Lokal' THEN (price * rate) ELSE 0 END)
+           / COUNT(CASE WHEN type_pch = 'Retur Pembelian Lokal' THEN 1 END),4)
+        ELSE 0
+        END AS out_lokal_price,
+        SUM(CASE WHEN type_pch = 'Retur Pembelian Lokal' THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_lokal_total,
+
+        -- Retur Pembelian Import
+        SUM(CASE WHEN type_pch='Retur Pembelian Impor' THEN qty_sj ELSE 0 END) AS out_impor_qty,
+        CASE
+        WHEN SUM(CASE WHEN type_pch='Retur Pembelian Impor' THEN qty_sj ELSE 0 END) > 0
+        THEN ROUND(SUM(CASE WHEN type_pch='Retur Pembelian Impor' THEN (price * rate) ELSE 0 END)
+           / COUNT(CASE WHEN type_pch='Retur Pembelian Impor' THEN 1 END),4)
+        ELSE 0
+        END AS out_impor_price,
+        SUM(CASE WHEN type_pch='Retur Pembelian Impor' THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_impor_total,
+
+        -- Pemakaian Sample Room
+        SUM(CASE WHEN type_pch='Pemakaian Sample Room' THEN qty_sj ELSE 0 END) AS out_sample_qty,
+        CASE
+        WHEN SUM(CASE WHEN type_pch='Pemakaian Sample Room' THEN qty_sj ELSE 0 END) > 0
+        THEN ROUND(SUM(CASE WHEN type_pch='Pemakaian Sample Room' THEN (price * rate) ELSE 0 END)
+           / COUNT(CASE WHEN type_pch='Pemakaian Sample Room' THEN 1 END),4)
+        ELSE 0
+        END AS out_sample_price,
+        SUM(CASE WHEN type_pch='Pemakaian Sample Room' THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_sample_total,
+        -- Sales Nongroup
+        SUM(CASE WHEN type_pch='Sales Nongroup' THEN qty_sj ELSE 0 END) AS out_salnongroup_qty,
+        CASE
+        WHEN SUM(CASE WHEN type_pch='Sales Nongroup' THEN qty_sj ELSE 0 END) > 0
+        THEN ROUND(SUM(CASE WHEN type_pch='Sales Nongroup' THEN (price * rate) ELSE 0 END)
+           / COUNT(CASE WHEN type_pch='Sales Nongroup' THEN 1 END),4)
+        ELSE 0
+        END AS out_salnongroup_price,
+        SUM(CASE WHEN type_pch='Sales Nongroup' THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_salnongroup_total,
+        -- Sales Group
+        SUM(CASE WHEN type_pch='Sales Group' THEN qty_sj ELSE 0 END) AS out_salgroup_qty,
+        CASE
+        WHEN SUM(CASE WHEN type_pch='Sales Group' THEN qty_sj ELSE 0 END) > 0
+        THEN ROUND(SUM(CASE WHEN type_pch='Sales Group' THEN (price * rate) ELSE 0 END)
+           / COUNT(CASE WHEN type_pch='Sales Nongroup' THEN 1 END),4)
+        ELSE 0
+        END AS out_salgroup_price,
+        SUM(CASE WHEN type_pch='Sales Nongroup' THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_salgroup_total,
+        -- Other
+        SUM(CASE WHEN type_pch NOT IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa',
+            'Retur Pembelian Lokal', 'Pemakaian Produksi', 'Retur Pembelian Impor', 'Pemakaian Sample Room','Sales Nongroup', 'Sales Group') THEN qty_sj ELSE 0 END) AS out_other_qty,
+        CASE
+        WHEN SUM(CASE WHEN type_pch NOT IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa',
+            'Retur Pembelian Lokal', 'Pemakaian Produksi', 'Retur Pembelian Impor', 'Pemakaian Sample Room','Sales Nongroup', 'Sales Group') THEN qty_sj ELSE 0 END) > 0
+        THEN ROUND(SUM(CASE WHEN type_pch NOT IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa',
+            'Retur Pembelian Lokal', 'Pemakaian Produksi', 'Retur Pembelian Impor', 'Pemakaian Sample Room','Sales Nongroup', 'Sales Group') THEN (price * rate) ELSE 0 END)
+        / COUNT(CASE WHEN type_pch NOT IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa',
+            'Retur Pembelian Lokal', 'Pemakaian Produksi', 'Retur Pembelian Impor', 'Pemakaian Sample Room','Sales Nongroup', 'Sales Group') THEN 1 END),4)
+        ELSE 0
+        END AS out_other_price,
+        SUM(CASE WHEN type_pch NOT IN ('Pengiriman ke Subkontraktor CMT', 'Pengiriman ke Subkontraktor Jasa',
+            'Retur Pembelian Lokal', 'Pemakaian Produksi', 'Retur Pembelian Impor', 'Pemakaian Sample Room','Sales Nongroup', 'Sales Group') THEN ROUND(total_price * rate,4) ELSE 0 END) AS out_other_total
+        FROM trx_out GROUP BY id_roll),
+
+trx_out_fix as (select *, (out_prod_qty + out_subcont_qty + out_lokal_qty + out_impor_qty + out_sample_qty + out_salnongroup_qty + out_salgroup_qty + out_other_qty) jumlah_out_qty, ROUND((out_prod_total + out_subcont_total + out_lokal_total + out_impor_total + out_sample_total + out_salnongroup_total + out_salgroup_total + out_other_total) / (out_prod_qty + out_subcont_qty + out_lokal_qty + out_impor_qty + out_sample_qty + out_salnongroup_qty + out_salgroup_qty + out_other_qty),4) jumlah_out_price, (out_prod_total + out_subcont_total + out_lokal_total + out_impor_total + out_sample_total + out_salnongroup_total + out_salgroup_total + out_other_total) jumlah_out_total from trx_out_detail),
+
+pemasukan as (select a.no_barcode, a.barcode_mapping, a.id_jo, a.id_item, a.goods_code, a.itemdesc, a.satuan, a.ws no_ws, COALESCE(saldo_awal_qty,0) saldo_awal_qty, COALESCE(saldo_awal_price,0) saldo_awal_price, COALESCE(saldo_awal_total,0) saldo_awal_total, COALESCE(in_lokal_qty,0) in_lokal_qty, COALESCE(in_lokal_price,0) in_lokal_price, COALESCE(in_lokal_total,0) in_lokal_total, COALESCE(in_impor_qty,0) in_impor_qty, COALESCE(in_impor_price,0) in_impor_price, COALESCE(in_impor_total,0) in_impor_total, COALESCE(in_subcont_qty,0) in_subcont_qty, COALESCE(in_subcont_price,0) in_subcont_price, COALESCE(in_subcont_total,0) in_subcont_total, COALESCE(in_produksi_qty,0) in_produksi_qty, COALESCE(in_produksi_price,0) in_produksi_price, COALESCE(in_produksi_total,0) in_produksi_total, COALESCE(in_sample_qty,0) in_sample_qty, COALESCE(in_sample_price,0) in_sample_price, COALESCE(in_sample_total,0) in_sample_total, COALESCE(jumlah_in_qty,0) jumlah_in_qty, COALESCE(jumlah_in_price,0) jumlah_in_price, COALESCE(jumlah_in_total,0) jumlah_in_total from saldo_awal a left join trx_in_fix b on b.no_barcode = a.no_barcode
+    UNION
+    select a.no_barcode, a.barcode_mapping, a.id_jo, a.id_item, a.goods_code, a.itemdesc, a.satuan, a.no_ws, COALESCE(saldo_awal_qty,0) saldo_awal_qty, COALESCE(saldo_awal_price,0) saldo_awal_price, COALESCE(saldo_awal_total,0) saldo_awal_total, COALESCE(in_lokal_qty,0) in_lokal_qty, COALESCE(in_lokal_price,0) in_lokal_price, COALESCE(in_lokal_total,0) in_lokal_total, COALESCE(in_impor_qty,0) in_impor_qty, COALESCE(in_impor_price,0) in_impor_price, COALESCE(in_impor_total,0) in_impor_total, COALESCE(in_subcont_qty,0) in_subcont_qty, COALESCE(in_subcont_price,0) in_subcont_price, COALESCE(in_subcont_total,0) in_subcont_total, COALESCE(in_produksi_qty,0) in_produksi_qty, COALESCE(in_produksi_price,0) in_produksi_price, COALESCE(in_produksi_total,0) in_produksi_total, COALESCE(in_sample_qty,0) in_sample_qty, COALESCE(in_sample_price,0) in_sample_price, COALESCE(in_sample_total,0) in_sample_total, COALESCE(jumlah_in_qty,0) jumlah_in_qty, COALESCE(jumlah_in_price,0) jumlah_in_price, COALESCE(jumlah_in_total,0) jumlah_in_total from trx_in_fix a left join saldo_awal b on b.no_barcode = a.no_barcode where b.no_barcode IS NULL),
+
+Pemasukan_fix as (SELECT
+    no_barcode,
+    barcode_mapping,
+    id_jo,
+    id_item,
+    goods_code,
+    itemdesc,
+    satuan,
+    no_ws,
+
+    -- SALDO AWAL
+    COALESCE(SUM(saldo_awal_qty),0) AS saldo_awal_qty,
+    COALESCE(SUM(saldo_awal_total),0) AS saldo_awal_total,
+    IF(SUM(saldo_awal_qty)=0, 0, SUM(saldo_awal_total)/SUM(saldo_awal_qty)) AS saldo_awal_price,
+
+    -- IN LOKAL
+    COALESCE(SUM(in_lokal_qty),0) AS in_lokal_qty,
+    COALESCE(SUM(in_lokal_total),0) AS in_lokal_total,
+    IF(SUM(in_lokal_qty)=0, 0, SUM(in_lokal_total)/SUM(in_lokal_qty)) AS in_lokal_price,
+
+    -- IN IMPOR
+    COALESCE(SUM(in_impor_qty),0) AS in_impor_qty,
+    COALESCE(SUM(in_impor_total),0) AS in_impor_total,
+    IF(SUM(in_impor_qty)=0, 0, SUM(in_impor_total)/SUM(in_impor_qty)) AS in_impor_price,
+
+    -- IN SUBCONT
+    COALESCE(SUM(in_subcont_qty),0) AS in_subcont_qty,
+    COALESCE(SUM(in_subcont_total),0) AS in_subcont_total,
+    IF(SUM(in_subcont_qty)=0, 0, SUM(in_subcont_total)/SUM(in_subcont_qty)) AS in_subcont_price,
+
+    -- IN PRODUKSI
+    COALESCE(SUM(in_produksi_qty),0) AS in_produksi_qty,
+    COALESCE(SUM(in_produksi_total),0) AS in_produksi_total,
+    IF(SUM(in_produksi_qty)=0, 0, SUM(in_produksi_total)/SUM(in_produksi_qty)) AS in_produksi_price,
+
+    -- IN SAMPLE
+    COALESCE(SUM(in_sample_qty),0) AS in_sample_qty,
+    COALESCE(SUM(in_sample_total),0) AS in_sample_total,
+    IF(SUM(in_sample_qty)=0, 0, SUM(in_sample_total)/SUM(in_sample_qty)) AS in_sample_price,
+
+    -- TOTAL IN
+    COALESCE(SUM(jumlah_in_qty),0) AS jumlah_in_qty,
+    COALESCE(SUM(jumlah_in_total),0) AS jumlah_in_total,
+    IF(SUM(jumlah_in_qty)=0, 0, SUM(jumlah_in_total)/SUM(jumlah_in_qty)) AS jumlah_in_price
+
+    FROM pemasukan
+    GROUP BY barcode_mapping),
+
+pengeluaran_fix as (SELECT
+    id_roll,
+    id_jo,
+    id_item,
+
+    -- OUT PRODUKSI
+    COALESCE(SUM(out_prod_qty),0) AS out_prod_qty,
+    COALESCE(SUM(out_prod_total),0) AS out_prod_total,
+    IF(SUM(out_prod_qty)=0, 0, SUM(out_prod_total)/SUM(out_prod_qty)) AS out_prod_price,
+
+    -- OUT SUBCONT
+    COALESCE(SUM(out_subcont_qty),0) AS out_subcont_qty,
+    COALESCE(SUM(out_subcont_total),0) AS out_subcont_total,
+    IF(SUM(out_subcont_qty)=0, 0, SUM(out_subcont_total)/SUM(out_subcont_qty)) AS out_subcont_price,
+
+    -- OUT LOKAL
+    COALESCE(SUM(out_lokal_qty),0) AS out_lokal_qty,
+    COALESCE(SUM(out_lokal_total),0) AS out_lokal_total,
+    IF(SUM(out_lokal_qty)=0, 0, SUM(out_lokal_total)/SUM(out_lokal_qty)) AS out_lokal_price,
+
+    -- OUT IMPOR
+    COALESCE(SUM(out_impor_qty),0) AS out_impor_qty,
+    COALESCE(SUM(out_impor_total),0) AS out_impor_total,
+    IF(SUM(out_impor_qty)=0, 0, SUM(out_impor_total)/SUM(out_impor_qty)) AS out_impor_price,
+
+    -- OUT SAMPLE
+    COALESCE(SUM(out_sample_qty),0) AS out_sample_qty,
+    COALESCE(SUM(out_sample_total),0) AS out_sample_total,
+    IF(SUM(out_sample_qty)=0, 0, SUM(out_sample_total)/SUM(out_sample_qty)) AS out_sample_price,
+
+    -- OUT SAL NON GROUP
+    COALESCE(SUM(out_salnongroup_qty),0) AS out_salnongroup_qty,
+    COALESCE(SUM(out_salnongroup_total),0) AS out_salnongroup_total,
+    IF(SUM(out_salnongroup_qty)=0, 0, SUM(out_salnongroup_total)/SUM(out_salnongroup_qty)) AS out_salnongroup_price,
+
+    -- OUT SAL GROUP
+    COALESCE(SUM(out_salgroup_qty),0) AS out_salgroup_qty,
+    COALESCE(SUM(out_salgroup_total),0) AS out_salgroup_total,
+    IF(SUM(out_salgroup_qty)=0, 0, SUM(out_salgroup_total)/SUM(out_salgroup_qty)) AS out_salgroup_price,
+
+    -- OUT OTHER
+    COALESCE(SUM(out_other_qty),0) AS out_other_qty,
+    COALESCE(SUM(out_other_total),0) AS out_other_total,
+    IF(SUM(out_other_qty)=0, 0, SUM(out_other_total)/SUM(out_other_qty)) AS out_other_price,
+
+    -- TOTAL OUT
+    COALESCE(SUM(jumlah_out_qty),0) AS jumlah_out_qty,
+    COALESCE(SUM(jumlah_out_total),0) AS jumlah_out_total,
+    IF(SUM(jumlah_out_qty)=0, 0, SUM(jumlah_out_total)/SUM(jumlah_out_qty)) AS jumlah_out_price
+
+    FROM trx_out_fix
+    GROUP BY id_roll),
+
+mutasi as (select a.*, COALESCE(out_prod_qty,0) out_prod_qty,   COALESCE(out_prod_total,0) out_prod_total,   COALESCE(out_prod_price,0) out_prod_price,   COALESCE(out_subcont_qty,0) out_subcont_qty,   COALESCE(out_subcont_total,0) out_subcont_total,   COALESCE(out_subcont_price,0) out_subcont_price,   COALESCE(out_lokal_qty,0) out_lokal_qty,   COALESCE(out_lokal_total,0) out_lokal_total,   COALESCE(out_lokal_price,0) out_lokal_price,   COALESCE(out_impor_qty,0) out_impor_qty,   COALESCE(out_impor_total,0) out_impor_total,   COALESCE(out_impor_price,0) out_impor_price,   COALESCE(out_sample_qty,0) out_sample_qty,   COALESCE(out_sample_total,0) out_sample_total,   COALESCE(out_sample_price,0) out_sample_price,   COALESCE(out_salnongroup_qty,0) out_salnongroup_qty,   COALESCE(out_salnongroup_total,0) out_salnongroup_total,   COALESCE(out_salnongroup_price,0) out_salnongroup_price,   COALESCE(out_salgroup_qty,0) out_salgroup_qty,   COALESCE(out_salgroup_total,0) out_salgroup_total,   COALESCE(out_salgroup_price,0) out_salgroup_price,   COALESCE(out_other_qty,0) out_other_qty,   COALESCE(out_other_total,0) out_other_total,   COALESCE(out_other_price,0) out_other_price,   COALESCE(jumlah_out_qty,0) jumlah_out_qty,   COALESCE(jumlah_out_total,0) jumlah_out_total,   COALESCE(jumlah_out_price,0) jumlah_out_price from pemasukan_fix a left join pengeluaran_fix b on b.id_roll = a.barcode_mapping),
+
+                            mutasi_barcode as (select *, (saldo_awal_qty + jumlah_in_qty - jumlah_out_qty) saldo_akhir_qty, (saldo_awal_total + jumlah_in_total - jumlah_out_total) saldo_akhir_total, ((saldo_awal_total + jumlah_in_total - jumlah_out_total) / (saldo_awal_qty + jumlah_in_qty - jumlah_out_qty)) saldo_akhir_price from mutasi)
+
+                        select id_jo, id_item, goods_code, itemdesc, satuan, no_ws, SUM(saldo_awal_qty)   AS saldo_awal_qty,  SUM(saldo_awal_total) AS saldo_awal_total,  COALESCE(SUM(saldo_awal_total) / NULLIF(SUM(saldo_awal_qty),0), 0) AS saldo_awal_price,    SUM(in_lokal_qty)   AS in_lokal_qty,  SUM(in_lokal_total) AS in_lokal_total,  COALESCE(SUM(in_lokal_total) / NULLIF(SUM(in_lokal_qty),0), 0) AS in_lokal_price,    SUM(in_impor_qty)   AS in_impor_qty,  SUM(in_impor_total) AS in_impor_total,  COALESCE(SUM(in_impor_total) / NULLIF(SUM(in_impor_qty),0), 0) AS in_impor_price,    SUM(in_subcont_qty)   AS in_subcont_qty,  SUM(in_subcont_total) AS in_subcont_total,  COALESCE(SUM(in_subcont_total) / NULLIF(SUM(in_subcont_qty),0), 0) AS in_subcont_price,    SUM(in_produksi_qty)   AS in_produksi_qty,  SUM(in_produksi_total) AS in_produksi_total,  COALESCE(SUM(in_produksi_total) / NULLIF(SUM(in_produksi_qty),0), 0) AS in_produksi_price,    SUM(in_sample_qty)   AS in_sample_qty,  SUM(in_sample_total) AS in_sample_total,  COALESCE(SUM(in_sample_total) / NULLIF(SUM(in_sample_qty),0), 0) AS in_sample_price,    SUM(jumlah_in_qty)   AS jumlah_in_qty,  SUM(jumlah_in_total) AS jumlah_in_total,  COALESCE(SUM(jumlah_in_total) / NULLIF(SUM(jumlah_in_qty),0), 0) AS jumlah_in_price,    SUM(out_prod_qty)   AS out_prod_qty,  SUM(out_prod_total) AS out_prod_total,  COALESCE(SUM(out_prod_total) / NULLIF(SUM(out_prod_qty),0), 0) AS out_prod_price,    SUM(out_subcont_qty)   AS out_subcont_qty,  SUM(out_subcont_total) AS out_subcont_total,  COALESCE(SUM(out_subcont_total) / NULLIF(SUM(out_subcont_qty),0), 0) AS out_subcont_price,    SUM(out_lokal_qty)   AS out_lokal_qty,  SUM(out_lokal_total) AS out_lokal_total,  COALESCE(SUM(out_lokal_total) / NULLIF(SUM(out_lokal_qty),0), 0) AS out_lokal_price,    SUM(out_impor_qty)   AS out_impor_qty,  SUM(out_impor_total) AS out_impor_total,  COALESCE(SUM(out_impor_total) / NULLIF(SUM(out_impor_qty),0), 0) AS out_impor_price,    SUM(out_sample_qty)   AS out_sample_qty,  SUM(out_sample_total) AS out_sample_total,  COALESCE(SUM(out_sample_total) / NULLIF(SUM(out_sample_qty),0), 0) AS out_sample_price,    SUM(out_salnongroup_qty)   AS out_salnongroup_qty,  SUM(out_salnongroup_total) AS out_salnongroup_total,  COALESCE(SUM(out_salnongroup_total) / NULLIF(SUM(out_salnongroup_qty),0), 0) AS out_salnongroup_price,    SUM(out_salgroup_qty)   AS out_salgroup_qty,  SUM(out_salgroup_total) AS out_salgroup_total,  COALESCE(SUM(out_salgroup_total) / NULLIF(SUM(out_salgroup_qty),0), 0) AS out_salgroup_price,    SUM(out_other_qty)   AS out_other_qty,  SUM(out_other_total) AS out_other_total,  COALESCE(SUM(out_other_total) / NULLIF(SUM(out_other_qty),0), 0) AS out_other_price,    SUM(jumlah_out_qty)   AS jumlah_out_qty,  SUM(jumlah_out_total) AS jumlah_out_total,  COALESCE(SUM(jumlah_out_total) / NULLIF(SUM(jumlah_out_qty),0), 0) AS jumlah_out_price,    SUM(saldo_akhir_qty)   AS saldo_akhir_qty,  SUM(saldo_akhir_total) AS saldo_akhir_total,  COALESCE(SUM(saldo_akhir_total) / NULLIF(SUM(saldo_akhir_qty),0), 0) AS saldo_akhir_price from mutasi_barcode GROUP BY id_jo, id_item, satuan");
+
+
+            return DataTables::of($data_inmaterial)->toJson();
+
+    }
+
+
+    public function mutasi_fabric_subcont(Request $request)
+    {
+
+
+            $data = DB::connection('mysql_sb')->select("WITH
+saldo_awal as (select id_item, itemdesc, unit, id_jo, no_ws, no_po, supplier, qty, price, total from whs_saldo_awal_subcont_fabric ),
+
+out_before as (select id_item, itemdesc, satuan, id_jo, kpno, IFNULL(a.no_po_subkon,'-') no_po_subkon, tujuan, sum(qty_out) qty_out, np_curr, round(sum(total) / sum(qty_out), 4) np_price, round(sum(total) / sum(qty_out), 4) price_unit, sum(total_idr) total_idr from (select id_jo, no_bppb, tgl_bppb, id_roll, no_lot, no_roll, no_rak, id_item, itemdesc, color, size, IFNULL(no_invoice,'-') no_invoice, dok_bc, no_aju, tgl_aju, no_daftar, tgl_daftar, tujuan, qty_out, satuan, berat_bersih, IFNULL(catatan,'-') catatan, username, kpno, no_ws_aktual, styleno, IFNULL(np_curr,'-') np_curr, IFNULL(np_price,0) np_price, jenis_pengeluaran, IFNULL(np_price,0) price_unit, (qty_out * IFNULL(np_price,0)) total, IFNULL(rate,1) rate, ((qty_out * IFNULL(np_price,0)) * IFNULL(rate,1)) total_idr, no_po_subkon from (select  b.id_jo, a.no_bppb, a.tgl_bppb, id_roll, no_lot, no_roll, no_rak, b.id_item, c.itemdesc, c.color, c.size, a.no_invoice, a.dok_bc, no_aju, tgl_aju, no_daftar, tgl_daftar, a.tujuan, b.qty_out, b.satuan, 0 berat_bersih, a.catatan, CONCAT(a.created_by,' (',a.created_at, ') ') username, kpno, styleno, IFNULL(b.np_curr_rev,b.np_curr) np_curr, np_tgl_in, IFNULL(b.np_price_rev,b.np_price) np_price, jenis_pengeluaran, no_ws_aktual, no_po_subkon from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb INNER JOIN masteritem c on c.id_item = b.id_item left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) tmpjo on tmpjo.id_jo=b.id_jo where a.tgl_bppb > '2025-11-30' AND a.tgl_bppb < '" . $request->start_date . "' and jenis_pengeluaran like '%Subkontraktor%' and a.status != 'Cancel' and b.status = 'Y') a left join (select tanggal, curr, rate from masterrate where v_codecurr = 'PAJAK' GROUP BY tanggal, curr ) cr on cr.tanggal = a.tgl_bppb and cr.curr = a.np_curr) a GROUP BY id_item, satuan, id_jo, no_po_subkon, tujuan),
+
+in_h_before as (select a.no_dok, a.tgl_dok, b.id_jo, b.id_item, c.itemdesc, c.color, c.size, IFNULL(type_bc,'-') type_bc, IFNULL(no_invoice,'-') no_invoice, IFNULL(no_aju,'-') no_aju, tgl_aju, IFNULL(no_daftar,'-') no_daftar, tgl_daftar, a.supplier, IFNULL(a.no_po,'-') no_po, IFNULL(no_invoice,'-') no_sj, IFNULL(a.deskripsi,'-') deskripsi, CONCAT(a.created_by,' (',a.created_at, ') ') username, kpno, styleno, a.type_pch, b.price from whs_inmaterial_fabric a INNER JOIN whs_inmaterial_fabric_det b on b.no_dok = a.no_dok INNER JOIN masteritem c on c.id_item = b.id_item INNER JOIN (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) d on d.id_jo=b.id_jo where a.tgl_dok > '2025-11-30' and a.tgl_dok < '" . $request->start_date . "' and a.status != 'Cancel' and b.status != 'N' GROUP BY b.id_item, b.id_jo, b.no_dok),
+
+    in_det_before as (select no_dok, id_jo, id_item, no_barcode, no_roll, no_lot, kode_lok, sum(qty_aktual) qty_in, satuan, np_curr, np_tgl_in, IFNULL(np_price,0) np_price, IF(np_curr = 'IDR',1,IFNULL(rate,1)) rate from (select a.no_dok, b.id_jo, b.id_item, b.no_barcode, b.no_roll, b.no_lot, b.kode_lok, b.qty_aktual, satuan, IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price from whs_inmaterial_fabric a INNER JOIN whs_lokasi_inmaterial b on b.no_dok = a.no_dok where a.tgl_dok > '2025-11-30' and a.tgl_dok < '" . $request->start_date . "' and a.status != 'Cancel' and b.status != 'N') a left join (select tanggal, curr, rate from masterrate where v_codecurr = 'PAJAK' and tanggal > '2025-11-30' and tanggal < '" . $request->start_date . "' GROUP BY tanggal, curr ) cr on cr.tanggal = a.np_tgl_in and cr.curr = np_curr GROUP BY a.id_item, a.id_jo, a.no_dok,np_curr),
+
+in_before as (select id_item, itemdesc, satuan, id_jo, kpno, if(no_po = '','-', no_po) no_po, supplier, sum(qty) qty, (sum(jumlah_in_idr) / sum(qty)) price, sum(jumlah_in_idr) jumlah_in_idr from ((select a.id_item, itemdesc, b.satuan, a.id_jo, kpno, if(no_po = '','-', no_po) no_po, supplier, sum(b.qty_in) qty, (sum((np_price * qty_in) * rate) / sum(b.qty_in)) price, sum((np_price * qty_in) * rate) jumlah_in_idr from in_h_before a INNER JOIN in_det_before b on b.no_dok = a.no_dok and b.id_item = a.id_item and b.id_jo = a.id_jo where type_pch like '%Subkontraktor%' GROUP BY a.id_item, satuan, a.id_jo, no_po, supplier) UNION select id_item, deskripsi, unit, id_jo, no_ws, no_po, supplier, qty, price, (qty * price) total from ca_adjust_input where tgl_periode > '2025-11-30' and tgl_periode < '" . $request->start_date . "') a GROUP BY id_item, satuan, id_jo, no_po, supplier),
+
+out_trx as (select id_item, itemdesc, satuan, id_jo, kpno, IFNULL(a.no_po_subkon,'-') no_po_subkon, tujuan, sum(qty_out) qty_out, np_curr, round(sum(total) / sum(qty_out), 4) np_price, round(sum(total) / sum(qty_out), 4) price_unit, sum(total_idr) total_idr from (select id_jo, no_bppb, tgl_bppb, id_roll, no_lot, no_roll, no_rak, id_item, itemdesc, color, size, IFNULL(no_invoice,'-') no_invoice, dok_bc, no_aju, tgl_aju, no_daftar, tgl_daftar, tujuan, qty_out, satuan, berat_bersih, IFNULL(catatan,'-') catatan, username, kpno, no_ws_aktual, styleno, IFNULL(np_curr,'-') np_curr, IFNULL(np_price,0) np_price, jenis_pengeluaran, IFNULL(np_price,0) price_unit, (qty_out * IFNULL(np_price,0)) total, IFNULL(rate,1) rate, ((qty_out * IFNULL(np_price,0)) * IFNULL(rate,1)) total_idr, no_po_subkon from (select  b.id_jo, a.no_bppb, a.tgl_bppb, id_roll, no_lot, no_roll, no_rak, b.id_item, c.itemdesc, c.color, c.size, a.no_invoice, a.dok_bc, no_aju, tgl_aju, no_daftar, tgl_daftar, a.tujuan, b.qty_out, b.satuan, 0 berat_bersih, a.catatan, CONCAT(a.created_by,' (',a.created_at, ') ') username, kpno, styleno, IFNULL(b.np_curr_rev,b.np_curr) np_curr, np_tgl_in, IFNULL(b.np_price_rev,b.np_price) np_price, jenis_pengeluaran, no_ws_aktual, no_po_subkon from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb INNER JOIN masteritem c on c.id_item = b.id_item left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) tmpjo on tmpjo.id_jo=b.id_jo where a.tgl_bppb > '2025-11-30' AND a.tgl_bppb BETWEEN '" . $request->start_date . "' and '" . $request->end_date . "' and jenis_pengeluaran like '%Subkontraktor%' and a.status != 'Cancel' and b.status = 'Y') a left join (select tanggal, curr, rate from masterrate where v_codecurr = 'PAJAK' GROUP BY tanggal, curr ) cr on cr.tanggal = a.tgl_bppb and cr.curr = a.np_curr) a GROUP BY id_item, satuan, id_jo, no_po_subkon, tujuan),
+
+in_h as (select a.no_dok, a.tgl_dok, b.id_jo, b.id_item, c.itemdesc, c.color, c.size, IFNULL(type_bc,'-') type_bc, IFNULL(no_invoice,'-') no_invoice, IFNULL(no_aju,'-') no_aju, tgl_aju, IFNULL(no_daftar,'-') no_daftar, tgl_daftar, a.supplier, IFNULL(a.no_po,'-') no_po, IFNULL(no_invoice,'-') no_sj, IFNULL(a.deskripsi,'-') deskripsi, CONCAT(a.created_by,' (',a.created_at, ') ') username, kpno, styleno, a.type_pch, b.price from whs_inmaterial_fabric a INNER JOIN whs_inmaterial_fabric_det b on b.no_dok = a.no_dok INNER JOIN masteritem c on c.id_item = b.id_item INNER JOIN (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) d on d.id_jo=b.id_jo  where a.tgl_dok > '2025-11-30' and a.tgl_dok BETWEEN '" . $request->start_date . "' and '" . $request->end_date . "' and a.status != 'Cancel' and b.status != 'N' GROUP BY b.id_item, b.id_jo, b.no_dok),
+
+    in_det as (select no_dok, id_jo, id_item, no_barcode, no_roll, no_lot, kode_lok, sum(qty_aktual) qty_in, satuan, np_curr, np_tgl_in, IFNULL(np_price,0) np_price, IF(np_curr = 'IDR',1,IFNULL(rate,1)) rate from (select a.no_dok, b.id_jo, b.id_item, b.no_barcode, b.no_roll, b.no_lot, b.kode_lok, b.qty_aktual, satuan, IFNULL(np_curr_rev,np_curr) np_curr, np_tgl_in, IFNULL(np_price_rev,np_price) np_price from whs_inmaterial_fabric a INNER JOIN whs_lokasi_inmaterial b on b.no_dok = a.no_dok where  a.tgl_dok > '2025-11-30' and a.tgl_dok BETWEEN '" . $request->start_date . "' and '" . $request->end_date . "' and a.status != 'Cancel' and b.status != 'N') a left join (select tanggal, curr, rate from masterrate where v_codecurr = 'PAJAK' and tanggal BETWEEN '" . $request->start_date . "' and '" . $request->end_date . "' GROUP BY tanggal, curr ) cr on cr.tanggal = a.np_tgl_in and cr.curr = np_curr GROUP BY a.id_item, a.id_jo, a.no_dok,np_curr),
+
+in_trx as (select a.id_item, itemdesc, b.satuan, a.id_jo, kpno, if(no_po = '','-', no_po) no_po, supplier, sum(b.qty_in) qty, (sum((np_price * qty_in) * rate) / sum(b.qty_in)) price, sum((np_price * qty_in) * rate) jumlah_in_idr from in_h a INNER JOIN in_det b on b.no_dok = a.no_dok and b.id_item = a.id_item and b.id_jo = a.id_jo where type_pch like '%Subkontraktor%' GROUP BY a.id_item, satuan, a.id_jo, no_po, supplier),
+
+in_adjust as (select id_item, deskripsi, unit, id_jo, no_ws, no_po, supplier, qty, price, (qty * price) total from ca_adjust_input where tgl_periode > '2025-11-30' and tgl_periode BETWEEN '" . $request->start_date . "' and '" . $request->end_date . "'),
+
+saldo_out as (select id_item, itemdesc, unit, id_jo, no_ws, no_po, supplier, sum(Coalesce(qty,0)) qty, (sum(Coalesce(total,0)) / sum(Coalesce(qty,0))) price, sum(Coalesce(total,0)) total, sum(qty_out) qty_out, (sum(total_out) / sum(qty_out)) price_out, sum(total_out) total_out from (
+select id_item, itemdesc, unit, id_jo, no_ws, no_po, supplier, qty, price, total, 0 qty_out, 0 price_out, 0 total_out from saldo_awal 
+UNION ALL 
+select id_item, itemdesc, satuan, id_jo, kpno, no_po_subkon, tujuan, qty_out, price_unit, total_idr, 0 qty_out, 0 price_out, 0 total_out from out_before
+UNION ALL
+select id_item, itemdesc, satuan, id_jo, kpno, no_po_subkon, tujuan, 0 qty, 0 price, 0 total,  qty_out, price_unit, total_idr from out_trx) a GROUP BY id_item, unit, id_jo, no_po, supplier)
+
+select a.id_item, a.itemdesc, a.unit, a.id_jo, a.no_ws, a.no_po, a.supplier, (a.qty - COALESCE(b.qty,0)) qty_awal, COALESCE(round((a.total - COALESCE(b.jumlah_in_idr,0)) / (a.qty - COALESCE(b.qty,0)),2),0) price_awal, (a.total - COALESCE(b.jumlah_in_idr,0)) total_awal, a.qty_out, COALESCE(a.price_out,0) price_out, a.total_out, COALESCE(c.qty,0) qty_in, COALESCE(c.price,0) price_in, COALESCE(c.jumlah_in_idr,0) total_in, COALESCE(d.qty,0) qty_adj, COALESCE(d.price,0) price_adj, COALESCE(d.total,0) total_adj, ((a.qty - COALESCE(b.qty,0)) + a.qty_out - COALESCE(c.qty,0) - COALESCE(d.qty,0)) qty_akhir, COALESCE(round(((a.total - COALESCE(b.jumlah_in_idr,0)) + a.total_out - COALESCE(c.jumlah_in_idr,0) - COALESCE(d.total,0)) / ((a.qty - COALESCE(b.qty,0)) + a.qty_out - COALESCE(c.qty,0) - COALESCE(d.qty,0)),2),0) price_akhir, ((a.total - COALESCE(b.jumlah_in_idr,0)) + a.total_out - COALESCE(c.jumlah_in_idr,0) - COALESCE(d.total,0)) total_akhir from saldo_out a left join in_before b on b.id_item = a.id_item and b.satuan = a.unit and b.id_jo = a.id_jo and b.no_po = a.no_po and b.supplier = a.supplier left join in_trx c on c.id_item = a.id_item and c.satuan = a.unit and c.id_jo = a.id_jo and c.no_po = a.no_po and c.supplier = a.supplier left join in_adjust d on d.id_item = a.id_item and d.unit = a.unit and d.id_jo = a.id_jo and d.no_po = a.no_po and d.supplier = a.supplier");
+
+
+            return DataTables::of($data)->toJson();
+
+    }
+
 
 
 }

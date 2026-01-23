@@ -14,7 +14,7 @@
                     <button class="accordion-button accordion-sb collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-{{ $index }}" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
                         <div class="d-flex w-75 justify-content-between align-items-center">
                             <p class="w-25 mb-0">{{ $partDetail->nama_part." - ".$partDetail->bag }}</p>
-                            <p class="w-50 mb-0">{{ $partDetail->tujuan." - ".$partDetail->proses }}</p>
+                            <p class="w-50 mb-0">{{ $partDetail->proses_tujuan }}</p>
                         </div>
                     </button>
                 </h2>
@@ -68,9 +68,7 @@
 
                                         if ($qty > 0) :
                                             $stockerThis = $dataStocker ? $dataStocker->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where('ratio', '>', '0')->first() : null;
-                                            $stockerBefore = $dataStocker ? $dataStocker->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->sortBy([['no_cut', 'desc'],['range_akhir', 'desc']])->filter(function ($item) { return $item->ratio > 0 && ($item->difference_qty > 0 || $item->difference_qty == null); })->first() : null;
-
-                                            // dd($stockerBefore);
+                                            $stockerBefore = $dataStocker ? $dataStocker->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->sortBy([['no_cut', 'desc'],['range_akhir', 'desc']])->filter(function ($item) { return ($item->ratio > 0 && ($item->difference_qty > 0 || $item->difference_qty == null)) || ($item->difference_qty > 0); })->first() : null;
 
                                             $rangeAwal = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + 1 + ($qtyBefore) : "-") : 1 + ($qtyBefore)) : 1 + ($qtyBefore));
                                             $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + $qty + ($qtyBefore) : "-") : $qty + ($qtyBefore)) : $qty + ($qtyBefore));

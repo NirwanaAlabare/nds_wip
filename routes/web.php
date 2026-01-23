@@ -44,6 +44,7 @@ use App\Http\Controllers\Cutting\CuttingPlanController;
 use App\Http\Controllers\Cutting\ReportCuttingController;
 use App\Http\Controllers\Cutting\CompletedFormController;
 use App\Http\Controllers\Cutting\RollController;
+use App\Http\Controllers\Cutting\GantiRejectController;
 // Piping Process
 use App\Http\Controllers\Cutting\MasterPipingController;
 use App\Http\Controllers\Cutting\PipingProcessController;
@@ -59,7 +60,8 @@ use App\Http\Controllers\Stocker\StockerToolsController;
 // DC
 use App\Http\Controllers\DC\DCInController;
 use App\Http\Controllers\DC\SecondaryInController;
-use App\Http\Controllers\DC\SecondaryInhouseController;
+use App\Http\Controllers\DC\SecondaryInhouseInController;
+use App\Http\Controllers\DC\SecondaryInhouseOutController;
 use App\Http\Controllers\DC\StockDcCompleteController;
 use App\Http\Controllers\DC\StockDcIncompleteController;
 use App\Http\Controllers\DC\StockDcWipController;
@@ -68,6 +70,7 @@ use App\Http\Controllers\DC\RackStockerController;
 use App\Http\Controllers\DC\TrolleyController;
 use App\Http\Controllers\DC\TrolleyStockerController;
 use App\Http\Controllers\DC\LoadingLineController;
+use App\Http\Controllers\DC\LoadingOutController;
 use App\Http\Controllers\DC\BonLoadingController;
 use App\Http\Controllers\DC\DcToolsController;
 
@@ -85,6 +88,7 @@ use App\Http\Controllers\Sewing\UndoOutputController;
 use App\Http\Controllers\Sewing\ReportDefectController;
 use App\Http\Controllers\Sewing\ReportRejectController;
 use App\Http\Controllers\Sewing\SewingToolsController;
+use App\Http\Controllers\Sewing\SewingSecondaryMasterController;
 
 // Production
 use App\Http\Controllers\Sewing\MasterKursBiController;
@@ -295,6 +299,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-reject-in', 'getRejectIn')->name('get-reject-in');
         // defect in out
         Route::get('/get-defect-in-out', 'getDefectInOut')->name('get-defect-in-out');
+
+        // Part Item
+        Route::get('/get-part-item', 'getPartItemList')->name('get-part-item');
     });
 
     // Worksheet
@@ -341,9 +348,11 @@ Route::middleware('auth')->group(function () {
         // part secondary
         Route::get('/manage-part-secondary/{id?}', 'managePartSecondary')->name('manage-part-secondary');
         Route::get('/datatable_list_part/{id?}', 'datatable_list_part')->name('datatable_list_part');
+        Route::get('/datatable_list_part_complement/{id?}', 'datatable_list_part_complement')->name('datatable_list_part_complement');
         Route::get('/get_proses', 'get_proses')->name('get_proses');
         Route::post('/store_part_secondary', 'store_part_secondary')->name('store_part_secondary');
         Route::put('/update-part-secondary', 'updatePartSecondary')->name('update-part-secondary');
+        Route::put('/update-part-secondary-complement', 'updatePartSecondaryComplement')->name('update-part-secondary-complement');
 
         // part detail
         Route::delete('/destroy-part-detail/{id?}', 'destroyPartDetail')->name('destroy-part-detail');
@@ -360,6 +369,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-master-tujuan', 'getMasterTujuan')->name('get-master-tujuan');
         // get master secondary
         Route::get('/get-master-secondary', 'getMasterSecondary')->name('get-master-secondary');
+        // get complement panels
+        Route::get('/get-complement-panels', 'getComplementPanelList')->name('get-part-complement-panels');
+        // get complement panel parts
+        Route::get('/get-complement-panel-parts', 'getComplementPanelPartList')->name('get-part-complement-panel-parts');
+
+        // get part detail process
+        Route::get('/get-edit-part-detail-process', 'getEditPartDetailProcess')->name('get-edit-part-detail-process');
+
+        // get part detail items
+        Route::get('/get-edit-part-detail-items', 'getEditPartDetailItems')->name('get-edit-part-detail-items');
     });
 
     // Marker :
@@ -613,6 +632,9 @@ Route::middleware('auth')->group(function () {
 
         // export reject
         Route::post('/export-excel', 'exportExcel')->name('export-form-reject');
+
+        Route::post('/save_fabric_form_reject', 'save_fabric_form_reject')->name('save_fabric_form_reject');
+        Route::get('/show_fabric_form_reject', 'show_fabric_form_reject')->name('show_fabric_form_reject');
     });
 
     // Cutting Piece
@@ -700,12 +722,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/pemakaian-roll', 'pemakaianRoll')->name('pemakaian-roll');
         Route::get('/detail-pemakaian-roll', 'detailPemakaianRoll')->name('detail-pemakaian-roll');
         Route::get('/total-pemakaian-roll', 'totalPemakaianRoll')->name('total-pemakaian-roll');
+        Route::get('/report_cutting_mutasi_fabric', 'report_cutting_mutasi_fabric')->name('report_cutting_mutasi_fabric');
+        Route::get('/report_gr_set', 'report_gr_set')->name('report_gr_set');
+        Route::get('/report_gr_panel', 'report_gr_panel')->name('report_gr_panel');
 
         // export excel
         Route::post('/cutting/export', 'export')->name('report-cutting-export');
         Route::post('/cutting-daily/export', 'cuttingDailyExport')->name('report-cutting-daily-export');
         Route::post('/pemakaian-roll/export', 'pemakaianRollExport')->name('pemakaian-roll-export');
         Route::post('/detail-pemakaian-roll/export', 'detailPemakaianRollExport')->name('detail-pemakaian-roll-export');
+        Route::get('/export_excel_report_cutting_mutasi_fabric', 'export_excel_report_cutting_mutasi_fabric')->name('export_excel_report_cutting_mutasi_fabric');
+        Route::get('/export_excel_report_gr_set', 'export_excel_report_gr_set')->name('export_excel_report_gr_set');
+        Route::get('/export_excel_report_gr_panel', 'export_excel_report_gr_panel')->name('export_excel_report_gr_panel');
     });
 
     // Roll
@@ -724,6 +752,24 @@ Route::middleware('auth')->group(function () {
         // print
         Route::post('/sisa_kain/print/{id?}', 'printSisaKain')->name('print_sisa_kain');
         Route::post('/mass_sisa_kain/print', 'massPrintSisaKain')->name('mass_print_sisa_kain');
+        // alokasi fabric gr panel
+        Route::get('/alokasi_fabric_gr_panel', 'alokasi_fabric_gr_panel')->name('alokasi_fabric_gr_panel');
+        Route::get('/create_alokasi_fabric_gr_panel', 'create_alokasi_fabric_gr_panel')->name('create_alokasi_fabric_gr_panel');
+        Route::post('/save_alokasi_fabric_gr_panel', 'save_alokasi_fabric_gr_panel')->name('save_alokasi_fabric_gr_panel');
+        // Penerimaan Fabric Cutting
+        Route::get('/roll_fabric_cutting_in', 'roll_fabric_cutting_in')->name('roll_fabric_cutting_in');
+        Route::get('/export_roll_fabric_cutting_in', 'export_roll_fabric_cutting_in')->name('export_roll_fabric_cutting_in');
+    });
+
+    // Ganti Reject GR
+    Route::controller(GantiRejectController::class)->prefix("ganti_reject")->middleware('role:cutting')->group(function () {
+        // form ganti reject panel gr
+        Route::get('/form_gr_panel', 'form_gr_panel')->name('form_gr_panel');
+        Route::get('/create_form_gr_panel', 'create_form_gr_panel')->name('create_form_gr_panel');
+        Route::get('/get_barcode_form_gr_panel/{id?}', 'get_barcode_form_gr_panel')->name('get_barcode_form_gr_panel');
+        Route::get('/get_ws_all_form_gr_panel', 'get_ws_all_form_gr_panel')->name('get_ws_all_form_gr_panel');
+        Route::post('/save_form_gr_panel', 'save_form_gr_panel')->name('save_form_gr_panel');
+        Route::get('/export_excel_form_gr_panel_det', 'export_excel_form_gr_panel_det')->name('export_excel_form_gr_panel_det');
     });
 
     // Cutting Tools
@@ -853,6 +899,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/reset-stocker-id', 'resetStockerId')->name('reset-stocker-id');
         Route::post('/reset-stocker-form', 'resetStockerForm')->name('reset-stocker-form');
         Route::post('/reset-redundant-stocker', 'resetRedundantStocker')->name('reset-redundant-stocker');
+        Route::post('/restore-stocker-log', 'restoreStockerLog')->name('restore-stocker-log');
 
         Route::post('/import-stocker-manual', 'importStockerManual')->name('import-stocker-manual');
 
@@ -906,8 +953,41 @@ Route::middleware('auth')->group(function () {
         Route::get('/export-excel-detail', 'exportExcelDetail')->name('dc-in-detail-export-excel');
     });
 
+    // Secondary INHOUSE IN
+    Route::controller(SecondaryInhouseInController::class)->prefix("secondary-inhouse-in")->middleware('role:dc')->group(function () {
+        Route::get('/', 'index')->name('secondary-inhouse-in');
+        Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse_in');
+        Route::post('/store', 'storeSecondaryInhouseIn')->name('store-secondary-inhouse-in');
+        Route::post('/mass-store', 'massStore')->name('mass-store-secondary-inhouse-in');
+        Route::get('/detail_stocker_inhouse', 'detail_stocker_inhouse')->name('detail_stocker_inhouse_in');
+
+        // Temp
+        Route::get('/cek_data_stocker_inhouse_temp', 'cek_data_stocker_inhouse_temp')->name('cek_data_stocker_inhouse_in_temp');
+        Route::delete('/destroy-secondary-inhouse-in-temp/{id?}', 'destroySecondaryInhouseInTemp')->name('destroy-secondary-inhouse-in-temp');
+
+        Route::get('/filter-sec-inhouse', 'filterSecondaryInhouse')->name('filter-sec-inhouse-in');
+        Route::get('/filter-detail-sec-inhouse', 'filterDetailSecondaryInhouse')->name('filter-detail-sec-inhouse-in');
+
+        Route::get('/export-excel', 'exportExcel')->name('secondary-inhouse-in-export-excel');
+        Route::get('/export-excel-detail', 'exportExcelDetail')->name('secondary-inhouse-in-detail-export-excel');
+    });
+
     // Secondary INHOUSE
-    Route::controller(SecondaryInhouseController::class)->prefix("secondary-inhouse")->middleware('role:dc')->group(function () {
+    Route::controller(SecondaryInhouseOutController::class)->prefix("secondary-inhouse")->middleware('role:dc')->group(function () {
+        Route::get('/', 'index')->name('secondary-inhouse');
+        Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse');
+        Route::post('/store', 'store')->name('store-secondary-inhouse');
+        Route::post('/mass-store', 'massStore')->name('mass-store-secondary-inhouse');
+        Route::get('/detail_stocker_inhouse', 'detail_stocker_inhouse')->name('detail_stocker_inhouse');
+
+        Route::get('/filter-sec-inhouse', 'filterSecondaryInhouse')->name('filter-sec-inhouse');
+        Route::get('/filter-detail-sec-inhouse', 'filterDetailSecondaryInhouse')->name('filter-detail-sec-inhouse');
+
+        Route::get('/export-excel', 'exportExcel')->name('secondary-inhouse-export-excel');
+        Route::get('/export-excel-detail', 'exportExcelDetail')->name('secondary-inhouse-detail-export-excel');
+    });
+
+    Route::controller(SecondaryInhouseOutController::class)->prefix("secondary-inhouse")->middleware('role:dc')->group(function () {
         Route::get('/', 'index')->name('secondary-inhouse');
         Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse');
         Route::post('/store', 'store')->name('store-secondary-inhouse');
@@ -1017,6 +1097,25 @@ Route::middleware('auth')->group(function () {
         Route::delete('/modify-loading-line/delete', 'modifyLoadingLineDelete')->name('modify-loading-line-delete');
     });
 
+    // Loading Out
+    Route::controller(LoadingOutController::class)->prefix("loading-out")->middleware('role:dc')->group(function () {
+        Route::get('/loading_out', 'loading_out')->name('loading_out');
+        Route::get('/loading_out_det', 'loading_out_det')->name('loading_out_det');
+        Route::get('/input_loading_out', 'input_loading_out')->name('input_loading_out');
+        Route::get('/getpo_loading_out', 'getpo_loading_out')->name('getpo_loading_out');
+        Route::get('/get_list_po_loading_out', 'get_list_po_loading_out')->name('get_list_po_loading_out');
+        Route::post('/get_loading_out_stocker_info', 'get_loading_out_stocker_info')->name('get_loading_out_stocker_info');
+        Route::post('/save_tmp_stocker_loading_out', 'save_tmp_stocker_loading_out')->name('save_tmp_stocker_loading_out');
+        Route::get('/get_list_tmp_scan_loading_out', 'get_list_tmp_scan_loading_out')->name('get_list_tmp_scan_loading_out');
+        Route::post('/loading_out_delete_tmp', 'loading_out_delete_tmp')->name('loading_out_delete_tmp');
+        Route::post('/save_loading_out', 'save_loading_out')->name('save_loading_out');
+        Route::get('/get_info_modal_det_loading_out', 'get_info_modal_det_loading_out')->name('get_info_modal_det_loading_out');
+        Route::get('/get_table_modal_det_loading_out', 'get_table_modal_det_loading_out')->name('get_table_modal_det_loading_out');
+        Route::get('/get_table_modal_stocker_loading_out', 'get_table_modal_stocker_loading_out')->name('get_table_modal_stocker_loading_out');
+        Route::post('/loading_out_konfirmasi', 'loading_out_konfirmasi')->name('loading_out_konfirmasi');
+        Route::get('/get_det_summary_loading_out', 'get_det_summary_loading_out')->name('get_det_summary_loading_out');
+    });
+
     // Bon Loading
     Route::controller(BonLoadingController::class)->prefix("bon-loading")->middleware('role:dc')->group(function () {
         Route::get('/', 'index')->name('bon-loading-line');
@@ -1081,6 +1180,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/import-master-plan', 'importMasterPlan')->name('import-master-plan');
     });
 
+    // Master Defect
     Route::controller(MasterDefectController::class)->prefix("master-defect")->middleware('role:sewing')->group(function () {
         Route::get('/', 'index')->name('master-defect');
 
@@ -1094,6 +1194,15 @@ Route::middleware('auth')->group(function () {
 
         Route::post('merge-defect-type', 'mergeDefectType')->name('merge-defect-type');
         Route::post('merge-defect-area', 'mergeDefectArea')->name('merge-defect-area');
+    });
+
+    //  Master Secondary
+    Route::controller(SewingSecondaryMasterController::class)->prefix("sewing-secondary-master")->middleware('role:sewing')->group(function () {
+        Route::get('/', 'index')->name('sewing-secondary-master');
+
+        Route::put('update-secondary-master', 'updateSecondaryMaster')->name('update-sewing-secondary-master');
+        Route::post('store-secondary-master', 'storeSecondaryMaster')->name('store-sewing-secondary-master');
+        Route::delete('destroy-secondary-master/{id?}', 'destroySecondaryMaster')->name('destroy-sewing-secondary-master');
     });
 
     // Report Daily
@@ -2392,11 +2501,22 @@ Route::middleware('auth')->group(function () {
     // Proses Industrial Engineering Master Part Process
     Route::controller(IEMasterPartProcessController::class)->prefix("master")->middleware('role:management')->group(function () {
         Route::get('/IE_master_part_process', 'IE_master_part_process')->name('IE_master_part_process');
+        Route::get('/IE_master_part_process_show_new', 'IE_master_part_process_show_new')->name('IE_master_part_process_show_new');
+        Route::post('/IE_save_master_part_process', 'IE_save_master_part_process')->name('IE_save_master_part_process');
+        Route::get('/IE_show_master_part_process', 'IE_show_master_part_process')->name('IE_show_master_part_process');
+        Route::get('/IE_master_part_process_show_edit', 'IE_master_part_process_show_edit')->name('IE_master_part_process_show_edit');
+        Route::post('/IE_update_master_part_process', 'IE_update_master_part_process')->name('IE_update_master_part_process');
     });
 
     // Proses Industrial Engineering Operational Breakdown
     Route::controller(IE_Proses_OB_Controller::class)->prefix("proses")->middleware('role:management')->group(function () {
         Route::get('/IE_proses_op_breakdown', 'IE_proses_op_breakdown')->name('IE_proses_op_breakdown');
+        Route::get('/show_modal_proses_breakdown_new', 'show_modal_proses_breakdown_new')->name('show_modal_proses_breakdown_new');
+        Route::get('/show_modal_summary_breakdown', 'show_modal_summary_breakdown')->name('show_modal_summary_breakdown');
+        Route::post('/IE_save_op_breakdown', 'IE_save_op_breakdown')->name('IE_save_op_breakdown');
+        Route::get('/IE_show_op_breakdown', 'IE_show_op_breakdown')->name('IE_show_op_breakdown');
+        Route::get('/IE_show_op_breakdown_edit', 'IE_show_op_breakdown_edit')->name('IE_show_op_breakdown_edit');
+        Route::post('/IE_update_op_breakdown', 'IE_update_op_breakdown')->name('IE_update_op_breakdown');
     });
 
     // Laporan Industrial Engineering Recap SMV
@@ -2483,6 +2603,9 @@ Route::controller(AccountingController::class)->prefix("accounting")->middleware
     Route::get('/export-rekonsiliasi-ceisa', 'ExportReportRekonsiliasi')->name('export-rekonsiliasi-ceisa');
     Route::get('/report-ceisa-detail', 'ReportCeisaDetail')->name('report-ceisa-detail');
     Route::get('/export-ceisa-detail', 'ExportReportCeisaDetail')->name('export-ceisa-detail');
+
+    Route::get('/report-signalbit-bc', 'ReportSignalbitBC')->name('report-signalbit-bc');
+    Route::get('/export-excel-report-signalbit-bc', 'ExportReportSignalbitBC')->name('export-excel-report-signalbit-bc');
 });
 
 // Route::get('/dashboard-chart', function () {

@@ -235,7 +235,7 @@ class CuttingFormManualController extends Controller
                         inner join act_costing ac on so.id_cost = ac.id
                         inner join masteritem mi on k.id_item = mi.id_gen
                         where ac.id = '" . $request->act_costing_id . "' and sd.color = '" . $request->color . "' and k.status = 'M'
-                        and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
+                        and k.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
                         group by id_panel
                     ) a
                 inner join masterpanel mp on a.id_panel = mp.id
@@ -633,7 +633,7 @@ class CuttingFormManualController extends Controller
         $bulan = substr($date, 5, 2);
         $now = Carbon::now();
 
-        $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderByRaw("CAST(SUBSTR(no_form, 7) as integer) desc")->first();
+        $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderByRaw("CAST(SUBSTR(no_form, 7) as unsigned) desc")->first();
 
         $urutan =  $lastForm ? (str_replace($hari."-".$bulan."-", "", $lastForm->no_form) + 1) : 1;
 

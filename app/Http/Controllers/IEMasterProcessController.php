@@ -35,13 +35,16 @@ class IEMasterProcessController extends Controller
     {
         $user = Auth::user()->name;
         $timestamp = Carbon::now();
-
+        $kategori = strtoupper($request->kategori);
         $process_name = strtoupper($request->process_name);
-        $class_name = $request->class_name;
-        $cbotype = $request->cbotype;
+        $class_name = strtoupper($request->class_name);
+        $type = strtoupper($request->type);
+        $remark = strtoupper($request->remark);
         $smv = $request->smv;
         $amv = $request->amv;
-        $remark = $request->remark;
+        $smv = is_numeric($smv) ? $smv : 0;
+        $amv = is_numeric($amv) ? $amv : 0;
+
 
 
         // Check if the nm_process already exist
@@ -64,16 +67,18 @@ class IEMasterProcessController extends Controller
         machine_type,
         smv,
         amv,
+        kategori,
         remark,
         created_by,
         created_at,
         updated_at
-    ) VALUES (?,?,?,?,?,?,?,?,?)", [
+    ) VALUES (?,?,?,?,?,?,?,?,?,?)", [
             $process_name,
             $class_name,
-            $cbotype,
+            $type,
             $smv,
             $amv,
+            $kategori,
             $remark,
             $user,
             $timestamp,
@@ -99,13 +104,16 @@ class IEMasterProcessController extends Controller
         $user = Auth::user()->name;
         $timestamp = Carbon::now();
 
-        $process_name = $request->process_name;
-        $class_name = $request->class_name;
-        $cbotype = $request->cbotype;
+        $process_name = strtoupper($request->process_name);
+        $class_name = strtoupper($request->class_name);
+        $txttype = strtoupper($request->txttype);
+        $kategori = strtoupper($request->kategori);
+        $remark = strtoupper($request->remark);
+        $id_c = $request->id_c;
         $smv = $request->smv;
         $amv = $request->amv;
-        $remark = $request->remark;
-        $id_c = $request->id_c;
+        $smv = is_numeric($smv) ? $smv : 0;
+        $amv = is_numeric($amv) ? $amv : 0;
 
         DB::update("UPDATE ie_master_process
     SET
@@ -114,6 +122,7 @@ class IEMasterProcessController extends Controller
         machine_type = ?,
         smv = ?,
         amv = ?,
+        kategori = ?,
         remark = ?,
         updated_by = ?,
         updated_at = ?
@@ -121,9 +130,10 @@ class IEMasterProcessController extends Controller
 ", [
             $process_name,
             $class_name,
-            $cbotype,
+            $txttype,
             $smv,
             $amv,
+            $kategori,
             $remark,
             $user,
             $timestamp,

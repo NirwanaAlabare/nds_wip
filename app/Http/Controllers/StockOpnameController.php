@@ -217,7 +217,7 @@ public function getListpartialso(Request $request)
             UNION
             select 'OMS' id, a.id idnya,no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, qty_mutasi qty_in, 0 qty_in_bfr,b.unit from whs_mut_lokasi a inner join whs_sa_fabric b on b.no_barcode = a.idbpb_det where tgl_mut BETWEEN '".$request->tgl_filter."' and '".$request->tgl_filter."' and a.status = 'Y'
             UNION
-            select 'OMSB' id, a.id idnya,no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, 0 qty_in, qty_mutasi qty_in_bfr,b.unit from whs_mut_lokasi a inner join whs_sa_fabric b on b.no_barcode = a.idbpb_det where tgl_mut >= DATE_FORMAT('".$request->tgl_filter."', '%Y-%m-01') and tgl_mut < '".$request->tgl_filter."' and a.status = 'Y') a GROUP BY id_roll) b on b.id_roll = a.no_barcode) a left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) b on b.id_jo=a.id_jo INNER JOIN masteritem mi on mi.id_item = a.id_item where sal_awal != 0 OR qty_in != 0 OR qty_out != 0) a where sal_akhir != 0 order by kode_lok asc");
+            select 'OMSB' id, a.id idnya,no_barcode,kode_lok,b.id_jo,b.id_item,b.no_lot,b.no_roll, 0 qty_in, qty_mutasi qty_in_bfr,b.unit from whs_mut_lokasi a inner join whs_sa_fabric b on b.no_barcode = a.idbpb_det where tgl_mut >= DATE_FORMAT('".$request->tgl_filter."', '%Y-%m-01') and tgl_mut < '".$request->tgl_filter."' and a.status = 'Y') a GROUP BY id_roll) b on b.id_roll = a.no_barcode) a left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) b on b.id_jo=a.id_jo INNER JOIN masteritem mi on mi.id_item = a.id_item where sal_awal != 0 OR qty_in != 0 OR qty_out != 0) a where ROUND(sal_akhir, 2) != 0 order by kode_lok asc");
 }elseif ($request->item_so == 'Sparepart') {
 
     $data_rak = DB::connection('mysql_sb')->select("select DISTINCT id_item data
@@ -351,7 +351,7 @@ public function copysaldostok(Request $request)
     ]);
 
     if ($request->item_so == 'Fabric') {
-        $sql_barcode = DB::connection('mysql_sb')->select("insert into whs_saldo_stockopname  select * ,'".$timestamp."' ,'".$timestamp."','' from (WITH 
+        $sql_barcode = DB::connection('mysql_sb')->select("insert into whs_saldo_stockopname  select * ,'".$timestamp."' ,'".$timestamp."','' from (WITH
 buyer as (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier ms on ms.id_supplier = ac.id_buyer group by id_jo),
 
 saldo_awal as (select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, a.id_jo, c.kpno, c.styleno, a.id_item, b.itemdesc, no_roll, '' no_roll_buyer, no_lot, satuan, qty, 0 qty_in  from whs_sa_fabric_copy a INNER JOIN masteritem b on b.id_item = a.id_item INNER JOIN  buyer c on c.id_jo=a.id_jo where tgl_periode = (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= '".$request->tgl_filter."') GROUP BY no_barcode, kode_lok),
@@ -387,7 +387,7 @@ SELECT * FROM out_act) a GROUP BY id_roll, no_rak),
 
 mutasi as (select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, a.id_jo, kpno, styleno, a.id_item, itemdesc, no_roll, no_roll_buyer, no_lot, satuan, qty_awal sal_awal, qty_in, COALESCE(qty_out_bfr,0) qty_out_sbl, COALESCE(qty_out,0) qty_out, (qty_awal + qty_in - COALESCE(qty_out_bfr,0) - COALESCE(qty_out,0)) sal_akhir from pemasukan a left join pengeluaran b on b.id_roll = a.no_barcode and b.no_rak = a.kode_lok)
 
-select '' id ,'".$no_transaksi."','".$request->item_so."','".$request->tgl_filter."', no_barcode, kode_lok, id_jo, id_item, no_lot, no_roll, sal_akhir qty_sisa, satuan unit,'OPEN' status from mutasi where sal_akhir > 0 ) a");
+select '' id ,'".$no_transaksi."','".$request->item_so."','".$request->tgl_filter."', no_barcode, kode_lok, id_jo, id_item, no_lot, no_roll, sal_akhir qty_sisa, satuan unit,'OPEN' status from mutasi where ROUND(sal_akhir, 2) > 0 ) a");
 }elseif ($request->item_so == 'Sparepart') {
     $sql_barcode = DB::connection('mysql_sb')->select("insert into whs_saldo_stockopname select '','".$no_transaksi."','".$request->item_so."','".$request->tgl_filter."','' no_barcode,'' kode_lok,'' id_jo,id_item,'' no_lot,'' no_roll,sum(qty_sa) + sum(qty_in) - sum(qty_out) qty,unit,'OPEN' status,'".$timestamp."','".$timestamp."',''
         FROM (
@@ -482,7 +482,7 @@ public function copysaldostokpartial(Request $request)
     ]);
 
     if ($request->item_so == 'Fabric') {
-        $sql_barcode = DB::connection('mysql_sb')->select("insert into whs_saldo_stockopname  select * ,'".$timestamp."' ,'".$timestamp."','' from (WITH 
+        $sql_barcode = DB::connection('mysql_sb')->select("insert into whs_saldo_stockopname  select * ,'".$timestamp."' ,'".$timestamp."','' from (WITH
 buyer as (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier ms on ms.id_supplier = ac.id_buyer group by id_jo),
 
 saldo_awal as (select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, a.id_jo, c.kpno, c.styleno, a.id_item, b.itemdesc, no_roll, '' no_roll_buyer, no_lot, satuan, qty, 0 qty_in  from whs_sa_fabric_copy a INNER JOIN masteritem b on b.id_item = a.id_item INNER JOIN  buyer c on c.id_jo=a.id_jo where tgl_periode = (SELECT MAX(tgl_periode) FROM whs_sa_fabric_copy WHERE tgl_periode <= '".$request->tgl_filter."') GROUP BY no_barcode, kode_lok),
@@ -518,7 +518,7 @@ SELECT * FROM out_act) a GROUP BY id_roll, no_rak),
 
 mutasi as (select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, a.id_jo, kpno, styleno, a.id_item, itemdesc, no_roll, no_roll_buyer, no_lot, satuan, qty_awal sal_awal, qty_in, COALESCE(qty_out_bfr,0) qty_out_sbl, COALESCE(qty_out,0) qty_out, (qty_awal + qty_in - COALESCE(qty_out_bfr,0) - COALESCE(qty_out,0)) sal_akhir from pemasukan a left join pengeluaran b on b.id_roll = a.no_barcode and b.no_rak = a.kode_lok)
 
-select '' id ,'".$no_transaksi."','".$request->item_so."','".$request->tgl_filter."', no_barcode, kode_lok, id_jo, id_item, no_lot, no_roll, sal_akhir qty_sisa, satuan unit,'OPEN' status from mutasi where sal_akhir > 0 and kode_lok in (".$request->data_partial.")) a");
+select '' id ,'".$no_transaksi."','".$request->item_so."','".$request->tgl_filter."', no_barcode, kode_lok, id_jo, id_item, no_lot, no_roll, sal_akhir qty_sisa, satuan unit,'OPEN' status from mutasi where ROUND(sal_akhir, 2) > 0 and kode_lok in (".$request->data_partial.")) a");
 }elseif ($request->item_so == 'Sparepart') {
     $sql_barcode = DB::connection('mysql_sb')->select("insert into whs_saldo_stockopname select * from (select '','".$no_transaksi."','".$request->item_so."','".$request->tgl_filter."','' no_barcode,'' kode_lok,'' id_jo,id_item,'' no_lot,'' no_roll,sum(qty_sa) + sum(qty_in) - sum(qty_out) qty,unit,'OPEN' status,'".$timestamp."' q,'".$timestamp."',''
         FROM (

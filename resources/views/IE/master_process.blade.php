@@ -66,6 +66,18 @@
             text-align: center;
             transition: color .2s ease-in-out;
         }
+
+        .form-control {
+            border: 1.5px solid #ced4da;
+            border-radius: 8px;
+            padding: 6px 10px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.25);
+        }
     </style>
 @endsection
 
@@ -109,6 +121,7 @@
                             <th scope="col" class="text-center align-middle">SMV</th>
                             <th scope="col" class="text-center align-middle">AMV</th>
                             <th scope="col" class="text-center align-middle">Machine Type</th>
+                            <th scope="col" class="text-center align-middle">Kategori</th>
                             <th scope="col" class="text-center align-middle">Remark</th>
                             <th scope="col" class="text-center align-middle">Created At</th>
                             <th scope="col" class="text-center align-middle">Act</th>
@@ -149,8 +162,8 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label for="cbotype"><small><b>Machine Type :</b></small></label>
-                            <input type="text" id="cbotype" name="cbotype" class="form-control form-control-sm"
+                            <label for="txttype"><small><b>Machine Type :</b></small></label>
+                            <input type="text" id="txttype" name="txttype" class="form-control form-control-sm"
                                 value="">
                         </div>
                     </div>
@@ -167,6 +180,14 @@
                                 value="">
                         </div>
                         <div class="col-md-4">
+                            <label for="txtkategori"><small><b>Kategori :</b></small></label>
+                            <input type="text" id="txtkategori" name="txtkategori"
+                                class="form-control form-control-sm" value="">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-12">
                             <label for="txtremark"><small><b>Remark :</b></small></label>
                             <input type="text" id="txtremark" name="txtremark" class="form-control form-control-sm"
                                 value="">
@@ -209,16 +230,16 @@
                             <select id="cboedclass" name="cboedclass"
                                 class="form-control form-control-sm select2bs4 border-primary" style="width: 100%;">
                                 <option value="">-- Select Class --</option>
-                                <option value="Operator">Operator</option>
-                                <option value="Helper">Helper</option>
-                                <option value="Steam">Steam</option>
+                                <option value="OPERATOR">OPERATOR</option>
+                                <option value="HELPER">HELPER</option>
+                                <option value="STEAM">STEAM</option>
                                 <option value="QC">QC</option>
                             </select>
                         </div>
 
                         <div class="col-md-4">
-                            <label for="cboedtype"><small><b>Machine Type :</b></small></label>
-                            <input type="text" id="cboedtype" name="cboedtype" class="form-control form-control-sm"
+                            <label for="txtedtype"><small><b>Machine Type :</b></small></label>
+                            <input type="text" id="txtedtype" name="txtedtype" class="form-control form-control-sm"
                                 value="">
                         </div>
                     </div>
@@ -235,6 +256,14 @@
                                 value="">
                         </div>
                         <div class="col-md-4">
+                            <label for="txtedkategori"><small><b>Kategori :</b></small></label>
+                            <input type="text" id="txtedkategori" name="txtedkategori"
+                                class="form-control form-control-sm" value="">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-12">
                             <label for="txtedremark"><small><b>Remark :</b></small></label>
                             <input type="text" id="txtedremark" name="txtedremark"
                                 class="form-control form-control-sm" value="">
@@ -340,8 +369,9 @@
                 $('#txtname').val('');
                 $('#txtsmv').val('');
                 $('#txtamv').val('');
+                $('#txtkategori').val('');
                 $('#txtremark').val('');
-                $('#cbotype').val('');
+                $('#txttype').val('');
                 // Optional: Also clear select2 (if using select2)
                 $('#cboclass').val(null).trigger('change');
             });
@@ -375,6 +405,9 @@
                 {
                     data: 'machine_type'
                 }, // Machine Type
+                {
+                    data: 'kategori'
+                },
                 {
                     data: 'remark'
                 }, // Remark
@@ -412,9 +445,10 @@
         function save_master_process() {
             let process_name = $('#txtname').val();
             let class_name = $('#cboclass').val();
-            let cbotype = $('#cbotype').val();
+            let type = $('#txttype').val();
             let smv = $('#txtsmv').val();
             let amv = $('#txtamv').val();
+            let kategori = $('#txtkategori').val();
             let remark = $('#txtremark').val();
 
             // Disable the Save button to prevent multiple clicks
@@ -428,9 +462,10 @@
                     _token: '{{ csrf_token() }}',
                     process_name: process_name,
                     class_name: class_name,
-                    cbotype: cbotype,
+                    type: type,
                     smv: smv,
                     amv: amv,
+                    kategori: kategori,
                     remark: remark
                 },
                 success: function(response) {
@@ -440,7 +475,8 @@
                     $('#txtsmv').val('');
                     $('#txtamv').val('');
                     $('#txtremark').val('');
-                    $('#cbotype').val('');
+                    $('#txttype').val('');
+                    $('#txtkategori').val('');
                     // Optional: Also clear select2 (if using select2)
                     $('#cboclass').val(null).trigger('change');
                     Swal.fire({
@@ -480,9 +516,10 @@
                     $("#id_c").val(res.id);
                     $("#txtedname").val(res.nm_process);
                     $("#cboedclass").val(res.class).trigger('change'); // untuk select2
-                    $("#cboedtype").val(res.machine_type);
+                    $("#txtedtype").val(res.machine_type);
                     $("#txtedsmv").val(res.smv);
                     $("#txtedamv").val(res.amv);
+                    $("#txtedkategori").val(res.kategori);
                     $("#txtedremark").val(res.remark);
                 },
                 error: function(request, status, error) {
@@ -494,9 +531,10 @@
         function edit_master_process() {
             let process_name = $('#txtedname').val();
             let class_name = $('#cboedclass').val();
-            let cbotype = $('#cboedtype').val();
+            let txttype = $('#txtedtype').val();
             let smv = $('#txtedsmv').val();
             let amv = $('#txtedamv').val();
+            let kategori = $('#txtedkategori').val();
             let remark = $('#txtedremark').val();
             let id_c = $('#id_c').val();
 
@@ -511,9 +549,10 @@
                     _token: '{{ csrf_token() }}',
                     process_name: process_name,
                     class_name: class_name,
-                    cbotype: cbotype,
+                    txttype: txttype,
                     smv: smv,
                     amv: amv,
+                    kategori: kategori,
                     remark: remark,
                     id_c: id_c
                 },

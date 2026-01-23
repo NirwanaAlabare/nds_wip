@@ -409,6 +409,7 @@ select a.*, b.qty qty_br, b.qty_out qty_br_out, (b.qty - b.qty_out) sisa_req, (q
     $validatedRequest = $request->validate([
             "dikirim_ke" => "required",
             "job_order" => "required",
+            "ws_act" => "required",
         ]);
 
         $tglbpb = $request['txt_tgl_gr'];
@@ -553,8 +554,8 @@ select a.*, b.qty qty_br, b.qty_out qty_br_out, (b.qty - b.qty_out) sisa_req, (q
         $updaterequest = BppbReq::where('bppbno', $request['bppbno'])->update([
             'cancel' => 'Y',
             'qty_old'  => DB::raw('qty'),
-            'qty' => '0', 
-            'qty_out' => '0', 
+            'qty' => '0',
+            'qty_out' => '0',
             'cancel_by' => Auth::user()->name,
             'cancel_date' => $timestamp,
         ]);

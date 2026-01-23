@@ -124,6 +124,13 @@ table.sticky-table .fixed-column {
     z-index: 1;
 }
 
+.sticky-span {
+    vertical-align: top;
+    position: sticky;
+    top: 3rem;
+    z-index: 1;
+}
+
 .hidden {
     display: none !important;
 }
@@ -467,7 +474,7 @@ table.sticky-table .fixed-column {
     border-radius: 0px;
 } */
 
-.card.card-sb .card-header {
+.card.card-sb .card-header:first-of-type {
     /* border-radius: 0px; */
     background: var(--sb-color) !important;
     color: var(--light-color) !important;

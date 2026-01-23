@@ -42,6 +42,7 @@
                             <th>Style</th>
                             <th>Color</th>
                             <th>Panel</th>
+                            <th>Status</th>
                             <th>Part</th>
                             <th>Total Form</th>
                         </tr>
@@ -200,6 +201,9 @@
                     data: 'panel'
                 },
                 {
+                    data: 'panel_status'
+                },
+                {
                     data: 'part_details',
                     searchable: false
                 },
@@ -232,8 +236,7 @@
                     }
                 },
                 {
-                    // No. Meja Column
-                    targets: [5],
+                    targets: [6],
                     render: (data, type, row, meta) => {
                         var color = '#2b2f3a';
                         if (row.sisa == '0') {

@@ -37,61 +37,75 @@ class export_excel_laporan_sum_buyer implements FromView, ShouldAutoSize, WithEv
 
         $bulan_akhir = date('n', strtotime($this->end_date)); // Returns month as number without leading zero (e.g., 9)
         $tahun_akhir = date('Y', strtotime($this->end_date)); // Returns full year (e.g., 2025)
+
+        $today = date('Y-m-d');
+        $month = date('m');
+        $year = date('Y');
+
         $buyer = $this->buyer;
 
-        if ($buyer != "") {
-            $having_buyer = "HAVING a.buyer = '$buyer'";
-            $cond_buyer = "and ms.supplier = '$buyer'";
-            $cond_na = "";
+
+
+        if ($buyer === null || $buyer === '') {
+            $cond = "";
+            $hav = "";
         } else {
-            $having_buyer = "";
-            $cond_buyer = "";
-            $cond_na = "UNION
-SELECT
-'N/A' AS buyer,
-ROUND(0,2) AS tot_target,
-ROUND(0,2) AS tot_output,
-ROUND(0,2) AS sum_mins_avail,
-ROUND(0,2) AS sum_mins_prod,
-ROUND(0,2) AS eff,
-ROUND(0,2) AS earn_prod,
-ROUND(COALESCE(s.total_cost, 0),2) AS est_tot_cost,
-ROUND(0 - COALESCE(s.total_cost, 0),2) as blc,
-CASE
-    WHEN 0 = 0 THEN 0.00
-    ELSE round(((0 - COALESCE(s.total_cost, 0)) / 0) * 100,2)
-END AS percent_earning,
-
-
-ROUND(0,2) sum_est_full_earning,
-ROUND(0 - COALESCE(s.total_cost, 0),2) as blc_full_earn_cost_prod,
-CASE
-    WHEN 0 = 0 THEN 0.00
-    ELSE round(((0 - COALESCE(s.total_cost, 0)) / 0) * 100,2)
-END  AS percent_full_earning_cost,
-
-
-ROUND(0,2) AS sum_est_earning_prod,
-ROUND(0,2) AS sum_est_cost_prod,
-ROUND((0 - 0),2) as blc_earn_cost_prod,
-CASE
-    WHEN 0 = 0 THEN 0.00
-    ELSE round(((0 - COALESCE(s.total_cost, 0)) / 0) * 100,2)
-END  as percent_earn_cost_prod,
-
-ROUND(0,2)  AS sum_est_earning_mkt,
-ROUND(0,2)  AS sum_est_cost_mkt,
-ROUND(0,2)  as blc_earn_cost_mkt,
-CASE
-    WHEN 0 = 0 THEN 0.00
-    ELSE round(((0 - COALESCE(s.total_cost, 0)) / 0) * 100,2)
-END   as percent_earn_cost_mkt
-FROM sum_full_earn_wo_buyer s";
+            $cond = "AND a.buyer = '$buyer'";
+            $hav = "having buyer = '$buyer'";
         }
 
+        if ($this->start_date < $today && $this->end_date < $today) {
+
+            $rawData = DB::connection('mysql_sb')->select("WITH sum_earning_buyer as (
+select
+buyer,
+sum(tot_earning_rupiah) as sum_tot_earning_rupiah,
+sum(est_full_earning) as sum_est_full_earning,
+sum(est_earning_prod) as sum_est_earning_prod,
+sum(est_tot_cost) as est_tot_cost,
+sum(est_cost_prod) as sum_est_cost_prod,
+sum(est_earning_mkt) as sum_est_earning_mkt,
+sum(est_cost_mkt) as sum_est_cost_mkt
+from mgt_rep_tmp_earning
+where tanggal >= '$this->start_date' and tanggal <= '$this->end_date'
+group by buyer
+)
 
 
-        $rawData = DB::connection('mysql_sb')->select("WITH sum_cost as (
+select
+a.buyer,
+sum(coalesce(target,0)) as tot_target,
+sum(coalesce(tot_output,0)) as tot_output,
+sum(mins_avail) as sum_mins_avail,
+sum(mins_prod) as sum_mins_prod,
+ROUND(((sum(mins_prod) / sum(mins_avail)) * 100),2) as eff,
+sum(tot_earning_rupiah) as earn_prod,
+est_tot_cost,
+sum(tot_earning_rupiah) - est_tot_cost as blc,
+ROUND((((sum(tot_earning_rupiah) - est_tot_cost) / sum(tot_earning_rupiah)) * 100),2) as percent_earning,
+
+sum_est_full_earning,
+sum_est_full_earning - est_tot_cost as blc_full_earn_cost_prod,
+ROUND((((sum_est_full_earning - est_tot_cost) / sum_est_full_earning) * 100),2) as percent_full_earning_cost,
+
+sum_est_earning_prod,
+sum_est_cost_prod,
+sum_est_earning_prod - sum_est_cost_prod as blc_earn_cost_prod,
+ROUND(((sum_est_earning_prod - sum_est_cost_prod) / sum_est_earning_prod) * 100,2) as percent_earn_cost_prod,
+
+sum_est_earning_mkt,
+sum_est_cost_mkt,
+sum_est_earning_mkt - sum_est_cost_mkt as blc_earn_cost_mkt,
+ROUND((((sum_est_earning_mkt - sum_est_cost_mkt) / sum_est_earning_mkt) * 100),2) as percent_earn_cost_mkt
+
+from mgt_rep_tmp_earn a
+left join sum_earning_buyer b on a.buyer = b.buyer
+where a.tgl_trans >= '$this->start_date' and a.tgl_trans <= '$this->end_date' $cond
+group by a.buyer
+order by buyer asc");
+        } else {
+
+            $rawData = DB::connection('mysql_sb')->select("WITH sum_cost as (
  select a.cost_no,kpno,supplier,styleno,product_item,season_desc,curr,so_date,status,qty_so,price_so,cost_date,status_cost,qty_cost,COALESCE(ttl_fabric,0) ttl_fabric,COALESCE(ttl_accsew,0) ttl_accsew,COALESCE(ttl_accpack,0) ttl_accpack,(COALESCE(ttl_fabric,0) + COALESCE(ttl_accsew,0) + COALESCE(ttl_accpack,0)) ttl_material,COALESCE(ttl_cmt,0) ttl_cmt,COALESCE(ttl_embro,0) ttl_embro,COALESCE(ttl_wash,0) ttl_wash,COALESCE(ttl_print,0) ttl_print,COALESCE(ttl_wrapbut,0) ttl_wrapbut,COALESCE(ttl_compbut,0) ttl_compbut,COALESCE(ttl_label,0) ttl_label,COALESCE(ttl_laser,0) ttl_laser,(COALESCE(ttl_cmt,0) + COALESCE(ttl_embro,0) + COALESCE(ttl_wash,0) + COALESCE(ttl_print,0) + COALESCE(ttl_wrapbut,0) + COALESCE(ttl_compbut,0) + COALESCE(ttl_label,0) + COALESCE(ttl_laser,0)) ttl_manufacturing,COALESCE(ttl_develop,0) ttl_develop,COALESCE(ttl_overhead,0) ttl_overhead,COALESCE(ttl_market,0) ttl_market,COALESCE(ttl_shipp,0) ttl_shipp,COALESCE(ttl_import,0) ttl_import,COALESCE(ttl_handl,0) ttl_handl,COALESCE(ttl_test,0) ttl_test,COALESCE(ttl_fabhandl,0) ttl_fabhandl,COALESCE(ttl_service,0) ttl_service, COALESCE(ttl_clearcost,0) ttl_clearcost ,COALESCE(ttl_development,0) ttl_development ,COALESCE(ttl_unexcost,0) ttl_unexcost ,COALESCE(ttl_managementfee,0) ttl_managementfee ,COALESCE(ttl_profit,0) ttl_profit ,(COALESCE(ttl_develop,0) + COALESCE(ttl_overhead,0) + COALESCE(ttl_market,0) + COALESCE(ttl_shipp,0) + COALESCE(ttl_import,0) + COALESCE(ttl_handl,0) + COALESCE(ttl_test,0) + COALESCE(ttl_fabhandl,0) + COALESCE(ttl_service,0) + COALESCE(ttl_clearcost,0) + COALESCE(ttl_development,0) + COALESCE(ttl_unexcost,0) + COALESCE(ttl_managementfee,0) + COALESCE(ttl_profit,0)) ttl_others
            from (select a.cost_no,a.kpno,b.supplier,styleno,product_item,season_desc,if(so.curr is null,a.curr,so.curr) curr,so_date,IF(so.cancel_h = 'Y','CANCEL','-') status,so.qty qty_so,so.fob price_so,cost_date,a.status status_cost, a.qty qty_cost  from act_costing a INNER JOIN mastersupplier b ON a.id_buyer=b.Id_Supplier inner join masterproduct mp on a.id_product=mp.id left join so on so.id_cost = a.id left join masterseason ms on ms.id_season = so.id_season where cost_date >= '2025-01-01' GROUP BY cost_no) a left join (select cost_no, sum(ttl_fabric) ttl_fabric, sum(ttl_accsew) ttl_accsew, sum(ttl_accpack) ttl_accpack from (select cost_no,case when mattype = 'FABRIC' then total end as ttl_fabric,
            case when mattype = 'ACCESORIES SEWING' then total end as ttl_accsew,
@@ -120,13 +134,13 @@ FROM sum_full_earn_wo_buyer s";
 
  ),
 earn as (
- SELECT
+SELECT
                     a.tgl_trans,
                     concat((DATE_FORMAT(a.tgl_trans,  '%d')), '-',left(DATE_FORMAT(a.tgl_trans,  '%M'),3),'-',DATE_FORMAT(a.tgl_trans,  '%Y')) tgl_trans_fix,
                     concat((DATE_FORMAT(mp.tgl_plan,  '%d')), '-',left(DATE_FORMAT(mp.tgl_plan,  '%M'),3),'-',DATE_FORMAT(mp.tgl_plan,  '%Y')) tgl_plan_fix,
-										a.master_plan_id,
-                    u.name sewing_line,
+                    ul.username sewing_line,
                     ms.supplier buyer,
+					a.master_plan_id,
                     ac.kpno,
                     ac.styleno,
                     mp.color,
@@ -143,19 +157,19 @@ earn as (
                     sum(d_rfts.tot_rfts) tot_rfts,
                     op.tot_output_line,
                     so.curr,
-                    CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * konv_sb.rate_jual, acm.price)
+                    CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
                     ELSE acm.price end AS cm_price,
-										acm.allowance,
+					acm.allowance,
                     round(
-                    sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * konv_sb.rate_jual, acm.price)
+                    sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
                     ELSE acm.price end,2) AS earning,
-                    mkb.kurs_tengah,
+                    COALESCE(mr.kurs_tengah,mkb.kurs_tengah) kurs_tengah,
                     round(
                     if (so.curr = 'IDR',
-                    sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * konv_sb.rate_jual, acm.price)
+                    sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
                     ELSE acm.price end,
-                    sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * konv_sb.rate_jual, acm.price)
-                    ELSE acm.price end * mkb.kurs_tengah
+                    sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
+                    ELSE acm.price end * COALESCE(mr.kurs_tengah,mkb.kurs_tengah)
                     ),2) tot_earning_rupiah,
                     round((cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60),2) mins_avail,
                     round(sum(a.tot_output) * mp.smv,2) mins_prod,
@@ -165,33 +179,38 @@ earn as (
                 from
                 (
                     select
-                    date(updated_at)tgl_trans,
+                    date(a.updated_at)tgl_trans,
                     so_det_id,
                     master_plan_id,
                     count(so_det_id) tot_output,
                     time(max(a.updated_at)) jam_akhir_input,
-                    created_by
+                    userpassword.username
                     from output_rfts a
-                    where updated_at >= '$this->start_date 00:00:00' and updated_at <= '$this->end_date 23:59:59'
-                    group by master_plan_id, created_by, date(updated_at)
+                    left join user_sb_wip on user_sb_wip.id = a.created_by
+                    left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                    where a.updated_at >= '$today 00:00:00' and a.updated_at <= '$today 23:59:59'
+                    group by master_plan_id, userpassword.username, date(a.updated_at)
+										having userpassword.username != 'line_sample_prod'
                 ) a
                 inner join so_det sd on a.so_det_id = sd.id
                 inner join so on sd.id_so = so.id
                 inner join act_costing ac on so.id_cost = ac.id
-                inner join user_sb_wip u on a.created_by = u.id
+                inner join userpassword ul on ul.username = a.username
                 inner join master_plan mp on a.master_plan_id = mp.id
                 inner join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
                 left join (
-                    select date(updated_at) tgl_trans_line,max(time(updated_at)) jam_akhir_input_line,count(so_det_id) tot_output_line,
-                        case
-                        when time(max(updated_at)) >= '12:00:00' and time(max(updated_at)) <= '18:44:59' THEN '01:00:00'
-                        when time(max(updated_at)) <= '12:00:00'  THEN '00:00:00'
-                        when time(max(updated_at)) >= '18:45:00'  THEN '01:30:00'
-                        END as istirahat,
-                    created_by
+                    select date(output_rfts.updated_at) tgl_trans_line,max(time(output_rfts.updated_at)) jam_akhir_input_line,count(output_rfts.so_det_id) tot_output_line,
+                            case
+                            when time(max(output_rfts.updated_at)) >= '12:00:00' and time(max(output_rfts.updated_at)) <= '18:44:59' THEN '01:00:00'
+                            when time(max(output_rfts.updated_at)) <= '12:00:00'  THEN '00:00:00'
+                            when time(max(output_rfts.updated_at)) >= '18:45:00'  THEN '01:30:00'
+                            END as istirahat,
+                    userpassword.username
                     from output_rfts
-                    where updated_at >= '$this->start_date 00:00:00' and updated_at <= '$this->end_date 23:59:59' group by created_by, date(updated_at)
-                ) op on a.tgl_trans = op.tgl_trans_line and a.created_by = op.created_by
+                    left join user_sb_wip on user_sb_wip.id = output_rfts.created_by
+                    left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                    where output_rfts.updated_at >= '$today 00:00:00' and output_rfts.updated_at <= '$today 23:59:59' group by userpassword.username, date(output_rfts.updated_at)
+                ) op on a.tgl_trans = op.tgl_trans_line and ul.username = op.username
                 left join (
                     select * from act_costing_mfg where id_item = '8' group by id_act_cost
                 ) acm on ac.id = acm.id_act_cost
@@ -199,20 +218,25 @@ earn as (
                     select * from masterrate where  curr='USD' and v_codecurr IN('COSTING3','COSTING6','COSTING8','COSTING12') group by tanggal
                 ) konv_sb on ac.deldate = konv_sb.tanggal
                 left join (
+                    select * from masterrate where  curr='USD' and v_codecurr IN('COSTING3','COSTING6','COSTING8','COSTING12') group by tanggal ORDER BY tanggal DESC limit 1
+                ) last_konv_sb on ac.deldate >= last_konv_sb.tanggal
+                left join (
                     SELECT
-                        master_plan_id,
-                        tgl_trans_rfts,
-                        sum(tot_rfts)tot_rfts
+                            master_plan_id,
+                            tgl_trans_rfts,
+                            sum(tot_rfts)tot_rfts
                     from
                     (
-                        select
-                        date(updated_at)tgl_trans_rfts,
-                        master_plan_id,
-                        count(so_det_id) tot_rfts,
-                        created_by
-                        from output_rfts a
-                        where updated_at >= '$this->start_date 00:00:00' and updated_at <= '$this->end_date 23:59:59' and status = 'NORMAL'
-                        group by master_plan_id, created_by, date(updated_at)
+                            select
+                            date(a.updated_at)tgl_trans_rfts,
+                            master_plan_id,
+                            count(so_det_id) tot_rfts,
+                            userpassword.username
+                            from output_rfts a
+                            left join user_sb_wip on user_sb_wip.id = a.created_by
+                            left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                            where a.updated_at >= '$today 00:00:00' and a.updated_at <= '$today 23:59:59' and status = 'NORMAL'
+                            group by master_plan_id, userpassword.username, date(a.updated_at)
                     ) a
                     inner join master_plan mp on a.master_plan_id = mp.id
                     group by tgl_trans_rfts, master_plan_id
@@ -220,31 +244,47 @@ earn as (
                 left join
                 (
                     select min(id), man_power, sewing_line, tgl_plan from master_plan
-                    where tgl_plan >= '$this->start_date' and  tgl_plan <= '$this->end_date' and cancel = 'N'
+                    where tgl_plan >= '$today' and  tgl_plan <= '$today' and cancel = 'N'
                     group by sewing_line, tgl_plan
-                ) cmp on a.tgl_trans = cmp.tgl_plan and u.username = cmp.sewing_line
+                ) cmp on a.tgl_trans = cmp.tgl_plan and ul.username = cmp.sewing_line
 
                 -- Kurs join for pre-MySQL 8
                 LEFT JOIN (
                     SELECT x.tgl_trans, x.max_kurs_date, k.kurs_tengah
                     FROM (
-                        SELECT a_dates.tgl_trans, MAX(mkb.tanggal_kurs_bi) AS max_kurs_date
-                        FROM (
-                            SELECT DISTINCT date(updated_at) AS tgl_trans
-                            FROM output_rfts
-                            WHERE updated_at >= '$this->start_date 00:00:00' AND updated_at <= '$this->end_date 23:59:59'
-                        ) a_dates
-                        JOIN master_kurs_bi mkb
-                        ON mkb.tanggal_kurs_bi <= a_dates.tgl_trans
-                        GROUP BY a_dates.tgl_trans
+                            SELECT a_dates.tgl_trans, MAX(mkb.tanggal_kurs_bi) AS max_kurs_date
+                            FROM (
+                                    SELECT DISTINCT date(updated_at) AS tgl_trans
+                                    FROM output_rfts
+                                    WHERE updated_at >= '$today 00:00:00' AND updated_at <= '$today 23:59:59'
+                            ) a_dates
+                            JOIN master_kurs_bi mkb
+                            ON mkb.tanggal_kurs_bi <= a_dates.tgl_trans
+                            GROUP BY a_dates.tgl_trans
                     ) x
                     JOIN master_kurs_bi k
                     ON k.tanggal_kurs_bi = x.max_kurs_date
                 ) mkb ON a.tgl_trans = mkb.tgl_trans
-				where u.name != 'line sample prod'
-                $cond_buyer
-                group by u.name, ac.kpno, ac.Styleno, a.tgl_trans
-                order by a.tgl_trans asc, u.name asc, ac.kpno asc
+
+                LEFT JOIN (
+                    SELECT x.tgl_trans, x.max_kurs_date, k.rate as kurs_tengah
+                    FROM (
+                        SELECT a_dates.tgl_trans, MAX(mr.tanggal) AS max_kurs_date
+                        FROM (
+                            SELECT DISTINCT date(updated_at) AS tgl_trans
+                            FROM output_rfts
+                            WHERE updated_at >= '$today 00:00:00' AND updated_at <= '$today 23:59:59'
+                        ) a_dates
+                        JOIN masterrate mr
+                        ON mr.tanggal <= a_dates.tgl_trans
+                        GROUP BY a_dates.tgl_trans
+                    ) x
+                    JOIN masterrate k
+                    ON k.tanggal = x.max_kurs_date
+                    WHERE k.v_codecurr = 'HARIAN'
+                ) mr ON a.tgl_trans = mr.tgl_trans
+                group by ul.username, ac.kpno, ac.Styleno, a.tgl_trans
+                order by a.tgl_trans asc, ul.username asc, ac.kpno asc
 ),
 dd as (
 SELECT
@@ -256,7 +296,9 @@ FROM dim_date a
 LEFT JOIN mgt_rep_hari_libur b ON a.tanggal = b.tanggal_libur
 WHERE status_prod = 'KERJA'
 AND (status_absen != 'LN' OR status_absen IS NULL)
-AND a.bulan >= '$bulan_awal' and a.tahun >= '$tahun_awal' and a.bulan <= '$bulan_akhir' and a.tahun <= '$tahun_akhir'
+AND CAST(a.bulan AS UNSIGNED) >= '$month'
+AND CAST(a.tahun AS UNSIGNED) >= '$year'
+AND CAST(a.tahun AS UNSIGNED) <= '$year'
 GROUP BY bulan, tahun
 ORDER BY
 CAST(a.tahun AS UNSIGNED) ASC,
@@ -274,11 +316,10 @@ case
 		when status_prod = 'LIBUR' AND status_absen = 'LP' THEN 'LIBUR'
 		when status_prod = 'LIBUR' AND status_absen = 'LN' THEN 'LIBUR'
 		when status_prod = 'LIBUR' AND status_absen is null THEN 'LIBUR'
-
 		END AS stat_kerja
 FROM dim_date a
 left join mgt_rep_hari_libur b on a.tanggal = b.tanggal_libur
-where tanggal >= '$this->start_date' and tanggal <= '$this->end_date'
+where tanggal >= '$today' and tanggal <= '$today'
 ),
 dc as (
 SELECT
@@ -290,7 +331,9 @@ projection,
 round(sum(projection / tot_working_days),2) AS daily_cost
 FROM mgt_rep_daily_cost a
 LEFT JOIN dd ON a.bulan = dd.bulan AND a.tahun = dd.tahun
-WHERE a.bulan >= '$bulan_awal' and a.tahun >= '$tahun_awal' and a.bulan <= '$bulan_akhir' and a.tahun <= '$tahun_akhir'
+WHERE CAST(a.bulan AS UNSIGNED) >= '$month'
+AND CAST(a.tahun AS UNSIGNED) >= '$year'
+AND CAST(a.tahun AS UNSIGNED) <= '$year'
 GROUP BY no_coa, dd.bulan, dd.tahun
 ),
 coa_direct as (
@@ -305,6 +348,7 @@ FROM dim_tgl d
 cross join mastercoa_v2 a
 left join dc on a.no_coa = dc.no_coa
 where eng_categori4 = 'DIRECT LABOR COST'
+group by tanggal, no_coa
 ),
 coa_indirect as (
 select
@@ -318,6 +362,7 @@ FROM dim_tgl d
 cross join mastercoa_v2 a
 left join dc on a.no_coa = dc.no_coa
 where eng_categori4 = 'INDIRECT LABOR COST'
+group by tanggal, no_coa
 ),
 coa_overhead as (
 select
@@ -331,6 +376,7 @@ FROM dim_tgl d
 cross join mastercoa_v2 a
 left join dc on a.no_coa = dc.no_coa
 where eng_categori4 = 'FIXED OVERHEAD COST'
+group by tanggal, no_coa
 ),
 coa_selling as (
 select
@@ -344,6 +390,7 @@ FROM dim_tgl d
 cross join mastercoa_v2 a
 left join dc on a.no_coa = dc.no_coa
 where eng_categori4 = 'SELLING EXPENSE'
+group by tanggal, no_coa
 ),
 coa_ga as (
 select
@@ -357,6 +404,7 @@ FROM dim_tgl d
 cross join mastercoa_v2 a
 left join dc on a.no_coa = dc.no_coa
 where eng_categori4 = 'GENERAL & ADMINISTRATION EXPENSE'
+group by tanggal, no_coa
 ),
 coa_expense as (
 select
@@ -370,6 +418,7 @@ FROM dim_tgl d
 cross join mastercoa_v2 a
 left join dc on a.no_coa = dc.no_coa
 where eng_categori3 = 'OTHER EXPENSE'
+group by tanggal, no_coa
 ),
 map_coa as (
 select no_coa, nama_coa, no_cc, cc_name, group2, id_pc from (select a.no_coa, a.nama_coa, b.no_cc, cc_name, b.id_pc, group2 from (select no_coa, nama_coa, support_gen_adm, support_prod, prod, support_sell from mastercoa_v2 where support_gen_adm != 'N' OR support_prod != 'N' OR prod != 'N' OR support_sell != 'N') a inner join
@@ -395,7 +444,7 @@ sum(bpjs_tk) bpjs_tk,
 sum(bpjs_ks) bpjs_ks,
 sum(thr) thr
 from mgt_rep_labor
-WHERE tanggal_berjalan BETWEEN '$this->start_date' AND '$this->end_date' AND status_staff = 'NON STAFF' -- dynamic filter
+WHERE tanggal_berjalan = '$today' AND status_staff = 'NON STAFF' -- dynamic filter
 group by sub_dept_id, group_department, tanggal_berjalan
 ),
 daily_cost as (
@@ -763,7 +812,7 @@ left join earn a on dt.tanggal = a.tgl_trans
 left join sum_daily_cost b on dt.tanggal = b.tanggal
 left join sum_earn c on dt.tanggal = c.tgl_trans
 left join sum_cost d on a.kpno = d.kpno
-where dt.tanggal >= '$this->start_date' and dt.tanggal <= '$this->end_date'
+where dt.tanggal = '$today'
 order by dt.tanggal asc, sewing_line asc
 ),
 sum_earning as (
@@ -784,12 +833,12 @@ SUM(CASE WHEN department_name = 'sewing' and status_staff = 'NON STAFF' THEN man
 SUM(CASE WHEN department_name = 'sewing' and status_staff = 'NON STAFF' THEN absen_menit ELSE 0 END) AS sewing_absen_menit,
 SUM(man_power)  AS tot_man_power
 from mgt_rep_labor
-WHERE tanggal_berjalan BETWEEN '2025-10-01' AND '2025-10-08'
+WHERE tanggal_berjalan = '$today'
 group by tanggal_berjalan
 order by tanggal_berjalan asc
 ),
 m_kurs_bi as (
-select * from master_kurs_bi where tanggal_kurs_bi BETWEEN '2025-10-01' AND '2025-10-08'
+select * from master_kurs_bi where tanggal_kurs_bi = '$today'
 ),
 sum_full_earning as (
 select
@@ -833,8 +882,8 @@ sum_full_earn_wo_buyer as (
   SELECT SUM(est_tot_cost) AS total_cost
   FROM sum_full_earning
   WHERE sum_tot_earning_rupiah = 0
-)
-
+),
+sum_buyer as (
 select
 a.buyer,
 sum(coalesce(target,0)) as tot_target,
@@ -864,11 +913,73 @@ ROUND((((sum_est_earning_mkt - sum_est_cost_mkt) / sum_est_earning_mkt) * 100),2
 from earn a
 left join sum_earning_buyer b on a.buyer = b.buyer
 group by a.buyer
-$having_buyer
-$cond_na
+)
+
+        SELECT
+        a.buyer,
+        sum(tot_target) as tot_target,
+        sum(tot_output) as tot_output,
+        sum(sum_mins_avail) as sum_mins_avail,
+        sum(sum_mins_prod) as sum_mins_prod,
+        ROUND(((sum(sum_mins_prod) / sum(sum_mins_avail)) * 100),2) as eff,
+        sum(earn_prod) as earn_prod,
+        sum(est_tot_cost) as est_tot_cost,
+        sum(blc) as blc,
+        ROUND((((sum(earn_prod) - sum(est_tot_cost)) / sum(earn_prod)) * 100),2) as percent_earning,
+
+        sum(sum_est_full_earning) as sum_est_full_earning,
+        sum(blc_full_earn_cost_prod) as blc_full_earn_cost_prod,
+        ROUND((((sum(sum_est_full_earning) - sum(est_tot_cost)) / sum(sum_est_full_earning)) * 100),2) as percent_full_earning_cost,
+
+        sum(sum_est_earning_prod) as sum_est_earning_prod,
+        sum(sum_est_cost_prod) as sum_est_cost_prod,
+        sum(blc_earn_cost_prod) as blc_earn_cost_prod,
+        ROUND(((sum(sum_est_earning_prod) - sum(sum_est_cost_prod)) / sum(sum_est_earning_prod)) * 100,2) as percent_earn_cost_prod,
+
+        sum(sum_est_earning_mkt) as sum_est_earning_mkt,
+        sum(sum_est_cost_mkt) as sum_est_cost_mkt,
+        sum(blc_earn_cost_mkt) as blc_earn_cost_mkt,
+        ROUND((((sum(sum_est_earning_mkt) - sum(sum_est_cost_mkt)) / sum(sum_est_earning_mkt)) * 100),2) as percent_earn_cost_mkt
+
+        FROM (
+        SELECT * from sum_buyer
+        UNION ALL
+        select
+        a.buyer,
+        sum(coalesce(target,0)) as tot_target,
+        sum(coalesce(tot_output,0)) as tot_output,
+        sum(mins_avail) as sum_mins_avail,
+        sum(mins_prod) as sum_mins_prod,
+        ROUND(((sum(mins_prod) / sum(mins_avail)) * 100),2) as eff,
+        sum(tot_earning_rupiah) as earn_prod,
+        est_tot_cost,
+        sum(tot_earning_rupiah) - est_tot_cost as blc,
+        ROUND((((sum(tot_earning_rupiah) - est_tot_cost) / sum(tot_earning_rupiah)) * 100),2) as percent_earning,
+
+        sum_est_full_earning,
+        sum_est_full_earning - est_tot_cost as blc_full_earn_cost_prod,
+        ROUND((((sum_est_full_earning - est_tot_cost) / sum_est_full_earning) * 100),2) as percent_full_earning_cost,
+
+        sum_est_earning_prod,
+        sum_est_cost_prod,
+        sum_est_earning_prod - sum_est_cost_prod as blc_earn_cost_prod,
+        ROUND(((sum_est_earning_prod - sum_est_cost_prod) / sum_est_earning_prod) * 100,2) as percent_earn_cost_prod,
+
+        sum_est_earning_mkt,
+        sum_est_cost_mkt,
+        sum_est_earning_mkt - sum_est_cost_mkt as blc_earn_cost_mkt,
+        ROUND((((sum_est_earning_mkt - sum_est_cost_mkt) / sum_est_earning_mkt) * 100),2) as percent_earn_cost_mkt
+
+        from mgt_rep_tmp_earn a
+        left join sum_earning_buyer b on a.buyer = b.buyer
+        where a.tgl_trans >= '$this->start_date' and a.tgl_trans <= '$this->end_date'
+        group by a.buyer
+        ) a
+        group by buyer
+        $hav
+        order by buyer asc
         ");
-
-
+        }
         $this->rowCount = count($rawData) + 1; // 1 for header
 
         return view('management_report.export_excel_laporan_sum_buyer', [

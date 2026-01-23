@@ -71,7 +71,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
         $data = DB::select("
             select * from (
                 select
-                    COALESCE(scanned_item.qty_in, b.qty) qty_in,
+                    COALESCE(b.qty) qty_in,
                     a.waktu_mulai,
                     a.waktu_selesai,
                     b.id,
@@ -110,13 +110,13 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     COALESCE(b.lot, '-') lot,
                     COALESCE(b.group_roll, '-') group_roll,
                     (
-                        CASE WHEN
-                            b.status != 'extension' AND b.status != 'extension complete'
-                        THEN
-                            (CASE WHEN COALESCE(scanned_item.qty_in, b.qty) > b.qty AND c.id IS NULL THEN 'Sisa Kain' ELSE 'Roll Utuh' END)
-                        ELSE
-                            'Sambungan'
-                        END
+                            CASE WHEN
+                                    b.status != 'extension' AND b.status != 'extension complete'
+                            THEN
+                                    (CASE WHEN COALESCE(scanned_item.qty_in, b.qty) > b.qty AND c.id IS NULL THEN 'Sisa Kain' ELSE 'Roll Utuh' END)
+                            ELSE
+                                    'Sambungan'
+                            END
                     ) status_roll,
                     COALESCE(c.qty, b.qty) qty_awal,
                     b.qty qty_roll,
@@ -135,19 +135,22 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     b.reject,
                     b.piping,
                     ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2) sisa_kain,
-                    ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran + COALESCE(c.sisa_gelaran, 0)) + (b.sambungan_roll + COALESCE(c.sisa_gelaran, 0)) + (CASE WHEN c.id is null THEN 0 ELSE c.sambungan END), 2) pemakaian_lembar,
-                    ROUND(ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran + COALESCE(c.sisa_gelaran, 0)) + (b.sambungan_roll + COALESCE(c.sisa_gelaran, 0)) + (CASE WHEN c.id is null THEN 0 ELSE c.sambungan END), 2) + (b.kepala_kain + COALESCE(c.kepala_kain, 0)) + (b.sisa_tidak_bisa + COALESCE(c.sisa_tidak_bisa, 0)) + (b.reject + COALESCE(c.reject, 0)) + (b.piping + COALESCE(c.piping, 0)), 2) total_pemakaian_roll,
-                    CASE WHEN c.id IS NULL THEN round(((ROUND(ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran + COALESCE(c.sisa_gelaran, 0)) + (b.sambungan_roll + COALESCE(c.sisa_gelaran, 0)) + (CASE WHEN c.id is null THEN 0 ELSE c.sambungan END), 2) + (b.kepala_kain + COALESCE(c.kepala_kain, 0)) + (b.sisa_tidak_bisa + COALESCE(c.sisa_tidak_bisa, 0)) + (b.reject + COALESCE(c.reject, 0)) + (b.piping + COALESCE(c.piping, 0)), 2)+b.sisa_kain)-b.qty), 2) ELSE round(((ROUND(ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran + COALESCE(c.sisa_gelaran, 0)) + (b.sambungan_roll + COALESCE(c.sisa_gelaran, 0)) + (CASE WHEN c.id is null THEN 0 ELSE c.sambungan END), 2) + (b.kepala_kain + COALESCE(c.kepala_kain, 0)) + (b.sisa_tidak_bisa + COALESCE(c.sisa_tidak_bisa, 0)) + (b.reject + COALESCE(c.reject, 0)) + (b.piping + COALESCE(c.piping, 0)), 2)+b.sisa_kain)-c.qty), 2) END short_roll,
-                    CASE WHEN c.id IS NULL THEN (round((CASE WHEN c.id IS NULL THEN round(((ROUND(ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran + COALESCE(c.sisa_gelaran, 0)) + (b.sambungan_roll + COALESCE(c.sisa_gelaran, 0)) + (CASE WHEN c.id is null THEN 0 ELSE c.sambungan END), 2) + (b.kepala_kain + COALESCE(c.kepala_kain, 0)) + (b.sisa_tidak_bisa + COALESCE(c.sisa_tidak_bisa, 0)) + (b.reject + COALESCE(c.reject, 0)) + (b.piping + COALESCE(c.piping, 0)), 2)+b.sisa_kain)-b.qty), 2) ELSE round(((ROUND(ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran + COALESCE(c.sisa_gelaran, 0)) + (b.sambungan_roll + COALESCE(c.sisa_gelaran, 0)) + (CASE WHEN c.id is null THEN 0 ELSE c.sambungan END), 2) + (b.kepala_kain + COALESCE(c.kepala_kain, 0)) + (b.sisa_tidak_bisa + COALESCE(c.sisa_tidak_bisa, 0)) + (b.reject + COALESCE(c.reject, 0)) + (b.piping + COALESCE(c.piping, 0)), 2)+b.sisa_kain)-c.qty), 2) END)/b.qty*100)) ELSE (round((CASE WHEN c.id IS NULL THEN round(((ROUND(ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran + COALESCE(c.sisa_gelaran, 0)) + (b.sambungan_roll + COALESCE(c.sisa_gelaran, 0)) + (CASE WHEN c.id is null THEN 0 ELSE c.sambungan END), 2) + (b.kepala_kain + COALESCE(c.kepala_kain, 0)) + (b.sisa_tidak_bisa + COALESCE(c.sisa_tidak_bisa, 0)) + (b.reject + COALESCE(c.reject, 0)) + (b.piping + COALESCE(c.piping, 0)), 2)+b.sisa_kain)-b.qty), 2) ELSE round(((ROUND(ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran + COALESCE(c.sisa_gelaran, 0)) + (b.sambungan_roll + COALESCE(c.sisa_gelaran, 0)) + (CASE WHEN c.id is null THEN 0 ELSE c.sambungan END), 2) + (b.kepala_kain + COALESCE(c.kepala_kain, 0)) + (b.sisa_tidak_bisa + COALESCE(c.sisa_tidak_bisa, 0)) + (b.reject + COALESCE(c.reject, 0)) + (b.piping + COALESCE(c.piping, 0)), 2)+b.sisa_kain)-c.qty), 2) END)/c.qty*100, 2)) END short_roll_percentage,
+                    ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran ) + (b.sambungan_roll ) , 2) pemakaian_lembar,
+                    ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping), 2) total_pemakaian_roll,
+                    ROUND(((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping))+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2))-b.qty, 2) short_roll,
+                    ROUND((((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping)+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2)))-b.qty)/b.qty*100, 2) short_roll_percentage,
                     b.status,
                     a.operator,
                     a.tipe_form_cut,
                     b.created_at,
-                    b.updated_at
+                    b.updated_at,
+                    (CASE WHEN d.id is null and e.id is null THEN 'latest' ELSE 'not latest' END) roll_status
                 from
                     form_cut_input a
                     left join form_cut_input_detail b on a.id = b.form_cut_id
                     left join form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and (c.status = 'extension' OR c.status = 'extension complete')
+                    LEFT JOIN form_cut_input_detail d on d.id_roll = b.id_roll AND b.id != d.id AND d.created_at > b.created_at and d.created_at >= '2025-01-01 00:00:00' and d.created_at <= '2025-12-31 23:59:59'
+                    LEFT JOIN form_cut_piping e on e.id_roll = b.id_roll AND e.created_at > b.created_at and e.created_at >= '2025-01-01 00:00:00' and e.created_at <= '2025-12-31 23:59:59'
                     left join users meja on meja.id = a.no_meja
                     left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
                     left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
@@ -158,14 +161,12 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     AND a.status = 'SELESAI PENGERJAAN'
                     and b.status != 'not complete'
                     and b.id_item is not null
-                    AND a.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH)
-                    AND b.created_at >= DATE(NOW()-INTERVAL 6 MONTH)
-                    ".$additionalQuery."
+                    " . $additionalQuery . "
                 group by
                     b.id
-                union
+                UNION ALL
                 select
-                    COALESCE(scanned_item.qty_in, form_cut_piping.qty) qty_in,
+                    COALESCE(form_cut_piping.qty) qty_in,
                     form_cut_piping.created_at waktu_mulai,
                     form_cut_piping.updated_at waktu_selesai,
                     form_cut_piping.id,
@@ -229,24 +230,27 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     form_cut_piping.operator,
                     'PIPING' tipe_form_cut,
                     form_cut_piping.created_at,
-                    form_cut_piping.updated_at
+                    form_cut_piping.updated_at,
+                    (CASE WHEN c.id is null THEN 'latest' ELSE 'not latest' END) roll_status
                 from
                     form_cut_piping
+                    LEFT JOIN form_cut_input_detail b on b.id_roll = form_cut_piping.id_roll AND b.created_at > form_cut_piping.created_at and b.created_at >= '2025-01-01 00:00:00' and b.created_at <= '2025-12-31 23:59:59'
+                    LEFT JOIN form_cut_piping c on c.id_roll = form_cut_piping.id_roll AND c.id != form_cut_piping.id and c.created_at > form_cut_piping.created_at and c.created_at >= '2025-01-01 00:00:00' and c.created_at <= '2025-12-31 23:59:59'
                     left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
                     left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
                 where
-                    id_item is not null
-                    ".$additionalQuery1."
+                    scanned_item.id_item is not null
+                    " . $additionalQuery1 . "
                 group by
                     form_cut_piping.id
-                union
-                select
-                    COALESCE(scanned_item.qty_in, form_cut_piece_detail.qty) qty_in,
+                UNION ALL
+                SELECT
+                    form_cut_piece_detail.qty qty_in,
                     form_cut_piece.created_at waktu_mulai,
                     form_cut_piece.updated_at waktu_selesai,
                     form_cut_piece.id,
-                    DATE_FORMAT(form_cut_piece.created_at, '%M') bulan,
-                    DATE_FORMAT(form_cut_piece.created_at, '%d-%m-%Y') tgl_input,
+                    DATE_FORMAT( form_cut_piece.created_at, '%M' ) bulan,
+                    DATE_FORMAT( form_cut_piece.created_at, '%d-%m-%Y' ) tgl_input,
                     form_cut_piece.no_form no_form_cut_input,
                     '-' nama_meja,
                     form_cut_piece.act_costing_ws,
@@ -276,11 +280,11 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     form_cut_piece_detail.id_roll,
                     scanned_item.id_item,
                     scanned_item.detail_item,
-                    COALESCE(scanned_item.roll_buyer, scanned_item.roll) roll,
+                    COALESCE ( scanned_item.roll_buyer, scanned_item.roll ) roll,
                     scanned_item.lot,
                     '-' group_roll,
-                    (CASE WHEN form_cut_piece_detail.qty >= COALESCE(scanned_item.qty_in, 0) THEN 'Roll Utuh' ELSE 'Sisa Kain' END) status_roll,
-                    COALESCE(scanned_item.qty_in, form_cut_piece_detail.qty) qty_awal,
+                    ( CASE WHEN form_cut_piece_detail.qty >= COALESCE ( scanned_item.qty_in, 0 ) THEN 'Roll Utuh' ELSE 'Sisa Kain' END ) status_roll,
+                    COALESCE ( scanned_item.qty_in, form_cut_piece_detail.qty ) qty_awal,
                     form_cut_piece_detail.qty qty_roll,
                     form_cut_piece_detail.qty_unit unit_roll,
                     0 berat_amparan,
@@ -299,30 +303,32 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     form_cut_piece_detail.qty_sisa sisa_kain,
                     form_cut_piece_detail.qty_pemakaian pemakaian_lembar,
                     form_cut_piece_detail.qty_pemakaian total_pemakaian_roll,
-                    ROUND(form_cut_piece_detail.qty - (form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa)) short_roll,
-                    ROUND((form_cut_piece_detail.qty - (form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa))/coalesce(scanned_item.qty_in, form_cut_piece_detail.qty) * 100, 2) short_roll_percentage,
-                    form_cut_piece_detail.status `status`,
+                    ROUND(
+                    form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa )) short_roll,
+                    ROUND((form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa ))/ COALESCE ( scanned_item.qty_in, form_cut_piece_detail.qty ) * 100, 2 ) short_roll_percentage,
+                    form_cut_piece_detail.STATUS `status`,
                     form_cut_piece.employee_name,
                     'PCS' tipe_form_cut,
                     form_cut_piece.created_at,
-                    form_cut_piece.updated_at
-                from
+                    form_cut_piece.updated_at,
+                    (CASE WHEN b.id is null THEN 'latest' ELSE 'not latest' END) roll_status
+                FROM
                     form_cut_piece
-                    left join form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
-                    left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
-                    left join scanned_item on scanned_item.id_roll = form_cut_piece_detail.id_roll
-                where
-                    scanned_item.id_item is not null and
-                    form_cut_piece_detail.status = 'complete'
-                    ".$additionalQuery2."
-                group by
+                    LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
+                    LEFT JOIN form_cut_piece_detail b on b.id_roll = form_cut_piece_detail.id_roll AND b.created_at > form_cut_piece_detail.created_at
+                    LEFT JOIN ( SELECT * FROM master_sb_ws GROUP BY id_act_cost ) master_sb_ws ON master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
+                    LEFT JOIN scanned_item ON scanned_item.id_roll = form_cut_piece_detail.id_roll
+                WHERE
+                    scanned_item.id_item IS NOT NULL
+                    AND form_cut_piece_detail.STATUS = 'complete'
+                    " . $additionalQuery2 . "
+                GROUP BY
                     form_cut_piece_detail.id
             ) roll_consumption
             order by
-                waktu_mulai asc,
-                waktu_selesai asc,
-                created_at asc,
-                updated_at asc
+                no_form_cut_input,
+                id_roll asc,
+                created_at asc
         ");
 
         $this->rowCount = count($data) + 3;

@@ -48,7 +48,7 @@
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Color</small></label>
-                                <input type="hidden" class="form-control" id="color" name="color" value="{{ $marker->color }}">
+                                <input type="hidden" class="form-control" id="color" name="color" value="{{ strtoupper(trim($marker->color)) }}">
                                 <select class="form-control select2bs4" id="color_select2" name="color_select2" style="width: 100%;">
                                     <option selected="selected" value="">Pilih Color</option>
                                     {{-- select 2 option --}}
@@ -708,6 +708,8 @@
                         }
                     }
                 }, error: function (jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+                    
                     // Error Response
 
                     let res = jqXHR.responseJSON;

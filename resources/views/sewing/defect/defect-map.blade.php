@@ -99,8 +99,7 @@
                         @endforeach
                     </select>
                 </div>
-                <button class="btn btn-sb-secondary" data-bs-toggle="modal" data-bs-target="#filterModal"><i
-                        class="fa fa-filter"></i></button>
+                <button class="btn btn-sb-secondary" data-bs-toggle="modal" data-bs-target="#filterModal"><i class="fa fa-filter"></i></button>
                 <button class="btn btn-primary" onclick="showDefectMap()"><i class="fa fa-search"></i></button>
                 {{-- <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#reportDefectModal"><i class="fa fa-file-excel"></i></button> --}}
             </div>
@@ -361,6 +360,37 @@
                     console.error(jqXHR);
                 },
             })
+        }
+
+        async function checkDefectMap() {
+            document.getElementById("loading").classList.remove("d-none");
+
+            await $.ajax({
+                url: "{{ route('defect-map-data') }}",
+                type: "get",
+                data: {
+                    dateFrom: $('#dateFrom').val(),
+                    dateTo: $('#dateTo').val(),
+                    defect_types: $('#defect_types').val(),
+                    defect_areas: $('#defect_areas').val(),
+                    defect_status: $('#defect_status').val(),
+                    sewing_line: $('#sewing_line').val(),
+                    buyer: $('#buyer').val(),
+                    ws: $('#ws').val(),
+                    style: $('#style').val(),
+                    color: $('#color').val(),
+                    size: $('#size').val(),
+                    department: $('#department').val(),
+                },
+                dataType: "json",
+                success: async function(response) {
+                    console.log(response);
+
+                    if (response && response > ) {
+                        Swal.fire
+                    }
+                }
+            });
         }
 
         async function showDefectMap() {

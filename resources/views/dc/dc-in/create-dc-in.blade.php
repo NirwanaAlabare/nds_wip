@@ -37,13 +37,13 @@
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Tempat</small></label>
-                                    <select class='form-control select2bs4' style='width: 100%;' name='mass_cbotempat' id='mass_cbotempat' onchange='getmasslokasi();'></select>
+                                    <select class='form-control' style='width: 100%;' name='mass_cbotempat' id='mass_cbotempat' onchange='getmasslokasi();' readonly></select>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Lokasi</small></label>
-                                    <select class='form-control select2bs4' style='width: 100%;' name='mass_cbolokasi' id='mass_cbolokasi'></select>
+                                    <select class='form-control' style='width: 100%;' name='mass_cbolokasi' id='mass_cbolokasi' readonly></select>
                                 </div>
                             </div>
                         </div>
@@ -457,7 +457,7 @@
                             url: '{{ route('insert_tmp_dc_in') }}',
                             data: {
                                 txtqrstocker: txtqrstocker,
-                                txttuj_h: document.form.txttuj_h.value,
+                                txttuj_h: response.tujuan,
                                 txtlok_h: response.lokasi,
                                 txttempat_h: response.tempat
                             },
@@ -468,7 +468,6 @@
 
                                 $("#txtqr").val('');
                                 getdatatmp();
-                                initScan();
                             },
                             error: function(request, status, error) {
                                 if (document.getElementById("loading")) {
@@ -493,6 +492,8 @@
                             timerProgressBar: true
                         })
                     }
+
+                    initScan();
                 },
                 error: function(request, status, error) {
                     if (document.getElementById("loading")) {
@@ -500,6 +501,8 @@
                     }
 
                     alert(request.responseText);
+
+                    initScan();
                 },
             });
         };
@@ -928,6 +931,8 @@
                     },
                     dataType: 'json',
                     success: async function(response) {
+                        console.log(response);
+
                         if (document.getElementById("loading")) {
                             document.getElementById("loading").classList.add("d-none");
                         }

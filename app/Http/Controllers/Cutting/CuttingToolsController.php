@@ -225,11 +225,13 @@ class CuttingToolsController extends Controller
         if ($validatedRequest) {
             $checkStocker = Stocker::where("form_cut_id", $validatedRequest['modify_ratio_form_id'])->first();
 
-            if ($checkStocker) {
-                return array(
-                    "status" => 400,
-                    "message" => "Form sudah memiliki Stocker."
-                );
+            if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() < 1) {
+                if ($checkStocker) {
+                    return array(
+                        "status" => 400,
+                        "message" => "Form sudah memiliki Stocker."
+                    );
+                }
             }
 
             $oldMarker = Marker::where("kode", $validatedRequest['modify_ratio_kode_marker'])->first();
@@ -354,6 +356,8 @@ class CuttingToolsController extends Controller
         ]);
 
         if ($validatedRequest) {
+            $currentForm = FormCutInput::where("id", $validatedRequest['modify_marker_form_id'])->first();
+
             // If not Bypassed
             if (!isset($request['modify_bypass_stocker'])) {
 
@@ -562,14 +566,16 @@ class CuttingToolsController extends Controller
                                             if (count($filtered) < 1) {
                                                 // Update Stocker
                                                 Stocker::where("form_cut_id", $validatedRequest["modify_marker_form_id"])
-                                                ->where("so_det_id", $markerDetail->masterSbWs->id_so_det)
-                                                ->update([
-                                                    "act_costing_ws" => $currentSoDet->kpno,
-                                                    "color" => $currentSoDet->color,
-                                                    "so_det_id" => $currentSoDet->so_det_id,
-                                                    "size" => $currentSoDet->size . ($currentSoDet->dest && $currentSoDet->dest != "-" ? " - " . $currentSoDet->dest : ""),
-                                                    "notes" => DB::raw("CONCAT(notes, ' MODIFY MARKER')")
-                                                ]);
+                                                    ->where("so_det_id", $markerDetail->masterSbWs->id_so_det)
+                                                    ->update([
+                                                        // "part_id" => $currentSoDet->kpno,
+                                                        // "act_costing_ws" => $currentSoDet->kpno,
+                                                        // "color" => $currentSoDet->color,
+                                                        // "so_det_id" => $currentSoDet->so_det_id,
+                                                        // "size" => $currentSoDet->size . ($currentSoDet->dest && $currentSoDet->dest != "-" ? " - " . $currentSoDet->dest : ""),
+                                                        "notes" => DB::raw("CONCAT(notes, ' MODIFY MARKER CANCEL')"),
+                                                        "cancel" => 'Y'
+                                                    ]);
                                             }
                                         }
                                     }
@@ -577,7 +583,7 @@ class CuttingToolsController extends Controller
                             }
                         }
 
-                        $stockerService->reorderStockerNumbering($partId);
+                        $stockerService->reorderStockerNumbering($partId, $validatedRequest["modify_marker_color"], $currentForm->no_cut);
                     }
 
                     return array(
@@ -789,7 +795,7 @@ class CuttingToolsController extends Controller
         if ($validatedRequest['form_group']) {
             if ($validatedRequest['form_group_new']) {
                 // Update Form Group
-                $updateFormGroup = DB::table($formTable)->where(($formTable == "form_cut_reject" ? "id" : ($formTable == "form_cut_piece_detail" ? "form_id" : $formTable == "form_cut_input_detail" ? "form_cut_id" : "")), $validatedRequest["form_cut_id"])->where("group_stocker", $validatedRequest["form_group"])->update([
+                $updateFormGroup = DB::table($formTable)->where(($formTable == "form_cut_reject" ? "id" : ($formTable == "form_cut_piece_detail" ? "form_id" : ($formTable == "form_cut_input_detail" ? "form_cut_id" : ""))), $validatedRequest["form_cut_id"])->where("group_stocker", $validatedRequest["form_group"])->update([
                     ($formTable == "form_cut_reject" ? "group" : "group_roll") => $validatedRequest["form_group_new"]
                 ]);
 

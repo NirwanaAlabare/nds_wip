@@ -76,49 +76,53 @@
                         </div>
                     </div>
                     <div class="col-12 col-md-12" id="parts-section">
-                        <div class="row">
-                            <div class="col-3">
-                                <label class="form-label"><small>Part</small></label>
-                                <select class="form-control select2bs4" name="part_details[0]" id="part_details_0">
-                                    <option value="">Pilih Part</option>
-                                    @foreach ($masterParts as $masterPart)
-                                        <option value="{{ $masterPart->id }}" data-index="0">{{ $masterPart->nama_part }} - {{ $masterPart->bag }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-3">
-                                <label class="form-label"><small>Cons</small></label>
-                                <div class="d-flex mb-3">
-                                    <div style="width: 50%;">
-                                        <input type="number" class="form-control" style="border-radius: 3px 0 0 3px;" name="cons[0]" id="cons_0" step="0.001">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-2">
+                                        <label class="form-label"><small>Part</small></label>
+                                        <select class="form-control select2bs4" name="part_details[0]" id="part_details_0">
+                                            <option value="">Pilih Part</option>
+                                            @foreach ($masterParts as $masterPart)
+                                                <option value="{{ $masterPart->id }}" data-index="0">{{ $masterPart->nama_part }} - {{ $masterPart->bag }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
-                                    <div style="width: 50%;">
-                                        <select class="form-select" style="border-radius: 0 3px 3px 0;" name="cons_unit[0]" id="cons_unit_0">
-                                            <option value="meter">METER</option>
-                                            <option value="yard">YARD</option>
-                                            <option value="kgm">KGM</option>
-                                            <option value="pcs">PCS</option>
+                                    <div class="col-2">
+                                        <label class="form-label"><small>Cons</small></label>
+                                        <div class="d-flex mb-3">
+                                            <div style="width: 50%;">
+                                                <input type="number" class="form-control" style="border-radius: 3px 0 0 3px;" name="cons[0]" id="cons_0" step="0.001">
+                                            </div>
+                                            <div style="width: 50%;">
+                                                <select class="form-select" style="border-radius: 0 3px 3px 0;" name="cons_unit[0]" id="cons_unit_0">
+                                                    <option value="meter">METER</option>
+                                                    <option value="yard">YARD</option>
+                                                    <option value="kgm">KGM</option>
+                                                    <option value="pcs">PCS</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <label class="form-label"><small>Tujuan</small></label>
+                                        <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="tujuan[0]" id="tujuan_0">
+                                            <option value="">Pilih Tujuan</option>
+                                            @foreach ($masterTujuan as $tujuan)
+                                                <option value="{{ $tujuan->id }}">{{ $tujuan->tujuan }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-2">
+                                        <label class="form-label"><small>Proses</small></label>
+                                        <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="proses[0]" id="proses_0" data-index="0" onchange="changeTujuan(this)">
+                                            <option value="">Pilih Proses</option>
+                                            @foreach ($masterSecondary as $secondary)
+                                                <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-3">
-                                <label class="form-label"><small>Tujuan</small></label>
-                                <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="tujuan[0]" id="tujuan_0">
-                                    <option value="">Pilih Tujuan</option>
-                                    @foreach ($masterTujuan as $tujuan)
-                                        <option value="{{ $tujuan->id }}">{{ $tujuan->tujuan }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-3">
-                                <label class="form-label"><small>Proses</small></label>
-                                <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="proses[0]" id="proses_0" data-index="0" onchange="changeTujuan(this)">
-                                    <option value="">Pilih Proses</option>
-                                    @foreach ($masterSecondary as $secondary)
-                                        <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses }}</option>
-                                    @endforeach
-                                </select>
                             </div>
                         </div>
                     </div>
