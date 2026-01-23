@@ -39,6 +39,7 @@
                             <th>Username</th>
                             <th>Roles</th>
                             <th>Accesses</th>
+                            <th>Cutting Unlocker</th>
                             <th>Updated_at</th>
                         </thead>
                         <tbody>
@@ -99,6 +100,14 @@
                                 @endforeach
                             </select>
                         </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="1" id="cutting_unlocker" name="cutting_unlocker">
+                                <label class="form-check-label" for="cutting_unlocker">
+                                    Cutting Unlocker
+                                </label>
+                            </div>
+                        </div>
                         <div class="d-flex justify-content-end gap-3">
                             <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
                             <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Simpan</button>
@@ -118,7 +127,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form action="{{ route("update-user-detail") }}" method="post" onsubmit="submitForm(this, event)">
+                    <form action="{{ route("update-user-detail") }}" method="post" onsubmit="submitForm(this, event)" id="update-user-detail-form">
                         @method('PUT')
                         <input type="hidden" name="edit_id" id="edit_id">
                         <div class="mb-3">
@@ -162,6 +171,14 @@
                             </select>
                         </div>
                         <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="1" id="edit_cutting_unlocker" name="edit_cutting_unlocker">
+                                <label class="form-check-label" for="edit_cutting_unlocker">
+                                    Cutting Unlocker
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">Roles</label>
                             <div class="table-responsive">
                                 <table class="table table-bordered w-100" id="user-role-table">
@@ -180,7 +197,6 @@
                                 </table>
                             </div>
                         </div>
-
                         <div class="d-flex justify-content-end gap-3 mb-3">
                             <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
                             <button type="submit" class="btn btn-success fw-bold"><i class="fa fa-save"></i> Simpan</button>
@@ -242,6 +258,9 @@
                     data: 'accesses',
                 },
                 {
+                    data: 'cutting_unlocker',
+                },
+                {
                     data: 'updated_at'
                 }
             ],
@@ -273,7 +292,7 @@
                 },
                 // Updated At
                 {
-                    targets: [5],
+                    targets: [6],
                     render: (data, type, row, meta) => {
                         return formatDateTime(data);
                     }
@@ -346,5 +365,10 @@
         function dataTableUserRoleReload() {
             $('#user-role-table').DataTable().ajax.reload();
         }
+
+        // Edit Form Reload
+        $("#editUserModal").on('hidden.bs.modal', function (e) {
+            document.getElementById("update-user-detail-form").reset();
+        })
     </script>
 @endsection

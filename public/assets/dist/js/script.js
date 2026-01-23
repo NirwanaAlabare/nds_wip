@@ -568,9 +568,15 @@ async function editData(e, modal, addons = []) {
                 document.getElementById('edit_' + key).src = data[key];
             }
 
-            document.getElementById('edit_' + key).value = data[key];
-            document.getElementById('edit_' + key).setAttribute('value', data[key]);
+            if (![...document.getElementById('edit_' + key).classList].some(className => className.includes('form-check'))) {
+                document.getElementById('edit_' + key).value = data[key];
+                document.getElementById('edit_' + key).setAttribute('value', data[key]);
+            } else {
+                // checkbox
+                $('#edit_' + key).attr("checked", data[key]);
+            }
 
+            // select2
             if ([...document.getElementById('edit_' + key).classList].some(className => className.includes('select2'))) {
                 $('#edit_' + key).val(data[key]).trigger('change.select2');
             }

@@ -75,16 +75,19 @@ class ManageUserController extends Controller
                 "username" => $validatedRequest["username"],
                 "password" => Hash::make($validatedRequest["password"]),
                 "password_text" => $validatedRequest["password"],
-                "type" => $request["type"]
+                "type" => $request["type"],
+                "cutting_unlocker" => isset($request["cutting_unlocker"]) ? $request["cutting_unlocker"] : null
             ]);
 
             if ($create) {
-                $roleArray = [];
-                for ($i = 0; $i < count($request['roles']); $i++) {
-                    array_push($roleArray, ["user_id" => $create->id, "role_id" => $request['roles'][$i]]);
-                }
+                if ($request['roles']) {
+                    $roleArray = [];
+                    for ($i = 0; $i < count($request['roles']); $i++) {
+                        array_push($roleArray, ["user_id" => $create->id, "role_id" => $request['roles'][$i]]);
+                    }
 
-                UserRole::insert($roleArray);
+                    UserRole::insert($roleArray);
+                }
             }
 
             return array(
@@ -137,19 +140,23 @@ class ManageUserController extends Controller
     {
         $validatedRequest = $request->validated();
 
+        // dd($request["edit_cutting_unlocker"]);
+
         if ($validatedRequest["edit_password"]) {
             $updateUser = User::where("id", $validatedRequest["edit_id"])->update([
                 "name" => $validatedRequest["edit_name"],
                 "username" => $validatedRequest["edit_username"],
                 "password" => Hash::make($validatedRequest["edit_password"]),
                 "password_text" => $validatedRequest["edit_password"],
-                "type" => $validatedRequest["edit_type"]
+                "type" => $validatedRequest["edit_type"],
+                "cutting_unlocker" => isset($request["edit_cutting_unlocker"]) ? $request["edit_cutting_unlocker"] : null
             ]);
         } else {
             $updateUser = User::where("id", $validatedRequest["edit_id"])->update([
                 "name" => $validatedRequest["edit_name"],
                 "username" => $validatedRequest["edit_username"],
-                "type" => $validatedRequest["edit_type"]
+                "type" => $validatedRequest["edit_type"],
+                "cutting_unlocker" => isset($request["edit_cutting_unlocker"]) ? $request["edit_cutting_unlocker"] : null
             ]);
         }
 
