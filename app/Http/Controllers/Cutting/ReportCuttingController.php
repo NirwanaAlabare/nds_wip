@@ -11,6 +11,8 @@ use App\Exports\ExportPemakaianKain;
 use App\Exports\ExportDetailPemakaianKain;
 use App\Exports\ExportReportCuttingDaily;
 use App\Exports\export_excel_report_cutting_mutasi_fabric;
+use App\Exports\export_excel_report_gr_set;
+use App\Exports\export_excel_report_gr_panel;
 use App\Exports\Cutting\CuttingOrderOutputExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
@@ -1301,7 +1303,7 @@ ws,
 min(sisa_kain) sisa_kain
 from form_cut_alokasi_gr_panel_barcode a
 left join scanned_item s on a.barcode = s.id_roll
-where a.created_at >= '2026-01-01 00:00:00' and a.created_at < '$start_date 00:00:00'
+where a.tgl_trans >= '2026-01-01' and a.tgl_trans < '$start_date'
 group by barcode, ws
 ),
 gk_retur_sa as (
@@ -1666,7 +1668,7 @@ ws,
 min(sisa_kain) sisa_kain
 from form_cut_alokasi_gr_panel_barcode a
 left join scanned_item s on a.barcode = s.id_roll
-where a.created_at >= '$start_date 00:00:00' and a.created_at <= '$end_date 23:59:59'
+where a.tgl_trans >= '$start_date' and a.tgl_trans <= '$end_date'
 group by barcode, ws
 ),
 gk_retur as (
@@ -2068,17 +2070,159 @@ GROUP BY id_item, ws, satuan
 
 
         // For non-AJAX (initial page load)
-        return view('cutting.report.report_mutasi_fabric', [
-            'page' => 'dashboard-cutting',
-            'subPageGroup' => 'cutting-report',
-            'subPage' => '"cutting"]);',
-            'containerFluid' => true,
-        ]);
+        return view(
+            'cutting.report.report_mutasi_fabric',
+            [
+                'page' => 'dashboard-cutting',
+                "subPageGroup" => "cutting-report",
+                "subPage" => "report_mutasi_fabric",
+                'containerFluid' => true
+            ]
+        );
     }
 
 
     public function export_excel_report_cutting_mutasi_fabric(Request $request)
     {
         return Excel::download(new export_excel_report_cutting_mutasi_fabric($request->start_date, $request->end_date), 'Laporan_Penerimaan FG_Stok.xlsx');
+    }
+
+    /// Report Ganti Reject Set
+    public function report_gr_set(Request $request)
+    {
+        $start_date = $request->input('start_date'); // example: 9 (September)
+        $end_date = $request->input('end_date'); // example: 2025
+        $tgl_skrg = date('Y-m-d');
+
+        if ($request->ajax()) {
+            // ✅ If bulan or tahun is missing, return no data
+            if ($start_date === null || $end_date === null) {
+                return response()->json(['data' => []]);
+            } else {
+                $rawData = DB::select("SELECT
+tanggal,
+DATE_FORMAT(tanggal, '%d-%M-%Y') AS tanggal_fix,
+no_form,
+panel,
+act_costing_ws,
+style,
+a.color,
+barcode,
+s.id_item,
+mi.itemdesc,
+        CASE
+            WHEN s.unit = 'YRD' THEN b.qty_pakai * 0.9144
+            ELSE b.qty_pakai
+        END
+     AS qty_pakai,
+CASE
+		WHEN s.unit = 'YRD' THEN 'METER'
+		WHEN s.unit = 'KGM' THEN 'KGM'
+		ELSE s.unit
+		END as satuan
+from form_cut_reject a
+inner join form_cut_reject_barcode b on a.id = b.form_id
+left join scanned_item s on b.barcode = s.id_roll
+left join signalbit_erp.masteritem mi on s.id_item = mi.id_item
+where b.created_at >= '$start_date 00:00:00' and b.created_at <= '$end_date 23:59:59'
+order by tanggal asc, no_form asc
+            ");
+
+                return response()->json([
+                    'data' => $rawData // ✅ simplified response
+                ]);
+            }
+        }
+
+        return view(
+            'cutting.report.report_ganti_reject_set',
+            [
+                'page' => 'dashboard-cutting',
+                "subPageGroup" => "cutting-report",
+                "subPage" => "report_ganti_reject_set",
+                'tgl_skrg' => $tgl_skrg,
+                'containerFluid' => true
+            ]
+        );
+    }
+
+
+    public function export_excel_report_gr_set(Request $request)
+    {
+        return Excel::download(new export_excel_report_gr_set($request->start_date, $request->end_date), 'Laporan_Penerimaan FG_Stok.xlsx');
+    }
+
+
+    /// Report Ganti Reject Set
+    public function report_gr_panel(Request $request)
+    {
+        $start_date = $request->input('start_date'); // example: 9 (September)
+        $end_date = $request->input('end_date'); // example: 2025
+        $tgl_skrg = date('Y-m-d');
+
+        if ($request->ajax()) {
+            // ✅ If bulan or tahun is missing, return no data
+            if ($start_date === null || $end_date === null) {
+                return response()->json(['data' => []]);
+            } else {
+                $rawData = DB::select("SELECT
+a.tgl_trans,
+DATE_FORMAT(a.tgl_trans, '%d-%M-%Y') AS tanggal_fix,
+buyer,
+ws,
+styleno,
+mi.color,
+barcode,
+mi.id_item,
+mi.itemdesc,
+CASE
+    WHEN s.unit = 'YRD' THEN a.qty_pakai * 0.9144
+    ELSE a.qty_pakai
+END AS qty_pakai,
+CASE
+		WHEN s.unit = 'YRD' THEN 'METER'
+		WHEN s.unit = 'KGM' THEN 'KGM'
+		ELSE s.unit
+END as satuan
+from form_cut_alokasi_gr_panel_barcode a
+left join scanned_item s on a.barcode = s.id_roll
+LEFT JOIN (SELECT
+				jd.id_jo,
+				ac.kpno,
+                supplier as buyer,
+                styleno
+				FROM signalbit_erp.jo_det jd
+				INNER JOIN signalbit_erp.so ON jd.id_so = so.id
+				INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+				WHERE jd.cancel = 'N'
+				GROUP BY jd.id_jo
+) k on a.ws = k.kpno
+LEFT JOIN signalbit_erp.masteritem mi on s.id_item = mi.id_item
+where a.tgl_trans >= '$start_date' and a.tgl_trans <= '$end_date'
+order by a.tgl_trans asc
+            ");
+
+                return response()->json([
+                    'data' => $rawData // ✅ simplified response
+                ]);
+            }
+        }
+
+        return view(
+            'cutting.report.report_ganti_reject_panel',
+            [
+                'page' => 'dashboard-cutting',
+                "subPageGroup" => "cutting-report",
+                "subPage" => "report_ganti_reject_panel",
+                'tgl_skrg' => $tgl_skrg,
+                'containerFluid' => true
+            ]
+        );
+    }
+
+    public function export_excel_report_gr_panel(Request $request)
+    {
+        return Excel::download(new export_excel_report_gr_panel($request->start_date, $request->end_date), 'Laporan_Penerimaan FG_Stok.xlsx');
     }
 }

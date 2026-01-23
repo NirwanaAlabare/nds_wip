@@ -17,33 +17,14 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
-
-    <style>
-        .checkbox-cell-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 50px;
-            height: 100%;
-            padding: 0;
-        }
-    </style>
 @endsection
 
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Form GR Panel</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-box-open"></i> Penerimaan Fabric Cutting</h5>
         </div>
         <div class="card-body">
-            <div class="mb-3">
-                <a href="{{ route('create_form_gr_panel') }}" target=""
-                    class="btn btn-outline-primary position-relative btn-sm">
-                    <i class="fas fa-plus"></i>
-                    New
-                </a>
-            </div>
-
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Awal</b></small></label>
@@ -56,35 +37,41 @@
                         value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <a class="btn btn-outline-primary position-relative btn-sm" onclick="dataTableReload()">
+                    <a class="btn btn-outline-primary position-relative btn-sm" id= "btn-cari" name="btn-cari"
+                        onclick="dataTableReload()">
                         <i class="fas fa-search"></i>
                         Cari
                     </a>
                 </div>
-
                 <div class="mb-3">
                     <a onclick="export_excel()" class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel
                     </a>
                 </div>
+
             </div>
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-hover align-middle text-nowrap w-100">
+                <table id="datatable" class="table table-bordered table-striped table-hover w-100">
                     <thead class="bg-sb">
                         <tr>
-                            <th scope="col" class="text-center align-middle">Tgl</th>
-                            <th scope="col" class="text-center align-middle">No. Form</th>
-                            <th scope="col" class="text-center align-middle">Tujuan</th>
-                            <th scope="col" class="text-center align-middle">ID Item</th>
+                            <th scope="col" class="text-center align-middle">No. BPPB</th>
+                            <th scope="col" class="text-center align-middle">Tgl. BPPB</th>
+                            <th scope="col" class="text-center align-middle">No. Req</th>
                             <th scope="col" class="text-center align-middle">Barcode</th>
-                            <th scope="col" class="text-center align-middle">Panel</th>
-                            <th scope="col" class="text-center align-middle">WS</th>
+                            <th scope="col" class="text-center align-middle">No. Roll</th>
+                            <th scope="col" class="text-center align-middle">No. Roll Buyer</th>
+                            <th scope="col" class="text-center align-middle">No. Lot</th>
+                            <th scope="col" class="text-center align-middle">ID Item</th>
+                            <th scope="col" class="text-center align-middle">No. WS</th>
+                            <th scope="col" class="text-center align-middle">No. WS Act</th>
                             <th scope="col" class="text-center align-middle">Style</th>
-                            <th scope="col" class="text-center align-middle">Color</th>
-                            <th scope="col" class="text-center align-middle">Qty Part</th>
-                            <th scope="col" class="text-center align-middle">Qty Pakai</th>
-                            <th scope="col" class="text-center align-middle">Unit</th>
+                            <th scope="col" class="text-center align-middle">Nama Barang</th>
+                            <th scope="col" class="text-center align-middle">Warna</th>
+                            <th scope="col" class="text-center align-middle">Qty Out</th>
+                            <th scope="col" class="text-center align-middle">Satuan</th>
+                            <th scope="col" class="text-center align-middle">Qty Konv</th>
+                            <th scope="col" class="text-center align-middle">Satuan Konv</th>
                         </tr>
 
                     </thead>
@@ -122,69 +109,128 @@
     </script>
     <script>
         function dataTableReload() {
-            datatable.ajax.reload();
+            let start_date = $('#tgl-awal').val();
+            let end_date = $('#tgl-akhir').val();
+
+            const datatable = $("#datatable").DataTable({
+                destroy: true,
+                ordering: false,
+                responsive: false,
+                serverSide: false,
+                paging: true,
+                searching: true,
+
+                scrollX: true,
+                scrollY: '500px',
+                scrollCollapse: true,
+
+                autoWidth: false, // WAJIB false
+                deferRender: true,
+
+                processing: false,
+
+                ajax: {
+                    url: '{{ route('roll_fabric_cutting_in') }}',
+                    data(d) {
+                        d.start_date = start_date;
+                        d.end_date = end_date;
+                    },
+                    dataSrc(json) {
+                        if (start_date && end_date) Swal.close();
+                        return json.data;
+                    },
+                    error() {
+                        Swal.fire('Error', 'Failed to load data.', 'error');
+                    }
+                },
+
+                columns: [{
+                        data: 'no_bppb'
+                    },
+                    {
+                        data: 'tgl_bppb_fix'
+                    },
+                    {
+                        data: 'no_req'
+                    },
+                    {
+                        data: 'id_roll'
+                    },
+                    {
+                        data: 'no_roll'
+                    },
+                    {
+                        data: 'no_roll_buyer'
+                    },
+                    {
+                        data: 'no_lot'
+                    },
+                    {
+                        data: 'id_item'
+                    },
+                    {
+                        data: 'no_ws'
+                    },
+                    {
+                        data: 'no_ws_aktual'
+                    },
+                    {
+                        data: 'styleno'
+                    },
+                    {
+                        data: 'itemdesc'
+                    },
+                    {
+                        data: 'color'
+                    },
+                    {
+                        data: 'qty_out'
+                    },
+                    {
+                        data: 'satuan'
+                    },
+                    {
+                        data: 'qty_out_konversi'
+                    },
+                    {
+                        data: 'satuan_konversi'
+                    },
+
+                ],
+                initComplete: function() {
+                    // 🔥 PAKSA RECALC SETELAH LOAD
+                    setTimeout(() => {
+                        this.api().columns.adjust();
+                    }, 100);
+                }
+            });
+            // 🔥 FIX ZOOM IN / OUT
+            $(window).off('resize.dt').on('resize.dt', function() {
+                datatable.columns.adjust();
+            });
         }
+
+        $('#btn-cari').on('click', function() {
+            Swal.fire({
+                title: 'Loading...',
+                text: 'Please wait while data is loading.',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            dataTableReload();
+
+            // tutup loading saat ajax selesai
+            $('#datatable').on('xhr.dt', function() {
+                Swal.close();
+            });
+        });
+
 
         $(document).ready(function() {
             dataTableReload();
         })
 
-        let datatable = $("#datatable").DataTable({
-            ordering: false,
-            responsive: true,
-            processing: true,
-            serverSide: false,
-            paging: true,
-            searching: true,
-            scrollY: true,
-            scrollX: true,
-            scrollCollapse: false,
-
-            ajax: {
-                url: '{{ route('form_gr_panel') }}',
-                data: function(d) {
-                    d.dateFrom = $('#tgl-awal').val();
-                    d.dateTo = $('#tgl-akhir').val();
-                },
-            },
-            columns: [{
-                    data: 'tgl_form_fix'
-                },
-                {
-                    data: 'no_form'
-                },
-                {
-                    data: 'tujuan'
-                },
-                {
-                    data: 'id_item'
-                },
-                {
-                    data: 'barcode'
-                },
-                {
-                    data: 'nama_panel'
-                },
-                {
-                    data: 'kpno'
-                },
-                {
-                    data: 'styleno'
-                },
-                {
-                    data: 'color'
-                },
-                {
-                    data: 'qty_part'
-                },
-                {
-                    data: 'qty_pakai'
-                },
-                {
-                    data: 'unit'
-                },
-            ],
-        });
 
         function export_excel() {
             let start_date = $('#tgl-awal').val();
@@ -200,7 +246,7 @@
 
             $.ajax({
                 type: "get",
-                url: '{{ route('export_excel_form_gr_panel_det') }}',
+                url: '{{ route('export_roll_fabric_cutting_in') }}',
                 data: {
                     start_date: start_date,
                     end_date: end_date
@@ -220,7 +266,7 @@
                     var blob = new Blob([response]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Laporan GR Panel Detail" + start_date + " _ " + end_date +
+                    link.download = "Laporan Penerimaan Fabric Cutting " + start_date + " _ " + end_date +
                         ".xlsx";
                     link.click();
                 },

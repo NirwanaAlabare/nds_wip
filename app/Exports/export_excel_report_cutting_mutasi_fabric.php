@@ -97,7 +97,7 @@ ws,
 min(sisa_kain) sisa_kain
 from form_cut_alokasi_gr_panel_barcode a
 left join scanned_item s on a.barcode = s.id_roll
-where a.created_at >= '2026-01-01 00:00:00' and a.created_at < '$start_date 00:00:00'
+where a.tgl_trans >= '2026-01-01' and a.tgl_trans < '$start_date'
 group by barcode, ws
 ),
 gk_retur_sa as (
@@ -462,7 +462,7 @@ ws,
 min(sisa_kain) sisa_kain
 from form_cut_alokasi_gr_panel_barcode a
 left join scanned_item s on a.barcode = s.id_roll
-where a.created_at >= '$start_date 00:00:00' and a.created_at <= '$end_date 23:59:59'
+where a.tgl_trans >= '$start_date' and a.tgl_trans <= '$end_date'
 group by barcode, ws
 ),
 gk_retur as (

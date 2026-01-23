@@ -14,6 +14,7 @@ use Carbon\Carbon;
 use DNS1D;
 use PDF;
 use DB;
+use App\Exports\export_excel_report_roll_fabric_cutting_in;
 use \avadim\FastExcelLaravel\Excel as FastExcel;
 //
 use Illuminate\Support\Facades\Auth;
@@ -131,7 +132,7 @@ class RollController extends Controller
         //     return DataTables::of($data_pemakaian)->toJson();
         // }
 
-        return view('cutting.roll.roll', ['page' => 'dashboard-cutting', "subPageGroup" => "laporan-cutting", "subPage" => "lap-pemakaian"]);
+        return view('cutting.roll.roll', ['page' => 'dashboard-cutting', "subPageGroup" => "cutting-report", "subPage" => "lap-pemakaian"]);
     }
 
     public function pemakaianRollData(Request $request)
@@ -1703,6 +1704,87 @@ from signalbit_erp.jo_det jd
         ]);
     }
 
+
+    /// Penerimaan Fabric Cutting
+    public function roll_fabric_cutting_in(Request $request)
+    {
+        $start_date = $request->input('start_date'); // example: 9 (September)
+        $end_date = $request->input('end_date'); // example: 2025
+        $tgl_skrg = date('Y-m-d');
+        $user = Auth::user()->name;
+
+        if ($request->ajax()) {
+            // ✅ If bulan or tahun is missing, return no data
+            if ($start_date === null || $end_date === null) {
+                return response()->json(['data' => []]);
+            } else {
+                $rawData = DB::select("SELECT
+a.no_bppb,
+DATE_FORMAT(tgl_bppb, '%d-%M-%Y') AS tgl_bppb_fix,
+tgl_bppb,
+no_req,
+id_roll,
+no_roll,
+no_roll_buyer,
+no_lot,
+mi.id_item,
+no_ws,
+no_ws_aktual,
+styleno,
+mi.itemdesc,
+mi.color,
+qty_out,
+satuan,
+        CASE
+            WHEN satuan = 'YRD' THEN ROUND(qty_out * 0.9144,2)
+            ELSE qty_out
+        END as qty_out_konversi,
+CASE
+		WHEN satuan = 'YRD' THEN 'METER'
+		WHEN satuan = 'KGM' THEN 'KGM'
+		ELSE satuan
+		END as satuan_konversi
+FROM signalbit_erp.whs_bppb_h a
+inner join signalbit_erp.whs_bppb_det b on a.no_bppb = b.no_bppb
+inner join signalbit_erp.masteritem mi on b.id_item = mi.id_item
+LEFT JOIN (SELECT
+						jd.id_jo,
+						ac.kpno,
+            supplier as buyer,
+            styleno
+				FROM signalbit_erp.jo_det jd
+				INNER JOIN signalbit_erp.so ON jd.id_so = so.id
+				INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+				WHERE jd.cancel = 'N'
+				GROUP BY jd.id_jo) k on a.no_ws_aktual = k.kpno
+where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
+
+            ");
+
+                return response()->json([
+                    'data' => $rawData // ✅ simplified response
+                ]);
+            }
+        }
+
+        return view(
+            'cutting.roll.penerimaan_fabric_cutting',
+            [
+                'page' => 'dashboard-cutting',
+                "subPageGroup" => "cutting-report",
+                "subPage" => "roll_fabric_cutting_in",
+                'tgl_skrg' => $tgl_skrg,
+                'containerFluid' => true,
+                "user" => $user
+            ]
+        );
+    }
+
+    public function export_roll_fabric_cutting_in(Request $request)
+    {
+        return Excel::download(new export_excel_report_roll_fabric_cutting_in($request->start_date, $request->end_date), 'Laporan_Penerimaan FG_Stok.xlsx');
+    }
 
 
     public function create()

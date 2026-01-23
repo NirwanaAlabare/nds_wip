@@ -713,6 +713,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/detail-pemakaian-roll', 'detailPemakaianRoll')->name('detail-pemakaian-roll');
         Route::get('/total-pemakaian-roll', 'totalPemakaianRoll')->name('total-pemakaian-roll');
         Route::get('/report_cutting_mutasi_fabric', 'report_cutting_mutasi_fabric')->name('report_cutting_mutasi_fabric');
+        Route::get('/report_gr_set', 'report_gr_set')->name('report_gr_set');
+        Route::get('/report_gr_panel', 'report_gr_panel')->name('report_gr_panel');
 
         // export excel
         Route::post('/cutting/export', 'export')->name('report-cutting-export');
@@ -720,6 +722,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/pemakaian-roll/export', 'pemakaianRollExport')->name('pemakaian-roll-export');
         Route::post('/detail-pemakaian-roll/export', 'detailPemakaianRollExport')->name('detail-pemakaian-roll-export');
         Route::get('/export_excel_report_cutting_mutasi_fabric', 'export_excel_report_cutting_mutasi_fabric')->name('export_excel_report_cutting_mutasi_fabric');
+        Route::get('/export_excel_report_gr_set', 'export_excel_report_gr_set')->name('export_excel_report_gr_set');
+        Route::get('/export_excel_report_gr_panel', 'export_excel_report_gr_panel')->name('export_excel_report_gr_panel');
     });
 
     // Roll
@@ -742,6 +746,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/alokasi_fabric_gr_panel', 'alokasi_fabric_gr_panel')->name('alokasi_fabric_gr_panel');
         Route::get('/create_alokasi_fabric_gr_panel', 'create_alokasi_fabric_gr_panel')->name('create_alokasi_fabric_gr_panel');
         Route::post('/save_alokasi_fabric_gr_panel', 'save_alokasi_fabric_gr_panel')->name('save_alokasi_fabric_gr_panel');
+        // Penerimaan Fabric Cutting
+        Route::get('/roll_fabric_cutting_in', 'roll_fabric_cutting_in')->name('roll_fabric_cutting_in');
+        Route::get('/export_roll_fabric_cutting_in', 'export_roll_fabric_cutting_in')->name('export_roll_fabric_cutting_in');
     });
 
     // Ganti Reject GR
@@ -752,6 +759,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get_barcode_form_gr_panel/{id?}', 'get_barcode_form_gr_panel')->name('get_barcode_form_gr_panel');
         Route::get('/get_ws_all_form_gr_panel', 'get_ws_all_form_gr_panel')->name('get_ws_all_form_gr_panel');
         Route::post('/save_form_gr_panel', 'save_form_gr_panel')->name('save_form_gr_panel');
+        Route::get('/export_excel_form_gr_panel_det', 'export_excel_form_gr_panel_det')->name('export_excel_form_gr_panel_det');
     });
 
     // Cutting Tools

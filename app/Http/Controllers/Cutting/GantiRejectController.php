@@ -10,6 +10,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
+use App\Exports\export_excel_form_gr_panel_det;
 use Carbon\Carbon;
 use DNS1D;
 use PDF;
@@ -375,5 +376,10 @@ left join lr on db.id_item = lr.id_item and  db.id_jo = lr.id_jo", [$id]);
             'message' => 'Form Berhasil dibuat',
             'no_form' => $no_form
         ]);
+    }
+
+    public function export_excel_form_gr_panel_det(Request $request)
+    {
+        return Excel::download(new export_excel_form_gr_panel_det($request->start_date, $request->end_date), 'Laporan_Penerimaan FG_Stok.xlsx');
     }
 }
