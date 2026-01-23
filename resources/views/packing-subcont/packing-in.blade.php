@@ -518,7 +518,6 @@ $('.select2type').select2({
 
                  if (row.status == 'DRAFT') {
                     return `<div class='d-flex gap-1 justify-content-center'>
-                    <a href="{{ route('edit-inmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-warning'><i class="fa-solid fa-pen-to-square"></i></button></a>
                     <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='CancelPackingIn("` + row.no_bpb + `")'><i class="fa-solid fa-trash"></i></button>
                     <button type='button' class='btn btn-sm btn-info' onclick='showDetail("${row.id}")'> <i class="fa-solid fa-eye"></i> Detail</button>
                     </div>`;
