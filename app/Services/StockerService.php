@@ -401,7 +401,7 @@ class StockerService
 
             // Type Checking
             if ($formCut->type == "PIECE") {
-                // Adjust form data
+                // Piece Form
                 $currentNumber++;
                 FormCutPiece::where("id", $formCut->id_form)->update([
                     "no_cut" => $currentNumber
@@ -442,6 +442,7 @@ class StockerService
                     }
                 }
             } else {
+                // Regular Form
                 $modifySizeQty = ModifySizeQty::selectRaw("modify_size_qty.*, master_sb_ws.size, master_sb_ws.dest ")->leftJoin("master_sb_ws","master_sb_ws.id_so_det", "=", "modify_size_qty.so_det_id")->where("form_cut_id", $formCut->id_form)->get();
 
                 // Adjust form data
