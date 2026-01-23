@@ -30,4 +30,9 @@ class PartDetail extends Model
     {
         return $this->belongsTo(MasterSecondary::class, 'master_secondary_id', 'id');
     }
+
+    public function secondaries()
+    {
+        return $this->hasMany(PartDetailSecondary::class, 'part_detail_id', 'id');
+    }
 }

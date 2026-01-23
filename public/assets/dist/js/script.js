@@ -247,7 +247,7 @@ function formatDateTime(date) {
 // Clear modified
 var modified = [];
 function clearModified() {
-    if (modified.length > 0) {
+    if (modified && modified.length > 0) {
         modified.forEach(element => {
             let strFunction = '';
             element.forEach((ele, idx) => {
@@ -497,25 +497,27 @@ function submitForm(e, evt) {
                 $('#' + res.table).DataTable().ajax.reload();
             }
 
-            if (Object.keys(res.additional).length > 0) {
-                for (let key in res.additional) {
-                    if (document.getElementById(key)) {
-                        document.getElementById(key).classList.add('is-invalid');
+            if (res.additional && typeof res.additional === "object" && res.additional !== null) {
+                if (Object.keys(res.additional).length > 0) {
+                    for (let key in res.additional) {
+                        if (document.getElementById(key)) {
+                            document.getElementById(key).classList.add('is-invalid');
 
-                        if (res.additional[key].hasOwnProperty('message')) {
-                            document.getElementById(key + '_error').classList.remove('d-none');
-                            document.getElementById(key + '_error').innerHTML = res.additional[key]['message'];
+                            if (res.additional[key].hasOwnProperty('message')) {
+                                document.getElementById(key + '_error').classList.remove('d-none');
+                                document.getElementById(key + '_error').innerHTML = res.additional[key]['message'];
+                            }
+
+                            if (res.additional[key].hasOwnProperty('value')) {
+                                document.getElementById(key).value = res.additional[key]['value'];
+                            }
+
+                            modified.push(
+                                [key, '.classList', '.remove(', "'is-invalid')"],
+                                [key + '_error', '.classList', '.add(', "'d-none')"],
+                                [key + '_error', '.innerHTML = ', "''"],
+                            )
                         }
-
-                        if (res.additional[key].hasOwnProperty('value')) {
-                            document.getElementById(key).value = res.additional[key]['value'];
-                        }
-
-                        modified.push(
-                            [key, '.classList', '.remove(', "'is-invalid')"],
-                            [key + '_error', '.classList', '.add(', "'d-none')"],
-                            [key + '_error', '.innerHTML = ', "''"],
-                        )
                     }
                 }
             }

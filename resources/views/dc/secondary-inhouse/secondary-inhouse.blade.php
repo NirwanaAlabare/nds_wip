@@ -22,7 +22,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="row">
+                        <div class="row mx-3">
                             <div class="col-sm-12">
                                 <div class="mb-3">
                                     <label class="form-label label-input">Scan QR OUT Stocker</label>
@@ -103,9 +103,13 @@
                         <div class="row">
                             <div class='col-sm-4'>
                                 <div class='form-group'>
-                                    <label class='form-label'><small>ID IN</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtin_id' name='txtin_id' value = '' readonly>
+                                    <label class='form-label'><small>Urutan</small></label>
+                                    <input type='number' class='form-control form-control-sm' id='txturutan' name='txturutan' value = '' readonly>
                                 </div>
+                            </div>
+                            <div class='col-sm-4'>
+                                <label class='form-label'><small>ID IN</small></label>
+                                <input type='text' class='form-control form-control-sm' id='txtin_id' name='txtin_id' value = '' readonly>
                             </div>
                             <div class='col-sm-4'>
                                 <div class='form-group'>
@@ -119,13 +123,13 @@
                                     <input type='text' class='form-control form-control-sm' id='txtauthor_in' name='txtauthor_in' value = '' readonly>
                                 </div>
                             </div>
-                            <div class='col-sm-6'>
+                            <div class='col-sm-4'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Tujuan Asal</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txttujuan' name='txttujuan' value = '' readonly>
                                 </div>
                             </div>
-                            <div class='col-sm-6'>
+                            <div class='col-sm-4'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Lokasi Asal</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txtalokasi' name='txtalokasi' value = '' readonly>
@@ -159,7 +163,6 @@
                                     <input type='number' class='form-control form-control-sm' id='txtqtyin' name='txtqtyin' value = '' readonly style = 'border-color:green;'>
                                 </div>
                             </div>
-
                         </div>
 
                         <div class="row">
@@ -893,6 +896,8 @@
                 },
                 dataType: 'json',
                 success: function(response) {
+                    console.log("response", response);
+
                     document.getElementById('txtno_stocker').value = response.id_qr_stocker;
                     document.getElementById('txtno_form').value = response.no_form;
                     document.getElementById('txtws').value = response.act_costing_ws;
@@ -908,6 +913,7 @@
                     document.getElementById('txtauthor_in').value = response.author_in;
                     document.getElementById('txtalokasi').value = response.lokasi;
                     document.getElementById('txtqtyawal').value = response.qty_awal;
+                    document.getElementById('txturutan').value = response.urutan;
                     // let txtqtyreject = $("#txtqtyreject").val();
                     // let txtqtyreplace = $("#txtqtyreplace").val();
                     // let txtqtyin = $("#txtqtyin").val();
@@ -946,6 +952,8 @@
 
                 },
                 error: function(request, status, error) {
+                    console.error(request, status, error);
+
                     reset();
 
                     Swal.fire({

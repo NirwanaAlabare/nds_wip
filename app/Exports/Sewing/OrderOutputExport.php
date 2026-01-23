@@ -221,6 +221,43 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
             $this->colAlphabet = $alphabets[$colCount];
         }
 
+        // Pre-aggregation
+        $useSize = $this->groupBy === 'size';
+
+        // Dates
+        $dates = $orderOutputs
+            ->pluck('tanggal')
+            ->unique()
+            ->sort()
+            ->values();
+
+        // Content
+        $outputMap  = [];
+        $rowTotals  = [];
+        $dateTotals = [];
+        $grandTotal = 0;
+
+        foreach ($orderOutputs as $row) {
+            $key = implode('|', [
+                $row->ws,
+                $row->style,
+                $row->color,
+                $row->sewing_line,
+                $useSize ? $row->size : '_',
+            ]);
+
+            $date = $row->tanggal;
+            $qty  = (int) $row->output;
+
+            $outputMap[$key][$date] = ($outputMap[$key][$date] ?? 0) + $qty;
+
+            $rowTotals[$key] = ($rowTotals[$key] ?? 0) + $qty;
+
+            $dateTotals[$date] = ($dateTotals[$date] ?? 0) + $qty;
+
+            $grandTotal += $qty;
+        }
+
         return view('sewing.export.order-output-export', [
             'order' => $this->order,
             'buyer' => $this->buyer,
@@ -231,6 +268,12 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
             'outputType' => $this->outputType,
             'orderGroup' => $orderGroup,
             'orderOutputs' => $orderOutputs,
+            //
+            "dates" => $dates,
+            "outputMap" => $outputMap,
+            "rowTotals" => $rowTotals,
+            "dateTotals" => $dateTotals,
+            "grandTotal" => $grandTotal,
         ]);
     }
 

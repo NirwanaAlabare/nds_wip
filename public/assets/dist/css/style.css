@@ -474,7 +474,7 @@ table.sticky-table .fixed-column {
     border-radius: 0px;
 } */
 
-.card.card-sb .card-header {
+.card.card-sb .card-header:first-of-type {
     /* border-radius: 0px; */
     background: var(--sb-color) !important;
     color: var(--light-color) !important;

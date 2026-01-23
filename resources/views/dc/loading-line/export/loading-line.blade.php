@@ -15,6 +15,7 @@
         <th style="font-weight: 800;">Range</th>
         <th style="font-weight: 800;">Range</th>
         <th style="font-weight: 800;">Part</th>
+        <th style="font-weight: 800;">Status</th>
         <th style="font-weight: 800;">No. Stocker</th>
         <th style="font-weight: 800;">Stock</th>
         <th style="font-weight: 800;">No. Bon</th>
@@ -38,7 +39,7 @@
         @php
             $qty = $loadingLine->qty;
 
-            if ($currentSize != $loadingLine->size || $currentRange != $loadingLine->range_awal || (str_contains($currentForm, "GR") && ($currentForm != $loadingLine->no_form))) {
+            if ($currentSize != $loadingLine->size || $currentRange != $loadingLine->range_awal || (str_contains($currentForm, "GR") || $currentForm != $loadingLine->no_form)) {
                 $currentForm = $loadingLine->no_form;
                 $currentSize = $loadingLine->size;
                 $currentGroup = $loadingLine->group_stocker ? $loadingLine->group_stocker : $loadingLine->shade;
@@ -50,9 +51,8 @@
                 $totalQty += $qty;
 
                 $currentQty = $qty;
-            }
-            else {
-                $currentQty > $qty ? $totalQty = $totalQty - $currentQty + $qty : $totalQty = $totalQty;
+            } else {
+                // $currentQty > $qty ? $totalQty = $totalQty - $currentQty + $qty : $totalQty = $totalQty;
 
                 $currentQty = $qty;
             }
@@ -70,17 +70,18 @@
             <td>{{ $loadingLine->range_awal }}</td>
             <td>{{ ($loadingLine->range_awal)." - ".($loadingLine->range_akhir) }}</td>
             <td>{{ $loadingLine->part }}</td>
+            <td style="{{ $loadingLine->part_status == 'main' ? 'font-weight: 800;' : '' }}">{{ strtoupper($loadingLine->part_status) }}</td>
             <td>{{ $loadingLine->id_qr_stocker }}</td>
             <td>{{ $loadingLine->type }}</td>
             <td>{{ $loadingLine->no_bon ? $loadingLine->no_bon : '-' }}</td>
-            <td>{{ $qty }}</td>
+            <td style="{{ $loadingLine->part_status == 'main' ? 'font-weight: 800;' : '' }}">{{ $qty }}</td>
             <td>{{ $loadingLine->tanggal_loading }}</td>
             <td>{{ $loadingLine->waktu_loading }}</td>
             <td>{{ $loadingLine->user }}</td>
         </tr>
     @endforeach
     <tr>
-        <th style="font-weight: 800;" colspan="15">TOTAL</th>
+        <th style="font-weight: 800;" colspan="16">TOTAL</th>
         <th style="font-weight: 800;">{{ $totalQty }}</th>
         <th style="font-weight: 800;">{{ $latestUpdate }}</th>
     </tr>
