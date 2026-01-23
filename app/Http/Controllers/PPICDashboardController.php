@@ -44,7 +44,7 @@ order by a.created_by asc, ws asc, color asc, dest asc, urutan asc
             return DataTables::of($data_input)->toJson();
         }
 
-        $data_bulan = DB::select("SELECT bulan isi, nama_bulan tampil FROM `dim_date` where tahun = '2025'
+        $data_bulan = DB::select("SELECT bulan isi, nama_bulan tampil FROM `dim_date` where tahun = '2026'
 GROUP BY bulan
 order by cast(bulan as UNSIGNED) asc");
 
@@ -65,16 +65,16 @@ sum(tot_po)tot_po,
 sum(tot_out)tot_out
 from
 (
-select sum(qty_po) qty_order, '0' tot_buyer, '0' tot_po, '0' tot_out from ppic_master_so where month(tgl_shipment) = '$request->blnFilter'
+select sum(qty_po) qty_order, '0' tot_buyer, '0' tot_po, '0' tot_out from ppic_master_so where month(tgl_shipment) = '$request->blnFilter' and year(tgl_shipment) = '2026'
 union
 select '0' qty_order, count(distinct(buyer)) tot_buyer, '0' tot_po, '0' tot_out from ppic_master_so p
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
 where month(p.tgl_shipment) = '$request->blnFilter'
 union
-select '0' qty_order, '0' tot_buyer, count(distinct(po)) tot_po,'0' tot_out from ppic_master_so where month(tgl_shipment) = '$request->blnFilter'
+select '0' qty_order, '0' tot_buyer, count(distinct(po)) tot_po,'0' tot_out from ppic_master_so where month(tgl_shipment) = '$request->blnFilter' and year(tgl_shipment) = '2026'
 union
 select '0' qty_order,'0' tot_buyer, '0' tot_po, sum(coalesce((tot_out),0)) tot_out from
-(select barcode, po, dest, qty_po from ppic_master_so where month(tgl_shipment) = '$request->blnFilter') a
+(select barcode, po, dest, qty_po from ppic_master_so where month(tgl_shipment) = '$request->blnFilter' and year(tgl_shipment) = '2026') a
 left join
 (
 select count(barcode) tot_out, barcode, po, dest from packing_packing_out_scan group by barcode, po, dest
@@ -91,13 +91,13 @@ coalesce(qty_order,0) y
 from
 (
 select nama_bulan, bulan from dim_date
-where tahun = '2025'
+where tahun = '2026'
 group by bulan
 order by cast(bulan as int) asc ) a
 left join
 (
 select month(tgl_shipment) bulan,sum(qty_po) qty_order from ppic_master_so
-where year(tgl_shipment) = '2025'
+where year(tgl_shipment) = '2026'
 group by month(tgl_shipment)
 ) b on a.bulan = b.bulan");
         return json_encode($data_order);
@@ -146,7 +146,7 @@ group by month(tgl_shipment)
             inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
             group by p.id
             ) pck_out on pck_out.id = a.id
-            where month(tgl_shipment) = '$bln_filter'
+            where month(tgl_shipment) = '$bln_filter' and year(tgl_shipment) = '2026'
             group by po, color
             ");
             // dd($data_shp);
