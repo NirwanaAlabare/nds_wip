@@ -649,7 +649,7 @@
             }
 
             let isMainPartElements = document.querySelectorAll(".is-main-part");
-            let isMainPartLabelElements = document.querySelectorAll(".is-main-part");
+            let isMainPartLabelElements = document.querySelectorAll(".is-main-part-label");
             if (isMainPartElements && isMainPartElements.length > 0) {
                 isMainPartElements[0].checked = true;
                 for (let i = 0; i < isMainPartElements.length; i++) {
@@ -677,7 +677,7 @@
 
             // hide main part check
             let isMainPartElements = document.querySelectorAll(".is-main-part");
-            let isMainPartLabelElements = document.querySelectorAll(".is-main-part");
+            let isMainPartLabelElements = document.querySelectorAll(".is-main-part-label");
             if (isMainPartElements && isMainPartElements.length > 0) {
                 for (let i = 0; i < isMainPartElements.length; i++) {
                     isMainPartElements[i].checked = false;
