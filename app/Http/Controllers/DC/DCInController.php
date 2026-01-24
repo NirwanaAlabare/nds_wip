@@ -362,7 +362,7 @@ class DCInController extends Controller
 
     public function exportExcel(Request $request)
     {
-        return Excel::download(new ExportDcIn($request->from, $request->to), 'Laporan dc in '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
+        return Excel::download(new ExportDcIn($request->from, $request->to, $request->dc_filter_tipe, $request->dc_filter_buyer, $request->dc_filter_ws, $request->dc_filter_style, $request->dc_filter_color, $request->dc_filter_part, $request->dc_filter_size, $request->dc_filter_no_cut, $request->dc_filter_tujuan, $request->dc_filter_tempat, $request->dc_filter_lokasi), 'Laporan dc in '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
     }
 
     public function detail_dc_in(Request $request)
