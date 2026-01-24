@@ -905,6 +905,8 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/rearrange-groups', 'rearrangeGroups')->name('rearrange-groups');
         Route::post('/recalculate-stocker-transaction', 'recalculateStockerTransaction')->name('recalculate-stocker-transaction');
+
+        Route::delete('/undo-stocker-additional', 'undoStockerAdditional')->name('undo-stocker-additional');
     });
 
     // DC :

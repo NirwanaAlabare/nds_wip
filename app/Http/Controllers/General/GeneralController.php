@@ -69,8 +69,6 @@ class GeneralController extends Controller
                         DATE(form_cut_input.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()
                     GROUP BY
                         form_cut_input.id
-                    HAVING
-                        COUNT(stocker_input.id) > 0
                 UNION ALL
                     SELECT
                         form_cut_reject.id as form_cut_id, form_cut_reject.no_form, COUNT(stocker_input.id) total_stocker, 'reject' type, form_cut_reject.updated_at timestamp
@@ -81,8 +79,6 @@ class GeneralController extends Controller
                         DATE(form_cut_reject.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()
                     GROUP BY
                         form_cut_reject.id
-                    HAVING
-                        COUNT(stocker_input.id) > 0
                 UNION ALL
                     SELECT
                         form_cut_piece.id as form_cut_id, form_cut_piece.no_form, COUNT(stocker_input.id) total_stocker, 'piece' type, form_cut_piece.updated_at timestamp
@@ -93,8 +89,6 @@ class GeneralController extends Controller
                         DATE(form_cut_piece.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()
                     GROUP BY
                         form_cut_piece.id
-                    HAVING
-                        COUNT(stocker_input.id) > 0
                 ORDER BY
                     timestamp ASC
             "));

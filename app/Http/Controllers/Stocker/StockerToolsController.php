@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\SignalBit\FormCut;
 use App\Models\Stocker\YearSequence;
 use App\Models\Stocker\Stocker;
+use App\Models\Stocker\StockerAdditional;
+use App\Models\Stocker\StockerAdditionalDetail;
 use App\Models\Dc\DCIn;
 use App\Models\Dc\SecondaryIn;
 use App\Models\Dc\SecondaryInhouse;
@@ -423,5 +425,41 @@ class StockerToolsController extends Controller
         });
 
         return $inserted;
+    }
+
+    function undoStockerAdditional(Request $request) {
+        $validatedRequest = $request->validate([
+            "id" => "required"
+        ]);
+
+        // Check Stocker
+        $checkStocker = Stocker::where("form_cut_id", $validatedRequest["id"])->whereRaw("notes LIKE '%ADDITIONAL%'")->first();
+        if ($checkStocker) {
+            return array(
+                "status" => 400,
+                "message" => "Stocker Additional sudah di Print",
+            );
+        }
+
+        // Stocker Additional
+        $stockerAdditional = StockerAdditional::where("form_cut_id", $validatedRequest["id"])->first();
+        if ($stockerAdditional) {
+
+            // Undo Additional Detail
+            $undoStockerAdditionalDetail = StockerAdditionalDetail::where("stocker_additional_id", $stockerAdditional->id)->delete();
+
+            // Undo Additional
+            StockerAdditional::where("id", $stockerAdditional->id)->delete();
+
+            return array(
+                "status" => 200,
+                "message" => "Stocker Additional berhasil dihapus",
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Data tidak ditemukan"
+        );
     }
 }
