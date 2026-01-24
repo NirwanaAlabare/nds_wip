@@ -923,7 +923,7 @@
 
                 await $.ajax({
                     url: "{{ route("dc-in-export-excel") }}",
-                    type: "get",
+                    type: "post",
                     data: {
                         from : $("#tgl-awal").val(),
                         to : $("#tgl-akhir").val(),
