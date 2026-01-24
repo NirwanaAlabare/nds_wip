@@ -50,7 +50,7 @@ class PartController extends Controller
                     part.kode,
                     part.buyer,
                     part.act_costing_ws,
-                    part.style,
+                    REPLACE(part.style, '\"', ' ') style,
                     part.color,
                     part.panel,
                     UPPER(COALESCE(part.panel_status, '')) panel_status,
