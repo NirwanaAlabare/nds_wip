@@ -6,6 +6,9 @@
         <th><b>Style</b></th>
         <th><b>Color</b></th>
         <th><b>Part</b></th>
+        <th><b>Part Stats</b></th>
+        <th><b>Panel</b></th>
+        <th><b>Panel Stats</b></th>
         <th><b>Size</b></th>
         <th><b>No. Cut</b></th>
         <th><b>Tujuan</b></th>
@@ -40,6 +43,9 @@
             <td>{{ $d->style }}</td>
             <td>{{ $d->color }}</td>
             <td>{{ $d->nama_part }}</td>
+            <td>{{ $d->part_status }}</td>
+            <td>{{ $d->panel }}</td>
+            <td>{{ $d->panel_status }}</td>
             <td>{{ $d->size }}</td>
             <td>{{ $d->no_cut }}</td>
             <td>{{ $d->tujuan }}</td>

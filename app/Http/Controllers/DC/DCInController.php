@@ -56,6 +56,15 @@ class DCInController extends Controller
             if ($request->dc_filter_part && count($request->dc_filter_part) > 0) {
                 $additionalQuery .= " and mp.nama_part in (".addQuotesAround(implode("\n", $request->dc_filter_part)).")";
             }
+            if ($request->dc_filter_part_status && count($request->dc_filter_part_status) > 0) {
+                $additionalQuery .= " and pd.part_status in (".addQuotesAround(implode("\n", $request->dc_filter_part_status)).")";
+            }
+            if ($request->dc_filter_panel && count($request->dc_filter_panel) > 0) {
+                $additionalQuery .= " and p.panel in (".addQuotesAround(implode("\n", $request->dc_filter_panel)).")";
+            }
+            if ($request->dc_filter_panel_status && count($request->dc_filter_panel_status) > 0) {
+                $additionalQuery .= " and p.panel_status in (".addQuotesAround(implode("\n", $request->dc_filter_panel_status)).")";
+            }
             if ($request->dc_filter_size && count($request->dc_filter_size) > 0) {
                 $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->dc_filter_size)).")";
             }
@@ -97,7 +106,10 @@ class DCInController extends Controller
                     CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
                     COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                     COALESCE(msb.size, s.size) size,
-                    mp.nama_part
+                    mp.nama_part,
+                    UPPER(COALESCE(pd.part_status, '-')) part_status,
+                    p.panel,
+                    UPPER(COALESCE(p.panel_status, '-')) panel_status
                 from
                     dc_in_input a
                     left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -153,7 +165,10 @@ class DCInController extends Controller
                 a.user,
                 COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                 COALESCE(msb.size, s.size) size,
-                mp.nama_part
+                mp.nama_part,
+                pd.part_status,
+                p.panel,
+                p.panel_status
             from
                 dc_in_input a
                 left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -180,6 +195,7 @@ class DCInController extends Controller
         $lokasi = $data_input->groupBy("lokasi")->keys();
         $tempat = $data_input->groupBy("tempat")->keys();
         $part = $data_input->groupBy("nama_part")->keys();
+        $panel = $data_input->groupBy("panel")->keys();
         $no_cut = $data_input->groupBy("no_cut")->keys();
         $size = $data_input->groupBy("size")->keys();
 
@@ -193,6 +209,7 @@ class DCInController extends Controller
             "lokasi" => $lokasi,
             "tempat" => $tempat,
             "part" => $part,
+            "panel" => $panel,
             "no_cut" => $no_cut,
             "size" => $size
         );
@@ -303,6 +320,9 @@ class DCInController extends Controller
         if ($request->dc_filter_part && count($request->dc_filter_part) > 0) {
             $additionalQuery .= " and mp.nama_part in (".addQuotesAround(implode("\n", $request->dc_filter_part)).")";
         }
+        if ($request->dc_filter_panel && count($request->dc_filter_panel) > 0) {
+                $additionalQuery .= " and p.panel in (".addQuotesAround(implode("\n", $request->dc_filter_panel)).")";
+        }
         if ($request->dc_filter_size && count($request->dc_filter_size) > 0) {
             $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->dc_filter_size)).")";
         }
@@ -362,7 +382,7 @@ class DCInController extends Controller
 
     public function exportExcel(Request $request)
     {
-        return Excel::download(new ExportDcIn($request->from, $request->to, $request->dc_filter_tipe, $request->dc_filter_buyer, $request->dc_filter_ws, $request->dc_filter_style, $request->dc_filter_color, $request->dc_filter_part, $request->dc_filter_size, $request->dc_filter_no_cut, $request->dc_filter_tujuan, $request->dc_filter_tempat, $request->dc_filter_lokasi), 'Laporan dc in '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
+        return Excel::download(new ExportDcIn($request->from, $request->to, $request->dc_filter_tipe, $request->dc_filter_buyer, $request->dc_filter_ws, $request->dc_filter_style, $request->dc_filter_color, $request->dc_filter_part, $request->dc_filter_part_status, $request->dc_filter_panel, $request->dc_filter_panel_status, $request->dc_filter_size, $request->dc_filter_no_cut, $request->dc_filter_tujuan, $request->dc_filter_tempat, $request->dc_filter_lokasi), 'Laporan dc in '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
     }
 
     public function detail_dc_in(Request $request)

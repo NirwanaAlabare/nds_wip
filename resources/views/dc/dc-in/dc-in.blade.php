@@ -159,6 +159,9 @@
                             <th>Style</th>
                             <th>Color</th>
                             <th>Part</th>
+                            <th>Part Stats</th>
+                            <th>Panel</th>
+                            <th>Panel Stats</th>
                             <th>Size</th>
                             <th>No. Cut</th>
                             <th>Tujuan</th>
@@ -176,7 +179,7 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="13"></th>
+                            <th colspan="16"></th>
                             <th>
                                 {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_awal'> --}}
                                 ...
@@ -416,6 +419,9 @@
             'style_filter',
             'color_filter',
             'part_filter',
+            'part_status_filter',
+            'panel_filter',
+            'panel_status_filter',
             'size_filter',
             'no_cut_filter',
             'tujuan_filter',
@@ -455,10 +461,10 @@
                 var api = this.api(),data;
 
                 $(api.column(0).footer()).html('Total');
-                $(api.column(12).footer()).html("...");
-                $(api.column(13).footer()).html("...");
-                $(api.column(14).footer()).html("...");
-                $(api.column(15).footer()).html("...");
+                $(api.column(16).footer()).html("...");
+                $(api.column(17).footer()).html("...");
+                $(api.column(18).footer()).html("...");
+                $(api.column(19).footer()).html("...");
 
                 // Legacy
                     // // converting to interger to find total
@@ -537,6 +543,9 @@
                         'dc_filter_style': $('#dc_filter_style').val(),
                         'dc_filter_color': $('#dc_filter_color').val(),
                         'dc_filter_part': $('#dc_filter_part').val(),
+                        'dc_filter_part_status': $('#dc_filter_part_status').val(),
+                        'dc_filter_panel': $('#dc_filter_panel').val(),
+                        'dc_filter_panel_status': $('#dc_filter_panel_status').val(),
                         'dc_filter_size': $('#dc_filter_size').val(),
                         'dc_filter_no_cut': $('#dc_filter_no_cut').val(),
                         'dc_filter_tujuan': $('#dc_filter_tujuan').val(),
@@ -549,10 +558,10 @@
                         if (response && response[0]) {
                             // Update footer by showing the total with the reference of the column index
                             $(api.column(0).footer()).html('Total');
-                            $(api.column(13).footer()).html(response[0]['qty_awal']);
-                            $(api.column(14).footer()).html(response[0]['qty_reject']);
-                            $(api.column(15).footer()).html(response[0]['qty_replace']);
-                            $(api.column(16).footer()).html(response[0]['qty_in']);
+                            $(api.column(16).footer()).html(response[0]['qty_awal']);
+                            $(api.column(17).footer()).html(response[0]['qty_reject']);
+                            $(api.column(18).footer()).html(response[0]['qty_replace']);
+                            $(api.column(19).footer()).html(response[0]['qty_in']);
                         }
                     },
                     error: function(request, status, error) {
@@ -588,6 +597,9 @@
                     d.dc_filter_style = $('#dc_filter_style').val();
                     d.dc_filter_color = $('#dc_filter_color').val();
                     d.dc_filter_part = $('#dc_filter_part').val();
+                    d.dc_filter_part_status = $('#dc_filter_part_status').val();
+                    d.dc_filter_panel = $('#dc_filter_panel').val();
+                    d.dc_filter_panel_status = $('#dc_filter_panel_status').val();
                     d.dc_filter_size = $('#dc_filter_size').val();
                     d.dc_filter_no_cut = $('#dc_filter_no_cut').val();
                     d.dc_filter_tujuan = $('#dc_filter_tujuan').val();
@@ -619,6 +631,15 @@
                 },
                 {
                     data: 'nama_part',
+                },
+                {
+                    data: 'part_status',
+                },
+                {
+                    data: 'panel',
+                },
+                {
+                    data: 'panel_status',
                 },
                 {
                     data: 'size',
@@ -933,6 +954,9 @@
                         dc_filter_style : $('#dc_filter_style').val(),
                         dc_filter_color : $('#dc_filter_color').val(),
                         dc_filter_part : $('#dc_filter_part').val(),
+                        dc_filter_part_status : $('#dc_filter_part_status').val(),
+                        dc_filter_panel : $('#dc_filter_panel').val(),
+                        dc_filter_panel_status : $('#dc_filter_panel_status').val(),
                         dc_filter_size : $('#dc_filter_size').val(),
                         dc_filter_no_cut : $('#dc_filter_no_cut').val(),
                         dc_filter_tujuan : $('#dc_filter_tujuan').val(),
