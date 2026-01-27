@@ -167,7 +167,7 @@
                                 <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
                                     class="nav-link dropdown-toggle {{ $subPageGroup == 'laporan-cutting' ? 'active' : '' }}">Roll</a>
                                 <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
-                                       <li>
+                                    <li>
                                         <a href="{{ route('sisa_kain_roll') }}"
                                             class="dropdown-item {{ $subPage == 'sisa-kain-roll' ? 'active' : '' }}">
                                             Bintex Sisa Kain <i class="fa-solid fa-toilet-paper-slash fa-sm"></i>
@@ -203,7 +203,7 @@
                                             Track Cutting Output <i class="fa fa-file"></i>
                                         </a>
                                     </li>
-                                                                     <li>
+                                    <li>
                                         <a href="{{ route('lap_pemakaian') }}"
                                             class="dropdown-item {{ $subPage == 'lap-pemakaian' ? 'active' : '' }}">
                                             Manajemen Roll <i class="fa-solid fa-toilet-paper fa-sm"></i>
@@ -244,6 +244,12 @@
                                         <a href="{{ route('report_gr_panel') }}"
                                             class="dropdown-item {{ $routeName == 'report_gr_panel' ? 'active' : '' }}">
                                             Ganti Reject Panel <i class="fa fa-list"></i>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('report_mutasi_wip_cutting') }}"
+                                            class="dropdown-item {{ $routeName == 'report_mutasi_wip_cutting' ? 'active' : '' }}">
+                                            Mutasi WIP Cutting <i class="fa fa-list"></i>
                                         </a>
                                     </li>
                                 </ul>
@@ -1199,13 +1205,13 @@
                             <li>
                                 <a href="{{ route('report-packing-monitoring-subcont') }}"
                                     class="dropdown-item {{ $subPage == 'report-packing-monitoring-subcont' ? 'active' : '' }}">
-                                   <i class="fas fa-file-excel"></i> Monitoring Packing Subcont
+                                    <i class="fas fa-file-excel"></i> Monitoring Packing Subcont
                                 </a>
                             </li>
                             <li>
                                 <a href="{{ route('report-packing-mutasi-subcont') }}"
                                     class="dropdown-item {{ $subPage == 'report-packing-mutasi-subcont' ? 'active' : '' }}">
-                                   <i class="fas fa-file-excel"></i> Mutasi Packing Subcont
+                                    <i class="fas fa-file-excel"></i> Mutasi Packing Subcont
                                 </a>
                             </li>
 

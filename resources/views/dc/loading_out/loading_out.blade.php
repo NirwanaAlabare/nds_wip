@@ -175,6 +175,13 @@
                     </a>
                 </div>
 
+                <div class="mb-3">
+                    <a class="btn btn-outline-success position-relative btn-sm" onclick="export_excel()">
+                        <i class="fas fa-file-excel fa-sm"></i>
+                        Export Excel
+                    </a>
+                </div>
+
             </div>
 
             <ul class="nav nav-tabs" id="tabMenu" role="tablist">
@@ -561,6 +568,64 @@
             }
 
         });
+
+
+        function export_excel() {
+            let start_date = $('#tgl-awal').val();
+            let end_date = $('#tgl-akhir').val();
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "get",
+                url: '{{ route('export_excel_loading_out') }}',
+                data: {
+                    start_date: start_date,
+                    end_date: end_date
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    Swal.close();
+                    Swal.fire({
+                        title: 'Data Sudah Di Export!',
+                        icon: "success",
+                        showConfirmButton: true,
+                        allowOutsideClick: false
+                    });
+
+                    var blob = new Blob([response]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Laporan Loading Out " + start_date + " _ " + end_date + ".xlsx";
+                    link.click();
+                },
+                error: function(xhr, status, error) {
+                    Swal.close();
+                    Swal.fire({
+                        title: 'Gagal Mengekspor Data',
+                        text: 'Terjadi kesalahan saat mengekspor. Silakan coba lagi.',
+                        icon: 'error',
+                        showConfirmButton: true,
+                        allowOutsideClick: false
+                    });
+
+                    console.error("Export failed:", {
+                        status: status,
+                        error: error,
+                        response: xhr.responseText
+                    });
+                }
+            });
+        }
+
 
         function konfirmasi() {
             let no_form = $('#txtno_form').val();

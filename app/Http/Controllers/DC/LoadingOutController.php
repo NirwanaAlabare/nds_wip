@@ -11,6 +11,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Exports\export_excel_loading_out;
 
 class LoadingOutController extends Controller
 {
@@ -575,7 +576,7 @@ left join signalbit_erp.so on sd.id_so = so.id
 left join signalbit_erp.act_costing ac on so.id_cost = ac.id
 left join signalbit_erp.master_size_new msn on sd.size = msn.size
 where no_form = '$no_form'
-order by kpno asc, color asc, urutan asc");
+order by kpno asc, color asc, msn.urutan asc");
 
         return DataTables::of($data)->toJson();
     }
@@ -696,9 +697,14 @@ order by kpno asc, color asc, urutan asc");
 		left join signalbit_erp.master_size_new msn on sd.size = msn.size
         where id_po = '$id_po'
         group by no_karung, mi.itemdesc, ac.kpno, ac.styleno,sd.color, sd.size
-        order by no_karung asc, ac.kpno asc, ac.styleno asc, urutan asc
-");
+        order by no_karung asc, ac.kpno asc, ac.styleno asc, msn.urutan asc");
 
         return DataTables::of($data)->toJson();
+    }
+
+
+    public function export_excel_loading_out(Request $request)
+    {
+        return Excel::download(new export_excel_loading_out($request->start_date, $request->end_date), 'Laporan_Penerimaan FG_Stok.xlsx');
     }
 }
