@@ -59,7 +59,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
             ");
 
             if ($orderInfo && $orderInfo[0]) {
-                $partBagian = explode(' - ', $row[4]);
+                $partBagian = explode('-', $row[4]);
 
                 $namaPart = trim(isset($partBagian[0]) ? $partBagian[0] : null);
                 $namaBagian = trim(isset($partBagian[1]) ? $partBagian[1] : null);

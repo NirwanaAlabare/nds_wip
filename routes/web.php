@@ -725,6 +725,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/report_cutting_mutasi_fabric', 'report_cutting_mutasi_fabric')->name('report_cutting_mutasi_fabric');
         Route::get('/report_gr_set', 'report_gr_set')->name('report_gr_set');
         Route::get('/report_gr_panel', 'report_gr_panel')->name('report_gr_panel');
+        Route::get('/report_mutasi_wip_cutting', 'report_mutasi_wip_cutting')->name('report_mutasi_wip_cutting');
 
         // export excel
         Route::post('/cutting/export', 'export')->name('report-cutting-export');
@@ -734,6 +735,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_report_cutting_mutasi_fabric', 'export_excel_report_cutting_mutasi_fabric')->name('export_excel_report_cutting_mutasi_fabric');
         Route::get('/export_excel_report_gr_set', 'export_excel_report_gr_set')->name('export_excel_report_gr_set');
         Route::get('/export_excel_report_gr_panel', 'export_excel_report_gr_panel')->name('export_excel_report_gr_panel');
+        Route::get('/export_excel_report_mut_wip_cutting', 'export_excel_report_mut_wip_cutting')->name('export_excel_report_mut_wip_cutting');
     });
 
     // Roll
@@ -1116,6 +1118,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get_table_modal_stocker_loading_out', 'get_table_modal_stocker_loading_out')->name('get_table_modal_stocker_loading_out');
         Route::post('/loading_out_konfirmasi', 'loading_out_konfirmasi')->name('loading_out_konfirmasi');
         Route::get('/get_det_summary_loading_out', 'get_det_summary_loading_out')->name('get_det_summary_loading_out');
+        Route::get('/export_excel_loading_out', 'export_excel_loading_out')->name('export_excel_loading_out');
     });
 
     // Bon Loading
@@ -1962,8 +1965,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/save-approve-packing-in', 'SaveApprovePackingIn')->name('save-approve-packing-in');
         Route::post('/cancel-packing-in-subcont', 'CancelPackingInSubcont')->name('cancel-packing-in-subcont');
         Route::post('/cancel-packing-out-subcont', 'CancelPackingOutSubcont')->name('cancel-packing-out-subcont');
-
-
     });
 
     // Needle Check
