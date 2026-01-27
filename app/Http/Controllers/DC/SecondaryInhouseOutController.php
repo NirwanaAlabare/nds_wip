@@ -557,6 +557,10 @@ class SecondaryInhouseOutController extends Controller
 
     public function cek_data_stocker_inhouse(Request $request)
     {
+        // When i wrote this code only god and i knew how it worked, now only god knows it
+        // Therefore if you trying to optimize this and fail please increase this counter as a warning for the next person
+        // total_wasted_hours = 696
+
         $stocker = Stocker::where('id_qr_stocker', $request->txtqrstocker)->first();
 
         if ($stocker) {
@@ -613,6 +617,51 @@ class SecondaryInhouseOutController extends Controller
                         $currentPartDetailSecondary = $partDetailSecondary->where('urutan', $stocker->urutan)->first();
 
                         if ($currentPartDetailSecondary && ($currentPartDetailSecondary->secondary && $currentPartDetailSecondary->secondary->tujuan == 'SECONDARY DALAM')) {
+
+                            // Check the Secondary Inhouse IN first
+                            $cekdata =  DB::select("
+                                SELECT
+                                    dc.id_qr_stocker,
+                                    s.act_costing_ws,
+                                    msb.buyer,
+                                    COALESCE(a.no_cut, c.no_cut, '-') as no_cut,
+                                    msb.styleno as style,
+                                    s.color,
+                                    COALESCE(msb.size, s.size) size,
+                                    mp.nama_part,
+                                    ms.tujuan,
+                                    ms.proses lokasi,
+                                    COALESCE(sii.id, '-') as in_id,
+                                    COALESCE(sii.updated_at, sii.created_at, '-') as waktu_in,
+                                    COALESCE(sii.user, '-') as author_in,
+                                    sii.qty_in qty_awal,
+                                    ifnull(si.id_qr_stocker,'x'),
+                                    (pds.urutan) as urutan
+                                from
+                                    dc_in_input dc
+                                    left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+                                    left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+                                    left join form_cut_input a on s.form_cut_id = a.id
+                                    left join form_cut_reject b on s.form_reject_id = b.id
+                                    left join form_cut_piece c on s.form_piece_id = c.id
+                                    left join part_detail p on s.part_detail_id = p.id
+                                    left join part_detail_secondary pds on pds.part_detail_id = p.id
+                                    left join master_part mp on p.master_part_id = mp.id
+                                    left join master_secondary ms on pds.master_secondary_id = ms.id
+                                    left join marker_input mi on a.id_marker = mi.kode
+                                    left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker and sii.urutan = pds.urutan
+                                    left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
+                                where
+                                    ms.tujuan = 'SECONDARY DALAM' and
+                                    dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and
+                                    pds.urutan = '".$currentPartDetailSecondary->urutan."' and
+                                    sii.urutan = '".$currentPartDetailSecondary->urutan."' and
+                                    sii.id is not null
+                            ");
+
+                            if ($cekdata && $cekdata[0]) {
+                                return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
+                            }
 
                             // Check the one step before
                             $multiSecondaryBefore = DB::table("stocker_input")->selectRaw("
@@ -675,7 +724,7 @@ class SecondaryInhouseOutController extends Controller
                                                 left join master_part mp on p.master_part_id = mp.id
                                                 left join master_secondary ms on pds.master_secondary_id = ms.id
                                                 left join marker_input mi on a.id_marker = mi.kode
-                                                left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
+                                                left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker and sii.urutan = pds.urutan
                                                 left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
                                             where
                                                 dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and
@@ -734,7 +783,7 @@ class SecondaryInhouseOutController extends Controller
                                             left join master_part mp on p.master_part_id = mp.id
                                             left join master_secondary ms on pds.master_secondary_id = ms.id
                                             left join marker_input mi on a.id_marker = mi.kode
-                                            left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
+                                            left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker and sii.urutan = pds.urutan
                                             left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
                                         where
                                             dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and
@@ -772,7 +821,7 @@ class SecondaryInhouseOutController extends Controller
                                         left join part_detail p on s.part_detail_id = p.id
                                         left join master_part mp on p.master_part_id = mp.id
                                         left join marker_input mi on a.id_marker = mi.kode
-                                        left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
+                                        left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker and sii.urutan = 1
                                         left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
                                     where
                                         dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
@@ -815,7 +864,7 @@ class SecondaryInhouseOutController extends Controller
                             left join part_detail p on s.part_detail_id = p.id
                             left join master_part mp on p.master_part_id = mp.id
                             left join marker_input mi on a.id_marker = mi.kode
-                            left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
+                            left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker and sii.urutan = 1
                             left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
                         where
                             dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'

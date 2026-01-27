@@ -57,6 +57,7 @@
                                     <th>No. Cut</th>
                                     <th>Tujuan</th>
                                     <th>Proses</th>
+                                    <th>Urutan</th>
                                     <th>Range</th>
                                     <th>Qty</th>
                                 </thead>
@@ -669,6 +670,9 @@
                 },
                 {
                     data: 'lokasi',
+                },
+                {
+                    data: 'urutan',
                 },
                 {
                     data: 'stocker_range',
