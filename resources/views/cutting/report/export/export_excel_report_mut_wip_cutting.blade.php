@@ -34,8 +34,8 @@
                     <td>{{ $row->panel }}</td>
                     <td class="text-end">{{ $row->saldo_awal }}</td>
                     <td class="text-end">{{ $row->qty_cut }}</td>
-                    <td class="text-end">{{ $row->qty_dc }}</td>
                     <td class="text-end">{{ $row->qty_replace }}</td>
+                    <td class="text-end">{{ $row->qty_dc }}</td>
                     <td class="text-end">{{ $row->saldo_akhir }}</td>
                 </tr>
             @endforeach

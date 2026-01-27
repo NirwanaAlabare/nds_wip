@@ -216,11 +216,11 @@
                         className: 'text-end'
                     },
                     {
-                        data: 'qty_dc',
+                        data: 'qty_replace',
                         className: 'text-end'
                     },
                     {
-                        data: 'qty_replace',
+                        data: 'qty_dc',
                         className: 'text-end'
                     },
                     {
