@@ -697,12 +697,7 @@ order by kpno asc, color asc, msn.urutan asc");
 		left join signalbit_erp.master_size_new msn on sd.size = msn.size
         where id_po = '$id_po'
         group by no_karung, mi.itemdesc, ac.kpno, ac.styleno,sd.color, sd.size
-<<<<<<< HEAD
-        order by no_karung asc, ac.kpno asc, ac.styleno asc, msn.urutan asc
-");
-=======
         order by no_karung asc, ac.kpno asc, ac.styleno asc, msn.urutan asc");
->>>>>>> e0b311c6a8a56983b0a230b966b079d784a59b4b
 
         return DataTables::of($data)->toJson();
     }
