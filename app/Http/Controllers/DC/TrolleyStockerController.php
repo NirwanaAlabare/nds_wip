@@ -283,15 +283,34 @@ class TrolleyStockerController extends Controller
 
         $stockerData = Stocker::where("id", $validatedRequest["stocker_id"])->first();
 
-        $similarStockerData = Stocker::selectRaw("stocker_input.*, master_secondary.tujuan, dc_in_input.id dc_id, secondary_in_input.id secondary_id, secondary_inhouse_input.id secondary_inhouse_id, trolley.nama_trolley, loading_line.id as loading_line_id, loading_line.nama_line as loading_line_name")->
+        $similarStockerData = Stocker::selectRaw("stocker_input.*, COALESCE(master_secondary.tujuan, master_secondary_multi.tujuan) as tujuan, dc_in_input.id dc_id, secondary_in_input.id secondary_id, secondary_inhouse_input.id secondary_inhouse_id, loading_line.id as loading_line_id, loading_line.nama_line as loading_line_name")->
             where(($stockerData->form_piece_id > 0 ? "form_piece_id" : ($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id")), ($stockerData->form_piece_id > 0 ? $stockerData->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
             leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
             leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
+            leftJoin(DB::raw("
+                (
+                    SELECT
+                        stocker_input.id_qr_stocker,
+                        MAX( part_detail_secondary.urutan ) AS max_urutan
+                    FROM
+                        stocker_input
+                        LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                        LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id
+                        LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
+                    GROUP BY
+                        id_qr_stocker
+                    HAVING
+                        MAX( part_detail_secondary.urutan ) IS NOT NULL
+                ) as pds
+            "), "pds.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+            leftJoin("part_detail_secondary", function ($join) {
+                $join->on("part_detail_secondary.part_detail_id", "=", "stocker_input.part_detail_id");
+                $join->on("part_detail_secondary.urutan", "=", "pds.max_urutan");
+            })->
+            leftJoin(DB::raw("master_secondary as master_secondary_multi"), "master_secondary_multi.id", "=", "part_detail_secondary.master_secondary_id")->
             leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
             leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
             leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
-            leftJoin("trolley_stocker", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
-            leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
             leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
             where("so_det_id", $stockerData->so_det_id)->
             where("group_stocker", $stockerData->group_stocker)->
@@ -404,10 +423,31 @@ class TrolleyStockerController extends Controller
         $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
 
         $stockerData = Stocker::where("id", $validatedRequest["stocker_id"])->first();
-        $similarStockerData = Stocker::selectRaw("stocker_input.*, master_secondary.tujuan, dc_in_input.id dc_id, secondary_in_input.id secondary_id, secondary_inhouse_input.id secondary_inhouse_id, loading_line.id as loading_line_id, loading_line.nama_line as loading_line_name")->
+        $similarStockerData = Stocker::selectRaw("stocker_input.*, COALESCE(master_secondary.tujuan, master_secondary_multi.tujuan) as tujuan, dc_in_input.id dc_id, secondary_in_input.id secondary_id, secondary_inhouse_input.id secondary_inhouse_id, loading_line.id as loading_line_id, loading_line.nama_line as loading_line_name")->
             where(($stockerData->form_piece_id > 0 ? "form_piece_id" : ($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id")), ($stockerData->form_piece_id > 0 ? $stockerData->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
             leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
             leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
+            leftJoin(DB::raw("
+                (
+                    SELECT
+                        stocker_input.id_qr_stocker,
+                        MAX( part_detail_secondary.urutan ) AS max_urutan
+                    FROM
+                        stocker_input
+                        LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                        LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id
+                        LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
+                    GROUP BY
+                        id_qr_stocker
+                    HAVING
+                        MAX( part_detail_secondary.urutan ) IS NOT NULL
+                ) as pds
+            "), "pds.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+            leftJoin("part_detail_secondary", function ($join) {
+                $join->on("part_detail_secondary.part_detail_id", "=", "part_detail.id");
+                $join->on("part_detail_secondary.urutan", "=", "pds.max_urutan");
+            })->
+            leftJoin(DB::raw("master_secondary as master_secondary_multi"), "master_secondary_multi.id", "=", "part_detail_secondary.master_secondary_id")->
             leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
             leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
             leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
