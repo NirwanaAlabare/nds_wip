@@ -575,7 +575,7 @@ left join signalbit_erp.so on sd.id_so = so.id
 left join signalbit_erp.act_costing ac on so.id_cost = ac.id
 left join signalbit_erp.master_size_new msn on sd.size = msn.size
 where no_form = '$no_form'
-order by kpno asc, color asc, urutan asc");
+order by kpno asc, color asc, msn.urutan asc");
 
         return DataTables::of($data)->toJson();
     }
@@ -696,7 +696,7 @@ order by kpno asc, color asc, urutan asc");
 		left join signalbit_erp.master_size_new msn on sd.size = msn.size
         where id_po = '$id_po'
         group by no_karung, mi.itemdesc, ac.kpno, ac.styleno,sd.color, sd.size
-        order by no_karung asc, ac.kpno asc, ac.styleno asc, urutan asc
+        order by no_karung asc, ac.kpno asc, ac.styleno asc, msn.urutan asc
 ");
 
         return DataTables::of($data)->toJson();
