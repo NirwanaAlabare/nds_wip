@@ -133,6 +133,15 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#undoStockerAdditionalModal">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Undo Stocker Additional</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -304,6 +313,33 @@
         </div>
     </div>
 
+    <!-- Undo Stocker Additional -->
+    <div class="modal fade" id="undoStockerAdditionalModal" tabindex="-1" aria-labelledby="undoStockerAdditionalModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="undoStockerAdditionalModalLabel">Undo Stocker Addtiional</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">No. Form</label>
+                        <select name="no_form_undo_stocker_additional" id="no_form_undo_stocker_additional" class="form-control select2bs4undostockeradditional" style="width: 100%;"  onchange="setFormType('_undo_stocker_additional');">
+                            <option value="">Pilih Form</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Form Type</label>
+                        <input type="text" class="form-control" id="form_type_undo_stocker_additional" id="form_type_undo_stocker_additional" readonly>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
+                    <button type="button" class="btn btn-sb" onclick="undoStockerAdditional()"><i class="fa fa-rotate-left"></i> Undo</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -335,6 +371,10 @@
             theme: 'bootstrap4',
             dropdownParent: $('#restoreStockerLogModal')
         });
+        $('.select2bs4undostockeradditional').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('#undoStockerAdditionalModal')
+        });
 
         $(document).ready(function () {
             getFormList();
@@ -360,6 +400,12 @@
                         $.each(response, function (key, value) {
                             $('#no_form_recalc').append('<option value="' + value.form_cut_id + '" data-type="'+value.type+'">' + value.no_form + '</option>');
                         });
+
+                        $('#no_form_undo_stocker_additional').empty();
+                        $('#no_form_undo_stocker_additional').append('<option value="">Pilih Form</option>');
+                        $.each(response, function (key, value) {
+                            $('#no_form_undo_stocker_additional').append('<option value="' + value.form_cut_id + '" data-type="'+value.type+'">' + value.no_form + '</option>');
+                        });
                     }
 
                     document.getElementById("form_type").value = "";
@@ -374,9 +420,9 @@
             });
         }
 
-        function setFormType() {
-            const formType = $('#no_form option:selected').attr('data-type');
-            $('#form_type').val(formType);
+        function setFormType(suffix = null) {
+            const formType = $('#no_form'+suffix+' option:selected').attr('data-type');
+            $('#form_type'+suffix+'').val(formType);
         }
 
         function getFormGroupList() {
@@ -803,6 +849,31 @@
                     });
                 }
             })
+        }
+
+        function undoStockerAdditional() {
+            $.ajax({
+                type: "delete",
+                url: "{{ route('undo-stocker-additional') }}",
+                data: {
+                    'id': $('#no_form_undo_stocker_additional').val()
+                },
+                dataType: "json",
+                success: function (response) {
+                    console.log(response)
+
+                    if (response) {
+                        Swal.fire({
+                            icon: (response.status == 200 ? 'success' : 'error'),
+                            title: 'Berhasil',
+                            html: response.message,
+                        });
+                    }
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
+                }
+            });
         }
     </script>
 @endsection

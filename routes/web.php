@@ -907,6 +907,8 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/rearrange-groups', 'rearrangeGroups')->name('rearrange-groups');
         Route::post('/recalculate-stocker-transaction', 'recalculateStockerTransaction')->name('recalculate-stocker-transaction');
+
+        Route::delete('/undo-stocker-additional', 'undoStockerAdditional')->name('undo-stocker-additional');
     });
 
     // DC :
@@ -951,7 +953,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/update_mass_tmp_dc_in', 'update_mass_tmp_dc_in')->name('update_mass_tmp_dc_in');
         Route::delete('/delete_mass_tmp_dc_in', 'delete_mass_tmp_dc_in')->name('delete_mass_tmp_dc_in');
 
-        Route::get('/export-excel', 'exportExcel')->name('dc-in-export-excel');
+        Route::post('/export-excel', 'exportExcel')->name('dc-in-export-excel');
         Route::get('/export-excel-detail', 'exportExcelDetail')->name('dc-in-detail-export-excel');
     });
 

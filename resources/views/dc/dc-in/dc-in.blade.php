@@ -923,10 +923,22 @@
 
                 await $.ajax({
                     url: "{{ route("dc-in-export-excel") }}",
-                    type: "get",
+                    type: "post",
                     data: {
                         from : $("#tgl-awal").val(),
                         to : $("#tgl-akhir").val(),
+                        dc_filter_tipe : $('#dc_filter_tipe').val(),
+                        dc_filter_buyer : $('#dc_filter_buyer').val(),
+                        dc_filter_ws : $('#dc_filter_ws').val(),
+                        dc_filter_style : $('#dc_filter_style').val(),
+                        dc_filter_color : $('#dc_filter_color').val(),
+                        dc_filter_part : $('#dc_filter_part').val(),
+                        dc_filter_size : $('#dc_filter_size').val(),
+                        dc_filter_no_cut : $('#dc_filter_no_cut').val(),
+                        dc_filter_tujuan : $('#dc_filter_tujuan').val(),
+                        dc_filter_tempat : $('#dc_filter_tempat').val(),
+                        dc_filter_lokasi : $('#dc_filter_lokasi').val(),
+                        dc_filter_range : $('#dc_filter_lokasi').val(),
                     },
                     xhrFields: { responseType : 'blob' },
                     success: function (res) {

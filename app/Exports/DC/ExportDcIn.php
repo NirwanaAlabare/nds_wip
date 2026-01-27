@@ -24,10 +24,22 @@ class ExportDcIn implements FromView, WithEvents, ShouldAutoSize
     protected $from;
     protected $to;
 
-    public function __construct($from, $to)
+    public function __construct($from, $to, $dc_filter_tipe, $dc_filter_buyer, $dc_filter_ws, $dc_filter_style, $dc_filter_color, $dc_filter_part, $dc_filter_size, $dc_filter_no_cut, $dc_filter_tujuan, $dc_filter_tempat, $dc_filter_lokasi)
     {
         $this->from = $from ? $from : date('Y-m-d');
         $this->to = $to ? $to : date('Y-m-d');
+
+        $this->dc_filter_tipe = $dc_filter_tipe && count($dc_filter_tipe) > 0 ? $dc_filter_tipe : null;
+        $this->dc_filter_buyer = $dc_filter_buyer && count($dc_filter_buyer) > 0 ? $dc_filter_buyer : null;
+        $this->dc_filter_ws = $dc_filter_ws && count($dc_filter_ws) > 0 ? $dc_filter_ws : null;
+        $this->dc_filter_style = $dc_filter_style && count($dc_filter_style) > 0 ? $dc_filter_style : null;
+        $this->dc_filter_color = $dc_filter_color && count($dc_filter_color) > 0 ? $dc_filter_color : null;
+        $this->dc_filter_part = $dc_filter_part && count($dc_filter_part) > 0 ? $dc_filter_part : null;
+        $this->dc_filter_size = $dc_filter_size && count($dc_filter_size) > 0 ? $dc_filter_size : null;
+        $this->dc_filter_no_cut = $dc_filter_no_cut && count($dc_filter_no_cut) > 0 ? $dc_filter_no_cut : null;
+        $this->dc_filter_tujuan = $dc_filter_tujuan && count($dc_filter_tujuan) > 0 ? $dc_filter_tujuan : null;
+        $this->dc_filter_tempat = $dc_filter_tempat && count($dc_filter_tempat) > 0 ? $dc_filter_tempat : null;
+        $this->dc_filter_lokasi = $dc_filter_lokasi && count($dc_filter_lokasi) > 0 ? $dc_filter_lokasi : null;
     }
 
     public function view(): View
@@ -43,6 +55,40 @@ class ExportDcIn implements FromView, WithEvents, ShouldAutoSize
 
         if ($to) {
             $additionalQuery .= " and a.tgl_trans <= '" . $to . "' ";
+        }
+
+        if ($this->dc_filter_tipe && count($this->dc_filter_tipe) > 0) {
+            $additionalQuery .= " and (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) in (".addQuotesAround(implode("\n", $this->dc_filter_tipe)).")";
+        }
+        if ($this->dc_filter_buyer && count($this->dc_filter_buyer) > 0) {
+            $additionalQuery .= " and p.buyer in (".addQuotesAround(implode("\n", $this->dc_filter_buyer)).")";
+        }
+        if ($this->dc_filter_ws && count($this->dc_filter_ws) > 0) {
+            $additionalQuery .= " and s.act_costing_ws in (".addQuotesAround(implode("\n", $this->dc_filter_ws)).")";
+        }
+        if ($this->dc_filter_style && count($this->dc_filter_style) > 0) {
+            $additionalQuery .= " and p.style in (".addQuotesAround(implode("\n", $this->dc_filter_style)).")";
+        }
+        if ($this->dc_filter_color && count($this->dc_filter_color) > 0) {
+            $additionalQuery .= " and s.color in (".addQuotesAround(implode("\n", $this->dc_filter_color)).")";
+        }
+        if ($this->dc_filter_part && count($this->dc_filter_part) > 0) {
+            $additionalQuery .= " and mp.nama_part in (".addQuotesAround(implode("\n", $this->dc_filter_part)).")";
+        }
+        if ($this->dc_filter_size && count($this->dc_filter_size) > 0) {
+            $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $this->dc_filter_size)).")";
+        }
+        if ($this->dc_filter_no_cut && count($this->dc_filter_no_cut) > 0) {
+            $additionalQuery .= " and COALESCE(f.no_cut, fp.no_cut, '-') in (".addQuotesAround(implode("\n", $this->dc_filter_no_cut)).")";
+        }
+        if ($this->dc_filter_tujuan && count($this->dc_filter_tujuan) > 0) {
+            $additionalQuery .= " and a.tujuan in (".addQuotesAround(implode("\n", $this->dc_filter_tujuan)).")";
+        }
+        if ($this->dc_filter_tempat && count($this->dc_filter_tempat) > 0) {
+            $additionalQuery .= " and a.tempat in (".addQuotesAround(implode("\n", $this->dc_filter_tempat)).")";
+        }
+        if ($this->dc_filter_lokasi && count($this->dc_filter_lokasi) > 0) {
+            $additionalQuery .= " and a.lokasi in (".addQuotesAround(implode("\n", $this->dc_filter_lokasi)).")";
         }
 
         $data = DB::select("

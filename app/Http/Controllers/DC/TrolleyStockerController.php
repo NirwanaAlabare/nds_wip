@@ -684,7 +684,7 @@ class TrolleyStockerController extends Controller
                     AND `stocker_input`.`status` != 'line'
                     AND part_status = 'main'
                 GROUP BY
-                        stocker_input.id_qr_stocker
+                    stocker_input.id_qr_stocker
                 UNION ALL
                 SELECT
                     trolley_stocker.id,
