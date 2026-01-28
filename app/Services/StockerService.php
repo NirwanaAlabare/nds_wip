@@ -37,7 +37,7 @@ class StockerService
     {
         $formCutId = $filters['formCutId'] ?? null;
 
-        if ($formCutId) {
+        if ($formCutId > 0) {
 
             $partDetailId     = $filters['partDetailId']    ?? null;
             $soDetId          = $filters['soDetId']         ?? null;
@@ -110,7 +110,7 @@ class StockerService
     {
         $formCutId = $filters['formCutId'] ?? null;
 
-        if ($formCutId) {
+        if ($formCutId > 0) {
             $noWs = $filters['noWs'] ?? null;
             $style = $filters['style'] ?? null;
             $color = $filters['color'] ?? null;
