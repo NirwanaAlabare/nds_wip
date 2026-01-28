@@ -384,11 +384,11 @@
                 },
                 dataType: "json",
                 success: async function(response) {
-                    console.log(response);
+                    // console.log(response);
 
-                    if (response && response > ) {
-                        Swal.fire
-                    }
+                    // if (response && response > ) {
+                    //     Swal.fire
+                    // }
                 }
             });
         }
