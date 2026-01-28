@@ -81,6 +81,66 @@ class CuttingToolsController extends Controller
             if ($lastInput) {
                 $rollQty = $lastInput->sisa_kain;
                 $rollUse = $lastInput->total_lembar;
+            } else {
+                $newItem = DB::connection("mysql_sb")->select("
+                    SELECT
+                        id_roll,
+                        id_jo,
+                        detail_item,
+                        detail_item_color,
+                        detail_item_size,
+                        id_item,
+                        lot,
+                        roll,
+                        roll_buyer,
+                        qty_stok,
+                        SUM(qty)-COALESCE(qty_ri, 0) as qty,
+                        unit,
+                        rule_bom,
+                        so_det_list,
+                        size_list
+                    FROM (
+                        SELECT
+                            whs_bppb_det.id_roll,
+                            whs_bppb_det.id_jo,
+                            masteritem.itemdesc detail_item,
+                            masteritem.color detail_item_color,
+                            masteritem.size detail_item_size,
+                            whs_bppb_det.id_item,
+                            whs_bppb_det.no_lot lot,
+                            whs_bppb_det.no_roll roll,
+                            whs_lokasi_inmaterial.no_roll_buyer roll_buyer,
+                            whs_bppb_det.qty_stok,
+                            whs_bppb_det.qty_out qty,
+                            whs_bppb_det.satuan unit,
+                            bji.rule_bom,
+                            GROUP_CONCAT(DISTINCT so_det.id ORDER BY so_det.id ASC SEPARATOR ', ') as so_det_list,
+                            GROUP_CONCAT(DISTINCT so_det.size ORDER BY so_det.id ASC SEPARATOR ', ') as size_list
+                        FROM
+                            whs_bppb_det
+                            LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
+                            LEFT JOIN (SELECT no_barcode, id_item, no_roll_buyer FROM whs_lokasi_inmaterial where no_barcode = '".$request->id_roll."' GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                            LEFT JOIN masteritem ON masteritem.id_item = whs_lokasi_inmaterial.id_item
+                            LEFT JOIN bom_jo_item bji ON bji.id_item = masteritem.id_gen
+                            LEFT JOIN so_det ON so_det.id = bji.id_so_det
+                            LEFT JOIN so ON so.id = so_det.id_so
+                            LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                        WHERE
+                            whs_bppb_det.id_roll = '".$request->id_roll."'
+                            AND whs_bppb_h.tujuan = 'Production - Cutting'
+                            AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
+                            AND whs_bppb_det.no_bppb LIKE '%GK/OUT%'
+                        GROUP BY
+                            whs_bppb_det.id
+                    ) item
+                    LEFT JOIN (select no_barcode, sum(qty_aktual) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.no_barcode = '".$request->id_roll."' and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = item.id_roll
+                    GROUP BY
+                        id_roll
+                    LIMIT 1
+                ");
+
+                $rollQty = $newItem && $newItem[0] ? $newItem[0]->qty : null;
+                $rollUse = 0;
             }
         }
 
