@@ -646,7 +646,7 @@ class StockerController extends Controller
         //
     }
 
-    public function printStocker(Request $request, $index)
+    public function printStocker(Request $request, StockerService $stockerService, $index)
     {
         $formData = FormCutInput::where("id", $request['form_cut_id'])->first();
 
@@ -954,46 +954,13 @@ class StockerController extends Controller
                 ]);
         }
 
-        $dataStockers = Stocker::selectRaw("
-                (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
-                COALESCE(master_sb_ws.size, stocker_input.size) size,
-                stocker_input.range_awal,
-                stocker_input.range_akhir,
-                stocker_input.id_qr_stocker,
-                marker_input.act_costing_ws,
-                marker_input.buyer,
-                marker_input.style,
-                UPPER(TRIM(marker_input.color)) color,
-                stocker_input.shade,
-                stocker_input.group_stocker,
-                COALESCE(stocker_input.notes) notes,
-                form_cut_input.no_cut,
-                master_part.nama_part part,
-                master_sb_ws.dest
-            ")->
-            leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
-            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-            leftJoin("part", "part.id", "=", "part_detail.part_id")->
-            leftJoin("part_form", "part_form.part_id", "=", "part.id")->
-            leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
-            leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-            leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
-            leftJoin("master_size_new", "master_size_new.size", "=", "stocker_input.size")->
-            leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
-            leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
-            where("form_cut_input.status", "SELESAI PENGERJAAN")->
-            where("part_detail.id", $request['part_detail_id'][$index])->
-            where("stocker_input.form_cut_id", $request['form_cut_id'])->
-            where("marker_input_detail.so_det_id", $request['so_det_id'][$index])->
-            where("stocker_input.so_det_id", $request['so_det_id'][$index])->
-            where("stocker_input.shade", $request['group'][$index])->
-            // where("stocker_input.qty_ply", $request['qty_ply_group'][$index])->
-            where("stocker_input.group_stocker", $request['group_stocker'][$index])->
-            groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
-            orderBy("stocker_input.group_stocker", "desc")->
-            orderBy("stocker_input.so_det_id", "asc")->
-            orderBy("stocker_input.ratio", "asc")->
-            get();
+        $dataStockers = $stockerService->getStockerForPrint([
+                "partDetailId" => $request['part_detail_id'][$index],
+                "formCutId" => $request['form_cut_id'],
+                "soDetId" => $request['so_det_id'][$index],
+                "group" => $request['group'][$index],
+                "group_stocker" => $request['group_stocker'][$index],
+            ]);
 
         // generate pdf
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
@@ -1005,7 +972,7 @@ class StockerController extends Controller
         return $pdf->download(str_replace("/", "_", $fileName));;
     }
 
-    public function printStockerAllSize(Request $request, $partDetailId = 0)
+    public function printStockerAllSize(Request $request, StockerService $stockerService, $partDetailId = 0)
     {
         $formData = FormCutInput::where("id", $request['form_cut_id'])->first();
 
@@ -1333,41 +1300,7 @@ class StockerController extends Controller
             $storeItem = Stocker::insert($storeItemArr);
         }
 
-        $dataStockers = Stocker::selectRaw("
-                (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
-                COALESCE(master_sb_ws.size, stocker_input.size) size,
-                stocker_input.range_awal,
-                stocker_input.range_akhir,
-                stocker_input.id_qr_stocker,
-                marker_input.act_costing_ws,
-                marker_input.buyer,
-                marker_input.style,
-                UPPER(TRIM(marker_input.color)) as color,
-                stocker_input.shade,
-                stocker_input.group_stocker,
-                stocker_input.notes,
-                form_cut_input.no_cut,
-                master_part.nama_part part,
-                master_sb_ws.dest
-            ")->
-            leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
-            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-            leftJoin("part", "part.id", "=", "part_detail.part_id")->
-            leftJoin("part_form", "part_form.part_id", "=", "part.id")->
-            leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
-            leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-            leftJoin("master_size_new", "master_size_new.size", "=", "stocker_input.size")->
-            leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
-            leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
-            where("form_cut_input.status", "SELESAI PENGERJAAN")->
-            where("part_detail.id", $partDetailId)->
-            where("stocker_input.form_cut_id", $request['form_cut_id'])->
-            groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
-            orderBy("stocker_input.group_stocker", "desc")->
-            orderBy("stocker_input.shade", "desc")->
-            orderBy("stocker_input.so_det_id", "asc")->
-            orderBy("stocker_input.ratio", "asc")->
-            get();
+        $dataStockers = $stockerService->getStockerForPrint(["partDetailId" => $partDetailId, "formCutId" => $request["form_cut_id"]]);
 
         // generate pdf
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
@@ -1379,7 +1312,7 @@ class StockerController extends Controller
         return $pdf->download(str_replace("/", "_", $fileName));;
     }
 
-    public function printStockerChecked(Request $request)
+    public function printStockerChecked(Request $request, StockerService $stockerService)
     {
         ini_set('max_execution_time', 36000);
 
@@ -1710,41 +1643,7 @@ class StockerController extends Controller
             $storeItem = Stocker::insert($storeItemArr);
         }
 
-
-        $dataStockers = Stocker::selectRaw("
-                (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
-                COALESCE(master_sb_ws.size, stocker_input.size) size,
-                stocker_input.range_awal,
-                stocker_input.range_akhir,
-                MAX(stocker_input.id_qr_stocker) id_qr_stocker,
-                marker_input.act_costing_ws,
-                marker_input.buyer,
-                marker_input.style,
-                UPPER(TRIM(marker_input.color)) as color,
-                stocker_input.shade,
-                stocker_input.group_stocker,
-                stocker_input.notes,
-                form_cut_input.no_cut,
-                master_part.nama_part part,
-                master_sb_ws.dest
-            ")->
-            leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
-            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-            leftJoin("part", "part.id", "=", "part_detail.part_id")->
-            leftJoin("part_form", "part_form.part_id", "=", "part.id")->
-            leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
-            leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-            leftJoin("master_size_new", "master_size_new.size", "=", "stocker_input.size")->
-            leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
-            leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
-            where("form_cut_input.status", "SELESAI PENGERJAAN")->
-            whereIn("part_detail.id", $request['generate_stocker'])->
-            where("stocker_input.form_cut_id", $request['form_cut_id'])->
-            groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
-            orderBy("stocker_input.group_stocker", "desc")->
-            orderBy("stocker_input.so_det_id", "asc")->
-            orderByRaw("CAST(stocker_input.ratio AS UNSIGNED) asc")->
-            get();
+        $dataStockers = $stockerService->getStockerForPrint(["multiPartDetail" => $request['generate_stocker'], "formCutId" => $request["form_cut_id"]]);
 
         // generate pdf
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
@@ -2399,7 +2298,7 @@ class StockerController extends Controller
         return $pdf->download(str_replace("/", "_", $fileName));
     }
 
-    public function printStockerAllSizeAdd(Request $request)
+    public function printStockerAllSizeAdd(Request $request, StockerService $stockerService)
     {
         $formData = FormCutInput::where("id", $request['form_cut_id'])->first();
 
@@ -2723,44 +2622,7 @@ class StockerController extends Controller
             $storeItem = Stocker::insert($storeItemArr);
         }
 
-        $dataStockers = Stocker::selectRaw("
-                (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
-                COALESCE(master_sb_ws.size, stocker_input.size) size,
-                stocker_input.range_awal,
-                stocker_input.range_akhir,
-                stocker_input.id_qr_stocker,
-                stocker_ws_additional.act_costing_ws,
-                stocker_ws_additional.buyer,
-                stocker_ws_additional.style,
-                UPPER(TRIM(stocker_ws_additional.color)) color,
-                stocker_input.shade,
-                stocker_input.group_stocker,
-                stocker_input.notes,
-                form_cut_input.no_cut,
-                master_part.nama_part part,
-                master_sb_ws.dest
-            ")->
-            leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
-            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-            leftJoin("part", "part.id", "=", "part_detail.part_id")->
-            leftJoin("part_form", "part_form.part_id", "=", "part.id")->
-            leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
-            leftJoin("stocker_ws_additional", "stocker_ws_additional.form_cut_id", "=", "form_cut_input.id")->
-            leftJoin("stocker_ws_additional_detail", "stocker_ws_additional_detail.stocker_additional_id", "=", "stocker_ws_additional.id")->
-            leftJoin("master_size_new", "master_size_new.size", "=", "stocker_ws_additional_detail.size")->
-            leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
-            leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
-            where("form_cut_input.status", "SELESAI PENGERJAAN")->
-            where("stocker_ws_additional.act_costing_ws", $request['no_ws_add'])->
-            where("stocker_ws_additional.style", $request['style_add'])->
-            whereRaw("UPPER(TRIM(stocker_ws_additional.color)) = '".strtoupper(trim($request['color_add']))."'")->
-            where("form_cut_input.id", $request['form_cut_id'])->
-            groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
-            orderBy("stocker_input.group_stocker", "desc")->
-            orderBy("stocker_input.shade", "desc")->
-            orderBy("stocker_input.so_det_id", "asc")->
-            orderBy("stocker_input.ratio", "asc")->
-            get();
+        $dataStockers = $stockerService->getStockerAdditionalForPrint(["noWs" => $request['no_ws_add'], "style" => $request['style_add'], "color" => strtoupper(trim($request['color_add'])), "formCutId" => $request["form_cut_id"]]);
 
         // generate pdf
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
@@ -2772,7 +2634,7 @@ class StockerController extends Controller
         return $pdf->download(str_replace("/", "_", $fileName));;
     }
 
-    public function printStockerCheckedAdd(Request $request)
+    public function printStockerCheckedAdd(Request $request, StockerService $stockerService)
     {
         ini_set('max_execution_time', 36000);
 
@@ -3097,41 +2959,7 @@ class StockerController extends Controller
             $storeItem = Stocker::insert($storeItemArr);
         }
 
-        $dataStockers = Stocker::selectRaw("
-                (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
-                COALESCE(master_sb_ws.size, stocker_input.size) size,
-                stocker_input.range_awal,
-                stocker_input.range_akhir,
-                MAX(stocker_input.id_qr_stocker) id_qr_stocker,
-                stocker_ws_additional.act_costing_ws,
-                stocker_ws_additional.buyer,
-                stocker_ws_additional.style,
-                UPPER(TRIM(stocker_ws_additional.color)) color,
-                stocker_input.shade,
-                stocker_input.group_stocker,
-                stocker_input.notes,
-                form_cut_input.no_cut,
-                master_part.nama_part part,
-                master_sb_ws.dest
-            ")->
-            leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
-            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-            leftJoin("part", "part.id", "=", "part_detail.part_id")->
-            leftJoin("part_form", "part_form.part_id", "=", "part.id")->
-            leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
-            leftJoin("stocker_ws_additional", "stocker_ws_additional.form_cut_id", "=", "form_cut_input.id")->
-            leftJoin("stocker_ws_additional_detail", "stocker_ws_additional_detail.stocker_additional_id", "=", "stocker_ws_additional.id")->
-            leftJoin("master_size_new", "master_size_new.size", "=", "stocker_ws_additional_detail.size")->
-            leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
-            leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
-            where("form_cut_input.status", "SELESAI PENGERJAAN")->
-            whereIn("part_detail.id", $request['generate_stocker_add'])->
-            where("stocker_input.form_cut_id", $request['form_cut_id'])->
-            groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
-            orderBy("stocker_input.group_stocker", "desc")->
-            orderBy("stocker_input.so_det_id", "asc")->
-            orderByRaw("CAST(stocker_input.ratio AS UNSIGNED) asc")->
-            get ();
+        $dataStockers = $stockerService->getStockerAdditionalForPrint(["multiPartDetail" => $request["generate_stocker_add"], "formCutId" => $request['form_cut_id']]);
 
         // generate pdf
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);

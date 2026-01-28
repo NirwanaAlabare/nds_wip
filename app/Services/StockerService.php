@@ -33,6 +33,149 @@ use PDF;
 
 class StockerService
 {
+    public function getStockerForPrint(array $filters = [])
+    {
+        $formCutId = $filters['formCutId'] ?? null;
+
+        if ($formCutId) {
+
+            $partDetailId     = $filters['partDetailId']    ?? null;
+            $soDetId          = $filters['soDetId']         ?? null;
+            $group            = $filters['group']           ?? null;
+            $groupStocker     = $filters['groupStocker']    ?? null;
+            $multiPartDetail  = $filters['multiPartDetail'] ?? null;
+
+            $stockerSql = Stocker::selectRaw("
+                    (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
+                    COALESCE(master_sb_ws.size, stocker_input.size) size,
+                    stocker_input.range_awal,
+                    stocker_input.range_akhir,
+                    MAX(stocker_input.id_qr_stocker) id_qr_stocker,
+                    COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', UPPER(part_com.panel_status)) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', UPPER(part.panel_status)) ELSE '' END))) panel,
+                    marker_input.act_costing_ws,
+                    marker_input.buyer,
+                    marker_input.style,
+                    UPPER(TRIM(marker_input.color)) as color,
+                    stocker_input.shade,
+                    stocker_input.group_stocker,
+                    stocker_input.notes,
+                    form_cut_input.no_cut,
+                    CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL AND part_detail.part_status != 'regular' THEN CONCAT(' - ', UPPER(part_detail.part_status)) ELSE '' END)) part,
+                    master_sb_ws.dest
+                ")->
+                leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+                leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+                leftJoin("part", "part.id", "=", "part_detail.part_id")->
+                leftJoin("part_form", "part_form.part_id", "=", "part.id")->
+                leftJoin(DB::raw("part_detail as part_detail_com"), function ($join) {
+                    $join->on("part_detail_com.id", "=", "part_detail.from_part_detail");
+                    $join->on("part_detail.part_status", "=", DB::raw("'complement'"));
+                })->
+                leftJoin(DB::raw("part as part_com"), "part_com.id", "=", "part_detail_com.part_id")->
+                leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+                leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+                leftJoin("master_size_new", "master_size_new.size", "=", "stocker_input.size")->
+                leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
+                leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+                where("form_cut_input.status", "SELESAI PENGERJAAN")->
+                where("stocker_input.form_cut_id", $formCutId);
+                if ($multiPartDetail) {
+                    $stockerSql->whereIn("part_detail.id", $multiPartDetail);
+                }
+                if ($partDetailId) {
+                    $stockerSql->where("part_detail.id", $partDetailId);
+                }
+                if ($soDetId) {
+                    $stockerSql->where("stocker_input.so_det_id", $soDetId);
+                }
+                if ($group) {
+                    $stockerSql->where("stocker_input.shade", $group);
+                }
+                if ($groupStocker) {
+                    $stockerSql->where("stocker_input.group_stocker", $groupStocker);
+                }
+                $stockerData = $stockerSql->groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
+                    orderBy("stocker_input.group_stocker", "desc")->
+                    orderBy("stocker_input.so_det_id", "asc")->
+                    orderByRaw("CAST(stocker_input.ratio AS UNSIGNED) ASC")->
+                    get();
+
+            return $stockerData;
+        }
+
+        return ["notes" => "Form tidak ditemukan"];
+    }
+
+    public function getStockerAdditionalForPrint(array $filters = [])
+    {
+        $formCutId = $filters['formCutId'] ?? null;
+
+        if ($formCutId) {
+            $noWs = $filters['noWs'] ?? null;
+            $style = $filters['style'] ?? null;
+            $color = $filters['color'] ?? null;
+            $multiPartDetail = $filters['multiPartDetail'] ?? null;
+
+            $stockerAdditionalSql = Stocker::selectRaw("
+                    (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
+                    COALESCE(master_sb_ws.size, stocker_input.size) size,
+                    stocker_input.range_awal,
+                    stocker_input.range_akhir,
+                    stocker_input.id_qr_stocker,
+                    stocker_ws_additional.act_costing_ws,
+                    stocker_ws_additional.buyer,
+                    stocker_ws_additional.style,
+                    UPPER(TRIM(stocker_ws_additional.color)) color,
+                    COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', UPPER(part_com.panel_status)) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', UPPER(part.panel_status)) ELSE '' END))) panel,
+                    stocker_input.shade,
+                    stocker_input.group_stocker,
+                    stocker_input.notes,
+                    form_cut_input.no_cut,
+                    CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL AND part_detail.part_status != 'regular' THEN CONCAT(' - ', UPPER(part_detail.part_status)) ELSE '' END)) part,
+                    master_sb_ws.dest
+                ")->
+                leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+                leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+                leftJoin("part", "part.id", "=", "part_detail.part_id")->
+                leftJoin("part_form", "part_form.part_id", "=", "part.id")->
+                leftJoin(DB::raw("part_detail as part_detail_com"), function ($join) {
+                    $join->on("part_detail_com.id", "=", "part_detail.from_part_detail");
+                    $join->on("part_detail.part_status", "=", DB::raw("'complement'"));
+                })->
+                leftJoin(DB::raw("part as part_com"), "part_com.id", "=", "part_detail_com.part_id")->
+                leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+                leftJoin("stocker_ws_additional", "stocker_ws_additional.form_cut_id", "=", "form_cut_input.id")->
+                leftJoin("stocker_ws_additional_detail", "stocker_ws_additional_detail.stocker_additional_id", "=", "stocker_ws_additional.id")->
+                leftJoin("master_size_new", "master_size_new.size", "=", "stocker_ws_additional_detail.size")->
+                leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
+                leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+                where("form_cut_input.status", "SELESAI PENGERJAAN")->
+                where("form_cut_input.id", $formCutId);
+                if ($noWs) {
+                    $stockerAdditionalSql->where("stocker_ws_additional.act_costing_ws", $noWs);
+                }
+                if ($style) {
+                    $stockerAdditionalSql->where("stocker_ws_additional.style", $style);
+                }
+                if ($color) {
+                    $stockerAdditionalSql->whereRaw("UPPER(TRIM(stocker_ws_additional.color)) = '".strtoupper(trim($color))."'");
+                }
+                if ($multiPartDetail) {
+                    $stockerAdditionalSql->whereIn("part_detail.id", $multiPartDetail);
+                }
+                $stockerData = $stockerAdditionalSql->groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
+                orderBy("stocker_input.group_stocker", "desc")->
+                orderBy("stocker_input.shade", "desc")->
+                orderBy("stocker_input.so_det_id", "asc")->
+                orderByRaw("CAST(stocker_input.ratio AS UNSIGNED) asc")->
+                get();
+
+            return $stockerData;
+        }
+
+        return ["notes" => "Form tidak ditemukan"];
+    }
+
     public function getStockerGenerate($formCutId)
     {
         $dataSpreading = FormCutInput::selectRaw("
