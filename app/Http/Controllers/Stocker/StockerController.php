@@ -2968,7 +2968,7 @@ class StockerController extends Controller
 
         $fileName = 'stocker-' . $request['form_cut_id'] . '.pdf';
 
-        return $pdf->download(str_replace("/", "_", $fileName));;
+        return $pdf->download(str_replace("/", "_", $fileName));
     }
 
     public function submitStockerAdd(Request $request) {
