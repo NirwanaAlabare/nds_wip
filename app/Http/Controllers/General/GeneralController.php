@@ -815,6 +815,17 @@ class GeneralController extends Controller
                                 id_roll = '".$id."'
                             GROUP BY
                                 id_roll
+                            UNION
+                            SELECT
+                                barcode id_roll,
+                                max( qty_roll ) qty_awal,
+                                sum( qty_pakai + sisa_kain ) total_pemakaian
+                            FROM
+                                form_cut_reject_barcode
+                            WHERE
+                                barcode = '".$id."'
+                            GROUP BY
+                                barcode
                         ) pemakaian
                     group by
                         id_roll
@@ -833,7 +844,7 @@ class GeneralController extends Controller
                 if ($scannedItemUpdate) {
                     $scannedItemUpdate->qty_stok = $newItemQtyStok;
                     $scannedItemUpdate->qty_in = $newItemQty;
-                    $scannedItemUpdate->qty = floatval(($newItemQty - $scannedItem->qty_in) + $scannedItem->qty);
+                    $scannedItemUpdate->qty = ($scannedItem->qty_pakai > 0 ? floatval(($newItemQty - $scannedItem->qty_in) + $scannedItem->qty) : $newItemQty);
                     $scannedItemUpdate->so_det_list = $newItem[0]->so_det_list;
                     $scannedItemUpdate->size_list = $newItem[0]->size_list;
                     $scannedItemUpdate->save();
