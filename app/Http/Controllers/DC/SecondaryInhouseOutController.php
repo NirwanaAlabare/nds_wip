@@ -61,8 +61,11 @@ class SecondaryInhouseOutController extends Controller
             if ($request->sec_filter_color && count($request->sec_filter_color) > 0) {
                 $keywordQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->sec_filter_color)).")";
             }
+            if ($request->sec_filter_panel && count($request->sec_filter_panel) > 0) {
+                $keywordQuery .= " and COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) in (".addQuotesAround(implode("\n", $request->sec_filter_panel)).")";
+            }
             if ($request->sec_filter_part && count($request->sec_filter_part) > 0) {
-                $keywordQuery .= " and mp.nama_part in (".addQuotesAround(implode("\n", $request->sec_filter_part)).")";
+                $keywordQuery .= " and CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) in (".addQuotesAround(implode("\n", $request->sec_filter_part)).")";
             }
             if ($request->sec_filter_size && count($request->sec_filter_size) > 0) {
                 $keywordQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->sec_filter_size)).")";
@@ -93,6 +96,7 @@ class SecondaryInhouseOutController extends Controller
                     s.color,
                     p.buyer,
                     p.style,
+                    COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
                     COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
                     COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
                     COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
@@ -104,7 +108,7 @@ class SecondaryInhouseOutController extends Controller
                     COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
                     COALESCE(msb.size, s.size) AS size,
                     a.user,
-                    mp.nama_part,
+                    CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                     CONCAT(
                         s.range_awal, ' - ', s.range_akhir,
                         CASE
@@ -137,8 +141,10 @@ class SecondaryInhouseOutController extends Controller
                 LEFT JOIN form_cut_input f ON f.id = s.form_cut_id
                 LEFT JOIN form_cut_reject fr ON fr.id = s.form_reject_id
                 LEFT JOIN form_cut_piece fp ON fp.id = s.form_piece_id
-                LEFT JOIN part_detail pd ON s.part_detail_id = pd.id
-                LEFT JOIN part p ON pd.part_id = p.id
+                left join part_detail pd on s.part_detail_id = pd.id
+                left join part p on p.id = pd.part_id
+                left join part_detail pd_com on pd.id = pd.from_part_detail and pd.part_status = 'complement'
+                left join part p_com on p_com.id = pd_com.part_id
                 LEFT JOIN master_part mp ON mp.id = pd.master_part_id
                 LEFT JOIN (
                     SELECT id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat
@@ -183,6 +189,7 @@ class SecondaryInhouseOutController extends Controller
                 s.color,
                 p.buyer,
                 p.style,
+                COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
                 COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
                 COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
                 COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
@@ -194,7 +201,7 @@ class SecondaryInhouseOutController extends Controller
                 COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
                 COALESCE(msb.size, s.size) AS size,
                 a.user,
-                mp.nama_part,
+                CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                 CONCAT(
                     s.range_awal, ' - ', s.range_akhir,
                     CASE
@@ -231,8 +238,10 @@ class SecondaryInhouseOutController extends Controller
             LEFT JOIN form_cut_input f ON f.id = s.form_cut_id
             LEFT JOIN form_cut_reject fr ON fr.id = s.form_reject_id
             LEFT JOIN form_cut_piece fp ON fp.id = s.form_piece_id
-            LEFT JOIN part_detail pd ON s.part_detail_id = pd.id
-            LEFT JOIN part p ON pd.part_id = p.id
+            left join part_detail pd on s.part_detail_id = pd.id
+            left join part p on p.id = pd.part_id
+            left join part_detail pd_com on pd.id = pd.from_part_detail and pd.part_status = 'complement'
+            left join part p_com on p_com.id = pd_com.part_id
             LEFT JOIN master_part mp ON mp.id = pd.master_part_id
             LEFT JOIN (
                 SELECT id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat
@@ -257,6 +266,7 @@ class SecondaryInhouseOutController extends Controller
         $tujuan = $data_input->groupBy("tujuan")->keys();
         $lokasi = $data_input->groupBy("lokasi")->keys();
         $lokasi_rak = $data_input->groupBy("lokasi_rak")->keys();
+        $panel = $data_input->groupBy("panel")->keys();
         $part = $data_input->groupBy("nama_part")->keys();
         $no_cut = $data_input->groupBy("no_cut")->keys();
         $size = $data_input->groupBy("size")->keys();
@@ -270,6 +280,7 @@ class SecondaryInhouseOutController extends Controller
             "tujuan" => $tujuan,
             "lokasi" => $lokasi,
             "lokasi_rak" => $lokasi_rak,
+            "panel" => $panel,
             "part" => $part,
             "no_cut" => $no_cut,
             "size" => $size

@@ -55,6 +55,7 @@ class ExportSecondaryInHouse implements FromView, WithEvents, ShouldAutoSize
                 s.color,
                 p.buyer,
                 p.style,
+                COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
                 COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
                 COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
                 COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
@@ -66,7 +67,7 @@ class ExportSecondaryInHouse implements FromView, WithEvents, ShouldAutoSize
                 COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
                 COALESCE(msb.size, s.size) AS size,
                 a.user,
-                mp.nama_part,
+                CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                 CONCAT(
                     s.range_awal, ' - ', s.range_akhir,
                     CASE
@@ -99,8 +100,10 @@ class ExportSecondaryInHouse implements FromView, WithEvents, ShouldAutoSize
             LEFT JOIN form_cut_input f ON f.id = s.form_cut_id
             LEFT JOIN form_cut_reject fr ON fr.id = s.form_reject_id
             LEFT JOIN form_cut_piece fp ON fp.id = s.form_piece_id
-            LEFT JOIN part_detail pd ON s.part_detail_id = pd.id
-            LEFT JOIN part p ON pd.part_id = p.id
+            left join part_detail pd on s.part_detail_id = pd.id
+            left join part p on p.id = pd.part_id
+            left join part_detail pd_com on pd.id = pd.from_part_detail and pd.part_status = 'complement'
+            left join part p_com on p_com.id = pd_com.part_id
             LEFT JOIN master_part mp ON mp.id = pd.master_part_id
             LEFT JOIN (
                 SELECT id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat
@@ -113,8 +116,7 @@ class ExportSecondaryInHouse implements FromView, WithEvents, ShouldAutoSize
                     OR a.urutan = mx.max_urutan
                 )
                 $additionalQuery
-            ORDER BY
-                a.tgl_trans DESC
+            ORDER BY a.tgl_trans DESC
         ");
         $this->rowCount = count($data);
 
@@ -135,7 +137,7 @@ class ExportSecondaryInHouse implements FromView, WithEvents, ShouldAutoSize
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A1:R' . ($event->getConcernable()->rowCount+2),
+            'A1:S' . ($event->getConcernable()->rowCount+2),
             [
                 'borders' => [
                     'allBorders' => [
