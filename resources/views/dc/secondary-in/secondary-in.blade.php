@@ -60,6 +60,7 @@
                             <th>WS</th>
                             <th>Style</th>
                             <th>Color</th>
+                            <th>Panel</th>
                             <th>Part</th>
                             <th>Size</th>
                             <th>No. Cut</th>
@@ -78,7 +79,7 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="13"></th>
+                            <th colspan="14"></th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_awal'> </th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_reject'> </th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_replace'> </th>
@@ -167,6 +168,13 @@
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Color</label>
                                 <select class="form-select select2bs4filtersec" name="sec_filter_color[]" id="sec_filter_color" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Panel</label>
+                                <select class="form-select select2bs4filtersec" name="sec_filter_panel[]" id="sec_filter_panel" multiple="multiple">
                                 </select>
                             </div>
                         </div>
@@ -628,11 +636,12 @@
             dropdownParent: $("#filterDetailSecModal")
         });
 
+        // Datatable INPUT
         $('#datatable-input thead tr').clone(true).appendTo('#datatable-input thead');
         $('#datatable-input thead tr:eq(1) th').each(function(i) {
             var title = $(this).text();
 
-            if (i == 7) {
+            if (i == 8) {
                 $(this).html('<select class="form-select" id="size_filter" multiple="multiple" style="min-width: 90px;"></select>');
             } else {
                 $(this).html('<input type="text" class="form-control form-control-sm"/>');
@@ -663,35 +672,35 @@
 
                 // computing column Total of the complete result
                 var sumTotal = api
-                    .column(13)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalAwal = api
-                    .column(13)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalReject = api
                     .column(14)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
 
-                var sumTotalReplace = api
+                var sumTotalAwal = api
                     .column(15)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
 
-                var sumTotalIn = api
+                var sumTotalReject = api
                     .column(16)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalReplace = api
+                    .column(17)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalIn = api
+                    .column(18)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -699,10 +708,10 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(13).footer()).html(sumTotalAwal);
-                $(api.column(14).footer()).html(sumTotalReject);
-                $(api.column(15).footer()).html(sumTotalReplace);
-                $(api.column(16).footer()).html(sumTotalIn);
+                $(api.column(15).footer()).html(sumTotalAwal);
+                $(api.column(16).footer()).html(sumTotalReject);
+                $(api.column(17).footer()).html(sumTotalReplace);
+                $(api.column(18).footer()).html(sumTotalIn);
 
                 $('#size_filter').select2({
                     theme: 'bootstrap4',
@@ -731,6 +740,7 @@
                     d.sec_filter_ws = $('#sec_filter_ws').val();
                     d.sec_filter_style = $('#sec_filter_style').val();
                     d.sec_filter_color = $('#sec_filter_color').val();
+                    d.sec_filter_panel = $('#sec_filter_panel').val();
                     d.sec_filter_part = $('#sec_filter_part').val();
                     d.sec_filter_size = $('#sec_filter_size').val();
                     d.sec_filter_no_cut = $('#sec_filter_no_cut').val();
@@ -759,6 +769,9 @@
                 },
                 {
                     data: 'color',
+                },
+                {
+                    data: 'panel',
                 },
                 {
                     data: 'nama_part',
@@ -818,6 +831,7 @@
             ]
         });
 
+        // Datatable DETAIL
         $('#datatable-detail thead tr').clone(true).appendTo('#datatable-detail thead');
         $('#datatable-detail thead tr:eq(1) th').each(function(i) {
             var title = $(this).text();
@@ -1426,6 +1440,14 @@
                             $("#sec_filter_color").empty();
                             $.each(color, function(index, value) {
                                 $('#sec_filter_color').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.part && response.part.length > 0) {
+                            let part = response.part;
+                            $("#sec_filter_panel").empty();
+                            $.each(part, function(index, value) {
+                                $('#sec_filter_panel').append('<option value="'+value+'">'+value+'</option>');
                             });
                         }
 
