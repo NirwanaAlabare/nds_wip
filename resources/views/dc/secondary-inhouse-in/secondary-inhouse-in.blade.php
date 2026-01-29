@@ -52,6 +52,7 @@
                                     <th>Worksheet</th>
                                     <th>Style</th>
                                     <th>Color</th>
+                                    <th>Panel</th>
                                     <th>Part</th>
                                     <th>Size</th>
                                     <th>No. Cut</th>
@@ -634,7 +635,7 @@
                 };
 
                 var sumTotalIn = api
-                    .column(4)
+                    .column(5)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -642,7 +643,7 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(4).footer()).html(sumTotalIn);
+                $(api.column(5).footer()).html(sumTotalIn);
             },
             ordering: false,
             processing: true,
@@ -674,6 +675,9 @@
                 },
                 {
                     data: 'color',
+                },
+                {
+                    data: 'panel',
                 },
                 {
                     data: 'nama_part',
