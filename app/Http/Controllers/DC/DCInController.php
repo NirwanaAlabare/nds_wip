@@ -651,7 +651,7 @@ class DCInController extends Controller
                 LEFT JOIN stocker_input ms ON ms.form_cut_id = y.form_cut_id AND ms.so_det_id = y.so_det_id AND ms.group_stocker = y.group_stocker AND ms.ratio = y.ratio
                 LEFT JOIN master_sb_ws msb ON msb.id_so_det = ms.so_det_id
                 LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
-                left join part_detail pd on y.part_detail_id = pd.id
+                left join part_detail pd on ms.part_detail_id = pd.id
                 left join part p on p.id = pd.part_id
                 left join part_detail pd_com on pd.id = pd.from_part_detail and pd.part_status = 'complement'
                 left join part p_com on p_com.id = pd_com.part_id
@@ -689,7 +689,7 @@ class DCInController extends Controller
                 LEFT JOIN stocker_input ms ON ms.form_reject_id = y.form_reject_id AND ms.so_det_id = y.so_det_id AND ms.shade = y.shade
                 LEFT JOIN master_sb_ws msb ON msb.id_so_det = ms.so_det_id
                 LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
-                left join part_detail pd on y.part_detail_id = pd.id
+                left join part_detail pd on ms.part_detail_id = pd.id
                 left join part p on p.id = pd.part_id
                 left join part_detail pd_com on pd.id = pd.from_part_detail and pd.part_status = 'complement'
                 left join part p_com on p_com.id = pd_com.part_id
@@ -727,7 +727,7 @@ class DCInController extends Controller
                 LEFT JOIN stocker_input ms ON ms.form_piece_id = y.form_piece_id AND ms.so_det_id = y.so_det_id
                 LEFT JOIN master_sb_ws msb ON msb.id_so_det = ms.so_det_id
                 LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
-                left join part_detail pd on y.part_detail_id = pd.id
+                left join part_detail pd on ms.part_detail_id = pd.id
                 left join part p on p.id = pd.part_id
                 left join part_detail pd_com on pd.id = pd.from_part_detail and pd.part_status = 'complement'
                 left join part p_com on p_com.id = pd_com.part_id
