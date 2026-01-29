@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Exports;
+namespace App\Exports\DC;
 
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\Exportable;
@@ -96,7 +96,7 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
                             ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
                             ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
                         ) qty_old,
-                        loading_line.qty qty,
+                        MIN(loading_line.qty) qty,
                         trolley.id trolley_id,
                         trolley.nama_trolley,
                         stocker_input.so_det_id,

@@ -9,7 +9,7 @@ use App\Models\SignalBit\UserLine;
 use App\Models\Dc\TrolleyStocker;
 use App\Models\Dc\LoadingLine;
 use App\Models\Stocker\Stocker;
-use App\Exports\ExportLaporanLoading;
+use App\Exports\DC\ExportLaporanLoading;
 use App\Exports\DC\ExportLoadingLine;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
@@ -725,7 +725,7 @@ class LoadingLineController extends Controller
                                 ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
                                 ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
                             ) qty_old,
-                            loading_line.qty qty,
+                            MIN(loading_line.qty) qty,
                             trolley.id trolley_id,
                             trolley.nama_trolley,
                             stocker_input.so_det_id,
