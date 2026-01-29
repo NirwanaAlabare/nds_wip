@@ -5,6 +5,7 @@
         <th><b>WS</b></th>
         <th><b>Style</b></th>
         <th><b>Color</b></th>
+        <th><b>Panel</b></th>
         <th><b>Part</b></th>
         <th><b>Size</b></th>
         <th><b>No. Cut</b></th>
@@ -29,6 +30,7 @@
             <td>{{ $d->act_costing_ws }}</td>
             <td>{{ $d->style }}</td>
             <td>{{ $d->color }}</td>
+            <td>{{ $d->panel }}</td>
             <td>{{ $d->nama_part }}</td>
             <td>{{ $d->size }}</td>
             <td>{{ $d->no_cut }}</td>
@@ -42,7 +44,7 @@
         </tr>
     @endforeach
     <tr>
-        <td colspan="11">Total</td>
+        <td colspan="12">Total</td>
         <td>{{ $totalQtyIn }}</td>
     </tr>
 </table>
