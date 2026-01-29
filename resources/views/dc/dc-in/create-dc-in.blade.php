@@ -189,9 +189,15 @@
 
                 <div class="row">
                     <div class="col-3">
-                        <label class="form-label label-input"><small><b>Shell</b></small></label>
+                        <label class="form-label label-input"><small><b>Panel/Shell</b></small></label>
                         <div class="input-group">
                             <input type='text' class='form-control form-control-sm border-input' id='txtshell' name='txtshell' value='' readonly>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label label-input"><small><b>Part</b></small></label>
+                        <div class="input-group">
+                            <input type='text' class='form-control form-control-sm border-input' id='txtpart' name='txtpart' value='' readonly>
                         </div>
                     </div>
                     <div class="col-3">
@@ -212,9 +218,6 @@
                             <input type='text' class='form-control form-control-sm border-input' id='txtgroup' name='txtgroup' value='' readonly>
                         </div>
                     </div>
-                </div>
-
-                <div class="row">
                     <div class="col-3">
                         <label class="form-label label-input"><small><b>Qty</b></small></label>
                         <div class="input-group">
@@ -261,6 +264,7 @@
                                 </th>
                                 <th>Stocker</th>
                                 <th>Size</th>
+                                <th>Panel</th>
                                 <th>Part</th>
                                 <th>Tujuan</th>
                                 <th>Tempat</th>
@@ -421,6 +425,7 @@
             $("#txttempat_h").val('');
         }
 
+        // On Scan
         function scanqr() {
             if (document.getElementById("loading")) {
                 document.getElementById("loading").classList.remove("d-none");
@@ -441,6 +446,7 @@
                         document.getElementById('txtstyle').value = response.styleno;
                         document.getElementById('txtcolor').value = response.color;
                         document.getElementById('txtshell').value = response.panel;
+                        document.getElementById('txtpart').value = response.nama_part;
                         document.getElementById('txtnocut').value = response.no_cut;
                         document.getElementById('txtsize').value = response.size;
                         document.getElementById('txtgroup').value = response.shade;
@@ -507,6 +513,7 @@
             });
         };
 
+        // Mass Scan
         function massscanqr() {
             if (document.getElementById("loading")) {
                 document.getElementById("loading").classList.remove("d-none");
@@ -590,6 +597,7 @@
             });
         };
 
+        // Tmp Table
         function getdatatmp() {
             let datatable = $("#datatable-scan").DataTable({
                 ordering: false,
@@ -615,6 +623,9 @@
                     },
                     {
                         data: 'size',
+                    },
+                    {
+                        data: 'panel',
                     },
                     {
                         data: 'nama_part',
@@ -709,6 +720,7 @@
             }
         });
 
+        // Show tmp modal
         function getdetail(id_c) {
             if (document.getElementById("loading")) {
                 document.getElementById("loading").classList.remove("d-none");

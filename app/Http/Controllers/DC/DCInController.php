@@ -490,7 +490,8 @@ class DCInController extends Controller
                 COALESCE(msb.styleno, m.style, fp.style, fr.style) styleno,
                 a.color,
                 COALESCE(msb.size, a.size) size,
-                a.panel,
+                COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                 COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                 COALESCE(f.id, fr.id, fp.id) id,
                 a.shade,
@@ -509,7 +510,11 @@ class DCInController extends Controller
                 left join form_cut_piece fp on a.form_piece_id = fp.id
                 left JOIN marker_input m ON m.kode = f.id_marker
                 left join part_detail pd on a.part_detail_id = pd.id
+                left join part p on p.id = pd.part_id
+                left join part_detail pd_com on pd.id = pd.from_part_detail and pd.part_status = 'complement'
+                left join part p_com on p_com.id = pd_com.part_id
                 left join part_detail_secondary pds on pds.part_detail_id = pd.id
+                left join master_part mp on mp.id = pd.master_part_id
                 left join master_secondary ms on pds.master_secondary_id = ms.id
                 left join master_secondary ms_old on pd.master_secondary_id = ms_old.id
             WHERE
@@ -626,7 +631,8 @@ class DCInController extends Controller
         $tmpDcIn = DB::select("
             SELECT
                 ms.id_qr_stocker,
-                mp.nama_part,
+                COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                 concat( ms.id_qr_stocker, ' - ', mp.nama_part ) kode_stocker,
                 ifnull( tmp.tujuan, '-' ) tujuan,
                 ifnull( tmp.tempat, '-' ) tempat,
@@ -645,7 +651,10 @@ class DCInController extends Controller
                 LEFT JOIN stocker_input ms ON ms.form_cut_id = y.form_cut_id AND ms.so_det_id = y.so_det_id AND ms.group_stocker = y.group_stocker AND ms.ratio = y.ratio
                 LEFT JOIN master_sb_ws msb ON msb.id_so_det = ms.so_det_id
                 LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
-                left JOIN part_detail pd ON ms.part_detail_id = pd.id
+                left join part_detail pd on y.part_detail_id = pd.id
+                left join part p on p.id = pd.part_id
+                left join part_detail pd_com on pd.id = pd.from_part_detail and pd.part_status = 'complement'
+                left join part p_com on p_com.id = pd_com.part_id
                 left JOIN master_part mp ON pd.master_part_id = mp.id
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
             WHERE
@@ -660,7 +669,8 @@ class DCInController extends Controller
             UNION
             SELECT
                 ms.id_qr_stocker,
-                mp.nama_part,
+                COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                 concat( ms.id_qr_stocker, ' - ', mp.nama_part ) kode_stocker,
                 ifnull( tmp.tujuan, '-' ) tujuan,
                 ifnull( tmp.tempat, '-' ) tempat,
@@ -679,7 +689,10 @@ class DCInController extends Controller
                 LEFT JOIN stocker_input ms ON ms.form_reject_id = y.form_reject_id AND ms.so_det_id = y.so_det_id AND ms.shade = y.shade
                 LEFT JOIN master_sb_ws msb ON msb.id_so_det = ms.so_det_id
                 LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
-                left JOIN part_detail pd ON ms.part_detail_id = pd.id
+                left join part_detail pd on y.part_detail_id = pd.id
+                left join part p on p.id = pd.part_id
+                left join part_detail pd_com on pd.id = pd.from_part_detail and pd.part_status = 'complement'
+                left join part p_com on p_com.id = pd_com.part_id
                 left JOIN master_part mp ON pd.master_part_id = mp.id
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
             WHERE
@@ -694,7 +707,8 @@ class DCInController extends Controller
             UNION
             SELECT
                 ms.id_qr_stocker,
-                mp.nama_part,
+                COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                 concat( ms.id_qr_stocker, ' - ', mp.nama_part ) kode_stocker,
                 ifnull( x.tujuan, '-' ) tujuan,
                 ifnull( tmp.tempat, '-' ) tempat,
@@ -713,7 +727,10 @@ class DCInController extends Controller
                 LEFT JOIN stocker_input ms ON ms.form_piece_id = y.form_piece_id AND ms.so_det_id = y.so_det_id
                 LEFT JOIN master_sb_ws msb ON msb.id_so_det = ms.so_det_id
                 LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
-                left JOIN part_detail pd ON ms.part_detail_id = pd.id
+                left join part_detail pd on y.part_detail_id = pd.id
+                left join part p on p.id = pd.part_id
+                left join part_detail pd_com on pd.id = pd.from_part_detail and pd.part_status = 'complement'
+                left join part p_com on p_com.id = pd_com.part_id
                 left JOIN master_part mp ON pd.master_part_id = mp.id
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
             WHERE
