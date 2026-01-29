@@ -708,8 +708,8 @@
                 $(this).html('<input type="text" class="form-control form-control-sm"/>');
 
                 $('input', this).on('keyup change', function() {
-                    if (datatable.column(i).search() !== this.value) {
-                        datatable
+                    if ($('#datatable-scan').DataTable().column(i).search() !== this.value) {
+                        $('#datatable-scan').DataTable()
                             .column(i)
                             .search(this.value)
                             .draw();
