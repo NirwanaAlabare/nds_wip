@@ -438,9 +438,7 @@ class SecondaryInhouseOutController extends Controller
             from
                 (
                     SELECT
-                        (CASE WHEN fp.id > 0 THEN 'PIECE'
-                                WHEN fr.id > 0 THEN 'REJECT'
-                                ELSE 'NORMAL' END) AS tipe,
+                        (CASE WHEN fp.id > 0 THEN 'PIECE' WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) AS tipe,
                         DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') AS tgl_trans_fix,
                         a.tgl_trans,
                         s.act_costing_ws,
@@ -462,8 +460,7 @@ class SecondaryInhouseOutController extends Controller
                         CONCAT(
                             s.range_awal, ' - ', s.range_akhir,
                             CASE
-                            WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL
-                                THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ')
+                            WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ')
                             ELSE ' (0)'
                             END
                         ) AS stocker_range_old,
@@ -595,7 +592,8 @@ class SecondaryInhouseOutController extends Controller
                                 msb.styleno as style,
                                 s.color,
                                 COALESCE(msb.size, s.size) size,
-                                mp.nama_part,
+                                COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                                CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                                 dc.tujuan,
                                 dc.lokasi,
                                 COALESCE(sii.id, '-') as in_id,
@@ -610,7 +608,10 @@ class SecondaryInhouseOutController extends Controller
                                 left join form_cut_input a on s.form_cut_id = a.id
                                 left join form_cut_reject b on s.form_reject_id = b.id
                                 left join form_cut_piece c on s.form_piece_id = c.id
-                                left join part_detail p on s.part_detail_id = p.id
+                                left join part_detail pd on s.part_detail_id = pd.id
+                                left join part p on p.id = pd.part_id
+                                left join part_detail pd_com on pd.id = pd.from_part_detail and pd.part_status = 'complement'
+                                left join part p_com on p_com.id = pd_com.part_id
                                 left join master_part mp on p.master_part_id = mp.id
                                 left join marker_input mi on a.id_marker = mi.kode
                                 left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
@@ -620,7 +621,7 @@ class SecondaryInhouseOutController extends Controller
                                 and ifnull(si.id_qr_stocker,'x') = 'x'
                         ");
 
-                        return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
+                        return $cekdata && $cekdata[0] ? json_encode($cekdata[0]) : null;
                     }
                     // If there is urutan
                     else {
@@ -639,7 +640,8 @@ class SecondaryInhouseOutController extends Controller
                                     msb.styleno as style,
                                     s.color,
                                     COALESCE(msb.size, s.size) size,
-                                    mp.nama_part,
+                                    COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                                    CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                                     ms.tujuan,
                                     ms.proses lokasi,
                                     COALESCE(sii.id, '-') as in_id,
@@ -655,9 +657,12 @@ class SecondaryInhouseOutController extends Controller
                                     left join form_cut_input a on s.form_cut_id = a.id
                                     left join form_cut_reject b on s.form_reject_id = b.id
                                     left join form_cut_piece c on s.form_piece_id = c.id
-                                    left join part_detail p on s.part_detail_id = p.id
-                                    left join part_detail_secondary pds on pds.part_detail_id = p.id
-                                    left join master_part mp on p.master_part_id = mp.id
+                                    left join part_detail pd on s.part_detail_id = pd.id
+                                    left join part p on p.id = pd.part_id
+                                    left join part_detail pd_com on pd.id = pd.from_part_detail and pd.part_status = 'complement'
+                                    left join part p_com on p_com.id = pd_com.part_id
+                                    left join part_detail_secondary pds on pds.part_detail_id = pd.id
+                                    left join master_part mp on pd.master_part_id = mp.id
                                     left join master_secondary ms on pds.master_secondary_id = ms.id
                                     left join marker_input mi on a.id_marker = mi.kode
                                     left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker and sii.urutan = pds.urutan
@@ -714,7 +719,8 @@ class SecondaryInhouseOutController extends Controller
                                                 msb.styleno as style,
                                                 s.color,
                                                 COALESCE(msb.size, s.size) size,
-                                                mp.nama_part,
+                                                COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                                                CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                                                 ms.tujuan,
                                                 ms.proses lokasi,
                                                 COALESCE(sii.id, '-') as in_id,
@@ -730,9 +736,12 @@ class SecondaryInhouseOutController extends Controller
                                                 left join form_cut_input a on s.form_cut_id = a.id
                                                 left join form_cut_reject b on s.form_reject_id = b.id
                                                 left join form_cut_piece c on s.form_piece_id = c.id
-                                                left join part_detail p on s.part_detail_id = p.id
-                                                left join part_detail_secondary pds on pds.part_detail_id = p.id
-                                                left join master_part mp on p.master_part_id = mp.id
+                                                left join part_detail pd on s.part_detail_id = pd.id
+                                                left join part p on p.id = pd.part_id
+                                                left join part_detail pd_com on pd.id = pd.from_part_detail and pd.part_status = 'complement'
+                                                left join part p_com on p_com.id = pd_com.part_id
+                                                left join part_detail_secondary pds on pds.part_detail_id = pd.id
+                                                left join master_part mp on pd.master_part_id = mp.id
                                                 left join master_secondary ms on pds.master_secondary_id = ms.id
                                                 left join marker_input mi on a.id_marker = mi.kode
                                                 left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker and sii.urutan = pds.urutan
@@ -773,7 +782,8 @@ class SecondaryInhouseOutController extends Controller
                                             msb.styleno as style,
                                             s.color,
                                             COALESCE(msb.size, s.size) size,
-                                            mp.nama_part,
+                                            COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                                            CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                                             ms.tujuan,
                                             ms.proses lokasi,
                                             COALESCE(sii.id, '-') as in_id,
@@ -789,9 +799,12 @@ class SecondaryInhouseOutController extends Controller
                                             left join form_cut_input a on s.form_cut_id = a.id
                                             left join form_cut_reject b on s.form_reject_id = b.id
                                             left join form_cut_piece c on s.form_piece_id = c.id
-                                            left join part_detail p on s.part_detail_id = p.id
-                                            left join part_detail_secondary pds on pds.part_detail_id = p.id
-                                            left join master_part mp on p.master_part_id = mp.id
+                                            left join part_detail pd on s.part_detail_id = pd.id
+                                            left join part p on p.id = pd.part_id
+                                            left join part_detail pd_com on pd.id = pd.from_part_detail and pd.part_status = 'complement'
+                                            left join part p_com on p_com.id = pd_com.part_id
+                                            left join part_detail_secondary pds on pds.part_detail_id = pd.id
+                                            left join master_part mp on pd.master_part_id = mp.id
                                             left join master_secondary ms on pds.master_secondary_id = ms.id
                                             left join marker_input mi on a.id_marker = mi.kode
                                             left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker and sii.urutan = pds.urutan
@@ -814,7 +827,8 @@ class SecondaryInhouseOutController extends Controller
                                         msb.styleno as style,
                                         s.color,
                                         COALESCE(msb.size, s.size) size,
-                                        mp.nama_part,
+                                        COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                                        CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                                         dc.tujuan,
                                         dc.lokasi,
                                         COALESCE(sii.id, '-') as in_id,
@@ -829,8 +843,11 @@ class SecondaryInhouseOutController extends Controller
                                         left join form_cut_input a on s.form_cut_id = a.id
                                         left join form_cut_reject b on s.form_reject_id = b.id
                                         left join form_cut_piece c on s.form_piece_id = c.id
-                                        left join part_detail p on s.part_detail_id = p.id
-                                        left join master_part mp on p.master_part_id = mp.id
+                                        left join part_detail pd on s.part_detail_id = pd.id
+                                        left join part p on p.id = pd.part_id
+                                        left join part_detail pd_com on pd.id = pd.from_part_detail and pd.part_status = 'complement'
+                                        left join part p_com on p_com.id = pd_com.part_id
+                                        left join master_part mp on pd.master_part_id = mp.id
                                         left join marker_input mi on a.id_marker = mi.kode
                                         left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker and sii.urutan = 1
                                         left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
@@ -857,7 +874,8 @@ class SecondaryInhouseOutController extends Controller
                             msb.styleno as style,
                             s.color,
                             COALESCE(msb.size, s.size) size,
-                            mp.nama_part,
+                            COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                            CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                             dc.tujuan,
                             dc.lokasi,
                             COALESCE(sii.id, '-') as in_id,
@@ -872,8 +890,11 @@ class SecondaryInhouseOutController extends Controller
                             left join form_cut_input a on s.form_cut_id = a.id
                             left join form_cut_reject b on s.form_reject_id = b.id
                             left join form_cut_piece c on s.form_piece_id = c.id
-                            left join part_detail p on s.part_detail_id = p.id
-                            left join master_part mp on p.master_part_id = mp.id
+                            left join part_detail pd on s.part_detail_id = pd.id
+                            left join part p on p.id = pd.part_id
+                            left join part_detail pd_com on pd.id = pd.from_part_detail and pd.part_status = 'complement'
+                            left join part p_com on p_com.id = pd_com.part_id
+                            left join master_part mp on pd.master_part_id = mp.id
                             left join marker_input mi on a.id_marker = mi.kode
                             left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker and sii.urutan = 1
                             left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker

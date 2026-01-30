@@ -94,24 +94,27 @@
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
+                                    <label class='form-label'><small>Panel</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='txtpanel' name='txtpanel' value = '' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
                                     <label class='form-label'><small>Part</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txtpart' name='txtpart' value = '' readonly>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class='col-sm-4'>
+                            <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Urutan</small></label>
                                     <input type='number' class='form-control form-control-sm' id='txturutan' name='txturutan' value = '' readonly>
                                 </div>
                             </div>
-                            <div class='col-sm-4'>
+                            <div class='col-sm-3'>
                                 <label class='form-label'><small>ID IN</small></label>
                                 <input type='text' class='form-control form-control-sm' id='txtin_id' name='txtin_id' value = '' readonly>
                             </div>
-                            <div class='col-sm-4'>
+                            <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Waktu Scan IN</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txtwaktu_in' name='txtwaktu_in' value = '' readonly>
@@ -919,6 +922,7 @@
                     document.getElementById('txtstyle').value = response.style;
                     document.getElementById('txtcolor').value = response.color;
                     document.getElementById('txtsize').value = response.size;
+                    document.getElementById('txtpanel').value = response.panel;
                     document.getElementById('txtpart').value = response.nama_part;
                     document.getElementById('txttujuan').value = response.tujuan;
                     document.getElementById('txtin_id').value = response.in_id;
