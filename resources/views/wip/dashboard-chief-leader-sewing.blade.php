@@ -647,8 +647,8 @@
             imageContainer.classList.add("align-items-center")
             let imageSubContainer = document.createElement("div")
             imageSubContainer.classList.add("profile-frame");
-            imageSubContainer.style.width = "40px";
-            imageSubContainer.style.height = "40px";
+            imageSubContainer.style.width = "83px";
+            imageSubContainer.style.height = "83px";
             let imageElement = document.createElement("img");
             imageElement.src = "{{ asset('../storage/employee_profile') }}/"+d.nik+"%20"+d.name+".png"
             imageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");

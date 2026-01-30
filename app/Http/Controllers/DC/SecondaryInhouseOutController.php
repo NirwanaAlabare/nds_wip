@@ -612,7 +612,7 @@ class SecondaryInhouseOutController extends Controller
                                 left join part p on p.id = pd.part_id
                                 left join part_detail pd_com on pd.id = pd.from_part_detail and pd.part_status = 'complement'
                                 left join part p_com on p_com.id = pd_com.part_id
-                                left join master_part mp on p.master_part_id = mp.id
+                                left join master_part mp on pd.master_part_id = mp.id
                                 left join marker_input mi on a.id_marker = mi.kode
                                 left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
                                 left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
@@ -1004,7 +1004,7 @@ class SecondaryInhouseOutController extends Controller
                     LEFT JOIN form_cut_reject b ON s.form_reject_id = b.id
                     LEFT JOIN form_cut_piece c ON s.form_piece_id = c.id
                     LEFT JOIN part_detail p ON s.part_detail_id = p.id
-                    LEFT JOIN master_part mp ON p.master_part_id = mp.id
+                    LEFT JOIN master_part mp ON pd.master_part_id = mp.id
                     LEFT JOIN marker_input mi ON a.id_marker = mi.kode
                     LEFT JOIN secondary_inhouse_input si ON dc.id_qr_stocker = si.id_qr_stocker
                 WHERE
