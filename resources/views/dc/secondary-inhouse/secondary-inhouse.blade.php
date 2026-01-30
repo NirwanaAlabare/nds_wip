@@ -496,7 +496,7 @@
         $('#datatable-input thead tr:eq(1) th').each(function(i) {
             var title = $(this).text();
 
-            if (i == 7) {
+            if (i == 8) {
                 $(this).html('<select class="form-select" id="size_filter" multiple="multiple" style="min-width: 90px;"></select>');
             } else {
                 $(this).html('<input type="text" class="form-control form-control-sm"/>');

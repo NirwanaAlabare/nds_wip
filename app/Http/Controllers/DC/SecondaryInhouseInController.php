@@ -113,7 +113,7 @@ class SecondaryInhouseInController extends Controller
                 left join form_cut_piece fp on fp.id = s.form_piece_id
                 left join part_detail pd on s.part_detail_id = pd.id
                 left join part p on p.id = pd.part_id
-                left join part_detail pd_com on pd._com.id = pd.from_part_detail and pd.part_status = 'complement'
+                left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
                 left join part p_com on p_com.id = pd_com.part_id
                 left join master_part mp on mp.id = pd.master_part_id
                 left join (select id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
@@ -169,7 +169,7 @@ class SecondaryInhouseInController extends Controller
             left join form_cut_piece fp on fp.id = s.form_piece_id
             left join part_detail pd on s.part_detail_id = pd.id
             left join part p on p.id = pd.part_id
-            left join part_detail pd_com on pd._com.id = pd.from_part_detail and pd.part_status = 'complement'
+            left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
             left join part p_com on p_com.id = pd_com.part_id
             left join master_part mp on mp.id = pd.master_part_id
             left join (select id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
@@ -249,7 +249,7 @@ class SecondaryInhouseInController extends Controller
                     left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                     left join part_detail pd on s.part_detail_id = pd.id
                     left join part p on p.id = pd.part_id
-                    left join part_detail pd_com on pd._com.id = pd.from_part_detail and pd.part_status = 'complement'
+                    left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
                     left join part p_com on p_com.id = pd_com.part_id
                     left join master_part mp on mp.id = pd.master_part_id
                     left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
@@ -629,7 +629,7 @@ class SecondaryInhouseInController extends Controller
             left join form_cut_piece c on s.form_piece_id = c.id
             left join part_detail pd on s.part_detail_id = pd.id
             left join part p on p.id = pd.part_id
-            left join part_detail pd_com on pd._com.id = pd.from_part_detail and pd.part_status = 'complement'
+            left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
             left join part p_com on p_com.id = pd_com.part_id
             left join master_part mp on pd.master_part_id = mp.id
             left join marker_input mi on a.id_marker = mi.kode

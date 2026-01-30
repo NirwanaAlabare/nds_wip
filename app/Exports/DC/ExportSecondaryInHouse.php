@@ -102,7 +102,7 @@ class ExportSecondaryInHouse implements FromView, WithEvents, ShouldAutoSize
             LEFT JOIN form_cut_piece fp ON fp.id = s.form_piece_id
             left join part_detail pd on s.part_detail_id = pd.id
             left join part p on p.id = pd.part_id
-            left join part_detail pd_com on pd._com.id = pd.from_part_detail and pd.part_status = 'complement'
+            left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
             left join part p_com on p_com.id = pd_com.part_id
             LEFT JOIN master_part mp ON mp.id = pd.master_part_id
             LEFT JOIN (

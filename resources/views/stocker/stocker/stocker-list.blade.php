@@ -56,6 +56,7 @@
                             <th>Color</th>
                             <th>Size</th>
                             <th>Dest</th>
+                            <th>Panel</th>
                             <th>Qty</th>
                             <th>Year Sequence</th>
                             <th>Year Sequence Range</th>
@@ -75,9 +76,10 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <th colspan="6">TOTAL</th>
+                            <th colspan="7"></th>
                             <th></th>
                             <th colspan="3"></th>
+                            <th></th>
                             <th></th>
                             <th></th>
                             <th></th>
@@ -369,6 +371,9 @@
                     data: 'dest'
                 },
                 {
+                    data: 'panel'
+                },
+                {
                     data: 'qty'
                 },
                 {
@@ -432,7 +437,7 @@
                 },
                 // Stocker List
                 {
-                    targets: [13],
+                    targets: [14],
                     render: (data, type, row, meta) => {
                         return `<div style='width: 200px; overflow-x: auto;'>`+data+`</div>`;
                     }
@@ -447,8 +452,8 @@
                 var api = this.api(),data;
 
                 $(api.column(0).footer()).html('Total');
-                $(api.column(6).footer()).html("...");
                 $(api.column(7).footer()).html("...");
+                $(api.column(8).footer()).html("...");
 
                 $.ajax({
                     url: '{{ route('stocker-list-total') }}',
@@ -481,8 +486,8 @@
                         if (response && response[0]) {
                             // Update footer by showing the total with the reference of the column index
                             $(api.column(0).footer()).html('Total');
-                            $(api.column(6).footer()).html(response[0]['total_row']);
-                            $(api.column(7).footer()).html(response[0]['total_qty']);
+                            $(api.column(7).footer()).html(response[0]['total_row']);
+                            $(api.column(8).footer()).html(response[0]['total_qty']);
                         }
                     },
                     error: function(request, status, error) {
@@ -1222,6 +1227,8 @@
                     success: function (res) {
                         if (res) {
                             stockNumberArr = res;
+
+                            console.log(stockNumberArr);
 
                             dataTableReload();
                         } else {

@@ -12,6 +12,7 @@
         <th style="font-weight: 800;">Color</th>
         <th style="font-weight: 800;">Size</th>
         <th style="font-weight: 800;">Dest</th>
+        <th style="font-weight: 800;">Panel</th>
         <th style="font-weight: 800;">Qty</th>
         <th style="font-weight: 800;">Year Sequence</th>
         <th style="font-weight: 800;">Year Sequence Range</th>
@@ -42,6 +43,7 @@
             <td>{{ $stock->color }}</td>
             <td>{{ $stock->size }}</td>
             <td>{{ $stock->dest }}</td>
+            <td>{{ $stock->panel }}</td>
             <td>{{ $stock->qty }}</td>
             <td>{{ $stock->year_sequence }}</td>
             <td>{{ $stock->numbering_range }}</td>
@@ -58,7 +60,7 @@
         </tr>
     @endforeach
     <tr>
-        <td style="font-weight: bold;" colspan="5">TOTAL</td>
+        <td style="font-weight: bold;" colspan="6">TOTAL</td>
         <td style="font-weight: bold;">{{ $total }}</td>
         <td style="font-weight: bold;">{{ $totalQty }}</td>
     </tr>

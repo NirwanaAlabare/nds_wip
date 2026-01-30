@@ -108,8 +108,8 @@ class DCInController extends Controller
                     COALESCE(msb.size, s.size) size,
                     mp.nama_part,
                     UPPER(COALESCE(pd.part_status, '-')) part_status,
-                    p.panel,
-                    UPPER(COALESCE(p.panel_status, '-')) panel_status
+                    COALESCE(p_com.panel, p.panel) as panel,
+                    COALESCE(p_com.panel_status, p.panel_status) as panel_status
                 from
                     dc_in_input a
                     left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -119,6 +119,8 @@ class DCInController extends Controller
                     left join form_cut_piece fp on fp.id = s.form_piece_id
                     left join part_detail pd on s.part_detail_id = pd.id
                     left join part p on pd.part_id = p.id
+                    left join part_detail pd_com on pd_com.id = pd.from_part_detail
+                    left join part p_com on p_com.id = pd_com.part_id
                     left join master_part mp on mp.id = pd.master_part_id
                 where
                     a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
@@ -167,8 +169,8 @@ class DCInController extends Controller
                 COALESCE(msb.size, s.size) size,
                 mp.nama_part,
                 pd.part_status,
-                p.panel,
-                p.panel_status
+                COALESCE(p_com.panel, p.panel) as panel,
+                COALESCE(p_com.panel_status, p.panel_status) as panel_status
             from
                 dc_in_input a
                 left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -178,6 +180,8 @@ class DCInController extends Controller
                 left join form_cut_piece fp on fp.id = s.form_piece_id
                 left join part_detail pd on s.part_detail_id = pd.id
                 left join part p on pd.part_id = p.id
+                left join part_detail pd_com on pd_com.id = pd.from_part_detail
+                left join part p_com on p_com.id = pd_com.part_id
                 left join master_part mp on mp.id = pd.master_part_id
             where
                 a.tgl_trans is not null
@@ -511,7 +515,7 @@ class DCInController extends Controller
                 left JOIN marker_input m ON m.kode = f.id_marker
                 left join part_detail pd on a.part_detail_id = pd.id
                 left join part p on p.id = pd.part_id
-                left join part_detail pd_com on pd._com.id = pd.from_part_detail and pd.part_status = 'complement'
+                left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
                 left join part p_com on p_com.id = pd_com.part_id
                 left join part_detail_secondary pds on pds.part_detail_id = pd.id
                 left join master_part mp on mp.id = pd.master_part_id
@@ -653,7 +657,7 @@ class DCInController extends Controller
                 LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
                 left join part_detail pd on ms.part_detail_id = pd.id
                 left join part p on p.id = pd.part_id
-                left join part_detail pd_com on pd._com.id = pd.from_part_detail and pd.part_status = 'complement'
+                left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
                 left join part p_com on p_com.id = pd_com.part_id
                 left JOIN master_part mp ON pd.master_part_id = mp.id
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
@@ -691,7 +695,7 @@ class DCInController extends Controller
                 LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
                 left join part_detail pd on ms.part_detail_id = pd.id
                 left join part p on p.id = pd.part_id
-                left join part_detail pd_com on pd._com.id = pd.from_part_detail and pd.part_status = 'complement'
+                left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
                 left join part p_com on p_com.id = pd_com.part_id
                 left JOIN master_part mp ON pd.master_part_id = mp.id
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
@@ -729,7 +733,7 @@ class DCInController extends Controller
                 LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
                 left join part_detail pd on ms.part_detail_id = pd.id
                 left join part p on p.id = pd.part_id
-                left join part_detail pd_com on pd._com.id = pd.from_part_detail and pd.part_status = 'complement'
+                left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
                 left join part p_com on p_com.id = pd_com.part_id
                 left JOIN master_part mp ON pd.master_part_id = mp.id
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id

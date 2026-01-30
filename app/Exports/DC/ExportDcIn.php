@@ -127,8 +127,8 @@ class ExportDcIn implements FromView, WithEvents, ShouldAutoSize
                 COALESCE(msb.size, s.size) size,
                 mp.nama_part,
                 UPPER(COALESCE(pd.part_status, '-')) part_status,
-                p.panel,
-                UPPER(COALESCE(p.panel_status, '-')) panel_status
+                COALESCE(p_com.panel, p.panel) as panel,
+                COALESCE(p_com.panel_status, p.panel_status) as panel_status
             from
                 dc_in_input a
                 left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -138,6 +138,8 @@ class ExportDcIn implements FromView, WithEvents, ShouldAutoSize
                 left join form_cut_piece fp on fp.id = s.form_piece_id
                 left join part_detail pd on s.part_detail_id = pd.id
                 left join part p on pd.part_id = p.id
+                left join part_detail pd_com on pd_com.id = pd.from_part_detail
+                left join part p_com on p_com.id = pd_com.part_id
                 left join master_part mp on mp.id = pd.master_part_id
             where
                 a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')

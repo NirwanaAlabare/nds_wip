@@ -158,10 +158,10 @@
                             <th>WS</th>
                             <th>Style</th>
                             <th>Color</th>
-                            <th>Part</th>
-                            <th>Part Stats</th>
                             <th>Panel</th>
                             <th>Panel Stats</th>
+                            <th>Part</th>
+                            <th>Part Stats</th>
                             <th>Size</th>
                             <th>No. Cut</th>
                             <th>Tujuan</th>
@@ -630,16 +630,16 @@
                     data: 'color',
                 },
                 {
-                    data: 'nama_part',
-                },
-                {
-                    data: 'part_status',
-                },
-                {
                     data: 'panel',
                 },
                 {
                     data: 'panel_status',
+                },
+                {
+                    data: 'nama_part',
+                },
+                {
+                    data: 'part_status',
                 },
                 {
                     data: 'size',
