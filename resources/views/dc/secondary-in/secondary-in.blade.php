@@ -714,6 +714,7 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
+                $(api.column(14).footer()).html(sumTotal);
                 $(api.column(15).footer()).html(sumTotalAwal);
                 $(api.column(16).footer()).html(sumTotalReject);
                 $(api.column(17).footer()).html(sumTotalReplace);
