@@ -119,6 +119,7 @@ class TrolleyStockerController extends Controller
                     trolley_stocker.id,
                     GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
                     stocker_input.act_costing_ws,
+                    COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
                     (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.no_cut ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) END) no_cut,
                     (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.style ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) END) style,
                     (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
@@ -139,6 +140,12 @@ class TrolleyStockerController extends Controller
                 leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
                 leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
                 leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+                leftJoin("part", "part.id", "=", "part_detail.part_id")->
+                leftJoin("part_detail as part_detail_com", function ($join) {
+                    $join->on("part_detail_com.id", "=", "part_detail.from_part_detail");
+                    $join->on("part_detail.part_status", "=", DB::raw("'complement'"));
+                })->
+                leftJoin("part as part_com", "part_com.id", "=", "part_detail_com.part_id")->
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                 leftJoin("users", "users.id", "=", "trolley_stocker.created_by")->
                 where('trolley_id', $request->trolley_id)->
@@ -165,6 +172,9 @@ class TrolleyStockerController extends Controller
                 })->
                 filterColumn('color', function($query, $keyword) {
                     $query->whereRaw("stocker_input.color LIKE '%".$keyword."%'");
+                })->
+                filterColumn('panel', function($query, $keyword) {
+                    $query->whereRaw("COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) '%".$keyword."%'");
                 })->
                 filterColumn('nama_part', function($query, $keyword) {
                     $query->whereRaw("master_part.nama_part LIKE '%".$keyword."%'");
@@ -193,6 +203,7 @@ class TrolleyStockerController extends Controller
                     trolley_stocker.id,
                     GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
                     stocker_input.act_costing_ws,
+                    COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
                     (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.no_cut ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) END) no_cut,
                     (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.style ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) END) style,
                     (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
@@ -213,6 +224,12 @@ class TrolleyStockerController extends Controller
                 leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
                 leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
                 leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+                leftJoin("part", "part.id", "=", "part_detail.part_id")->
+                leftJoin("part_detail as part_detail_com", function ($join) {
+                    $join->on("part_detail_com.id", "=", "part_detail.from_part_detail");
+                    $join->on("part_detail.part_status", "=", DB::raw("'complement'"));
+                })->
+                leftJoin("part as part_com", "part_com.id", "=", "part_detail_com.part_id")->
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                 leftJoin("users", "users.id", "=", "trolley_stocker.created_by")->
                 where('trolley_id', $id)->
@@ -239,6 +256,9 @@ class TrolleyStockerController extends Controller
                 })->
                 filterColumn('color', function($query, $keyword) {
                     $query->whereRaw("stocker_input.color LIKE '%".$keyword."%'");
+                })->
+                filterColumn('panel', function($query, $keyword) {
+                    $query->whereRaw("COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) '%".$keyword."%'");
                 })->
                 filterColumn('nama_part', function($query, $keyword) {
                     $query->whereRaw("master_part.nama_part LIKE '%".$keyword."%'");
@@ -661,6 +681,7 @@ class TrolleyStockerController extends Controller
                 style,
                 tipe,
                 color,
+                panel,
                 GROUP_CONCAT( DISTINCT nama_part SEPARATOR ', ' ) nama_part,
                 size,
                 COALESCE (MAX(qty_main), MIN(qty), 0) as qty,
@@ -678,7 +699,8 @@ class TrolleyStockerController extends Controller
                     (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.style ELSE ( CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END )  END ) style,
                     (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE ( CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END ) END ) tipe,
                     stocker_input.color,
-                    master_part.nama_part as nama_part,
+                    COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
+                    CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL THEN CONCAT(' - ', part_detail.part_status) ELSE '' END)) nama_part,
                     COALESCE ( master_sb_ws.size, stocker_input.size ) size,
                     COALESCE (last_in.qty_in, MIN(COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) )) qty_main,
                     COALESCE (last_in.qty_in, MIN(COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) )) qty,
@@ -699,7 +721,10 @@ class TrolleyStockerController extends Controller
                     LEFT JOIN `form_cut_reject` ON `form_cut_reject`.`id` = `stocker_input`.`form_reject_id`
                     LEFT JOIN `form_cut_piece` ON `form_cut_piece`.`id` = `stocker_input`.`form_piece_id`
                     LEFT JOIN `marker_input` ON `marker_input`.`kode` = `form_cut_input`.`id_marker`
-                    LEFT JOIN `part_detail` ON `part_detail`.`id` = `stocker_input`.`part_detail_id`
+                    left join part_detail on stocker_input.part_detail_id = part_detail.id
+                    left join part on part.id = part_detail.part_id
+                    left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
+                    left join part part_com on part_com.id = part_detail_com.part_id
                     LEFT JOIN `master_part` ON `master_part`.`id` = `part_detail`.`master_part_id`
                     LEFT JOIN `users` ON `users`.`id` = `trolley_stocker`.`created_by`
                     LEFT JOIN  (
@@ -722,7 +747,7 @@ class TrolleyStockerController extends Controller
                     `trolley_id` = ".$id."
                     AND `trolley_stocker`.`status` = 'active'
                     AND `stocker_input`.`status` != 'line'
-                    AND part_status = 'main'
+                    AND part_detail.part_status = 'main'
                 GROUP BY
                     stocker_input.id_qr_stocker
                 UNION ALL
@@ -736,7 +761,8 @@ class TrolleyStockerController extends Controller
                     (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.style ELSE ( CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END )  END ) style,
                     (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE ( CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END ) END ) tipe,
                     stocker_input.color,
-                    master_part.nama_part as nama_part,
+                    COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
+                    CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL THEN CONCAT(' - ', part_detail.part_status) ELSE '' END)) nama_part,
                     COALESCE ( master_sb_ws.size, stocker_input.size ) size,
                     null as qty_main,
                     COALESCE (last_in.qty_in, MIN(COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) )) qty,
@@ -757,7 +783,10 @@ class TrolleyStockerController extends Controller
                     LEFT JOIN `form_cut_reject` ON `form_cut_reject`.`id` = `stocker_input`.`form_reject_id`
                     LEFT JOIN `form_cut_piece` ON `form_cut_piece`.`id` = `stocker_input`.`form_piece_id`
                     LEFT JOIN `marker_input` ON `marker_input`.`kode` = `form_cut_input`.`id_marker`
-                    LEFT JOIN `part_detail` ON `part_detail`.`id` = `stocker_input`.`part_detail_id`
+                    left join part_detail on stocker_input.part_detail_id = part_detail.id
+                    left join part on part.id = part_detail.part_id
+                    left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
+                    left join part part_com on part_com.id = part_detail_com.part_id
                     LEFT JOIN `master_part` ON `master_part`.`id` = `part_detail`.`master_part_id`
                     LEFT JOIN `users` ON `users`.`id` = `trolley_stocker`.`created_by`
                     LEFT JOIN  (
@@ -780,7 +809,7 @@ class TrolleyStockerController extends Controller
                     `trolley_id` = ".$id."
                     AND `trolley_stocker`.`status` = 'active'
                     AND `stocker_input`.`status` != 'line'
-                    AND (part_status != 'main' OR part_status IS NULL)
+                    AND (part_detail.part_status != 'main' OR part_detail.part_status IS NULL)
                 GROUP BY
                     stocker_input.id_qr_stocker
             ) a

@@ -111,6 +111,7 @@
                         <th>No. Cut</th>
                         <th>Style</th>
                         <th>Color</th>
+                        <th>Panel</th>
                         <th>Part</th>
                         <th>Size</th>
                         <th>Qty</th>
@@ -198,6 +199,9 @@
                 },
                 {
                     data: 'color',
+                },
+                {
+                    data: 'panel',
                 },
                 {
                     data: 'nama_part',

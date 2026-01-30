@@ -109,6 +109,7 @@
                                 <th>No. Cut</th>
                                 <th>Style</th>
                                 <th>Color</th>
+                                <th>Panel</th>
                                 <th>Part</th>
                                 <th>Size</th>
                                 <th>Qty</th>
@@ -139,6 +140,7 @@
                                         <td>{{ $trolleyStock->no_cut }}</td>
                                         <td>{{ $trolleyStock->style }}</td>
                                         <td>{{ $trolleyStock->color }}</td>
+                                        <td>{{ $trolleyStock->panel }}</td>
                                         <td>{{ $trolleyStock->nama_part }}</td>
                                         <td>{{ $trolleyStock->size }}</td>
                                         <td>{{ $trolleyStock->qty }}</td>
@@ -210,7 +212,7 @@
                     }
                 },
                 {
-                    targets: [7],
+                    targets: [8],
                     render: (data, type, row, meta) => {
                         return `<span class="text-nowrap">`+ data.replace(/,/g, ", <br>") +`</span>`;
                     }
@@ -261,8 +263,10 @@
                 if (element.checked) {
                     stockArr.push(data);
                 } else {
-                    stockArr = stockArr.filter(item => item.id != data.id);
+                    stockArr = stockArr.filter(item => item[0] != data[0]);
                 }
+
+                console.log(data, stockArr);
 
                 updateSelectedSum();
             }
@@ -322,7 +326,7 @@
 
         // Update checked summary
         function updateSelectedSum() {
-            let stockArrSum = stockArr.reduce((acc, row) => acc + Number(row[9]), 0);
+            let stockArrSum = stockArr.reduce((acc, row) => acc + Number(row[10]), 0);
 
             document.getElementById('selected-row-count-1').innerText = stockArr.length+" (Total Qty : "+stockArrSum+")";
 

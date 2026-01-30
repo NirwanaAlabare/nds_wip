@@ -75,91 +75,97 @@
             <div class="d-flex justify-content-end mb-3">
                 <button type="button" class="btn btn-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#filterDetailLoadingModal"><i class="fa fa-filter"></i> Filter</button>
             </div>
-            <table class="table table-bordered table" id="datatable-stocker">
-                <thead>
-                    <tr>
-                        <th>No. WS</th>
-                        <th>Color</th>
-                        <th>No. Cut</th>
-                        <th>No. Form</th>
-                        <th>Size</th>
-                        <th>Group</th>
-                        <th>Group</th>
-                        <th>Range</th>
-                        <th>Range</th>
-                        <th>No. Stocker</th>
-                        <th>Stock</th>
-                        <th>No. Bon</th>
-                        <th>Qty</th>
-                        <th>Tanggal</th>
-                        <th>Waktu</th>
-                        <th>By</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @php
-                        $currentForm = null;
-                        $currentSize = null;
-                        $currentGroup = null;
-                        $currentRange = null;
-                        $currentQty = null;
-
-                        $latestUpdate = null;
-
-                        $totalQty = 0;
-                    @endphp
-                    @foreach ($loadingLines as $loadingLine)
-                        @php
-                            $qty = $loadingLine->qty;
-
-                            if ($currentSize != $loadingLine->size || $currentRange != $loadingLine->range_awal || (str_contains($currentForm, "GR") || $currentForm != $loadingLine->no_form)) {
-                                $currentForm = $loadingLine->no_form;
-                                $currentSize = $loadingLine->size;
-                                $currentGroup = $loadingLine->group_stocker ? $loadingLine->group_stocker : $loadingLine->shade;
-                                $currentRange = $loadingLine->range_awal;
-
-                                $currentUpdate = $loadingLine->tanggal_loading;
-                                $currentUpdate > $latestUpdate && $latestUpdate = $currentUpdate;
-
-                                $totalQty += $qty;
-
-                                $currentQty = $qty;
-                            } else {
-                                // $currentQty > $qty ? $totalQty = $totalQty - $currentQty + $qty : $totalQty = $totalQty;
-
-                                $currentQty = $qty;
-                            }
-                        @endphp
+            <div class="table-responsive">
+                <table class="table table-bordered table w-100" id="datatable-stocker">
+                    <thead>
                         <tr>
-                            <td class="align-middle">{{ $loadingLine->act_costing_ws }}</td>
-                            <td class="align-middle">{{ $loadingLine->color }}</td>
-                            <td class="align-middle">{{ $loadingLine->no_form." / ".$loadingLine->no_cut }}</td>
-                            <td class="align-middle">{{ $loadingLine->no_form }}</td>
-                            <td class="align-middle">{{ $loadingLine->size }}</td>
-                            <td class="align-middle">{{ $loadingLine->group_stocker }}</td>
-                            <td class="align-middle">{{ $loadingLine->shade }}</td>
-                            <td class="align-middle">{{ $loadingLine->range_awal }}</td>
-                            <td class="align-middle">{{ ($loadingLine->range_awal)." - ".($loadingLine->range_akhir) }}</td>
-                            <td class="align-middle">{{ $loadingLine->id_qr_stocker }}</td>
-                            <td class="align-middle {{ $loadingLine->part_status == 'main' ? 'fw-bold' : '' }}">{{ strtoupper($loadingLine->tipe != 'REJECT' ? $loadingLine->part_status : $loadingLine->tipe) }}</td>
-                            <td class="align-middle">{{ $loadingLine->no_bon }}</td>
-                            <td class="align-middle {{ $loadingLine->part_status == 'main' ? 'fw-bold' : '' }}">{{ num($qty) }}</td>
-                            <td class="align-middle">{{ $loadingLine->tanggal_loading }}</td>
-                            <td class="align-middle">{{ $loadingLine->waktu_loading }}</td>
-                            <td class="align-middle">{{ $loadingLine->user }}</td>
+                            <th>No. WS</th>
+                            <th>Color</th>
+                            <th>No. Cut</th>
+                            <th>No. Form</th>
+                            <th>Panel</th>
+                            <th>Size</th>
+                            <th>Group</th>
+                            <th>Group</th>
+                            <th>Range</th>
+                            <th>Range</th>
+                            <th>Part</th>
+                            <th>No. Stocker</th>
+                            <th>Stock</th>
+                            <th>No. Bon</th>
+                            <th>Qty</th>
+                            <th>Tanggal</th>
+                            <th>Waktu</th>
+                            <th>By</th>
                         </tr>
-                    @endforeach
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <th class="text-end" colspan="12">TOTAL</th>
-                        <th id="total-qty">{{ num($totalQty) }}</th>
-                        <th id="latest-update">{{ $latestUpdate }}</th>
-                        <th></th>
-                        <th></th>
-                    </tr>
-                </tfoot>
-            </table>
+                    </thead>
+                    <tbody>
+                        @php
+                            $currentForm = null;
+                            $currentSize = null;
+                            $currentGroup = null;
+                            $currentRange = null;
+                            $currentQty = null;
+
+                            $latestUpdate = null;
+
+                            $totalQty = 0;
+                        @endphp
+                        @foreach ($loadingLines as $loadingLine)
+                            @php
+                                $qty = $loadingLine->qty;
+
+                                if ($currentSize != $loadingLine->size || $currentRange != $loadingLine->range_awal || (str_contains($currentForm, "GR") || $currentForm != $loadingLine->no_form)) {
+                                    $currentForm = $loadingLine->no_form;
+                                    $currentSize = $loadingLine->size;
+                                    $currentGroup = $loadingLine->group_stocker ? $loadingLine->group_stocker : $loadingLine->shade;
+                                    $currentRange = $loadingLine->range_awal;
+
+                                    $currentUpdate = $loadingLine->tanggal_loading;
+                                    $currentUpdate > $latestUpdate && $latestUpdate = $currentUpdate;
+
+                                    $totalQty += $qty;
+
+                                    $currentQty = $qty;
+                                } else {
+                                    // $currentQty > $qty ? $totalQty = $totalQty - $currentQty + $qty : $totalQty = $totalQty;
+
+                                    $currentQty = $qty;
+                                }
+                            @endphp
+                            <tr>
+                                <td class="align-middle">{{ $loadingLine->act_costing_ws }}</td>
+                                <td class="align-middle">{{ $loadingLine->color }}</td>
+                                <td class="align-middle text-nowrap">{{ $loadingLine->no_form." / ".$loadingLine->no_cut }}</td>
+                                <td class="align-middle">{{ $loadingLine->no_form }}</td>
+                                <td class="align-middle">{{ $loadingLine->panel }}</td>
+                                <td class="align-middle">{{ $loadingLine->size }}</td>
+                                <td class="align-middle">{{ $loadingLine->group_stocker }}</td>
+                                <td class="align-middle text-nowrap">{{ $loadingLine->shade }}</td>
+                                <td class="align-middle">{{ $loadingLine->range_awal }}</td>
+                                <td class="align-middle text-nowrap">{{ ($loadingLine->range_awal)." - ".($loadingLine->range_akhir) }}</td>
+                                <td class="align-middle">{{ $loadingLine->nama_part }}</td>
+                                <td class="align-middle">{{ $loadingLine->id_qr_stocker }}</td>
+                                <td class="align-middle {{ $loadingLine->part_status == 'main' ? 'fw-bold' : '' }}">{{ strtoupper($loadingLine->tipe != 'REJECT' ? $loadingLine->part_status : $loadingLine->tipe) }}</td>
+                                <td class="align-middle">{{ $loadingLine->no_bon }}</td>
+                                <td class="align-middle {{ $loadingLine->part_status == 'main' ? 'fw-bold' : '' }}">{{ num($qty) }}</td>
+                                <td class="align-middle">{{ $loadingLine->tanggal_loading }}</td>
+                                <td class="align-middle">{{ $loadingLine->waktu_loading }}</td>
+                                <td class="align-middle">{{ $loadingLine->user }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th class="text-end" colspan="14">TOTAL</th>
+                            <th id="total-qty">{{ num($totalQty) }}</th>
+                            <th id="latest-update">{{ $latestUpdate }}</th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -269,13 +275,14 @@
                     1,
                     2,
                     4,
-                    6,
+                    5,
                     7,
-                    8,
+                    9,
+                    10,
                 ],
                 columnDefs: [
                     {
-                        targets: [3, 5, 7],
+                        targets: [3, 6, 8],
                         visible: false
                     },
                 ]

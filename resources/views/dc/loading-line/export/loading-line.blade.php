@@ -7,6 +7,7 @@
         <th style="font-weight: 800;">No. WS</th>
         <th style="font-weight: 800;">Style</th>
         <th style="font-weight: 800;">Color</th>
+        <th style="font-weight: 800;">Panel</th>
         <th style="font-weight: 800;">No. Cut</th>
         <th style="font-weight: 800;">No. Form</th>
         <th style="font-weight: 800;">Size</th>
@@ -62,6 +63,7 @@
             <td>{{ $loadingLine->act_costing_ws }}</td>
             <td>{{ $loadingLine->style }}</td>
             <td>{{ $loadingLine->color }}</td>
+            <td>{{ $loadingLine->panel }}</td>
             <td>{{ $loadingLine->no_cut }}</td>
             <td>{{ $loadingLine->no_form }}</td>
             <td>{{ $loadingLine->size }}</td>
