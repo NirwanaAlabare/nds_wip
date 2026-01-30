@@ -207,7 +207,7 @@
             await updateData();
 
             console.log("data update finish");
-        }, 60000);
+        }, 15000);
 
         // Date Update
         async function updateTanggal() {
@@ -481,11 +481,7 @@
                 },
                 dataType: "json",
                 success: async function (response) {
-                    console.log("not updated at?", response)
-
                     let allLeaderData = processAllLeaderData(response);
-
-                    document.getElementById('chief-leader-line-charts').innerHTML = "";
 
                     // Chief Group By
                     let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_nik }) => chief_nik));
@@ -547,7 +543,7 @@
 
                     // Show Chief Daily Data
                     for (let i = 0; i < sortedChiefLineEfficiency.length; i++) {
-                        appendRow(sortedChiefLineEfficiency[i], i+1);
+                        updateRow(sortedChiefLineEfficiency[i], i+1);
                     }
 
                     document.getElementById("loading").classList.add("d-none");
@@ -616,6 +612,10 @@
 
                 appendSubRow(lineSubContainer, d, index, i);
             });
+
+            parentElement.minHeight = parentElement.offsetHeight;
+
+            console.log('element height', parentElement.minHeight, parentElement.offsetHeight);
         }
 
         function appendSubRow(lineSubContainer, d, index, i) {
@@ -779,6 +779,7 @@
 
         // Update Element
         function updateRow(data, index) {
+            console.log("elementChief", "chief-"+index, document.getElementById("chief-"+index));
             if (document.getElementById("chief-"+index)) {
                 // Chief
                 let chiefElement = document.getElementById("chief-"+index);
@@ -828,9 +829,10 @@
 
                     updateSubRow(d, index, i);
                 })
-            } else {
-                appendRow(data, index);
             }
+            // else {
+            //     appendRow(data, index);
+            // }
         }
 
         async function updateSubRow(data, index, i) {
