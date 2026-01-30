@@ -797,7 +797,7 @@ class GeneralController extends Controller
                             SELECT
                                 id_roll,
                                 max( qty ) qty_awal,
-                                sum( total_pemakaian_roll + sisa_kain ) total_pemakaian
+                                sum( COALESCE(total_pemakaian_roll, 0) + COALESCE(sisa_kain, 0) ) total_pemakaian
                             FROM
                                 form_cut_input_detail
                             WHERE
@@ -808,7 +808,7 @@ class GeneralController extends Controller
                             SELECT
                                 id_roll,
                                 max( qty ) qty_awal,
-                                sum( piping + qty_sisa ) total_pemakaian
+                                sum( COALESCE(piping, 0) + COALESCE(qty_sisa, 0) ) total_pemakaian
                             FROM
                                 form_cut_piping
                             WHERE
@@ -819,7 +819,7 @@ class GeneralController extends Controller
                             SELECT
                                 barcode id_roll,
                                 max( qty_roll ) qty_awal,
-                                sum( qty_pakai + sisa_kain ) total_pemakaian
+                                sum( COALESCE(qty_pakai, 0) + COALESCE(sisa_kain, 0) ) total_pemakaian
                             FROM
                                 form_cut_reject_barcode
                             WHERE
