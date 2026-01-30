@@ -207,7 +207,7 @@
             await updateData();
 
             console.log("data update finish");
-        }, 15000);
+        }, 60000);
 
         // Date Update
         async function updateTanggal() {
