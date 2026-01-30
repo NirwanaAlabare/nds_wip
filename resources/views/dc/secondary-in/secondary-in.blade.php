@@ -369,26 +369,29 @@
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
+                                    <label class='form-label'><small>Panel</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='txtpanel' name='txtpanel' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
                                     <label class='form-label'><small>Part</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txtpart' name='txtpart' value='' readonly>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class='col-md-4'>
+                            <div class='col-md-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Urutan</small></label>
-                                    <input type='text' class='form-control' id='txturutan' name='txturutan' value='' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txturutan' name='txturutan' value='' readonly>
                                 </div>
                             </div>
-                            <div class='col-sm-4'>
+                            <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Tujuan Asal</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txttujuan' name='txttujuan' value='' readonly>
                                 </div>
                             </div>
-                            <div class='col-sm-4'>
+                            <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Lokasi Asal</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txtalokasi' name='txtalokasi' value='' readonly>
@@ -555,20 +558,23 @@
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
+                                    <label class='form-label'><small>Panel</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='edit_panel' name='edit_panel' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-4'>
+                                <div class='form-group'>
                                     <label class='form-label'><small>Part</small></label>
                                     <input type='text' class='form-control form-control-sm' id='edit_part' name='edit_part' value='' readonly>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class='col-sm-6'>
+                            <div class='col-sm-4'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Tujuan Asal</small></label>
                                     <input type='text' class='form-control form-control-sm' id='edit_tujuan' name='edit_tujuan' value='' readonly>
                                 </div>
                             </div>
-                            <div class='col-sm-6'>
+                            <div class='col-sm-4'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Lokasi Asal</small></label>
                                     <input type='text' class='form-control form-control-sm' id='edit_alokasi' name='edit_alokasi' value='' readonly>
@@ -1175,6 +1181,7 @@
                     document.getElementById('txtstyle').value = response.style;
                     document.getElementById('txtcolor').value = response.color;
                     document.getElementById('txtsize').value = response.size;
+                    document.getElementById('txtpanel').value = response.panel;
                     document.getElementById('txtpart').value = response.nama_part;
                     document.getElementById('txttujuan').value = response.tujuan;
                     document.getElementById('txtalokasi').value = response.lokasi;
@@ -1264,6 +1271,7 @@
                     document.getElementById('edit_style').value = response.style;
                     document.getElementById('edit_color').value = response.color;
                     document.getElementById('edit_size').value = response.size;
+                    document.getElementById('edit_panel').value = response.panel;
                     document.getElementById('edit_part').value = response.nama_part;
                     document.getElementById('edit_tujuan').value = response.tujuan;
                     document.getElementById('edit_alokasi').value = response.lokasi;
