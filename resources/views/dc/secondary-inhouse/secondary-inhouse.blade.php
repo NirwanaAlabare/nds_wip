@@ -526,40 +526,43 @@
                         i : 0;
                 };
 
-                var sumTotalAwal = api
-                    .column(13)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
+                $.ajax({
+                    type: "get",
+                    url: "{{ route('total-stocker-inhouse') }}",
+                    data: {
+                        dateFrom : $('#tgl-awal').val(),
+                        dateTo : $('#tgl-akhir').val(),
+                        sec_filter_tipe : $('#sec_filter_tipe').val(),
+                        sec_filter_buyer : $('#sec_filter_buyer').val(),
+                        sec_filter_ws : $('#sec_filter_ws').val(),
+                        sec_filter_style : $('#sec_filter_style').val(),
+                        sec_filter_color : $('#sec_filter_color').val(),
+                        sec_filter_panel : $('#sec_filter_panel').val(),
+                        sec_filter_part : $('#sec_filter_part').val(),
+                        sec_filter_size : $('#sec_filter_size').val(),
+                        sec_filter_no_cut : $('#sec_filter_no_cut').val(),
+                        sec_filter_tujuan : $('#sec_filter_tujuan').val(),
+                        sec_filter_lokasi : $('#sec_filter_lokasi').val(),
+                        sec_filter_lokasi_rak : $('#sec_filter_lokasi_rak').val(),
+                        size_filter : $('#size_filter').val(),
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        console.log(response);
 
-                var sumTotalReject = api
-                    .column(14)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalReplace = api
-                    .column(15)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalIn = api
-                    .column(16)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                // Update footer by showing the total with the reference of the column index
-                $(api.column(0).footer()).html('Total');
-                $(api.column(13).footer()).html(sumTotalAwal);
-                $(api.column(14).footer()).html(sumTotalReject);
-                $(api.column(15).footer()).html(sumTotalReplace);
-                $(api.column(16).footer()).html(sumTotalIn);
+                        if (response) {
+                            // Update footer by showing the total with the reference of the column index
+                            $(api.column(0).footer()).html('Total');
+                            $(api.column(13).footer()).html(response.total_qty_awal);
+                            $(api.column(14).footer()).html(response.total_qty_reject);
+                            $(api.column(15).footer()).html(response.total_qty_replace);
+                            $(api.column(16).footer()).html(response.total_qty_in);
+                        }
+                    },
+                    error: function (jqXHR) {
+                        console.error(jqXHR);
+                    }
+                });
 
                 $('#size_filter').select2({
                     theme: 'bootstrap4',
@@ -568,7 +571,7 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
+            paging: true,
             searching: true,
             scrollY: '300px',
             scrollX: '300px',
@@ -668,6 +671,8 @@
             ]
         });
 
+
+        // Datatable Detail
         $('#datatable-detail thead tr').clone(true).appendTo('#datatable-detail thead');
         $('#datatable-detail thead tr:eq(1) th').each(function(i) {
             var title = $(this).text();
@@ -742,7 +747,7 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
+            paging: true,
             searching: true,
             scrollY: '300px',
             scrollX: '300px',
@@ -810,7 +815,43 @@
 
         function datatableReload() {
             $('#datatable-input').DataTable().ajax.reload();
-            $('#datatable-detail').DataTable().ajax.reload();
+            $('#datatable-detail').DataTable().ajax.reload(function () {
+                $.ajax({
+                    type: "get",
+                    url: "{{ route('total-stocker-inhouse') }}",
+                    data: {
+                        dateFrom : $('#tgl-awal').val(),
+                        dateTo : $('#tgl-akhir').val(),
+                        sec_filter_tipe : $('#sec_filter_tipe').val(),
+                        sec_filter_buyer : $('#sec_filter_buyer').val(),
+                        sec_filter_ws : $('#sec_filter_ws').val(),
+                        sec_filter_style : $('#sec_filter_style').val(),
+                        sec_filter_color : $('#sec_filter_color').val(),
+                        sec_filter_panel : $('#sec_filter_panel').val(),
+                        sec_filter_part : $('#sec_filter_part').val(),
+                        sec_filter_size : $('#sec_filter_size').val(),
+                        sec_filter_no_cut : $('#sec_filter_no_cut').val(),
+                        sec_filter_tujuan : $('#sec_filter_tujuan').val(),
+                        sec_filter_lokasi : $('#sec_filter_lokasi').val(),
+                        sec_filter_lokasi_rak : $('#sec_filter_lokasi_rak').val(),
+                        size_filter : $('#size_filter').val(),
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        console.log(response);
+
+                        if (response) {
+                            $('#total_qty_awal').val(response.total_qty_awal)
+                            $('#total_qty_reject').val(response.total_qty_reject)
+                            $('#total_qty_replace').val(response.total_qty_replace)
+                            $('#total_qty_in').val(response.total_qty_in)
+                        }
+                    },
+                    error: function (jqXHR) {
+                        console.error(jqXHR);
+                    }
+                });
+            });
         }
     </script>
 

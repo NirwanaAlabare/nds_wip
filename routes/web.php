@@ -993,6 +993,7 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(SecondaryInhouseOutController::class)->prefix("secondary-inhouse")->middleware('role:dc')->group(function () {
         Route::get('/', 'index')->name('secondary-inhouse');
+        Route::get('/total_stocker_inhouse', 'totalStockerInhouse')->name('total-stocker-inhouse');
         Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse');
         Route::post('/store', 'store')->name('store-secondary-inhouse');
         Route::post('/mass-store', 'massStore')->name('mass-store-secondary-inhouse');
