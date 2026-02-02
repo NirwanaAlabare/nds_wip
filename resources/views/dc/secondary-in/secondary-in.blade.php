@@ -727,7 +727,7 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
+            paging: true,
             searching: true,
             scrollY: '300px',
             scrollX: '300px',
@@ -1187,7 +1187,7 @@
                     document.getElementById('txttujuan').value = response.tujuan;
                     document.getElementById('txtalokasi').value = response.lokasi;
                     document.getElementById('txtqtyawal').value =  response.qty_awal;
-                    document.getElementById('txturutan').value = response.urutan;
+                    document.getElementById('txturutan').value = response.urutan ? response.urutan : null;
 
                     console.log(response.status, response.max_urutan, response.tempat_tujuan);
 
