@@ -556,6 +556,12 @@ class CuttingToolsController extends Controller
                             ['marker_id', 'so_det_id'], // unique constraint columns
                             ['ratio', 'cut_qty', 'cancel', 'updated_at'] // columns to update if a match is found
                         );
+                } else {
+                    return array(
+                        "status" => 400,
+                        "message" => "Tidak ditemukan size.",
+                        "additional" => [],
+                    );
                 }
 
                 if ($markerStore && $markerDetailStore) {
@@ -651,14 +657,13 @@ class CuttingToolsController extends Controller
                         "message" => "Marker Form berhasil diubah.",
                         "additional" => [],
                     );
+                } else {
+                    return array(
+                        "status" => 400,
+                        "message" => "Marker tidak berhasil diubah.",
+                        "additional" => [],
+                    );
                 }
-            // } else {
-            //     return array(
-            //         "status" => 400,
-            //         "message" => "Tidak ada perubahan.",
-            //         "additional" => [],
-            //     );
-            // }
         }
 
         return array(
