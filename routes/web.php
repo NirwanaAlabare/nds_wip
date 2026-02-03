@@ -288,6 +288,7 @@ Route::middleware('auth')->group(function () {
 
         // output
         Route::get('/get-output', 'getOutput')->name('get-output');
+        Route::post('/get-output-post', 'getOutput')->name('get-output-post');
 
         // master plan
         Route::get('/get-master-plan', 'getMasterPlan')->name('get-master-plan');
