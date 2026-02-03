@@ -252,6 +252,7 @@
                             <th>No. Cut</th>
                             <th>Tujuan Asal</th>
                             <th>Lokasi Asal</th>
+                            <th>Urutan</th>
                             <th>Range</th>
                             <th>Qty Awal</th>
                             <th>Qty Reject</th>
@@ -264,7 +265,7 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="13"></th>
+                            <th colspan="14"></th>
                             <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_awal'></th>
                             <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_reject'></th>
                             <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_replace'></th>
@@ -553,10 +554,10 @@
                         if (response) {
                             // Update footer by showing the total with the reference of the column index
                             $(api.column(0).footer()).html('Total');
-                            $(api.column(13).footer()).html(response.total_qty_awal);
-                            $(api.column(14).footer()).html(response.total_qty_reject);
-                            $(api.column(15).footer()).html(response.total_qty_replace);
-                            $(api.column(16).footer()).html(response.total_qty_in);
+                            $(api.column(14).footer()).html(response.total_qty_awal);
+                            $(api.column(15).footer()).html(response.total_qty_reject);
+                            $(api.column(16).footer()).html(response.total_qty_replace);
+                            $(api.column(17).footer()).html(response.total_qty_in);
                         }
                     },
                     error: function (jqXHR) {
@@ -637,6 +638,9 @@
                 },
                 {
                     data: 'lokasi',
+                },
+                {
+                    data: 'urutan',
                 },
                 {
                     data: 'stocker_range',

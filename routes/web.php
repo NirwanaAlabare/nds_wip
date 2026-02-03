@@ -1009,6 +1009,7 @@ Route::middleware('auth')->group(function () {
     // Secondary IN
     Route::controller(SecondaryInController::class)->prefix("secondary-in")->middleware('role:dc')->group(function () {
         Route::get('/', 'index')->name('secondary-in');
+        Route::get('/total_stocker_in', 'totalStockerIn')->name('total-stocker-in');
         Route::get('/cek_data_stocker_in', 'cek_data_stocker_in')->name('cek_data_stocker_in');
         Route::get('/cek_data_stocker_in_edit', 'cek_data_stocker_in_edit')->name('cek_data_stocker_in_edit');
         Route::post('/store', 'store')->name('store-secondary-in');
