@@ -1426,7 +1426,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/miss-packing-po', 'missPackingPo')->name("sewing-miss-packing-po");
 
         Route::get('/check-output-detail', 'checkOutputDetail')->name("check-output-detail");
-        Route::get('/check-output-detail-list', 'checkOutputDetailList')->name("check-output-detail-list");
+        Route::post('/check-output-detail-list', 'checkOutputDetailList')->name("check-output-detail-list");
         Route::post('/check-output-detail-export', 'checkOutputDetailExport')->name("check-output-detail-export");
 
         Route::get('/line-migration', 'lineMigration')->name("line-migration");
