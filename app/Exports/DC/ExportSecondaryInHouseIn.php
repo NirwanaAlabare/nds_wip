@@ -52,6 +52,7 @@ class ExportSecondaryInHouseIn implements FromView, WithEvents, ShouldAutoSize
             s.act_costing_ws,
             s.color,
             p.buyer,
+            COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
             p.style,
             a.qty_in,
             a.created_at,
@@ -61,7 +62,7 @@ class ExportSecondaryInHouseIn implements FromView, WithEvents, ShouldAutoSize
             COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
             COALESCE(msb.size, s.size) size,
             a.user,
-            mp.nama_part,
+            CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
             CONCAT(s.range_awal, ' - ', s.range_akhir, (CASE WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range
             from secondary_inhouse_in_input a
             left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -70,7 +71,9 @@ class ExportSecondaryInHouseIn implements FromView, WithEvents, ShouldAutoSize
             left join form_cut_reject fr on fr.id = s.form_reject_id
             left join form_cut_piece fp on fp.id = s.form_piece_id
             left join part_detail pd on s.part_detail_id = pd.id
-            left join part p on pd.part_id = p.id
+            left join part p on p.id = pd.part_id
+            left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+            left join part p_com on p_com.id = pd_com.part_id
             left join master_part mp on mp.id = pd.master_part_id
             left join (select id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
             where
@@ -97,7 +100,7 @@ class ExportSecondaryInHouseIn implements FromView, WithEvents, ShouldAutoSize
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A1:O' . ($event->getConcernable()->rowCount+2),
+            'A1:P' . ($event->getConcernable()->rowCount+2),
             [
                 'borders' => [
                     'allBorders' => [

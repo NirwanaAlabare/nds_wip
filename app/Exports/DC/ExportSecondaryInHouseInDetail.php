@@ -47,12 +47,18 @@ class ExportSecondaryInHouseInDetail implements FromView, WithEvents, ShouldAuto
 
         $data = DB::select("
             select
-                sii.tgl_trans, s.act_costing_ws, msb.buyer, styleno, s.color, s.size, mp.nama_part, dc.tujuan, dc.lokasi as proses, COALESCE(sum(sii.qty_in), 0) qty_in
+                sii.tgl_trans, s.act_costing_ws, msb.buyer, styleno,
+                COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                s.color, s.size, mp.nama_part, dc.tujuan, dc.lokasi as proses, COALESCE(sum(sii.qty_in), 0) qty_in
             from
                 dc_in_input dc
                 left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
                 left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                 left join part_detail pd on s.part_detail_id = pd.id
+                left join part p on p.id = pd.part_id
+                left join part_detail pd_com on pd.id = pd.from_part_detail and pd.part_status = 'complement'
+                left join part p_com on p_com.id = pd_com.part_id
                 left join master_part mp on mp.id = pd.master_part_id
                 left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
             where
@@ -80,7 +86,7 @@ class ExportSecondaryInHouseInDetail implements FromView, WithEvents, ShouldAuto
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A1:I' . ($event->getConcernable()->rowCount+2),
+            'A1:J' . ($event->getConcernable()->rowCount+2),
             [
                 'borders' => [
                     'allBorders' => [

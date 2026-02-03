@@ -94,24 +94,27 @@
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
+                                    <label class='form-label'><small>Panel</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='txtpanel' name='txtpanel' value = '' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
                                     <label class='form-label'><small>Part</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txtpart' name='txtpart' value = '' readonly>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class='col-sm-4'>
+                            <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Urutan</small></label>
                                     <input type='number' class='form-control form-control-sm' id='txturutan' name='txturutan' value = '' readonly>
                                 </div>
                             </div>
-                            <div class='col-sm-4'>
+                            <div class='col-sm-3'>
                                 <label class='form-label'><small>ID IN</small></label>
                                 <input type='text' class='form-control form-control-sm' id='txtin_id' name='txtin_id' value = '' readonly>
                             </div>
-                            <div class='col-sm-4'>
+                            <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Waktu Scan IN</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txtwaktu_in' name='txtwaktu_in' value = '' readonly>
@@ -243,11 +246,13 @@
                             <th>WS</th>
                             <th>Style</th>
                             <th>Color</th>
+                            <th>Panel</th>
                             <th>Part</th>
                             <th>Size</th>
                             <th>No. Cut</th>
                             <th>Tujuan Asal</th>
                             <th>Lokasi Asal</th>
+                            <th>Urutan</th>
                             <th>Range</th>
                             <th>Qty Awal</th>
                             <th>Qty Reject</th>
@@ -260,7 +265,7 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="12"></th>
+                            <th colspan="14"></th>
                             <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_awal'></th>
                             <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_reject'></th>
                             <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_replace'></th>
@@ -349,6 +354,13 @@
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Color</label>
                                 <select class="form-select select2bs4filtersec" name="sec_filter_color[]" id="sec_filter_color" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Panel</label>
+                                <select class="form-select select2bs4filtersec" name="sec_filter_panel[]" id="sec_filter_panel" multiple="multiple">
                                 </select>
                             </div>
                         </div>
@@ -480,11 +492,12 @@
             dropdownParent: $("#filterDetailSecModal")
         });
 
+        // Datatable INPUT
         $('#datatable-input thead tr').clone(true).appendTo('#datatable-input thead');
         $('#datatable-input thead tr:eq(1) th').each(function(i) {
             var title = $(this).text();
 
-            if (i == 7) {
+            if (i == 8) {
                 $(this).html('<select class="form-select" id="size_filter" multiple="multiple" style="min-width: 90px;"></select>');
             } else {
                 $(this).html('<input type="text" class="form-control form-control-sm"/>');
@@ -514,40 +527,43 @@
                         i : 0;
                 };
 
-                var sumTotalAwal = api
-                    .column(12)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
+                $.ajax({
+                    type: "get",
+                    url: "{{ route('total-stocker-inhouse') }}",
+                    data: {
+                        dateFrom : $('#tgl-awal').val(),
+                        dateTo : $('#tgl-akhir').val(),
+                        sec_filter_tipe : $('#sec_filter_tipe').val(),
+                        sec_filter_buyer : $('#sec_filter_buyer').val(),
+                        sec_filter_ws : $('#sec_filter_ws').val(),
+                        sec_filter_style : $('#sec_filter_style').val(),
+                        sec_filter_color : $('#sec_filter_color').val(),
+                        sec_filter_panel : $('#sec_filter_panel').val(),
+                        sec_filter_part : $('#sec_filter_part').val(),
+                        sec_filter_size : $('#sec_filter_size').val(),
+                        sec_filter_no_cut : $('#sec_filter_no_cut').val(),
+                        sec_filter_tujuan : $('#sec_filter_tujuan').val(),
+                        sec_filter_lokasi : $('#sec_filter_lokasi').val(),
+                        sec_filter_lokasi_rak : $('#sec_filter_lokasi_rak').val(),
+                        size_filter : $('#size_filter').val(),
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        console.log(response);
 
-                var sumTotalReject = api
-                    .column(13)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalReplace = api
-                    .column(14)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalIn = api
-                    .column(15)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                // Update footer by showing the total with the reference of the column index
-                $(api.column(0).footer()).html('Total');
-                $(api.column(12).footer()).html(sumTotalAwal);
-                $(api.column(13).footer()).html(sumTotalReject);
-                $(api.column(14).footer()).html(sumTotalReplace);
-                $(api.column(15).footer()).html(sumTotalIn);
+                        if (response) {
+                            // Update footer by showing the total with the reference of the column index
+                            $(api.column(0).footer()).html('Total');
+                            $(api.column(14).footer()).html(response.total_qty_awal);
+                            $(api.column(15).footer()).html(response.total_qty_reject);
+                            $(api.column(16).footer()).html(response.total_qty_replace);
+                            $(api.column(17).footer()).html(response.total_qty_in);
+                        }
+                    },
+                    error: function (jqXHR) {
+                        console.error(jqXHR);
+                    }
+                });
 
                 $('#size_filter').select2({
                     theme: 'bootstrap4',
@@ -556,7 +572,7 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
+            paging: true,
             searching: true,
             scrollY: '300px',
             scrollX: '300px',
@@ -576,6 +592,7 @@
                     d.sec_filter_ws = $('#sec_filter_ws').val();
                     d.sec_filter_style = $('#sec_filter_style').val();
                     d.sec_filter_color = $('#sec_filter_color').val();
+                    d.sec_filter_panel = $('#sec_filter_panel').val();
                     d.sec_filter_part = $('#sec_filter_part').val();
                     d.sec_filter_size = $('#sec_filter_size').val();
                     d.sec_filter_no_cut = $('#sec_filter_no_cut').val();
@@ -605,6 +622,9 @@
                     data: 'color',
                 },
                 {
+                    data: 'panel',
+                },
+                {
                     data: 'nama_part',
                 },
                 {
@@ -618,6 +638,9 @@
                 },
                 {
                     data: 'lokasi',
+                },
+                {
+                    data: 'urutan',
                 },
                 {
                     data: 'stocker_range',
@@ -652,6 +675,8 @@
             ]
         });
 
+
+        // Datatable Detail
         $('#datatable-detail thead tr').clone(true).appendTo('#datatable-detail thead');
         $('#datatable-detail thead tr:eq(1) th').each(function(i) {
             var title = $(this).text();
@@ -726,7 +751,7 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
+            paging: true,
             searching: true,
             scrollY: '300px',
             scrollX: '300px',
@@ -794,7 +819,43 @@
 
         function datatableReload() {
             $('#datatable-input').DataTable().ajax.reload();
-            $('#datatable-detail').DataTable().ajax.reload();
+            $('#datatable-detail').DataTable().ajax.reload(function () {
+                $.ajax({
+                    type: "get",
+                    url: "{{ route('total-stocker-inhouse') }}",
+                    data: {
+                        dateFrom : $('#tgl-awal').val(),
+                        dateTo : $('#tgl-akhir').val(),
+                        sec_filter_tipe : $('#sec_filter_tipe').val(),
+                        sec_filter_buyer : $('#sec_filter_buyer').val(),
+                        sec_filter_ws : $('#sec_filter_ws').val(),
+                        sec_filter_style : $('#sec_filter_style').val(),
+                        sec_filter_color : $('#sec_filter_color').val(),
+                        sec_filter_panel : $('#sec_filter_panel').val(),
+                        sec_filter_part : $('#sec_filter_part').val(),
+                        sec_filter_size : $('#sec_filter_size').val(),
+                        sec_filter_no_cut : $('#sec_filter_no_cut').val(),
+                        sec_filter_tujuan : $('#sec_filter_tujuan').val(),
+                        sec_filter_lokasi : $('#sec_filter_lokasi').val(),
+                        sec_filter_lokasi_rak : $('#sec_filter_lokasi_rak').val(),
+                        size_filter : $('#size_filter').val(),
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        console.log(response);
+
+                        if (response) {
+                            $('#total_qty_awal').val(response.total_qty_awal)
+                            $('#total_qty_reject').val(response.total_qty_reject)
+                            $('#total_qty_replace').val(response.total_qty_replace)
+                            $('#total_qty_in').val(response.total_qty_in)
+                        }
+                    },
+                    error: function (jqXHR) {
+                        console.error(jqXHR);
+                    }
+                });
+            });
         }
     </script>
 
@@ -906,6 +967,7 @@
                     document.getElementById('txtstyle').value = response.style;
                     document.getElementById('txtcolor').value = response.color;
                     document.getElementById('txtsize').value = response.size;
+                    document.getElementById('txtpanel').value = response.panel;
                     document.getElementById('txtpart').value = response.nama_part;
                     document.getElementById('txttujuan').value = response.tujuan;
                     document.getElementById('txtin_id').value = response.in_id;
@@ -1114,6 +1176,14 @@
                             $("#sec_filter_color").empty();
                             $.each(color, function(index, value) {
                                 $('#sec_filter_color').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.panel && response.panel.length > 0) {
+                            let panel = response.panel;
+                            $("#sec_filter_panel").empty();
+                            $.each(panel, function(index, value) {
+                                $('#sec_filter_panel').append('<option value="'+value+'">'+value+'</option>');
                             });
                         }
 

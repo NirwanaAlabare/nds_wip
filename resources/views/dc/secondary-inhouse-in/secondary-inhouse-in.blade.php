@@ -52,11 +52,13 @@
                                     <th>Worksheet</th>
                                     <th>Style</th>
                                     <th>Color</th>
+                                    <th>Panel</th>
                                     <th>Part</th>
                                     <th>Size</th>
                                     <th>No. Cut</th>
                                     <th>Tujuan</th>
                                     <th>Proses</th>
+                                    <th>Urutan</th>
                                     <th>Range</th>
                                     <th>Qty</th>
                                 </thead>
@@ -118,6 +120,7 @@
                             <th>WS</th>
                             <th>Style</th>
                             <th>Color</th>
+                            <th>Panel</th>
                             <th>Part</th>
                             <th>Size</th>
                             <th>No. Cut</th>
@@ -132,7 +135,7 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="12"></th>
+                            <th colspan="13"></th>
                             <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_in'></th>
                             <th colspan="3"></th>
                         </tr>
@@ -151,6 +154,7 @@
                             <th>WS</th>
                             <th>Style</th>
                             <th>Color</th>
+                            <th>Panel</th>
                             <th>Part</th>
                             <th>Size</th>
                             <th>Tujuan</th>
@@ -161,7 +165,7 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="7"></th>
+                            <th colspan="8"></th>
                             <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_in'> </th>
                             <th></th>
                         </tr>
@@ -213,6 +217,13 @@
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Color</label>
                                 <select class="form-select select2bs4filtersec" name="sec_filter_color[]" id="sec_filter_color" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Panel</label>
+                                <select class="form-select select2bs4filtersec" name="sec_filter_panel[]" id="sec_filter_panel" multiple="multiple">
                                 </select>
                             </div>
                         </div>
@@ -346,11 +357,12 @@
             dropdownParent: $("#filterDetailSecModal")
         });
 
+        // Datatable INPUT
         $('#datatable-input thead tr').clone(true).appendTo('#datatable-input thead');
         $('#datatable-input thead tr:eq(1) th').each(function(i) {
             var title = $(this).text();
 
-            if (i == 7) {
+            if (i == 8) {
                 $(this).html('<select class="form-select" id="size_filter" multiple="multiple" style="min-width: 90px;"></select>');
             } else {
                 $(this).html('<input type="text" class="form-control form-control-sm"/>');
@@ -380,7 +392,7 @@
                 };
 
                 var sumTotalIn = api
-                    .column(12)
+                    .column(13)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -388,7 +400,7 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(12).footer()).html(sumTotalIn);
+                $(api.column(13).footer()).html(sumTotalIn);
 
                 $('#size_filter').select2({
                     theme: 'bootstrap4',
@@ -418,6 +430,7 @@
                     d.sec_filter_style = $('#sec_filter_style').val();
                     d.sec_filter_color = $('#sec_filter_color').val();
                     d.sec_filter_part = $('#sec_filter_part').val();
+                    d.sec_filter_panel = $('#sec_filter_panel').val();
                     d.sec_filter_size = $('#sec_filter_size').val();
                     d.sec_filter_no_cut = $('#sec_filter_no_cut').val();
                     d.sec_filter_tujuan = $('#sec_filter_tujuan').val();
@@ -444,6 +457,9 @@
                 },
                 {
                     data: 'color',
+                },
+                {
+                    data: 'panel',
                 },
                 {
                     data: 'nama_part',
@@ -484,6 +500,7 @@
             ]
         });
 
+        // Datatable DETAIL
         $('#datatable-detail thead tr').clone(true).appendTo('#datatable-detail thead');
         $('#datatable-detail thead tr:eq(1) th').each(function(i) {
             var title = $(this).text();
@@ -513,7 +530,7 @@
                 };
 
                 var sumTotalIn = api
-                    .column(7)
+                    .column(8)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -521,7 +538,7 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(7).footer()).html(sumTotalIn);
+                $(api.column(8).footer()).html(sumTotalIn);
             },
             ordering: false,
             processing: true,
@@ -559,6 +576,9 @@
                     data: 'color',
                 },
                 {
+                    data: 'panel',
+                },
+                {
                     data: 'nama_part',
                 },
                 {
@@ -585,6 +605,7 @@
             ]
         });
 
+        // Secondary IN INPUT TEMP
         $('#secondary-inhouse-in-temp-table thead tr').clone(true).appendTo('#secondary-inhouse-in-temp-table thead');
         $('#secondary-inhouse-in-temp-table thead tr:eq(1) th').each(function(i) {
             var title = $(this).text();
@@ -614,7 +635,7 @@
                 };
 
                 var sumTotalIn = api
-                    .column(4)
+                    .column(5)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -622,7 +643,7 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(4).footer()).html(sumTotalIn);
+                $(api.column(5).footer()).html(sumTotalIn);
             },
             ordering: false,
             processing: true,
@@ -656,6 +677,9 @@
                     data: 'color',
                 },
                 {
+                    data: 'panel',
+                },
+                {
                     data: 'nama_part',
                 },
                 {
@@ -669,6 +693,9 @@
                 },
                 {
                     data: 'lokasi',
+                },
+                {
+                    data: 'urutan',
                 },
                 {
                     data: 'stocker_range',

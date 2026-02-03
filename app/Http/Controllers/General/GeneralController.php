@@ -797,7 +797,7 @@ class GeneralController extends Controller
                             SELECT
                                 id_roll,
                                 max( qty ) qty_awal,
-                                sum( total_pemakaian_roll + sisa_kain ) total_pemakaian
+                                sum( COALESCE(total_pemakaian_roll, 0) + COALESCE(sisa_kain, 0) ) total_pemakaian
                             FROM
                                 form_cut_input_detail
                             WHERE
@@ -808,13 +808,24 @@ class GeneralController extends Controller
                             SELECT
                                 id_roll,
                                 max( qty ) qty_awal,
-                                sum( piping + qty_sisa ) total_pemakaian
+                                sum( COALESCE(piping, 0) + COALESCE(qty_sisa, 0) ) total_pemakaian
                             FROM
                                 form_cut_piping
                             WHERE
                                 id_roll = '".$id."'
                             GROUP BY
                                 id_roll
+                            UNION
+                            SELECT
+                                barcode id_roll,
+                                max( qty_roll ) qty_awal,
+                                sum( COALESCE(qty_pakai, 0) + COALESCE(sisa_kain, 0) ) total_pemakaian
+                            FROM
+                                form_cut_reject_barcode
+                            WHERE
+                                barcode = '".$id."'
+                            GROUP BY
+                                barcode
                         ) pemakaian
                     group by
                         id_roll
@@ -833,7 +844,7 @@ class GeneralController extends Controller
                 if ($scannedItemUpdate) {
                     $scannedItemUpdate->qty_stok = $newItemQtyStok;
                     $scannedItemUpdate->qty_in = $newItemQty;
-                    $scannedItemUpdate->qty = floatval(($newItemQty - $scannedItem->qty_in) + $scannedItem->qty);
+                    $scannedItemUpdate->qty = ($scannedItem->qty_pakai > 0 ? floatval(($newItemQty - $scannedItem->qty_in) + $scannedItem->qty) : $newItemQty);
                     $scannedItemUpdate->so_det_list = $newItem[0]->so_det_list;
                     $scannedItemUpdate->size_list = $newItem[0]->size_list;
                     $scannedItemUpdate->save();

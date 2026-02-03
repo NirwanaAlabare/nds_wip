@@ -9,7 +9,7 @@ use App\Models\SignalBit\UserLine;
 use App\Models\Dc\TrolleyStocker;
 use App\Models\Dc\LoadingLine;
 use App\Models\Stocker\Stocker;
-use App\Exports\ExportLaporanLoading;
+use App\Exports\DC\ExportLaporanLoading;
 use App\Exports\DC\ExportLoadingLine;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
@@ -512,6 +512,8 @@ class LoadingLineController extends Controller
                 loading_line_plan.style,
                 loading_line_plan.color,
                 loading_line_plan.line_id,
+                COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
+                CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL THEN CONCAT(' - ', part_detail.part_status) ELSE '' END)) nama_part,
                 part_detail.part_status,
                 COALESCE(loading_line.no_bon, '-') no_bon,
                 COALESCE(form_cut_input.no_form, form_cut_piece.no_form, form_cut_reject.no_form) no_form,
@@ -522,7 +524,11 @@ class LoadingLineController extends Controller
                 loading_line
                 LEFT JOIN loading_line_plan ON loading_line_plan.id = loading_line.loading_plan_id
                 LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
-                LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                left join part_detail on stocker_input.part_detail_id = part_detail.id
+                left join part on part.id = part_detail.part_id
+                left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
+                left join part part_com on part_com.id = part_detail_com.part_id
+                LEFT JOIN `master_part` ON `master_part`.`id` = `part_detail`.`master_part_id`
                 LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
                 LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
                 LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
@@ -725,7 +731,7 @@ class LoadingLineController extends Controller
                                 ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
                                 ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
                             ) qty_old,
-                            loading_line.qty qty,
+                            MIN(loading_line.qty) qty,
                             trolley.id trolley_id,
                             trolley.nama_trolley,
                             stocker_input.so_det_id,

@@ -990,7 +990,7 @@ END jam) a))) target from (
         $sewingLine = $request->sewing_line_filter ? addQuotesAround(implode("\r\n", $request->sewing_line_filter)) : null;
         $lineLeader = $request->line_leader_filter ? addQuotesAround(implode("\r\n", $request->line_leader_filter)) : null;
 
-        $buyerFilter = $buyerId ? "AND mastersupplier.Supplier in (".$buyerId.")" : "";
+        $buyerFilter = $buyerId ? "AND mastersupplier.Id_Supplier in (".$buyerId.")" : "";
         $wsFilter = $ws ? "AND act_costing.kpno in (".$ws.")" : "";
         $styleFilter = $style ? "AND act_costing.styleno in (".$style.")" : "";
         $styleProdFilter = $styleProd ? "AND so_det.styleno_prod in (".$styleProd.")" : "";

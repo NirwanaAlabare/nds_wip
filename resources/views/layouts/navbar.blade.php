@@ -451,12 +451,12 @@
                                         Rak <i class="fa-solid fa-table fa-sm"></i>
                                     </a>
                                 </li>
-                                <li>
+                                {{-- <li>
                                     <a href="{{ route('stock-rack-visual') }}"
                                         class="dropdown-item {{ $routeName == 'stock-rack-visual' ? 'active' : '' }}">
                                         Stok Rak <i class="fa-solid fa-th-list"></i>
                                     </a>
-                                </li>
+                                </li> --}}
                             </ul>
                         </li>
                         <li class="nav-item dropdown">

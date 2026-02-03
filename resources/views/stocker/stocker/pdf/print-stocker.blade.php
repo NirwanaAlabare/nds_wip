@@ -62,9 +62,6 @@
         </table>
         <table style="margin-top: -0.5px;">
             <tr>
-                <td colspan="8" style="text-align: center;">Deskripsi Item</td>
-            </tr>
-            <tr>
                 <td style="border: none;border-left: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;white-space: nowrap;">Kode Stocker</td>
                 <td style="border: none;border-left: none; border-top: 0.75px solid; border-bottom: 0.75px solid;text-align: center;width: auto;">:</td>
                 <td colspan="6" style="border: none;border-right: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;">{{ $dataStocker->id_qr_stocker }}</td>
@@ -73,6 +70,11 @@
                 <td style="border: none;border-left: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;white-space: nowrap;">Worksheet</td>
                 <td style="border: none;border-left: none; border-top: 0.75px solid; border-bottom: 0.75px solid;text-align: center;width: auto;">:</td>
                 <td colspan="6" style="border: none;border-right: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;">{{ $dataStocker->act_costing_ws }}</td>
+            </tr>
+            <tr>
+                <td style="border: none;border-left: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;white-space: nowrap;">Panel</td>
+                <td style="border: none;border-left: none; border-top: 0.75px solid; border-bottom: 0.75px solid;text-align: center;width: auto;">:</td>
+                <td colspan="6" style="border: none;border-right: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;">{{ $dataStocker->panel }}</td>
             </tr>
             <tr>
                 <td style="border: none;border-left: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;white-space: nowrap;">Buyer</td>

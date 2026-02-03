@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Cutting;
 use App\Http\Controllers\Controller;
 use App\Models\Cutting\FormCutReject;
 use App\Models\Cutting\FormCutRejectDetail;
+use App\Models\Cutting\FormCutRejectBarcode;
 use App\Models\Dc\DCIn;
 use App\Models\Dc\SecondaryInhouse;
 use App\Models\Dc\SecondaryIn;
@@ -85,7 +86,8 @@ class CuttingFormRejectController extends Controller
         $noForm = "GR" . $hari . "-" . $bulan . "-" . $urutan;
 
         $form = FormCutReject::create([
-            "no_form" => $noForm
+            "no_form" => $noForm,
+            "tanggal" => date("Y-m-d")
         ]);
 
         return $form;
@@ -331,43 +333,64 @@ class CuttingFormRejectController extends Controller
             ")->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->where("form_cut_reject.id", $id)->first();
 
         if (!$stocker || (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0)) {
-            $deleteFormCutReject = FormCutReject::where("id", $id)->delete();
 
-            if ($deleteFormCutReject) {
+            DB::transaction(function () use ($id) {
+                $deleteFormCutReject = FormCutReject::where('id', $id)->delete();
 
-                // Detail
-                $deleteFormCutRejectDetail = FormCutRejectDetail::where("form_id", $id)->delete();
-
-                // Stocker
-                $stockers = Stocker::where("form_reject_id", $id)->get();
-                if ($stockers) {
-                    $stockerIds = $stockers->pluck("id")->toArray();
-                    $stockerIdQrs = $stockers->pluck("id_qr_stocker")->toArray();
-
-                    $deleteLoadingLine = LoadingLine::whereIn("stocker_id", $stockerIds)->delete();
-                    $deleteTrolleyStock = TrolleyStocker::whereIn("stocker_id", $stockerIds)->delete();
-                    $deleteDc = DCIn::whereIn("id_qr_stocker", $stockerIdQrs)->delete();
-                    $deleteSecInhouse = SecondaryInhouse::whereIn("id_qr_stocker", $stockerIdQrs)->delete();
-                    $deleteSecIn = SecondaryIn::whereIn("id_qr_stocker", $stockerIdQrs)->delete();
-
-                    $deleteStocker = Stocker::where("form_reject_id", $id)->delete();
-
-                    \Log::channel("deleteStockerAbout")->info(["Delete Stockerabout", $stockerIds, $stockerIdQrs, "Loading Line", $deleteLoadingLine, "Trolley Stock", $deleteTrolleyStock, "Sec IN", $deleteSecIn, "Sec Inhouse", $deleteSecInhouse, "DC", $deleteDc, "Stocker", $deleteStocker]);
+                if (! $deleteFormCutReject) {
+                    throw new \Exception('Form Cut Reject not found.');
                 }
 
-                return array(
-                    "status" => 200,
-                    "message" => "Form Reject berhasil dihapus.",
-                    "table" => "cutting-reject-table"
-                );
-            }
-        }
+                // Detail
+                FormCutRejectDetail::where('form_id', $id)->delete();
 
-        return array(
-            "status" => 400,
-            "message" => "Form Reject sudah memiliki stocker.",
-            "table" => "cutting-reject-table"
-        );
+                // Barcode (Roll)
+                $formCutRejectRolls = FormCutRejectBarcode::where('form_id', $id)->get();
+                foreach ($formCutRejectRolls as $roll) {
+
+                    // Synchronize scanned_item table Qty
+                    $scannedItem = ScannedItem::where('id_roll', $roll->no_barcode)->first();
+
+                    if ($scannedItem) {
+                        $scannedItem->qty =
+                            ($scannedItem->qty ?? 0) + ($roll->qty_roll - $roll->sisa_kain);
+
+                        $scannedItem->save();
+                    }
+
+                    // Delete
+                    $roll->delete();
+                }
+
+                // Stocker
+                $stockers = Stocker::where('form_reject_id', $id)->get();
+
+                if ($stockers->isNotEmpty()) {
+                    $stockerIds = $stockers->pluck('id');
+                    $stockerIdQrs = $stockers->pluck('id_qr_stocker');
+
+                    LoadingLine::whereIn('stocker_id', $stockerIds)->delete();
+                    TrolleyStocker::whereIn('stocker_id', $stockerIds)->delete();
+                    DCIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+                    SecondaryInhouse::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+                    SecondaryIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+
+                    Stocker::where('form_reject_id', $id)->delete();
+                }
+            });
+
+            return array(
+                "status" => 200,
+                "message" => "Form Reject berhasil dihapus.",
+                "table" => "cutting-reject-table"
+            );
+        } else {
+            return array(
+                "status" => 400,
+                "message" => "Form sudah memiliki stocker.",
+                "table" => "cutting-reject-table"
+            );
+        }
     }
 
     public function stock(Request $request)

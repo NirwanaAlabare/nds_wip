@@ -288,6 +288,7 @@ Route::middleware('auth')->group(function () {
 
         // output
         Route::get('/get-output', 'getOutput')->name('get-output');
+        Route::post('/get-output-post', 'getOutput')->name('get-output-post');
 
         // master plan
         Route::get('/get-master-plan', 'getMasterPlan')->name('get-master-plan');
@@ -993,6 +994,7 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(SecondaryInhouseOutController::class)->prefix("secondary-inhouse")->middleware('role:dc')->group(function () {
         Route::get('/', 'index')->name('secondary-inhouse');
+        Route::get('/total_stocker_inhouse', 'totalStockerInhouse')->name('total-stocker-inhouse');
         Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse');
         Route::post('/store', 'store')->name('store-secondary-inhouse');
         Route::post('/mass-store', 'massStore')->name('mass-store-secondary-inhouse');
@@ -1008,6 +1010,7 @@ Route::middleware('auth')->group(function () {
     // Secondary IN
     Route::controller(SecondaryInController::class)->prefix("secondary-in")->middleware('role:dc')->group(function () {
         Route::get('/', 'index')->name('secondary-in');
+        Route::get('/total_stocker_in', 'totalStockerIn')->name('total-stocker-in');
         Route::get('/cek_data_stocker_in', 'cek_data_stocker_in')->name('cek_data_stocker_in');
         Route::get('/cek_data_stocker_in_edit', 'cek_data_stocker_in_edit')->name('cek_data_stocker_in_edit');
         Route::post('/store', 'store')->name('store-secondary-in');
@@ -1423,7 +1426,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/miss-packing-po', 'missPackingPo')->name("sewing-miss-packing-po");
 
         Route::get('/check-output-detail', 'checkOutputDetail')->name("check-output-detail");
-        Route::get('/check-output-detail-list', 'checkOutputDetailList')->name("check-output-detail-list");
+        Route::post('/check-output-detail-list', 'checkOutputDetailList')->name("check-output-detail-list");
         Route::post('/check-output-detail-export', 'checkOutputDetailExport')->name("check-output-detail-export");
 
         Route::get('/line-migration', 'lineMigration')->name("line-migration");

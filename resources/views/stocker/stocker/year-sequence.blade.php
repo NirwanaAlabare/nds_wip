@@ -81,6 +81,12 @@
                 </div>
                 <div class="col-sm-6 col-md-3 ">
                     <div class="mb-3">
+                        <label class="form-label">Panel</label>
+                        <input type="text" class="form-control" name="panel" id="panel" value="" readonly>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3 ">
+                    <div class="mb-3">
                         <label class="form-label">Part</label>
                         <input type="text" class="form-control" name="part" id="part" value="" readonly>
                     </div>
@@ -161,7 +167,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-12">
                     <div class="mb-3">
                         <button class="btn btn-success btn-block mt-3" onclick="checkYearSequenceNumber()"><i class="fa fa-print"></i> Set Year Sequence</button>
                     </div>
@@ -384,7 +390,8 @@
                             document.getElementById("color").value = res.color ? res.color : null;
                             document.getElementById("size").value = res.size ? res.size : null;
                             document.getElementById("no_form").value = res.no_form ? res.no_form : null;
-                            document.getElementById("part").value = res.part ? res.part : null;
+                            document.getElementById("panel").value = res.panel ? res.panel : null;
+                            document.getElementById("part").value = res.nama_part ? res.nama_part : null;
                             document.getElementById("qty").value = res.qty ? res.qty : null;
                             document.getElementById("tipe").value = res.tipe ? res.tipe : null;
                             $("#range_awal_stocker").val(res.range_awal ? res.range_awal : null).trigger("change");

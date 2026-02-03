@@ -101,7 +101,7 @@
                                 @endforeach
                             </tbody>
                         </table>
-                        <button type="button" class="btn btn-sm btn-no fw-bold float-end mb-3" onclick="printStockerAllSizeAdd('{{ $partDetailAdd->id }}', '{{ $currentGroupAdditional }}', '{{ $currentTotalAdditional }}');" {{ $generatableAdd ? '' : 'disabled' }}>Generate All Size <i class="fas fa-print"></i></button>
+                        {{-- <button type="button" class="btn btn-sm btn-no fw-bold float-end mb-3" onclick="printStockerAllSizeAdd('{{ $partDetailAdd->id }}', '{{ $currentGroupAdditional }}', '{{ $currentTotalAdditional }}');" {{ $generatableAdd ? '' : 'disabled' }}>Generate All Size <i class="fas fa-print"></i></button> --}}
                         <input type="hidden" class="generatable" name="generatable_add[{{ $partIndexAdditional }}]" id="generatable_add_{{ $partIndexAdditional }}" data-group="{{ $partDetailAdd->id }}" value="{{ $generatableAdd }}">
                     </div>
                 </div>

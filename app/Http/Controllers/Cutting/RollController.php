@@ -843,8 +843,8 @@ class RollController extends Controller
             ) roll_consumption
             order by
                 no_form_cut_input asc,
-                id_roll asc,
-                created_at asc
+                created_at asc,
+                id_roll asc
         ");
 
         $sheet->writeAreas();
@@ -1328,7 +1328,7 @@ class RollController extends Controller
                 MIN( CASE WHEN form_cut_input_detail.status = 'extension' OR form_cut_input_detail.status = 'extension complete' THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll ELSE form_cut_input_detail.sisa_kain END ) sisa_kain,
                 form_cut_input.status status_form,
                 form_cut_input_detail.status,
-                COALESCE ( form_cut_input_detail.created_at, form_cut_input_detail.updated_at ) updated_at,
+                COALESCE ( form_cut_input_detail.updated_at, form_cut_input_detail.created_at ) updated_at,
                 'REGULAR' as tipe
             FROM
                 `form_cut_input_detail`
@@ -1355,7 +1355,7 @@ class RollController extends Controller
                 qty_sisa sisa_kain,
                 form_cut_piece.status status_form,
                 form_cut_piece_detail.status,
-                COALESCE ( form_cut_piece_detail.created_at, form_cut_piece_detail.updated_at ) updated_at,
+                COALESCE ( form_cut_piece_detail.updated_at, form_cut_piece_detail.created_at ) updated_at,
                 'PIECE' as tipe
             FROM
                 `form_cut_piece_detail`
@@ -1382,7 +1382,7 @@ class RollController extends Controller
                 qty_sisa sisa_kain,
                 '-' status_form,
                 '-' status,
-                COALESCE ( form_cut_piping.created_at, form_cut_piping.updated_at ) updated_at,
+                COALESCE ( form_cut_piping.updated_at, form_cut_piping.created_at ) updated_at,
                 'PIPING' as tipe
             FROM
                 `form_cut_piping`
@@ -1392,6 +1392,9 @@ class RollController extends Controller
                 AND form_cut_piping.updated_at >= DATE ( NOW()- INTERVAL 2 YEAR )
             GROUP BY
                 `form_cut_piping`.`id`
+            ORDER BY
+                no_cut,
+                updated_at
         ");
 
         return DataTables::of($forms)->toJson();

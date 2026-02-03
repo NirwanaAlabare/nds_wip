@@ -136,6 +136,7 @@
                         <th>No. Cut</th>
                         <th>Style</th>
                         <th>Color</th>
+                        <th>Panel</th>
                         <th>Part</th>
                         <th>Size</th>
                         <th>Qty</th>
@@ -332,6 +333,9 @@
                     data: 'color',
                 },
                 {
+                    data: 'panel',
+                },
+                {
                     data: 'nama_part',
                 },
                 {
@@ -367,7 +371,7 @@
                     }
                 },
                 {
-                    targets: [6],
+                    targets: [6, 7],
                     render: (data, type, row, meta) => {
                         return `<span class="text-nowrap">`+ (data ? data.replace(/,/g, ", <br>") : "") +`</span>`;
                     }

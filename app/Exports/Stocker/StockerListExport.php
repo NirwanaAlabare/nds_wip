@@ -177,6 +177,7 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                     stocker_input.qty_stocker,
                     stocker_input.no_form,
                     stocker_input.no_cut,
+                    stocker_input.panel,
                     year_sequence_num.year_sequence,
                     ( MAX( year_sequence_num.range_akhir ) - MIN( year_sequence_num.range_awal ) + 1 ) qty,
                     CONCAT( MIN( year_sequence_num.range_awal ), ' - ', MAX( year_sequence_num.range_akhir )) numbering_range,
@@ -230,13 +231,17 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                             COALESCE(form_cut_input.waktu_selesai, form_cut_reject.updated_at, form_cut_piece.updated_at) waktu_selesai,
                             COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
                             COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
-                            GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
+                            COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
+                            GROUP_CONCAT( DISTINCT CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL THEN CONCAT(' - ', part_detail.part_status) ELSE '' END)) ) part,
                             CONCAT( MIN( stocker_input.range_awal ), '-', MAX( stocker_input.range_akhir )) stocker_range,
                             ( MAX( stocker_input.range_akhir ) - MIN( stocker_input.range_awal ) + 1 ) qty_stocker,
                             (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
                         FROM
                             stocker_input
-                            LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                            left join part_detail on stocker_input.part_detail_id = part_detail.id
+                            left join part on part.id = part_detail.part_id
+                            left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
+                            left join part part_com on part_com.id = part_detail_com.part_id
                             LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
                             LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                             LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
@@ -295,14 +300,13 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                     ".$part_filter."
                     ".$stocker_range_filter."
                 ORDER BY
-                    year_sequence_num.updated_at DESC
+                    year_sequence_num.range_awal ASC
             ");
         } else {
             $stockerList = DB::select("
                 SELECT
                     year_sequence_num.updated_at,
                     GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
-                    GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
                     COALESCE(form_cut_input.id, form_cut_piece.id, form_cut_reject.id) form_cut_id,
                     stocker_input.act_costing_ws,
                     stocker_input.so_det_id,
@@ -311,6 +315,8 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                     master_sb_ws.color,
                     master_sb_ws.size,
                     master_sb_ws.dest,
+                    COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
+                    GROUP_CONCAT( DISTINCT CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL THEN CONCAT(' - ', part_detail.part_status) ELSE '' END)) ) part,
                     COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
                     COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
                     stocker_input.group_stocker,
@@ -324,7 +330,10 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                     (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                 FROM
                     stocker_input
-                    LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                    left join part_detail on stocker_input.part_detail_id = part_detail.id
+                    left join part on part.id = part_detail.part_id
+                    left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
+                    left join part part_com on part_com.id = part_detail_com.part_id
                     LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                     LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
@@ -406,7 +415,7 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                     ".$part_filter."
                     ".$stocker_range_filter."
                 ORDER BY
-                    year_sequence_num.updated_at DESC
+                    year_sequence_num.range_awal ASC
             ");
         }
 
@@ -429,7 +438,7 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A3:S' . ($event->getConcernable()->rowCount+4),
+            'A3:T' . ($event->getConcernable()->rowCount+4),
             [
                 'borders' => [
                     'allBorders' => [

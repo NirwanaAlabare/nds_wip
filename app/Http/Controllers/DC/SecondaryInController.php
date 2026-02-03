@@ -15,6 +15,7 @@ use App\Exports\DC\ExportSecondaryIn;
 use App\Exports\DC\ExportSecondaryInDetail;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
 use Carbon\Carbon;
 use DB;
 
@@ -66,8 +67,11 @@ class SecondaryInController extends Controller
             if ($request->sec_filter_color && count($request->sec_filter_color) > 0) {
                 $additionalQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->sec_filter_color)).")";
             }
+            if ($request->sec_filter_panel && count($request->sec_filter_panel) > 0) {
+                $additionalQuery .= " and COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) in (".addQuotesAround(implode("\n", $request->sec_filter_part)).")";
+            }
             if ($request->sec_filter_part && count($request->sec_filter_part) > 0) {
-                $additionalQuery .= " and mp.nama_part in (".addQuotesAround(implode("\n", $request->sec_filter_part)).")";
+                $additionalQuery .= " and CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) in (".addQuotesAround(implode("\n", $request->sec_filter_part)).")";
             }
             if ($request->sec_filter_size && count($request->sec_filter_size) > 0) {
                 $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->sec_filter_size)).")";
@@ -98,6 +102,7 @@ class SecondaryInController extends Controller
                     s.color,
                     p.buyer,
                     p.style,
+                    COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
                     COALESCE(mx.tujuan, dc.tujuan) tujuan,
                     COALESCE(mx.proses, dc.lokasi) lokasi,
                     COALESCE(s.lokasi, '-') lokasi_rak,
@@ -105,6 +110,7 @@ class SecondaryInController extends Controller
                     COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
                     COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
                     COALESCE(a.qty_in) qty_in,
+                    CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                     a.created_at,
                     CONCAT(s.range_awal, ' - ', s.range_akhir,
                         (
@@ -124,7 +130,7 @@ class SecondaryInController extends Controller
                     COALESCE(msb.size, s.size) size,
                     a.user,
                     mp.nama_part,
-                    a.urutan
+                    (CASE WHEN a.urutan > 0 THEN a.urutan ELSE '-' END) urutan
                 from secondary_in_input a
                 LEFT JOIN (
                     SELECT
@@ -149,7 +155,9 @@ class SecondaryInController extends Controller
                 left join form_cut_reject fr on fr.id = s.form_reject_id
                 left join form_cut_piece fp on fp.id = s.form_piece_id
                 left join part_detail pd on s.part_detail_id = pd.id
-                left join part p on pd.part_id = p.id
+                left join part p on p.id = pd.part_id
+                left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                left join part p_com on p_com.id = pd_com.part_id
                 left join master_part mp on mp.id = pd.master_part_id
                 left join dc_in_input dc on a.id_qr_stocker = dc.id_qr_stocker
                 left join secondary_inhouse_input sii on a.id_qr_stocker = sii.id_qr_stocker
@@ -192,6 +200,7 @@ class SecondaryInController extends Controller
                 s.color,
                 p.buyer,
                 p.style,
+                COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
                 COALESCE(mx.tujuan, dc.tujuan) tujuan,
                 COALESCE(mx.proses, dc.lokasi) lokasi,
                 COALESCE(s.lokasi, '-') lokasi_rak,
@@ -217,8 +226,8 @@ class SecondaryInController extends Controller
                 COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                 COALESCE(msb.size, s.size) size,
                 a.user,
-                mp.nama_part,
-                a.urutan
+                CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                (CASE WHEN a.urutan > 0 THEN a.urutan ELSE '-' END) urutan
             from secondary_in_input a
             LEFT JOIN (
                 SELECT
@@ -243,7 +252,9 @@ class SecondaryInController extends Controller
             left join form_cut_reject fr on fr.id = s.form_reject_id
             left join form_cut_piece fp on fp.id = s.form_piece_id
             left join part_detail pd on s.part_detail_id = pd.id
-            left join part p on pd.part_id = p.id
+            left join part p on p.id = pd.part_id
+            left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+            left join part p_com on p_com.id = pd_com.part_id
             left join master_part mp on mp.id = pd.master_part_id
             left join dc_in_input dc on a.id_qr_stocker = dc.id_qr_stocker
             left join secondary_inhouse_input sii on a.id_qr_stocker = sii.id_qr_stocker
@@ -266,6 +277,7 @@ class SecondaryInController extends Controller
         $tujuan = $data_input->groupBy("tujuan")->keys();
         $lokasi = $data_input->groupBy("lokasi")->keys();
         $lokasi_rak = $data_input->groupBy("lokasi_rak")->keys();
+        $panel = $data_input->groupBy("panel")->keys();
         $part = $data_input->groupBy("nama_part")->keys();
         $no_cut = $data_input->groupBy("no_cut")->keys();
         $size = $data_input->groupBy("size")->keys();
@@ -279,10 +291,152 @@ class SecondaryInController extends Controller
             "tujuan" => $tujuan,
             "lokasi" => $lokasi,
             "lokasi_rak" => $lokasi_rak,
+            "panel" => $panel,
             "part" => $part,
             "no_cut" => $no_cut,
             "size" => $size
         );
+    }
+
+    public function totalStockerIn(Request $request)
+    {
+        $additionalQuery = '';
+
+        if ($request->dateFrom) {
+            $additionalQuery .= " and a.tgl_trans >= '" . $request->dateFrom . "' ";
+        }
+
+        if ($request->dateTo) {
+            $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
+        }
+
+        if ($request->sec_filter_tipe && count($request->sec_filter_tipe) > 0) {
+            $additionalQuery .= " and (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) in (".addQuotesAround(implode("\n", $request->sec_filter_tipe)).")";
+        }
+        if ($request->sec_filter_buyer && count($request->sec_filter_buyer) > 0) {
+            $additionalQuery .= " and p.buyer in (".addQuotesAround(implode("\n", $request->sec_filter_buyer)).")";
+        }
+        if ($request->sec_filter_ws && count($request->sec_filter_ws) > 0) {
+            $additionalQuery .= " and s.act_costing_ws in (".addQuotesAround(implode("\n", $request->sec_filter_ws)).")";
+        }
+        if ($request->sec_filter_style && count($request->sec_filter_style) > 0) {
+            $additionalQuery .= " and p.style in (".addQuotesAround(implode("\n", $request->sec_filter_style)).")";
+        }
+        if ($request->sec_filter_color && count($request->sec_filter_color) > 0) {
+            $additionalQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->sec_filter_color)).")";
+        }
+        if ($request->sec_filter_panel && count($request->sec_filter_panel) > 0) {
+            $additionalQuery .= " and COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) in (".addQuotesAround(implode("\n", $request->sec_filter_part)).")";
+        }
+        if ($request->sec_filter_part && count($request->sec_filter_part) > 0) {
+            $additionalQuery .= " and CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) in (".addQuotesAround(implode("\n", $request->sec_filter_part)).")";
+        }
+        if ($request->sec_filter_size && count($request->sec_filter_size) > 0) {
+            $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->sec_filter_size)).")";
+        }
+        if ($request->size_filter && count($request->size_filter) > 0) {
+            $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->size_filter)).")";
+        }
+        if ($request->sec_filter_no_cut && count($request->sec_filter_no_cut) > 0) {
+            $additionalQuery .= " and COALESCE(f.no_cut, fp.no_cut, '-') in (".addQuotesAround(implode("\n", $request->sec_filter_no_cut)).")";
+        }
+        if ($request->sec_filter_tujuan && count($request->sec_filter_tujuan) > 0) {
+            $additionalQuery .= " and a.tujuan in (".addQuotesAround(implode("\n", $request->sec_filter_tujuan)).")";
+        }
+        if ($request->sec_filter_tempat && count($request->sec_filter_tempat) > 0) {
+            $additionalQuery .= " and a.tempat in (".addQuotesAround(implode("\n", $request->sec_filter_tempat)).")";
+        }
+        if ($request->sec_filter_lokasi && count($request->sec_filter_lokasi) > 0) {
+            $additionalQuery .= " and a.lokasi in (".addQuotesAround(implode("\n", $request->sec_filter_lokasi)).")";
+        }
+
+        $data_input = DB::select("
+            SELECT
+                SUM(qty_awal) total_qty_awal,
+                SUM(qty_reject) total_qty_reject,
+                SUM(qty_replace) total_qty_replace,
+                SUM(qty_in) total_qty_in
+            FROM (
+                SELECT
+                    a.id_qr_stocker,
+                    (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
+                    DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
+                    a.tgl_trans,
+                    s.act_costing_ws,
+                    s.color,
+                    p.buyer,
+                    p.style,
+                    COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                    COALESCE(mx.tujuan, dc.tujuan) tujuan,
+                    COALESCE(mx.proses, dc.lokasi) lokasi,
+                    COALESCE(s.lokasi, '-') lokasi_rak,
+                    COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
+                    COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
+                    COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
+                    COALESCE(a.qty_in) qty_in,
+                    CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                    a.created_at,
+                    CONCAT(s.range_awal, ' - ', s.range_akhir,
+                        (
+                            CASE WHEN (mx.qty_reject IS NOT NULL AND mx.qty_replace IS NOT NULL) THEN
+                                (CONCAT(' (', (COALESCE(mx.qty_replace, 0) - COALESCE(mx.qty_reject, 0)), ') ')) ELSE
+                                (
+                                    CASE WHEN ((dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL) OR (sii.qty_reject IS NOT NULL AND sii.qty_replace IS NOT NULL)) THEN
+                                        CONCAT(' (', ((COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)) + (COALESCE(sii.qty_replace, 0) - COALESCE(sii.qty_reject, 0))), ') ') ELSE
+                                        ' (0)'
+                                    END
+                                )
+                            END
+                        )
+                    ) stocker_range_old,
+                    CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range,
+                    COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
+                    COALESCE(msb.size, s.size) size,
+                    a.user,
+                    a.urutan
+                from secondary_in_input a
+                LEFT JOIN (
+                    SELECT
+                        secondary_in_input.id_qr_stocker,
+                        MAX(qty_awal) as qty_awal,
+                        SUM(qty_reject) qty_reject,
+                        SUM(qty_replace) qty_replace,
+                        (MAX(qty_awal) - SUM(qty_reject) + SUM(qty_replace)) as qty_akhir,
+                        MAX(secondary_in_input.urutan) AS max_urutan,
+                        GROUP_CONCAT(master_secondary.tujuan SEPARATOR ' | ') as tujuan,
+                        GROUP_CONCAT(master_secondary.proses SEPARATOR ' | ') as proses
+                    FROM secondary_in_input
+                    LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_in_input.id_qr_stocker
+                    LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id and part_detail_secondary.urutan = secondary_in_input.urutan
+                    LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
+                    GROUP BY id_qr_stocker
+                    having MAX(secondary_in_input.urutan) is not null
+                ) mx ON a.id_qr_stocker = mx.id_qr_stocker AND a.urutan = mx.max_urutan
+                left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+                left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+                left join form_cut_input f on f.id = s.form_cut_id
+                left join form_cut_reject fr on fr.id = s.form_reject_id
+                left join form_cut_piece fp on fp.id = s.form_piece_id
+                left join part_detail pd on s.part_detail_id = pd.id
+                left join part p on p.id = pd.part_id
+                left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                left join part p_com on p_com.id = pd_com.part_id
+                left join master_part mp on mp.id = pd.master_part_id
+                left join dc_in_input dc on a.id_qr_stocker = dc.id_qr_stocker
+                left join secondary_inhouse_input sii on a.id_qr_stocker = sii.id_qr_stocker
+                where
+                    a.tgl_trans is not null
+                    AND (
+                        a.urutan IS NULL
+                        OR a.urutan = mx.max_urutan
+                    )
+                    ".$additionalQuery."
+                group by a.id
+                order by a.tgl_trans desc
+            ) sec_in
+        ");
+
+        return $data_input ? $data_input[0] : null;
     }
 
     public function detail_stocker_in(Request $request)
@@ -596,7 +750,8 @@ class SecondaryInController extends Controller
                                 COALESCE(msb.size, s.size) size,
                                 dc.tujuan,
                                 dc.lokasi,
-                                mp.nama_part,
+                                COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                                CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                                 if(dc.tujuan = 'SECONDARY LUAR', (dc.qty_awal - dc.qty_reject + dc.qty_replace), (si.qty_awal - si.qty_reject + si.qty_replace)) qty_awal,
                                 s.lokasi lokasi_tujuan,
                                 s.tempat tempat_tujuan,
@@ -622,7 +777,10 @@ class SecondaryInController extends Controller
                                 left join form_cut_input a on s.form_cut_id = a.id
                                 left join form_cut_reject b on s.form_reject_id = b.id
                                 left join form_cut_piece c on s.form_piece_id = c.id
-                                left join part_detail p on s.part_detail_id = p.id
+                                left join part_detail pd on s.part_detail_id = pd.id
+                                left join part p on p.id = pd.part_id
+                                left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                                left join part p_com on p_com.id = pd_com.part_id
                                 left join (
                                     select
                                         part_detail_id,
@@ -633,8 +791,8 @@ class SecondaryInController extends Controller
                                         part_detail_secondary.urutan IS NOT NULL
                                     group by
                                         part_detail_id
-                                ) max_urutan on max_urutan.part_detail_id = p.id
-                                left join master_part mp on p.master_part_id = mp.id
+                                ) max_urutan on max_urutan.part_detail_id = pd.id
+                                left join master_part mp on pd.master_part_id = mp.id
                                 left join marker_input mi on a.id_marker = mi.kode
                                 left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
                                 left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
@@ -712,7 +870,8 @@ class SecondaryInController extends Controller
                                                     COALESCE(msb.size, s.size) size,
                                                     ms.tujuan,
                                                     ms.proses lokasi,
-                                                    mp.nama_part,
+                                                    COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                                                    CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                                                     ".$multiSecondaryCurrentSecondary->qty_in." qty_awal,
                                                     s.lokasi lokasi_tujuan,
                                                     s.tempat tempat_tujuan,
@@ -724,9 +883,12 @@ class SecondaryInController extends Controller
                                                     left join form_cut_input a on s.form_cut_id = a.id
                                                     left join form_cut_reject b on s.form_reject_id = b.id
                                                     left join form_cut_piece c on s.form_piece_id = c.id
-                                                    left join part_detail p on s.part_detail_id = p.id
-                                                    left join part_detail_secondary pds on pds.part_detail_id = p.id
-                                                    left join master_part mp on p.master_part_id = mp.id
+                                                    left join part_detail pd on s.part_detail_id = pd.id
+                                                    left join part p on p.id = pd.part_id
+                                                    left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                                                    left join part p_com on p_com.id = pd_com.part_id
+                                                    left join part_detail_secondary pds on pds.part_detail_id = pd.id
+                                                    left join master_part mp on pd.master_part_id = mp.id
                                                     left join master_secondary ms on ms.id = pds.master_secondary_id
                                                     left join marker_input mi on a.id_marker = mi.kode
                                                     left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
@@ -741,7 +903,7 @@ class SecondaryInController extends Controller
                                                             part_detail_secondary.urutan IS NOT NULL
                                                         group by
                                                             part_detail_id
-                                                    ) max_urutan on max_urutan.part_detail_id = p.id
+                                                    ) max_urutan on max_urutan.part_detail_id = pd.id
                                                 where
                                                     s.id_qr_stocker = '" . $request->txtqrstocker . "' and
                                                     ms.tujuan = 'SECONDARY DALAM' and
@@ -767,7 +929,8 @@ class SecondaryInController extends Controller
                                                 COALESCE(msb.size, s.size) size,
                                                 ms.tujuan,
                                                 ms.proses lokasi,
-                                                mp.nama_part,
+                                                COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                                                CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                                                 ".$multiSecondaryCurrentSecondary->qty_in." qty_awal,
                                                 s.lokasi lokasi_tujuan,
                                                 s.tempat tempat_tujuan,
@@ -779,9 +942,12 @@ class SecondaryInController extends Controller
                                                 left join form_cut_input a on s.form_cut_id = a.id
                                                 left join form_cut_reject b on s.form_reject_id = b.id
                                                 left join form_cut_piece c on s.form_piece_id = c.id
-                                                left join part_detail p on s.part_detail_id = p.id
-                                                left join part_detail_secondary pds on pds.part_detail_id = p.id
-                                                left join master_part mp on p.master_part_id = mp.id
+                                                left join part_detail pd on s.part_detail_id = pd.id
+                                                left join part p on p.id = pd.part_id
+                                                left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                                                left join part p_com on p_com.id = pd_com.part_id
+                                                left join part_detail_secondary pds on pds.part_detail_id = pd.id
+                                                left join master_part mp on pd.master_part_id = mp.id
                                                 left join master_secondary ms on ms.id = pds.master_secondary_id
                                                 left join marker_input mi on a.id_marker = mi.kode
                                                 left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
@@ -796,7 +962,7 @@ class SecondaryInController extends Controller
                                                         part_detail_secondary.urutan IS NOT NULL
                                                     group by
                                                         part_detail_id
-                                                ) max_urutan on max_urutan.part_detail_id = p.id
+                                                ) max_urutan on max_urutan.part_detail_id = pd.id
                                             where
                                                 s.id_qr_stocker = '" . $request->txtqrstocker . "' and
                                                 ms.tujuan = 'SECONDARY DALAM' and
@@ -848,7 +1014,8 @@ class SecondaryInController extends Controller
                                                         COALESCE(msb.size, s.size) size,
                                                         ms.tujuan,
                                                         ms.proses lokasi,
-                                                        mp.nama_part,
+                                                        COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                                                        CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                                                         ".$multiSecondaryBeforeSecondaryIn->qty_in." qty_awal,
                                                         s.lokasi lokasi_tujuan,
                                                         s.tempat tempat_tujuan,
@@ -860,9 +1027,12 @@ class SecondaryInController extends Controller
                                                         left join form_cut_input a on s.form_cut_id = a.id
                                                         left join form_cut_reject b on s.form_reject_id = b.id
                                                         left join form_cut_piece c on s.form_piece_id = c.id
-                                                        left join part_detail p on s.part_detail_id = p.id
-                                                        left join part_detail_secondary pds on pds.part_detail_id = p.id
-                                                        left join master_part mp on p.master_part_id = mp.id
+                                                        left join part_detail pd on s.part_detail_id = pd.id
+                                                        left join part p on p.id = pd.part_id
+                                                        left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                                                        left join part p_com on p_com.id = pd_com.part_id
+                                                        left join part_detail_secondary pds on pds.part_detail_id = pd.id
+                                                        left join master_part mp on pd.master_part_id = mp.id
                                                         left join master_secondary ms on ms.id = pds.master_secondary_id
                                                         left join marker_input mi on a.id_marker = mi.kode
                                                         left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
@@ -877,7 +1047,7 @@ class SecondaryInController extends Controller
                                                                 part_detail_secondary.urutan IS NOT NULL
                                                             group by
                                                                 part_detail_id
-                                                        ) max_urutan on max_urutan.part_detail_id = p.id
+                                                        ) max_urutan on max_urutan.part_detail_id = pd.id
                                                     where
                                                         s.id_qr_stocker = '" . $request->txtqrstocker . "' and
                                                         ms.tujuan = 'SECONDARY LUAR' and
@@ -900,7 +1070,8 @@ class SecondaryInController extends Controller
                                                         COALESCE(msb.size, s.size) size,
                                                         ms.tujuan,
                                                         ms.proses lokasi,
-                                                        mp.nama_part,
+                                                        COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                                                        CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                                                         ".$multiSecondaryBeforeSecondary->qty_in." qty_awal,
                                                         s.lokasi lokasi_tujuan,
                                                         s.tempat tempat_tujuan,
@@ -912,9 +1083,12 @@ class SecondaryInController extends Controller
                                                         left join form_cut_input a on s.form_cut_id = a.id
                                                         left join form_cut_reject b on s.form_reject_id = b.id
                                                         left join form_cut_piece c on s.form_piece_id = c.id
-                                                        left join part_detail p on s.part_detail_id = p.id
-                                                        left join part_detail_secondary pds on pds.part_detail_id = p.id
-                                                        left join master_part mp on p.master_part_id = mp.id
+                                                        left join part_detail pd on s.part_detail_id = pd.id
+                                                        left join part p on p.id = pd.part_id
+                                                        left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                                                        left join part p_com on p_com.id = pd_com.part_id
+                                                        left join part_detail_secondary pds on pds.part_detail_id = pd.id
+                                                        left join master_part mp on pd.master_part_id = mp.id
                                                         left join master_secondary ms on ms.id = pds.master_secondary_id
                                                         left join marker_input mi on a.id_marker = mi.kode
                                                         left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
@@ -929,7 +1103,7 @@ class SecondaryInController extends Controller
                                                                 part_detail_secondary.urutan IS NOT NULL
                                                             group by
                                                                 part_detail_id
-                                                        ) max_urutan on max_urutan.part_detail_id = p.id
+                                                        ) max_urutan on max_urutan.part_detail_id = pd.id
                                                     where
                                                         s.id_qr_stocker = '" . $request->txtqrstocker . "' and
                                                         ms.tujuan = 'SECONDARY DALAM' and
@@ -963,7 +1137,8 @@ class SecondaryInController extends Controller
                                                     COALESCE(msb.size, s.size) size,
                                                     ms.tujuan,
                                                     ms.proses lokasi,
-                                                    mp.nama_part,
+                                                    COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                                                    CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                                                     ".$multiSecondaryBeforeSecondaryIn->qty_in." qty_awal,
                                                     s.lokasi lokasi_tujuan,
                                                     s.tempat tempat_tujuan,
@@ -975,9 +1150,12 @@ class SecondaryInController extends Controller
                                                     left join form_cut_input a on s.form_cut_id = a.id
                                                     left join form_cut_reject b on s.form_reject_id = b.id
                                                     left join form_cut_piece c on s.form_piece_id = c.id
-                                                    left join part_detail p on s.part_detail_id = p.id
-                                                    left join part_detail_secondary pds on pds.part_detail_id = p.id
-                                                    left join master_part mp on p.master_part_id = mp.id
+                                                    left join part_detail pd on s.part_detail_id = pd.id
+                                                    left join part p on p.id = pd.part_id
+                                                    left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                                                    left join part p_com on p_com.id = pd_com.part_id
+                                                    left join part_detail_secondary pds on pds.part_detail_id = pd.id
+                                                    left join master_part mp on pd.master_part_id = mp.id
                                                     left join master_secondary ms on ms.id = pds.master_secondary_id
                                                     left join marker_input mi on a.id_marker = mi.kode
                                                     left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
@@ -992,7 +1170,7 @@ class SecondaryInController extends Controller
                                                             part_detail_secondary.urutan IS NOT NULL
                                                         group by
                                                             part_detail_id
-                                                    ) max_urutan on max_urutan.part_detail_id = p.id
+                                                    ) max_urutan on max_urutan.part_detail_id = pd.id
                                                 where
                                                     s.id_qr_stocker = '" . $request->txtqrstocker . "' and
                                                     ms.tujuan = 'SECONDARY LUAR' and
@@ -1014,7 +1192,8 @@ class SecondaryInController extends Controller
                                             msb.styleno as style,
                                             s.color,
                                             COALESCE(msb.size, s.size) size,
-                                            mp.nama_part,
+                                            COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                                            CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                                             dc.tujuan,
                                             dc.lokasi,
                                             coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace qty_awal,
@@ -1028,8 +1207,11 @@ class SecondaryInController extends Controller
                                             left join form_cut_input a on s.form_cut_id = a.id
                                             left join form_cut_reject b on s.form_reject_id = b.id
                                             left join form_cut_piece c on s.form_piece_id = c.id
-                                            left join part_detail p on s.part_detail_id = p.id
-                                            left join master_part mp on p.master_part_id = mp.id
+                                            left join part_detail pd on s.part_detail_id = pd.id
+                                            left join part p on p.id = pd.part_id
+                                            left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                                            left join part p_com on p_com.id = pd_com.part_id
+                                            left join master_part mp on pd.master_part_id = mp.id
                                             left join marker_input mi on a.id_marker = mi.kode
                                             left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
                                             left join (
@@ -1042,7 +1224,7 @@ class SecondaryInController extends Controller
                                                     part_detail_secondary.urutan IS NOT NULL
                                                 group by
                                                     part_detail_id
-                                            ) max_urutan on max_urutan.part_detail_id = p.id
+                                            ) max_urutan on max_urutan.part_detail_id = pd.id
                                         where
                                             dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
                                             and ifnull(si.id_qr_stocker,'x') = 'x'
@@ -1091,22 +1273,26 @@ class SecondaryInController extends Controller
                                                     COALESCE(msb.size, s.size) size,
                                                     ms.tujuan,
                                                     ms.proses lokasi,
-                                                    mp.nama_part,
+                                                    COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                                                    CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                                                     ".$multiSecondaryBeforeSecondary->qty_in." qty_awal,
                                                     s.lokasi lokasi_tujuan,
                                                     s.tempat tempat_tujuan,
                                                     ".$multiSecondaryBefore->urutan." as urutan,
                                                     (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND ".$multiSecondaryBefore->urutan." >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status,
-                                            max_urutan.max_urutan
+                                                    max_urutan.max_urutan
                                                 from
                                                     stocker_input s
                                                     left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                                                     left join form_cut_input a on s.form_cut_id = a.id
                                                     left join form_cut_reject b on s.form_reject_id = b.id
                                                     left join form_cut_piece c on s.form_piece_id = c.id
-                                                    left join part_detail p on s.part_detail_id = p.id
-                                                    left join part_detail_secondary pds on pds.part_detail_id = p.id
-                                                    left join master_part mp on p.master_part_id = mp.id
+                                                    left join part_detail pd on s.part_detail_id = pd.id
+                                                    left join part p on p.id = pd.part_id
+                                                    left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                                                    left join part p_com on p_com.id = pd_com.part_id
+                                                    left join part_detail_secondary pds on pds.part_detail_id = pd.id
+                                                    left join master_part mp on pd.master_part_id = mp.id
                                                     left join master_secondary ms on ms.id = pds.master_secondary_id
                                                     left join marker_input mi on a.id_marker = mi.kode
                                                     left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
@@ -1121,7 +1307,7 @@ class SecondaryInController extends Controller
                                                             part_detail_secondary.urutan IS NOT NULL
                                                         group by
                                                             part_detail_id
-                                                    ) max_urutan on max_urutan.part_detail_id = p.id
+                                                    ) max_urutan on max_urutan.part_detail_id = pd.id
                                                 where
                                                     s.id_qr_stocker = '" . $request->txtqrstocker . "' and
                                                     ms.tujuan = 'SECONDARY DALAM' and
@@ -1149,7 +1335,8 @@ class SecondaryInController extends Controller
                                         msb.styleno as style,
                                         s.color,
                                         COALESCE(msb.size, s.size) size,
-                                        mp.nama_part,
+                                        COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                                        CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                                         dc.tujuan,
                                         dc.lokasi,
                                         coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace qty_awal,
@@ -1161,8 +1348,11 @@ class SecondaryInController extends Controller
                                         left join form_cut_input a on s.form_cut_id = a.id
                                         left join form_cut_reject b on s.form_reject_id = b.id
                                         left join form_cut_piece c on s.form_piece_id = c.id
-                                        left join part_detail p on s.part_detail_id = p.id
-                                        left join master_part mp on p.master_part_id = mp.id
+                                        left join part_detail pd on s.part_detail_id = pd.id
+                                        left join part p on p.id = pd.part_id
+                                        left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                                        left join part p_com on p_com.id = pd_com.part_id
+                                        left join master_part mp on pd.master_part_id = mp.id
                                         left join marker_input mi on a.id_marker = mi.kode
                                         left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
                                     where
@@ -1188,7 +1378,8 @@ class SecondaryInController extends Controller
                             COALESCE(msb.size, s.size) size,
                             dc.tujuan,
                             dc.lokasi,
-                            mp.nama_part,
+                            COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                            CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                             if(dc.tujuan = 'SECONDARY LUAR', (dc.qty_awal - dc.qty_reject + dc.qty_replace), (si.qty_awal - si.qty_reject + si.qty_replace)) qty_awal,
                             s.lokasi lokasi_tujuan,
                             s.tempat tempat_tujuan,
@@ -1211,8 +1402,11 @@ class SecondaryInController extends Controller
                             left join form_cut_input a on s.form_cut_id = a.id
                             left join form_cut_reject b on s.form_reject_id = b.id
                             left join form_cut_piece c on s.form_piece_id = c.id
-                            left join part_detail p on s.part_detail_id = p.id
-                            left join master_part mp on p.master_part_id = mp.id
+                            left join part_detail pd on s.part_detail_id = pd.id
+                            left join part p on p.id = pd.part_id
+                            left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                            left join part p_com on p_com.id = pd_com.part_id
+                            left join master_part mp on pd.master_part_id = mp.id
                             left join marker_input mi on a.id_marker = mi.kode
                             left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
                             left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
@@ -1233,22 +1427,23 @@ class SecondaryInController extends Controller
     {
         $cekdata =  DB::select("
             select
-            s.id_qr_stocker,
-            s.act_costing_ws,
-            msb.buyer,
-            COALESCE(a.no_cut, c.no_cut, '-') as no_cut,
-            msb.styleno as style,
-            s.color,
-            COALESCE(msb.size, s.size) size,
-            dc.tujuan,
-            dc.lokasi,
-            mp.nama_part,
-            COALESCE(sii.qty_awal, si.qty_in, (dc.qty_awal - dc.qty_reject - dc.qty_replace), 0) as qty_awal,
-            sii.qty_reject,
-            sii.qty_replace,
-            sii.qty_in,
-            s.lokasi lokasi_tujuan,
-            s.tempat tempat_tujuan
+                s.id_qr_stocker,
+                s.act_costing_ws,
+                msb.buyer,
+                COALESCE(a.no_cut, c.no_cut, '-') as no_cut,
+                msb.styleno as style,
+                s.color,
+                COALESCE(msb.size, s.size) size,
+                dc.tujuan,
+                dc.lokasi,
+                COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                COALESCE(sii.qty_awal, si.qty_in, (dc.qty_awal - dc.qty_reject - dc.qty_replace), 0) as qty_awal,
+                sii.qty_reject,
+                sii.qty_replace,
+                sii.qty_in,
+                s.lokasi lokasi_tujuan,
+                s.tempat tempat_tujuan
             from
             (
                 select dc.id_qr_stocker,ifnull(si.id_qr_stocker,'x') cek_1, ifnull(sii.id_qr_stocker,'x') cek_2  from dc_in_input dc
@@ -1272,8 +1467,11 @@ class SecondaryInController extends Controller
             left join form_cut_input a on s.form_cut_id = a.id
             left join form_cut_reject b on s.form_reject_id = b.id
             left join form_cut_piece c on s.form_piece_id = c.id
-            left join part_detail p on s.part_detail_id = p.id
-            left join master_part mp on p.master_part_id = mp.id
+            left join part_detail pd on s.part_detail_id = pd.id
+            left join part p on p.id = pd.part_id
+            left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+            left join part p_com on p_com.id = pd_com.part_id
+            left join master_part mp on pd.master_part_id = mp.id
             left join marker_input mi on a.id_marker = mi.kode
             left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
             left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
@@ -1309,6 +1507,17 @@ class SecondaryInController extends Controller
         $validatedRequest = $request->validate([
             "txtqtyreject" => "required"
         ]);
+
+        $checkSecondaryIn = SecondaryIn::where("id_qr_stocker", $request->txtno_stocker)->where('urutan', $request->txturutan)->first();
+        if ($checkSecondaryIn) {
+            return array(
+                'status' => 400,
+                'message' => 'Stocker <b>'.$request->txtno_stocker.'</b> '.($request->txturutan ? 'urutan '.$request->txturutan : '').' sudah di scan di secondary in pada tanggal <b>'.$checkSecondaryIn->tgl_trans.'</b>',
+                'redirect' => '',
+                'table' => 'datatable-input',
+                'additional' => [],
+            );
+        }
 
         $lastStep = Stocker::selectRaw("MAX(part_detail_secondary.urutan) as urutan")->
             leftJoin("part_detail_secondary", "part_detail_secondary.part_detail_id", "=", "stocker_input.part_detail_id")->
@@ -1418,7 +1627,7 @@ class SecondaryInController extends Controller
                     dc.tujuan,
                     dc.lokasi,
                     mp.nama_part,
-                IF
+                    IF
                     ( dc.tujuan = 'SECONDARY LUAR', dc.qty_awal, si.qty_awal ) qty_awal,
                     s.lokasi lokasi_tujuan,
                     s.tempat tempat_tujuan
@@ -1599,6 +1808,189 @@ class SecondaryInController extends Controller
     }
 
     public function exportExcel(Request $request)
+    {
+        $from = $request->from ? $request->from : date('Y-m-d');
+        $to = $request->to ? $request->to : date('Y-m-d');
+
+        $additionalQuery = "";
+
+        if ($request->from) {
+            $additionalQuery .= " and a.tgl_trans >= '" . $request->from . "' ";
+        }
+
+        if ($request->to) {
+            $additionalQuery .= " and a.tgl_trans <= '" . $request->to . "' ";
+        }
+
+        $data = DB::select("
+            SELECT
+                a.id_qr_stocker,
+                (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
+                DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
+                a.tgl_trans,
+                s.act_costing_ws,
+                s.color,
+                p.buyer,
+                p.style,
+                COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                COALESCE(mx.tujuan, dc.tujuan) tujuan,
+                COALESCE(mx.proses, dc.lokasi) lokasi,
+                COALESCE(s.lokasi, '-') lokasi_rak,
+                COALESCE(mx.qty_awal, a.qty_awal) qty_awal,
+                COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
+                COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
+                COALESCE(a.qty_in) qty_in,
+                CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                a.created_at,
+                CONCAT(s.range_awal, ' - ', s.range_akhir,
+                    (
+                        CASE WHEN (mx.qty_reject IS NOT NULL AND mx.qty_replace IS NOT NULL) THEN
+                            (CONCAT(' (', (COALESCE(mx.qty_replace, 0) - COALESCE(mx.qty_reject, 0)), ') ')) ELSE
+                            (
+                                CASE WHEN ((dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL) OR (sii.qty_reject IS NOT NULL AND sii.qty_replace IS NOT NULL)) THEN
+                                    CONCAT(' (', ((COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)) + (COALESCE(sii.qty_replace, 0) - COALESCE(sii.qty_reject, 0))), ') ') ELSE
+                                    ' (0)'
+                                END
+                            )
+                        END
+                    )
+                ) stocker_range_old,
+                CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range,
+                COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
+                COALESCE(msb.size, s.size) size,
+                a.user,
+                mp.nama_part,
+                (CASE WHEN a.urutan > 0 THEN a.urutan ELSE '-' END) urutan
+            from secondary_in_input a
+            LEFT JOIN (
+                SELECT
+                    secondary_in_input.id_qr_stocker,
+                    MAX(qty_awal) as qty_awal,
+                    SUM(qty_reject) qty_reject,
+                    SUM(qty_replace) qty_replace,
+                    (MAX(qty_awal) - SUM(qty_reject) + SUM(qty_replace)) as qty_akhir,
+                    MAX(secondary_in_input.urutan) AS max_urutan,
+                    GROUP_CONCAT(master_secondary.tujuan SEPARATOR ' | ') as tujuan,
+                    GROUP_CONCAT(master_secondary.proses SEPARATOR ' | ') as proses
+                FROM secondary_in_input
+                LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_in_input.id_qr_stocker
+                LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id and part_detail_secondary.urutan = secondary_in_input.urutan
+                LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
+                GROUP BY id_qr_stocker
+                having MAX(secondary_in_input.urutan) is not null
+            ) mx ON a.id_qr_stocker = mx.id_qr_stocker AND a.urutan = mx.max_urutan
+            left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+            left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+            left join form_cut_input f on f.id = s.form_cut_id
+            left join form_cut_reject fr on fr.id = s.form_reject_id
+            left join form_cut_piece fp on fp.id = s.form_piece_id
+            left join part_detail pd on s.part_detail_id = pd.id
+            left join part p on p.id = pd.part_id
+            left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+            left join part p_com on p_com.id = pd_com.part_id
+            left join master_part mp on mp.id = pd.master_part_id
+            left join dc_in_input dc on a.id_qr_stocker = dc.id_qr_stocker
+            left join secondary_inhouse_input sii on a.id_qr_stocker = sii.id_qr_stocker
+            where
+                a.tgl_trans is not null
+                AND (
+                    a.urutan IS NULL
+                    OR a.urutan = mx.max_urutan
+                )
+                ".$additionalQuery."
+            group by a.id
+            order by a.tgl_trans desc
+        ");
+
+        $excel = FastExcel::create('data');
+        $sheet = $excel->getSheet();
+
+        $area = $sheet->beginArea();
+
+        $sheet->writeTo('A1', 'Secondary IN', ['font-size' => 16]);
+        $sheet->mergeCells('A1:S1');
+
+        // Header labels moved into writeTo calls below
+
+        $sheet->writeTo('A2', "Tgl Transaksi")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('B2', "ID QR")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('C2', "WS")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('D2', "Style")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('E2', "Color")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('F2', "Panel")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('G2', "Part")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('H2', "Size")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('I2', "No. Cut")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('J2', "Tujuan Asal")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('K2', "Lokasi Asal")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('L2', "Urutan")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('M2', "Range")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('N2', "Qty Awal")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('O2', "Qty Reject")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('P2', "Qty Replace")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Q2', "Qty In")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('R2', "Buyer")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('S2', "User")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('T2', "Created At")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+        $sheet->writeAreas();
+
+        $totalQtyAwal = 0;
+        $totalQtyReject = 0;
+        $totalQtyReplace = 0;
+        $totalQtyIn = 0;
+
+        foreach ($data as $row) {
+            $rowArr = [
+                $row->tgl_trans_fix ?? '-',
+                $row->id_qr_stocker ?? '-',
+                $row->act_costing_ws ?? '-',
+                $row->style ?? '-',
+                $row->color ?? '-',
+                $row->panel ?? '-',
+                $row->nama_part ?? '-',
+                $row->size ?? '-',
+                $row->no_cut ?? '-',
+                $row->tujuan ?? '-',
+                $row->lokasi ?? '-',
+                $row->urutan ?? '-',
+                $row->stocker_range ?? '-',
+                (int) ($row->qty_awal ?? 0),
+                (int) ($row->qty_reject ?? 0),
+                (int) ($row->qty_replace ?? 0),
+                (int) ($row->qty_in ?? 0),
+                $row->buyer ?? '-',
+                $row->user ?? '-',
+                $row->created_at ?? '-',
+            ];
+
+            $totalQtyAwal += (int) ($row->qty_awal ?? 0);
+            $totalQtyReject += (int) ($row->qty_reject ?? 0);
+            $totalQtyReplace += (int) ($row->qty_replace ?? 0);
+            $totalQtyIn += (int) ($row->qty_in ?? 0);
+
+            $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        }
+
+        // Totals row (col A-L blank, M-P totals, Q-S blank)
+        $totalsRow = array_merge(array_fill(0, 13, ''), [
+            $totalQtyAwal,
+            $totalQtyReject,
+            $totalQtyReplace,
+            $totalQtyIn,
+            '',
+            '',
+            '',
+        ]);
+
+        $sheet->writeRow($totalsRow)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+        $filename = 'Laporan Secondary IN '.$request->from.' - '.$request->to.' ('.Carbon::now().') .xlsx';
+
+        return $excel->download($filename);
+    }
+
+    public function exportExcel1(Request $request)
     {
         return Excel::download(new ExportSecondaryIn($request->from, $request->to), 'Laporan sec in '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
     }

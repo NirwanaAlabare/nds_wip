@@ -60,12 +60,14 @@
                             <th>WS</th>
                             <th>Style</th>
                             <th>Color</th>
+                            <th>Panel</th>
                             <th>Part</th>
                             <th>Size</th>
                             <th>No. Cut</th>
                             <th>Tujuan Awal</th>
                             <th>Lokasi Awal</th>
                             <th>Lokasi Rak</th>
+                            <th>Urutan</th>
                             <th>Range</th>
                             <th>Qty Awal</th>
                             <th>Qty Reject</th>
@@ -78,12 +80,14 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="13"></th>
+                            <th colspan='15'></th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_awal'> </th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_reject'> </th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_replace'> </th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_in'> </th>
-                            <th colspan="3"></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -167,6 +171,13 @@
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Color</label>
                                 <select class="form-select select2bs4filtersec" name="sec_filter_color[]" id="sec_filter_color" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Panel</label>
+                                <select class="form-select select2bs4filtersec" name="sec_filter_panel[]" id="sec_filter_panel" multiple="multiple">
                                 </select>
                             </div>
                         </div>
@@ -361,26 +372,29 @@
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
+                                    <label class='form-label'><small>Panel</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='txtpanel' name='txtpanel' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
                                     <label class='form-label'><small>Part</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txtpart' name='txtpart' value='' readonly>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class='col-md-4'>
+                            <div class='col-md-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Urutan</small></label>
-                                    <input type='text' class='form-control' id='txturutan' name='txturutan' value='' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txturutan' name='txturutan' value='' readonly>
                                 </div>
                             </div>
-                            <div class='col-sm-4'>
+                            <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Tujuan Asal</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txttujuan' name='txttujuan' value='' readonly>
                                 </div>
                             </div>
-                            <div class='col-sm-4'>
+                            <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Lokasi Asal</small></label>
                                     <input type='text' class='form-control form-control-sm' id='txtalokasi' name='txtalokasi' value='' readonly>
@@ -547,20 +561,23 @@
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
+                                    <label class='form-label'><small>Panel</small></label>
+                                    <input type='text' class='form-control form-control-sm' id='edit_panel' name='edit_panel' value='' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-4'>
+                                <div class='form-group'>
                                     <label class='form-label'><small>Part</small></label>
                                     <input type='text' class='form-control form-control-sm' id='edit_part' name='edit_part' value='' readonly>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class='col-sm-6'>
+                            <div class='col-sm-4'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Tujuan Asal</small></label>
                                     <input type='text' class='form-control form-control-sm' id='edit_tujuan' name='edit_tujuan' value='' readonly>
                                 </div>
                             </div>
-                            <div class='col-sm-6'>
+                            <div class='col-sm-4'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Lokasi Asal</small></label>
                                     <input type='text' class='form-control form-control-sm' id='edit_alokasi' name='edit_alokasi' value='' readonly>
@@ -628,11 +645,12 @@
             dropdownParent: $("#filterDetailSecModal")
         });
 
+        // Datatable INPUT
         $('#datatable-input thead tr').clone(true).appendTo('#datatable-input thead');
         $('#datatable-input thead tr:eq(1) th').each(function(i) {
             var title = $(this).text();
 
-            if (i == 7) {
+            if (i == 8) {
                 $(this).html('<select class="form-select" id="size_filter" multiple="multiple" style="min-width: 90px;"></select>');
             } else {
                 $(this).html('<input type="text" class="form-control form-control-sm"/>');
@@ -662,47 +680,43 @@
                 };
 
                 // computing column Total of the complete result
-                var sumTotal = api
-                    .column(13)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
+                $.ajax({
+                    type: "get",
+                    url: "{{ route('total-stocker-in') }}",
+                    data: {
+                        dateFrom : $('#tgl-awal').val(),
+                        dateTo : $('#tgl-akhir').val(),
+                        sec_filter_tipe : $('#sec_filter_tipe').val(),
+                        sec_filter_buyer : $('#sec_filter_buyer').val(),
+                        sec_filter_ws : $('#sec_filter_ws').val(),
+                        sec_filter_style : $('#sec_filter_style').val(),
+                        sec_filter_color : $('#sec_filter_color').val(),
+                        sec_filter_panel : $('#sec_filter_panel').val(),
+                        sec_filter_part : $('#sec_filter_part').val(),
+                        sec_filter_size : $('#sec_filter_size').val(),
+                        sec_filter_no_cut : $('#sec_filter_no_cut').val(),
+                        sec_filter_tujuan : $('#sec_filter_tujuan').val(),
+                        sec_filter_lokasi : $('#sec_filter_lokasi').val(),
+                        sec_filter_lokasi_rak : $('#sec_filter_lokasi_rak').val(),
+                        size_filter : $('#size_filter').val(),
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        console.log(response);
 
-                var sumTotalAwal = api
-                    .column(13)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalReject = api
-                    .column(14)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalReplace = api
-                    .column(15)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalIn = api
-                    .column(16)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                // Update footer by showing the total with the reference of the column index
-                $(api.column(0).footer()).html('Total');
-                $(api.column(13).footer()).html(sumTotalAwal);
-                $(api.column(14).footer()).html(sumTotalReject);
-                $(api.column(15).footer()).html(sumTotalReplace);
-                $(api.column(16).footer()).html(sumTotalIn);
+                        if (response) {
+                            // Update footer by showing the total with the reference of the column index
+                            $(api.column(0).footer()).html('Total');
+                            $(api.column(15).footer()).html(response.total_qty_awal);
+                            $(api.column(16).footer()).html(response.total_qty_reject);
+                            $(api.column(17).footer()).html(response.total_qty_replace);
+                            $(api.column(18).footer()).html(response.total_qty_in);
+                        }
+                    },
+                    error: function (jqXHR) {
+                        console.error(jqXHR);
+                    }
+                });
 
                 $('#size_filter').select2({
                     theme: 'bootstrap4',
@@ -711,7 +725,7 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
+            paging: true,
             searching: true,
             scrollY: '300px',
             scrollX: '300px',
@@ -731,6 +745,7 @@
                     d.sec_filter_ws = $('#sec_filter_ws').val();
                     d.sec_filter_style = $('#sec_filter_style').val();
                     d.sec_filter_color = $('#sec_filter_color').val();
+                    d.sec_filter_panel = $('#sec_filter_panel').val();
                     d.sec_filter_part = $('#sec_filter_part').val();
                     d.sec_filter_size = $('#sec_filter_size').val();
                     d.sec_filter_no_cut = $('#sec_filter_no_cut').val();
@@ -761,6 +776,9 @@
                     data: 'color',
                 },
                 {
+                    data: 'panel',
+                },
+                {
                     data: 'nama_part',
                 },
                 {
@@ -777,6 +795,9 @@
                 },
                 {
                     data: 'lokasi_rak',
+                },
+                {
+                    data: 'urutan',
                 },
                 {
                     data: 'stocker_range',
@@ -818,6 +839,7 @@
             ]
         });
 
+        // Datatable DETAIL
         $('#datatable-detail thead tr').clone(true).appendTo('#datatable-detail thead');
         $('#datatable-detail thead tr:eq(1) th').each(function(i) {
             var title = $(this).text();
@@ -1161,11 +1183,12 @@
                     document.getElementById('txtstyle').value = response.style;
                     document.getElementById('txtcolor').value = response.color;
                     document.getElementById('txtsize').value = response.size;
+                    document.getElementById('txtpanel').value = response.panel;
                     document.getElementById('txtpart').value = response.nama_part;
                     document.getElementById('txttujuan').value = response.tujuan;
                     document.getElementById('txtalokasi').value = response.lokasi;
                     document.getElementById('txtqtyawal').value =  response.qty_awal;
-                    document.getElementById('txturutan').value = response.urutan;
+                    document.getElementById('txturutan').value = response.urutan ? response.urutan : null;
 
                     console.log(response.status, response.max_urutan, response.tempat_tujuan);
 
@@ -1250,6 +1273,7 @@
                     document.getElementById('edit_style').value = response.style;
                     document.getElementById('edit_color').value = response.color;
                     document.getElementById('edit_size').value = response.size;
+                    document.getElementById('edit_panel').value = response.panel;
                     document.getElementById('edit_part').value = response.nama_part;
                     document.getElementById('edit_tujuan').value = response.tujuan;
                     document.getElementById('edit_alokasi').value = response.lokasi;
@@ -1426,6 +1450,14 @@
                             $("#sec_filter_color").empty();
                             $.each(color, function(index, value) {
                                 $('#sec_filter_color').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
+
+                        if (response.part && response.part.length > 0) {
+                            let part = response.part;
+                            $("#sec_filter_panel").empty();
+                            $.each(part, function(index, value) {
+                                $('#sec_filter_panel').append('<option value="'+value+'">'+value+'</option>');
                             });
                         }
 

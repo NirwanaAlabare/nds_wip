@@ -218,6 +218,158 @@
             document.getElementById("loading").classList.add("d-none");
         }
 
+        function processAllLeaderData(data) {
+            // leader group by
+            let leaderEfficiency = objectValues(objectGroupBy(data, ({ leader_nik }) => leader_nik));
+            leaderEfficiency = leaderEfficiency.map(element => {
+                let total_mins_avail = 0;
+                let total_mins_prod = 0;
+                let total_output = 0;
+                let total_rft = 0;
+
+                element.reduce(function(res, value) {
+                    total_mins_avail += Number(value.cumulative_mins_avail);
+                    total_mins_prod += Number(value.mins_prod);
+                    total_output += Number(value.output);
+                    total_rft += Number(value.rft);
+
+                    return res;
+                }, {});
+
+                let totalEfficiency = total_mins_avail >= 1 ? (total_mins_prod/total_mins_avail*100) : 0;
+                let totalRft = total_output >= 1 ? (total_rft/total_output*100) : 0;
+
+                return {
+                    "id": element[0].leader_nik,
+                    "totalValue": totalEfficiency+totalRft,
+                }
+            });
+
+            // Sort leader output efficiency
+            let sortedLeaderEfficiency = leaderEfficiency.sort(function(a,b){
+                if (a.totalValue < b.totalValue) {
+                    return 1;
+                }
+                if (a.totalValue > b.totalValue) {
+                    return -1;
+                }
+                return 0;
+            });
+
+            return sortedLeaderEfficiency;
+        }
+
+        function processLeaderData(data) {
+            // leader group by
+            let leaderEfficiency = objectValues(objectGroupBy(data, ({ leader_nik }) => leader_nik));
+            leaderEfficiency = leaderEfficiency.map(element => {
+                let total_mins_avail = 0;
+                let total_mins_prod = 0;
+                let total_output = 0;
+                let total_rft = 0;
+
+                element.reduce(function(res, value) {
+                    total_mins_avail += Number(value.cumulative_mins_avail);
+                    total_mins_prod += Number(value.mins_prod);
+                    total_output += Number(value.output);
+                    total_rft += Number(value.rft);
+
+                    return res;
+                }, {});
+
+                let totalEfficiency = total_mins_avail >= 1 ? (total_mins_prod/total_mins_avail*100) : 0;
+                let totalRft = total_output >= 1 ? (total_rft/total_output*100) : 0;
+
+                return {
+                    "id": element[0].leader_nik,
+                    "totalValue": totalEfficiency+totalRft,
+                }
+            });
+
+            // Sort leader output efficiency
+            let sortedLeaderEfficiency = leaderEfficiency.sort(function(a,b){
+                if (a.totalValue < b.totalValue) {
+                    return 1;
+                }
+                if (a.totalValue > b.totalValue) {
+                    return -1;
+                }
+                return 0;
+            });
+
+            return sortedLeaderEfficiency;
+        }
+
+        function processLineData(data, sortedLeaderEfficiency, allLeaderData) {
+            // Line
+            let lineEfficiency = objectValues(objectGroupBy(data, ({ line_id }) => line_id));
+
+            let lineDailyEfficiency = [];
+            lineEfficiency.forEach(element => {
+                // Date Output
+                let dateOutput = [];
+                let lineLeaderList = [];
+                let currentLeader = {
+                    "tanggal": element[0].tanggal,
+                    "leader_nik": element[0].leader_nik,
+                    "leader_name": (element[0].leader_name ? element[0].leader_name.split(" ")[0] : "KOSONG"),
+                };
+                element.reduce(function(res, value) {
+                    if (!res[value.tanggal]) {
+                        res[value.tanggal] = { tanggal: value.tanggal, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
+                        dateOutput.push(res[value.tanggal]);
+                    }
+                    // res[value.tanggal].mins_avail += value.tanggal == formatDate(new Date()) ? Number(value.cumulative_mins_avail) : Number(value.mins_avail);
+                    res[value.tanggal].mins_avail += Number(value.cumulative_mins_avail);
+                    res[value.tanggal].mins_prod += Number(value.mins_prod);
+                    res[value.tanggal].output += Number(value.output);
+                    res[value.tanggal].rft += Number(value.rft);
+
+                    if (value.leader_nik != currentLeader.leader_nik) {
+                        lineLeaderList.push(
+                                {
+                                x: formatDateTick(currentLeader.tanggal),
+                                borderColor: '#00E396',
+                                label: {
+                                    style: {
+                                        fontSize: "7px",
+                                    },
+                                    borderColor: '#00E396',
+                                    text: currentLeader.leader_name
+                                },
+                            }
+                        );
+                    }
+
+                    currentLeader = {
+                        "tanggal": value.tanggal,
+                        "leader_nik": value.leader_nik,
+                        "leader_name": (value.leader_name ? value.leader_name.split(" ")[0] : 'KOSONG'),
+                    };
+
+                    return res;
+                }, {});
+
+                // get leader
+                let leaderRank = allLeaderData.map(e => e.id).indexOf(element[element.length-1].leader_nik ? element[element.length-1].leader_nik : null);
+
+                lineDailyEfficiency.push({"id": element[element.length-1].leader_id ? element[element.length-1].leader_id : 'KOSONG', "nik": element[element.length-1].leader_nik ? element[element.length-1].leader_nik : 'KOSONG', "name": element[element.length-1].leader_name ? element[element.length-1].leader_name : 'KOSONG', "leader_rank": leaderRank+1, "line": element[element.length-1].line_name, "data": dateOutput, "leaders": lineLeaderList, "chief_id": element[element.length-1].chief_id, "chief_nik": element[element.length-1].chief_nik});
+            });
+
+            // Sort line output efficiency
+            let sortedLineEfficiency = lineDailyEfficiency.sort(function(a,b){
+                if (a.leader_rank > b.leader_rank) {
+                    return 1;
+                }
+                if (a.leader_rank < b.leader_rank) {
+                    return -1;
+                }
+                return 0;
+            });
+
+            return sortedLineEfficiency;
+        }
+
         // Get Data
         async function getData() {
             document.getElementById("loading").classList.remove("d-none");
@@ -235,112 +387,11 @@
                 },
                 dataType: "json",
                 success: async function (response) {
-                    console.log("data", response);
+                    console.log(response);
+
+                    let allLeaderData = processAllLeaderData(response);
 
                     document.getElementById('chief-leader-line-charts').innerHTML = "";
-
-                    // leader group by
-                    let leaderEfficiency = objectValues(objectGroupBy(response, ({ leader_nik }) => leader_nik));
-                    leaderEfficiency = leaderEfficiency.map(element => {
-                        let total_mins_avail = 0;
-                        let total_mins_prod = 0;
-                        let total_output = 0;
-                        let total_rft = 0;
-
-                        element.reduce(function(res, value) {
-                            total_mins_avail += Number(value.cumulative_mins_avail);
-                            total_mins_prod += Number(value.mins_prod);
-                            total_output += Number(value.output);
-                            total_rft += Number(value.rft);
-
-                            return res;
-                        }, {});
-
-                        let totalEfficiency = total_mins_avail >= 1 ? (total_mins_prod/total_mins_avail*100) : 0;
-                        let totalRft = total_output >= 1 ? (total_rft/total_output*100) : 0;
-
-                        return {
-                            "id": element[0].leader_nik,
-                            "totalValue": totalEfficiency+totalRft,
-                        }
-                    });
-
-                    // Sort leader output efficiency
-                    let sortedLeaderEfficiency = leaderEfficiency.sort(function(a,b){
-                        if (a.totalValue < b.totalValue) {
-                            return 1;
-                        }
-                        if (a.totalValue > b.totalValue) {
-                            return -1;
-                        }
-                        return 0;
-                    });
-
-                    // Line
-                    let lineEfficiency = objectValues(objectGroupBy(response, ({ line_id }) => line_id));
-
-                    let lineDailyEfficiency = [];
-                    lineEfficiency.forEach(element => {
-                        // Date Output
-                        let dateOutput = [];
-                        let lineLeaderList = [];
-                        let currentLeader = {
-                            "tanggal": element[0].tanggal,
-                            "leader_nik": element[0].leader_nik,
-                            "leader_name": (element[0].leader_name ? element[0].leader_name.split(" ")[0] : "KOSONG"),
-                        };
-                        element.reduce(function(res, value) {
-                            if (!res[value.tanggal]) {
-                                res[value.tanggal] = { tanggal: value.tanggal, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
-                                dateOutput.push(res[value.tanggal]);
-                            }
-                            // res[value.tanggal].mins_avail += value.tanggal == formatDate(new Date()) ? Number(value.cumulative_mins_avail) : Number(value.mins_avail);
-                            res[value.tanggal].mins_avail += Number(value.cumulative_mins_avail);
-                            res[value.tanggal].mins_prod += Number(value.mins_prod);
-                            res[value.tanggal].output += Number(value.output);
-                            res[value.tanggal].rft += Number(value.rft);
-
-                            if (value.leader_nik != currentLeader.leader_nik) {
-                                lineLeaderList.push(
-                                        {
-                                        x: formatDateTick(currentLeader.tanggal),
-                                        borderColor: '#00E396',
-                                        label: {
-                                            style: {
-                                                fontSize: "7px",
-                                            },
-                                            borderColor: '#00E396',
-                                            text: currentLeader.leader_name
-                                        },
-                                    }
-                                );
-                            }
-
-                            currentLeader = {
-                                "tanggal": value.tanggal,
-                                "leader_nik": value.leader_nik,
-                                "leader_name": (value.leader_name ? value.leader_name.split(" ")[0] : 'KOSONG'),
-                            };
-
-                            return res;
-                        }, {});
-
-                        // get leader
-                        let leaderRank = sortedLeaderEfficiency.map(e => e.id).indexOf(element[element.length-1].leader_nik ? element[element.length-1].leader_nik : null);
-
-                        lineDailyEfficiency.push({"id": element[element.length-1].leader_id ? element[element.length-1].leader_id : 'KOSONG', "nik": element[element.length-1].leader_nik ? element[element.length-1].leader_nik : 'KOSONG', "name": element[element.length-1].leader_name ? element[element.length-1].leader_name : 'KOSONG', "leader_rank": leaderRank+1, "line": element[element.length-1].line_name, "data": dateOutput, "leaders": lineLeaderList, "chief_id": element[element.length-1].chief_id, "chief_nik": element[element.length-1].chief_nik});
-                    });
-
-                    // Sort line output efficiency
-                    let sortedLineEfficiency = lineDailyEfficiency.sort(function(a,b){
-                        if (a.leader_rank > b.leader_rank) {
-                            return 1;
-                        }
-                        if (a.leader_rank < b.leader_rank) {
-                            return -1;
-                        }
-                        return 0;
-                    });
 
                     // Chief Group By
                     let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_nik }) => chief_nik));
@@ -360,6 +411,10 @@
 
                         // get current date
                         let dateOutputFilter = sortedDateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
+
+                        let sortedLeaderEfficiency = processLeaderData(dateOutputFilter);
+                        let sortedLineEfficiency = processLineData(dateOutputFilter, sortedLeaderEfficiency, allLeaderData);
+
                         let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
                         let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
 
@@ -426,113 +481,7 @@
                 },
                 dataType: "json",
                 success: async function (response) {
-                    console.log("data", response);
-
-                    document.getElementById('chief-leader-line-charts').innerHTML = "";
-
-                    // leader group by
-                    let leaderEfficiency = objectValues(objectGroupBy(response, ({ leader_nik }) => leader_nik));
-                    leaderEfficiency = leaderEfficiency.map(element => {
-                        let total_mins_avail = 0;
-                        let total_mins_prod = 0;
-                        let total_output = 0;
-                        let total_rft = 0;
-
-                        element.reduce(function(res, value) {
-                            total_mins_avail += Number(value.cumulative_mins_avail);
-                            total_mins_prod += Number(value.mins_prod);
-                            total_output += Number(value.output);
-                            total_rft += Number(value.rft);
-
-                            return res;
-                        }, {});
-
-                        let totalEfficiency = (total_mins_prod/total_mins_avail*100);
-                        let totalRft = (total_rft/total_output*100);
-
-                        return {
-                            "id": element[0].leader_nik,
-                            "totalValue": totalEfficiency+totalRft,
-                        }
-                    });
-
-                    // Sort leader output efficiency
-                    let sortedLeaderEfficiency = leaderEfficiency.sort(function(a,b){
-                        if (a.totalValue < b.totalValue) {
-                            return 1;
-                        }
-                        if (a.totalValue > b.totalValue) {
-                            return -1;
-                        }
-                        return 0;
-                    });
-
-                    // Line
-                    let lineEfficiency = objectValues(objectGroupBy(response, ({ line_id }) => line_id));
-
-                    let lineDailyEfficiency = [];
-                    lineEfficiency.forEach(element => {
-                        // Date Output
-                        let dateOutput = [];
-                        let lineLeaderList = [];
-                        let currentLeader = {
-                            "tanggal": element[0].tanggal,
-                            "leader_nik": element[0].leader_nik,
-                            "leader_name": (element[0].leader_name ? element[0].leader_name.split(" ")[0] : "KOSONG"),
-                        };
-                        element.reduce(function(res, value) {
-                            if (!res[value.tanggal]) {
-                                res[value.tanggal] = { tanggal: value.tanggal, mins_avail: 0, mins_prod: 0, output: 0, rft: 0 };
-                                dateOutput.push(res[value.tanggal]);
-                            }
-                            // res[value.tanggal].mins_avail += value.tanggal == formatDate(new Date()) ? Number(value.cumulative_mins_avail) : Number(value.mins_avail);
-                            res[value.tanggal].mins_avail += Number(value.cumulative_mins_avail);
-                            res[value.tanggal].mins_prod += Number(value.mins_prod);
-                            res[value.tanggal].output += Number(value.output);
-                            res[value.tanggal].rft += Number(value.rft);
-
-                            if (value.leader_nik != currentLeader.leader_nik) {
-                                lineLeaderList.push(
-                                        {
-                                        x: formatDateTick(currentLeader.tanggal),
-                                        borderColor: '#00E396',
-                                        label: {
-                                            style: {
-                                                fontSize: "7px",
-                                            },
-                                            borderColor: '#00E396',
-                                            text: currentLeader.leader_name
-                                        },
-                                    }
-                                );
-                            }
-
-                            currentLeader = {
-                                "tanggal": value.tanggal,
-                                "leader_nik": value.leader_nik,
-                                "leader_name": (value.leader_name ? value.leader_name.split(" ")[0] : 'KOSONG'),
-                            };
-
-                            return res;
-                        }, {});
-
-                        // get leader
-                        console.log(sortedLeaderEfficiency);
-                        let leaderRank = sortedLeaderEfficiency.map(e => e.id).indexOf(element[element.length-1].leader_nik ? element[element.length-1].leader_nik : null);
-
-                        lineDailyEfficiency.push({"id": element[element.length-1].leader_id ? element[element.length-1].leader_id : 'KOSONG', "nik": element[element.length-1].leader_nik ? element[element.length-1].leader_nik : 'KOSONG', "name": element[element.length-1].leader_name ? element[element.length-1].leader_name : 'KOSONG', "leader_rank": leaderRank+1, "line": element[element.length-1].line_name, "data": dateOutput, "leaders": lineLeaderList, "chief_id": element[element.length-1].chief_id, "chief_nik": element[element.length-1].chief_nik});
-                    });
-
-                    // Sort line output efficiency
-                    let sortedLineEfficiency = lineDailyEfficiency.sort(function(a,b){
-                        if (a.leader_rank > b.leader_rank) {
-                            return 1;
-                        }
-                        if (a.leader_rank < b.leader_rank) {
-                            return -1;
-                        }
-                        return 0;
-                    });
+                    let allLeaderData = processAllLeaderData(response);
 
                     // Chief Group By
                     let chiefEfficiency = objectValues(objectGroupBy(response, ({ chief_nik }) => chief_nik));
@@ -552,6 +501,10 @@
 
                         // get current date
                         let dateOutputFilter = sortedDateOutput.filter((item) => item.mins_avail > 0 && item.mins_prod > 0);
+
+                        let sortedLeaderEfficiency = processLeaderData(dateOutputFilter);
+                        let sortedLineEfficiency = processLineData(dateOutputFilter, sortedLeaderEfficiency, allLeaderData);
+
                         let currentFilter = dateOutputFilter.filter((item) => item.tanggal == formatDate(new Date()));
                         let currentData = currentFilter.length > 0 ? currentFilter[0] : dateOutputFilter[dateOutputFilter.length-1];
 
@@ -596,6 +549,8 @@
                     document.getElementById("loading").classList.add("d-none");
                 },
                 error: function (jqXHR) {
+                    console.log("not updated at?", jqXHR)
+
                     console.error(jqXHR);
                 }
             });
@@ -657,6 +612,10 @@
 
                 appendSubRow(lineSubContainer, d, index, i);
             });
+
+            parentElement.minHeight = parentElement.offsetHeight;
+
+            console.log('element height', parentElement.minHeight, parentElement.offsetHeight);
         }
 
         function appendSubRow(lineSubContainer, d, index, i) {
@@ -688,8 +647,8 @@
             imageContainer.classList.add("align-items-center")
             let imageSubContainer = document.createElement("div")
             imageSubContainer.classList.add("profile-frame");
-            imageSubContainer.style.width = "40px";
-            imageSubContainer.style.height = "40px";
+            imageSubContainer.style.width = "83px";
+            imageSubContainer.style.height = "83px";
             let imageElement = document.createElement("img");
             imageElement.src = "{{ asset('../storage/employee_profile') }}/"+d.nik+"%20"+d.name+".png"
             imageElement.setAttribute("onerror", "this.onerror=null; this.src='{{ asset('dist/img/person.png') }}'");
@@ -820,6 +779,7 @@
 
         // Update Element
         function updateRow(data, index) {
+            console.log("elementChief", "chief-"+index, document.getElementById("chief-"+index));
             if (document.getElementById("chief-"+index)) {
                 // Chief
                 let chiefElement = document.getElementById("chief-"+index);
@@ -869,9 +829,10 @@
 
                     updateSubRow(d, index, i);
                 })
-            } else {
-                appendRow(data, index);
             }
+            // else {
+            //     appendRow(data, index);
+            // }
         }
 
         async function updateSubRow(data, index, i) {

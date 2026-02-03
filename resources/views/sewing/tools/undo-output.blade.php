@@ -92,10 +92,11 @@
             processing: true,
             serverSide: true,
             ajax: {
+                method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '{{ route('get-output') }}',
+                url: '{{ route('get-output-post') }}',
                 dataType: 'json',
                 dataSrc: 'data',
                 scrollY: '400px',
