@@ -67,6 +67,7 @@
                             <th>Tujuan Awal</th>
                             <th>Lokasi Awal</th>
                             <th>Lokasi Rak</th>
+                            <th>Urutan</th>
                             <th>Range</th>
                             <th>Qty Awal</th>
                             <th>Qty Reject</th>
@@ -79,12 +80,14 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="14"></th>
+                            <th colspan='15'></th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_awal'> </th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_reject'> </th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_replace'> </th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_in'> </th>
-                            <th colspan="3"></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -677,48 +680,43 @@
                 };
 
                 // computing column Total of the complete result
-                var sumTotal = api
-                    .column(14)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
+                $.ajax({
+                    type: "get",
+                    url: "{{ route('total-stocker-in') }}",
+                    data: {
+                        dateFrom : $('#tgl-awal').val(),
+                        dateTo : $('#tgl-akhir').val(),
+                        sec_filter_tipe : $('#sec_filter_tipe').val(),
+                        sec_filter_buyer : $('#sec_filter_buyer').val(),
+                        sec_filter_ws : $('#sec_filter_ws').val(),
+                        sec_filter_style : $('#sec_filter_style').val(),
+                        sec_filter_color : $('#sec_filter_color').val(),
+                        sec_filter_panel : $('#sec_filter_panel').val(),
+                        sec_filter_part : $('#sec_filter_part').val(),
+                        sec_filter_size : $('#sec_filter_size').val(),
+                        sec_filter_no_cut : $('#sec_filter_no_cut').val(),
+                        sec_filter_tujuan : $('#sec_filter_tujuan').val(),
+                        sec_filter_lokasi : $('#sec_filter_lokasi').val(),
+                        sec_filter_lokasi_rak : $('#sec_filter_lokasi_rak').val(),
+                        size_filter : $('#size_filter').val(),
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        console.log(response);
 
-                var sumTotalAwal = api
-                    .column(15)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalReject = api
-                    .column(16)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalReplace = api
-                    .column(17)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalIn = api
-                    .column(18)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                // Update footer by showing the total with the reference of the column index
-                $(api.column(0).footer()).html('Total');
-                $(api.column(14).footer()).html(sumTotal);
-                $(api.column(15).footer()).html(sumTotalAwal);
-                $(api.column(16).footer()).html(sumTotalReject);
-                $(api.column(17).footer()).html(sumTotalReplace);
-                $(api.column(18).footer()).html(sumTotalIn);
+                        if (response) {
+                            // Update footer by showing the total with the reference of the column index
+                            $(api.column(0).footer()).html('Total');
+                            $(api.column(15).footer()).html(response.total_qty_awal);
+                            $(api.column(16).footer()).html(response.total_qty_reject);
+                            $(api.column(17).footer()).html(response.total_qty_replace);
+                            $(api.column(18).footer()).html(response.total_qty_in);
+                        }
+                    },
+                    error: function (jqXHR) {
+                        console.error(jqXHR);
+                    }
+                });
 
                 $('#size_filter').select2({
                     theme: 'bootstrap4',
@@ -797,6 +795,9 @@
                 },
                 {
                     data: 'lokasi_rak',
+                },
+                {
+                    data: 'urutan',
                 },
                 {
                     data: 'stocker_range',

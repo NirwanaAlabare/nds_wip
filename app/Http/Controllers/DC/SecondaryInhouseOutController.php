@@ -109,6 +109,7 @@ class SecondaryInhouseOutController extends Controller
                     COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
                     COALESCE(msb.size, s.size) AS size,
                     a.user,
+                    (CASE WHEN a.urutan > 0 THEN a.urutan ELSE '-' END) urutan,
                     CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
                     CONCAT(
                         s.range_awal, ' - ', s.range_akhir,
@@ -1225,6 +1226,7 @@ class SecondaryInhouseOutController extends Controller
                 COALESCE(mx.qty_reject, a.qty_reject) qty_reject,
                 COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
                 COALESCE(a.qty_in) qty_in,
+                (CASE WHEN a.urutan > 0 THEN a.urutan ELSE '-' END) urutan,
                 a.created_at,
                 COALESCE(mx.tujuan, dc.tujuan) as tujuan,
                 COALESCE(mx.proses, dc.lokasi) lokasi,
@@ -1305,14 +1307,15 @@ class SecondaryInhouseOutController extends Controller
         $sheet->writeTo('I2', "No. Cut")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('J2', "Tujuan Asal")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('K2', "Lokasi Asal")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('L2', "Range")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('M2', "Qty Awal")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('N2', "Qty Reject")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('O2', "Qty Replace")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('P2', "Qty In")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('Q2', "Buyer")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('R2', "User")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('S2', "Created At")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('L2', "Urutan")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('M2', "Range")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('N2', "Qty Awal")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('O2', "Qty Reject")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('P2', "Qty Replace")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Q2', "Qty In")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('R2', "Buyer")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('S2', "User")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('T2', "Created At")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         // Write rows and totals into the Excel sheet
         $sheet->writeAreas();
@@ -1335,6 +1338,7 @@ class SecondaryInhouseOutController extends Controller
                 $row->no_cut ?? '-',
                 $row->tujuan ?? '-',
                 $row->lokasi ?? '-',
+                $row->urutan ?? '-',
                 $row->stocker_range ?? '-',
                 (int) ($row->qty_awal ?? 0),
                 (int) ($row->qty_reject ?? 0),
@@ -1354,7 +1358,7 @@ class SecondaryInhouseOutController extends Controller
         }
 
         // Totals row (col A-L blank, M-P totals, Q-S blank)
-        $totalsRow = array_merge(array_fill(0, 12, ''), [
+        $totalsRow = array_merge(array_fill(0, 13, ''), [
             $totalQtyAwal,
             $totalQtyReject,
             $totalQtyReplace,
