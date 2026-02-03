@@ -70,7 +70,7 @@ class ExportLaporanPenerimaanFGStokBPB implements FromView, WithEvents, ShouldAu
         a.created_by,
         created_at
         from fg_stok_bpb a
-        inner join master_sb_ws m on a.id_so_det = m.id_so_det
+        left join master_sb_ws m on a.id_so_det = m.id_so_det
         where tgl_terima >= '$this->from' and tgl_terima <= '$this->to'
         order by tgl_terima desc,substr(no_trans,13) desc
         ");
