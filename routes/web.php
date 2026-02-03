@@ -1364,8 +1364,8 @@ Route::middleware('auth')->group(function () {
     // Report Mutasi Output
     Route::controller(ReportMutasiOutputController::class)->prefix("report-mut-output")->middleware('role:sewing')->group(function () {
         Route::get('/', 'index')->name('report_mut_output');
-        Route::post('/show_mut_output', 'show_mut_output')->name('show_mut_output');
-        Route::post('/export_excel_mut_output', 'export_excel_mut_output')->name('export_excel_mut_output');
+        Route::get('/show_mut_output', 'show_mut_output')->name('show_mut_output');
+        Route::get('/export_excel_mut_output', 'export_excel_mut_output')->name('export_excel_mut_output');
     });
 
     Route::controller(ReportDetailOutputController::class)->prefix('report-detail-output')->middleware('role:sewing')->group(function () {
