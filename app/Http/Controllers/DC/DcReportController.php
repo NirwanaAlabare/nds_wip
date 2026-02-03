@@ -13,68 +13,35 @@ class DcReportController extends Controller
 {
     public function index(Request $request){
 
-         if ($request->ajax()) {
-        //     $detailDateFilter = "";
-        //     if ($request->dateFrom || $request->dateTo) {
-        //         $detailDateFilter = "WHERE ";
-        //         $dateFromFilter = " loading_line_plan.tanggal >= '".$request->dateFrom."' ";
-        //         $dateToFilter = " loading_line_plan.tanggal <= '".$request->dateTo."' ";
+        if ($request->ajax()) {
 
-        //         if ($request->dateFrom && $request->dateTo) {
-        //             $detailDateFilter .= $dateFromFilter." AND ".$dateToFilter;
-        //         } else {
-        //             if ($request->dateTo) {
-        //                 $detailDateFilter .= $dateFromFilter;
-        //             }
-
-        //             if ($request->dateFrom) {
-        //                 $detailDateFilter .= $dateToFilter;
-        //             }
-        //         }
-        //     }
-
-        //     $dateFilter = "";
-        //     if ($request->dateFrom || $request->dateTo) {
-        //         $dateFilter = "WHERE ";
-        //         $dateFromFilter = " loading_line_plan.tanggal >= '".$request->dateFrom."' ";
-        //         $dateToFilter = " loading_line_plan.tanggal <= '".$request->dateTo."' ";
-
-        //         if ($request->dateFrom && $request->dateTo) {
-        //             $dateFilter .= $dateFromFilter." AND ".$dateToFilter;
-        //         } else {
-        //             if ($request->dateTo) {
-        //                 $dateFilter .= $dateFromFilter;
-        //             }
-
-        //             if ($request->dateFrom) {
-        //                 $dateFilter .= $dateToFilter;
-        //             }
-        //         }
-        //     }
-
-            $dateForm = $request->dateFrom ? $request->dateFrom : null;
-            $dateTo = $request->dateTo ? $request->dateTo : null;
+            $dateForm = $request->dateFrom ? $request->dateFrom : date("Y-m-d");
+            $dateTo = $request->dateTo ? $request->dateTo : date("Y-m-d");
 
             $dataReport = DB::select("SELECT
                                 GROUP_CONCAT( id_qr_stocker ) as stockers,
                                 buyer,
                                 act_costing_ws,
                                 color,
+                                size,
+                                style,
                                 so_det_id,
                                 panel,
                                 panel_status,
-                                GROUP_CONCAT( nama_part ) as nama_part,
+                                nama_part,
                                 GROUP_CONCAT( part_status ) as part_status,
+                                CONCAT_WS(' ', act_costing_ws, color, size) AS ws_color_size,
+                                CONCAT_WS(' ', act_costing_ws, color, nama_part) AS ws_color_part,
                             CASE
-                                    
+
                                     WHEN panel_status = 'main' THEN
-                                    COALESCE ( qty_in_main, qty_in ) ELSE MIN( qty_in ) 
+                                    COALESCE ( qty_in_main, qty_in ) ELSE MIN( qty_in )
                                 END as qty_in,
                                 kirim_secondary_dalam,
                                 terima_repaired_secondary_dalam,
                                 terima_good_secondary_dalam,
                                 terima_repaired_secondary_dalam,
-                                terima_good_secondary_dalam 
+                                terima_good_secondary_dalam
                             FROM
                                 (
                                 SELECT
@@ -108,7 +75,7 @@ class DcReportController extends Controller
                                     COALESCE ( msb.size, s.size ) size,
                                     mp.nama_part,
                                     pd.id as part_detail_id,
-                                    pd.part_status 
+                                    pd.part_status
                                 from
                                     dc_in_input a
                                     left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -133,26 +100,24 @@ class DcReportController extends Controller
                                         MAX( qty_awal ) - SUM( qty_reject ) + SUM( qty_replace )) as qty_akhir,
                                         MAX( secondary_in_input.urutan ) AS max_urutan,
                                         GROUP_CONCAT( master_secondary.tujuan SEPARATOR ' | ' ) as tujuan,
-                                        GROUP_CONCAT( master_secondary.proses SEPARATOR ' | ' ) as proses 
+                                        GROUP_CONCAT( master_secondary.proses SEPARATOR ' | ' ) as proses
                                     FROM
                                         secondary_in_input
                                         LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_in_input.id_qr_stocker
-                                        LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id 
+                                        LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id
                                         and part_detail_secondary.urutan = secondary_in_input.urutan
-                                        LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id 
+                                        LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
                                     where
                                         secondary_in_input.tgl_trans between '".$dateForm."' AND '".$dateTo."'
-                                        AND '' 
                                     GROUP BY
-                                        id_qr_stocker 
+                                        id_qr_stocker
                                     having
-                                        MAX( secondary_in_input.urutan ) is not null 
-                                    ) mx ON a.id_qr_stocker = mx.id_qr_stocker 
+                                        MAX( secondary_in_input.urutan ) is not null
+                                    ) mx ON a.id_qr_stocker = mx.id_qr_stocker
                                 where
                                     a.tgl_trans between '".$dateForm."' AND '".$dateTo."'
-                                    AND '' 
-                                    AND s.id is not null 
-                                    AND ( s.cancel IS NULL OR s.cancel != 'y' ) 
+                                    AND s.id is not null
+                                    AND ( s.cancel IS NULL OR s.cancel != 'y' )
                                     and pd.part_status = 'main' UNION ALL
                                 SELECT
                                     UPPER( a.id_qr_stocker ) id_qr_stocker,
@@ -161,29 +126,29 @@ class DcReportController extends Controller
                                     s.act_costing_ws,
                                     s.color,
                                 CASE
-                                        
+
                                         WHEN pd.part_status = 'complement' THEN
-                                        pcom.buyer ELSE p.buyer 
+                                        pcom.buyer ELSE p.buyer
                                     END as buyer,
                                 CASE
-                                        
+
                                         WHEN pd.part_status = 'complement' THEN
-                                        pcom.style ELSE p.style 
+                                        pcom.style ELSE p.style
                                     END as style,
                                 CASE
-                                        
+
                                         WHEN pd.part_status = 'complement' THEN
-                                        pcom.panel ELSE p.panel 
+                                        pcom.panel ELSE p.panel
                                     END as panel,
                                 CASE
-                                        
+
                                         WHEN pd.part_status = 'complement' THEN
-                                        pcom.id ELSE p.id 
+                                        pcom.id ELSE p.id
                                     END as part_id,
                                 CASE
-                                        
+
                                         WHEN pd.part_status = 'complement' THEN
-                                        pcom.panel_status ELSE p.panel_status 
+                                        pcom.panel_status ELSE p.panel_status
                                     END as panel_status,
                                     s.so_det_id,
                                     s.ratio,
@@ -205,7 +170,7 @@ class DcReportController extends Controller
                                     COALESCE ( msb.size, s.size ) size,
                                     mp.nama_part,
                                     pd.id as part_detail_id,
-                                    pd.part_status 
+                                    pd.part_status
                                 from
                                     dc_in_input a
                                     left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -230,19 +195,19 @@ class DcReportController extends Controller
                                         MAX( qty_awal ) - SUM( qty_reject ) + SUM( qty_replace )) as qty_akhir,
                                         MAX( secondary_inhouse_input.urutan ) AS max_urutan,
                                         GROUP_CONCAT( master_secondary.tujuan SEPARATOR ' | ' ) as tujuan,
-                                        GROUP_CONCAT( master_secondary.proses SEPARATOR ' | ' ) as proses 
+                                        GROUP_CONCAT( master_secondary.proses SEPARATOR ' | ' ) as proses
                                     FROM
                                         secondary_inhouse_input
                                         LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_inhouse_input.id_qr_stocker
-                                        LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id 
+                                        LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id
                                         and part_detail_secondary.urutan = secondary_inhouse_input.urutan
-                                        LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id 
+                                        LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
                                     where
                                         secondary_inhouse_input.tgl_trans between '".$dateForm."' AND '".$dateTo."'
                                     GROUP BY
-                                        id_qr_stocker 
+                                        id_qr_stocker
                                     having
-                                        MAX( secondary_inhouse_input.urutan ) is not null 
+                                        MAX( secondary_inhouse_input.urutan ) is not null
                                     ) mx ON a.id_qr_stocker = mx.id_qr_stocker
                                     left join wip_out_det wod on wod.id_qr_stocker = a.id_qr_stocker
                                     LEFT JOIN secondary_in_input si on si.id_qr_stocker = a.id_qr_stocker
@@ -256,26 +221,26 @@ class DcReportController extends Controller
                                         MAX( qty_awal ) - SUM( qty_reject ) + SUM( qty_replace )) as qty_akhir,
                                         MAX( secondary_in_input.urutan ) AS max_urutan,
                                         GROUP_CONCAT( master_secondary.tujuan SEPARATOR ' | ' ) as tujuan,
-                                        GROUP_CONCAT( master_secondary.proses SEPARATOR ' | ' ) as proses 
+                                        GROUP_CONCAT( master_secondary.proses SEPARATOR ' | ' ) as proses
                                     FROM
                                         secondary_in_input
                                         LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_in_input.id_qr_stocker
-                                        LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id 
+                                        LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id
                                         and part_detail_secondary.urutan = secondary_in_input.urutan
-                                        LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id 
+                                        LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
                                     where
                                         secondary_in_input.tgl_trans between '".$dateForm."' AND '".$dateTo."'
-                                        
+
                                     GROUP BY
-                                        id_qr_stocker 
+                                        id_qr_stocker
                                     having
-                                        MAX( secondary_in_input.urutan ) is not null 
-                                    ) mxin ON a.id_qr_stocker = mxin.id_qr_stocker 
+                                        MAX( secondary_in_input.urutan ) is not null
+                                    ) mxin ON a.id_qr_stocker = mxin.id_qr_stocker
                                 where
-                                    a.tgl_trans between '".$dateForm."' AND '".$dateTo."' 
-                                    AND s.id is not null 
-                                    AND ( s.cancel IS NULL OR s.cancel != 'y' ) 
-                                    and ( pd.part_status != 'main' OR pd.part_status IS NULL ) 
+                                    a.tgl_trans between '".$dateForm."' AND '".$dateTo."'
+                                    AND s.id is not null
+                                    AND ( s.cancel IS NULL OR s.cancel != 'y' )
+                                    and ( pd.part_status != 'main' OR pd.part_status IS NULL )
                                 ) dc
                             group by
                                 dc.so_det_id,
@@ -296,7 +261,6 @@ class DcReportController extends Controller
         $from = $request->from ? $request->from : date("Y-m-d");
         $to = $request->to ? $request->to : date("Y-m-d");
 
-        // return Excel::download(new ExportReportDc($from, $to, $request->lineFilter, $request->wsFilter, $request->styleFilter, $request->colorFilter, $request->targetSewingFilter, $request->targetLoadingFilter, $request->trolleyFilter, $request->trolleyColorFilter), 'Laporan DC '.$from.' - '.$to.'.xlsx');
         return Excel::download(
                                 new ExportReportDc(
                                     $from,

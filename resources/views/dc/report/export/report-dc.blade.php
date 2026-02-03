@@ -1,50 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<table>
+<table border="1">
     <tr>
-        <th style="font-weight: 800;">No WsColorSize</th>
-        <th style="font-weight: 800;">No WsColorPart</th>
-        <th style="font-weight: 800;">No. WS</th>
-        <th style="font-weight: 800;">Buyer</th>
-        <th style="font-weight: 800;">Style</th>
-        <th style="font-weight: 800;">Color</th>
-        <th style="font-weight: 800;">Size</th>
-        <th style="font-weight: 800;">Part</th>
-        <th style="font-weight: 800;">Saldo Awal</th>
-        <th style="font-weight: 800;">Masuk</th>
-        <th style="font-weight: 800;">Kirim Sec Dalam</th>
-        <th style="font-weight: 800;">Terima Repaired Sec Dalam</th>
-        <th style="font-weight: 800;">Terima Good Sec Dalam</th>
-        <th style="font-weight: 800;">Kirim Sec Luar</th>
-        <th style="font-weight: 800;">Terima Repaired Sec Luar</th>
-        <th style="font-weight: 800;">Terima Good Sec Luar</th>
-        <th style="font-weight: 800;">Loading</th>
-        <th style="font-weight: 800;">Saldo Akhir</th>
+        <th colspan="18" style="text-align:left; font-size:16px; font-weight:bold;">
+            DC REPORT
+        </th>
     </tr>
-    @foreach ($dataReport as $data )
+    <tr>
+        <th colspan="18" style="text-align:left;">
+            Periode : {{ $from }} s/d {{ $to }}
+        </th>
+    </tr>
+    <tr>
+        <th colspan="18"></th>
+    </tr>
+    <tr>
+        <th>No WsColorSize</th>
+        <th>No WsColorPart</th>
+        <th>No. WS</th>
+        <th>Buyer</th>
+        <th>Style</th>
+        <th>Color</th>
+        <th>Size</th>
+        <th>Part</th>
+        <th>Saldo Awal</th>
+        <th>Masuk</th>
+        <th>Kirim Sec Dalam</th>
+        <th>Terima Repaired Sec Dalam</th>
+        <th>Terima Good Sec Dalam</th>
+        <th>Kirim Sec Luar</th>
+        <th>Terima Repaired Sec Luar</th>
+        <th>Terima Good Sec Luar</th>
+        <th>Loading</th>
+        <th>Saldo Akhir</th>
+    </tr>
+
+    @foreach ($dataReport as $data)
         <tr>
-            <td>{{ $data->color }} </td>
-            <td>{{ $data->color }} </td>
-            <td>{{ $data->color }} </td>
-            <td>{{ $data->color }} </td>
-            <td>{{ $data->color }} </td>
-            <td>{{ $data->color }} </td>
-            <td>{{ $data->color }} </td>
-            <td>{{ $data->color }} </td>
-            <td>{{ $data->color }} </td>
-            <td>{{ $data->color }} </td>
-            <td>{{ $data->color }} </td>
-            <td>{{ $data->color }} </td>
-            <td>{{ $data->color }} </td>
-            <td>{{ $data->color }} </td>
-            <td>{{ $data->color }} </td>
-            <td>{{ $data->color }} </td>
-            <td>{{ $data->color }} </td>
-            <td>{{ $data->color }} </td>
-           
+            <td> {{ $data->ws_color_size }}</td>
+            <td> {{ $data->ws_color_part }}</td>
+            <td>{{ $data->act_costing_ws }}</td>
+            <td>{{ $data->buyer }}</td>
+            <td>{{ $data->style }}</td>
+            <td>{{ $data->color }}</td>
+            <td>{{ $data->size }}</td>
+            <td>{{ $data->nama_part }}</td>
+            <td></td>
+            <td>{{ $data->qty_in }}</td>
+            <td>{{ $data->kirim_secondary_dalam }}</td>
+            <td>{{ $data->terima_repaired_secondary_dalam }}</td>
+            <td>{{ $data->terima_good_secondary_dalam }}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
         </tr>
-    @endforeach
+        @endforeach
+
 </table>
 
 </html>

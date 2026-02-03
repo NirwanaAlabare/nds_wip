@@ -550,7 +550,10 @@
                     @role('dc')
                         <li class="nav-item">
                             <a href="{{ route('dc-report') }}"
-                                class="nav-link {{ $routeName == 'dc-report' ? 'active' : '' }}" target="_blank">
+                                class="nav-link {{ $routeName == 'dc-report' ? 'active' : '' }}"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="bottom"
+                                title="DC Report">
                                 <i class="fa-solid fa-file"></i>
                             </a>
                         </li>

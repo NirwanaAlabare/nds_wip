@@ -27,20 +27,20 @@
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
                         <label class="form-label"><small>Tanggal Awal</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}" onchange="datatableLoadingLineReload()">
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}" onchange="datatableReportDC()">
                     </div>
                     <div>
                         <label class="form-label"><small>Tanggal Akhir</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatableLoadingLineReload()">
+                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatableReportDC()">
                     </div>
                     <div>
-                        <button class="btn btn-primary btn-sm" onclick="datatableLoadingLineReload()"><i class="fa fa-search"></i></button>
+                        <button class="btn btn-primary btn-sm" onclick="datatableReportDC()"><i class="fa fa-search"></i></button>
                     </div>
                 </div>
                 <button class="btn btn-sm btn-success mb-3" onclick="exportExcel()"><i class="fa fa-file-excel"></i> Export</button>
             </div>
             <div class="table-responsive">
-                <table id="datatable-loading-line" class="table table-bordered table w-100">
+                <table id="datatable-dc-report" class="table table-bordered table w-100">
                     <thead>
                         <tr>
                             <th>No WsColorSize</th>
@@ -93,12 +93,12 @@
             $("#tgl-awal").val(todayFull).trigger("change");
 
             window.addEventListener("focus", () => {
-                // $('#datatable-loading-line').DataTable().ajax.reload(null, false);
+                // $('#datatable-dc-report').DataTable().ajax.reload(null, false);
             });
         });
 
 
-        let datatableLoadingLine = $("#datatable-loading-line").DataTable({
+        let datatableDcReport = $("#datatable-dc-report").DataTable({
             ordering: false,
             processing: true,
             serverSide: true,
@@ -111,169 +111,59 @@
                 }
             },
             columns: [
-                {
-                    data: 'color',
-                },
-                {
-                    data: 'color',
-                },
-                {
-                    data: 'color',
-                },
-                {
-                    data: 'buyer',
-                },
-                {
-                    data: 'style',
-                },
-                {
-                    data: 'color',
-                },
-                {
-                    data: 'size',
-                },
-                {
-                    data: 'nama_part',
-                },
-                {
-                    data: 'color',
-                },
-                {
-                    data: 'qty_in',
-                },
-                {
-                    data: 'kirim_secondary_dalam',
-                },
-                {
-                    data: 'terima_repaired_secondary_dalam',
-                },
-                {
-                    data: 'terima_good_secondary_dalam',
-                },
-                {
-                    data: 'color',
-                },
-                {
-                    data: 'color',
-                },
-                {
-                    data: 'color',
-                },
-                {
-                    data: 'color',
-                },
-                 {
-                    data: 'color',
-                },
+                { data: 'ws_color_size' },
+                { data: 'ws_color_part' },
+                { data: 'act_costing_ws' },
+                { data: 'buyer' },
+                { data: 'style'},
+                { data: 'color'},
+                { data: 'size'},
+                { data: 'nama_part' },
+                { data: 'color', render: () => "" },
+
+                { data: 'qty_in' },
+                { data: 'kirim_secondary_dalam' },
+                { data: 'terima_repaired_secondary_dalam' },
+                { data: 'terima_good_secondary_dalam' },
+
+                { data: 'color', render: () => "" },
+                { data: 'color', render: () => "" },
+                { data: 'color', render: () => "" },
+                { data: 'color', render: () => "" },
+                { data: 'color', render: () => "" },
             ],
+
             columnDefs: [
                 {
                     targets: "_all",
                     className: 'align-middle text-nowrap'
                 },
-                // {
-                //     targets: [1],
-                //     render: (data, type, row, meta) => {
-                //         console.log(row['id']);
-                //         return `
-                //             <div class='d-flex flex-column gap-1 justify-content-center align-items-center'>
-                //                 <a href='{{ route('detail-loading-plan') }}/` + row['id'] + `/` + $("#tgl-awal").val() + `/` + $("#tgl-akhir").val() + `' class='btn btn-sb btn-sm' target='_blank'>
-                //                     <i class='fa fa-search'></i>
-                //                 </a>
-                //                 <a href='{{ route('edit-loading-plan') }}/` + row['id'] + `' class='btn btn-sb-secondary btn-sm'>
-                //                     <i class='fa fa-edit'></i>
-                //                 </a>
-                //             </div>
-                //         `;
-                //     }
-                // },
-                // {
-                //     targets: [5,6,7,10],
-                //     render: (data, type, row, meta) => {
-                //         return Number(data).toLocaleString('id-ID')
-                //     }
-                // },
-                // {
-                //     targets: [8],
-                //     render: (data, type, row, meta) => {
-                //         return "<span class='"+(Number(data) >= 0 ? "text-success" : "text-danger")+" fw-bold'>"+Number(data).toLocaleString('id-ID')+"</span";
-                //     }
-                // }
             ],
-            // rowsGroup: [
-            //     // Always the array (!) of the column-selectors in specified order to which rows groupping is applied
-            //     // (column-selector could be any of specified in https://datatables.net/reference/type/column-selector)
-            //     0,
-            //     1,
-            //     2,
-            //     3,
-            //     4,
-            //     5,
-            //     6
-            // ],
-            // footerCallback: async function(row, data, start, end, display) {
-            //     var api = this.api(),data;
 
-            //     $(api.column(0).footer()).html('Total');
-            //     $(api.column(5).footer()).html("...");
-            //     $(api.column(6).footer()).html("...");
-            //     $(api.column(7).footer()).html("...");
-            //     $(api.column(8).footer()).html("...");
-
-            //     $.ajax({
-            //         url: '{{ route('total-loading-line') }}',
-            //         dataType: 'json',
-            //         dataSrc: 'data',
-            //         data: {
-            //             'dateFrom': $('#tgl-awal').val(),
-            //             'dateTo': $('#tgl-akhir').val(),
-            //             'lineFilter': $('#lineFilter').val(),
-            //             'wsFilter': $('#wsFilter').val(),
-            //             'styleFilter': $('#styleFilter').val(),
-            //             'colorFilter': $('#colorFilter').val(),
-            //             'trolleyFilter': $('#trolleyFilter').val(),
-            //             'trolleyColorFilter': $('#trolleyColorFilter').val(),
-            //         },
-            //         success: function(response) {
-            //             console.log(response);
-            //             if (response) {
-            //                 // Update footer by showing the total with the reference of the column index
-            //                 $(api.column(0).footer()).html('Total');
-            //                 $(api.column(5).footer()).html((Number(response['total_target_sewing'])).toLocaleString("ID-id"));
-            //                 $(api.column(6).footer()).html((Number(response['total_target_loading'])).toLocaleString("ID-id"));
-            //                 $(api.column(7).footer()).html((Number(response['total_loading'])).toLocaleString("ID-id"));
-            //                 $(api.column(8).footer()).html("<span class='"+(Number(response['total_balance_loading']) >= 0 ? "text-success" : "text-danger")+" fw-bold'>"+(Number(response['total_balance_loading'])).toLocaleString("ID-id")+"</span>");
-            //             }
-            //         },
-            //         error: function(jqXHR) {
-            //             console.error(jqXHR);
-            //         },
-            //     })
-            // },
         });
 
-        function datatableLoadingLineReload() {
-            datatableLoadingLine.ajax.reload()
+        function datatableReportDC() {
+            datatableDcReport.ajax.reload()
         }
 
         var filters = ['noWsColorSizeFilter', 'noWsColorPartFilter', 'noWsFilter', 'buyerFilter', 'styleFilter', 'colorFilter', 'sizeFilter', 'partFilter', 'saldoAwalFilter', 'masukFilter', 'kirimSecDalamFilter', 'terimaRepairedSecDalamFilter', 'terimaGoodSecDalamFilter', 'kirimSecLuarFilter', 'terimaRepairedSecLuarFilter', 'terimaGoodSecLuarFilter', 'loadingFilter', 'saldoAkhirFilter'];
-        $('#datatable-loading-line thead tr').clone(true).appendTo('#datatable-loading-line thead');
-        $('#datatable-loading-line thead tr:eq(1) th').each(function(i) {
-            // if (i == 0 || i == 2 || i == 3 || i == 4 || i == 9 || i == 11) {
+        $('#datatable-dc-report thead tr').clone(true).appendTo('#datatable-dc-report thead');
+        $('#datatable-dc-report thead tr:eq(1) th').each(function(i) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" id="'+filters[i]+'"/>');
 
                 $('input', this).on('keyup change', function() {
-                    if (datatableLoadingLine.column(i).search() !== this.value) {
-                        datatableLoadingLine
+                    if (datatableDcReport.column(i).search() !== this.value) {
+                        datatableDcReport
                             .column(i)
                             .search(this.value)
                             .draw();
                     }
                 });
-            // } else {
-            //     $(this).empty();
-            // }
+            } else {
+                $(this).empty();
+            }
         });
 
         async function exportExcel() {
