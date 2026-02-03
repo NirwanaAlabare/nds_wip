@@ -547,6 +547,14 @@
                             </ul>
                         </li>
                     @endrole
+                    @role('dc')
+                        <li class="nav-item">
+                            <a href="{{ route('dc-report') }}"
+                                class="nav-link {{ $routeName == 'dc-report' ? 'active' : '' }}" target="_blank">
+                                <i class="fa-solid fa-file"></i>
+                            </a>
+                        </li>
+                    @endrole
                     @role('superadmin')
                         <li class="nav-item">
                             <a href="{{ route('dc-tools') }}"

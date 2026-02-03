@@ -73,6 +73,7 @@ use App\Http\Controllers\DC\LoadingLineController;
 use App\Http\Controllers\DC\LoadingOutController;
 use App\Http\Controllers\DC\BonLoadingController;
 use App\Http\Controllers\DC\DcToolsController;
+use App\Http\Controllers\DC\DcReportController;
 
 // Sewing
 use App\Http\Controllers\Sewing\MasterLineController;
@@ -1155,6 +1156,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/modify-dc-qty', 'modifyDcQty')->middleware('role:superadmin')->name('modify-dc-qty');
         Route::get('/get-dc-qty', 'getDcQty')->middleware('role:superadmin')->name('get-dc-qty');
         Route::post('/update-dc-qty', 'updateDcQty')->middleware('role:superadmin')->name('update-dc-qty');
+    });
+
+    // DC report
+    Route::controller(DcReportController::class)->prefix("dc-report")->middleware('role:dc')->group(function () {
+        Route::get('/', 'index')->name('dc-report');
+        Route::post('/export-report-dc', 'exportReportDc')->name('export-report-dc');
     });
 
     // Sewing :
