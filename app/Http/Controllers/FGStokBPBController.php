@@ -40,7 +40,7 @@ class FGStokBPBController extends Controller
             a.created_by,
             created_at
             from fg_stok_bpb a
-            inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            left join master_sb_ws m on a.id_so_det = m.id_so_det
             where tgl_terima >= '$tgl_awal' and tgl_terima <= '$tgl_akhir'
             order by substr(no_trans,13) desc
             ");
@@ -147,8 +147,14 @@ class FGStokBPBController extends Controller
         $data_grade = DB::select("select grade isi , grade tampil from fg_stok_master_grade");
 
         return view('fg-stock.create_bpb_fg_stock', [
-            'page' => 'dashboard-fg-stock', "subPageGroup" => "fgstock-bpb", "subPage" => "bpb-fg-stock",
-            "data_lok" => $data_lok, "data_buyer" => $data_buyer, "data_grade" => $data_grade, "data_terima" => $data_terima, "user" => $user
+            'page' => 'dashboard-fg-stock',
+            "subPageGroup" => "fgstock-bpb",
+            "subPage" => "bpb-fg-stock",
+            "data_lok" => $data_lok,
+            "data_buyer" => $data_buyer,
+            "data_grade" => $data_grade,
+            "data_terima" => $data_terima,
+            "user" => $user
         ]);
     }
 

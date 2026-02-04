@@ -1,6 +1,11 @@
 @extends('layouts.index')
 
 @section('custom-link')
+    {{-- <!-- DataTables -->
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}"> --}}
+
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/jquery.dataTables.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables 2.0/dataTables.bootstrap4.min.css') }}">
@@ -8,23 +13,10 @@
     <!-- jQuery -->
     <script src="{{ asset('plugins/datatables 2.0/jquery-3.3.1.js') }}"></script>
 
+
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
-
-    <style>
-        /* Custom styles for the table */
-        .table-bordered {
-            border: 1px solid black;
-            /* Change thickness of the outer border */
-        }
-
-        .table-bordered th,
-        .table-bordered td {
-            border: 1px solid black;
-            /* Change thickness of inner borders */
-        }
-    </style>
 @endsection
 
 @section('content')
@@ -49,13 +41,13 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Awal</b></small></label>
-                    <input type="date" class="form-control form-control-sm " id="tgl-awal" name="tgl_awal"
-                        min="2025-01-01" value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="start_date" name="start_date"
+                        min="2026-01-01" value="">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Akhir</b></small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" min="2025-01-01"
-                        name="tgl_akhir" value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="end_date" name="end_date"
+                        min="2026-01-01" value="">
                 </div>
                 <div class="mb-3">
                     <a onclick="dataTableReload();" class="btn btn-outline-primary btn-sm position-relative">
@@ -71,128 +63,107 @@
             </div>
 
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table table-hover w-100 text-nowrap">
+                <table id="datatable" class="table table-bordered w-100 ">
                     <thead>
                         <tr style='text-align:center; vertical-align:middle'>
                             <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
-                            <th colspan="12" style="background-color: lightgreen; text-align:center;">Sewing</th>
-                            <th colspan="5" style="background-color: lightsteelblue; text-align:center;">Steam</th>
-                            <th colspan="5" style="background-color: Lavender; text-align:center;">Defect Sewing</th>
-                            <th colspan="5" style="background-color: Lavender; text-align:center;">Defect Spotcleaning
+                            <th colspan="11" style="background-color: lightyellow; text-align:center;">Sewing</th>
+                            <th colspan="11" style="background-color: pink; text-align:center;">QC Finishing</th>
+                            <th colspan="7" style="background-color: lightsteelblue; text-align:center;">Secondary Proses
                             </th>
-                            <th colspan="5" style="background-color: Lavender; text-align:center;">Defect Mending</th>
+                            <th colspan="4" style="background-color: #FFE5B4; text-align:center;">Defect Sewing
                             </th>
-                            <th colspan="5" style="background-color:#FFE5B4; text-align:center;">Defect Packing</th>
-                            <th colspan="5" style="background-color:#FFE5B4; text-align:center;">Defect Packing
-                                Spotcleaning</th>
-                            <th colspan="5" style="background-color:#FFE5B4; text-align:center;">Defect Packing Mending
+                            <th colspan="4" style="background-color: Lavender; text-align:center;">Defect Spotcleaning
                             </th>
+                            <th colspan="4" style="background-color: lightyellow; text-align:center;">Defect Mending
+                            </th>
+                            <th colspan="5" style="background-color: pink; text-align:center;">QC Reject</th>
                         </tr>
-                        <tr style='text-align:center; vertical-align:middle'>
-                            <th style="background-color: lightblue;">WS</th>
-                            <th style="background-color: lightblue;">Buyer</th>
-                            <th style="background-color: lightblue;">Style</th>
-                            <th style="background-color: lightblue;">Color</th>
-                            <th style="background-color: lightblue;">Size</th>
-                            <th style="background-color: lightgreen;">Saldo Awal</th>
-                            <th style="background-color: lightgreen;">Terima Loading</th>
-                            <th style="background-color: lightgreen;">Output Rework Sewing</th>
-                            <th style="background-color: lightgreen;">Output Spot Cleaning</th>
-                            <th style="background-color: lightgreen;">Output Mending</th>
-                            <th style="background-color: lightgreen;">Defect Sewing</th>
-                            <th style="background-color: lightgreen;">Defect Spot Cleaning</th>
-                            <th style="background-color: lightgreen;">Defect Mending</th>
-                            <th style="background-color: lightgreen;">Reject</th>
-                            <th style="background-color: lightgreen;">Output</th>
-                            <th style="background-color: lightgreen;">Adj</th>
-                            <th style="background-color: lightgreen;">Saldo Akhir</th>
-                            <th style="background-color: lightsteelblue;">Saldo Awal</th>
-                            <th style="background-color: lightsteelblue;">Terima</th>
-                            <th style="background-color: lightsteelblue;">Keluar</th>
-                            <th style="background-color: lightsteelblue;">Adj</th>
-                            <th style="background-color: lightsteelblue;">Saldo Akhir</th>
-                            <th style="background-color: Lavender;">Saldo Awal</th>
-                            <th style="background-color: Lavender;">Terima</th>
-                            <th style="background-color: Lavender;">Keluar</th>
-                            <th style="background-color: Lavender;">Adj</th>
-                            <th style="background-color: Lavender;">Saldo Akhir</th>
-                            <th style="background-color: Lavender;">Saldo Awal</th>
-                            <th style="background-color: Lavender;">Terima</th>
-                            <th style="background-color: Lavender;">Keluar</th>
-                            <th style="background-color: Lavender;">Adj</th>
-                            <th style="background-color: Lavender;">Saldo Akhir</th>
-                            <th style="background-color: Lavender;">Saldo Awal</th>
-                            <th style="background-color: Lavender;">Terima</th>
-                            <th style="background-color: Lavender;">Keluar</th>
-                            <th style="background-color: Lavender;">Adj</th>
-                            <th style="background-color: Lavender;">Saldo Akhir</th>
-                            <th style="background-color: #FFE5B4;">Saldo Awal</th>
-                            <th style="background-color: #FFE5B4;">Terima</th>
-                            <th style="background-color: #FFE5B4;">Keluar</th>
-                            <th style="background-color: #FFE5B4;">Adj</th>
-                            <th style="background-color: #FFE5B4;">Saldo Akhir</th>
-                            <th style="background-color: #FFE5B4;">Saldo Awal</th>
-                            <th style="background-color: #FFE5B4;">Terima</th>
-                            <th style="background-color: #FFE5B4;">Keluar</th>
-                            <th style="background-color: #FFE5B4;">Adj</th>
-                            <th style="background-color: #FFE5B4;">Saldo Akhir</th>
-                            <th style="background-color: #FFE5B4;">Saldo Awal</th>
-                            <th style="background-color: #FFE5B4;">Terima</th>
-                            <th style="background-color: #FFE5B4;">Keluar</th>
-                            <th style="background-color: #FFE5B4;">Adj</th>
-                            <th style="background-color: #FFE5B4;">Saldo Akhir</th>
+                        <tr>
+                            <th class="text-center align-middle" style="background-color: lightblue;">Buyer</th>
+                            <th class="text-center align-middle" style="background-color: lightblue;">WS</th>
+                            <th class="text-center align-middle" style="background-color: lightblue;">Style</th>
+                            <th class="text-center align-middle" style="background-color: lightblue;">Color</th>
+                            <th class="text-center align-middle" style="background-color: lightblue;">Size</th>
+
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Saldo Awal</th>
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Terima Loading</th>
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Output Rework Sewing
+                            </th>
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Output Rework
+                                Spotcleaning</th>
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Output Rework
+                                Mending
+                            </th>
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Defect Sewing</th>
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Defect Spotcleaning
+                            </th>
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Defect Mending</th>
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Reject</th>
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Output</th>
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Saldo Akhir</th>
+
+
+                            <th class="text-center align-middle" style="background-color: pink;">Saldo Awal</th>
+                            <th class="text-center align-middle" style="background-color: pink;">Terima</th>
+                            <th class="text-center align-middle" style="background-color: pink;">Output Rework Sewing
+                            </th>
+                            <th class="text-center align-middle" style="background-color: pink;">Output Rework
+                                Spotcleaning</th>
+                            <th class="text-center align-middle" style="background-color: pink;">Output Rework
+                                Mending
+                            </th>
+                            <th class="text-center align-middle" style="background-color: pink;">Defect Sewing</th>
+                            <th class="text-center align-middle" style="background-color: pink;">Defect Spotcleaning
+                            </th>
+                            <th class="text-center align-middle" style="background-color: pink;">Defect Mending</th>
+                            <th class="text-center align-middle" style="background-color: pink;">Reject</th>
+                            <th class="text-center align-middle" style="background-color: pink;">Output</th>
+                            <th class="text-center align-middle" style="background-color: pink;">Saldo Akhir</th>
+
+                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Saldo Awal</th>
+                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Terima</th>
+                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Rework</th>
+                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Defect</th>
+                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Reject</th>
+                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Output</th>
+                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Saldo Akhir
+                            </th>
+
+                            <th class="text-center align-middle" style="background-color: #FFE5B4;">Saldo Awal</th>
+                            <th class="text-center align-middle" style="background-color: #FFE5B4;">Terima</th>
+                            <th class="text-center align-middle" style="background-color: #FFE5B4;">Keluar</th>
+                            <th class="text-center align-middle" style="background-color: #FFE5B4;">Saldo Akhir
+                            </th>
+
+                            <th class="text-center align-middle" style="background-color: lavender;">Saldo Awal</th>
+                            <th class="text-center align-middle" style="background-color: lavender;">Terima</th>
+                            <th class="text-center align-middle" style="background-color: lavender;">Keluar</th>
+                            <th class="text-center align-middle" style="background-color: lavender;">Saldo Akhir
+                            </th>
+
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Saldo Awal</th>
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Terima</th>
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Keluar</th>
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Saldo Akhir
+                            </th>
+
+                            <th class="text-center align-middle" style="background-color: pink;">Saldo Awal</th>
+                            <th class="text-center align-middle" style="background-color: pink;">Terima</th>
+                            <th class="text-center align-middle" style="background-color: pink;">Keluar Sewing</th>
+                            <th class="text-center align-middle" style="background-color: pink;">Keluar Gudang Stok
+                            </th>
+                            <th class="text-center align-middle" style="background-color: pink;">Saldo Akhir
+                            </th>
+
                         </tr>
                     </thead>
                     <tfoot>
-                        <tr style='text-align:center; vertical-align:middle'>
-                            <th colspan="5">Total </th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
+                        <tr>
+                            <th class="text-center" colspan="5">Total</th>
+                            @for ($i = 1; $i <= 46; $i++)
+                                <th></th>
+                            @endfor
                         </tr>
                     </tfoot>
                 </table>
@@ -230,47 +201,75 @@
     </script>
     <script>
         $(document).ready(function() {
-            // dataTableReload();
-            let datatable = new DataTable('#datatable');
-            datatable.clear().draw();
+            dataTableReload();
         })
 
         function dataTableReload() {
-            if ($.fn.DataTable.isDataTable('#datatable')) {
-                // Destroy the existing DataTable
-                $('#datatable').DataTable().destroy();
+            let start_date = $('#start_date').val();
+            let end_date = $('#end_date').val();
+            let buyer = $('#cbobuyer').val();
+
+            // Show loading Swal only if both fields are filled
+            if (start_date && end_date) {
+                Swal.fire({
+                    title: 'Loading...',
+                    text: 'Please wait while data is loading.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
             }
 
-            // Re-initialize the DataTable
-            let tglawal = $('#tgl-awal').val();
-            let tglakhir = $('#tgl-akhir').val();
-
-            datatable = $("#datatable").DataTable({
-                processing: true,
+            let table = $('#datatable').DataTable({
+                destroy: true,
+                ordering: false,
+                responsive: true,
                 serverSide: false,
-                scrollY: "450px",
+                paging: true,
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    [10, 25, 50, "All"]
+                ],
+                pageLength: 10,
+                searching: true,
+                scrollY: "500px",
                 scrollX: true,
                 scrollCollapse: true,
-                deferRender: true,
-                paging: true,
-                ordering: false,
+                language: {
+                    loadingRecords: "",
+                    processing: ""
+                },
+                processing: false, // keep processing true if you want to use processing events, just hide the text
+
                 fixedColumns: {
-                    leftColumns: 5 // Fix the first three columns
+                    leftColumns: 5
                 },
                 ajax: {
                     url: '{{ route('show_mut_output') }}',
-                    type: 'post',
-                    data: function(d) {
-                        d.dateFrom = tglawal;
-                        d.dateTo = tglakhir;
-                        d.cbobuyer = $("#cbobuyer").val();
+                    dataSrc: function(json) {
+                        // Close the Swal loading when data is received
+                        if (start_date && end_date) {
+                            Swal.close();
+                        }
+                        return json.data;
                     },
+                    data: function(d) {
+                        d.start_date = start_date;
+                        d.end_date = end_date;
+                        d.buyer = buyer;
+                    },
+                    error: function(xhr, status, error) {
+                        if (start_date && end_date) {
+                            Swal.fire('Error', 'Failed to load data.', 'error');
+                        }
+                    }
                 },
                 columns: [{
-                        data: 'ws'
+                        data: 'buyer'
                     },
                     {
-                        data: 'buyer'
+                        data: 'ws'
                     },
                     {
                         data: 'styleno'
@@ -281,8 +280,9 @@
                     {
                         data: 'size'
                     },
+
                     {
-                        data: 'saldo_awal_sewing'
+                        data: 'saldo_awal_loading'
                     },
                     {
                         data: 'qty_loading'
@@ -297,426 +297,225 @@
                         data: 'input_rework_mending'
                     },
                     {
-                        data: 'defect_sewing_akhir'
+                        data: 'defect_sewing'
                     },
                     {
-                        data: 'defect_spotcleaning_akhir'
+                        data: 'defect_spotcleaning'
                     },
                     {
-                        data: 'defect_mending_akhir'
+                        data: 'defect_mending'
                     },
                     {
                         data: 'qty_sew_reject'
                     },
                     {
-                        data: 'qty_sew'
-                    },
-                    {
-                        data: 'qty_sew_adj'
+                        data: 'qty_sewing'
                     },
                     {
                         data: 'saldo_akhir_sewing'
                     },
+
+
                     {
-                        data: 'saldo_awal_steam'
+                        data: 'saldo_awal_finishing'
                     },
                     {
-                        data: 'in_steam'
+                        data: 'qty_sewing'
                     },
                     {
-                        data: 'out_steam'
+                        data: 'input_rework_sewing_f'
                     },
                     {
-                        data: 'adj_steam'
+                        data: 'input_rework_spotcleaning_f'
                     },
                     {
-                        data: 'saldo_akhir_steam'
+                        data: 'input_rework_mending_f'
                     },
                     {
-                        data: 'saldo_awal_def_sewing'
+                        data: 'defect_sewing_f'
                     },
                     {
-                        data: 'in_def_sewing'
+                        data: 'defect_spotcleaning_f'
                     },
                     {
-                        data: 'out_def_sewing'
+                        data: 'defect_mending_f'
                     },
                     {
-                        data: 'adj_def_sewing'
+                        data: 'qty_fin_reject'
                     },
                     {
-                        data: 'saldo_akhir_def_sewing'
+                        data: 'qty_finishing'
                     },
                     {
-                        data: 'saldo_awal_def_spotcleaning'
-                    },
-                    {
-                        data: 'in_def_spotcleaning'
-                    },
-                    {
-                        data: 'out_def_spotcleaning'
-                    },
-                    {
-                        data: 'adj_def_spotcleaning'
-                    },
-                    {
-                        data: 'saldo_akhir_def_spotcleaning'
-                    },
-                    {
-                        data: 'saldo_awal_def_mending'
-                    },
-                    {
-                        data: 'in_def_mending'
-                    },
-                    {
-                        data: 'out_def_mending'
-                    },
-                    {
-                        data: 'adj_def_mending'
-                    },
-                    {
-                        data: 'saldo_akhir_def_mending'
-                    },
-                    {
-                        data: 'saldo_awal_def_pck_sewing'
-                    },
-                    {
-                        data: 'in_def_pck_sewing'
-                    },
-                    {
-                        data: 'out_def_pck_sewing'
-                    },
-                    {
-                        data: 'adj_def_pck_sewing'
-                    },
-                    {
-                        data: 'saldo_akhir_def_pck_sewing'
-                    },
-                    {
-                        data: 'saldo_awal_def_pck_spotcleaning'
-                    },
-                    {
-                        data: 'in_def_pck_spotcleaning'
-                    },
-                    {
-                        data: 'out_def_pck_spotcleaning'
-                    },
-                    {
-                        data: 'adj_def_pck_spotcleaning'
-                    },
-                    {
-                        data: 'saldo_akhir_def_pck_spotcleaning'
-                    },
-                    {
-                        data: 'saldo_awal_def_pck_mending'
-                    },
-                    {
-                        data: 'in_def_pck_mending'
-                    },
-                    {
-                        data: 'out_def_pck_mending'
-                    },
-                    {
-                        data: 'adj_def_pck_mending'
-                    },
-                    {
-                        data: 'saldo_akhir_def_pck_mending'
+                        data: 'saldo_akhir_finishing'
                     },
 
+
+                    {
+                        data: 'saldo_awal_secondary_proses'
+                    },
+                    {
+                        data: 'total_in_sp'
+                    },
+                    {
+                        data: 'rework_sp'
+                    },
+                    {
+                        data: 'defect_sp'
+                    },
+                    {
+                        data: 'reject_sp'
+                    },
+                    {
+                        data: 'rft_sp'
+                    },
+                    {
+                        data: 'saldo_akhir_secondary_proses'
+                    },
+
+
+                    {
+                        data: 'saldo_awal_defect_sewing'
+                    },
+                    {
+                        data: 'total_defect_sewing'
+                    },
+                    {
+                        data: 'total_input_rework_sewing'
+                    },
+                    {
+                        data: 'saldo_akhir_defect_sewing'
+                    },
+
+
+                    {
+                        data: 'saldo_awal_defect_spotcleaning'
+                    },
+                    {
+                        data: 'total_defect_spotcleaning'
+                    },
+                    {
+                        data: 'total_input_rework_spotcleaning'
+                    },
+                    {
+                        data: 'saldo_akhir_defect_spotcleaning'
+                    },
+
+
+                    {
+                        data: 'saldo_awal_defect_mending'
+                    },
+                    {
+                        data: 'total_defect_mending'
+                    },
+                    {
+                        data: 'total_input_rework_mending'
+                    },
+                    {
+                        data: 'saldo_akhir_mending'
+                    },
+
+
+                    {
+                        data: 'saldo_awal_reject'
+                    },
+                    {
+                        data: 'qty_reject_in'
+                    },
+                    {
+                        data: 'qty_rejected'
+                    },
+                    {
+                        data: 'qty_reworked'
+                    },
+                    {
+                        data: 'saldo_akhir_qc_reject'
+                    },
                 ],
-                columnDefs: [{
-                    "className": "align-middle",
-                    "targets": "_all"
-                }],
                 footerCallback: function(row, data, start, end, display) {
                     let api = this.api();
-                    let totalColumns = api.columns().header().length; // Get the total number of columns
-                    // Loop through each column
-                    for (let i = 5; i < totalColumns; i++) {
-                        let columnData = api.column(i).data().toArray(); // Convert to array if not already
-                        // console.log(columnData); // Log the column data to inspect its structure
-                        // Check if the column data is numeric
-                        if (columnData.length > 0 && columnData.every(value => !isNaN(value))) {
-                            let total = columnData.reduce(function(a, b) {
-                                return parseFloat(a) + parseFloat(b);
+
+                    let intVal = function(i) {
+                        return typeof i === 'string' ?
+                            i.replace(/[^0-9-]+/g, '') * 1 :
+                            typeof i === 'number' ?
+                            i :
+                            0;
+                    };
+
+                    // mulai kolom ke-5
+                    for (let col = 5; col <= 50; col++) {
+                        let total = api
+                            .column(col, {
+                                search: 'applied'
+                            })
+                            .data()
+                            .reduce(function(a, b) {
+                                return intVal(a) + intVal(b);
                             }, 0);
-                            // Update the footer with the total for each column
-                            $(api.column(i).footer()).html(total);
-                        } else {
-                            // If not numeric, you can set the footer to an empty string or a specific message
-                            $(api.column(i).footer()).html('');
-                        }
+
+                        // TANPA format ribuan
+                        $(api.column(col).footer()).html(total);
                     }
-                },
+                }
+
+
             });
         }
 
         function export_excel() {
-            let dateFrom = $('#tgl-awal').val();
-            let dateTo = $('#tgl-akhir').val();
-            let cbobuyer = $("#cbobuyer").val();
-
-            const startTime = new Date().getTime();
-
+            let start_date = $('#start_date').val();
+            let end_date = $('#end_date').val();
+            let buyer = $('#cbobuyer').val();
             Swal.fire({
                 title: 'Please Wait...',
                 html: 'Exporting Data...',
                 didOpen: () => {
-                    Swal.showLoading();
+                    Swal.showLoading()
                 },
                 allowOutsideClick: false,
             });
 
             $.ajax({
-                type: "POST",
+                type: "get",
                 url: '{{ route('export_excel_mut_output') }}',
                 data: {
-                    dateFrom: dateFrom,
-                    dateTo: dateTo,
-                    cbobuyer: cbobuyer
+                    start_date: start_date,
+                    end_date: end_date,
+                    buyer: buyer
                 },
-                success: function(data) {
-                    const workbook = new ExcelJS.Workbook();
-                    const worksheet = workbook.addWorksheet("Mutasi Output Production ");
-
-                    const mainTitleRow = worksheet.addRow(["Laporan Mutasi Saldo WIP"]);
-                    worksheet.getCell(`A${mainTitleRow.number}`).alignment = {
-                        horizontal: 'center',
-                        vertical: 'middle'
-                    };
-                    worksheet.mergeCells(`A${mainTitleRow.number}:E${mainTitleRow.number}`);
-                    mainTitleRow.font = {
-                        bold: true,
-                        size: 14
-                    };
-
-                    const titleRow = worksheet.addRow([`Tgl Transaksi: ${dateFrom} - ${dateTo}`]);
-                    worksheet.getCell(`A${titleRow.number}`).alignment = {
-                        horizontal: 'center',
-                        vertical: 'middle'
-                    };
-                    titleRow.eachCell((cell) => {
-                        cell.border = null;
-                    });
-
-                    worksheet.addRow([]);
-
-                    const headerRow = worksheet.addRow([
-                        "Jenis Produk", "", "", "", "",
-                        "Sewing", "", "", "", "", "", "", "", "", "", "", "",
-                        "Steam", "", "", "", "",
-                        "Defect Sewing", "", "", "", "",
-                        "Defect Spotcleaning", "", "", "", "",
-                        "Defect Mending", "", "", "", "",
-                        "Defect Packing Sewing", "", "", "", "",
-                        "Defect Packing Spotcleaning", "", "", "", "",
-                        "Defect Packing Mending", "", "", "", "",
-                    ]);
-
-                    worksheet.mergeCells(`A${headerRow.number}:E${headerRow.number}`);
-                    worksheet.mergeCells(`F${headerRow.number}:Q${headerRow.number}`);
-                    worksheet.mergeCells(`R${headerRow.number}:V${headerRow.number}`);
-                    worksheet.mergeCells(`W${headerRow.number}:AA${headerRow.number}`);
-                    worksheet.mergeCells(`AB${headerRow.number}:AF${headerRow.number}`);
-                    worksheet.mergeCells(`AG${headerRow.number}:AK${headerRow.number}`);
-                    worksheet.mergeCells(`AL${headerRow.number}:AP${headerRow.number}`);
-                    worksheet.mergeCells(`AQ${headerRow.number}:AU${headerRow.number}`);
-                    worksheet.mergeCells(`AV${headerRow.number}:AZ${headerRow.number}`);
-
-                    worksheet.getCell(`A${headerRow.number}`).alignment = {
-                        horizontal: 'center',
-                        vertical: 'middle'
-                    };
-                    worksheet.getCell(`F${headerRow.number}`).alignment = {
-                        horizontal: 'center',
-                        vertical: 'middle'
-                    };
-                    worksheet.getCell(`Q${headerRow.number}`).alignment = {
-                        horizontal: 'center',
-                        vertical: 'middle'
-                    };
-                    worksheet.getCell(`U${headerRow.number}`).alignment = {
-                        horizontal: 'center',
-                        vertical: 'middle'
-                    };
-                    worksheet.getCell(`Y${headerRow.number}`).alignment = {
-                        horizontal: 'center',
-                        vertical: 'middle'
-                    };
-                    worksheet.getCell(`AC${headerRow.number}`).alignment = {
-                        horizontal: 'center',
-                        vertical: 'middle'
-                    };
-                    worksheet.getCell(`AG${headerRow.number}`).alignment = {
-                        horizontal: 'center',
-                        vertical: 'middle'
-                    };
-                    worksheet.getCell(`AL${headerRow.number}`).alignment = {
-                        horizontal: 'center',
-                        vertical: 'middle'
-                    };
-                    worksheet.getCell(`AQ${headerRow.number}`).alignment = {
-                        horizontal: 'center',
-                        vertical: 'middle'
-                    };
-                    worksheet.getCell(`AZ${headerRow.number}`).alignment = {
-                        horizontal: 'center',
-                        vertical: 'middle'
-                    };
-
-                    const headers = [
-                        "WS", "Buyer", "Style", "Color", "Size",
-                        "Saldo Awal", "Terima Dari Loading",
-                        "Rework Sewing", "Rework Spot Cleaning", "Rework Mending",
-                        "Defect Sewing", "Defect Spot Cleaning", "Defect Mending",
-                        "Reject", "Output", "Adj",
-                        "Saldo Akhir",
-                        "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
-                        "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
-                        "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
-                        "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
-                        "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
-                        "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
-                        "Saldo Awal", "Terima", "Keluar", "Adj", "Saldo Akhir",
-                    ];
-                    worksheet.addRow(headers);
-
-                    // Data rows
-                    data.forEach(function(row) {
-                        const values = [
-                            row.ws,
-                            row.buyer,
-                            row.styleno,
-                            row.color,
-                            row.size,
-                            Number(row.saldo_awal_sewing),
-                            Number(row.qty_loading),
-                            Number(row.input_rework_sewing),
-                            Number(row.input_rework_spotcleaning),
-                            Number(row.input_rework_mending),
-                            Number(row.defect_sewing_akhir),
-                            Number(row.defect_spotcleaning_akhir),
-                            Number(row.defect_mending_akhir),
-                            Number(row.qty_sew_reject),
-                            Number(row.qty_sew),
-                            Number(row.qty_sew_adj),
-                            Number(row.saldo_akhir_sewing),
-                            Number(row.saldo_awal_steam),
-                            Number(row.in_steam),
-                            Number(row.out_steam),
-                            Number(row.adj_steam),
-                            Number(row.saldo_akhir_steam),
-                            Number(row.saldo_awal_def_sewing),
-                            Number(row.in_def_sewing),
-                            Number(row.out_def_sewing),
-                            Number(row.adj_def_sewing),
-                            Number(row.saldo_akhir_def_sewing),
-                            Number(row.saldo_awal_def_spotcleaning),
-                            Number(row.in_def_spotcleaning),
-                            Number(row.out_def_spotcleaning),
-                            Number(row.adj_def_spotcleaning),
-                            Number(row.saldo_akhir_def_spotcleaning),
-                            Number(row.saldo_awal_def_mending),
-                            Number(row.in_def_mending),
-                            Number(row.out_def_mending),
-                            Number(row.adj_def_mending),
-                            Number(row.saldo_akhir_def_mending),
-                            Number(row.saldo_awal_def_pck_sewing),
-                            Number(row.in_def_pck_sewing),
-                            Number(row.out_def_pck_sewing),
-                            Number(row.adj_def_pck_sewing),
-                            Number(row.saldo_akhir_def_pck_sewing),
-                            Number(row.saldo_awal_def_pck_spotcleaning),
-                            Number(row.in_def_pck_spotcleaning),
-                            Number(row.out_def_pck_spotcleaning),
-                            Number(row.adj_def_pck_spotcleaning),
-                            Number(row.saldo_akhir_def_pck_spotcleaning),
-                            Number(row.saldo_awal_def_pck_mending),
-                            Number(row.in_def_pck_mending),
-                            Number(row.out_def_pck_mending),
-                            Number(row.adj_def_pck_mending),
-                            Number(row.saldo_akhir_def_pck_mending)
-
-                        ];
-
-                        const dataRow = worksheet.addRow(values);
-
-                        dataRow.eachCell({
-                            includeEmpty: true
-                        }, function(cell, colNumber) {
-                            if (colNumber >= 6 && colNumber <= 54) {
-                                // Only format numeric columns
-                                if (typeof cell.value === 'number' && !isNaN(cell.value)) {
-                                    cell.numFmt = '#,##0'; // thousand separator
-                                    cell.alignment = {
-                                        horizontal: 'right'
-                                    };
-
-                                    if (cell.value < 0) {
-                                        cell.font = {
-                                            color: {
-                                                argb: 'FFFF0000'
-                                            }
-                                        }; // Red for negative
-                                    }
-                                }
-                            }
-                        });
-                    });
-
-                    // Apply borders to all cells
-                    worksheet.eachRow({
-                        includeEmpty: true
-                    }, function(row) {
-                        row.eachCell({
-                            includeEmpty: true
-                        }, function(cell) {
-                            cell.border = {
-                                top: {
-                                    style: 'thin'
-                                },
-                                left: {
-                                    style: 'thin'
-                                },
-                                bottom: {
-                                    style: 'thin'
-                                },
-                                right: {
-                                    style: 'thin'
-                                }
-                            };
-                        });
-                    });
-
-
-
-                    workbook.xlsx.writeBuffer().then(function(buffer) {
-                        const blob = new Blob([buffer], {
-                            type: "application/octet-stream"
-                        });
-                        const link = document.createElement('a');
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = "Laporan Mutasi Output.xlsx";
-                        link.click();
-
-                        const endTime = new Date().getTime();
-                        const elapsedTime = Math.round((endTime - startTime) / 1000);
-
-                        Swal.close();
-                        Swal.fire({
-                            title: 'Success!',
-                            text: `Data has been successfully exported in ${elapsedTime} seconds.`,
-                            icon: 'success',
-                            confirmButtonText: 'Okay'
-                        });
-                    });
+                xhrFields: {
+                    responseType: 'blob'
                 },
-                error: function() {
+                success: function(response) {
+                    Swal.close();
                     Swal.fire({
-                        title: 'Error!',
-                        text: 'There was an error exporting the data.',
+                        title: 'Data Sudah Di Export!',
+                        icon: "success",
+                        showConfirmButton: true,
+                        allowOutsideClick: false
+                    });
+
+                    var blob = new Blob([response]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Laporan Mutasi Sewing " + start_date + " _ " + end_date + ".xlsx";
+                    link.click();
+                },
+                error: function(xhr, status, error) {
+                    Swal.close();
+                    Swal.fire({
+                        title: 'Gagal Mengekspor Data',
+                        text: 'Terjadi kesalahan saat mengekspor. Silakan coba lagi.',
                         icon: 'error',
-                        confirmButtonText: 'Okay'
+                        showConfirmButton: true,
+                        allowOutsideClick: false
+                    });
+
+                    console.error("Export failed:", {
+                        status: status,
+                        error: error,
+                        response: xhr.responseText
                     });
                 }
             });

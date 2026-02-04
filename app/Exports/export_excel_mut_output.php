@@ -1,42 +1,41 @@
 <?php
 
-namespace App\Http\Controllers\Sewing;
+namespace App\Exports;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use Illuminate\Contracts\View\View;
+use Maatwebsite\Excel\Concerns\Exportable;
+use Maatwebsite\Excel\Concerns\FromView;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use Yajra\DataTables\Facades\DataTables;
-use DB;
-use Illuminate\Support\Facades\Auth;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\export_excel_mut_output;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
 
-class ReportMutasiOutputController extends Controller
+class export_excel_mut_output implements FromView, ShouldAutoSize, WithEvents
 {
+    use Exportable;
+    protected $start_date, $end_date, $buyer, $rowCount;
 
-    public function index(Request $request)
+    public function __construct($start_date, $end_date, $buyer)
     {
-        $data_buyer = DB::connection('mysql_sb')->select("SELECT supplier isi, supplier tampil
-                            from laravel_nds.ppic_master_so a
-                            inner join signalbit_erp.so_det sd on a.id_so_det = sd.id
-                            inner join signalbit_erp.so on sd.id_so = so.id
-                            inner join signalbit_erp.act_costing  ac on so.id_cost = ac.id
-                            inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-                            group by supplier
-                            order by supplier asc
-                ");
-
-        return view('sewing.report.report_mutasi_output', ['page' => 'dashboard-sewing-eff', "subPageGroup" => "sewing-report", "subPage" => "report_mut_output", "containerFluid" => true, "data_buyer" => $data_buyer]);
+        $this->start_date = $start_date;
+        $this->end_date = $end_date;
+        $this->buyer = $buyer;
     }
 
-
-    public function show_mut_output(Request $request)
+    public function view(): View
     {
-        $start_date = $request->start_date;
-        $end_date = $request->end_date;
+
+        $start_date = $this->start_date;
+        $end_date = $this->end_date;
         $prev_date = date('Y-m-d', strtotime($start_date . ' -1 day'));
-        $buyer = $request->buyer;
+        $buyer = $this->buyer;
 
         if (!empty($buyer)) {
             $filter = "WHERE buyer = '$buyer'";
@@ -44,15 +43,7 @@ class ReportMutasiOutputController extends Controller
             $filter = '';
         }
 
-        if ($request->ajax()) {
-            // ✅ If bulan or tahun is missing, return no data
-            if ($start_date === null || $end_date === null) {
-                return response()->json(['data' => []]);
-            } else { {
-
-
-
-                    $rawData = DB::connection('mysql_sb')->select("WITH
+        $rawData = DB::connection('mysql_sb')->select("WITH
 saldo_loading as (
 				SELECT
                     id_so_det,
@@ -772,16 +763,54 @@ LEFT JOIN signalbit_erp.master_size_new msn on mb.size = msn.size
 $filter
 ORDER BY buyer asc, ws asc, color asc, urutan asc
 ");
-                }
-                return response()->json([
-                    'data' => $rawData // ✅ simplified response
-                ]);
-            }
-        }
+
+
+        $this->rowCount = count($rawData) + 1; // 1 for header
+
+        return view('sewing.report.excel.export_excel_mut_output', [
+
+            'rawData' => $rawData,
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+        ]);
     }
 
-    public function export_excel_mut_output(Request $request)
+    public function registerEvents(): array
     {
-        return Excel::download(new export_excel_mut_output($request->start_date, $request->end_date, $request->buyer), 'Laporan_Penerimaan FG_Stok.xlsx');
+        return [
+            AfterSheet::class => function (AfterSheet $event) {
+                $sheet = $event->sheet->getDelegate();
+
+                $highestRow    = $sheet->getHighestRow();
+                $highestColumn = $sheet->getHighestColumn();
+
+                // ===== 1. Center header (row 2 & 3) =====
+                $headerRange = 'A2:' . $highestColumn . '3';
+
+                $sheet->getStyle($headerRange)->applyFromArray([
+                    'alignment' => [
+                        'horizontal' => Alignment::HORIZONTAL_CENTER,
+                        'vertical'   => Alignment::VERTICAL_CENTER,
+                        'wrapText'   => true,
+                    ],
+                    'font' => [
+                        'bold' => true,
+                    ],
+                ]);
+
+                // Optional: kasih tinggi biar vertical center keliatan
+                $sheet->getRowDimension(2)->setRowHeight(30);
+                $sheet->getRowDimension(3)->setRowHeight(40);
+
+                // ===== 2. Border seluruh tabel =====
+                $sheet->getStyle('A1:' . $highestColumn . $highestRow)->applyFromArray([
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => Border::BORDER_THIN,
+                        ],
+                    ],
+                ]);
+            }
+        ];
     }
 }

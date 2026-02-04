@@ -164,7 +164,7 @@
             $('#start_date').val('').trigger('change');
             $('#end_date').val('').trigger('change');
             $('#buyer_filter').val('').trigger('change');
-            dataTableReload()
+            dataTableReload();
         });
 
 
