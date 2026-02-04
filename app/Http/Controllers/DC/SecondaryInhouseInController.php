@@ -689,7 +689,7 @@ class SecondaryInhouseInController extends Controller
             ")->
             leftJoin("stocker_input", "stocker_input.id_qr_stocker", "=", "secondary_inhouse_in_temp.id_qr_stocker")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
-            where("created_by", Auth::user()->id)->
+            where("secondary_inhouse_in_temp.created_by", Auth::user()->id)->
             get();
 
         if ($dataStockerInhouseInTemp && $dataStockerInhouseInTemp->count() > 0) {
