@@ -546,17 +546,19 @@
                                  --}}
                             </ul>
                         </li>
-                    @endrole
-                    @role('dc')
-                        <li class="nav-item">
-                            <a href="{{ route('dc-report') }}"
-                                class="nav-link {{ $routeName == 'dc-report' ? 'active' : '' }}"
-                                data-bs-toggle="tooltip"
-                                data-bs-placement="bottom"
-                                title="DC Report">
-                                <i class="fa-solid fa-file"></i>
-                            </a>
+                        <li class="nav-item dropdown">
+                            <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                class="nav-link dropdown-toggle {{ $subPageGroup == 'report' ? 'active' : '' }}">Report</a>
+                            <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                                 <li>
+                                    <a href="{{ route('dc-report') }}"
+                                        class="dropdown-item {{ $routeName == 'dc-report' ? 'active' : '' }}">
+                                        Report DC <i class="fa-solid fa-file"></i>
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
+
                     @endrole
                     @role('superadmin')
                         <li class="nav-item">

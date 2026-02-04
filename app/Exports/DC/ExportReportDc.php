@@ -93,30 +93,30 @@ class ExportReportDc implements FromView, WithEvents, ShouldAutoSize
     public function view(): View
     {
 
-        $generalFilter = "";
-        if (
-            $this->noWsColorSizeFilter ||
-            $this->noWsColorPartFilter ||
-            $this->noWsFilter ||
-            $this->buyerFilter ||
-            $this->styleFilter ||
-            $this->colorFilter ||
-            $this->sizeFilter ||
-            $this->partFilter ||
-            $this->saldoAwalFilter ||
-            $this->masukFilter ||
-            $this->kirimSecDalamFilter ||
-            $this->terimaRepairedSecDalamFilter ||
-            $this->terimaGoodSecDalamFilter ||
-            $this->kirimSecLuarFilter ||
-            $this->terimaRepairedSecLuarFilter ||
-            $this->terimaGoodSecLuarFilter ||
-            $this->loadingFilter ||
-            $this->saldoAkhirFilter
-        ) {
-            $generalFilter .= " WHERE ( loading_line_plan.id IS NOT NULL ";
-            $generalFilter .= " )";
-        }
+        // $generalFilter = "";
+        // if (
+        //     $this->noWsColorSizeFilter ||
+        //     $this->noWsColorPartFilter ||
+        //     $this->noWsFilter ||
+        //     $this->buyerFilter ||
+        //     $this->styleFilter ||
+        //     $this->colorFilter ||
+        //     $this->sizeFilter ||
+        //     $this->partFilter ||
+        //     $this->saldoAwalFilter ||
+        //     $this->masukFilter ||
+        //     $this->kirimSecDalamFilter ||
+        //     $this->terimaRepairedSecDalamFilter ||
+        //     $this->terimaGoodSecDalamFilter ||
+        //     $this->kirimSecLuarFilter ||
+        //     $this->terimaRepairedSecLuarFilter ||
+        //     $this->terimaGoodSecLuarFilter ||
+        //     $this->loadingFilter ||
+        //     $this->saldoAkhirFilter
+        // ) {
+        //     $generalFilter .= " WHERE ( loading_line_plan.id IS NOT NULL ";
+        //     $generalFilter .= " )";
+        // }
         // GROUP_CONCAT( nama_part ) as nama_part,
         // CONCAT_WS(' ', act_costing_ws, color, GROUP_CONCAT(nama_part)) AS ws_color_part,
 
@@ -355,6 +355,7 @@ class ExportReportDc implements FromView, WithEvents, ShouldAutoSize
 
         $this->rowCount = count($dataReport) + 2;
 
+
         return view("dc.report.export.report-dc", [
             "from" => $this->from,
             "to" => $this->to,
@@ -372,7 +373,7 @@ class ExportReportDc implements FromView, WithEvents, ShouldAutoSize
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A1:T' . ($event->getConcernable()->rowCount+2),
+            'A1:P' . ($event->getConcernable()->rowCount+2),
             [
                 'borders' => [
                     'allBorders' => [

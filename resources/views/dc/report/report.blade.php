@@ -20,7 +20,7 @@
 @section('content')
     <div class="card">
         <div class="card-header bg-sb text-light">
-            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-users-line"></i> DC Report</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-users-line"></i> REPORT DC</h5>
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
@@ -43,8 +43,8 @@
                 <table id="datatable-dc-report" class="table table-bordered table w-100">
                     <thead>
                         <tr>
-                            <th>No WsColorSize</th>
-                            <th>No WsColorPart</th>
+                            {{-- <th>No WsColorSize</th> --}}
+                            {{-- <th>No WsColorPart</th> --}}
                             <th>No. WS</th>
                             <th>Buyer</th>
                             <th>Style</th>
@@ -103,6 +103,10 @@
             processing: true,
             serverSide: true,
             pageLength: 25,
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Show All Entries"]
+            ],
             ajax: {
                 url: '{{ route('dc-report') }}',
                 data: function (d) {
@@ -111,8 +115,8 @@
                 }
             },
             columns: [
-                { data: 'ws_color_size' },
-                { data: 'ws_color_part' },
+                // { data: 'ws_color_size' },
+                // { data: 'ws_color_part' },
                 { data: 'act_costing_ws' },
                 { data: 'buyer' },
                 { data: 'style'},
@@ -149,7 +153,7 @@
         var filters = ['noWsColorSizeFilter', 'noWsColorPartFilter', 'noWsFilter', 'buyerFilter', 'styleFilter', 'colorFilter', 'sizeFilter', 'partFilter', 'saldoAwalFilter', 'masukFilter', 'kirimSecDalamFilter', 'terimaRepairedSecDalamFilter', 'terimaGoodSecDalamFilter', 'kirimSecLuarFilter', 'terimaRepairedSecLuarFilter', 'terimaGoodSecLuarFilter', 'loadingFilter', 'saldoAkhirFilter'];
         $('#datatable-dc-report thead tr').clone(true).appendTo('#datatable-dc-report thead');
         $('#datatable-dc-report thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" id="'+filters[i]+'"/>');
 
@@ -215,7 +219,7 @@
                     var blob = new Blob([res]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "DC REPORT "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
+                    link.download = "REPORT DC "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
                     link.click();
                 },
                 error: function (jqXHR) {
