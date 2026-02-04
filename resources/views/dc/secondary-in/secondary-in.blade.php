@@ -730,6 +730,10 @@
             scrollY: '300px',
             scrollX: '300px',
             scrollCollapse: true,
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "All"]
+            ],
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
