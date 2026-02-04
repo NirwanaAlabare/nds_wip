@@ -298,8 +298,8 @@ class GeneralController extends Controller
             ")->
             where("master_sb_ws.id_act_cost", $request->act_costing_id)->
             where("master_sb_ws.color", $request->color);
-            if ($request->so_det_list) {
-                $sizeQuery->whereRaw("master_sb_ws.id_so_det in (".$request->so_det_list.")");
+            if ($request->size_list) {
+                $sizeQuery->whereRaw("master_sb_ws.size in (".addQuotesAround(str_replace(", ", "\n", $request->size_list)).")");
             }
             $sizeQuery->leftJoin('marker_input_detail', 'marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->
             leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->

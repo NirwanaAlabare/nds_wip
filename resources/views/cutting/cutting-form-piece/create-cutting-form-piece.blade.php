@@ -1527,6 +1527,7 @@
                         d.act_costing_id = $("#act_costing_id").val();
                         d.color = $("#color").val();
                         d.so_det_list = $("#so_det_item").val();
+                        d.size_list = $("#sizes_item").val();
                     },
                 },
                 columns: [
