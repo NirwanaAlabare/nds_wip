@@ -673,7 +673,7 @@
                                 return `
                                     <div class="d-flex justify-content-center">
                                         <div class="form-check mt-1 mb-0">
-                                            <input class="form-check-input tmp_dc_stock_check" type="checkbox" data-tujuan-tempat-proses="`+row.tujuan+`-`+row.tempat+`-`+row.lokasi+`" name="tmp_dc_stock[`+meta.row+`]" id="tmp_dc_stock_`+meta.row+`" value="`+data+`" onchange="filterCheck(this)" style="scale: 1.5;">
+                                            <input class="form-check-input tmp_dc_stock_check" type="checkbox" data-tujuan-tempat-proses="`+row.tujuan+`-`+row.tempat+`-`+(row.lokasi && row.lokasi != '' ? row.lokasi : '-')+`" name="tmp_dc_stock[`+meta.row+`]" id="tmp_dc_stock_`+meta.row+`" value="`+data+`" onchange="filterCheck(this)" style="scale: 1.5;">
                                         </div>
                                     </div>
                                 `;
