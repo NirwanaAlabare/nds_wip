@@ -64,6 +64,19 @@
                         </tr>
                     </thead>
                     <tfoot>
+                        <tr>
+                            <th colspan="6">TOTAL</th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
                     </tfoot>
                 </table>
             </div>
@@ -102,11 +115,15 @@
             ordering: false,
             processing: true,
             serverSide: true,
+            scrollX: true,
+            scrollY: "60vh",
+            scrollCollapse: true,
             pageLength: 25,
             lengthMenu: [
                 [10, 25, 50, 100, -1],
-                [10, 25, 50, 100, "Show All Entries"]
+                [10, 25, 50, 100, "All"]
             ],
+
             ajax: {
                 url: '{{ route('dc-report') }}',
                 data: function (d) {
@@ -114,27 +131,24 @@
                     d.dateTo = $("#tgl-akhir").val();
                 }
             },
+
             columns: [
-                // { data: 'ws_color_size' },
-                // { data: 'ws_color_part' },
                 { data: 'act_costing_ws' },
                 { data: 'buyer' },
-                { data: 'style'},
-                { data: 'color'},
-                { data: 'size'},
+                { data: 'style' },
+                { data: 'color' },
+                { data: 'size' },
                 { data: 'nama_part' },
-                { data: 'color', render: () => "" },
-
-                { data: 'qty_in' },
-                { data: 'kirim_secondary_dalam' },
-                { data: 'terima_repaired_secondary_dalam' },
-                { data: 'terima_good_secondary_dalam' },
-
-                { data: 'color', render: () => "" },
-                { data: 'color', render: () => "" },
-                { data: 'color', render: () => "" },
-                { data: 'color', render: () => "" },
-                { data: 'color', render: () => "" },
+                { data: 'saldo_awal', defaultContent: 0 },
+                { data: 'qty_in', defaultContent: 0 },
+                { data: 'kirim_secondary_dalam', defaultContent: 0 },
+                { data: 'terima_repaired_secondary_dalam', defaultContent: 0 },
+                { data: 'terima_good_secondary_dalam', defaultContent: 0 },
+                { data: 'kirim_secondary_luar', defaultContent: 0 },
+                { data: 'terima_repaired_secondary_luar', defaultContent: 0 },
+                { data: 'terima_good_secondary_luar', defaultContent: 0 },
+                { data: 'loading', defaultContent: 0 },
+                { data: 'saldo_akhir', defaultContent: 0 },
             ],
 
             columnDefs: [
@@ -143,8 +157,72 @@
                     className: 'align-middle text-nowrap'
                 },
             ],
+            // drawCallback: function () {
+            //     let api = this.api();
+
+            //     $('#datatable-dc-report tbody tr.total-row').remove();
+
+            //     const sum = (idx) =>
+            //         api.column(idx, { page: 'current' }).data()
+            //         .reduce((a, b) => (+a || 0) + (+b || 0), 0);
+
+            //     let totalRow = `
+            //         <tr class="total-row fw-bold bg-light">
+            //             <td colspan="6" class="text-end">TOTAL</td>
+            //             <td>${sum(6)}</td>
+            //             <td>${sum(7)}</td>
+            //             <td>${sum(8)}</td>
+            //             <td>${sum(9)}</td>
+            //             <td>${sum(10)}</td>
+            //             <td>${sum(11)}</td>
+            //             <td>${sum(12)}</td>
+            //             <td>${sum(13)}</td>
+            //             <td>${sum(14)}</td>
+            //             <td>${sum(15)}</td>
+            //         </tr>
+            //     `;
+
+            //     $('#datatable-dc-report tbody').append(totalRow);
+            // }
+
+            footerCallback: function (row, data, start, end, display) {
+                let api = this.api();
+
+                let intVal = function (i) {
+                    if (typeof i === 'string') {
+                        return i.replace(/[,]/g, '') * 1;
+                    }
+                    if (typeof i === 'number') {
+                        return i;
+                    }
+                    return 0;
+                };
+
+                let sumCol = function (idx) {
+                    return api
+                        .column(idx, { page: 'current' })
+                        .data()
+                        .reduce(function (a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+                };
+
+                $(api.column(0).footer()).html('<b>TOTAL</b>');
+                $(api.column(6).footer()).html(sumCol(6));
+                $(api.column(7).footer()).html(sumCol(7));
+                $(api.column(8).footer()).html(sumCol(8));
+                $(api.column(9).footer()).html(sumCol(9));
+                $(api.column(10).footer()).html(sumCol(10));
+                $(api.column(11).footer()).html(sumCol(11));
+                $(api.column(12).footer()).html(sumCol(12));
+                $(api.column(13).footer()).html(sumCol(13));
+                $(api.column(14).footer()).html(sumCol(14));
+                $(api.column(15).footer()).html(sumCol(15));
+            }
+
 
         });
+
 
         function datatableReportDC() {
             datatableDcReport.ajax.reload()
