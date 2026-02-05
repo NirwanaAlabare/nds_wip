@@ -6661,7 +6661,7 @@ class StockerController extends Controller
                                 where("so_det.dest", $currentYearSequence->dest)->
                                 first();
                             if (!$currentSoDet) {
-                                $currentSoDet = SoDet::selectRaw("so_det.id, act_costing.id as id_ws, UPPER(TRIM(so_det.color)) color, so_det.siz")->
+                                $currentSoDet = SoDet::selectRaw("so_det.id, act_costing.id as id_ws, UPPER(TRIM(so_det.color)) color, so_det.size")->
                                     leftJoin("so", "so.id", "=", "so_det.id_so")->
                                     leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
                                     where("act_costing.id", $idWs)->
