@@ -133,7 +133,7 @@
             },
 
             columns: [
-                { data: 'act_costing_ws' },
+                { data: 'ws' },
                 { data: 'buyer' },
                 { data: 'style' },
                 { data: 'color' },
@@ -148,7 +148,22 @@
                 { data: 'terima_repaired_secondary_luar', defaultContent: 0 },
                 { data: 'terima_good_secondary_luar', defaultContent: 0 },
                 { data: 'loading', defaultContent: 0 },
-                { data: 'saldo_akhir', defaultContent: 0 },
+                {
+                    data: null,
+                    render: function (data, type, row) {
+                        let saldoAwal  = parseInt(row.saldo_awal ?? 0);
+                        let masuk      = parseInt(row.qty_in ?? 0);
+                        let ksd        = parseInt(row.kirim_secondary_dalam ?? 0);
+                        let trsd       = parseInt(row.terima_repaired_secondary_dalam ?? 0);
+                        let tgsd       = parseInt(row.terima_good_secondary_dalam ?? 0);
+                        let ksl        = parseInt(row.kirim_secondary_luar ?? 0);
+                        let trsl       = parseInt(row.terima_repaired_secondary_luar ?? 0);
+                        let tgsl       = parseInt(row.terima_good_secondary_luar ?? 0);
+                        let loading    = parseInt(row.loading ?? 0);
+
+                        return saldoAwal + masuk - ksd + trsd + tgsd - ksl + trsl + tgsl - loading;
+                    }
+                },
             ],
 
             columnDefs: [
@@ -217,10 +232,16 @@
                 $(api.column(12).footer()).html(sumCol(12));
                 $(api.column(13).footer()).html(sumCol(13));
                 $(api.column(14).footer()).html(sumCol(14));
-                $(api.column(15).footer()).html(sumCol(15));
+
+                let totalSaldoAkhir = 0;
+
+                api.rows({ page: 'current' }).every(function () {
+                    let r = this.data();
+                    totalSaldoAkhir += intVal(r.saldo_awal) + intVal(r.qty_in) - intVal(r.kirim_secondary_dalam) + intVal(r.terima_repaired_secondary_dalam) + intVal(r.terima_good_secondary_dalam) - intVal(r.kirim_secondary_luar) + intVal(r.terima_repaired_secondary_luar) + intVal(r.terima_good_secondary_luar) - intVal(r.loading);
+                });
+
+                $(api.column(15).footer()).html(totalSaldoAkhir);
             }
-
-
         });
 
 
