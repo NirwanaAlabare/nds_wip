@@ -354,7 +354,18 @@
                                 <li>
                                     <a href="{{ route('stocker') }}"
                                         class="dropdown-item {{ $routeName == 'stocker' ? 'active' : '' }}">
-                                        Stocker <i class="fa-solid fa-note-sticky"></i>
+                                        Stocker <i class="fa-solid fa-ticket-simple"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <li class="nav-item dropdown">
+                            <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'stocker-reject' ? 'active' : '' }}">Stocker Reject</a>
+                            <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                                <li>
+                                    <a href="{{ route('stocker-reject') }}" class="dropdown-item {{ $subPage == 'stocker-reject' ? 'active' : '' }}">
+                                        Stocker Reject <i class="fa-solid fa-ticket"></i>
                                     </a>
                                 </li>
                             </ul>

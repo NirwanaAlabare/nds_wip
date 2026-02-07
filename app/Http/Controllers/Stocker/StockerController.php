@@ -970,7 +970,7 @@ class StockerController extends Controller
 
         $fileName = 'STOCKER_'.$request["no_ws"]."_".$request['color']."_".$request['panel']."_".$request['group'][$index]."_".$request["size"][$index] . '.pdf';
 
-        return $pdf->download(str_replace("/", "_", $fileName));;
+        return $pdf->download(str_replace("/", "_", $fileName));
     }
 
     public function printStockerAllSize(Request $request, StockerService $stockerService, $partDetailId = 0)
