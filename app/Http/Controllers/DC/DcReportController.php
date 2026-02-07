@@ -985,14 +985,38 @@ class DcReportController extends Controller
 																	saldo_dc.so_det_id,
 																	saldo_dc.part_detail_id
 																) saldo_dc
-															) SELECT
-															dc_current_saldo.*,
-															COALESCE ( dc_before_saldo.saldo_akhir, 0 ) AS current_saldo_awal,
-															COALESCE ( dc_before_saldo.saldo_akhir, 0 )+ COALESCE ( dc_current_saldo.saldo_akhir, 0 ) AS current_saldo_akhir
-														FROM
-															dc_current_saldo
-														LEFT JOIN dc_before_saldo ON dc_before_saldo.id_so_det = dc_current_saldo.id_so_det
-	AND dc_before_saldo.part_detail_id = dc_current_saldo.part_detail_id
+															)
+
+                                                            	select
+                                                                    GROUP_CONCAT(dc_current_saldo.stockers) as stockers,
+                                                                    dc_current_saldo.buyer,
+                                                                    dc_current_saldo.ws,
+                                                                    dc_current_saldo.style,
+                                                                    dc_current_saldo.color,
+                                                                    dc_current_saldo.size,
+                                                                    GROUP_CONCAT(dc_current_saldo.id_so_det) id_so_det,
+                                                                    dc_current_saldo.panel,
+                                                                    dc_current_saldo.panel_status,
+                                                                    dc_current_saldo.part_detail_id,
+                                                                    GROUP_CONCAT(DISTINCT dc_current_saldo.nama_part) as nama_part,
+                                                                    GROUP_CONCAT(DISTINCT dc_current_saldo.part_status) as part_status,
+                                                                    SUM(COALESCE(dc_before_saldo.saldo_akhir, 0)) as current_saldo_awal,
+                                                                    sum(dc_current_saldo.qty_in) qty_in,
+                                                                    sum(dc_current_saldo.kirim_secondary_dalam) kirim_secondary_dalam,
+                                                                    sum(dc_current_saldo.terima_repaired_secondary_dalam) terima_repaired_secondary_dalam,
+                                                                    sum(dc_current_saldo.terima_good_secondary_dalam) terima_good_secondary_dalam,
+                                                                    sum(dc_current_saldo.kirim_secondary_luar) kirim_secondary_luar,
+                                                                    sum(dc_current_saldo.terima_repaired_secondary_luar) terima_repaired_secondary_luar,
+                                                                    sum(dc_current_saldo.terima_good_secondary_luar) terima_good_secondary_luar,
+                                                                    SUM(COALESCE(dc_before_saldo.saldo_akhir, 0))+SUM(COALESCE(dc_current_saldo.saldo_akhir, 0)) as current_saldo_akhir
+                                                                from
+                                                                    dc_current_saldo
+                                                                    left join dc_before_saldo on dc_before_saldo.id_so_det = dc_current_saldo.id_so_det and dc_before_saldo.part_detail_id = dc_current_saldo.part_detail_id
+                                                                GROUP BY
+                                                                    dc_current_saldo.ws,
+                                                                    dc_current_saldo.color,
+                                                                    dc_current_saldo.size,
+                                                                    dc_current_saldo.part_detail_id
                             ");
 
             return DataTables::of($dataReport)->toJson();
