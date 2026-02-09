@@ -276,9 +276,14 @@ Route::middleware('auth')->group(function () {
         // get panels new
         Route::get('/get-panels-new', 'getPanelListNew')->name('get-panels');
 
+        // General Tools
         Route::get('/general-tools', 'generalTools')->middleware('role:superadmin')->name('general-tools');
         Route::post('/update-master-sb-ws', 'updateMasterSbWs')->middleware('role:superadmin')->name('update-master-sb-ws');
         Route::post('/update-general-order', 'updateGeneralOrder')->middleware('role:superadmin')->name('update-general-order');
+
+        Route::post('/get-general-order-color-from', 'getGeneralOrderColorFrom')->middleware('role:superadmin')->name('get-general-order-color-from');
+        Route::post('/get-general-order-color-to', 'getGeneralOrderColorTo')->middleware('role:superadmin')->name('get-general-order-color-to');
+        Route::post('/update-general-order-color', 'updateGeneralOrderColor')->middleware('role:superadmin')->name('update-general-order-color');
 
         // get scanned employee
         Route::get('/get-scanned-employee/{id?}', 'getScannedEmployee')->name('get-scanned-employee');
