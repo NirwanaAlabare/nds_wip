@@ -421,7 +421,7 @@ select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id_jo, kpno, styl
     // HEADER
     $sheet->writeRow([
         'No Barcode', 'No BPB', 'Tgl BPB', 'Supplier', 'Buyer', 'Lokasi', 'Id JO',
-        'No WS', 'Style', 'Id Item', 'Nama Barang', 'Ukuran', 'Size', 'No Roll', 'No Roll Buyer',
+        'No WS', 'Style', 'Id Item', 'Nama Barang', 'Warna', 'Ukuran', 'No Roll', 'No Roll Buyer',
         'No Lot', 'Satuan', 'Saldo Awal', 'Pemasukan', 'Pengeluaran', 'Saldo Akhir'
     ])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
     $sheet->mergeCells('A2:S2');
@@ -440,9 +440,9 @@ foreach ($rows as $r) {
         $r['kpno'] ?? '',
         $r['styleno'] ?? '',
         $r['id_item'] ?? '',
+        $r['itemdesc'] ?? '',
         $r['color'] ?? '',
         $r['size'] ?? '',
-        $r['itemdesc'] ?? '',
         $r['no_roll'] ?? '',
         $r['no_roll_buyer'] ?? '',
         $r['no_lot'] ?? '',

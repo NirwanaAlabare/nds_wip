@@ -257,15 +257,15 @@ class MutLokasiController extends Controller
 
         DB::connection('mysql_sb')->statement("
             UPDATE whs_lokasi_inmaterial a
-            INNER JOIN whs_mut_lokasi b ON b.idbpb_det = a.no_barcode
-            SET a.qty_mutasi = NULL
+            INNER JOIN whs_mut_lokasi b ON b.idbpb_det = a.no_barcode and b.no_mut = a.no_dok
+            SET a.qty_sj = 0, a.qty_aktual = 0, a.status = 'N'
             WHERE b.no_mut = ?
         ", [$no_mut]);
 
         DB::connection('mysql_sb')->statement("
-            UPDATE whs_lokasi_inmaterial a
-            INNER JOIN whs_mut_lokasi b ON b.idbpb_det = a.no_barcode_old
-            SET a.qty_sj = 0, a.qty_aktual = 0, a.status = 'N'
+            UPDATE whs_bppb_det a
+            INNER JOIN whs_mut_lokasi b ON b.idbpb_det = a.id_roll  and b.no_mut = a.no_bppb
+            SET a.qty_out = 0, a.status = 'N'
             WHERE b.no_mut = ?
         ", [$no_mut]);
 
