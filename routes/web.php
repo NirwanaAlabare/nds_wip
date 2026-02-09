@@ -276,9 +276,14 @@ Route::middleware('auth')->group(function () {
         // get panels new
         Route::get('/get-panels-new', 'getPanelListNew')->name('get-panels');
 
+        // General Tools
         Route::get('/general-tools', 'generalTools')->middleware('role:superadmin')->name('general-tools');
         Route::post('/update-master-sb-ws', 'updateMasterSbWs')->middleware('role:superadmin')->name('update-master-sb-ws');
         Route::post('/update-general-order', 'updateGeneralOrder')->middleware('role:superadmin')->name('update-general-order');
+
+        Route::post('/get-general-order-color-from', 'getGeneralOrderColorFrom')->middleware('role:superadmin')->name('get-general-order-color-from');
+        Route::post('/get-general-order-color-to', 'getGeneralOrderColorTo')->middleware('role:superadmin')->name('get-general-order-color-to');
+        Route::post('/update-general-order-color', 'updateGeneralOrderColor')->middleware('role:superadmin')->name('update-general-order-color');
 
         // get scanned employee
         Route::get('/get-scanned-employee/{id?}', 'getScannedEmployee')->name('get-scanned-employee');
@@ -896,6 +901,8 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(StockerRejectController::class)->prefix('stocker-reject')->middleware('role:stocker,dc')->group(function () {
         Route::get('/index', 'index')->name('stocker-reject');
+        Route::get('/get-stocker-reject', 'getStockerReject')->name('get-stocker-reject');
+        Route::get('/get-stocker-reject-process', 'getStockerRejectProcess')->name('get-stocker-reject-process');
         Route::get('/show/{id?}/{process?}', 'show')->name('show-stocker-reject');
         Route::get('/create', 'create')->name('create-stocker-reject');
         Route::post('/print-stocker-process-reject/{id?}', 'printStocker')->name('print-stocker-process-reject');
@@ -1396,7 +1403,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Track
-    Route::controller(TrackController::class)->prefix("track")->middleware('role:sewing')->group(function () {
+    Route::controller(TrackController::class)->prefix("track")->middleware('role:sewing,dc,cutting,stocker')->group(function () {
         // worksheet
         Route::get('/worksheet', 'worksheet')->name('track-ws');
         Route::post('/worksheet/export', 'worksheetExport')->name('track-ws-export');

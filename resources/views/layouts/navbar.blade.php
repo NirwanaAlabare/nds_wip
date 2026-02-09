@@ -359,17 +359,6 @@
                                 </li>
                             </ul>
                         </li>
-
-                        <li class="nav-item dropdown d-none">
-                            <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'stocker-reject' ? 'active' : '' }}">Stocker Reject</a>
-                            <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                                <li>
-                                    <a href="{{ route('stocker-reject') }}" class="dropdown-item {{ $subPage == 'stocker-reject' ? 'active' : '' }}">
-                                        Stocker Reject <i class="fa-solid fa-ticket"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
                     @endrole
 
                     @role('superadmin')
@@ -404,13 +393,13 @@
                                 <li>
                                     <a href="{{ route('secondary-inhouse-in') }}"
                                         class="dropdown-item {{ $routeName == 'secondary-inhouse-in' ? 'active' : '' }}">
-                                        In Secondary Dalam <i class="fas fa-house-user"></i>
+                                        IN Secondary Dalam <i class="fas fa-house-user"></i>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('secondary-inhouse') }}"
                                         class="dropdown-item {{ $routeName == 'secondary-inhouse' ? 'active' : '' }}">
-                                        Out Secondary Dalam <i class="fas fa-house-user"></i>
+                                        OUT Secondary Dalam <i class="fas fa-house-user"></i>
                                     </a>
                                 </li>
                                 <li>
@@ -421,10 +410,23 @@
                                 </li>
                             </ul>
                         </li>
+                        @endrole
+                        @role('superadmin')
+                            <li class="nav-item dropdown">
+                                <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'stocker-reject' ? 'active' : '' }}">Reject</a>
+                                <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                                    <li>
+                                        <a href="{{ route('stocker-reject') }}" class="dropdown-item {{ $subPage == 'stocker-reject' ? 'active' : '' }}">
+                                            Stocker Process Reject <i class="fa-solid fa-ticket"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endrole
+                        @role('dc')
                         <li class="nav-item dropdown">
                             <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                                class="nav-link dropdown-toggle {{ $subPageGroup == 'stok-dc' ? 'active' : '' }}">Stok
-                                DC</a>
+                                class="nav-link dropdown-toggle {{ $subPageGroup == 'stok-dc' ? 'active' : '' }}">Stok</a>
                             <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                                 <li>
                                     <a href="{{ route('stock-dc-complete') }}"

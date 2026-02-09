@@ -32,7 +32,7 @@
                     </div>
                 </div>
                 <div>
-                    <a type="button" href="{{ route('create-stocker-reject') }}" class='btn btn-success'><i class="fa fa-plus"></i> Create</a>
+                    <a type="button" href="{{ route('create-stocker-reject') }}" class='btn btn-success'><i class="fa fa-plus"></i> Baru</a>
                 </div>
             </div>
             <div class="table-responsive">

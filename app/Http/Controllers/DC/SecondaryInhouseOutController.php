@@ -720,7 +720,6 @@ class SecondaryInhouseOutController extends Controller
                 $partDetailSecondary = $partDetail->secondaries;
 
                 if ($partDetailSecondary && $partDetailSecondary->count() > 0) {
-
                     // If there ain't no urutan
                     if ($stocker->urutan == null) {
                         $cekdata = DB::select("

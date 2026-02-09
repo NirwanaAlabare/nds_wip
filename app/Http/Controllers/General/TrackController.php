@@ -154,6 +154,8 @@ class TrackController extends Controller
                     master_sb_ws.id_so_det
             ");
 
+            dd($worksheet);
+
             return DataTables::of($worksheet)
                 ->addColumn('output_sewing', function ($row) {
                     $outputData = DB::connection("mysql_sb")->select("

@@ -93,7 +93,7 @@ class StockerProcessRejectService
                             'stocker_reject' => $createStockerReject->id,
                             // End of Process IDs
                             'notes' => 'Stocker Reject Process',
-                            'urutan' => $request['urutan'][$i],
+                            'urutan' => $request['current_urutan'],
                             'created_by' => Auth::user()->id,
                             'created_by_username' => Auth::user()->username,
                             'batch' => $batch,
@@ -118,14 +118,16 @@ class StockerProcessRejectService
                             // Current DC
                             $currentDc = DCIn::where("id", $request['dc_in_id'])->first();
                             if ($currentDc) {
+                                $currentStockerTujuan = ($stocker->partDetail->secondaries->first() ? $stocker->partDetail->secondaries->first()->secondary->tujuan : ($stocker->partDetail->secondary ? $stocker->partDetail->secondary->tujuan : null));
+                                $currentStockerLokasi = ($stocker->partDetail->secondaries->first() ? $stocker->partDetail->secondaries->first()->secondary->lokasi : ($stocker->partDetail->secondary ? $stocker->partDetail->secondary->lokasi : null));
+
                                 $createDc = DCIn::updateOrCreate([
                                     "id_qr_stocker" => $stocker->id_qr_stocker,
                                 ],[
                                     "no_form" => $currentDc->no_form,
-                                    "tujuan" => $currentDc->tujuan,
-                                    "lokasi" => $currentDc->lokasi,
-                                    "rak" => $currentDc->rak,
-                                    "qty_awal" => 0,
+                                    "tujuan" => $currentStockerTujuan,
+                                    "lokasi" => $currentStockerLokasi,
+                                    "qty_awal" => $stocker->qty_ply,
                                     "qty_reject" => 0,
                                     "qty_replace" => 0,
                                     "tempat" => $currentDc->tempat,
@@ -154,10 +156,10 @@ class StockerProcessRejectService
                                 ],[
                                     "tgl_trans" => date("Y-m-d"),
                                     "no_form" => $currentSecondaryInhouse->no_form,
-                                    "qty_awal" => $stocker->qty,
+                                    "qty_awal" => $stocker->qty_ply,
                                     "qty_reject" => 0,
                                     "qty_replace" => 0,
-                                    "qty_in" => $stocker->qty,
+                                    "qty_in" => $stocker->qty_ply,
                                     "ket" => $currentSecondaryInhouse->ket,
                                     "user" => Auth::user()->username,
                                 ]);
@@ -237,7 +239,7 @@ class StockerProcessRejectService
     protected function copySecondaryInhouseTransaction ($idQrStockerSource, $idQrStocker)
     {
         // When Secondary Inhouse
-        $currentSecondaryInhouse = SecondaryInhouse::where("id", $idQrStockerSource)->get();
+        $currentSecondaryInhouse = SecondaryInhouse::where("id_qr_stocker", $idQrStockerSource)->get();
 
         if ($currentSecondaryInhouse) {
 
@@ -246,7 +248,7 @@ class StockerProcessRejectService
 
             foreach ($currentSecondaryInhouse as $secInHouse) {
                 // Current Secondary Inhouse
-                $createSecondaryInhouse = SecondaryInhouse::createOrUpdate([
+                $createSecondaryInhouse = SecondaryInhouse::updateOrCreate([
                     "id_qr_stocker" => $idQrStocker,
                     "urutan" => $secInHouse->urutan,
                 ],[
@@ -270,7 +272,7 @@ class StockerProcessRejectService
     protected function copySecondaryInTransaction ($idQrStockerSource, $idQrStocker)
     {
         // When Secondary Inhouse
-        $currentSecondaryIn = SecondaryIn::where("id", $idQrStockerSource)->first();
+        $currentSecondaryIn = SecondaryIn::where("id_qr_stocker", $idQrStockerSource)->first();
 
         if ($currentSecondaryIn) {
             // Copy Inhouse & DC
