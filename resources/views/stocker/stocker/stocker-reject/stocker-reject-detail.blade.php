@@ -13,7 +13,7 @@
 
 @section('content')
     <div class="d-flex justify-content-between mb-3">
-        <h5 class="text-sb">Stocker Reject Detail</h5>
+        <h5 class="text-sb"><i class="fa fa-search-plus fa-sm"></i> Stocker Reject Detail</h5>
         <a class="btn btn-primary btn-sm" href="{{ route('stocker-reject') }}"><i class="fa fa-reply"></i> Kembali ke stocker reject</a>
     </div>
     <form id="stocker-reject-form">
@@ -93,6 +93,12 @@
                     </div>
                     <div class="col-4 d-none">
                         <div>
+                            <label class="form-label">Urutan</label>
+                            <input type="text" class="form-control d-none" name="current_urutan" id="current_urutan" value="{{ $data->urutan }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-4 d-none">
+                        <div>
                             <label class="form-label">DC IN ID</label>
                             <input type="text" class="form-control d-none" name="dc_in_id" id="dc_in_id" value="{{ $data->dc_in_id }}" readonly>
                         </div>
@@ -131,7 +137,6 @@
                                 <th>Size</th>
                                 <th>Shade</th>
                                 <th>Ratio</th>
-                                <th>Urutan</th>
                                 <th>Qty</th>
                                 <th>Print</th>
                             </tr>
@@ -156,7 +161,6 @@
                                     <td>{{ $stocker->size }}</td>
                                     <td>{{ $stocker->shade }}</td>
                                     <td>{{ $stocker->ratio }}</td>
-                                    <td>{{ ($stocker->urutan ?? '-') }}</td>
                                     <td>{{ $data->qty_reject }}</td>
                                     <td><button type="button" class="btn btn-danger" onclick="printStocker({{ $index }})"><i class="fa fa-print"></i></button></td>
                                 </tr>

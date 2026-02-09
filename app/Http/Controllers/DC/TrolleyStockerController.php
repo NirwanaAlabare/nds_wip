@@ -151,7 +151,7 @@ class TrolleyStockerController extends Controller
                 where('trolley_id', $request->trolley_id)->
                 where('trolley_stocker.status', "active")->
                 // where('stocker_input.status', "trolley")->
-                groupBy('form_cut_input.no_cut', 'form_cut_piece.no_cut', 'stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.form_piece_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
+                groupBy('form_cut_input.no_cut', 'form_cut_piece.no_cut', 'stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.form_piece_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio', 'stocker_input.stocker_reject')->
                 orderBy('trolley_stocker.updated_at', 'desc');
 
             return DataTables::eloquent($trolley)->
@@ -235,7 +235,7 @@ class TrolleyStockerController extends Controller
                 where('trolley_id', $id)->
                 where('trolley_stocker.status', "active")->
                 // where('stocker_input.status', "trolley")->
-                groupBy('form_cut_input.no_cut', 'stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
+                groupBy('form_cut_input.no_cut', 'stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio', 'stocker_input.stocker_reject')->
                 orderBy('trolley_stocker.updated_at', 'desc');
 
             return DataTables::eloquent($trolley)->
@@ -335,6 +335,7 @@ class TrolleyStockerController extends Controller
             where("so_det_id", $stockerData->so_det_id)->
             where("group_stocker", $stockerData->group_stocker)->
             where("ratio", $stockerData->ratio)->
+            where("stocker_reject", $stockerData->stocker_reject)->
             get();
 
         $incompleteLoading = $similarStockerData->whereNull("loading_line_id");
@@ -396,6 +397,7 @@ class TrolleyStockerController extends Controller
                 where("so_det_id", $stockerData->so_det_id)->
                 where("group_stocker", $stockerData->group_stocker)->
                 where("ratio", $stockerData->ratio)->
+                where("stocker_reject", $stockerData->stocker_reject)->
                 update([
                     "status" => "trolley",
                     "latest_alokasi" => Carbon::now()
@@ -475,6 +477,7 @@ class TrolleyStockerController extends Controller
             where("so_det_id", $stockerData->so_det_id)->
             where("group_stocker", $stockerData->group_stocker)->
             where("ratio", $stockerData->ratio)->
+            where("stocker_reject", $stockerData->stocker_reject)->
             get();
 
         $incompleteLoading = $similarStockerData->whereNull("loading_line_id");
@@ -534,6 +537,7 @@ class TrolleyStockerController extends Controller
                 where("so_det_id", $stockerData->so_det_id)->
                 where("group_stocker", $stockerData->group_stocker)->
                 where("ratio", $stockerData->ratio)->
+                where("stocker_reject", $stockerData->stocker_reject)->
                 update([
                     "status" => "trolley",
                     "latest_alokasi" => Carbon::now()
@@ -622,6 +626,7 @@ class TrolleyStockerController extends Controller
             where("stocker_input.so_det_id", $stockerData->so_det_id)->
             where("stocker_input.group_stocker", $stockerData->group_stocker)->
             where("stocker_input.ratio", $stockerData->ratio)->
+            where("stocker_input.stocker_reject", $stockerData->stocker_reject)->
             delete();
 
         if ($deleteTrolleyStock) {
@@ -629,6 +634,7 @@ class TrolleyStockerController extends Controller
                 where("stocker_input.so_det_id", $stockerData->so_det_id)->
                 where("stocker_input.group_stocker", $stockerData->group_stocker)->
                 where("stocker_input.ratio", $stockerData->ratio)->
+                where("stocker_input.stocker_reject", $stockerData->stocker_reject)->
                 update([
                     "status" => "idle",
                     "latest_alokasi" => Carbon::now()
@@ -709,7 +715,8 @@ class TrolleyStockerController extends Controller
                     CONCAT( users.username, ' (', trolley_stocker.updated_at, ')' ) USER,
                     stocker_input.so_det_id,
                     stocker_input.group_stocker,
-                    stocker_input.ratio
+                    stocker_input.ratio,
+                    stocker_input.stocker_reject
                 FROM
                     `trolley_stocker`
                     LEFT JOIN `stocker_input` ON `stocker_input`.`id` = `trolley_stocker`.`stocker_id`
@@ -771,7 +778,8 @@ class TrolleyStockerController extends Controller
                     CONCAT( users.username, ' (', trolley_stocker.updated_at, ')' ) USER,
                     stocker_input.so_det_id,
                     stocker_input.group_stocker,
-                    stocker_input.ratio
+                    stocker_input.ratio,
+                    stocker_input.stocker_reject
                 FROM
                     `trolley_stocker`
                     LEFT JOIN `stocker_input` ON `stocker_input`.`id` = `trolley_stocker`.`stocker_id`
@@ -818,7 +826,8 @@ class TrolleyStockerController extends Controller
                 `form_cut_id`,
                 `so_det_id`,
                 `group_stocker`,
-                `ratio`
+                `ratio`,
+                `stocker_reject`
         "));
 
         return view('dc.trolley.stock-trolley.send-stock-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolley' => $trolley, 'lines' => $lines, 'trolleys' => $trolleys, 'trolleyStocks' => $trolleyStocks]);
@@ -834,6 +843,7 @@ class TrolleyStockerController extends Controller
 
         $lineData = UserLine::where("line_id", $request->line_id)->first();
 
+        // Get costing Data function
         function getCostingDataTrolley($data, $field) {
             if (isset($data->masterSbWs)) {
                 switch ($field) {
@@ -861,6 +871,7 @@ class TrolleyStockerController extends Controller
             return null;
         }
 
+        // When Loading to Line
         if ($request->destination != "trolley") {
             foreach ($request->selectedStocker as $req) {
                 $loadingStockArr = [];
@@ -1065,7 +1076,9 @@ class TrolleyStockerController extends Controller
                     }
                 }
             }
-        } else {
+        }
+        // When Moving to another Trolley
+        else {
             foreach ($request->selectedStocker as $req) {
                 $stockerIds = explode(',', $req['stocker_ids']);
 
