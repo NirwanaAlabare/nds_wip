@@ -57,12 +57,15 @@
                     <th>Tujuan</th>
                     <th>No barcode</th>
                     <th>No Roll</th>
+                    <th>No Roll Buyer</th>
                     <th>No Lot</th>
+                    <th>Lokasi</th>
                     <th>Qty Out</th>
                     <th>Unit</th>
                     <th>Id Item</th>
                     <th>Id Jo</th>
                     <th>No WS</th>
+                    <th>No WS Aktual</th>
                     <th>No Style</th>
                     <th>Kode Barang</th>
                     <th>Nama Barang</th>
@@ -71,7 +74,6 @@
                     <th>Keterangan</th>
                     <th>Nama User</th>
                     <th>Approve By</th>
-                    <th hidden>Approve By</th>
                 </tr>
             </thead>
             <tbody>
@@ -93,14 +95,17 @@
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
         let datatable = $("#datatable").DataTable({
-            ordering: false,
+            ordering: true,
             processing: true,
-            serverSide: true,
-            paging: false,
+            serverSide: false,
+            paging: true,
             searching: true,
             scrollY: '300px',
             scrollX: '300px',
             scrollCollapse: true,
+            deferLoading: 0,
+            deferRender: true,     // SUPER PENTING
+            scroller: true,
             ajax: {
                 url: '{{ route('lap-det-pengeluaranroll') }}',
                 data: function(d) {
@@ -127,7 +132,13 @@
                     data: 'no_roll'
                 },
                 {
+                    data: 'no_roll_buyer'
+                },
+                {
                     data: 'no_lot'
+                },
+                {
+                    data: 'rak'
                 },
                 {
                     data: 'qty_out'
@@ -143,6 +154,9 @@
                 },
                 {
                     data: 'ws'
+                },
+                {
+                    data: 'idws_act'
                 },
                 {
                     data: 'styleno'
@@ -167,20 +181,15 @@
                 },
                 {
                     data: 'confirm_by'
-                },
-                {
-                    data: 'cari_data'
                 }
             ],
             columnDefs: [{
-                targets: [7],
-                render: (data, type, row, meta) => data ? data.round(2) : "0.00"
-            },
-            {
-                targets: [20],
-                className: "d-none",
-                render: (data, type, row, meta) => data ? data : "-"
-            },
+                targets: [9],
+                className: 'text-right',
+                render: function (data) {
+                    return data ? Number(data).toFixed(2) : "0.00";
+                }
+            }
             ]
         });
 

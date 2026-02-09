@@ -53,11 +53,14 @@
                 <tr>
                     <th>No BPB</th>
                     <th>Tgl BPB</th>
-                    <th>No Mutasi</th>
-                    <th>Supplier</th>
-                    <th>Rak</th>
                     <th>No Barcode</th>
+                    <th>Supplier</th>
+                    <th>No SJ</th>
+                    <th>No PO</th>
+                    <th>Styleno</th>
+                    <th>Rak</th>
                     <th>No Roll</th>
+                    <th>No Roll Buyer</th>
                     <th>No Lot</th>
                     <th>Qty BPB</th>
                     <th>Qty Mutasi</th>
@@ -69,10 +72,13 @@
                     <th>Nama Barang</th>
                     <th>Warna</th>
                     <th>Ukuran</th>
+                    <th>Curr</th>
+                    <th>Price</th>
+                    <th>Rate</th>
+                    <th>Price IDR</th>
                     <th>Keterangan</th>
                     <th>Nama User</th>
                     <th>Approve By</th>
-                    <th hidden>Approve By</th>
                 </tr>
             </thead>
             <tbody>
@@ -94,14 +100,17 @@
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
         let datatable = $("#datatable").DataTable({
-            ordering: false,
+            ordering: true,
             processing: true,
-            serverSide: true,
-            paging: false,
+            serverSide: false,
+            paging: true,
             searching: true,
             scrollY: '300px',
             scrollX: '300px',
             scrollCollapse: true,
+            deferLoading: 0,
+            deferRender: true,     // SUPER PENTING
+            scroller: true,
             ajax: {
                 url: '{{ route('lap-det-pemasukanroll') }}',
                 data: function(d) {
@@ -116,19 +125,28 @@
                     data: 'tgl_dok'
                 },
                 {
-                    data: 'no_mut'
+                    data: 'barcode'
                 },
                 {
                     data: 'supplier'
                 },
                 {
+                    data: 'no_invoice'
+                },
+                {
+                    data: 'no_po'
+                },
+                {
+                    data: 'styleno'
+                },
+                {
                     data: 'rak'
                 },
                 {
-                    data: 'barcode'
+                    data: 'no_roll'
                 },
                 {
-                    data: 'no_roll'
+                    data: 'no_roll_buyer'
                 },
                 {
                     data: 'no_lot'
@@ -164,6 +182,18 @@
                     data: 'size'
                 },
                 {
+                    data: 'curr'
+                },
+                {
+                    data: 'price'
+                },
+                {
+                    data: 'rates'
+                },
+                {
+                    data: 'price_idr'
+                },
+                {
                     data: 'deskripsi'
                 },
                 {
@@ -171,17 +201,14 @@
                 },
                 {
                     data: 'confirm_by'
-                },
-                {
-                    data: 'cari_data'
                 }
             ],
             columnDefs: [
-            {
-                targets: [21],
-                className: "d-none",
-                render: (data, type, row, meta) => data ? data : "-"
-            },
+            // {
+            //     targets: [21],
+            //     className: "d-none",
+            //     render: (data, type, row, meta) => data ? data : "-"
+            // },
             ]
         });
 

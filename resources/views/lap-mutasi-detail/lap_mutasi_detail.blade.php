@@ -59,24 +59,24 @@
                             <th>Id Item</th>
                             <th>Kode Barang</th>
                             <th>Nama Barang</th>
+                            <th>Color</th>
+                            <th>Size</th>
                             <th>satuan</th>
                             <th>Saldo Awal</th>
                             <th>Pemasukan</th>
                             <th>Pengeluaran</th>
                             <th>Saldo Akhir</th>
-                            <th hidden>Saldo Akhir</th>
                         </tr>
                     </thead>
                     <tbody>
                     </tbody>
                     <tfoot>
                         <tr>
-                            <th colspan="9" style="text-align:center;">TOTAL </th>
+                            <th colspan="11" style="text-align:center;">TOTAL </th>
                             <th></th> <!-- sal_awal -->
                             <th></th> <!-- qty_in -->
                             <th></th> <!-- qty_out -->
                             <th></th> <!-- sal_akhir -->
-                            <th></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -141,16 +141,16 @@
             { data: 'id_item' },
             { data: 'goods_code' },
             { data: 'itemdesc' },
+            { data: 'color' },
+            { data: 'size' },
             { data: 'satuan' },
             { data: 'sal_awal' },
             { data: 'qty_in' },
             { data: 'qty_out' },
-            { data: 'sal_akhir' },
-            { data: 'cari_item' }
+            { data: 'sal_akhir' }
             ],
             columnDefs: [
-            { targets: [9,10,11,12], render: (data) => data ? parseFloat(data).toFixed(2) : "0.00" },
-            { targets: [13], className: "d-none" }
+            { targets: [11,12,13,14], render: (data) => data ? parseFloat(data).toFixed(2) : "0.00" },
             ],
             footerCallback: function(row, data, start, end, display) {
                 let api = this.api();
@@ -163,17 +163,17 @@
                 // let total_out   = api.column(11, {page:'current'}).data().reduce((a, b) => intVal(a) + intVal(b), 0);
                 // let total_akhir = api.column(12, {page:'current'}).data().reduce((a, b) => intVal(a) + intVal(b), 0);
 
-                let total_awal  = api.column(9).data().reduce((a, b) => intVal(a) + intVal(b), 0);
-                let total_in    = api.column(10).data().reduce((a, b) => intVal(a) + intVal(b), 0);
-                let total_out   = api.column(11).data().reduce((a, b) => intVal(a) + intVal(b), 0);
-                let total_akhir = api.column(12).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+                let total_awal  = api.column(11).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+                let total_in    = api.column(12).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+                let total_out   = api.column(13).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+                let total_akhir = api.column(14).data().reduce((a, b) => intVal(a) + intVal(b), 0);
 
 
         // pakai helper number_format biar rapi
-        $(api.column(9).footer()).html(number_format(total_awal, 2, '.', ','));
-        $(api.column(10).footer()).html(number_format(total_in, 2, '.', ','));
-        $(api.column(11).footer()).html(number_format(total_out, 2, '.', ','));
-        $(api.column(12).footer()).html(number_format(total_akhir, 2, '.', ','));
+        $(api.column(11).footer()).html(number_format(total_awal, 2, '.', ','));
+        $(api.column(12).footer()).html(number_format(total_in, 2, '.', ','));
+        $(api.column(13).footer()).html(number_format(total_out, 2, '.', ','));
+        $(api.column(14).footer()).html(number_format(total_akhir, 2, '.', ','));
     }
 });
 

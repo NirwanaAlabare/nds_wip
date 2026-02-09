@@ -69,6 +69,8 @@
                         <th>Style</th>
                         <th>Id Item</th>
                         <th>Nama Barang</th>
+                        <th>Warna</th>
+                        <th>Ukuran</th>
                         <th>No Roll</th>
                         <th>No Lot</th>
                         <th>satuan</th>
@@ -229,6 +231,8 @@ let datatable = $("#datatable").DataTable({
     { data: 'styleno' },
     { data: 'id_item' },
     { data: 'itemdesc' },
+    { data: 'color' },
+    { data: 'size' },
     { data: 'no_roll' },
     { data: 'no_lot' },
     { data: 'satuan' },
@@ -243,7 +247,7 @@ let datatable = $("#datatable").DataTable({
         render: (data) => data ? data + ' FABRIC WAREHOUSE RACK' : '-',
     },
     {
-        targets: [14,15,16,17],
+        targets: [16,17, 18, 19],
         render: (data, type, row, meta) => data ? parseFloat(data).toFixed(2) : "0.00",
         className: "text-right"
     }
@@ -290,10 +294,10 @@ let datatable = $("#datatable").DataTable({
     }
 
     // update footer (pastikan footer ada di HTML)
-    $(api.column(14).footer()).html(number_format(total_awal, 2, '.', ','));
-    $(api.column(15).footer()).html(number_format(total_in,   2, '.', ','));
-    $(api.column(16).footer()).html(number_format(total_out,  2, '.', ','));
-    $(api.column(17).footer()).html(number_format(total_akhir,2, '.', ','));
+    $(api.column(16).footer()).html(number_format(total_awal, 2, '.', ','));
+    $(api.column(17).footer()).html(number_format(total_in,   2, '.', ','));
+    $(api.column(18).footer()).html(number_format(total_out,  2, '.', ','));
+    $(api.column(19).footer()).html(number_format(total_akhir,2, '.', ','));
 }
 
 });

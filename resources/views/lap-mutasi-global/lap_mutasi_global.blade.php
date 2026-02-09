@@ -54,24 +54,24 @@
                             <th>Id Item</th>
                             <th>Kode Barang</th>
                             <th>Nama Barang</th>
+                            <th>Warna</th>
+                            <th>Ukuran</th>
                             <th>satuan</th>
                             <th>Saldo Awal</th>
                             <th>Pemasukan</th>
                             <th>Pengeluaran</th>
                             <th>Saldo Akhir</th>
-                            <th hidden>Saldo Akhir</th>
                         </tr>
                     </thead>
                     <tbody>
                     </tbody>
                     <tfoot>
                         <tr>
-                            <th colspan="4" style="text-align:center">TOTAL</th>
+                            <th colspan="6" style="text-align:center">TOTAL</th>
                             <th></th> <!-- sal_awal -->
                             <th></th> <!-- qty_in -->
                             <th></th> <!-- qty_out -->
                             <th></th> <!-- sal_akhir -->
-                            <th class="d-none"></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -91,14 +91,17 @@
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
         let datatable = $("#datatable").DataTable({
-            ordering: false,
+            ordering: true,
             processing: true,
-            serverSide: true,
-            paging: false,
+            serverSide: false,
+            paging: true,
             searching: true,
             scrollY: '300px',
             scrollX: '300px',
             scrollCollapse: true,
+            deferLoading: 0,
+            deferRender: true,     // SUPER PENTING
+            scroller: true,
             ajax: {
                 url: '{{ route('lap-mutasi-global') }}',
                 data: function(d) {
@@ -110,25 +113,21 @@
             { data: 'id_item' },
             { data: 'goods_code' },
             { data: 'itemdesc' },
+            { data: 'color' },
+            { data: 'size' },
             { data: 'unit' },
             { data: 'sal_awal' },
             { data: 'qty_in' },
             { data: 'qty_out' },
-            { data: 'sal_akhir' },
-            { data: 'cari_item' }
+            { data: 'sal_akhir' }
             ],
             columnDefs: [
             {
-                targets: [4, 5, 6, 7],
+                targets: [6, 7, 8, 9],
                 render: function(data, type, row, meta) {
                     let val = parseFloat(data);
                     return isNaN(val) ? "0" : val.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
-            },
-            {
-                targets: [8],
-                className: "d-none",
-                render: (data, type, row, meta) => data ? data : "-"
             }
             ],
             footerCallback: function (row, data, start, end, display) {
@@ -147,16 +146,16 @@
         // let totalIn   = api.column(5, { page: 'current' }).data().reduce((a, b) => intVal(a) + intVal(b), 0);
         // let totalOut  = api.column(6, { page: 'current' }).data().reduce((a, b) => intVal(a) + intVal(b), 0);
         // let totalAkhir= api.column(7, { page: 'current' }).data().reduce((a, b) => intVal(a) + intVal(b), 0);
-        let totalAwal  = api.column(4).data().reduce((a, b) => intVal(a) + intVal(b), 0);
-        let totalIn    = api.column(5).data().reduce((a, b) => intVal(a) + intVal(b), 0);
-        let totalOut   = api.column(6).data().reduce((a, b) => intVal(a) + intVal(b), 0);
-        let totalAkhir = api.column(7).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+        let totalAwal  = api.column(6).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+        let totalIn    = api.column(7).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+        let totalOut   = api.column(8).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+        let totalAkhir = api.column(9).data().reduce((a, b) => intVal(a) + intVal(b), 0);
 
         // update ke tfoot
-        $(api.column(4).footer()).html(totalAwal.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-        $(api.column(5).footer()).html(totalIn.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-        $(api.column(6).footer()).html(totalOut.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-        $(api.column(7).footer()).html(totalAkhir.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        $(api.column(6).footer()).html(totalAwal.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        $(api.column(7).footer()).html(totalIn.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        $(api.column(8).footer()).html(totalOut.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        $(api.column(9).footer()).html(totalAkhir.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
     }
 });
 

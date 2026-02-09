@@ -76,7 +76,7 @@ SELECT * FROM out_act) a GROUP BY id_roll, no_rak),
 
 mutasi as (select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, a.id_jo, kpno, styleno, a.id_item, itemdesc, no_roll, no_roll_buyer, no_lot, satuan, qty_awal sal_awal, qty_in, COALESCE(qty_out_bfr,0) qty_out_sbl, COALESCE(qty_out,0) qty_out, (qty_awal + qty_in - COALESCE(qty_out_bfr,0) - COALESCE(qty_out,0)) sal_akhir from pemasukan a left join pengeluaran b on b.id_roll = a.no_barcode and b.no_rak = a.kode_lok)
 
-select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id_jo, kpno, styleno, id_item, itemdesc, no_roll, no_roll_buyer, no_lot, satuan, sal_awal, qty_in, qty_out_sbl, qty_out, sal_akhir from mutasi where (sal_awal + qty_in) > 0");
+select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id_jo, kpno, styleno, a.id_item, a.itemdesc, mi.color, mi.size, no_roll, no_roll_buyer, no_lot, satuan, sal_awal, qty_in, qty_out_sbl, qty_out, sal_akhir from mutasi a inner join masteritem mi on mi.id_item = a.id_item where (sal_awal + qty_in) > 0");
             }else{
             $data_mutasi = DB::connection('mysql_sb')->select("select * from (select a.*, kpno, styleno, mi.itemdesc from (select no_barcode, no_dok, tgl_dok, supplier, kode_lok, id_jo, id_item, no_lot, no_roll, satuan, round((qty_in_bfr - coalesce(qty_out_bfr,0)),2) sal_awal,round(qty_in,2) qty_in,ROUND(coalesce(qty_out_bfr,0),2) qty_out_sbl,ROUND(coalesce(qty_out,0),2) qty_out, round((qty_in_bfr + qty_in - coalesce(qty_out_bfr,0) - coalesce(qty_out,0)),2) sal_akhir  from (select no_dok, tgl_dok,supplier, no_barcode, kode_lok, id_jo, id_item, no_lot, no_roll, sum(qty_in) qty_in, sum(qty_in_bfr) qty_in_bfr, satuan from (
                 select 'T'id, a.id idnya,b.supplier, b.no_dok, b.tgl_dok, no_barcode,kode_lok,id_jo,id_item,no_lot,no_roll,sum(qty_sj) qty_in, 0 qty_in_bfr,satuan from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and tgl_dok BETWEEN '" . $request->dateFrom . "' and '" . $request->dateTo . "' GROUP BY no_barcode
@@ -396,7 +396,7 @@ SELECT * FROM out_act) a GROUP BY id_roll, no_rak),
 
 mutasi as (select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, a.id_jo, kpno, styleno, a.id_item, itemdesc, no_roll, no_roll_buyer, no_lot, satuan, qty_awal sal_awal, qty_in, COALESCE(qty_out_bfr,0) qty_out_sbl, COALESCE(qty_out,0) qty_out, (qty_awal + qty_in - COALESCE(qty_out_bfr,0) - COALESCE(qty_out,0)) sal_akhir from pemasukan a left join pengeluaran b on b.id_roll = a.no_barcode and b.no_rak = a.kode_lok)
 
-select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id_jo, kpno, styleno, id_item, itemdesc, no_roll, no_roll_buyer, no_lot, satuan, sal_awal, qty_in, qty_out_sbl, qty_out, sal_akhir from mutasi where (sal_awal + qty_in) > 0
+select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id_jo, kpno, styleno, a.id_item, a.itemdesc, mi.color, mi.size, no_roll, no_roll_buyer, no_lot, satuan, sal_awal, qty_in, qty_out_sbl, qty_out, sal_akhir from mutasi a inner join masteritem mi on mi.id_item = a.id_item where (sal_awal + qty_in) > 0
     ";
 
     $data = DB::connection('mysql_sb')->select($sql);
@@ -421,7 +421,7 @@ select no_barcode, no_dok, tgl_dok, supplier, buyer, kode_lok, id_jo, kpno, styl
     // HEADER
     $sheet->writeRow([
         'No Barcode', 'No BPB', 'Tgl BPB', 'Supplier', 'Buyer', 'Lokasi', 'Id JO',
-        'No WS', 'Style', 'Id Item', 'Nama Barang', 'No Roll', 'No Roll Buyer',
+        'No WS', 'Style', 'Id Item', 'Nama Barang', 'Ukuran', 'Size', 'No Roll', 'No Roll Buyer',
         'No Lot', 'Satuan', 'Saldo Awal', 'Pemasukan', 'Pengeluaran', 'Saldo Akhir'
     ])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
     $sheet->mergeCells('A2:S2');
@@ -440,6 +440,8 @@ foreach ($rows as $r) {
         $r['kpno'] ?? '',
         $r['styleno'] ?? '',
         $r['id_item'] ?? '',
+        $r['color'] ?? '',
+        $r['size'] ?? '',
         $r['itemdesc'] ?? '',
         $r['no_roll'] ?? '',
         $r['no_roll_buyer'] ?? '',

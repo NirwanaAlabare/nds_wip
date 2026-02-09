@@ -51,11 +51,16 @@
         <table id="datatable" class="table table-bordered table-striped table-head-fixed 100 text-nowrap">
             <thead>
                 <tr>
-                    <th>Trans #</th>
+                    <th>No BPPB</th>
                     <th>No Req</th>
-                    <th>Tgl. Trans</th>
+                    <th>Tgl BPPB</th>
                     <th>Inv #</th>
                     <th>Jenis Dok</th>
+                    <th>Jenis Pengeluaran</th>
+                    <th>Nomor Aju</th>
+                    <th>Tgl Aju</th>
+                    <th>Nomor Daftar</th>
+                    <th>Tgl Daftar</th>
                     <th>Tujuan</th>
                     <th>Id Item</th>
                     <th>Kode Barang</th>
@@ -66,6 +71,7 @@
                     <th>Qty Good</th>
                     <th>Qty Reject</th>
                     <th>Satuan</th>
+                    <th>Berat Bersih</th>
                     <th>Keterangan</th>
                     <th>Nama User</th>
                     <th>Approve By</th>
@@ -74,8 +80,8 @@
                     <th>Curr</th>
                     <th>Price</th>
                     <th>Ws Actual</th>
-                    <th>Jenis Trans</th>
-                    <th hidden>Jenis Trans</th>
+                    <th>Panel</th>
+                    <th>Color Garment</th>
                 </tr>
             </thead>
             <tbody>
@@ -97,14 +103,17 @@
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
         let datatable = $("#datatable").DataTable({
-            ordering: false,
+            ordering: true,
             processing: true,
-            serverSide: true,
-            paging: false,
+            serverSide: false,
+            paging: true,
             searching: true,
             scrollY: '300px',
             scrollX: '300px',
             scrollCollapse: true,
+            deferLoading: 0,
+            deferRender: true,     // SUPER PENTING
+            scroller: true,
             ajax: {
                 url: '{{ route('lap-det-pengeluaran') }}',
                 data: function(d) {
@@ -126,6 +135,21 @@
                 },
                 {
                     data: 'jenis_dok'
+                },
+                {
+                    data: 'jenis_pengeluaran'
+                },
+                {
+                    data: 'no_aju'
+                },
+                {
+                    data: 'tanggal_aju'
+                },
+                {
+                    data: 'bcno'
+                },
+                {
+                    data: 'bcdate'
                 },
                 {
                     data: 'supplier'
@@ -158,6 +182,9 @@
                     data: 'unit'
                 },
                 {
+                    data: 'berat_bersih'
+                },
+                {
                     data: 'remark'
                 },
                 {
@@ -182,33 +209,18 @@
                     data: 'idws_act'
                 },
                 {
-                    data: 'jenis_trans'
+                    data: 'nama_panel'
                 },
                 {
-                    data: 'cari_data'
+                    data: 'color_gmt'
                 }
             ],
-            columnDefs: [{
-                targets: [11],
-                render: (data, type, row, meta) => data ? data.round(2) : "0.00"
-            },
-            {
-                targets: [12],
-                render: (data, type, row, meta) => data ? data.round(2) : "0.00"
-            },
-            {
-                targets: [13],
-                render: (data, type, row, meta) => data ? data.round(2) : "0.00"
-            },
-            {
-                targets: [21],
-                render: (data, type, row, meta) => data ? data.round(2) : "0.00"
-            },
-            {
-                targets: [24],
-                className: "d-none",
-                render: (data, type, row, meta) => data ? data : "-"
-            },
+            columnDefs: [
+            // {
+            //     targets: [16, 17, 18, 27],
+            //     className: 'text-right',
+            //     render: (data, type, row, meta) => data ? data.round(2) : "0.00"
+            // }
             ]
         });
 

@@ -52,31 +52,41 @@
             <thead>
                 <tr>
                     <th>No BPB</th>
-                    <th>Tgl BPB</th>
-                    <th>No Inv</th>
-                    <th>Jenis Dok</th>
-                    <th>Supplier</th>
-                    <th>No PO</th>
-                    <th>Type</th>
-                    <th>Id Item</th>
-                    <th>Kode Barang</th>
-                    <th>Nama Barang</th>
-                    <th>Warna</th>
-                    <th>Ukuran</th>
-                    <th>Qty BPB</th>
-                    <th>Qty Good</th>
-                    <th>Qty Reject</th>
-                    <th>Satuan</th>
-                    <th>Keterangan</th>
-                    <th>User</th>
-                    <th>Approve By</th>
-                    <th>WS</th>
-                    <th>Style</th>
-                    <th>Curr</th>
-                    <th>Price</th>
-                    <th>Jenis Trans</th>
-                    <th>No Rak</th>
-                    <th hidden>No Rak</th>
+            <th>Tgl BPB</th>
+            <th>No Inv</th>
+            <th>Jenis Dok</th>
+            <th>Tipe Pembelian</th>
+            <th>No Aju</th>
+            <th>Tgl AJu</th>
+            <th>No Daftar</th>
+            <th>Tgl Daftar</th>
+            <th>Supplier</th>
+            <th>No PO</th>
+            <th>Type</th>
+            <th>No Inv/SJ</th>
+            <th>Id Item</th>
+            <th>Kode Barang</th>
+            <th>Nama Barang</th>
+            <th>Warna</th>
+            <th>Ukuran</th>
+            <th>Qty BPB</th>
+            <th>Qty Good</th>
+            <th>Qty Reject</th>
+            <th>Satuan</th>
+            <th>Berat Bersih</th>
+            <th>Keterangan</th>
+            <th>Nama User</th>
+            <th>Approve By</th>
+            <th>WS</th>
+            <th>Style</th>
+            <th>Curr</th>
+            <th>Price</th>
+            <th>Price Act</th>
+            <th>Jenis Trans</th>
+            <th>Reff No</th>
+            <th>No Rak</th>
+            <th>Panel</th>
+            <th>Color Garment</th>
                 </tr>
             </thead>
             <tbody>
@@ -98,14 +108,17 @@
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
         let datatable = $("#datatable").DataTable({
-            ordering: false,
-            processing: true,
-            serverSide: true,
-            paging: false,
-            searching: true,
-            scrollY: '300px',
-            scrollX: '300px',
-            scrollCollapse: true,
+            ordering: true,
+    processing: true,
+    serverSide: false,
+    paging: true,
+    searching: true,
+    scrollY: '300px',
+    scrollX: '300px',
+    scrollCollapse: true,
+    deferLoading: 0,
+    deferRender: true,     // SUPER PENTING
+    scroller: true,
             ajax: {
                 url: '{{ route('lap-det-pemasukan') }}',
                 data: function(d) {
@@ -126,6 +139,21 @@
                     data: 'jenis_dok'
                 },
                 {
+                    data: 'tipe_pembelian'
+                },
+                {
+                    data: 'no_aju'
+                },
+                {
+                    data: 'tgl_aju'
+                },
+                {
+                    data: 'bcno'
+                },
+                {
+                    data: 'bcdate'
+                },
+                {
                     data: 'supplier'
                 },
                 {
@@ -133,6 +161,9 @@
                 },
                 {
                     data: 'tipe_com'
+                },
+                {
+                    data: 'invno'
                 },
                 {
                     data: 'id_item'
@@ -162,6 +193,9 @@
                     data: 'unit'
                 },
                 {
+                    data: 'berat_bersih'
+                },
+                {
                     data: 'remark'
                 },
                 {
@@ -183,21 +217,30 @@
                     data: 'price'
                 },
                 {
+                    data: 'price'
+                },
+                {
                     data: 'jenis_trans'
+                },
+                {
+                    data: 'reffno'
                 },
                 {
                     data: 'rak'
                 },
                 {
-                    data: 'cari_data'
+                    data: 'nama_panel'
                 },
+                {
+                    data: 'color_gmt'
+                }
             ],
             columnDefs: [
-            {
-                targets: [25],
-                className: "d-none",
-                render: (data, type, row, meta) => data ? data : "-"
-            },
+            // {
+            //     targets: [25],
+            //     className: "d-none",
+            //     render: (data, type, row, meta) => data ? data : "-"
+            // },
             ]
         });
 
