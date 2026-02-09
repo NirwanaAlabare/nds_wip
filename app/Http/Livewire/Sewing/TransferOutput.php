@@ -54,6 +54,7 @@ class TransferOutput extends Component
     public $fromSelectedMasterPlan;
     public $toSelectedMasterPlan;
 
+    public $transferNumberingBackDate;
     public $backDateInput;
     public $backDateRft;
     public $backDateDefect;
@@ -105,6 +106,8 @@ class TransferOutput extends Component
         $this->baseUrl = url('/');
 
         $this->outputType = "";
+
+        $this->transferNumberingBackDate = false;
     }
 
     public function checkNumbering()
@@ -283,13 +286,20 @@ class TransferOutput extends Component
                                     ->first();
 
                                 if ($masterPlanRft) {
+                                    $updateArray = [
+                                        "master_plan_id" => $masterPlanRft->id,
+                                        "created_by" => ($this->outputType == '_packing' ? $toUser->username : $toUser->id),
+                                    ];
+                                    // if backdate
+                                    if ($this->transferNumberingBackDate) {
+                                        $updateArray["created_at"] = $this->toDate." 13:00:00";
+                                        $updateArray["updated_at"] = $this->toDate." 13:00:00";
+                                    }
+
                                     DB::connection("mysql_sb")
                                         ->table("output_rfts".$this->outputType)
                                         ->where("id", $rft->id)
-                                        ->update([
-                                            "master_plan_id" => $masterPlanRft->id,
-                                            "created_by" => ($this->outputType == '_packing' ? $toUser->username : $toUser->id),
-                                        ]);
+                                        ->update($updateArray);
 
                                     $messageSuccess .= $o->id_year_sequence." <br> berhasil <br>";
                                 } else {
@@ -315,13 +325,20 @@ class TransferOutput extends Component
                                     ->first();
 
                                 if ($masterPlanDefect) {
+                                    $updateArray = [
+                                        "master_plan_id" => $masterPlanRft->id,
+                                        "created_by" => ($this->outputType == '_packing' ? $toUser->username : $toUser->id),
+                                    ];
+                                    // if backdate
+                                    if ($this->transferNumberingBackDate) {
+                                        $updateArray["created_at"] = $this->toDate." 13:00:00";
+                                        $updateArray["updated_at"] = $this->toDate." 13:00:00";
+                                    }
+
                                     DB::connection("mysql_sb")
                                         ->table("output_defects".$this->outputType)
                                         ->where("id", $defect->id)
-                                        ->update([
-                                            "master_plan_id" => $masterPlanDefect->id,
-                                            "created_by" => ($this->outputType == '_packing' ? $toUser->username : $toUser->id),
-                                        ]);
+                                        ->update($updateArray);
 
                                     $messageSuccess .= $o->id_year_sequence." <br> berhasil <br>";
                                 } else {
@@ -347,13 +364,20 @@ class TransferOutput extends Component
                                     ->first();
 
                                 if ($masterPlanReject) {
+                                    $updateArray = [
+                                        "master_plan_id" => $masterPlanRft->id,
+                                        "created_by" => ($this->outputType == '_packing' ? $toUser->username : $toUser->id),
+                                    ];
+                                    // if backdate
+                                    if ($this->transferNumberingBackDate) {
+                                        $updateArray["created_at"] = $this->toDate." 13:00:00";
+                                        $updateArray["updated_at"] = $this->toDate." 13:00:00";
+                                    }
+
                                     DB::connection("mysql_sb")
                                         ->table("output_rejects".$this->outputType)
                                         ->where("id", $reject->id)
-                                        ->update([
-                                            "master_plan_id" => $masterPlanReject->id,
-                                            "created_by" => ($this->outputType == '_packing' ? $toUser->username : $toUser->id),
-                                        ]);
+                                        ->update($updateArray);
 
                                     $messageSuccess .= $o->id_year_sequence." <br> berhasil <br>";
                                 } else {

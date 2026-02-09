@@ -34,6 +34,6 @@ class TransferOutputController extends Controller
 
         return view('sewing.transfer-output', [
             "page" => "dashboard-sewing-eff"
-        ]); 
+        ]);
     }
 }
