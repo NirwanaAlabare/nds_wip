@@ -282,6 +282,8 @@
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
                             confirmButtonColor: "#082149",
+                        }).then(() => {
+                            $("#act_costing_id_color").val('').trigger("change");
                         });
                     } else {
                         Swal.fire({

@@ -688,6 +688,8 @@ class GeneralController extends Controller
                         UNION ALL
                         SELECT id_ws, color FROM cutting_plan_output ".$idWsFilter."
                         UNION ALL
+                        SELECT master_sb_ws.id_act_cost as act_costing_id, stocker_input.color FROM stocker_input left join master_sb_ws on stocker_input.act_costing_ws = master_sb_ws.ws ".$msbFilter."
+                        UNION ALL
                         SELECT act_costing_id, color FROM stocker_ws_additional ".$ndsFilter."
                         UNION ALL
                         SELECT act_costing_id, color FROM form_cut_piping ".$ndsFilter."
@@ -829,7 +831,7 @@ class GeneralController extends Controller
             }
 
             if ($oi->act_costing_ws && $oi->color) {
-                $updateData = Stocker::where("act_costing_ws", $oi->act_costing_ws)->whereRaw("'".$oi->color."' LIKE CONCAT('%', stocker_input.color, '%')")->update([
+                $updateData = Stocker::where("act_costing_ws", $oi->act_costing_ws)->whereRaw("color LIKE ?", ['%'.$request->colorFrom.'%'])->update([
                     "act_costing_ws" => $oi->act_costing_ws,
                     "color" => $oi->color
                 ]);
