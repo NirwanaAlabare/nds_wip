@@ -78,6 +78,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+function getOneWeekBefore() {
+    let oneWeeksBefore = new Date(new Date().setDate(new Date().getDate() - 7));
+    let oneWeeksBeforeDate = ("0" + oneWeeksBefore.getDate()).slice(-2);
+    let oneWeeksBeforeMonth = ("0" + (oneWeeksBefore.getMonth() + 1)).slice(-2);
+    let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
+    let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
+
+    return oneWeeksBeforeFull;
+}
+
+function getCurrentDate() {
+    let current = new Date();
+    let currentDate = ("0" + current.getDate()).slice(-2);
+    let currentMonth = ("0" + (current.getMonth() + 1)).slice(-2);
+    let currentYear = current.getFullYear();
+    let currentFull = currentYear + '-' + currentMonth + '-' + currentDate;
+
+    return currentFull;
+}
+
 function unique(value, index, array) {
     return array.indexOf(value) === index;
 }

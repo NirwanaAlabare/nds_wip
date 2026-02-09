@@ -56,6 +56,7 @@ use App\Http\Controllers\Cutting\CuttingToolsController;
 // Stocker
 use App\Http\Controllers\Stocker\StockerController;
 use App\Http\Controllers\Stocker\StockerToolsController;
+use App\Http\Controllers\Stocker\StockerRejectController;
 
 // DC
 use App\Http\Controllers\DC\DCInController;
@@ -891,6 +892,13 @@ Route::middleware('auth')->group(function () {
 
         // separate stocker
         Route::post('/separate-stocker', 'separateStocker')->name('separate-stocker');
+    });
+
+    Route::controller(StockerRejectController::class)->prefix('stocker-reject')->middleware('role:stocker,dc')->group(function () {
+        Route::get('/index', 'index')->name('stocker-reject');
+        Route::get('/show/{id?}/{process?}', 'show')->name('show-stocker-reject');
+        Route::get('/create', 'create')->name('create-stocker-reject');
+        Route::post('/print-stocker-process-reject/{id?}', 'printStocker')->name('print-stocker-process-reject');
     });
 
     // Stocker Tools

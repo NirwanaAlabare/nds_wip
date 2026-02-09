@@ -39,11 +39,15 @@ class StockerService
 
         if ($formCutId > 0) {
 
-            $partDetailId     = $filters['partDetailId']    ?? null;
-            $soDetId          = $filters['soDetId']         ?? null;
-            $group            = $filters['group']           ?? null;
-            $groupStocker     = $filters['groupStocker']    ?? null;
-            $multiPartDetail  = $filters['multiPartDetail'] ?? null;
+            $idQrStocker      = $filters['idQrStocker']      ?? null;
+            $multiIdQrStocker = $filters['multiIdQrStocker'] ?? null;
+            $stockerId        = $filters['stockerId']        ?? null;
+            $multiStockerId   = $filters['multiStockerId']   ?? null;
+            $partDetailId     = $filters['partDetailId']     ?? null;
+            $soDetId          = $filters['soDetId']          ?? null;
+            $group            = $filters['group']            ?? null;
+            $groupStocker     = $filters['groupStocker']     ?? null;
+            $multiPartDetail  = $filters['multiPartDetail']  ?? null;
 
             $stockerSql = Stocker::selectRaw("
                     (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
@@ -79,6 +83,18 @@ class StockerService
                 leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
                 where("form_cut_input.status", "SELESAI PENGERJAAN")->
                 where("stocker_input.form_cut_id", $formCutId);
+                if ($stockerId) {
+                    $stockerSql->where("stocker_input.id", $stockerId);
+                }
+                if ($multiStockerId) {
+                    $stockerSql->whereIn("stocker_input.id", $multiStockerId);
+                }
+                if ($idQrStocker) {
+                    $stockerSql->where("stocker_input.id_qr_stocker", $idQrStocker);
+                }
+                if ($multiIdQrStocker) {
+                    $stockerSql->whereIn("stocker_input.id_qr_stocker", $multiIdQrStocker);
+                }
                 if ($multiPartDetail) {
                     $stockerSql->whereIn("part_detail.id", $multiPartDetail);
                 }
