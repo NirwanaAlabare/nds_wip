@@ -914,6 +914,7 @@ order by  ws asc, color asc
 
         return view('cutting.report.export.export_excel_report_mutasi_fabric', [
             'rawData' => $rawData,
+            'tipe' => $tipe,
         ]);
     }
 
