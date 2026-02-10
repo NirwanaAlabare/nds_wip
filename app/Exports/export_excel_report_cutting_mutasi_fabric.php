@@ -36,7 +36,7 @@ class export_excel_report_cutting_mutasi_fabric implements FromView, ShouldAutoS
         $end_date = $this->end_date;
         $tipe = $this->cbotipe;
 
-        if ($tipe == 'barcode') {
+        if ($tipe == 'Barcode') {
             $barcode = 'mut.barcode';
             $group = 'group by barcode, ws, satuan';
         } else {
