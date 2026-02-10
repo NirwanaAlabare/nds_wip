@@ -5,9 +5,7 @@
     <table>
         <thead>
             <tr>
-                <th colspan="{{ $tipe === 'Item' ? 15 : 16 }}" class="text-center">
-                    Report Mutasi Fabric
-                </th>
+                <th colspan="16"> Report Mutasi Fabric</th>
                 {{-- <th colspan="100">LAPORAN DAILY COST {{ date('d-M-Y', strtotime($from)) }} -
                     {{ date('d-M-Y', strtotime($to)) }}</th> --}}
             </tr>
@@ -16,9 +14,7 @@
                 <th class="text-center align-middle">Buyer</th>
                 <th class="text-center align-middle">Style</th>
                 <th class="text-center align-middle">Color</th>
-                @if ($tipe !== 'Item')
-                    <th>Barcode</th>
-                @endif
+                <th class="text-center align-middle">Barcode</th>
                 <th class="text-center align-middle">ID Item</th>
                 <th class="text-center align-middle">Item Name</th>
                 <th class="text-center align-middle">Saldo Awal</th>
@@ -39,9 +35,7 @@
                     <td>{{ $row->buyer }}</td>
                     <td>{{ $row->styleno }}</td>
                     <td>{{ $row->color }}</td>
-                    @if ($tipe !== 'Item')
-                        <td>{{ $row['barcode'] }}</td>
-                    @endif
+                    <td>{{ $row->barcode }}</td>
                     <td class="text-end">{{ $row->id_item }}</td>
                     <td class="text-end">{{ $row->itemdesc }}</td>
                     <td class="text-end">{{ $row->saldo_awal }}</td>

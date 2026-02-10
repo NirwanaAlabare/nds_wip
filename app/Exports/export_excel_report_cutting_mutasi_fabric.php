@@ -913,9 +913,7 @@ order by  ws asc, color asc
         $this->rowCount = count($rawData) + 1; // 1 for header
 
         return view('cutting.report.export.export_excel_report_mutasi_fabric', [
-
             'rawData' => $rawData,
-            'tipe' => $tipe,
         ]);
     }
 
