@@ -45,7 +45,7 @@ class LapDetPemasukanController extends Controller
             //     ";
             // }
 
-            $data_pemasukan = DB::connection('mysql_sb')->select("select bpbno,bpbdate,invno,jenis_dok,no_aju,tgl_aju, bcno, bcdate,supplier,pono,tipe_com,invno,a.id_item,goods_code,itemdesc,color,size, qty, qty_good,qty_reject, unit,berat_bersih, remark,username,confirm_by,curr,price,jenis_trans,reffno,rak,a.id_jo,cp.nama_panel,cp.color_gmt,tmpjo.kpno ws,tmpjo.styleno, if(type_pch is null,'-',type_pch ) tipe_pembelian from (select s.id_gen,a.no_dok bpbno,a.tgl_dok bpbdate,type_bc jenis_dok,right(no_aju,6) no_aju,tgl_aju, lpad(no_daftar,6,'0') bcno,tgl_daftar bcdate,a.supplier,a.no_po pono,z.tipe_com,no_invoice invno,b.id_item,goods_code, itemdesc,s.color,s.size, (b.qty_good + coalesce(b.qty_reject,0)) qty,b.qty_good as qty_good,coalesce(b.qty_reject,0) as qty_reject, b.unit,'' berat_bersih,a.deskripsi remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by,b.curr,if(z.tipe_com ='FOC','0',b.price)price, a.type_pch jenis_trans,'' reffno,lr.rak,b.id_jo,'' no_ws, a.type_pch from whs_inmaterial_fabric a
+            $data_pemasukan = DB::connection('mysql_sb')->select("select bpbno,bpbdate,invno,jenis_dok,no_aju,tgl_aju, bcno, bcdate,supplier,pono,tipe_com,invno,a.id_item,goods_code,itemdesc,color,size, qty, qty_good,qty_reject, unit,berat_bersih, remark,username,confirm_by,curr,price,jenis_trans,reffno,rak,a.id_jo,cp.nama_panel,cp.color_gmt,tmpjo.kpno ws,tmpjo.styleno, if(type_pch is null,'-',type_pch ) tipe_pembelian, IFNULL(idws_act,'-') ws_aktual from (select s.id_gen,a.no_dok bpbno,a.tgl_dok bpbdate,type_bc jenis_dok,right(no_aju,6) no_aju,tgl_aju, lpad(no_daftar,6,'0') bcno,tgl_daftar bcdate,a.supplier,a.no_po pono,z.tipe_com,no_invoice invno,b.id_item,goods_code, itemdesc,s.color,s.size, (b.qty_good + coalesce(b.qty_reject,0)) qty,b.qty_good as qty_good,coalesce(b.qty_reject,0) as qty_reject, b.unit,'' berat_bersih,a.deskripsi remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by,b.curr,if(z.tipe_com ='FOC','0',b.price)price, a.type_pch jenis_trans,'' reffno,lr.rak,b.id_jo,'' no_ws, a.type_pch from whs_inmaterial_fabric a
         inner join whs_inmaterial_fabric_det b on b.no_dok = a.no_dok
         inner join masteritem s on b.id_item=s.id_item
         left join (select no_dok,id_jo,id_item, GROUP_CONCAT(DISTINCT CONCAT(kode_lok,' FABRIC WAREHOUSE RACK')) rak from whs_lokasi_inmaterial  where status = 'Y' group by no_dok,id_jo,id_item) lr on b.no_dok = lr.no_dok and b.id_item = lr.id_item and b.id_jo = lr.id_jo
@@ -63,7 +63,8 @@ class LapDetPemasukanController extends Controller
         left join po_header_draft z on z.id = po.id_draft
         where a.tgl_mut BETWEEN '".$request->dateFrom."' and '".$request->dateTo."') a
         left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) tmpjo on tmpjo.id_jo=a.id_jo
-        left join (select id_jo,a.id_item,group_concat(distinct(nama_panel)) nama_panel, group_concat(distinct(color)) color_gmt from bom_jo_item a left join masterpanel mp on a.id_panel = mp.id left join so_det sd on a.id_so_det = sd.id where status = 'M' and a.cancel = 'N' group by id_item, id_jo) cp on a.id_gen = cp.id_item and a.id_jo = cp.id_jo");
+        left join (select id_jo,a.id_item,group_concat(distinct(nama_panel)) nama_panel, group_concat(distinct(color)) color_gmt from bom_jo_item a left join masterpanel mp on a.id_panel = mp.id left join so_det sd on a.id_so_det = sd.id where status = 'M' and a.cancel = 'N' group by id_item, id_jo) cp on a.id_gen = cp.id_item and a.id_jo = cp.id_jo
+                LEFT JOIN (select bppbno, idws_act from bppb_req where bppbdate >= '2025-01-01' and bppbno like '%RQ-F%' and idws_act is not null GROUP BY bppbno) ws on ws.bppbno = a.invno");
 
 
 //             $data_pemasukan = DB::connection('mysql_sb')->select("
@@ -111,7 +112,7 @@ class LapDetPemasukanController extends Controller
     // ==============================
     // SQL
     // ==============================
-    $sql = "select bpbno,bpbdate,invno,jenis_dok,no_aju,tgl_aju, bcno, bcdate,supplier,pono,tipe_com,invno,a.id_item,goods_code,itemdesc,color,size, qty, qty_good,qty_reject, unit,berat_bersih, remark,username,confirm_by,curr,price,jenis_trans,reffno,rak,a.id_jo,cp.nama_panel,cp.color_gmt,tmpjo.kpno ws,tmpjo.styleno, if(type_pch is null,'-',type_pch ) tipe_pembelian from (select s.id_gen,a.no_dok bpbno,a.tgl_dok bpbdate,type_bc jenis_dok,right(no_aju,6) no_aju,tgl_aju, lpad(no_daftar,6,'0') bcno,tgl_daftar bcdate,a.supplier,a.no_po pono,z.tipe_com,no_invoice invno,b.id_item,goods_code, itemdesc,s.color,s.size, (b.qty_good + coalesce(b.qty_reject,0)) qty,b.qty_good as qty_good,coalesce(b.qty_reject,0) as qty_reject, b.unit,'' berat_bersih,a.deskripsi remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by,b.curr,if(z.tipe_com ='FOC','0',b.price)price, a.type_pch jenis_trans,'' reffno,lr.rak,b.id_jo,'' no_ws, a.type_pch from whs_inmaterial_fabric a
+    $sql = "select bpbno,bpbdate,invno,jenis_dok,no_aju,tgl_aju, bcno, bcdate,supplier,pono,tipe_com,invno,a.id_item,goods_code,itemdesc,color,size, qty, qty_good,qty_reject, unit,berat_bersih, remark,username,confirm_by,curr,price,jenis_trans,reffno,rak,a.id_jo,cp.nama_panel,cp.color_gmt,tmpjo.kpno ws,tmpjo.styleno, if(type_pch is null,'-',type_pch ) tipe_pembelian, IFNULL(idws_act,'-') ws_aktual from (select s.id_gen,a.no_dok bpbno,a.tgl_dok bpbdate,type_bc jenis_dok,right(no_aju,6) no_aju,tgl_aju, lpad(no_daftar,6,'0') bcno,tgl_daftar bcdate,a.supplier,a.no_po pono,z.tipe_com,no_invoice invno,b.id_item,goods_code, itemdesc,s.color,s.size, (b.qty_good + coalesce(b.qty_reject,0)) qty,b.qty_good as qty_good,coalesce(b.qty_reject,0) as qty_reject, b.unit,'' berat_bersih,a.deskripsi remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by,b.curr,if(z.tipe_com ='FOC','0',b.price)price, a.type_pch jenis_trans,'' reffno,lr.rak,b.id_jo,'' no_ws, a.type_pch from whs_inmaterial_fabric a
         inner join whs_inmaterial_fabric_det b on b.no_dok = a.no_dok
         inner join masteritem s on b.id_item=s.id_item
         left join (select no_dok,id_jo,id_item, GROUP_CONCAT(DISTINCT CONCAT(kode_lok,' FABRIC WAREHOUSE RACK')) rak from whs_lokasi_inmaterial  where status = 'Y' group by no_dok,id_jo,id_item) lr on b.no_dok = lr.no_dok and b.id_item = lr.id_item and b.id_jo = lr.id_jo
@@ -129,7 +130,8 @@ class LapDetPemasukanController extends Controller
         left join po_header_draft z on z.id = po.id_draft
         where a.tgl_mut BETWEEN '".$from."' and '".$to."') a
         left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) tmpjo on tmpjo.id_jo=a.id_jo
-        left join (select id_jo,a.id_item,group_concat(distinct(nama_panel)) nama_panel, group_concat(distinct(color)) color_gmt from bom_jo_item a left join masterpanel mp on a.id_panel = mp.id left join so_det sd on a.id_so_det = sd.id where status = 'M' and a.cancel = 'N' group by id_item, id_jo) cp on a.id_gen = cp.id_item and a.id_jo = cp.id_jo";
+        left join (select id_jo,a.id_item,group_concat(distinct(nama_panel)) nama_panel, group_concat(distinct(color)) color_gmt from bom_jo_item a left join masterpanel mp on a.id_panel = mp.id left join so_det sd on a.id_so_det = sd.id where status = 'M' and a.cancel = 'N' group by id_item, id_jo) cp on a.id_gen = cp.id_item and a.id_jo = cp.id_jo
+                LEFT JOIN (select bppbno, idws_act from bppb_req where bppbdate >= '2025-01-01' and bppbno like '%RQ-F%' and idws_act is not null GROUP BY bppbno) ws on ws.bppbno = a.invno";
 
     $data = DB::connection('mysql_sb')->select($sql);
 
@@ -181,6 +183,7 @@ class LapDetPemasukanController extends Controller
         'Nama User',
         'Approve By',
         'WS',
+        'WS Aktual',
         'Style',
         'Curr',
         'Price',
@@ -226,6 +229,7 @@ foreach ($rows as $r) {
         $r['username'] ?? '',
         $r['confirm_by'] ?? '',
         $r['ws'] ?? '',
+        $r['ws_aktual'] ?? '',
         $r['styleno'] ?? '',
         $r['curr'] ?? '',
         round($r['price'] ?? 0, 2),

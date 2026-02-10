@@ -90,12 +90,16 @@
         });
 
         $('#month-filter').on("change", function () {
-            stockerTableReload();
-        })
+            if ($("#month-filter").val() && $("#year-filter").val()) {
+                stockerTableReload();
+            }
+        });
 
         $('#year-filter').on("change", function () {
-            stockerTableReload();
-        })
+            if ($("#month-filter").val() && $("#year-filter").val()) {
+                stockerTableReload();
+            }
+        });
 
         $('#stocker-table thead tr').clone(true).appendTo('#stocker-table thead');
         $('#stocker-table thead tr:eq(1) th').each(function(i) {
@@ -127,7 +131,6 @@
                 },
                 url: '{{ route('track-stocker') }}',
                 dataType: 'json',
-                dataSrc: 'data',
                 data: function(d) {
                     d.month = $('#month-filter').val();
                     d.year = $('#year-filter').val();

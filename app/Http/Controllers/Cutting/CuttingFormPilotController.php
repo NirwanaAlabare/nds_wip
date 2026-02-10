@@ -14,6 +14,7 @@ use App\Models\Cutting\ScannedItem;
 use App\Models\Cutting\CutPlan;
 use App\Models\Part\Part;
 use App\Models\Part\PartForm;
+use App\Services\CuttingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -1306,7 +1307,7 @@ class CuttingFormPilotController extends Controller
         );
     }
 
-    public function storeTimeRecordExtension(Request $request)
+    public function storeTimeRecordExtension(Request $request, CuttingService $cuttingService)
     {
         $lap = 1;
 
@@ -1341,46 +1342,109 @@ class CuttingFormPilotController extends Controller
             "current_sambungan" => "required"
         ]);
 
+        // User
+        $user = Auth::user();
+
+        // Now
+        $now = Carbon::now();
+
         $beforeData = FormCutInputDetail::select('group_roll', 'group_stocker')->where('form_cut_id', $validatedRequest['id'])->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->whereRaw('(form_cut_input_detail.status = "complete" || form_cut_input_detail.status = "need extension" || form_cut_input_detail.status = "extension complete")')->whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->orderBy('created_at', 'desc')->first();
         $groupStocker = $beforeData ? ($beforeData->group_roll  == $validatedRequest['current_group'] ? $beforeData->group_stocker : $beforeData->group_stocker + 1) : 1;
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
 
-        $storeTimeRecordSummary = FormCutInputDetail::
-            updateOrCreate(
-                ["form_cut_input_detail.form_cut_id" => $validatedRequest["id"], 'form_cut_input_detail.no_form_cut_input' => $validatedRequest['no_form_cut_input'], 'form_cut_input_detail.status' => 'extension'],
-                [
-                    "id_roll" => $validatedRequest['current_id_roll'],
-                    "id_item" => $validatedRequest['current_id_item'],
-                    "color_act" => $validatedRequest['color_act'],
-                    "detail_item" => $validatedRequest['detail_item'],
-                    "group_roll" => $validatedRequest['current_group'],
-                    "lot" => $request['current_lot'],
-                    "roll" => $validatedRequest['current_roll'],
-                    "roll_buyer" => $validatedRequest['current_roll_buyer'],
-                    "qty" => $itemQty,
-                    "unit" => $itemUnit,
-                    "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
-                    "sambungan" => $validatedRequest['current_sambungan'],
-                    "sambungan_roll" => $request->current_total_sambungan_roll ? $request->current_total_sambungan_roll : 0,
-                    "est_amparan" => $validatedRequest['current_est_amparan'],
-                    "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
-                    "average_time" => $validatedRequest['current_average_time'],
-                    "kepala_kain" => $validatedRequest['current_kepala_kain'],
-                    "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
-                    "reject" => $validatedRequest['current_reject'],
-                    "sisa_kain" => ($validatedRequest['current_sisa_kain'] ? $validatedRequest['current_sisa_kain'] : 0),
-                    "pemakaian_lembar" => $validatedRequest['current_pemakaian_lembar'],
-                    "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
-                    "short_roll" => $validatedRequest['current_short_roll'],
-                    "piping" => $validatedRequest['current_piping'],
-                    "status" => "extension complete",
-                    "group_stocker" => $groupStocker,
-                    "berat_amparan" => $itemUnit == 'KGM' ? ($request->current_berat_amparan ? $request->current_berat_amparan : 0) : 0,
-                ]
-            );
+        // Get Current Roll Spreading
+        $checkTimeRecord  = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where("status", "extension")->first();
+
+        // Update or Create Roll Spreading
+        $storeTimeRecordSummary = null;
+        if ($checkTimeRecord) {
+            $storeTimeRecordSummary = $checkTimeRecord;
+            $updateTimeRecordSummary = FormCutInputDetail::where("form_cut_id", $validatedRequest['id'])->where("status", "extension")->
+                update(
+                    [
+                        "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
+                        "id_roll" => $validatedRequest['current_id_roll'],
+                        "id_item" => $validatedRequest['current_id_item'],
+                        "color_act" => $validatedRequest['color_act'],
+                        "detail_item" => $validatedRequest['detail_item'],
+                        "group_roll" => $validatedRequest['current_group'],
+                        "lot" => $request['current_lot'],
+                        "roll" => $validatedRequest['current_roll'],
+                        "roll_buyer" => $validatedRequest['current_roll_buyer'],
+                        "qty" => $itemQty,
+                        "unit" => $itemUnit,
+                        "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
+                        "sambungan" => $validatedRequest['current_sambungan'],
+                        "sambungan_roll" => $request->current_total_sambungan_roll ? $request->current_total_sambungan_roll : 0,
+                        "est_amparan" => $validatedRequest['current_est_amparan'],
+                        "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
+                        "average_time" => $validatedRequest['current_average_time'],
+                        "kepala_kain" => $validatedRequest['current_kepala_kain'],
+                        "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
+                        "reject" => $validatedRequest['current_reject'],
+                        "sisa_kain" => ($validatedRequest['current_sisa_kain'] ? $validatedRequest['current_sisa_kain'] : 0),
+                        "pemakaian_lembar" => $validatedRequest['current_pemakaian_lembar'],
+                        "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
+                        "short_roll" => $validatedRequest['current_short_roll'],
+                        "piping" => $validatedRequest['current_piping'],
+                        "status" => "extension complete",
+                        "metode" => $request->metode ? $request->metode : "scan",
+                        "group_stocker" => $groupStocker,
+                        "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
+                        "updated_at" => $now,
+                    ]
+                );
+        } else {
+            // Prevent redundant
+            $checkSimilarTimeRecord = DB::table("form_cut_input_detail")->where("form_cut_id", $request->id)->where("id_roll", $request->current_id_roll)->where("qty", $itemQty)->first();
+            if (!$checkSimilarTimeRecord || !$validatedRequest['current_id_roll']) {
+                $storeTimeRecordSummary = FormCutInputDetail::
+                    create(
+                        [
+                            "form_cut_id" => $validatedRequest['id'],
+                            "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
+                            "id_roll" => $validatedRequest['current_id_roll'],
+                            "id_item" => $validatedRequest['current_id_item'],
+                            "color_act" => $validatedRequest['color_act'],
+                            "detail_item" => $validatedRequest['detail_item'],
+                            "group_roll" => $validatedRequest['current_group'],
+                            "lot" => $request['current_lot'],
+                            "roll" => $validatedRequest['current_roll'],
+                            "roll_buyer" => $validatedRequest['current_roll_buyer'],
+                            "qty" => $itemQty,
+                            "unit" => $itemUnit,
+                            "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
+                            "sambungan" => $validatedRequest['current_sambungan'],
+                            "sambungan_roll" => $request->current_total_sambungan_roll ? $request->current_total_sambungan_roll : 0,
+                            "est_amparan" => $validatedRequest['current_est_amparan'],
+                            "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
+                            "average_time" => $validatedRequest['current_average_time'],
+                            "kepala_kain" => $validatedRequest['current_kepala_kain'],
+                            "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
+                            "reject" => $validatedRequest['current_reject'],
+                            "sisa_kain" => ($validatedRequest['current_sisa_kain'] ? $validatedRequest['current_sisa_kain'] : 0),
+                            "pemakaian_lembar" => $validatedRequest['current_pemakaian_lembar'],
+                            "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
+                            "short_roll" => $validatedRequest['current_short_roll'],
+                            "piping" => $validatedRequest['current_piping'],
+                            "status" => "extension complete",
+                            "metode" => $request->metode ? $request->metode : "scan",
+                            "group_stocker" => $groupStocker,
+                            "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
+                            "created_by" => $user ? $user->id : null,
+                            "created_by_username" => $user ? $user->username : null,
+                            "created_at" => $now,
+                            "updated_at" => $now,
+                        ]
+                    );
+            }
+        }
 
         if ($storeTimeRecordSummary) {
+            // Delete Redundant if it still passed the prevention attempt
+            $cuttingService->deleteRedundant($storeTimeRecordSummary->form_cut_id, $storeTimeRecordSummary->id_roll, $storeTimeRecordSummary->qty, $storeTimeRecordSummary->status);
+
             $sambunganRoll = $request['sambungan_roll'] ? array_filter($request['sambungan_roll'], function ($var) {
                 return ($var > 0);
             }) : [];
@@ -1417,8 +1481,6 @@ class CuttingFormPilotController extends Controller
                 ]
             );
 
-            $now = Carbon::now();
-
             if ($lap > 0) {
                 $storeTimeRecordLap = FormCutInputDetailLap::updateOrCreate(
                     ["form_cut_input_detail_id" => $storeTimeRecordSummary->id, "lembar_gelaran_ke" => $lap],
@@ -1428,6 +1490,8 @@ class CuttingFormPilotController extends Controller
                 );
 
                 if ($storeTimeRecordLap) {
+                    $postNow = $now->addSecond();
+
                     $storeTimeRecordSummaryNext = FormCutInputDetail::create([
                         "form_cut_id" => $validatedRequest['id'],
                         "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
@@ -1445,6 +1509,8 @@ class CuttingFormPilotController extends Controller
                         "status" => "not complete",
                         "metode" => $request->metode ? $request->metode : null,
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
+                        "created_at" => $postNow,
+                        "updated_at" => $postNow,
                     ]);
 
                     return array(

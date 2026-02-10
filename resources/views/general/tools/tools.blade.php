@@ -38,6 +38,15 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#updateGeneralOrderColorModal">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Update General Order Color</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -68,6 +77,43 @@
             </div>
         </div>
     </div>
+
+    {{-- Update General Order Color Modal --}}
+    <div class="modal fade" id="updateGeneralOrderColorModal" tabindex="-1" aria-labelledby="updateGeneralOrderColorModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="updateGeneralOrderColorModalLabel">Update General Order Color</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="order_number" class="form-label">No. WS</label>
+                        <select class="form-select select2bs4updategeneralcolor" name="act_costing_id_color" id="act_costing_id_color" onchange="getOrderColorListTo(); getOrderColorListFrom();">
+                            <option value="">Pilih WS</option>
+                            @foreach ($orders as $order)
+                                <option value="{{ $order->act_costing_id }}">{{ $order->act_costing_ws }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">From</label>
+                        <select class="form-select select2bs4updategeneralcolor" name="color_from" id="color_from" >
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">To</label>
+                        <select class="form-select select2bs4updategeneralcolor" name="color_to" id="color_to" >
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sb-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-sb" onclick="updateGeneralOrderColor()">UPDATE</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -93,6 +139,11 @@
         $('.select2bs4updategeneralorder').select2({
             theme: 'bootstrap4',
             dropdownParent: $("#updateGeneralOrderModal")
+        });
+
+        $('.select2bs4updategeneralcolor').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#updateGeneralOrderColorModal")
         });
 
         function updateGeneralOrder() {
@@ -145,6 +196,113 @@
             });
         }
 
+        function getOrderColorListFrom() {
+            $('#color_from').empty();
+
+            $.ajax({
+                type: "post",
+                url: "{{ route('get-general-order-color-from') }}",
+                data: {
+                    id: $('#act_costing_id_color').val()
+                },
+                dataType: "json",
+                success: function (response) {
+                    console.log(response);
+
+                    if (response.length > 0) {
+                        response[0].colors.split(', ').forEach(color => {
+                            $('#color_from').append(new Option(color, color));
+                        });
+                    }
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
+                }
+            });
+        }
+
+        function getOrderColorListTo() {
+            $('#color_to').empty();
+
+            $.ajax({
+                type: "post",
+                url: "{{ route('get-general-order-color-to') }}",
+                data: {
+                    id: $('#act_costing_id_color').val()
+                },
+                dataType: "json",
+                success: function (response) {
+                    console.log(response);
+
+                    if (response.length > 0) {
+                        response[0].colors.split(', ').forEach(color => {
+                            $('#color_to').append(new Option(color, color));
+                        });
+                    }
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
+                }
+            });
+        }
+
+        function updateGeneralOrderColor() {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Fixing Data...  <br><br> <b>0</b>s elapsed...',
+                didOpen: () => {
+                    Swal.showLoading();
+
+                    let estimatedTime = 0;
+                    const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                    estimatedTimeInterval = setInterval(() => {
+                        estimatedTime++;
+                        estimatedTimeElement.textContent = estimatedTime;
+                    }, 1000);
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "post",
+                url: "{{ route('update-general-order-color') }}",
+                data: {
+                    id: $('#act_costing_id_color').val(),
+                    colorFrom: $('#color_from').val(),
+                    colorTo: $('#color_to').val()
+                },
+                dataType: "json",
+                success: function (response) {
+                    if (response.status == 200) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'INFO',
+                            html: response.message,
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                            confirmButtonColor: "#082149",
+                        }).then(() => {
+                            $("#act_costing_id_color").val('').trigger("change");
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            html: 'Terjadi kesalahan',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                            confirmButtonColor: "#082149",
+                        });
+                    }
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
+                }
+            });
+        }
+
         function updateMasterSbWs() {
             Swal.fire({
                 title: 'Update Master SB',
@@ -155,48 +313,50 @@
                 cancelButtonText: 'BATAL',
                 confirmButtonColor: "#dc3545"
             }).then((result) => {
-                document.getElementById("loading").classList.remove("d-none");
+                if (result.isConfirmed) {
+                    document.getElementById("loading").classList.remove("d-none");
 
-                $.ajax({
-                    type: "post",
-                    url: "{{ route('update-master-sb-ws') }}",
-                    dataType: "json",
-                    success: function (response) {
-                        document.getElementById("loading").classList.add("d-none");
+                    $.ajax({
+                        type: "post",
+                        url: "{{ route('update-master-sb-ws') }}",
+                        dataType: "json",
+                        success: function (response) {
+                            document.getElementById("loading").classList.add("d-none");
 
-                        if (response) {
-                            Swal.fire({
-                                icon: 'info',
-                                title: 'INFO',
-                                html:
-                                    "Deleted '"+response.deleted+"'' rows <br>"+
-                                    "Inserted '"+response.inserted+"'' rows <br>"+
-                                    "Updated '"+response.updated+"'' rows <br>",
-                                showCancelButton: false,
-                                showConfirmButton: true,
-                                confirmButtonText: 'Oke',
-                                confirmButtonColor: "#082149",
-                            });
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal',
-                                html: 'Terjadi kesalahan',
-                                showCancelButton: false,
-                                showConfirmButton: true,
-                                confirmButtonText: 'Oke',
-                                confirmButtonColor: "#082149",
-                            });
+                            if (response) {
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: 'INFO',
+                                    html:
+                                        "Deleted '"+response.deleted+"'' rows <br>"+
+                                        "Inserted '"+response.inserted+"'' rows <br>"+
+                                        "Updated '"+response.updated+"'' rows <br>",
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    confirmButtonColor: "#082149",
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    html: 'Terjadi kesalahan',
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    confirmButtonColor: "#082149",
+                                });
+                            }
+
+                            console.log(response);
+                        },
+                        error: function (jqXHR) {
+                            document.getElementById("loading").classList.add("d-none");
+
+                            console.error(jqXHR);
                         }
-
-                        console.log(response);
-                    },
-                    error: function (jqXHR) {
-                        document.getElementById("loading").classList.add("d-none");
-
-                        console.error(jqXHR);
-                    }
-                });
+                    });
+                }
             })
         }
     </script>

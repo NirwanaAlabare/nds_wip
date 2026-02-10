@@ -551,6 +551,7 @@ class LoadingLineController extends Controller
                 stocker_input.form_piece_id,
                 stocker_input.so_det_id,
                 stocker_input.range_awal,
+                stocker_input.stocker_reject,
                 FIELD(part_detail.part_status, 'main', 'regular', 'complement') ASC
         "));
 
@@ -755,7 +756,8 @@ class LoadingLineController extends Controller
                             stocker_input.form_piece_id,
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
-                            stocker_input.ratio
+                            stocker_input.ratio,
+                            stocker_input.stocker_reject
                         ORDER BY
                             FIELD(part_detail.part_status, 'main', 'regular', 'complement') ASC
                     ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
@@ -869,7 +871,8 @@ class LoadingLineController extends Controller
                         stocker_input.form_piece_id,
                         stocker_input.so_det_id,
                         stocker_input.group_stocker,
-                        stocker_input.ratio
+                        stocker_input.ratio,
+                        stocker_input.stocker_reject
                     ORDER BY
                         FIELD(part_detail.part_status, 'main', 'regular', 'complement') ASC
                 ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
@@ -1034,7 +1037,8 @@ class LoadingLineController extends Controller
                             stocker_input.form_piece_id,
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
-                            stocker_input.ratio
+                            stocker_input.ratio,
+                            stocker_input.stocker_reject
                         ORDER BY
                             FIELD(part_detail.part_status, 'main', 'regular', 'complement') ASC
                     ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
@@ -1111,7 +1115,7 @@ class LoadingLineController extends Controller
                 leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
                 leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
                 whereIn("stocker_input.id", $allStockerIds)->
-                groupBy('stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.form_piece_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
+                groupBy('stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.form_piece_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio', 'stocker_input.stocker_reject')->
                 get();
 
             return DataTables::of($loadingLines)->toJson();
@@ -1135,6 +1139,7 @@ class LoadingLineController extends Controller
                 where("stocker_input.so_det_id", $stockerData->so_det_id)->
                 where("stocker_input.group_stocker", $stockerData->group_stocker)->
                 where("stocker_input.ratio", $stockerData->ratio)->
+                where("stocker_input.stocker_reject", $stockerData->stocker_reject)->
                 get();
 
             array_push($allLoadingLineIds, ...$similarStockerData->pluck('id')->toArray());
@@ -1230,6 +1235,7 @@ class LoadingLineController extends Controller
                 where("stocker_input.so_det_id", $stockerData->so_det_id)->
                 where("stocker_input.group_stocker", $stockerData->group_stocker)->
                 where("stocker_input.ratio", $stockerData->ratio)->
+                where("stocker_input.stocker_reject", $stockerData->stocker_reject)->
                 get();
 
             array_push($stockerIds, ...$similarStockerData->pluck('id')->toArray());

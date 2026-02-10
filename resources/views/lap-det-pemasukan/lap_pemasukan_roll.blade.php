@@ -68,6 +68,7 @@
                     <th>Id Item</th>
                     <th>Id Jo</th>
                     <th>No WS</th>
+                    <th>No WS Aktual</th>
                     <th>Kode Barang</th>
                     <th>Nama Barang</th>
                     <th>Warna</th>
@@ -168,6 +169,9 @@
                 },
                 {
                     data: 'no_ws'
+                },
+                {
+                    data: 'ws_aktual'
                 },
                 {
                     data: 'goods_code'

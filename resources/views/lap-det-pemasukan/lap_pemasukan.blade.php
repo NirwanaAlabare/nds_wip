@@ -78,6 +78,7 @@
             <th>Nama User</th>
             <th>Approve By</th>
             <th>WS</th>
+            <th>WS Aktual</th>
             <th>Style</th>
             <th>Curr</th>
             <th>Price</th>
@@ -206,6 +207,9 @@
                 },
                 {
                     data: 'ws'
+                },
+                {
+                    data: 'ws_aktual'
                 },
                 {
                     data: 'styleno'
