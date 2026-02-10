@@ -172,6 +172,11 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
 
         $tanggal_saldo_awal = '2026-01-01';
 
+        $tgl_saldo_akhir = date(
+            'Y-m-d',
+            strtotime($tgl_awal . ' -1 day')
+        );
+
 
         $data_mut = DB::select("
                 WITH trx_union AS (
@@ -185,8 +190,9 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                         0 pc_saldo_awal, 0 pc_terima, 0 pc_keluar
                     FROM signalbit_erp.output_rfts_packing_po
                     WHERE so_det_id IS NOT NULL
-                    AND updated_at BETWEEN '{$tanggal_saldo_awal} 00:00:00'
-                                        AND '{$tgl_awal} 23:59:59'
+                   AND updated_at BETWEEN '{$tanggal_saldo_awal} 00:00:00'
+                    AND '{$tgl_saldo_akhir} 23:59:59'
+
                     GROUP BY so_det_id
 
                     UNION ALL
@@ -219,7 +225,8 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                     FROM laravel_nds.packing_trf_garment
                     WHERE id_so_det IS NOT NULL
                     AND tgl_trans BETWEEN '{$tanggal_saldo_awal} 00:00:00'
-                                        AND '{$tgl_awal} 23:59:59'
+                                AND '{$tgl_saldo_akhir} 23:59:59'
+
                     GROUP BY id_so_det
 
                     UNION ALL
@@ -257,7 +264,8 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                         FROM laravel_nds.packing_packing_in
                         WHERE id_so_det IS NOT NULL
                         AND tgl_penerimaan BETWEEN '{$tanggal_saldo_awal} 00:00:00'
-                                            AND '{$tgl_awal} 23:59:59'
+                                        AND '{$tgl_saldo_akhir} 23:59:59'
+
                         GROUP BY id_so_det
                           /* =================
                         UNION ALL
