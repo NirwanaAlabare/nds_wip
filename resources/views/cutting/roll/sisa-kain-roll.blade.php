@@ -87,6 +87,8 @@
                                 <th>Sisa Kain</th>
                                 <th>Status</th>
                                 <th>Waktu</th>
+                                <th>Edited By</th>
+                                <th>Edited At</th>
                             </tr>
                         </thead>
                     </table>
@@ -320,6 +322,12 @@
                     {
                         data: "updated_at"
                     },
+                    {
+                        data: "edited_by_username"
+                    },
+                    {
+                        data: "edited_at"
+                    },
                 ],
                 columnDefs: [
                     {
@@ -368,7 +376,9 @@
                     {
                         targets: [9],
                         render: (data, type, row, meta) => {
-                            return formatDateTime(data);
+                            if (isNotNull(data) ) {
+                                return formatDateTime(data);
+                            }
                         }
                     },
                     {

@@ -295,11 +295,28 @@ class CompletedFormController extends Controller
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
 
+        // Get Current Roll
         $currentFormCutDetail = FormCutInputDetail::where('form_cut_id', $validatedRequest['id'])->
             where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->
             where('id', $validatedRequest['current_id'])->
             first();
 
+        // Check next roll qty as sisa kain
+        $checkNextFormCutDetail = FormCutInputDetail::where("id_roll", $currentFormCutDetail->id_roll)->where("created_at", ">", $currentFormCutDetail->created_at)->
+            where("id", "!=", $currentFormCutDetail->id)->
+            orderBy("created_at", "asc")->
+            first();
+        if ($checkNextFormCutDetail) {
+            // Fail when sisa_kain is less than next roll qty
+            if ($validatedRequest['current_sisa_kain'] < $checkNextFormCutDetail->qty) {
+                return array(
+                    "status" => 400,
+                    "message" => "Sisa Kain tidak bisa lebih kecil dari <br> Form : ".($checkNextFormCutDetail->no_form_cut_input ? $checkNextFormCutDetail->no_form_cut_input : ($checkNextFormCutDetail->formCutInput ? $checkNextFormCutDetail->formCutInput->no_form : '-'))." <br> Qty : ".$checkNextFormCutDetail->qty." ".$checkNextFormCutDetail->unit."",
+                );
+            }
+        }
+
+        // Update time record summary
         $updateTimeRecordSummary = FormCutInputDetail::where('form_cut_id', $validatedRequest['id'])->
             where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->
             where('id', $validatedRequest['current_id'])->

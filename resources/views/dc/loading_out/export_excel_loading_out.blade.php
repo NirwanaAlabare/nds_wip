@@ -5,7 +5,7 @@
     <table>
         <thead>
             <tr>
-                <th colspan="14"> Report Loading Out</th>
+                <th colspan="15"> Report Loading Out</th>
                 {{-- <th colspan="100">LAPORAN DAILY COST {{ date('d-M-Y', strtotime($from)) }} -
                     {{ date('d-M-Y', strtotime($to)) }}</th> --}}
             </tr>
@@ -14,6 +14,7 @@
                 <th class="text-center align-middle">Tgl. Form</th>
                 <th class="text-center align-middle">PO</th>
                 <th class="text-center align-middle">Item</th>
+                <th class="text-center align-middle">Part</th>
                 <th class="text-center align-middle">Supplier</th>
                 <th class="text-center align-middle">Jenis Dok</th>
                 <th class="text-center align-middle">Jenis Pengeluaran</th>
@@ -33,6 +34,7 @@
                     <td>{{ $row->tgl_form_fix }}</td>
                     <td>{{ $row->pono }}</td>
                     <td>{{ $row->itemdesc }}</td>
+                    <td>{{ $row->nama_part }}</td>
                     <td>{{ $row->supplier }}</td>
                     <td>{{ $row->jns_dok }}</td>
                     <td>{{ $row->jns_pengeluaran }}</td>

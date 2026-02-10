@@ -42,6 +42,17 @@
 
         <div class="card-body">
             <div class="row align-items-end g-3 mb-3">
+                <div class="col-md-2">
+                    <label class="form-label">
+                        <small><b>Tipe</b></small>
+                    </label>
+                    <select class="form-control form-control-sm select2bs4" id="cbotipe" name="cbotipe"
+                        style="width: 100%;">
+                        <option value="">-- Pilih --</option>
+                        <option value="Barcode">Barcode</option>
+                        <option value="Item">ID Item</option>
+                    </select>
+                </div>
                 <!-- Start Date -->
                 <div class="col-md-2">
                     <label class="form-label">
@@ -82,6 +93,7 @@
                             <th class="text-center align-middle">Buyer</th>
                             <th class="text-center align-middle">Style</th>
                             <th class="text-center align-middle">Color</th>
+                            <th class="text-center align-middle">Barcode</th>
                             <th class="text-center align-middle">ID Item</th>
                             <th class="text-center align-middle">Item Name</th>
                             <th class="text-center align-middle">Saldo Awal</th>
@@ -95,6 +107,25 @@
                             <th class="text-center align-middle">Satuan</th>
                         </tr>
                     </thead>
+                    <tfoot>
+                        <tr>
+                            <th colspan="4" class="text-end">Total</th>
+                            <th></th> <!-- Barcode -->
+                            <th></th> <!-- ID Item -->
+                            <th></th> <!-- Item Name -->
+                            <th class="text-end"></th> <!-- Saldo Awal -->
+                            <th class="text-end"></th> <!-- Penerimaan -->
+                            <th class="text-end"></th> <!-- Pemakaian -->
+                            <th class="text-end"></th> <!-- Short Roll -->
+                            <th class="text-end"></th> <!-- Ganti Reject Set -->
+                            <th class="text-end"></th> <!-- Ganti Reject Panel -->
+                            <th class="text-end"></th> <!-- Retur -->
+                            <th class="text-end"></th> <!-- Saldo Akhir -->
+                            <th class="text-center"></th> <!-- Satuan -->
+                        </tr>
+                    </tfoot>
+
+
                 </table>
             </div>
 
@@ -145,14 +176,16 @@
         $(document).ready(function() {
             $('#start_date').val('').trigger('change');
             $('#end_date').val('').trigger('change');
-            dataTableReload()
+            $('#cbotipe').val('').trigger('change');
+            dataTableReload();
         });
 
         function dataTableReload() {
             let start_date = $('#start_date').val();
             let end_date = $('#end_date').val();
+            let cbotipe = $('#cbotipe').val();
 
-            if (start_date && end_date) {
+            if (start_date && end_date && cbotipe) {
                 Swal.fire({
                     title: 'Loading...',
                     text: 'Please wait while data is loading.',
@@ -161,12 +194,12 @@
                 });
             }
 
-            const table = $('#datatable').DataTable({
+            table = $('#datatable').DataTable({
                 destroy: true,
                 ordering: false,
                 responsive: false,
                 serverSide: false,
-                paging: false,
+                paging: true,
                 searching: true,
 
                 scrollX: true,
@@ -183,9 +216,10 @@
                     data(d) {
                         d.start_date = start_date;
                         d.end_date = end_date;
+                        d.cbotipe = cbotipe;
                     },
                     dataSrc(json) {
-                        if (start_date && end_date) Swal.close();
+                        if (start_date && end_date && cbotipe) Swal.close();
                         return json.data;
                     },
                     error() {
@@ -206,21 +240,25 @@
                         data: 'color'
                     },
                     {
+                        data: 'barcode',
+                        visible: cbotipe !== 'Item'
+                    },
+                    {
                         data: 'id_item',
                     },
                     {
                         data: 'itemdesc'
                     },
                     {
-                        data: 'qty_sawal',
+                        data: 'saldo_awal',
                         className: 'text-end'
                     },
                     {
-                        data: 'qty_out',
+                        data: 'penerimaan',
                         className: 'text-end'
                     },
                     {
-                        data: 'qty_pakai',
+                        data: 'pemakaian',
                         className: 'text-end'
                     },
                     {
@@ -228,15 +266,15 @@
                         className: 'text-end'
                     },
                     {
-                        data: 'qty_reject_set',
+                        data: 'gr_set',
                         className: 'text-end'
                     },
                     {
-                        data: 'qty_reject_panel',
+                        data: 'gr_panel',
                         className: 'text-end'
                     },
                     {
-                        data: 'qty_retur',
+                        data: 'retur',
                         className: 'text-end'
                     },
                     {
@@ -254,7 +292,37 @@
                     setTimeout(() => {
                         this.api().columns.adjust();
                     }, 100);
+                },
+
+                footerCallback: function(row, data, start, end, display) {
+                    var api = this.api();
+
+                    // helper function untuk parse angka
+                    var intVal = function(i) {
+                        return typeof i === 'string' ?
+                            i.replace(/[\$,]/g, '') * 1 :
+                            typeof i === 'number' ?
+                            i :
+                            0;
+                    };
+
+                    // daftar kolom numerik (index sesuai columns di DataTables)
+                    var colsToSum = [7, 8, 9, 10, 11, 12, 13, 14]; // saldo_awal ... saldo_akhir
+
+                    colsToSum.forEach(function(colIndex) {
+                        var total = api
+                            .column(colIndex, {
+                                page: 'current'
+                            })
+                            .data()
+                            .reduce(function(a, b) {
+                                return intVal(a) + intVal(b);
+                            }, 0);
+
+                        $(api.column(colIndex).footer()).html(total.toLocaleString());
+                    });
                 }
+
             });
 
             // 🔥 FIX ZOOM IN / OUT
@@ -267,6 +335,7 @@
         function export_excel() {
             let start_date = $('#start_date').val();
             let end_date = $('#end_date').val();
+            let cbotipe = $('#cbotipe').val();
             Swal.fire({
                 title: 'Please Wait...',
                 html: 'Exporting Data...',
@@ -281,7 +350,8 @@
                 url: '{{ route('export_excel_report_cutting_mutasi_fabric') }}',
                 data: {
                     start_date: start_date,
-                    end_date: end_date
+                    end_date: end_date,
+                    cbotipe: cbotipe
                 },
                 xhrFields: {
                     responseType: 'blob'

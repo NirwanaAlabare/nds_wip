@@ -1328,7 +1328,9 @@ class RollController extends Controller
                 MIN( CASE WHEN form_cut_input_detail.status = 'extension' OR form_cut_input_detail.status = 'extension complete' THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll ELSE form_cut_input_detail.sisa_kain END ) sisa_kain,
                 form_cut_input.status status_form,
                 form_cut_input_detail.status,
-                COALESCE ( form_cut_input_detail.updated_at, form_cut_input_detail.created_at ) updated_at,
+                COALESCE ( form_cut_input_detail.created_at, form_cut_input_detail.updated_at ) updated_at,
+                COALESCE ( form_cut_input_detail.edited_by_username, '-' ) edited_by_username,
+                COALESCE ( form_cut_input_detail.edited_at, '-' ) edited_at,
                 'REGULAR' as tipe
             FROM
                 `form_cut_input_detail`
@@ -1356,6 +1358,8 @@ class RollController extends Controller
                 form_cut_piece.status status_form,
                 form_cut_piece_detail.status,
                 COALESCE ( form_cut_piece_detail.updated_at, form_cut_piece_detail.created_at ) updated_at,
+                '-' edited_by_username,
+                '-' edited_at,
                 'PIECE' as tipe
             FROM
                 `form_cut_piece_detail`
@@ -1383,6 +1387,8 @@ class RollController extends Controller
                 '-' status_form,
                 '-' status,
                 COALESCE ( form_cut_piping.updated_at, form_cut_piping.created_at ) updated_at,
+                '-' edited_by_username,
+                '-' edited_at,
                 'PIPING' as tipe
             FROM
                 `form_cut_piping`
@@ -1393,8 +1399,8 @@ class RollController extends Controller
             GROUP BY
                 `form_cut_piping`.`id`
             ORDER BY
-                no_cut,
-                updated_at
+                updated_at asc,
+                no_cut asc
         ");
 
         return DataTables::of($forms)->toJson();
