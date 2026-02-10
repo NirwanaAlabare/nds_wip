@@ -411,7 +411,7 @@
                             </ul>
                         </li>
                         @endrole
-                        @role('superadmin')
+                        @role('dc')
                             <li class="nav-item dropdown">
                                 <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'stocker-reject' ? 'active' : '' }}">Reject</a>
                                 <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">

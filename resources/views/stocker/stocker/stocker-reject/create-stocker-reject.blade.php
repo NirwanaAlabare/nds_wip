@@ -151,11 +151,12 @@
                     // store to input text
                     // let breakDecodedText = decodedText.split('-');
 
-                    document.getElementById('id_qr_stocker').value = decodedText;
+                    document.getElementById('stocker').value = decodedText;
 
-                    scanqr();
+                    getStocker();
 
-                    html5QrcodeScanner.clear();
+                    // html5QrcodeScanner.clear();
+                    initScan();
                 }
 
                 function onScanFailure(error) {
@@ -261,6 +262,13 @@
             $("#part").val('');
             $("#process").val('-').trigger('change');
         }
+
+        document.getElementById("stocker").addEventListener("keyup", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                getStocker();
+            }
+        });
 
         // Stocker Reject Datatable
         let stockerRejectTable = $("#stocker-reject-table").DataTable({
