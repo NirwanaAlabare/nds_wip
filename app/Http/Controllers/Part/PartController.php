@@ -1560,7 +1560,7 @@ class PartController extends Controller
                 'status' => 200,
                 'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> berhasil dihapus. <br> "'.$partDetail->id.'"',
                 'redirect' => '',
-                'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part_complement',
+                'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
                 'additional' => [],
             );
         }

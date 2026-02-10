@@ -2157,11 +2157,23 @@
                     data: dataObj,
                     success: async function(res) {
                         if (res) {
-                            await clearSpreadingForm();
+                            if (res.status == 200) {
+                                await clearSpreadingForm();
 
-                            await getSummary(true);
+                                await getSummary(true);
 
-                            await finishProcess();
+                                await finishProcess();
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: res.message ?? 'Terjadi Kesalahan',
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    confirmButtonColor: "#6531a0",
+                                });
+
+                                document.getElementById("loading").classList.add("d-none");
+                            }
                         } else {
                             document.getElementById("loading").classList.add("d-none");
                         }

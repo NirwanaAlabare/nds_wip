@@ -1016,6 +1016,8 @@ class CuttingFormManualController extends Controller
             "current_piping" => "required",
             "current_sambungan" => "required",
             "p_act" => "required",
+        ],[
+            'required' => 'Harap tentukan :attribute.',
         ]);
 
         $user = Auth::user();
@@ -1699,10 +1701,13 @@ class CuttingFormManualController extends Controller
             where("form_cut_input.status", "SELESAI PENGERJAAN")->
             count();
 
+        $finishTime = $request->finishTime;
+        $waktuSelesai = (empty($finishTime) || !strtotime($finishTime)) ? Carbon::now() : Carbon::parse($finishTime);
+
         $updateFormCutInput = FormCutInput::where("id", $id)->update([
             "no_meja" => $request->no_meja,
             "status" => "SELESAI PENGERJAAN",
-            "waktu_selesai" => $request->finishTime,
+            "waktu_selesai" => $waktuSelesai,
             "cons_act" => $request->consAct,
             "unit_cons_act" => $request->unitConsAct,
             "cons_act_nosr" => $request->consActNoSr,
