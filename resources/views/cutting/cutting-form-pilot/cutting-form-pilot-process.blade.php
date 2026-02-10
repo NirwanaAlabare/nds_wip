@@ -1529,7 +1529,7 @@
                             let i = 0;
 
                             for (let key in res.errors) {
-                                message = res.errors[key];
+                                message += res.errors[key]+"<br>";
                                 document.getElementById(key).classList.add('is-invalid');
                                 modified.push(
                                     [key, '.classList', '.remove(', "'is-invalid')"],
@@ -1540,6 +1540,15 @@
                                     i++;
                                 }
                             };
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                html: message,
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
                         }
                     });
                 } else {
@@ -1591,7 +1600,7 @@
                             let i = 0;
 
                             for (let key in res.errors) {
-                                message = res.errors[key];
+                                message += res.errors[key]+"<br>";
                                 document.getElementById(key).classList.add('is-invalid');
                                 modified.push(
                                     [key, '.classList', '.remove(', "'is-invalid')"],
@@ -1602,6 +1611,15 @@
                                     i++;
                                 }
                             };
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                html: message,
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
                         }
                     });
                 }
@@ -3144,11 +3162,20 @@
             // -Update Ply Progress-
             function updatePlyProgress() {
                 let currentLembar = Number($("#current_lembar_gelaran").val());
-                let qtyPly = Number($("#qty_ply").val());
+                let qtyPly = Number($("#gelar_qty").val());
 
-                document.getElementById("current_ply_progress_txt").innerText = (totalLembar + currentLembar) + "/" + qtyPly;
-                document.getElementById("current_ply_progress").style.width = Number(qtyPly) > 0 ? (Number( totalLembar + currentLembar) / Number(qtyPly) * 100) + "%" : "0%";
+                document.getElementById("current_ply_progress_txt").innerText = ((totalLembar ?? 0) + (currentLembar ?? 0)) + "/" + qtyPly;
+                document.getElementById("current_ply_progress").style.width = Number(qtyPly) > 0 ? (Number((totalLembar ?? 0) + (currentLembar ?? 0)) / Number(qtyPly) * 100) + "%" : "0%";
             }
+
+            // -Update Ply Progress on Change Lembar Gelaran-
+            $("#current_lembar_gelaran").on("change", function() {
+                updatePlyProgress();
+            });
+
+            $("#current_lembar_gelaran").on("keyup", function() {
+                updatePlyProgress();
+            });
 
             // -Lock Form Cut Input-
             function lockFormCutInput() {

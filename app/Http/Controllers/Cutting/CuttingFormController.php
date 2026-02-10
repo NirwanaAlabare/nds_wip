@@ -425,6 +425,8 @@ class CuttingFormController extends Controller
             "current_total_pemakaian_roll" => "required",
             "current_sambungan" => "required",
             "p_act" => "required"
+        ],[
+            'required' => 'Harap tentukan :attribute.',
         ]);
         Log::channel("cuttingRollUsageProcess")->info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Form ID : '".$validatedRequest["id"]."' No. Form : '".$validatedRequest["no_form_cut_input"]."' ID Roll : '".$validatedRequest["current_id_roll"]."' Request Validation Complete #1");
 
@@ -1028,9 +1030,7 @@ class CuttingFormController extends Controller
             ')->
             leftJoin('scanned_item', 'scanned_item.id_roll', '=', 'form_cut_input_detail.id_roll')->
             leftJoin('form_cut_input', 'form_cut_input.id', '=', 'form_cut_input_detail.form_cut_id')->
-            where('form_cut_input.id', $id)->
-            where('no_form_cut_input', $noForm)->
-            where('no_meja', $noMeja)->
+            whereRaw('form_cut_input.id = ? '.($noForm ? ' and form_cut_input.no_form = "'.$noForm.'" ' : '').' '.($noMeja ? ' and form_cut_input.no_meja = "'.$noMeja.'" ' : '').'', [$id])->
             whereRaw("form_cut_input_detail.updated_at >= DATE(NOW()-INTERVAL 6 MONTH)")->
             orderBy('form_cut_input_detail.created_at', 'desc')->
             first();
@@ -1122,9 +1122,12 @@ class CuttingFormController extends Controller
             max("form_cut_input.no_cut");
 
         // Update the Form to be Finished
+        $finishTime = $request->finishTime;
+        $waktuSelesai = (empty($finishTime) || !strtotime($finishTime)) ? Carbon::now() : Carbon::parse($finishTime);
+
         $updateFormCutInput = FormCutInput::where("id", $id)->update([
             "status" => "SELESAI PENGERJAAN",
-            "waktu_selesai" => $request->finishTime,
+            "waktu_selesai" => $waktuSelesai,
             "cons_act" => $request->consAct,
             "unit_cons_act" => $request->unitConsAct,
             "cons_act_nosr" => $request->consActNoSr,
