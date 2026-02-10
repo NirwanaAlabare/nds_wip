@@ -53,12 +53,14 @@ ac.kpno,
 ac.styleno,
 sd.color,
 sd.size,
+nama_part,
 mb.supplier buyer
 from wip_out a
 left join wip_out_det b on a.id = b.id_wip_out
 left join signalbit_erp.po_header ph on a.id_po = ph.id
 left join stocker_input si on b.id_qr_stocker = si.id_qr_stocker
 left join part_detail p on si.part_detail_id = p.id
+left join master_part mp on p.master_part_id = mp.id
 left join part_detail_item pdi on p.id = pdi.part_detail_id
 left join signalbit_erp.bom_jo_item k on pdi.bom_jo_item_id = k.id
 left join signalbit_erp.masteritem mi on k.id_item = mi.id_item
