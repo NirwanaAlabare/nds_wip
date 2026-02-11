@@ -435,7 +435,7 @@ class MutLokasiController extends Controller
                 "updated_at" => $timestamp,
             ]);
 
-            $mutasi_detail = DB::connection('mysql_sb')->insert("insert into whs_mut_lokasi select '', '".$no_mut."' no_mut, '".$request['txt_tgl_mut']."' tgl_mut, a.id_jo, a.id_item, b.goods_code, b.itemdesc, no_ws, no_bpb, no_lot, no_roll ,no_roll_buyer, qty, qty, a.unit, rak_asal, rak_tujuan, 'Y' status, idbpb_det, '".$timestamp."' created_at, '".$timestamp."' updated_at from whs_mut_lokasi_temp a INNER JOIN masteritem b on b.id_item = a.id_item where created_by = '".Auth::user()->name."'");
+            $mutasi_detail = DB::connection('mysql_sb')->insert("insert into whs_mut_lokasi select '', '".$no_mut."' no_mut, '".$request['txt_tgl_mut']."' tgl_mut, a.id_jo, a.id_item, b.goods_code, b.itemdesc, no_ws, no_bpb, no_lot, no_roll ,no_roll_buyer, qty, qty, a.unit, rak_asal, rak_tujuan, 'Y' status, idbpb_det, '".$timestamp."' created_at, '".$timestamp."' updated_at, '' from whs_mut_lokasi_temp a INNER JOIN masteritem b on b.id_item = a.id_item where created_by = '".Auth::user()->name."'");
 
             $trx_in = DB::connection('mysql_sb')->insert("insert into whs_lokasi_inmaterial select '',idbpb_det, '".$no_mut."' no_mut, no_ws, a.id_jo, a.id_item, b.goods_code, b.itemdesc, no_roll, no_roll_buyer, no_lot, qty, qty, '' , '', no_bpb, a.unit, rak_tujuan, 'Y' status, created_by, '".$timestamp."' created_at, '".$timestamp."' updated_at, '','',np_curr, np_tgl_in, np_price, null, null from whs_mut_lokasi_temp a INNER JOIN masteritem b on b.id_item = a.id_item where created_by = '".Auth::user()->name."'");
 
