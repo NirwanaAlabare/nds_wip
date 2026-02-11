@@ -138,6 +138,12 @@ class TrackPackingOutput extends Component
 
         $this->loadingOrderOutput = false;
 
+        $dates = [];
+        $outputMap = [];
+        $rowTotals = [];
+        $dateTotals = [];
+        $grandTotal = 0;
+
         if ($this->isSearch === true) {
             $this->isSearch = false;
 
@@ -334,10 +340,67 @@ class TrackPackingOutput extends Component
                 $this->emit("alert", "Big Data. '".$this->dailyOrderOutputs->sum("output")."' data.");
             }
 
+            // Pre-aggregation
+            $useSize = $this->groupBy === 'size';
+
+            // Dates (sorted unique)
+            $dates = $this->dailyOrderOutputs
+                ->pluck('tanggal')
+                ->unique()
+                ->sort()
+                ->values()
+                ->all();
+
+            // Containers
+            $outputMap  = [];
+            $rowTotals  = [];
+            $dateTotals = [];
+            $grandTotal = 0;
+
+            foreach ($this->dailyOrderOutputs as $row) {
+
+                // Normalize type (important for consistent keys)
+                $type = $row->type ?: 'rft';
+
+                $key = implode('|', [
+                    $row->ws,
+                    $row->style,
+                    $row->color,
+                    $row->sewing_line,
+                    $row->po,
+                    $type,
+                    $useSize ? $row->size : '_',
+                ]);
+
+                $date = $row->tanggal;
+                $qty  = (int) $row->output;
+
+                // Per cell
+                $outputMap[$key][$date] =
+                    ($outputMap[$key][$date] ?? 0) + $qty;
+
+                // Per row
+                $rowTotals[$key] =
+                    ($rowTotals[$key] ?? 0) + $qty;
+
+                // Per date column
+                $dateTotals[$date] =
+                    ($dateTotals[$date] ?? 0) + $qty;
+
+                // Grand total
+                $grandTotal += $qty;
+            }
+
             \Log::info("Query Completed");
         }
 
-        return view('livewire.packing.track-packing-output');
+        return view('livewire.packing.track-packing-output', [
+            "dates" => $dates,
+            "outputMap" => $outputMap,
+            "rowTotals" => $rowTotals,
+            "dateTotals" => $dateTotals,
+            "grandTotal" => $grandTotal,
+        ]);
     }
 
     public function dehydrate()
