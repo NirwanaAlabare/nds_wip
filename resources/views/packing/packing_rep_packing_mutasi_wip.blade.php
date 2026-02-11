@@ -121,7 +121,7 @@
                             <th style="background-color: lightblue;">Color</th>
                             <th style="background-color: lightblue;">Size</th>
                             <th style="background-color: lightgreen;">Saldo Awal</th>
-                            <th style="background-color: lightgreen;">Terima RTF</th>
+                            <th style="background-color: lightgreen;">Terima RFT</th>
                             <th style="background-color: lightgreen;">Terima Reject</th>
                             <th style="background-color: lightgreen;">Keluar</th>
                             <th style="background-color: lightgreen;">Saldo Akhir</th>

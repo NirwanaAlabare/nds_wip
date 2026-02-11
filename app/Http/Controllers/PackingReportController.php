@@ -980,7 +980,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     msw.ws,
                     msw.color,
                     msw.styleno AS style,
-                    msw.size,
+                    msn.size,
                     msw.buyer,
 
                     SUM(pl_saldo_awal) AS pl_saldo_awal,
@@ -1001,12 +1001,13 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
 
                 FROM trx_union t
                 JOIN master_sb_ws msw ON msw.id_so_det = t.so_det_id
+                left join master_size_new msn on msw.size = msn.size
                 GROUP BY
                     msw.id_so_det,
                     msw.ws,
                     msw.color,
                     msw.styleno,
-                    msw.size,
+                    msn.size,
                     msw.buyer
                 HAVING
                     COALESCE(SUM(pl_rft),0)     <> 0
@@ -1016,9 +1017,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 OR COALESCE(SUM(pc_terima),0) <> 0
                 OR COALESCE(SUM(pc_keluar),0) <> 0
                 ORDER BY
-                    msw.ws,
-                    msw.color,
-                    msw.size
+                    msw.ws ASC
                 ");
 
             return DataTables::of($data_mut)->toJson();

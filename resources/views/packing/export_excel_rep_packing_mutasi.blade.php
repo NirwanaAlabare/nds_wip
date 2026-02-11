@@ -2,7 +2,7 @@
 <html lang="en">
 <table class="table">
     <tr>
-        <td colspan='13'> Laporan Mutasi Packing (WIP) | Periode {{ $from }} s/d {{ $to }}</td>
+        <td colspan='13'> Laporan Mutasi Packing (WIP) Periode {{ $from }} s/d {{ $to }}</td>
     </tr>
     {{-- <tr>
         <td colspan='13'>{{ date('d-M-Y', strtotime($from)) }} - {{ date('d-M-Y', strtotime($to)) }}
@@ -14,7 +14,7 @@
     <thead>
         <tr style='text-align:center; vertical-align:middle'>
             <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
-            <th colspan="5" style="background-color: lightgreen; text-align:center;">Packing Line</th>
+            <th colspan="5" style="background-color: #90EE90; text-align:center;">Packing Line</th>
             <th colspan="4" style="background-color: lightsteelblue; text-align:center;">Transfer Garment
             </th>
             <th colspan="4" style="background-color: lightgoldenrodyellow; text-align:center;">Packing
@@ -26,11 +26,11 @@
             <th style="background-color: lightblue;">Style</th>
             <th style="background-color: lightblue;">Color</th>
             <th style="background-color: lightblue;">Size</th>
-            <th style="background-color: lightgreen;">Saldo Awal</th>
-            <th style="background-color: lightgreen;">Terima RTF</th>
-            <th style="background-color: lightgreen;">Terima Reject</th>
-            <th style="background-color: lightgreen;">Keluar</th>
-            <th style="background-color: lightgreen;">Saldo Akhir</th>
+            <th style="background-color: #90EE90;">Saldo Awal</th>
+            <th style="background-color: #90EE90;">Terima RFT</th>
+            <th style="background-color: #90EE90;">Terima Reject</th>
+            <th style="background-color: #90EE90;">Keluar</th>
+            <th style="background-color: #90EE90;">Saldo Akhir</th>
             <th style="background-color: lightsteelblue;">Saldo Awal</th>
             <th style="background-color: lightsteelblue;">Terima</th>
             <th style="background-color: lightsteelblue;">Keluar</th>

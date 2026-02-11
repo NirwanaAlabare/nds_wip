@@ -316,7 +316,7 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                     msw.ws,
                     msw.color,
                     msw.styleno AS style,
-                    msw.size,
+                    msn.size,
                     msw.buyer,
 
                     SUM(pl_saldo_awal) AS pl_saldo_awal,
@@ -337,6 +337,7 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
 
                 FROM trx_union t
                 JOIN master_sb_ws msw ON msw.id_so_det = t.so_det_id
+                left join master_size_new msn on msw.size = msn.size
                 GROUP BY
                     msw.id_so_det,
                     msw.ws,
@@ -352,9 +353,7 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                 OR COALESCE(SUM(pc_terima),0) <> 0
                 OR COALESCE(SUM(pc_keluar),0) <> 0
                 ORDER BY
-                    msw.ws,
-                    msw.color,
-                    msw.size
+                    msw.ws ASC
                 ");
 
 
@@ -375,10 +374,38 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
         ];
     }
 
+    // public static function afterSheet(AfterSheet $event)
+    // {
+    //     $event->sheet->styleCells(
+    //         'A1:R' . ($event->getConcernable()->rowCount+2),
+    //         [
+    //             'borders' => [
+    //                 'allBorders' => [
+    //                     'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+    //                     'color' => ['argb' => '000000'],
+    //                 ],
+    //             ],
+    //         ]
+    //     );
+    // }
+
     public static function afterSheet(AfterSheet $event)
     {
+        $sheet = $event->sheet->getDelegate();
+
+        $sheet->mergeCells('A1:R2');
+
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(
+            \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
+        );
+        $sheet->getStyle('A1')->getAlignment()->setVertical(
+            \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER
+        );
+
+        $sheet->getStyle('A1')->getFont()->setBold(true);
+
         $event->sheet->styleCells(
-            'A1:R' . ($event->getConcernable()->rowCount+2),
+            'A3:R' . ($event->getConcernable()->rowCount + 2),
             [
                 'borders' => [
                     'allBorders' => [
@@ -389,5 +416,6 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
             ]
         );
     }
+
 }
 
