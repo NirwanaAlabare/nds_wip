@@ -308,7 +308,7 @@ class CompletedFormController extends Controller
             first();
         if ($checkNextFormCutDetail) {
             // Fail when sisa_kain is less than next roll qty
-            if ($validatedRequest['current_sisa_kain'] < $checkNextFormCutDetail->qty) {
+            if ($validatedRequest['current_sisa_kain'] < $checkNextFormCutDetail->qty && $validatedRequest['current_sambungan'] < 0) {
                 return array(
                     "status" => 400,
                     "message" => "Sisa Kain tidak bisa lebih kecil dari <br> Form : ".($checkNextFormCutDetail->no_form_cut_input ? $checkNextFormCutDetail->no_form_cut_input : ($checkNextFormCutDetail->formCutInput ? $checkNextFormCutDetail->formCutInput->no_form : '-'))." <br> Qty : ".$checkNextFormCutDetail->qty." ".$checkNextFormCutDetail->unit."",

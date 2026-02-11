@@ -326,7 +326,7 @@ class TransferOutput extends Component
 
                                 if ($masterPlanDefect) {
                                     $updateArray = [
-                                        "master_plan_id" => $masterPlanRft->id,
+                                        "master_plan_id" => $masterPlanDefect->id,
                                         "created_by" => ($this->outputType == '_packing' ? $toUser->username : $toUser->id),
                                     ];
                                     // if backdate
@@ -365,7 +365,7 @@ class TransferOutput extends Component
 
                                 if ($masterPlanReject) {
                                     $updateArray = [
-                                        "master_plan_id" => $masterPlanRft->id,
+                                        "master_plan_id" => $masterPlanReject->id,
                                         "created_by" => ($this->outputType == '_packing' ? $toUser->username : $toUser->id),
                                     ];
                                     // if backdate
