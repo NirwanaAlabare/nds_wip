@@ -179,184 +179,250 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
 
 
         $data_mut = DB::select("
-                WITH trx_union AS (
+                            WITH trx_union (
+                                so_det_id,
+                                pl_saldo_awal,
+                                pl_rft,
+                                pl_reject,
+                                tg_saldo_awal,
+                                tg_masuk,
+                                tg_keluar,
+                                pc_saldo_awal,
+                                pc_terima,
+                                pc_keluar
+                            ) AS (
 
-                    /* ================= PACKING LINE SALDO AWAL ================= */
-                    SELECT
-                        so_det_id,
-                        COUNT(type) AS pl_saldo_awal,
-                        0 pl_rft, 0 pl_reject, 0 pl_keluar,
-                        0 tg_saldo_awal, 0 tg_masuk, 0 tg_keluar,
-                        0 pc_saldo_awal, 0 pc_terima, 0 pc_keluar
-                    FROM signalbit_erp.output_rfts_packing_po
-                    WHERE so_det_id IS NOT NULL
-                   AND updated_at BETWEEN '{$tanggal_saldo_awal} 00:00:00'
-                    AND '{$tgl_saldo_akhir} 23:59:59'
+                            /* ================= PACKING LINE ================= */
 
-                    GROUP BY so_det_id
+                            SELECT
+                                x.so_det_id,
+                                SUM(x.masuk - x.keluar),
+                                0,0,
+                                0,0,0,
+                                0,0,0
+                            FROM (
 
-                    UNION ALL
+                                SELECT
+                                    so_det_id,
+                                    COUNT(*) AS masuk,
+                                    0 AS keluar
+                                FROM signalbit_erp.output_rfts_packing_po
+                                WHERE so_det_id IS NOT NULL
+                                AND updated_at >= '{$tanggal_saldo_awal} 00:00:00'
+                                AND updated_at < '{$tgl_awal} 00:00:00'
+                                GROUP BY so_det_id
 
-                    /* ================= PACKING LINE HARIAN ================= */
-                    SELECT
-                        so_det_id,
-                        0,
-                        SUM(type = 'RFT'),
-                        SUM(type = 'REJECT'),
-                        0,
-                        0,0,0,
-                        0,0,0
-                    FROM signalbit_erp.output_rfts_packing_po
-                    WHERE so_det_id IS NOT NULL
-                    AND updated_at BETWEEN '{$tgl_awal} 00:00:00'
-                                        AND '{$tgl_akhir} 23:59:59'
-                    GROUP BY so_det_id
+                                UNION ALL
 
-                    UNION ALL
+                                SELECT
+                                    id_so_det,
+                                    0,
+                                    SUM(qty)
+                                FROM laravel_nds.packing_trf_garment
+                                WHERE id_so_det IS NOT NULL
+                                AND tgl_trans >= '{$tanggal_saldo_awal} 00:00:00'
+                                AND tgl_trans < '{$tgl_awal} 00:00:00'
+                                GROUP BY id_so_det
 
-                    /* ================= TRANSFER GARMENT SALDO AWAL ================= */
-                    SELECT
-                        id_so_det,
-                        0,0,0,0,
-                        SUM(qty),
-                        0,
-                        0,
-                        0,0,0
-                    FROM laravel_nds.packing_trf_garment
-                    WHERE id_so_det IS NOT NULL
-                    AND tgl_trans BETWEEN '{$tanggal_saldo_awal} 00:00:00'
-                                AND '{$tgl_saldo_akhir} 23:59:59'
+                            ) x
+                            GROUP BY x.so_det_id
 
-                    GROUP BY id_so_det
 
-                    UNION ALL
+                            UNION ALL
 
-                    /* ================= TRANSFER GARMENT HARIAN ================= */
-                    SELECT
-                        tg.id_so_det,
-                        0,0,0,0,
-                        0,
-                        SUM(tg.qty),
-                        COALESCE(SUM(pi.qty),0),
-                        0,0,0
-                    FROM laravel_nds.packing_trf_garment tg
-                    LEFT JOIN laravel_nds.packing_packing_in pi
-                        ON pi.id_trf_garment = tg.id
-                        AND pi.tgl_penerimaan BETWEEN '{$tgl_awal} 00:00:00'
+                            SELECT
+                                so_det_id,
+                                0,
+                                SUM(type = 'RFT'),
+                                SUM(type = 'REJECT'),
+                                0,0,0,0,0,0
+                            FROM signalbit_erp.output_rfts_packing_po
+                            WHERE so_det_id IS NOT NULL
+                            AND updated_at BETWEEN '{$tgl_awal} 00:00:00'
                                                 AND '{$tgl_akhir} 23:59:59'
-                    WHERE tg.id_so_det IS NOT NULL
-                    AND tg.tgl_trans BETWEEN '{$tgl_awal} 00:00:00'
-                                        AND '{$tgl_akhir} 23:59:59'
-                    GROUP BY tg.id_so_det
+                            GROUP BY so_det_id
 
-                    UNION ALL
 
-                    /* ================= PACKING CENTRAL SALDO AWAL ================= */
-                    SELECT
-                        id_so_det,
-                        0,0,0,0,
-                        0,0,0,
-                        SUM(masuk) - SUM(keluar),
-                        0,
-                        0
-                    FROM (
-                        SELECT id_so_det, SUM(qty) masuk, 0 keluar
-                        FROM laravel_nds.packing_packing_in
-                        WHERE id_so_det IS NOT NULL
-                        AND tgl_penerimaan BETWEEN '{$tanggal_saldo_awal} 00:00:00'
-                                        AND '{$tgl_saldo_akhir} 23:59:59'
+                            /* ================= TRANSFER GARMENT ================= */
 
-                        GROUP BY id_so_det
-                          /* =================
-                        UNION ALL
+                            UNION ALL
 
-                        SELECT id_so_det, 0, COUNT(*)
-                        FROM laravel_nds.packing_packing_out_scan
-                        WHERE id_so_det IS NOT NULL
-                        AND tgl_trans BETWEEN '{$tanggal_saldo_awal} 00:00:00'
-                                            AND '{$tgl_awal} 23:59:59'
-                        GROUP BY id_so_det
-                         ================= */
-                    ) x
-                    GROUP BY id_so_det
+                            SELECT
+                                x.id_so_det,
+                                0,0,0,
+                                SUM(x.masuk - x.keluar),
+                                0,0,
+                                0,0,0
+                            FROM (
+                                SELECT
+                                    id_so_det,
+                                    SUM(qty) masuk,
+                                    0 keluar
+                                FROM laravel_nds.packing_trf_garment
+                                WHERE id_so_det IS NOT NULL
+                                AND tgl_trans >= '{$tanggal_saldo_awal} 00:00:00'
+                                AND tgl_trans < '{$tgl_awal} 00:00:00'
+                                GROUP BY id_so_det
 
-                    UNION ALL
+                                UNION ALL
 
-                    /* ================= PACKING CENTRAL HARIAN ================= */
-                    SELECT
-                        id_so_det,
-                        0,0,0,0,
-                        0,0,0,
-                        0,
-                        SUM(masuk),
-                        SUM(keluar)
-                    FROM (
-                        SELECT id_so_det, SUM(qty) masuk, 0 keluar
-                        FROM laravel_nds.packing_packing_in
-                        WHERE id_so_det IS NOT NULL
-                        AND tgl_penerimaan BETWEEN '{$tgl_awal} 00:00:00'
+                                SELECT
+                                    id_so_det,
+                                    0,
+                                    SUM(qty)
+                                FROM laravel_nds.packing_packing_in
+                                WHERE id_so_det IS NOT NULL
+                                AND tgl_penerimaan >= '{$tanggal_saldo_awal} 00:00:00'
+                                AND tgl_penerimaan < '{$tgl_awal} 00:00:00'
+                                GROUP BY id_so_det
+                            ) x
+                            GROUP BY x.id_so_det
+
+
+                            UNION ALL
+
+                            SELECT
+                                tg.id_so_det,
+                                0,0,0,
+                                0,
+                                SUM(tg.qty),
+                                SUM(COALESCE(pi.qty,0)),
+                                0,0,0
+                            FROM laravel_nds.packing_trf_garment tg
+                            LEFT JOIN (
+                                SELECT id_trf_garment, SUM(qty) qty
+                                FROM laravel_nds.packing_packing_in
+                                WHERE tgl_penerimaan BETWEEN '{$tgl_awal} 00:00:00'
+                                                        AND '{$tgl_akhir} 23:59:59'
+                                GROUP BY id_trf_garment
+                            ) pi ON pi.id_trf_garment = tg.id
+                            WHERE tg.id_so_det IS NOT NULL
+                            AND tg.tgl_trans BETWEEN '{$tgl_awal} 00:00:00'
                                                 AND '{$tgl_akhir} 23:59:59'
-                        GROUP BY id_so_det
+                            GROUP BY tg.id_so_det
 
-                        UNION ALL
 
-                        SELECT id_so_det, 0, COUNT(*)
-                        FROM laravel_nds.packing_packing_out_scan
-                        WHERE id_so_det IS NOT NULL
-                        AND tgl_trans BETWEEN '{$tgl_awal} 00:00:00'
-                                            AND '{$tgl_akhir} 23:59:59'
-                        GROUP BY id_so_det
-                    ) x
-                    GROUP BY id_so_det
-                )
+                            /* ================= PACKING CENTRAL ================= */
 
-                /* ================= SELECT BEGIN ================= */
-                SELECT
-                    msw.id_so_det,
-                    msw.ws,
-                    msw.color,
-                    msw.styleno AS style,
-                    msw.size,
-                    msw.buyer,
+                           UNION ALL
 
-                    SUM(pl_saldo_awal) AS pl_saldo_awal,
-                    SUM(pl_rft)        AS pl_rft,
-                    SUM(pl_reject)    AS pl_reject,
-                    SUM(tg_masuk)    AS pl_keluar,
-                    SUM(pl_saldo_awal + pl_rft + pl_reject - tg_masuk) AS pl_saldo_akhir,
+                            SELECT
+                                x.id_so_det,
+                                0,0,0,0,0,0,
+                                SUM(x.masuk - x.keluar),
+                                0,
+                                0
+                            FROM (
 
-                    SUM(tg_saldo_awal) AS tg_saldo_awal,
-                    SUM(tg_masuk)      AS tg_masuk,
-                    SUM(tg_keluar)     AS tg_keluar,
-                    SUM(tg_saldo_awal + tg_masuk - tg_keluar) AS tg_saldo_akhir,
+                                SELECT
+                                    id_so_det,
+                                    SUM(qty) AS masuk,
+                                    0 AS keluar
+                                FROM laravel_nds.packing_packing_in
+                                WHERE id_so_det IS NOT NULL
+                                AND tgl_penerimaan >= '{$tanggal_saldo_awal} 00:00:00'
+                                AND tgl_penerimaan < '{$tgl_awal} 00:00:00'
+                                GROUP BY id_so_det
 
-                    SUM(pc_saldo_awal) AS pc_saldo_awal,
-                    SUM(pc_terima)     AS pc_terima,
-                    SUM(pc_keluar)     AS pc_packing_scan,
-                    SUM(pc_saldo_awal + pc_terima - pc_keluar) AS pc_saldo_akhir
+                                UNION ALL
 
-                FROM trx_union t
-                JOIN master_sb_ws msw ON msw.id_so_det = t.so_det_id
-                left join master_size_new msn on msw.size = msn.size
-                GROUP BY
-                    msw.ws,
-                    msw.color,
-                    msw.styleno,
-                    msw.size,
-                    msw.buyer
-                HAVING
-                    COALESCE(SUM(pl_rft),0)     <> 0
-                OR COALESCE(SUM(pl_reject),0) <> 0
-                OR COALESCE(SUM(tg_masuk),0)  <> 0
-                OR COALESCE(SUM(tg_keluar),0) <> 0
-                OR COALESCE(SUM(pc_terima),0) <> 0
-                OR COALESCE(SUM(pc_keluar),0) <> 0
-                ORDER BY
-                    msw.ws ASC,
-                    msw.color ASC,
-                    msw.buyer ASC,
-                    msn.urutan ASC
-                ");
+                                SELECT
+                                    id_so_det,
+                                    0,
+                                    COUNT(*) AS keluar
+                                FROM laravel_nds.packing_packing_out_scan
+                                WHERE id_so_det IS NOT NULL
+                                AND tgl_trans >= '{$tanggal_saldo_awal} 00:00:00'
+                                AND tgl_trans < '{$tgl_awal} 00:00:00'
+                                GROUP BY id_so_det
+
+                            ) x
+                            GROUP BY x.id_so_det
+
+                            UNION ALL
+
+                            SELECT
+                                id_so_det,
+                                0,0,0,0,0,0,
+                                0,
+                                SUM(masuk),
+                                SUM(keluar)
+                            FROM (
+                                SELECT id_so_det, SUM(qty) masuk, 0 keluar
+                                FROM laravel_nds.packing_packing_in
+                                WHERE id_so_det IS NOT NULL
+                                AND tgl_penerimaan BETWEEN '{$tgl_awal} 00:00:00'
+                                                        AND '{$tgl_akhir} 23:59:59'
+                                GROUP BY id_so_det
+
+                                UNION ALL
+
+                                SELECT id_so_det, 0, COUNT(*)
+                                FROM laravel_nds.packing_packing_out_scan
+                                WHERE id_so_det IS NOT NULL
+                                AND tgl_trans BETWEEN '{$tgl_awal} 00:00:00'
+                                                    AND '{$tgl_akhir} 23:59:59'
+                                GROUP BY id_so_det
+                            ) x
+                            GROUP BY id_so_det
+                        )
+
+                        SELECT
+                            msn.urutan,
+                            msw.ws,
+                            msw.color,
+                            msw.styleno AS style,
+                            msw.size,
+                            msw.buyer,
+
+                            SUM(pl_saldo_awal) AS pl_saldo_awal,
+                            SUM(pl_rft) AS pl_rft,
+                            SUM(pl_reject) AS pl_reject,
+                            SUM(tg_masuk) AS pl_keluar,
+
+                            (
+                                SUM(pl_saldo_awal)
+                                + SUM(pl_rft)
+                                + SUM(pl_reject)
+                                - SUM(tg_masuk)
+                            ) AS pl_saldo_akhir,
+
+                            SUM(tg_saldo_awal) AS tg_saldo_awal,
+                            SUM(tg_masuk) AS tg_masuk,
+                            SUM(tg_keluar) AS tg_keluar,
+                            (SUM(tg_saldo_awal) + SUM(tg_masuk) - SUM(tg_keluar)) AS tg_saldo_akhir,
+
+                            SUM(pc_saldo_awal) AS pc_saldo_awal,
+                            SUM(pc_terima) AS pc_terima,
+                            SUM(pc_keluar) AS pc_packing_scan,
+                            (SUM(pc_saldo_awal) + SUM(pc_terima) - SUM(pc_keluar)) AS pc_saldo_akhir
+
+                        FROM trx_union t
+                        JOIN master_sb_ws msw ON msw.id_so_det = t.so_det_id
+                        LEFT JOIN master_size_new msn ON msw.size = msn.size
+
+                        GROUP BY
+                            msn.urutan,
+                            msw.ws,
+                            msw.color,
+                            msw.styleno,
+                            msw.size,
+                            msw.buyer
+
+                        HAVING
+                            SUM(pl_rft) <> 0
+                            OR SUM(pl_reject) <> 0
+                            OR SUM(tg_masuk) <> 0
+                            OR SUM(tg_keluar) <> 0
+                            OR SUM(pc_terima) <> 0
+                            OR SUM(pc_keluar) <> 0
+
+                        ORDER BY
+                            msw.ws,
+                            msw.color,
+                            msw.buyer,
+                            msn.urutan
+                        ");
 
 
         $this->rowCount = count($data_mut) + 2;
