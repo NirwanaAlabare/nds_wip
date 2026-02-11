@@ -316,7 +316,7 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                     msw.ws,
                     msw.color,
                     msw.styleno AS style,
-                    msn.size,
+                    msw.size,
                     msw.buyer,
 
                     SUM(pl_saldo_awal) AS pl_saldo_awal,
@@ -353,7 +353,8 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                 OR COALESCE(SUM(pc_terima),0) <> 0
                 OR COALESCE(SUM(pc_keluar),0) <> 0
                 ORDER BY
-                    msw.ws ASC
+                    msw.ws ASC,
+                    msn.urutan ASC
                 ");
 
 
