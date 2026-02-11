@@ -184,7 +184,7 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                     /* ================= PACKING LINE SALDO AWAL ================= */
                     SELECT
                         so_det_id,
-                        SUM(type) AS pl_saldo_awal,
+                        COUNT(type) AS pl_saldo_awal,
                         0 pl_rft, 0 pl_reject, 0 pl_keluar,
                         0 tg_saldo_awal, 0 tg_masuk, 0 tg_keluar,
                         0 pc_saldo_awal, 0 pc_terima, 0 pc_keluar
