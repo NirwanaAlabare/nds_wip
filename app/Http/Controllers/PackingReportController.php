@@ -1003,7 +1003,6 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 JOIN master_sb_ws msw ON msw.id_so_det = t.so_det_id
                 left join master_size_new msn on msw.size = msn.size
                 GROUP BY
-                    msw.id_so_det,
                     msw.ws,
                     msw.color,
                     msw.styleno,

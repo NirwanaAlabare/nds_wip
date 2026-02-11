@@ -339,7 +339,6 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                 JOIN master_sb_ws msw ON msw.id_so_det = t.so_det_id
                 left join master_size_new msn on msw.size = msn.size
                 GROUP BY
-                    msw.id_so_det,
                     msw.ws,
                     msw.color,
                     msw.styleno,
