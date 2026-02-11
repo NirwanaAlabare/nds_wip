@@ -1018,6 +1018,8 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 OR COALESCE(SUM(pc_keluar),0) <> 0
                 ORDER BY
                     msw.ws ASC,
+                    msw.color ASC,
+                    msw.buyer ASC,
                     msn.urutan ASC
                 ");
 

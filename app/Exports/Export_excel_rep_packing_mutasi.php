@@ -354,6 +354,8 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                 OR COALESCE(SUM(pc_keluar),0) <> 0
                 ORDER BY
                     msw.ws ASC,
+                    msw.color ASC,
+                    msw.buyer ASC,
                     msn.urutan ASC
                 ");
 
