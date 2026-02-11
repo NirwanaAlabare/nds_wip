@@ -1551,10 +1551,15 @@
                         // When Actually Error :
 
                         // Error Alert
-                        iziToast.error({
-                            title: 'Error',
-                            message: res.message,
-                            position: 'topCenter'
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'gagal',
+                            text: res.message,
+                        }).then(() => {
+
+                            if (res.redirect) {
+                                window.location.href = res.redirect;
+                            }
                         });
                     }
                 }, error: function (jqXHR) {
@@ -1579,6 +1584,8 @@
                             }
                         }
                     };
+
+                    location.reload();
                 }
             });
         }
@@ -3389,7 +3396,7 @@
                     let noMeja = document.getElementById("no_meja").value;
 
                     $.ajax({
-                        url: '{{ route('check-spreading-form-cut-input') }}/' + id + '/' + noForm ,
+                        url: '{{ route('check-spreading-form-cut-input') }}/' + id + '/' + noForm + (noMeja ? '/' + noMeja : ''),
                         type: 'get',
                         dataType: 'json',
                         success: function(res) {

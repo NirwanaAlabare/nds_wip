@@ -855,6 +855,19 @@ class CuttingFormManualController extends Controller
                 $markerDetailStore = MarkerDetail::insert($markerDetailData);
             }
 
+            // check form marker
+            $formCut = FormCutInput::where("id", $idForm)->first();
+            if ($formCut->marker_id || $formCut->id_marker) {
+                if ($markerId != $formCut->marker_id && ($request->id_marker ? $request->id_marker != $formCut->id_marker : $markerCode != $formCut->id_marker)) {
+                    return array(
+                        "status" => 400,
+                        "message" => "Form sudah memiliki marker yang berbeda. Untuk mencegah form tertimpa, harap buat form baru.",
+                        "redirect" => route('create-manual-form-cut'),
+                        "additional" => [],
+                    );
+                }
+            }
+
             // Form
             $updateFormCutInput = FormCutInput::where("id", $idForm)->update([
                 "no_meja" => $request->no_meja,

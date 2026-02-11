@@ -3395,7 +3395,7 @@
             let noMeja = document.getElementById("no_meja").value;
 
             $.ajax({
-                url: '{{ route('check-spreading-form-cut-input') }}/' + id + '/' + noForm,
+                url: '{{ route('check-spreading-form-cut-input') }}/' + id + '/' + noForm + (noMeja ? '/' + noMeja : ''),
                 type: 'get',
                 dataType: 'json',
                 success: function (res) {
