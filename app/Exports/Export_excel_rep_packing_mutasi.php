@@ -192,6 +192,23 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                                 pc_keluar
                             ) AS (
 
+                            /* ================= SALDO AWAL DARI SA ================= */
+
+                            SELECT
+                                id_so_det AS so_det_id,
+                                CASE WHEN type = 'packing_line' THEN saldo ELSE 0 END AS pl_saldo_awal,
+                                0 AS pl_rft,
+                                0 AS pl_reject,
+                                CASE WHEN type = 'transfer_garment' THEN saldo ELSE 0 END AS tg_saldo_awal,
+                                0 AS tg_masuk,
+                                0 AS tg_keluar,
+                                CASE WHEN type = 'packing_center' THEN saldo ELSE 0 END AS pc_saldo_awal,
+                                0 AS pc_terima,
+                                0 AS pc_keluar
+                            FROM sa_report_pck
+
+                            UNION ALL
+
                             /* ================= PACKING LINE ================= */
 
                             SELECT
@@ -456,6 +473,7 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
     //         ]
     //     );
     // }
+
 
     public static function afterSheet(AfterSheet $event)
     {
