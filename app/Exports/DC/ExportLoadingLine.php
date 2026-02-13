@@ -296,6 +296,7 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                             s.so_det_id,
                             s.group_stocker,
                             s.ratio,
+                            s.stocker_reject,
                             GROUP_CONCAT(ll.stocker_id) stocker_id,
                             MIN(ll.qty) loading_qty
                         from
@@ -311,8 +312,9 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                             s.form_cut_id,
                             s.so_det_id,
                             s.group_stocker,
-                            s.ratio
-                    ) as loading_qty on loading_qty.panel = COALESCE(part_com.panel, part.panel) AND loading_qty.form_cut_id = stocker_input.form_cut_id AND loading_qty.so_det_id = stocker_input.so_det_id AND loading_qty.group_stocker = stocker_input.group_stocker AND loading_qty.ratio = stocker_input.ratio
+                            s.ratio,
+                            s.stocker_reject
+                    ) as loading_qty on loading_qty.panel = COALESCE(part_com.panel, part.panel) AND loading_qty.form_cut_id = stocker_input.form_cut_id AND loading_qty.so_det_id = stocker_input.so_det_id AND loading_qty.group_stocker = stocker_input.group_stocker AND loading_qty.ratio = stocker_input.ratio AND loading_qty.stocker_reject = stocker_input.stocker_reject
                 WHERE
                     loading_line_plan.id in ".$loadingPlanIds."
                     ".$detailDateFilter."

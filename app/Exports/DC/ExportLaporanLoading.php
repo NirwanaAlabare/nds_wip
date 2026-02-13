@@ -120,7 +120,8 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
                         stocker_input.form_piece_id,
                         stocker_input.so_det_id,
                         stocker_input.group_stocker,
-                        stocker_input.ratio
+                        stocker_input.ratio,
+                        stocker_input.stocker_reject
                     ORDER BY
                         FIELD(part_detail.part_status, 'main', 'regular', 'complement') ASC
                 ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
