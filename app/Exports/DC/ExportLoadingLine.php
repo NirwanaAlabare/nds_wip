@@ -244,7 +244,8 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                         (COALESCE ( MAX(secondary_inhouse_input.qty_reject), 0 )) +
                         (COALESCE ( MAX(secondary_inhouse_input.qty_replace), 0 ))
                     ) qty_old,
-                    loading_line.qty,
+                    loading_line.qty qty_old_1,
+                    COALESCE(loading_qty.loading_qty, loading_line.qty) qty,
                     trolley.id trolley_id,
                     trolley.nama_trolley,
                     stocker_input.id_qr_stocker,
@@ -288,6 +289,30 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                     LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
                     LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
                     LEFT JOIN users ON users.id = loading_line.created_by
+                    LEFT JOIN (
+                        select
+                            p.panel,
+                            s.form_cut_id,
+                            s.so_det_id,
+                            s.group_stocker,
+                            s.ratio,
+                            GROUP_CONCAT(ll.stocker_id) stocker_id,
+                            MIN(ll.qty) loading_qty
+                        from
+                            loading_line ll
+                            left join stocker_input s on s.id = ll.stocker_id
+                            left join part_detail pd on pd.id = s.part_detail_id
+                            left join part p on p.id = pd.part_id
+                        where
+                            ll.tanggal_loading between '".$this->from."' AND '".$this->to."' AND
+                            (s.cancel IS NULL OR s.cancel != 'y')
+                        group by
+                            p.panel,
+                            s.form_cut_id,
+                            s.so_det_id,
+                            s.group_stocker,
+                            s.ratio
+                    ) as loading_qty on loading_qty.panel = COALESCE(part_com.panel, part.panel) AND loading_qty.form_cut_id = stocker_input.form_cut_id AND loading_qty.so_det_id = stocker_input.so_det_id AND loading_qty.group_stocker = stocker_input.group_stocker AND loading_qty.ratio = stocker_input.ratio
                 WHERE
                     loading_line_plan.id in ".$loadingPlanIds."
                     ".$detailDateFilter."
@@ -324,7 +349,7 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A1:T' . ($event->getConcernable()->rowCount+2),
+            'A1:U' . ($event->getConcernable()->rowCount+2),
             [
                 'borders' => [
                     'allBorders' => [

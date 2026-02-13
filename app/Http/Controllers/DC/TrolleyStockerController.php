@@ -298,11 +298,13 @@ class TrolleyStockerController extends Controller
             "stocker_id" => "required",
         ]);
 
+        // Generate trolley stock kode
         $lastTrolleyStock = TrolleyStocker::select('kode')->orderBy('id', 'desc')->first();
         $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
 
         $stockerData = Stocker::where("id", $validatedRequest["stocker_id"])->first();
 
+        // Get similar stocker data
         $similarStockerData = Stocker::selectRaw("stocker_input.*, COALESCE(master_secondary.tujuan, master_secondary_multi.tujuan) as tujuan, dc_in_input.id dc_id, secondary_in_input.id secondary_id, secondary_inhouse_input.id secondary_inhouse_id, loading_line.id as loading_line_id, loading_line.nama_line as loading_line_name")->
             where(($stockerData->form_piece_id > 0 ? "form_piece_id" : ($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id")), ($stockerData->form_piece_id > 0 ? $stockerData->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
             leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
@@ -338,8 +340,10 @@ class TrolleyStockerController extends Controller
             where("stocker_reject", $stockerData->stocker_reject)->
             get();
 
+        // Check Incomplete Loading
         $incompleteLoading = $similarStockerData->whereNull("loading_line_id");
 
+        // If there is no incomplete loading then it was loaded
         if ($incompleteLoading->count() < 1) {
             return array(
                 'status' => 400,
@@ -351,6 +355,7 @@ class TrolleyStockerController extends Controller
             );
         }
 
+        // Incomplete Process
         $incompleteNonSecondary = $similarStockerData->whereIn("tujuan", ["NON SECONDARY", "SECONDARY DALAM", "SECONDARY LUAR"])->
             whereNull("dc_id");
 
@@ -371,8 +376,8 @@ class TrolleyStockerController extends Controller
             );
         }
 
+        // Allocate Stocker (Bundle) to Trolley
         $trolleyStockArr = [];
-
         $i = 0;
         foreach ($similarStockerData as $stocker) {
             array_push($trolleyStockArr, [
@@ -389,10 +394,10 @@ class TrolleyStockerController extends Controller
 
             $i++;
         }
-
         $storeTrolleyStock = TrolleyStocker::upsert($trolleyStockArr, ['stocker_id'], ['trolley_id', 'status', 'tanggal_alokasi', 'created_at', 'updated_at', 'created_by', 'created_by_username']);
 
         if (count($trolleyStockArr) > 0) {
+            // Update Stocker Status After Trolley Stock created
             $updateStocker = Stocker::where(($stockerData->form_piece_id > 0 ? "form_piece_id" : ($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id")), ($stockerData->form_piece_id > 0 ? $stockerData->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
                 where("so_det_id", $stockerData->so_det_id)->
                 where("group_stocker", $stockerData->group_stocker)->
@@ -441,9 +446,11 @@ class TrolleyStockerController extends Controller
             "stocker_id" => "required",
         ]);
 
+        // Generate trolley stock kode
         $lastTrolleyStock = TrolleyStocker::select('kode')->orderBy('id', 'desc')->first();
         $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
 
+        // Get similar stocker data
         $stockerData = Stocker::where("id", $validatedRequest["stocker_id"])->first();
         $similarStockerData = Stocker::selectRaw("stocker_input.*, COALESCE(master_secondary.tujuan, master_secondary_multi.tujuan) as tujuan, dc_in_input.id dc_id, secondary_in_input.id secondary_id, secondary_inhouse_input.id secondary_inhouse_id, loading_line.id as loading_line_id, loading_line.nama_line as loading_line_name")->
             where(($stockerData->form_piece_id > 0 ? "form_piece_id" : ($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id")), ($stockerData->form_piece_id > 0 ? $stockerData->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
@@ -480,8 +487,10 @@ class TrolleyStockerController extends Controller
             where("stocker_reject", $stockerData->stocker_reject)->
             get();
 
+        // Check Incomplete Loading
         $incompleteLoading = $similarStockerData->whereNull("loading_line_id");
 
+        // If there is no incomplete loading then it was loaded
         if ($incompleteLoading->count() < 1) {
             return array(
                 'status' => 400,
@@ -493,6 +502,7 @@ class TrolleyStockerController extends Controller
             );
         }
 
+        // Incomplete Process
         $incompleteNonSecondary = $similarStockerData->whereIn("tujuan", ["NON SECONDARY", "SECONDARY DALAM", "SECONDARY LUAR"])->
             whereNull("dc_id");
 
@@ -513,8 +523,8 @@ class TrolleyStockerController extends Controller
             );
         }
 
+        // Allocate Stocker (Bundle) to Trolley
         $trolleyStockArr = [];
-
         $i = 0;
         foreach ($similarStockerData as $stocker) {
             array_push($trolleyStockArr, [

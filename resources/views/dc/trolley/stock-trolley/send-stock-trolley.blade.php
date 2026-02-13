@@ -357,7 +357,9 @@
         //     document.getElementById('selected-row-count-1').innerText = $('#datatable-trolley-stock').DataTable().rows('.selected').data().length+" (Total Qty : "+totalQty+")";
         // });
 
+        // Submit Send to Line
         async function sendToLine(element) {
+            // Validation
             if (!document.getElementById("no_bon").value) {
                 return Swal.fire({
                         icon: 'error',
@@ -398,6 +400,7 @@
                     }
                 }
 
+                // Destination Line/Trolley with Bon
                 let lineId = document.getElementById('line_id').value;
                 let destinationTrolleyId = document.getElementById('destination_trolley_id').value;
                 let noBon = document.getElementById('no_bon').value;
@@ -631,6 +634,7 @@
             }
         }
 
+        // When Destination = line
         async function toLine() {
             document.getElementById("loading").classList.remove("d-none");
 
@@ -651,6 +655,7 @@
             await initLineScan();
         }
 
+        // When Destination = trolley
         async function toTrolley() {
             document.getElementById("loading").classList.remove("d-none");
 

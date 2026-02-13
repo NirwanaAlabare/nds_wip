@@ -976,6 +976,7 @@ Route::middleware('auth')->group(function () {
     // Secondary INHOUSE IN
     Route::controller(SecondaryInhouseInController::class)->prefix("secondary-inhouse-in")->middleware('role:dc')->group(function () {
         Route::get('/', 'index')->name('secondary-inhouse-in');
+        Route::get('/total_secondary_inhouse', 'total_secondary_inhouse_in')->name('total_secondary_inhouse_in');
         Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse_in');
         Route::post('/store', 'storeSecondaryInhouseIn')->name('store-secondary-inhouse-in');
         Route::post('/mass-store', 'massStore')->name('mass-store-secondary-inhouse-in');
@@ -995,6 +996,7 @@ Route::middleware('auth')->group(function () {
     // Secondary INHOUSE
     Route::controller(SecondaryInhouseOutController::class)->prefix("secondary-inhouse")->middleware('role:dc')->group(function () {
         Route::get('/', 'index')->name('secondary-inhouse');
+        Route::get('/total_secondary_inhouse_out', 'total_secondary_inhouse_out')->name('total_secondary_inhouse_out');
         Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse');
         Route::post('/store', 'store')->name('store-secondary-inhouse');
         Route::post('/mass-store', 'massStore')->name('mass-store-secondary-inhouse');
@@ -1007,25 +1009,26 @@ Route::middleware('auth')->group(function () {
         Route::get('/export-excel-detail', 'exportExcelDetail')->name('secondary-inhouse-detail-export-excel');
     });
 
-    Route::controller(SecondaryInhouseOutController::class)->prefix("secondary-inhouse")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('secondary-inhouse');
-        Route::get('/total_stocker_inhouse', 'totalStockerInhouse')->name('total-stocker-inhouse');
-        Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse');
-        Route::post('/store', 'store')->name('store-secondary-inhouse');
-        Route::post('/mass-store', 'massStore')->name('mass-store-secondary-inhouse');
-        Route::get('/detail_stocker_inhouse', 'detail_stocker_inhouse')->name('detail_stocker_inhouse');
+    // Route::controller(SecondaryInhouseOutController::class)->prefix("secondary-inhouse")->middleware('role:dc')->group(function () {
+    //     Route::get('/', 'index')->name('secondary-inhouse');
+    //     Route::get('/total_stocker_inhouse', 'totalStockerInhouse')->name('total-stocker-inhouse');
+    //     Route::get('/total_secondary_inhouse_out', 'total_secondary_inhouse_out')->name('total_secondary_inhouse_out');
+    //     Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse');
+    //     Route::post('/store', 'store')->name('store-secondary-inhouse');
+    //     Route::post('/mass-store', 'massStore')->name('mass-store-secondary-inhouse');
+    //     Route::get('/detail_stocker_inhouse', 'detail_stocker_inhouse')->name('detail_stocker_inhouse');
 
-        Route::get('/filter-sec-inhouse', 'filterSecondaryInhouse')->name('filter-sec-inhouse');
-        Route::get('/filter-detail-sec-inhouse', 'filterDetailSecondaryInhouse')->name('filter-detail-sec-inhouse');
+    //     Route::get('/filter-sec-inhouse', 'filterSecondaryInhouse')->name('filter-sec-inhouse');
+    //     Route::get('/filter-detail-sec-inhouse', 'filterDetailSecondaryInhouse')->name('filter-detail-sec-inhouse');
 
-        Route::get('/export-excel', 'exportExcel')->name('secondary-inhouse-export-excel');
-        Route::get('/export-excel-detail', 'exportExcelDetail')->name('secondary-inhouse-detail-export-excel');
-    });
+    //     Route::get('/export-excel', 'exportExcel')->name('secondary-inhouse-export-excel');
+    //     Route::get('/export-excel-detail', 'exportExcelDetail')->name('secondary-inhouse-detail-export-excel');
+    // });
 
     // Secondary IN
     Route::controller(SecondaryInController::class)->prefix("secondary-in")->middleware('role:dc')->group(function () {
         Route::get('/', 'index')->name('secondary-in');
-        Route::get('/total_stocker_in', 'totalStockerIn')->name('total-stocker-in');
+        Route::get('/total_secondary_in', 'total_secondary_in')->name('total_secondary_in');
         Route::get('/cek_data_stocker_in', 'cek_data_stocker_in')->name('cek_data_stocker_in');
         Route::get('/cek_data_stocker_in_edit', 'cek_data_stocker_in_edit')->name('cek_data_stocker_in_edit');
         Route::post('/store', 'store')->name('store-secondary-in');

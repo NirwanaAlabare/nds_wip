@@ -379,28 +379,46 @@
         });
 
         let datatable = $("#datatable-input").DataTable({
-            "footerCallback": function(row, data, start, end, display) {
-                var api = this.api(),
-                    data;
+            "footerCallback": async function(row, data, start, end, display) {
+                var api = this.api(),data;
 
-                // converting to interger to find total
-                var intVal = function(i) {
-                    return typeof i === 'string' ?
-                        i.replace(/[\$,]/g, '') * 1 :
-                        typeof i === 'number' ?
-                        i : 0;
-                };
-
-                var sumTotalIn = api
-                    .column(13)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(13).footer()).html(sumTotalIn);
+                $(api.column(13).footer()).html("...");
+
+                $.ajax({
+                    url: '{{ route('total_secondary_inhouse_in') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: {
+                        'dateFrom': $('#tgl-awal').val(),
+                        'dateTo': $('#tgl-akhir').val(),
+                        'sec_filter_tipe': $('#sec_filter_tipe').val(),
+                        'sec_filter_buyer': $('#sec_filter_buyer').val(),
+                        'sec_filter_ws': $('#sec_filter_ws').val(),
+                        'sec_filter_style': $('#sec_filter_style').val(),
+                        'sec_filter_color': $('#sec_filter_color').val(),
+                        'sec_filter_part': $('#sec_filter_part').val(),
+                        'sec_filter_panel': $('#sec_filter_panel').val(),
+                        'sec_filter_size': $('#sec_filter_size').val(),
+                        'sec_filter_no_cut': $('#sec_filter_no_cut').val(),
+                        'sec_filter_tujuan': $('#sec_filter_tujuan').val(),
+                        'sec_filter_lokasi': $('#sec_filter_lokasi').val(),
+                        'sec_filter_lokasi_rak': $('#sec_filter_lokasi_rak').val(),
+                        'size_filter': $('#size_filter').val()
+                    },
+                    success: function(response) {
+                        console.log(response);
+
+                        if (response && response[0]) {
+                            // Update footer by showing the total with the reference of the column index
+                            $(api.column(0).footer()).html('Total');
+                            $(api.column(13).footer()).html(response[0]['qty_in']);
+                        }
+                    },
+                    error: function(request, status, error) {
+                        // alert('cek');
+                    },
+                })
 
                 $('#size_filter').select2({
                     theme: 'bootstrap4',
@@ -409,7 +427,7 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
+            // paging: false,
             searching: true,
             scrollY: '300px',
             scrollX: '300px',

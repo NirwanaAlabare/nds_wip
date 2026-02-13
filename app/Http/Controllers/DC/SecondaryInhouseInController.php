@@ -14,6 +14,7 @@ use App\Exports\DC\ExportSecondaryInHouseInDetail;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
 use DB;
 
 class SecondaryInhouseInController extends Controller
@@ -204,6 +205,75 @@ class SecondaryInhouseInController extends Controller
             "no_cut" => $no_cut,
             "size" => $size
         );
+    }
+
+    public function total_secondary_inhouse_in(Request $request)
+    {
+        $additionalQuery = '';
+
+        if ($request->dateFrom) {
+            $additionalQuery .= " and a.tgl_trans >= '" . $request->dateFrom . "' ";
+        }
+
+        if ($request->dateTo) {
+            $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
+        }
+
+        if ($request->sec_filter_tipe && count($request->sec_filter_tipe) > 0) {
+            $additionalQuery .= " and (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) in (".addQuotesAround(implode("\n", $request->sec_filter_tipe)).")";
+        }
+        if ($request->sec_filter_buyer && count($request->sec_filter_buyer) > 0) {
+            $additionalQuery .= " and p.buyer in (".addQuotesAround(implode("\n", $request->sec_filter_buyer)).")";
+        }
+        if ($request->sec_filter_ws && count($request->sec_filter_ws) > 0) {
+            $additionalQuery .= " and s.act_costing_ws in (".addQuotesAround(implode("\n", $request->sec_filter_ws)).")";
+        }
+        if ($request->sec_filter_style && count($request->sec_filter_style) > 0) {
+            $additionalQuery .= " and p.style in (".addQuotesAround(implode("\n", $request->sec_filter_style)).")";
+        }
+        if ($request->sec_filter_color && count($request->sec_filter_color) > 0) {
+            $additionalQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->sec_filter_color)).")";
+        }
+        if ($request->sec_filter_part && count($request->sec_filter_part) > 0) {
+            $additionalQuery .= " and mp.nama_part in (".addQuotesAround(implode("\n", $request->sec_filter_part)).")";
+        }
+        if ($request->sec_filter_size && count($request->sec_filter_size) > 0) {
+            $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->sec_filter_size)).")";
+        }
+        if ($request->sec_filter_no_cut && count($request->sec_filter_no_cut) > 0) {
+            $additionalQuery .= " and COALESCE(f.no_cut, fp.no_cut, '-') in (".addQuotesAround(implode("\n", $request->sec_filter_no_cut)).")";
+        }
+        if ($request->sec_filter_tujuan && count($request->sec_filter_tujuan) > 0) {
+            $additionalQuery .= " and a.tujuan in (".addQuotesAround(implode("\n", $request->sec_filter_tujuan)).")";
+        }
+        if ($request->sec_filter_tempat && count($request->sec_filter_tempat) > 0) {
+            $additionalQuery .= " and a.tempat in (".addQuotesAround(implode("\n", $request->sec_filter_tempat)).")";
+        }
+        if ($request->sec_filter_lokasi && count($request->sec_filter_lokasi) > 0) {
+            $additionalQuery .= " and a.lokasi in (".addQuotesAround(implode("\n", $request->sec_filter_lokasi)).")";
+        }
+        if ($request->size_filter && count($request->size_filter) > 0) {
+            $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->size_filter)).")";
+        }
+
+        $data_input = DB::select("
+            SELECT
+                SUM(a.qty_in) qty_in
+            from secondary_inhouse_in_input a
+            left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+            left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+            left join form_cut_input f on f.id = s.form_cut_id
+            left join form_cut_reject fr on fr.id = s.form_reject_id
+            left join form_cut_piece fp on fp.id = s.form_piece_id
+            left join part_detail pd on s.part_detail_id = pd.id
+            left join part p on pd.part_id = p.id
+            left join master_part mp on mp.id = pd.master_part_id
+            where
+                a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
+                ".$additionalQuery."
+        ");
+
+        return $data_input;
     }
 
     public function detail_stocker_inhouse(Request $request)
@@ -875,11 +945,209 @@ class SecondaryInhouseInController extends Controller
 
     public function exportExcel(Request $request)
     {
-        return Excel::download(new ExportSecondaryInHouseIn($request->from, $request->to), 'Laporan sec inhouse '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', '3600');
+
+        $from = $request->from ? $request->from : date('Y-m-d');
+        $to = $request->to ? $request->to : date('Y-m-d');
+
+        $additionalQuery = '';
+
+        if ($from) {
+            $additionalQuery .= " and a.tgl_trans >= '" . $from . "' ";
+        }
+
+        if ($to) {
+            $additionalQuery .= " and a.tgl_trans <= '" . $to . "' ";
+        }
+
+        $data = DB::select("
+            SELECT a.*,
+            DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
+            a.tgl_trans,
+            s.act_costing_ws,
+            s.color,
+            p.buyer,
+            COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+            p.style,
+            a.qty_in,
+            a.created_at,
+            dc.tujuan,
+            dc.lokasi,
+            dc.tempat,
+            COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
+            COALESCE(msb.size, s.size) size,
+            a.user,
+            CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+            CONCAT(s.range_awal, ' - ', s.range_akhir, (CASE WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range,
+            s.notes
+            from secondary_inhouse_in_input a
+            left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+            left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+            left join form_cut_input f on f.id = s.form_cut_id
+            left join form_cut_reject fr on fr.id = s.form_reject_id
+            left join form_cut_piece fp on fp.id = s.form_piece_id
+            left join part_detail pd on s.part_detail_id = pd.id
+            left join part p on p.id = pd.part_id
+            left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+            left join part p_com on p_com.id = pd_com.part_id
+            left join master_part mp on mp.id = pd.master_part_id
+            left join (select id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
+            where
+            a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
+            ".$additionalQuery."
+            order by a.tgl_trans desc
+        ");
+
+        // Create Excel file using FastExcel
+        $excel = FastExcel::create('Secondary InHouse In Report');
+        $sheet = $excel->getSheet();
+
+        // Title
+        $sheet->writeTo('A1', 'Secondary InHouse In Report', ['font-size' => 16]);
+        $sheet->mergeCells('A1:T1');
+
+        // Headers
+        $sheet->writeTo('A2', 'Tgl Transaksi')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('B2', 'ID QR')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('C2', 'WS')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('D2', 'Style')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('E2', 'Color')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('F2', 'Part')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('G2', 'Panel')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('H2', 'Size')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('I2', 'No. Cut')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('J2', 'Tujuan')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('K2', 'Tempat')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('L2', 'Lokasi')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('M2', 'Range')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('N2', 'Qty In')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('O2', 'Buyer')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('P2', 'User')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Q2', 'Created At')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('R2', 'Tujuan DC')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('S2', 'Lokasi DC')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('T2', 'Notes')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+        collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
+            $sheet->writeAreas();
+
+            foreach ($rows as $row) {
+                $rowArr = [
+                    $row->tgl_trans_fix ?? "-",
+                    $row->id_qr_stocker ?? "-",
+                    $row->act_costing_ws ?? "-",
+                    $row->style ?? "-",
+                    $row->color ?? "-",
+                    $row->nama_part ?? "-",
+                    $row->panel ?? "-",
+                    $row->size ?? "-",
+                    $row->no_cut ?? "-",
+                    $row->tujuan ?? "-",
+                    $row->tempat ?? "-",
+                    $row->lokasi ?? "-",
+                    $row->stocker_range ?? "-",
+                    $row->qty_in ?? "-",
+                    $row->buyer ?? "-",
+                    $row->user ?? "-",
+                    $row->created_at ?? "-",
+                    $row->tujuan ?? "-",
+                    $row->lokasi ?? "-",
+                    $row->notes ?? "-",
+                ];
+
+                $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            }
+        });
+
+        $filename = 'Laporan sec inhouse ' . $from . ' - ' . $to . ' (' . Carbon::now()->format('Y-m-d H:i:s') . ').xlsx';
+
+        return $excel->download($filename);
     }
 
     public function exportExcelDetail(Request $request)
     {
-        return Excel::download(new ExportSecondaryInHouseInDetail($request->from, $request->to), 'Laporan sec inhouse detail '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', '3600');
+
+        $from = $request->from ? $request->from : date('Y-m-d');
+        $to = $request->to ? $request->to : date('Y-m-d');
+
+        $additionalQuery = '';
+
+        if ($from) {
+            $additionalQuery .= " and (sii.tgl_trans >= '" . $from . "') ";
+        }
+
+        if ($to) {
+            $additionalQuery .= " and (sii.tgl_trans <= '" . $to . "') ";
+        }
+
+        $data = DB::select("
+            select
+                sii.tgl_trans, s.act_costing_ws, msb.buyer, styleno,
+                COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+                CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+                s.color, s.size, dc.tujuan, dc.lokasi as proses, COALESCE(sum(sii.qty_in), 0) qty_in
+            from
+                dc_in_input dc
+                left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+                left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+                left join part_detail pd on s.part_detail_id = pd.id
+                left join part p on p.id = pd.part_id
+                left join part_detail pd_com on pd.id = pd.from_part_detail and pd.part_status = 'complement'
+                left join part p_com on p_com.id = pd_com.part_id
+                left join master_part mp on mp.id = pd.master_part_id
+                left join secondary_inhouse_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
+            where
+                dc.tujuan = 'SECONDARY DALAM' ".$additionalQuery."
+            group by
+                sii.tgl_trans, s.act_costing_ws, msb.buyer, styleno, s.color, s.size, mp.nama_part, dc.tujuan, dc.lokasi
+        ");
+
+        // Create Excel file using FastExcel
+        $excel = FastExcel::create('Secondary InHouse In Detail Report');
+        $sheet = $excel->getSheet();
+
+        // Title
+        $sheet->writeTo('A1', 'Secondary InHouse In Detail Report', ['font-size' => 16]);
+        $sheet->mergeCells('A1:J1');
+
+        // Headers
+        $sheet->writeTo('A2', 'Tgl Transaksi')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('B2', 'WS')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('C2', 'Buyer')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('D2', 'Style')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('E2', 'Panel')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('F2', 'Part')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('G2', 'Color')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('H2', 'Size')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('I2', 'Tujuan')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('J2', 'Qty In')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+        collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
+            $sheet->writeAreas();
+
+            foreach ($rows as $row) {
+                $rowArr = [
+                    $row->tgl_trans ?? "-",
+                    $row->act_costing_ws ?? "-",
+                    $row->buyer ?? "-",
+                    $row->styleno ?? "-",
+                    $row->panel ?? "-",
+                    $row->nama_part ?? "-",
+                    $row->color ?? "-",
+                    $row->size ?? "-",
+                    $row->tujuan ?? "-",
+                    $row->qty_in ?? "-",
+                ];
+
+                $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            }
+        });
+
+        $filename = 'Laporan sec inhouse detail ' . $from . ' - ' . $to . ' (' . Carbon::now()->format('Y-m-d H:i:s') . ').xlsx';
+
+        return $excel->download($filename);
     }
 }

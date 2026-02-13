@@ -667,55 +667,46 @@
         })
 
         let datatable = $("#datatable-input").DataTable({
-            "footerCallback": function(row, data, start, end, display) {
-                var api = this.api(),
-                    data;
+            "footerCallback": async function(row, data, start, end, display) {
+                var api = this.api();
 
-                // converting to interger to find total
-                var intVal = function(i) {
-                    return typeof i === 'string' ?
-                        i.replace(/[\$,]/g, '') * 1 :
-                        typeof i === 'number' ?
-                        i : 0;
-                };
+                $(api.column(0).footer()).html('Total');
+                $(api.column(14).footer()).html('...');
+                $(api.column(15).footer()).html('...');
+                $(api.column(16).footer()).html('...');
+                $(api.column(17).footer()).html('...');
 
-                // computing column Total of the complete result
                 $.ajax({
-                    type: "get",
-                    url: "{{ route('total-stocker-in') }}",
+                    url: '{{ route('total_secondary_in') }}',
+                    dataType: 'json',
                     data: {
-                        dateFrom : $('#tgl-awal').val(),
-                        dateTo : $('#tgl-akhir').val(),
-                        sec_filter_tipe : $('#sec_filter_tipe').val(),
-                        sec_filter_buyer : $('#sec_filter_buyer').val(),
-                        sec_filter_ws : $('#sec_filter_ws').val(),
-                        sec_filter_style : $('#sec_filter_style').val(),
-                        sec_filter_color : $('#sec_filter_color').val(),
-                        sec_filter_panel : $('#sec_filter_panel').val(),
-                        sec_filter_part : $('#sec_filter_part').val(),
-                        sec_filter_size : $('#sec_filter_size').val(),
-                        sec_filter_no_cut : $('#sec_filter_no_cut').val(),
-                        sec_filter_tujuan : $('#sec_filter_tujuan').val(),
-                        sec_filter_lokasi : $('#sec_filter_lokasi').val(),
-                        sec_filter_lokasi_rak : $('#sec_filter_lokasi_rak').val(),
-                        size_filter : $('#size_filter').val(),
+                        dateFrom: $('#tgl-awal').val(),
+                        dateTo: $('#tgl-akhir').val(),
+                        sec_filter_tipe: $('#sec_filter_tipe').val(),
+                        sec_filter_buyer: $('#sec_filter_buyer').val(),
+                        sec_filter_ws: $('#sec_filter_ws').val(),
+                        sec_filter_style: $('#sec_filter_style').val(),
+                        sec_filter_color: $('#sec_filter_color').val(),
+                        sec_filter_panel: $('#sec_filter_panel').val(),
+                        sec_filter_part: $('#sec_filter_part').val(),
+                        sec_filter_size: $('#sec_filter_size').val(),
+                        sec_filter_no_cut: $('#sec_filter_no_cut').val(),
+                        sec_filter_tujuan: $('#sec_filter_tujuan').val(),
+                        sec_filter_tempat: $('#sec_filter_tempat').val(),
+                        sec_filter_lokasi: $('#sec_filter_lokasi').val(),
+                        sec_filter_lokasi_rak: $('#sec_filter_lokasi_rak').val(),
+                        range_filter: $('#range_filter').val(),
+                        size_filter: $('#size_filter').val()
                     },
-                    dataType: "json",
-                    success: function (response) {
-                        console.log(response);
-
+                    success: function(response) {
                         if (response) {
-                            // Update footer by showing the total with the reference of the column index
-                            $(api.column(0).footer()).html('Total');
-                            $(api.column(15).footer()).html(response.total_qty_awal);
-                            $(api.column(16).footer()).html(response.total_qty_reject);
-                            $(api.column(17).footer()).html(response.total_qty_replace);
-                            $(api.column(18).footer()).html(response.total_qty_in);
+                            $(api.column(14).footer()).html(response['total_qty_awal'] ?? 0);
+                            $(api.column(15).footer()).html(response['total_qty_reject'] ?? 0);
+                            $(api.column(16).footer()).html(response['total_qty_replace'] ?? 0);
+                            $(api.column(17).footer()).html(response['total_qty_in'] ?? 0);
                         }
                     },
-                    error: function (jqXHR) {
-                        console.error(jqXHR);
-                    }
+                    error: function() {}
                 });
 
                 $('#size_filter').select2({
@@ -725,7 +716,7 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: true,
+            // paging: false,
             searching: true,
             scrollY: '300px',
             scrollX: '300px',

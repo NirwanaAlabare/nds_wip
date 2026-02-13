@@ -17,6 +17,7 @@ use App\Exports\DC\ExportDcInDetail;
 
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
 use Carbon\Carbon;
 use DB;
 
@@ -28,6 +29,9 @@ class DCInController extends Controller
 
         $data_rak = DB::select("select nama_detail_rak isi, nama_detail_rak tampil from rack_detail");
         if ($request->ajax()) {
+            ini_set('memory_limit', '1024M');
+            ini_set('max_execution_time', '3600');
+
             $additionalQuery = '';
 
             if ($request->dateFrom) {
@@ -386,7 +390,194 @@ class DCInController extends Controller
 
     public function exportExcel(Request $request)
     {
-        return Excel::download(new ExportDcIn($request->from, $request->to, $request->dc_filter_tipe, $request->dc_filter_buyer, $request->dc_filter_ws, $request->dc_filter_style, $request->dc_filter_color, $request->dc_filter_part, $request->dc_filter_part_status, $request->dc_filter_panel, $request->dc_filter_panel_status, $request->dc_filter_size, $request->dc_filter_no_cut, $request->dc_filter_tujuan, $request->dc_filter_tempat, $request->dc_filter_lokasi), 'Laporan dc in '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', '3600');
+
+        $from = $request->from ? $request->from : date('Y-m-d');
+        $to = $request->to ? $request->to : date('Y-m-d');
+
+        $additionalQuery = '';
+
+        if ($from) {
+            $additionalQuery .= " and a.tgl_trans >= '" . $from . "' ";
+        }
+
+        if ($to) {
+            $additionalQuery .= " and a.tgl_trans <= '" . $to . "' ";
+        }
+
+        if ($request->dc_filter_tipe && count($request->dc_filter_tipe) > 0) {
+            $additionalQuery .= " and (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) in (".addQuotesAround(implode("\n", $request->dc_filter_tipe)).")";
+        }
+        if ($request->dc_filter_buyer && count($request->dc_filter_buyer) > 0) {
+            $additionalQuery .= " and p.buyer in (".addQuotesAround(implode("\n", $request->dc_filter_buyer)).")";
+        }
+        if ($request->dc_filter_ws && count($request->dc_filter_ws) > 0) {
+            $additionalQuery .= " and s.act_costing_ws in (".addQuotesAround(implode("\n", $request->dc_filter_ws)).")";
+        }
+        if ($request->dc_filter_style && count($request->dc_filter_style) > 0) {
+            $additionalQuery .= " and p.style in (".addQuotesAround(implode("\n", $request->dc_filter_style)).")";
+        }
+        if ($request->dc_filter_color && count($request->dc_filter_color) > 0) {
+            $additionalQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->dc_filter_color)).")";
+        }
+        if ($request->dc_filter_part && count($request->dc_filter_part) > 0) {
+            $additionalQuery .= " and mp.nama_part in (".addQuotesAround(implode("\n", $request->dc_filter_part)).")";
+        }
+        if ($request->dc_filter_part_status && count($request->dc_filter_part_status) > 0) {
+            $additionalQuery .= " and pd.part_status in (".addQuotesAround(implode("\n", $request->dc_filter_part_status)).")";
+        }
+        if ($request->dc_filter_panel && count($request->dc_filter_panel) > 0) {
+            $additionalQuery .= " and p.panel in (".addQuotesAround(implode("\n", $request->dc_filter_panel)).")";
+        }
+        if ($request->dc_filter_panel_status && count($request->dc_filter_panel_status) > 0) {
+            $additionalQuery .= " and p.panel_status in (".addQuotesAround(implode("\n", $request->dc_filter_panel_status)).")";
+        }
+        if ($request->dc_filter_size && count($request->dc_filter_size) > 0) {
+            $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->dc_filter_size)).")";
+        }
+        if ($request->dc_filter_no_cut && count($request->dc_filter_no_cut) > 0) {
+            $additionalQuery .= " and f.no_cut in (".addQuotesAround(implode("\n", $request->dc_filter_no_cut)).")";
+        }
+        if ($request->dc_filter_tujuan && count($request->dc_filter_tujuan) > 0) {
+            $additionalQuery .= " and a.tujuan in (".addQuotesAround(implode("\n", $request->dc_filter_tujuan)).")";
+        }
+        if ($request->dc_filter_tempat && count($request->dc_filter_tempat) > 0) {
+            $additionalQuery .= " and a.tempat in (".addQuotesAround(implode("\n", $request->dc_filter_tempat)).")";
+        }
+        if ($request->dc_filter_lokasi && count($request->dc_filter_lokasi) > 0) {
+            $additionalQuery .= " and a.lokasi in (".addQuotesAround(implode("\n", $request->dc_filter_lokasi)).")";
+        }
+
+        $data = DB::select("
+            SELECT
+                UPPER(a.id_qr_stocker) id_qr_stocker,
+                (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
+                DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
+                a.tgl_trans,
+                s.act_costing_ws,
+                s.color,
+                p.buyer,
+                p.style,
+                a.qty_awal,
+                a.qty_reject,
+                a.qty_replace,
+                (a.qty_awal - a.qty_reject + a.qty_replace) qty_in,
+                a.tujuan,
+                a.lokasi,
+                a.tempat,
+                a.created_at,
+                a.user,
+                CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
+                COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
+                COALESCE(msb.size, s.size) size,
+                mp.nama_part,
+                s.notes,
+                UPPER(COALESCE(pd.part_status, '-')) part_status,
+                COALESCE(p_com.panel, p.panel) as panel,
+                COALESCE(p_com.panel_status, p.panel_status) as panel_status
+            from
+                dc_in_input a
+                left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+                left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+                left join form_cut_input f on f.id = s.form_cut_id
+                left join form_cut_reject fr on fr.id = s.form_reject_id
+                left join form_cut_piece fp on fp.id = s.form_piece_id
+                left join part_detail pd on s.part_detail_id = pd.id
+                left join part p on pd.part_id = p.id
+                left join part_detail pd_com on pd_com.id = pd.from_part_detail
+                left join part p_com on p_com.id = pd_com.part_id
+                left join master_part mp on mp.id = pd.master_part_id
+            where
+                a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
+                ".$additionalQuery."
+            order by
+                a.tgl_trans desc
+        ");
+
+        // Calculate totals
+        $totalQtyAwal = 0;
+        $totalQtyReject = 0;
+        $totalQtyReplace = 0;
+        $totalQtyIn = 0;
+
+        foreach ($data as $d) {
+            $totalQtyAwal += $d->qty_awal;
+            $totalQtyReject += $d->qty_reject;
+            $totalQtyReplace += $d->qty_replace;
+            $totalQtyIn += $d->qty_in;
+        }
+
+        // Create Excel file using FastExcel
+        $excel = FastExcel::create('data');
+        $sheet = $excel->getSheet();
+
+        // Title
+        $sheet->writeTo('A1', 'Check Input Detail', ['font-size' => 16]);
+        $sheet->mergeCells('A1:W1');
+
+        // Headers
+        $sheet->writeTo('A2', 'Tgl Transaksi')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('B2', 'ID QR')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('C2', 'WS')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('D2', 'Style')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('E2', 'Color')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('F2', 'Part')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('G2', 'Part Status')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('H2', 'Panel')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('I2', 'Panel Status')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('J2', 'Size')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('K2', 'No. Cut')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('L2', 'Tujuan')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('M2', 'Tempat')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('N2', 'Lokasi')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('O2', 'Range')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('P2', 'Qty Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Q2', 'Qty Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('R2', 'Qty Replace')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('S2', 'Qty In')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('T2', 'Buyer')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('U2', 'Notes')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('V2', 'User')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('W2', 'Created At')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+        collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
+            $sheet->writeAreas();
+
+            foreach ($rows as $row) {
+                $rowArr = [
+                    $row->tgl_trans_fix ?? "-",
+                    $row->id_qr_stocker ?? "-",
+                    $row->act_costing_ws ?? "-",
+                    $row->style ?? "-",
+                    $row->color ?? "-",
+                    $row->nama_part ?? "-",
+                    $row->part_status ?? "-",
+                    $row->panel ?? "-",
+                    $row->panel_status ?? "-",
+                    $row->size ?? "-",
+                    $row->no_cut ?? "-",
+                    $row->tujuan ?? "-",
+                    $row->tempat ?? "-",
+                    $row->lokasi ?? "-",
+                    $row->stocker_range ?? "-",
+                    $row->qty_awal ?? "-",
+                    $row->qty_reject ?? "-",
+                    $row->qty_replace ?? "-",
+                    $row->qty_in ?? "-",
+                    $row->buyer ?? "-",
+                    $row->notes ?? "-",
+                    $row->user ?? "-",
+                    $row->created_at ?? "-",
+                ];
+
+                $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            }
+        });
+
+        $filename = 'Laporan dc in ' . $from . ' - ' . $to . ' (' . Carbon::now()->format('Y-m-d H:i:s') . ').xlsx';
+
+        return $excel->download($filename);
     }
 
     public function detail_dc_in(Request $request)

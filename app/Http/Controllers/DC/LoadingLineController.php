@@ -14,6 +14,8 @@ use App\Exports\DC\ExportLoadingLine;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Excel;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
+use Carbon\Carbon;
 
 class LoadingLineController extends Controller
 {
@@ -539,6 +541,30 @@ class LoadingLineController extends Controller
                 LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
                 LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
                 LEFT JOIN users ON users.id = loading_line.created_by
+                LEFT JOIN (
+                    select
+                        p.panel,
+                        s.form_cut_id,
+                        s.so_det_id,
+                        s.group_stocker,
+                        s.ratio,
+                        GROUP_CONCAT(ll.stocker_id) stocker_id,
+                        MIN(ll.qty) loading_qty
+                    from
+                        loading_line ll
+                        left join stocker_input s on s.id = ll.stocker_id
+                        left join part_detail pd on pd.id = s.part_detail_id
+                        left join part p on p.id = pd.part_id
+                    where
+                        ll.tanggal_loading between '".$dateFrom."' AND '".$dateTo."' AND
+                        (s.cancel IS NULL OR s.cancel != 'y')
+                    group by
+                        p.panel,
+                        s.form_cut_id,
+                        s.so_det_id,
+                        s.group_stocker,
+                        s.ratio
+                ) as loading_qty on loading_qty.panel = COALESCE(part_com.panel, part.panel) AND loading_qty.form_cut_id = stocker_input.form_cut_id AND loading_qty.so_det_id = stocker_input.so_det_id AND loading_qty.group_stocker = stocker_input.group_stocker AND loading_qty.ratio = stocker_input.ratio
             WHERE
                 loading_line_plan.id = '".$id."' and
                 (loading_line.tanggal_loading between '".$dateFrom."' and '".$dateTo."')
@@ -637,12 +663,357 @@ class LoadingLineController extends Controller
     }
 
     public function exportLoadingLine(Request $request) {
-        ini_set("max_execution_time", 36000);
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', '3600');
 
-        $from = $request->from ? $request->from : date("Y-m-d");
-        $to = $request->to ? $request->to : date("Y-m-d");
+        $from = $request->from ? $request->from : date('Y-m-d');
+        $to = $request->to ? $request->to : date('Y-m-d');
 
-        return Excel::download(new ExportLoadingLine($from, $to, $request->lineFilter, $request->wsFilter, $request->styleFilter, $request->colorFilter, $request->targetSewingFilter, $request->targetLoadingFilter, $request->trolleyFilter, $request->trolleyColorFilter), 'Laporan Loading '.$from.' - '.$to.'.xlsx');
+        $detailDateFilter = "";
+        if ($from || $to) {
+            $detailDateFilter = "WHERE ";
+            $dateFromFilter = " loading_line.tanggal_loading >= '".$from."' ";
+            $dateToFilter = " loading_line.tanggal_loading <= '".$to."' ";
+
+            if ($from && $to) {
+                $detailDateFilter .= $dateFromFilter." AND ".$dateToFilter;
+            } else {
+                if ($to) {
+                    $detailDateFilter .= $dateFromFilter;
+                }
+
+                if ($from) {
+                    $detailDateFilter .= $dateToFilter;
+                }
+            }
+        }
+
+        $dateFilter = "";
+        if ($from || $to) {
+            $dateFilter = "WHERE ";
+            $dateFromFilter = " loading_line_plan.tanggal >= '".$from."' ";
+            $dateToFilter = " loading_line_plan.tanggal <= '".$to."' ";
+
+            if ($from && $to) {
+                $dateFilter .= $dateFromFilter." AND ".$dateToFilter;
+            } else {
+                if ($to) {
+                    $dateFilter .= $dateFromFilter;
+                }
+
+                if ($from) {
+                    $dateFilter .= $dateToFilter;
+                }
+            }
+        }
+
+        $generalFilter = "";
+        if ($request->lineFilter || $request->wsFilter || $request->styleFilter || $request->colorFilter || $request->targetSewingFilter || $request->targetLoadingFilter || $request->trolleyFilter || $request->trolleyColorFilter) {
+            $generalFilter .= " WHERE ( loading_line_plan.id IS NOT NULL ";
+            if ($request->lineFilter) {
+                $generalFilter .= "AND loading_line_plan.line_id LIKE '%".$request->lineFilter."%'";
+            }
+            if ($request->wsFilter) {
+                $generalFilter .= "AND loading_line_plan.act_costing_ws LIKE '%".$request->wsFilter."%'";
+            }
+            if ($request->styleFilter) {
+                $generalFilter .= "AND loading_line_plan.style LIKE '%".$request->styleFilter."%'";
+            }
+            if ($request->colorFilter) {
+                $generalFilter .= "AND loading_line_plan.color LIKE '%".$request->colorFilter."%'";
+            }
+            if ($request->targetSewingFilter) {
+                $generalFilter .= "AND loading_line_plan.target_sewing LIKE '%".$request->targetSewingFilter."%'";
+            }
+            if ($request->targetLoadingFilter) {
+                $generalFilter .= "AND loading_line_plan.target_loading LIKE '%".$request->targetLoadingFilter."%'";
+            }
+            if ($request->trolleyFilter) {
+                $generalFilter .= "AND loading_stock.nama_trolley LIKE '%".$request->trolleyFilter."%'";
+            }
+            if ($request->trolleyColorFilter) {
+                $generalFilter .= "AND trolley_stock.trolley_color LIKE '%".$request->trolleyColorFilter."%'";
+            }
+            $generalFilter .= " )";
+        }
+
+        $dataLoadingLinePlan = collect(
+            DB::select("
+                SELECT
+                    loading_line_plan.id,
+                    loading_line_plan.line_id,
+                    loading_line_plan.act_costing_ws,
+                    loading_line_plan.style,
+                    loading_line_plan.color,
+                    loading_line_plan.target_sewing,
+                    loading_line_plan.target_loading,
+                    sum( loading_stock.qty ) loading_qty,
+                    sum( loading_stock.qty ) - loading_line_plan.target_loading loading_balance,
+                    loading_stock.nama_trolley nama_trolley,
+                    trolley_stock.trolley_color trolley_color,
+                    trolley_stock.trolley_qty trolley_qty,
+                    loading_stock.no_bon
+                FROM
+                    loading_line_plan
+                    INNER JOIN (
+                        SELECT
+                            (
+                                ( COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply )) -
+                                ( COALESCE ( dc_in_input.qty_reject, 0 )) + ( COALESCE ( dc_in_input.qty_replace, 0 )) -
+                                ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
+                                ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
+                            ) qty,
+                            trolley.id trolley_id,
+                            trolley.nama_trolley,
+                            stocker_input.so_det_id,
+                            stocker_input.size,
+                            loading_line.loading_plan_id,
+                            loading_line.no_bon
+                        FROM
+                            loading_line
+                            LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
+                            LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                            LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                            LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
+                            LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
+                            LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
+                            LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
+                            ".$detailDateFilter."
+                        GROUP BY
+                            loading_line.tanggal_loading,
+                            stocker_input.form_cut_id,
+                            stocker_input.form_reject_id,
+                            stocker_input.form_piece_id,
+                            stocker_input.so_det_id,
+                            stocker_input.group_stocker,
+                            stocker_input.range_awal
+                        ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
+                    LEFT JOIN (
+                        select
+                            trolley.id trolley_id,
+                            group_concat(distinct trolley_stock_bundle.trolley_ws) trolley_ws,
+                            group_concat(distinct trolley_stock_bundle.trolley_color) trolley_color,
+                            sum(trolley_stock_bundle.trolley_qty) trolley_qty
+                        from
+                            trolley
+                            left join trolley_stocker on trolley_stocker.trolley_id = trolley.id
+                            inner join (
+                                SELECT
+                                    trolley_stocker.stocker_id,
+                                    stocker_input.act_costing_ws trolley_ws,
+                                    stocker_input.color trolley_color,
+                                    stocker_input.qty_ply trolley_qty
+                                FROM
+                                    trolley_stocker
+                                    LEFT JOIN stocker_input ON stocker_input.id = trolley_stocker.stocker_id
+                                WHERE
+                                    trolley_stocker.STATUS = 'active'
+                                GROUP BY
+                                    stocker_input.form_cut_id,
+                                    stocker_input.form_reject_id,
+                                    stocker_input.form_piece_id,
+                                    stocker_input.so_det_id,
+                                    stocker_input.group_stocker,
+                                    stocker_input.range_awal
+                            ) trolley_stock_bundle on trolley_stock_bundle.stocker_id = trolley_stocker.stocker_id
+                            group by trolley.id
+                    ) trolley_stock ON trolley_stock.trolley_id = loading_stock.trolley_id
+                    ".$generalFilter."
+                GROUP BY
+                    loading_line_plan.id
+                ORDER BY
+                    loading_line_plan.line_id,
+                    loading_line_plan.act_costing_ws,
+                    loading_line_plan.color
+            ")
+        );
+
+        $loadingPlanIds = "('".$dataLoadingLinePlan->implode("id", "','")."')";
+
+        $innerDetailDateFilter = "";
+        if ($from || $to) {
+            $innerDetailDateFilter = "AND ";
+            $dateFromFilter = " COALESCE( loading_line.tanggal_loading, DATE ( loading_line.updated_at ) ) >= '".$from."' ";
+            $dateToFilter = " COALESCE(  loading_line.tanggal_loading, DATE ( loading_line.updated_at ) ) <= '".$to."' ";
+
+            if ($from && $to) {
+                $innerDetailDateFilter .= $dateFromFilter." AND ".$dateToFilter;
+            } else {
+                if ($to) {
+                    $innerDetailDateFilter .= $dateFromFilter;
+                }
+
+                if ($from) {
+                    $innerDetailDateFilter .= $dateToFilter;
+                }
+            }
+        }
+
+        $data = DB::select("
+            SELECT
+                COALESCE( loading_line.tanggal_loading, DATE ( loading_line.updated_at ) ) tanggal_loading,
+                loading_line.loading_plan_id,
+                loading_line.nama_line,
+                (
+                    (COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply )) -
+                    (COALESCE ( MAX(dc_in_input.qty_reject), 0 )) +
+                    (COALESCE ( MAX(dc_in_input.qty_replace), 0 )) -
+                    (COALESCE ( MAX(secondary_in_input.qty_reject), 0 )) +
+                    (COALESCE ( MAX(secondary_in_input.qty_replace), 0 )) -
+                    (COALESCE ( MAX(secondary_inhouse_input.qty_reject), 0 )) +
+                    (COALESCE ( MAX(secondary_inhouse_input.qty_replace), 0 ))
+                ) qty_old,
+                loading_line.qty qty_old_1,
+                COALESCE(loading_qty.loading_qty, loading_line.qty) qty,
+                trolley.id trolley_id,
+                trolley.nama_trolley,
+                stocker_input.id_qr_stocker,
+                stocker_input.so_det_id,
+                stocker_input.size,
+                stocker_input.shade,
+                stocker_input.group_stocker,
+                stocker_input.range_awal,
+                stocker_input.range_akhir,
+                loading_line_plan.act_costing_id,
+                loading_line_plan.act_costing_ws,
+                loading_line_plan.buyer,
+                loading_line_plan.style,
+                loading_line_plan.color,
+                loading_line_plan.line_id,
+                COALESCE(form_cut_input.no_form, form_cut_piece.no_form, form_cut_reject.no_form) no_form,
+                COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
+                (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) type,
+                COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
+                CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL THEN CONCAT(' - ', part_detail.part_status) ELSE '' END)) part,
+                loading_line.no_bon,
+                DATE_FORMAT(loading_line.updated_at, '%H:%i:%s') waktu_loading,
+                users.username as user,
+                part_detail.part_status
+            FROM
+                loading_line
+                LEFT JOIN loading_line_plan ON loading_line_plan.id = loading_line.loading_plan_id
+                LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
+                left join part_detail on stocker_input.part_detail_id = part_detail.id
+                left join part on part.id = part_detail.part_id
+                left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
+                left join part part_com on part_com.id = part_detail_com.part_id
+                LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+                LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
+                LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
+                LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
+                LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
+                LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
+                LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
+                LEFT JOIN users ON users.id = loading_line.created_by
+                LEFT JOIN (
+                    select
+                        p.panel,
+                        s.form_cut_id,
+                        s.so_det_id,
+                        s.group_stocker,
+                        s.ratio,
+                        GROUP_CONCAT(ll.stocker_id) stocker_id,
+                        MIN(ll.qty) loading_qty
+                    from
+                        loading_line ll
+                        left join stocker_input s on s.id = ll.stocker_id
+                        left join part_detail pd on pd.id = s.part_detail_id
+                        left join part p on p.id = pd.part_id
+                    where
+                        ll.tanggal_loading between '".$from."' AND '".$to."' AND
+                        (s.cancel IS NULL OR s.cancel != 'y')
+                    group by
+                        p.panel,
+                        s.form_cut_id,
+                        s.so_det_id,
+                        s.group_stocker,
+                        s.ratio
+                ) as loading_qty on loading_qty.panel = COALESCE(part_com.panel, part.panel) AND loading_qty.form_cut_id = stocker_input.form_cut_id AND loading_qty.so_det_id = stocker_input.so_det_id AND loading_qty.group_stocker = stocker_input.group_stocker AND loading_qty.ratio = stocker_input.ratio
+            WHERE
+                loading_line_plan.id in ".$loadingPlanIds."
+                ".$innerDetailDateFilter."
+            GROUP BY
+                stocker_input.id_qr_stocker
+            ORDER BY
+                loading_line_plan.id,
+                loading_line.tanggal_loading,
+                stocker_input.form_cut_id,
+                stocker_input.form_reject_id,
+                stocker_input.form_piece_id,
+                stocker_input.so_det_id,
+                stocker_input.range_awal,
+                FIELD(part_detail.part_status, 'main', 'regular', 'complement')
+        ");
+
+        // Create Excel file using FastExcel
+        $excel = FastExcel::create('Loading Line Report');
+        $sheet = $excel->getSheet();
+
+        // Title
+        $sheet->writeTo('A1', 'Loading Line Report', ['font-size' => 16]);
+        $sheet->mergeCells('A1:U1');
+
+        // Headers
+        $sheet->writeTo('A2', 'Tanggal Loading')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('B2', 'Nama Line')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('C2', 'WS')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('D2', 'Buyer')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('E2', 'Style')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('F2', 'Color')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('G2', 'Panel')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('H2', 'Part')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('I2', 'Size')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('J2', 'No Cut')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('K2', 'No Form')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('L2', 'Type')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('M2', 'No Bon')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('N2', 'QR Stocker')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('O2', 'Range Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('P2', 'Range Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Q2', 'Trolley')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('R2', 'Qty')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('S2', 'Waktu Loading')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('T2', 'User')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('U2', 'Part Status')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+        collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
+            $sheet->writeAreas();
+
+            foreach ($rows as $row) {
+                $rowArr = [
+                    $row->tanggal_loading ?? "-",
+                    $row->nama_line ?? "-",
+                    $row->act_costing_ws ?? "-",
+                    $row->buyer ?? "-",
+                    $row->style ?? "-",
+                    $row->color ?? "-",
+                    $row->panel ?? "-",
+                    $row->part ?? "-",
+                    $row->size ?? "-",
+                    $row->no_cut ?? "-",
+                    $row->no_form ?? "-",
+                    $row->type ?? "-",
+                    $row->no_bon ?? "-",
+                    $row->id_qr_stocker ?? "-",
+                    $row->range_awal ?? "-",
+                    $row->range_akhir ?? "-",
+                    $row->nama_trolley ?? "-",
+                    $row->qty ?? "-",
+                    $row->waktu_loading ?? "-",
+                    $row->user ?? "-",
+                    $row->part_status ?? "-",
+                ];
+
+                $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            }
+        });
+
+        $filename = 'Laporan Loading '.$from.' - '.$to.' ('.Carbon::now()->format('Y-m-d H:i:s').').xlsx';
+
+        return $excel->download($filename);
     }
 
     public function summary(Request $request) {
@@ -1065,9 +1436,160 @@ class LoadingLineController extends Controller
 
     public function exportExcel(Request $request)
     {
-        ini_set("max_execution_time", 36000);
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', '3600');
 
-        return Excel::download(new ExportLaporanLoading($request->dateFrom, $request->dateTo), 'Laporan Loading '.$request->dateFrom.' - '.$request->dateTo.'.xlsx');
+        $dateFrom = $request->dateFrom ? $request->dateFrom : date('Y-m-d');
+        $dateTo = $request->dateTo ? $request->dateTo : date('Y-m-d');
+
+        $innerDateFilter = "";
+        if ($dateFrom || $dateTo) {
+            $innerDateFilter = "WHERE ";
+            $innerDateFromFilter = " loading_line.tanggal_loading >= '".$dateFrom."' ";
+            $innerDateToFilter = " loading_line.tanggal_loading <= '".$dateTo."' ";
+
+            if ($dateFrom && $dateTo) {
+                $innerDateFilter .= $innerDateFromFilter." AND ".$innerDateToFilter;
+            } else {
+                if ($dateTo) {
+                    $innerDateFilter .= $innerDateFromFilter;
+                }
+
+                if ($dateFrom) {
+                    $innerDateFilter .= $innerDateToFilter;
+                }
+            }
+        }
+
+        $dateFilter = "";
+        if ($dateFrom || $dateTo) {
+            $dateFilter = "HAVING ";
+            $dateFromFilter = " loading_stock.tanggal_loading >= '".$dateFrom."' ";
+            $dateToFilter = " loading_stock.tanggal_loading <= '".$dateTo."' ";
+
+            if ($dateFrom && $dateTo) {
+                $dateFilter .= $dateFromFilter." AND ".$dateToFilter;
+            } else {
+                if ($dateTo) {
+                    $dateFilter .= $dateFromFilter;
+                }
+
+                if ($dateFrom) {
+                    $dateFilter .= $dateToFilter;
+                }
+            }
+        }
+
+        $data = DB::select("
+            SELECT
+                loading_stock.tanggal_loading,
+                loading_line_plan.id,
+                loading_line_plan.line_id,
+                loading_stock.nama_line,
+                loading_line_plan.act_costing_ws,
+                loading_line_plan.style,
+                loading_line_plan.color,
+                loading_stock.size size,
+                sum( loading_stock.qty ) loading_qty
+            FROM
+                loading_line_plan
+                LEFT JOIN (
+                    SELECT
+                        MAX(COALESCE ( loading_line.tanggal_loading, DATE ( loading_line.updated_at ) )) tanggal_loading,
+                        loading_line.loading_plan_id,
+                        loading_line.nama_line,
+                        (
+                            COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply ) -
+                            ( COALESCE ( dc_in_input.qty_reject, 0 )) + ( COALESCE ( dc_in_input.qty_replace, 0 )) -
+                            ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
+                            ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
+                        ) qty_old,
+                        MIN(loading_line.qty) qty,
+                        trolley.id trolley_id,
+                        trolley.nama_trolley,
+                        stocker_input.so_det_id,
+                        COALESCE(master_sb_ws.size, stocker_input.size) size,
+                        master_size_new.urutan
+                    FROM
+                        loading_line
+                        LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
+                        LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                        LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                        LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                        LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
+                        LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
+                        LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                        LEFT JOIN master_size_new ON master_size_new.size = master_sb_ws.size
+                        ".$innerDateFilter."
+                    GROUP BY
+                        stocker_input.form_cut_id,
+                        stocker_input.form_reject_id,
+                        stocker_input.form_piece_id,
+                        stocker_input.so_det_id,
+                        stocker_input.group_stocker,
+                        stocker_input.ratio
+                    ORDER BY
+                        FIELD(part_detail.part_status, 'main', 'regular', 'complement') ASC
+                ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
+            WHERE
+                loading_stock.tanggal_loading IS NOT NULL
+            GROUP BY
+                loading_stock.tanggal_loading,
+                loading_line_plan.id,
+                loading_stock.size
+                ".$dateFilter."
+            ORDER BY
+                loading_stock.tanggal_loading,
+                loading_line_plan.line_id,
+                loading_line_plan.act_costing_ws,
+                loading_line_plan.color,
+                loading_stock.so_det_id,
+                loading_stock.urutan
+        ");
+
+        // Create Excel file using FastExcel
+        $excel = FastExcel::create('Loading Report');
+        $sheet = $excel->getSheet();
+
+        // Title
+        $sheet->writeTo('A1', 'Loading Report', ['font-size' => 16]);
+        $sheet->mergeCells('A1:I1');
+
+        // Headers
+        $sheet->writeTo('A2', 'Tanggal Loading')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('B2', 'Line ID')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('C2', 'Nama Line')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('D2', 'WS')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('E2', 'Style')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('F2', 'Color')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('G2', 'Size')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('H2', 'Loading Qty')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('I2', 'Plan ID')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+        collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
+            $sheet->writeAreas();
+
+            foreach ($rows as $row) {
+                $rowArr = [
+                    $row->tanggal_loading ?? "-",
+                    $row->line_id ?? "-",
+                    $row->nama_line ?? "-",
+                    $row->act_costing_ws ?? "-",
+                    $row->style ?? "-",
+                    $row->color ?? "-",
+                    $row->size ?? "-",
+                    $row->loading_qty ?? "-",
+                    $row->id ?? "-",
+                ];
+
+                $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            }
+        });
+
+        $filename = 'Laporan Loading '.$dateFrom.' - '.$dateTo.' ('.Carbon::now()->format('Y-m-d H:i:s').').xlsx';
+
+        return $excel->download($filename);
     }
 
     public function modifyLoadingLine(Request $request)

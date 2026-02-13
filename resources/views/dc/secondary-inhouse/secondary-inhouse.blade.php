@@ -529,7 +529,7 @@
 
                 $.ajax({
                     type: "get",
-                    url: "{{ route('total-stocker-inhouse') }}",
+                    url: "{{ route('total_secondary_inhouse_out') }}",
                     data: {
                         dateFrom : $('#tgl-awal').val(),
                         dateTo : $('#tgl-akhir').val(),
@@ -826,7 +826,7 @@
             $('#datatable-detail').DataTable().ajax.reload(function () {
                 $.ajax({
                     type: "get",
-                    url: "{{ route('total-stocker-inhouse') }}",
+                    url: "{{ route('total_secondary_inhouse_out') }}",
                     data: {
                         dateFrom : $('#tgl-awal').val(),
                         dateTo : $('#tgl-akhir').val(),
