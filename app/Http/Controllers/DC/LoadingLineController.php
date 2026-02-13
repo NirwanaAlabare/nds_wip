@@ -89,7 +89,7 @@ class LoadingLineController extends Controller
                                     ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
                                     ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
                                 ) qty_old,
-                                loading_line.qty qty,
+                                MIN(loading_line.qty) qty,
                                 trolley.id trolley_id,
                                 trolley.nama_trolley,
                                 stocker_input.so_det_id,
@@ -114,7 +114,8 @@ class LoadingLineController extends Controller
                                 stocker_input.form_piece_id,
                                 stocker_input.so_det_id,
                                 stocker_input.group_stocker,
-                                stocker_input.range_awal
+                                stocker_input.ratio,
+                                stocker_input.stocker_reject
                             ORDER BY
                                 FIELD(part_detail.part_status, 'main', 'regular', 'complement') ASC
                         ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
@@ -145,7 +146,8 @@ class LoadingLineController extends Controller
                                     stocker_input.form_piece_id,
                                     stocker_input.so_det_id,
                                     stocker_input.group_stocker,
-                                    stocker_input.range_awal
+                                    stocker_input.ratio,
+                                    stocker_input.stocker_reject
                                 ORDER BY
                                     FIELD(part_detail.part_status, 'MAIN', 'REGULAR', 'COMPLEMENT')
                             ) trolley_stock_bundle on trolley_stock_bundle.stocker_id = trolley_stocker.stocker_id
@@ -282,7 +284,7 @@ class LoadingLineController extends Controller
                                         ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
                                         ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
                                     ) qty_old,
-                                    loading_line.qty qty,
+                                    MIN(loading_line.qty) qty,
                                     trolley.id trolley_id,
                                     trolley.nama_trolley,
                                     stocker_input.so_det_id,
@@ -307,7 +309,8 @@ class LoadingLineController extends Controller
                                     stocker_input.form_piece_id,
                                     stocker_input.so_det_id,
                                     stocker_input.group_stocker,
-                                    stocker_input.range_awal
+                                    stocker_input.ratio,
+                                    stocker_input.stocker_reject
                                 ORDER BY
                                     FIELD(part_detail.part_status, 'main', 'regular', 'complement') ASC
                             ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
@@ -338,7 +341,8 @@ class LoadingLineController extends Controller
                                         stocker_input.form_piece_id,
                                         stocker_input.so_det_id,
                                         stocker_input.group_stocker,
-                                        stocker_input.range_awal
+                                        stocker_input.ratio,
+                                        stocker_input.stocker_reject
                                     ORDER BY
                                         FIELD(part_detail.part_status, 'main', 'regular', 'complement') ASC
                                 ) trolley_stock_bundle on trolley_stock_bundle.stocker_id = trolley_stocker.stocker_id
@@ -497,7 +501,7 @@ class LoadingLineController extends Controller
                     (COALESCE ( MAX(secondary_inhouse_input.qty_reject), 0 )) +
                     (COALESCE ( MAX(secondary_inhouse_input.qty_replace), 0 ))
                 ) qty_old,
-                loading_line.qty,
+                COALESCE(loading_qty.loading_qty, loading_line.qty) qty,
                 trolley.id trolley_id,
                 trolley.nama_trolley,
                 stocker_input.id_qr_stocker,
@@ -548,6 +552,7 @@ class LoadingLineController extends Controller
                         s.so_det_id,
                         s.group_stocker,
                         s.ratio,
+                        s.stocker_reject,
                         GROUP_CONCAT(ll.stocker_id) stocker_id,
                         MIN(ll.qty) loading_qty
                     from
@@ -561,10 +566,13 @@ class LoadingLineController extends Controller
                     group by
                         p.panel,
                         s.form_cut_id,
+                        s.form_reject_id,
+                        s.form_piece_id,
                         s.so_det_id,
                         s.group_stocker,
-                        s.ratio
-                ) as loading_qty on loading_qty.panel = COALESCE(part_com.panel, part.panel) AND loading_qty.form_cut_id = stocker_input.form_cut_id AND loading_qty.so_det_id = stocker_input.so_det_id AND loading_qty.group_stocker = stocker_input.group_stocker AND loading_qty.ratio = stocker_input.ratio
+                        s.ratio,
+                        s.stocker_reject
+                ) as loading_qty on loading_qty.panel = COALESCE(part_com.panel, part.panel) AND loading_qty.form_cut_id = stocker_input.form_cut_id AND loading_qty.so_det_id = stocker_input.so_det_id AND loading_qty.group_stocker = stocker_input.group_stocker AND loading_qty.ratio = stocker_input.ratio AND loading_qty.stocker_reject = stocker_input.stocker_reject
             WHERE
                 loading_line_plan.id = '".$id."' and
                 (loading_line.tanggal_loading between '".$dateFrom."' and '".$dateTo."')
@@ -762,7 +770,8 @@ class LoadingLineController extends Controller
                                 ( COALESCE ( dc_in_input.qty_reject, 0 )) + ( COALESCE ( dc_in_input.qty_replace, 0 )) -
                                 ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
                                 ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
-                            ) qty,
+                            ) qty_old,
+                            MIN(loading_line.qty) qty,
                             trolley.id trolley_id,
                             trolley.nama_trolley,
                             stocker_input.so_det_id,
@@ -786,7 +795,8 @@ class LoadingLineController extends Controller
                             stocker_input.form_piece_id,
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
-                            stocker_input.range_awal
+                            stocker_input.range_awal,
+                            stocker_input.stocker_reject
                         ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
                     LEFT JOIN (
                         select
@@ -814,7 +824,8 @@ class LoadingLineController extends Controller
                                     stocker_input.form_piece_id,
                                     stocker_input.so_det_id,
                                     stocker_input.group_stocker,
-                                    stocker_input.range_awal
+                                    stocker_input.range_awal,
+                                    stocker_input.stocker_reject
                             ) trolley_stock_bundle on trolley_stock_bundle.stocker_id = trolley_stocker.stocker_id
                             group by trolley.id
                     ) trolley_stock ON trolley_stock.trolley_id = loading_stock.trolley_id
@@ -915,6 +926,7 @@ class LoadingLineController extends Controller
                         s.so_det_id,
                         s.group_stocker,
                         s.ratio,
+                        s.stocker_reject,
                         GROUP_CONCAT(ll.stocker_id) stocker_id,
                         MIN(ll.qty) loading_qty
                     from
@@ -930,8 +942,9 @@ class LoadingLineController extends Controller
                         s.form_cut_id,
                         s.so_det_id,
                         s.group_stocker,
-                        s.ratio
-                ) as loading_qty on loading_qty.panel = COALESCE(part_com.panel, part.panel) AND loading_qty.form_cut_id = stocker_input.form_cut_id AND loading_qty.so_det_id = stocker_input.so_det_id AND loading_qty.group_stocker = stocker_input.group_stocker AND loading_qty.ratio = stocker_input.ratio
+                        s.ratio,
+                        s.stocker_reject
+                ) as loading_qty on loading_qty.panel = COALESCE(part_com.panel, part.panel) AND loading_qty.form_cut_id = stocker_input.form_cut_id AND loading_qty.so_det_id = stocker_input.so_det_id AND loading_qty.group_stocker = stocker_input.group_stocker AND loading_qty.ratio = stocker_input.ratio AND loading_qty.stocker_reject = stocker_input.stocker_reject
             WHERE
                 loading_line_plan.id in ".$loadingPlanIds."
                 ".$innerDetailDateFilter."
@@ -1218,7 +1231,7 @@ class LoadingLineController extends Controller
                             ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
                             ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
                         ) qty_old,
-                        loading_line.qty qty,
+                        MIN(loading_line.qty) qty,
                         trolley.id trolley_id,
                         trolley.nama_trolley,
                         stocker_input.so_det_id,
@@ -1384,7 +1397,7 @@ class LoadingLineController extends Controller
                                 ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
                                 ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
                             ) qty_old,
-                            loading_line.qty qty,
+                            MIN(loading_line.qty) qty,
                             trolley.id trolley_id,
                             trolley.nama_trolley,
                             stocker_input.so_det_id,
@@ -1415,7 +1428,6 @@ class LoadingLineController extends Controller
                     ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
                 WHERE
                     loading_stock.tanggal_loading IS NOT NULL
-                    ".$generalFilter."
                     ".$additionalFilter."
                 GROUP BY
                     loading_stock.tanggal_loading,
@@ -1528,7 +1540,8 @@ class LoadingLineController extends Controller
                         stocker_input.form_piece_id,
                         stocker_input.so_det_id,
                         stocker_input.group_stocker,
-                        stocker_input.ratio
+                        stocker_input.ratio,
+                        stocker_input.stocker_reject
                     ORDER BY
                         FIELD(part_detail.part_status, 'main', 'regular', 'complement') ASC
                 ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
