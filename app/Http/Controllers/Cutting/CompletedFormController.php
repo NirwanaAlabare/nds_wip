@@ -899,7 +899,7 @@ class CompletedFormController extends Controller
 
                     if ($formCutDetailRoll) {
                         $formCutDetailRoll->qty_pakai = ($formCutDetailRoll->qty_pakai - round($formCutDetail->total_pemakaian_roll, 2) > 0 ? $formCutDetailRoll->qty_pakai - round($formCutDetail->total_pemakaian_roll, 2) : 0);
-                        $formCutDetailRoll->qty += $formCutDetail->status == 'extension complete' || $formCutDetail->status == 'extension' ? round($formCutDetail->total_pemakaian_roll, 2) : round($formCutDetail->qty - $formCutDetail->sisa_kain, 2);
+                        $formCutDetailRoll->qty += ($formCutDetail->status == 'extension complete' || $formCutDetail->status == 'extension' ? round($formCutDetail->total_pemakaian_roll, 2) : round(($formCutDetail->qty ?? 0) - ($formCutDetail->sisa_kain ?? 0), 2));
 
                         $formCutDetailRoll->save();
                     }
