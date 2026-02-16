@@ -1014,7 +1014,7 @@ class LoadingLineController extends Controller
                     $row->range_awal ?? "-",
                     $row->range_akhir ?? "-",
                     $row->nama_trolley ?? "-",
-                    $row->qty ?? "-",
+                    $row->qty,
                     $row->waktu_loading ?? "-",
                     $row->user ?? "-",
                     $row->part_status ?? "-",
@@ -1570,16 +1570,28 @@ class LoadingLineController extends Controller
         $sheet->mergeCells('A1:I1');
 
         // Headers
-        $sheet->writeTo('A2', 'Tanggal Loading')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('B2', 'Line ID')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('C2', 'Nama Line')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('D2', 'WS')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('E2', 'Style')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('F2', 'Color')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('G2', 'Size')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('H2', 'Loading Qty')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('I2', 'Plan ID')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-
+        // $sheet->writeTo('A2', 'Tanggal Loading')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('B2', 'Line ID')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('C2', 'Nama Line')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('D2', 'WS')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('E2', 'Style')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('F2', 'Color')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('G2', 'Size')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('H2', 'Loading Qty')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('I2', 'Plan ID')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $header = [
+            'Tanggal Loading' => '@date',
+            'Line ID' => '@string',
+            'Nama Line' => '@string',
+            'WS' => '@string',
+            'Style' => '@string',
+            'Color' => '@string',
+            'Size' => '@string',
+            'Loading Qty' => '@integer',
+            'Plan ID' => '@integer',
+        ];
+        $sheet->setTopLeftCell('A2');
+        $sheet->writeHeader($header)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
             $sheet->writeAreas();
 
@@ -1592,7 +1604,7 @@ class LoadingLineController extends Controller
                     $row->style ?? "-",
                     $row->color ?? "-",
                     $row->size ?? "-",
-                    $row->loading_qty ?? "-",
+                    $row->loading_qty,
                     $row->id ?? "-",
                 ];
 
