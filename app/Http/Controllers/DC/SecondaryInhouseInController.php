@@ -968,7 +968,8 @@ class SecondaryInhouseInController extends Controller
             s.act_costing_ws,
             s.color,
             p.buyer,
-            COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
+            COALESCE(p_com.panel, p.panel) panel,
+            COALESCE(p_com.panel_status, p.panel_status) panel_status,
             p.style,
             a.qty_in,
             a.created_at,
@@ -978,7 +979,8 @@ class SecondaryInhouseInController extends Controller
             COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
             COALESCE(msb.size, s.size) size,
             a.user,
-            CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
+            mp.nama_part nama_part,
+            pd.part_status part_status,
             CONCAT(s.range_awal, ' - ', s.range_akhir, (CASE WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range,
             s.notes
             from secondary_inhouse_in_input a
@@ -1005,7 +1007,7 @@ class SecondaryInhouseInController extends Controller
 
         // Title
         $sheet->writeTo('A1', 'Secondary InHouse In Report', ['font-size' => 16]);
-        $sheet->mergeCells('A1:T1');
+        $sheet->mergeCells('A1:V1');
 
         // Headers
         $sheet->writeTo('A2', 'Tgl Transaksi')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
@@ -1014,20 +1016,22 @@ class SecondaryInhouseInController extends Controller
         $sheet->writeTo('D2', 'Style')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('E2', 'Color')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('F2', 'Part')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('G2', 'Panel')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('H2', 'Size')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('I2', 'No. Cut')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('J2', 'Tujuan')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('K2', 'Tempat')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('L2', 'Lokasi')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('M2', 'Range')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('N2', 'Qty In')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('O2', 'Buyer')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('P2', 'User')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('Q2', 'Created At')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('R2', 'Tujuan DC')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('S2', 'Lokasi DC')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('T2', 'Notes')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('G2', 'Part Status')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('H2', 'Panel')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('I2', 'Panel Status')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('J2', 'Size')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('K2', 'No. Cut')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('L2', 'Tujuan')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('M2', 'Tempat')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('N2', 'Lokasi')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('O2', 'Range')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('P2', 'Qty In')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Q2', 'Buyer')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('R2', 'User')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('S2', 'Created At')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('T2', 'Tujuan DC')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('U2', 'Lokasi DC')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('V2', 'Notes')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
             $sheet->writeAreas();
@@ -1040,7 +1044,9 @@ class SecondaryInhouseInController extends Controller
                     $row->style ?? "-",
                     $row->color ?? "-",
                     $row->nama_part ?? "-",
+                    $row->part_status ?? "-",
                     $row->panel ?? "-",
+                    $row->panel_status ?? "-",
                     $row->size ?? "-",
                     $row->no_cut ?? "-",
                     $row->tujuan ?? "-",
