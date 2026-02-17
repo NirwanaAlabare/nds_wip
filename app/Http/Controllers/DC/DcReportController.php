@@ -507,7 +507,7 @@ class DcReportController extends Controller
                                     SUM(loading_qty) loading_qty
                                 from (
                                     select
-                                        p.panel as panel,
+                                        COALESCE(p_com.panel, p.panel) as panel,
                                         GROUP_CONCAT(ll.stocker_id) stocker_id,
                                         s.so_det_id,
                                         MIN(ll.qty) loading_qty
@@ -515,7 +515,9 @@ class DcReportController extends Controller
                                         loading_line ll
                                         left join stocker_input s on s.id = ll.stocker_id
                                         left join part_detail pd on pd.id = s.part_detail_id
+                                        left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
                                         left join part p on p.id = pd.part_id
+                                        left join part p_com on p_com.id = pd_com.part_id
                                         LEFT JOIN (
                                             SELECT
                                                 MAX(COALESCE(tanggal, '2023-01-01')) tanggal,
@@ -531,11 +533,11 @@ class DcReportController extends Controller
                                         ) tanggal_akhir_rekap on s.so_det_id = tanggal_akhir_rekap.so_det_id and s.part_detail_id = tanggal_akhir_rekap.part_detail_id
                                     where
                                         (CASE WHEN tanggal_akhir_rekap.tanggal IS NOT NULL THEN ll.tanggal_loading > tanggal_akhir_rekap.tanggal ELSE ll.tanggal_loading > '2026-01-01' END) AND ll.tanggal_loading < '".$dateFrom."' AND
-                -- 							ll.tanggal_loading < '".$dateFrom."' AND
+                                        -- ll.tanggal_loading < '".$dateFrom."' AND
                                         (s.cancel IS NULL OR s.cancel != 'y') and
                                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
                                     group by
-                                        p.panel,
+                                        COALESCE(p_com.panel, p.panel),
                                         s.form_cut_id,
                                         s.form_reject_id,
 							            s.form_piece_id,
@@ -980,7 +982,7 @@ class DcReportController extends Controller
                                         SUM(loading_qty) loading_qty
                                     from (
                                         select
-                                            p.panel as panel,
+                                            COALESCE(p_com.panel, p.panel) as panel,
                                             GROUP_CONCAT(ll.stocker_id) stocker_id,
                                             s.so_det_id,
                                             MIN(ll.qty) loading_qty
@@ -988,13 +990,15 @@ class DcReportController extends Controller
                                             loading_line ll
                                             left join stocker_input s on s.id = ll.stocker_id
                                             left join part_detail pd on pd.id = s.part_detail_id
+                                            left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
                                             left join part p on p.id = pd.part_id
+                                            left join part p_com on p_com.id = pd_com.part_id
                                         where
                                             ll.tanggal_loading between '".$dateFrom."' AND '".$dateTo."' AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
                                         group by
-                                            p.panel,
+                                            COALESCE(p_com.panel, p.panel),
                                             s.form_cut_id,
                                             s.form_reject_id,
                                             s.form_piece_id,
