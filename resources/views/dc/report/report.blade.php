@@ -139,7 +139,7 @@
                 { data: 'color' },
                 { data: 'size' },
                 { data: 'nama_part' },
-                { data: 'saldo_awal', defaultContent: 0 },
+                { data: 'current_saldo_awal', defaultContent: 0 },
                 { data: 'qty_in', defaultContent: 0 },
                 { data: 'kirim_secondary_dalam', defaultContent: 0 },
                 { data: 'terima_repaired_secondary_dalam', defaultContent: 0 },
@@ -148,10 +148,11 @@
                 { data: 'terima_repaired_secondary_luar', defaultContent: 0 },
                 { data: 'terima_good_secondary_luar', defaultContent: 0 },
                 { data: 'loading', defaultContent: 0 },
+                // { data: 'current_saldo_akhir', defaultContent: 0 },
                 {
                     data: null,
                     render: function (data, type, row) {
-                        let saldoAwal  = parseInt(row.saldo_awal ?? 0);
+                        let saldoAwal  = parseInt(row.current_saldo_awal ?? 0);
                         let masuk      = parseInt(row.qty_in ?? 0);
                         let ksd        = parseInt(row.kirim_secondary_dalam ?? 0);
                         let trsd       = parseInt(row.terima_repaired_secondary_dalam ?? 0);
@@ -237,7 +238,7 @@
 
                 api.rows({ page: 'current' }).every(function () {
                     let r = this.data();
-                    totalSaldoAkhir += intVal(r.saldo_awal) + intVal(r.qty_in) - intVal(r.kirim_secondary_dalam) + intVal(r.terima_repaired_secondary_dalam) + intVal(r.terima_good_secondary_dalam) - intVal(r.kirim_secondary_luar) + intVal(r.terima_repaired_secondary_luar) + intVal(r.terima_good_secondary_luar) - intVal(r.loading);
+                    totalSaldoAkhir += intVal(r.current_saldo_awal) + intVal(r.qty_in) - intVal(r.kirim_secondary_dalam) + intVal(r.terima_repaired_secondary_dalam) + intVal(r.terima_good_secondary_dalam) - intVal(r.kirim_secondary_luar) + intVal(r.terima_repaired_secondary_luar) + intVal(r.terima_good_secondary_luar) - intVal(r.loading);
                 });
 
                 $(api.column(15).footer()).html(totalSaldoAkhir);
