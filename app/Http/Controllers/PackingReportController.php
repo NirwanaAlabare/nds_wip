@@ -678,9 +678,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                                 pc_keluar
                             ) AS (
 
-                            /* ================= PACKING LINE ================= */
+                            /* ================= SALDO AWAL DARI SA ================= */
 
-                             SELECT
+                            SELECT
                                 id_so_det AS so_det_id,
                                 CASE WHEN type = 'packing_line' THEN saldo ELSE 0 END AS pl_saldo_awal,
                                 0 AS pl_rft,
@@ -695,6 +695,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
 
                             UNION ALL
 
+                            /* ================= PACKING LINE ================= */
 
                             SELECT
                                 x.so_det_id,
@@ -717,14 +718,14 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                                 UNION ALL
 
                                 SELECT
-                                    id_so_det,
+                                    pms.id_so_det,
                                     0,
-                                    SUM(qty)
-                                FROM laravel_nds.packing_trf_garment
-                                WHERE id_so_det IS NOT NULL
-                                AND tgl_trans >= '{$tanggal_saldo_awal} 00:00:00'
-                                AND tgl_trans < '{$tgl_awal} 00:00:00'
-                                GROUP BY id_so_det
+                                    SUM(tg.qty)
+                                FROM laravel_nds.packing_trf_garment tg
+                                JOIN ppic_master_so pms ON pms.id = tg.id_ppic_master_so
+                                WHERE tg.tgl_trans >= '{$tanggal_saldo_awal} 00:00:00'
+                                AND tg.tgl_trans < '{$tgl_awal} 00:00:00'
+                                GROUP BY pms.id_so_det
 
                             ) x
                             GROUP BY x.so_det_id
@@ -757,14 +758,15 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                                 0,0,0
                             FROM (
                                 SELECT
-                                    id_so_det,
+                                    pms.id_so_det,
                                     SUM(qty) masuk,
                                     0 keluar
-                                FROM laravel_nds.packing_trf_garment
-                                WHERE id_so_det IS NOT NULL
+                                FROM laravel_nds.packing_trf_garment tg
+                                JOIN ppic_master_so pms ON pms.id = tg.id_ppic_master_so
+                                WHERE pms.id_so_det IS NOT NULL
                                 AND tgl_trans >= '{$tanggal_saldo_awal} 00:00:00'
                                 AND tgl_trans < '{$tgl_awal} 00:00:00'
-                                GROUP BY id_so_det
+                                GROUP BY pms.id_so_det
 
                                 UNION ALL
 
@@ -784,25 +786,24 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                             UNION ALL
 
                             SELECT
-                                tg.id_so_det,
+                                pms.id_so_det,
                                 0,0,0,
                                 0,
                                 SUM(tg.qty),
                                 SUM(COALESCE(pi.qty,0)),
                                 0,0,0
                             FROM laravel_nds.packing_trf_garment tg
-                            LEFT JOIN (
+                            JOIN ppic_master_so pms ON pms.id = tg.id_ppic_master_so
+                            JOIN (
                                 SELECT id_trf_garment, SUM(qty) qty
                                 FROM laravel_nds.packing_packing_in
                                 WHERE tgl_penerimaan BETWEEN '{$tgl_awal} 00:00:00'
                                                         AND '{$tgl_akhir} 23:59:59'
                                 GROUP BY id_trf_garment
                             ) pi ON pi.id_trf_garment = tg.id
-                            WHERE tg.id_so_det IS NOT NULL
-                            AND tg.tgl_trans BETWEEN '{$tgl_awal} 00:00:00'
-                                                AND '{$tgl_akhir} 23:59:59'
-                            GROUP BY tg.id_so_det
-
+                            WHERE tg.tgl_trans BETWEEN '{$tgl_awal} 00:00:00'
+                                                    AND '{$tgl_akhir} 23:59:59'
+                            GROUP BY pms.id_so_det
 
                             /* ================= PACKING CENTRAL ================= */
 
@@ -901,7 +902,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
 
                         FROM trx_union t
                         JOIN master_sb_ws msw ON msw.id_so_det = t.so_det_id
-                        LEFT JOIN master_size_new msn ON msw.size = msn.size
+                        JOIN master_size_new msn ON msw.size = msn.size
 
                         GROUP BY
                             msn.urutan,
@@ -925,6 +926,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                             msw.buyer,
                             msn.urutan
                         ");
+
 
 
             return DataTables::of($data_mut)->toJson();
