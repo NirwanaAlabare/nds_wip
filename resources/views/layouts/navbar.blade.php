@@ -546,6 +546,10 @@
                                  --}}
                             </ul>
                         </li>
+
+
+                    @endrole
+                    @role('superadmin')
                         <li class="nav-item dropdown">
                             <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
                                 class="nav-link dropdown-toggle {{ $subPageGroup == 'report' ? 'active' : '' }}">Report</a>
@@ -558,7 +562,6 @@
                                 </li>
                             </ul>
                         </li>
-
                     @endrole
                     @role('superadmin')
                         <li class="nav-item">
