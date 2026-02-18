@@ -845,234 +845,234 @@ class DcReportController extends Controller
                             ),
 
                             wod as (
-                                    SELECT
-                                        wod.id_qr_stocker,
-                                        pd.id as part_detail_id,
-                                        s.so_det_id,
-                                        null qty_in_dc_main,
-                                        null qty_in_dc,
-                                        null sec_inhouse_in_main,
-                                        null sec_inhouse_in,
-                                        null sec_inhouse_rep_main,
-                                        null sec_inhouse_rep,
-                                        null sec_inhouse_out_main,
-                                        null sec_inhouse_out,
-                                        wod.qty sec_in_in_main,
-                                        null sec_in_in,
-                                        null sec_in_rep_main,
-                                        null sec_in_rep,
-                                        null sec_in_out_main,
-                                        null sec_in_out
-                                    FROM
-                                        wip_out_det wod
-                                        left join stocker_input s on s.id_qr_stocker = wod.id_qr_stocker
-                                        left join part_detail pd on pd.id = s.part_detail_id
-                                    WHERE
-                                        wod.created_at between '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59' and
-                                        s.id is not null AND
-                                        (s.cancel IS NULL OR s.cancel != 'y') and
-                                        (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
-                                        pd.part_status= 'main'
-                                    UNION ALL
-                                    SELECT
-                                        wod.id_qr_stocker,
-                                        pd.id as part_detail_id,
-                                        s.so_det_id,
-                                        null qty_in_dc_main,
-                                        null qty_in_dc,
-                                        null sec_inhouse_in_main,
-                                        null sec_inhouse_in,
-                                        null sec_inhouse_rep_main,
-                                        null sec_inhouse_rep,
-                                        null sec_inhouse_out_main,
-                                        null sec_inhouse_out,
-                                        null sec_in_in_main,
-                                        wod.qty sec_in_in,
-                                        null sec_in_rep_main,
-                                        null sec_in_rep,
-                                        null sec_in_out_main,
-                                        null sec_in_out
-                                    FROM
-                                        wip_out_det wod
-                                        left join stocker_input s on s.id_qr_stocker = wod.id_qr_stocker
-                                        left join part_detail pd on pd.id = s.part_detail_id
-                                    WHERE
-                                        wod.created_at between '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59' and
-                                        s.id is not null AND
-                                        (s.cancel IS NULL OR s.cancel != 'y') and
-                                        (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
-                                        (pd.part_status != 'main' OR pd.part_status IS NULL)
-                                ),
-
-                                si as (
-                                    SELECT
-                                        si.id_qr_stocker,
-                                        pd.id as part_detail_id,
-                                        s.so_det_id,
-                                        null qty_in_dc_main,
-                                        null qty_in_dc,
-                                        null sec_inhouse_in_main,
-                                        null sec_inhouse_in,
-                                        null sec_inhouse_rep_main,
-                                        null sec_inhouse_rep,
-                                        null sec_inhouse_out_main,
-                                        null sec_inhouse_out,
-                                        null sec_in_in_main,
-                                        null sec_in_in,
-                                        si.qty_replace sec_in_rep_main,
-                                        null sec_in_rep,
-                                        si.qty_in sec_in_out_main,
-                                        null sec_in_out
-                                    FROM
-                                        secondary_in_input si
-                                        left join stocker_input s on s.id_qr_stocker = si.id_qr_stocker
-                                        left join part_detail pd on pd.id = s.part_detail_id
-                                        left join master_secondary ms on ms.id = pd.master_secondary_id
-                                        left join part_detail_secondary pds on pds.part_detail_id = pd.id and si.urutan = pds.urutan
-                                        left join master_secondary mms on mms.id = pds.master_secondary_id
-                                        left join secondary_inhouse_input sii on sii.id_qr_stocker = si.id_qr_stocker
-                                    WHERE
-                                        si.tgl_trans between '".$dateFrom."' AND '".$dateTo."' AND
-                                        s.id is not null AND
-                                        (s.cancel IS NULL OR s.cancel != 'y') and
-                                        (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
-                                        pd.part_status= 'main' AND
-                                        COALESCE(mms.tujuan, ms.tujuan) = 'SECONDARY LUAR'
-                                    UNION ALL
-                                    SELECT
-                                        si.id_qr_stocker,
-                                        pd.id as part_detail_id,
-                                        s.so_det_id,
-                                        null qty_in_dc_main,
-                                        null qty_in_dc,
-                                        null sec_inhouse_in_main,
-                                        null sec_inhouse_in,
-                                        null sec_inhouse_rep_main,
-                                        null sec_inhouse_rep,
-                                        null sec_inhouse_out_main,
-                                        null sec_inhouse_out,
-                                        null sec_in_in_main,
-                                        null sec_in_in,
-                                        null sec_in_rep_main,
-                                        si.qty_replace sec_in_rep,
-                                        null sec_in_out_main,
-                                        si.qty_in sec_in_out
-                                    FROM
-                                        secondary_in_input si
-                                        left join stocker_input s on s.id_qr_stocker = si.id_qr_stocker
-                                        left join part_detail pd on pd.id = s.part_detail_id
-                                        left join master_secondary ms on ms.id = pd.master_secondary_id
-                                        left join part_detail_secondary pds on pds.part_detail_id = pd.id and si.urutan = pds.urutan
-                                        left join master_secondary mms on mms.id = pds.master_secondary_id
-                                        left join secondary_inhouse_input sii on sii.id_qr_stocker = si.id_qr_stocker
-                                    WHERE
-                                        si.tgl_trans between '".$dateFrom."' AND '".$dateTo."' AND
-                                        s.id is not null AND
-                                        (s.cancel IS NULL OR s.cancel != 'y') and
-                                        (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
-                                        (pd.part_status != 'main' OR pd.part_status IS NULL) AND
-                                        COALESCE(mms.tujuan, ms.tujuan) = 'SECONDARY LUAR'
-                                ),
-
-                                loading_line as (
-                                    select
-                                        panel,
-                                        so_det_id,
-                                        GROUP_CONCAT(stocker_id) stockers,
-                                        SUM(loading_qty) loading_qty
-                                    from (
-                                        select
-                                            COALESCE(p_com.panel, p.panel) as panel,
-                                            GROUP_CONCAT(ll.stocker_id) stocker_id,
-                                            s.so_det_id,
-                                            MIN(ll.qty) loading_qty
-                                        from
-                                            loading_line ll
-                                            left join stocker_input s on s.id = ll.stocker_id
-                                            left join part_detail pd on pd.id = s.part_detail_id
-                                            left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
-                                            left join part p on p.id = pd.part_id
-                                            left join part p_com on p_com.id = pd_com.part_id
-                                        where
-                                            ll.tanggal_loading between '".$dateFrom."' AND '".$dateTo."' AND
-                                            (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
-                                        group by
-                                            COALESCE(p_com.panel, p.panel),
-                                            s.form_cut_id,
-                                            s.form_reject_id,
-                                            s.form_piece_id,
-                                            s.so_det_id,
-                                            s.group_stocker,
-                                            s.ratio,
-                                            s.stocker_reject
-                                    ) as loading
-                                    group by
-                                        panel,
-                                        so_det_id
-                                )
-
                                 SELECT
-                                    *,
-                                    qty_in-kirim_secondary_dalam+terima_repaired_secondary_dalam+terima_good_secondary_dalam-kirim_secondary_luar+terima_repaired_secondary_luar+terima_good_secondary_luar-loading_qty saldo_akhir
-                                FROM (
+                                    wod.id_qr_stocker,
+                                    pd.id as part_detail_id,
+                                    s.so_det_id,
+                                    null qty_in_dc_main,
+                                    null qty_in_dc,
+                                    null sec_inhouse_in_main,
+                                    null sec_inhouse_in,
+                                    null sec_inhouse_rep_main,
+                                    null sec_inhouse_rep,
+                                    null sec_inhouse_out_main,
+                                    null sec_inhouse_out,
+                                    wod.qty sec_in_in_main,
+                                    null sec_in_in,
+                                    null sec_in_rep_main,
+                                    null sec_in_rep,
+                                    null sec_in_out_main,
+                                    null sec_in_out
+                                FROM
+                                    wip_out_det wod
+                                    left join stocker_input s on s.id_qr_stocker = wod.id_qr_stocker
+                                    left join part_detail pd on pd.id = s.part_detail_id
+                                WHERE
+                                    wod.created_at between '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59' and
+                                    s.id is not null AND
+                                    (s.cancel IS NULL OR s.cancel != 'y') and
+                                    (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                    pd.part_status= 'main'
+                                UNION ALL
+                                SELECT
+                                    wod.id_qr_stocker,
+                                    pd.id as part_detail_id,
+                                    s.so_det_id,
+                                    null qty_in_dc_main,
+                                    null qty_in_dc,
+                                    null sec_inhouse_in_main,
+                                    null sec_inhouse_in,
+                                    null sec_inhouse_rep_main,
+                                    null sec_inhouse_rep,
+                                    null sec_inhouse_out_main,
+                                    null sec_inhouse_out,
+                                    null sec_in_in_main,
+                                    wod.qty sec_in_in,
+                                    null sec_in_rep_main,
+                                    null sec_in_rep,
+                                    null sec_in_out_main,
+                                    null sec_in_out
+                                FROM
+                                    wip_out_det wod
+                                    left join stocker_input s on s.id_qr_stocker = wod.id_qr_stocker
+                                    left join part_detail pd on pd.id = s.part_detail_id
+                                WHERE
+                                    wod.created_at between '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59' and
+                                    s.id is not null AND
+                                    (s.cancel IS NULL OR s.cancel != 'y') and
+                                    (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                    (pd.part_status != 'main' OR pd.part_status IS NULL)
+                            ),
+
+                            si as (
+                                SELECT
+                                    si.id_qr_stocker,
+                                    pd.id as part_detail_id,
+                                    s.so_det_id,
+                                    null qty_in_dc_main,
+                                    null qty_in_dc,
+                                    null sec_inhouse_in_main,
+                                    null sec_inhouse_in,
+                                    null sec_inhouse_rep_main,
+                                    null sec_inhouse_rep,
+                                    null sec_inhouse_out_main,
+                                    null sec_inhouse_out,
+                                    null sec_in_in_main,
+                                    null sec_in_in,
+                                    si.qty_replace sec_in_rep_main,
+                                    null sec_in_rep,
+                                    si.qty_in sec_in_out_main,
+                                    null sec_in_out
+                                FROM
+                                    secondary_in_input si
+                                    left join stocker_input s on s.id_qr_stocker = si.id_qr_stocker
+                                    left join part_detail pd on pd.id = s.part_detail_id
+                                    left join master_secondary ms on ms.id = pd.master_secondary_id
+                                    left join part_detail_secondary pds on pds.part_detail_id = pd.id and si.urutan = pds.urutan
+                                    left join master_secondary mms on mms.id = pds.master_secondary_id
+                                    left join secondary_inhouse_input sii on sii.id_qr_stocker = si.id_qr_stocker
+                                WHERE
+                                    si.tgl_trans between '".$dateFrom."' AND '".$dateTo."' AND
+                                    s.id is not null AND
+                                    (s.cancel IS NULL OR s.cancel != 'y') and
+                                    (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                    pd.part_status= 'main' AND
+                                    COALESCE(mms.tujuan, ms.tujuan) = 'SECONDARY LUAR'
+                                UNION ALL
+                                SELECT
+                                    si.id_qr_stocker,
+                                    pd.id as part_detail_id,
+                                    s.so_det_id,
+                                    null qty_in_dc_main,
+                                    null qty_in_dc,
+                                    null sec_inhouse_in_main,
+                                    null sec_inhouse_in,
+                                    null sec_inhouse_rep_main,
+                                    null sec_inhouse_rep,
+                                    null sec_inhouse_out_main,
+                                    null sec_inhouse_out,
+                                    null sec_in_in_main,
+                                    null sec_in_in,
+                                    null sec_in_rep_main,
+                                    si.qty_replace sec_in_rep,
+                                    null sec_in_out_main,
+                                    si.qty_in sec_in_out
+                                FROM
+                                    secondary_in_input si
+                                    left join stocker_input s on s.id_qr_stocker = si.id_qr_stocker
+                                    left join part_detail pd on pd.id = s.part_detail_id
+                                    left join master_secondary ms on ms.id = pd.master_secondary_id
+                                    left join part_detail_secondary pds on pds.part_detail_id = pd.id and si.urutan = pds.urutan
+                                    left join master_secondary mms on mms.id = pds.master_secondary_id
+                                    left join secondary_inhouse_input sii on sii.id_qr_stocker = si.id_qr_stocker
+                                WHERE
+                                    si.tgl_trans between '".$dateFrom."' AND '".$dateTo."' AND
+                                    s.id is not null AND
+                                    (s.cancel IS NULL OR s.cancel != 'y') and
+                                    (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                    (pd.part_status != 'main' OR pd.part_status IS NULL) AND
+                                    COALESCE(mms.tujuan, ms.tujuan) = 'SECONDARY LUAR'
+                            ),
+
+                            loading_line as (
+                                select
+                                    panel,
+                                    so_det_id,
+                                    GROUP_CONCAT(stocker_id) stockers,
+                                    SUM(loading_qty) loading_qty
+                                from (
+                                    select
+                                        COALESCE(p_com.panel, p.panel) as panel,
+                                        GROUP_CONCAT(ll.stocker_id) stocker_id,
+                                        s.so_det_id,
+                                        MIN(ll.qty) loading_qty
+                                    from
+                                        loading_line ll
+                                        left join stocker_input s on s.id = ll.stocker_id
+                                        left join part_detail pd on pd.id = s.part_detail_id
+                                        left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+                                        left join part p on p.id = pd.part_id
+                                        left join part p_com on p_com.id = pd_com.part_id
+                                    where
+                                        ll.tanggal_loading between '".$dateFrom."' AND '".$dateTo."' AND
+                                        (s.cancel IS NULL OR s.cancel != 'y') and
+                                        (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
+                                    group by
+                                        COALESCE(p_com.panel, p.panel),
+                                        s.form_cut_id,
+                                        s.form_reject_id,
+                                        s.form_piece_id,
+                                        s.so_det_id,
+                                        s.group_stocker,
+                                        s.ratio,
+                                        s.stocker_reject
+                                ) as loading
+                                group by
+                                    panel,
+                                    so_det_id
+                            )
+
+                            SELECT
+                                *,
+                                qty_in-kirim_secondary_dalam+terima_repaired_secondary_dalam+terima_good_secondary_dalam-kirim_secondary_luar+terima_repaired_secondary_luar+terima_good_secondary_luar-loading_qty saldo_akhir
+                            FROM (
+                                    SELECT
+                                        GROUP_CONCAT(saldo_dc.id_qr_stocker) as stockers,
+                                        msb.buyer,
+                                        msb.ws,
+                                        msb.styleno as style,
+                                        msb.color,
+                                        msb.size,
+                                        msb.id_so_det,
+                                        p.panel,
+                                        p.panel_status,
+                                        pd.id as part_detail_id,
+                                        GROUP_CONCAT(DISTINCT mp.nama_part) as nama_part,
+                                        GROUP_CONCAT(DISTINCT pd.part_status) as part_status,
+                                        (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(qty_in_dc_main, 0)), SUM(COALESCE(qty_in_dc,0))) ELSE SUM(COALESCE(qty_in_dc, 0)) END) as qty_in,
+                                        (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(sec_inhouse_in_main, 0)), SUM(COALESCE(sec_inhouse_in,0))) ELSE SUM(COALESCE(sec_inhouse_in, 0)) END) kirim_secondary_dalam,
+                                        (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(sec_inhouse_rep_main, 0)), SUM(COALESCE(sec_inhouse_rep,0))) ELSE SUM(COALESCE(sec_inhouse_rep, 0)) END) terima_repaired_secondary_dalam,
+                                        (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(sec_inhouse_out_main, 0)), SUM(COALESCE(sec_inhouse_out,0))) ELSE SUM(COALESCE(sec_inhouse_out, 0)) END) terima_good_secondary_dalam,
+                                        (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(sec_in_in_main, 0)), SUM(COALESCE(sec_in_in,0))) ELSE SUM(COALESCE(sec_in_in, 0)) END) kirim_secondary_luar,
+                                        (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(sec_in_rep_main, 0)), SUM(COALESCE(sec_in_rep,0))) ELSE SUM(COALESCE(sec_in_rep,0)) END) terima_repaired_secondary_luar,
+                                        (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(sec_in_out_main, 0)), SUM(COALESCE(sec_in_out,0))) ELSE SUM(COALESCE(sec_in_out, 0)) END) terima_good_secondary_luar,
+                                -- 		loading.stockers,
+                                        COALESCE(loading_line.loading_qty, 0) loading_qty
+                                    FROM (
                                         SELECT
-                                            GROUP_CONCAT(saldo_dc.id_qr_stocker) as stockers,
-                                            msb.buyer,
-                                            msb.ws,
-                                            msb.styleno as style,
-                                            msb.color,
-                                            msb.size,
-                                            msb.id_so_det,
-                                            p.panel,
-                                            p.panel_status,
-                                            pd.id as part_detail_id,
-                                            GROUP_CONCAT(DISTINCT mp.nama_part) as nama_part,
-                                            GROUP_CONCAT(DISTINCT pd.part_status) as part_status,
-                                            (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(qty_in_dc_main, 0)), SUM(COALESCE(qty_in_dc,0))) ELSE SUM(COALESCE(qty_in_dc, 0)) END) as qty_in,
-                                            (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(sec_inhouse_in_main, 0)), SUM(COALESCE(sec_inhouse_in,0))) ELSE SUM(COALESCE(sec_inhouse_in, 0)) END) kirim_secondary_dalam,
-                                            (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(sec_inhouse_rep_main, 0)), SUM(COALESCE(sec_inhouse_rep,0))) ELSE SUM(COALESCE(sec_inhouse_rep, 0)) END) terima_repaired_secondary_dalam,
-                                            (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(sec_inhouse_out_main, 0)), SUM(COALESCE(sec_inhouse_out,0))) ELSE SUM(COALESCE(sec_inhouse_out, 0)) END) terima_good_secondary_dalam,
-                                            (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(sec_in_in_main, 0)), SUM(COALESCE(sec_in_in,0))) ELSE SUM(COALESCE(sec_in_in, 0)) END) kirim_secondary_luar,
-                                            (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(sec_in_rep_main, 0)), SUM(COALESCE(sec_in_rep,0))) ELSE SUM(COALESCE(sec_in_rep,0)) END) terima_repaired_secondary_luar,
-                                            (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(sec_in_out_main, 0)), SUM(COALESCE(sec_in_out,0))) ELSE SUM(COALESCE(sec_in_out, 0)) END) terima_good_secondary_luar,
-                                    -- 		loading.stockers,
-                                            COALESCE(loading_line.loading_qty, 0) loading_qty
-                                        FROM (
-                                            SELECT
-                                                *
-                                            FROM
-                                                dc
-                                            UNION ALL
-                                            SELECT
-                                                *
-                                            FROM
-                                                sii_in
-                                            UNION ALL
-                                            SELECT
-                                                *
-                                            FROM
-                                                sii
-                                            UNION ALL
-                                            SELECT
-                                                *
-                                            FROM
-                                                wod
-                                            UNION ALL
-                                            SELECT
-                                                *
-                                            FROM
-                                                si
-                                        ) saldo_dc
-                                        LEFT JOIN master_sb_ws msb on msb.id_so_det = saldo_dc.so_det_id
-                                        LEFT JOIN part_detail pd on pd.id = saldo_dc.part_detail_id
-                                        LEFT JOIN part p on p.id = pd.part_id
-                                        LEFT JOIN master_part mp on mp.id = pd.master_part_id
-                                        LEFT JOIN loading_line on loading_line.so_det_id = saldo_dc.so_det_id and loading_line.panel = p.panel
-                                    GROUP BY
-                                        saldo_dc.so_det_id,
-                                        saldo_dc.part_detail_id
-                                ) saldo_dc
+                                            *
+                                        FROM
+                                            dc
+                                        UNION ALL
+                                        SELECT
+                                            *
+                                        FROM
+                                            sii_in
+                                        UNION ALL
+                                        SELECT
+                                            *
+                                        FROM
+                                            sii
+                                        UNION ALL
+                                        SELECT
+                                            *
+                                        FROM
+                                            wod
+                                        UNION ALL
+                                        SELECT
+                                            *
+                                        FROM
+                                            si
+                                    ) saldo_dc
+                                    LEFT JOIN master_sb_ws msb on msb.id_so_det = saldo_dc.so_det_id
+                                    LEFT JOIN part_detail pd on pd.id = saldo_dc.part_detail_id
+                                    LEFT JOIN part p on p.id = pd.part_id
+                                    LEFT JOIN master_part mp on mp.id = pd.master_part_id
+                                    LEFT JOIN loading_line on loading_line.so_det_id = saldo_dc.so_det_id and loading_line.panel = p.panel
+                                GROUP BY
+                                    saldo_dc.so_det_id,
+                                    saldo_dc.part_detail_id
+                            ) saldo_dc
                     )
 
                     select
