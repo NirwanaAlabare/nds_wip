@@ -891,13 +891,17 @@ class CompletedFormController extends Controller
                 );
             }
 
+            // Update scanned item qty
             if ($formCutDetail->id_roll) {
                 // No need to update qty if it is redundant
                 $checkSimilarTimeRecord = DB::table("form_cut_input_detail")->where("form_cut_id", $formCutDetail->form_cut_id)->where("id_roll", $formCutDetail->id_roll)->where("qty", $formCutDetail->qty)->where("id", "!=", $formCutDetail->id)->first();
                 if (!$checkSimilarTimeRecord) {
-                    $formCutDetailRoll = ScannedItem::where("id_roll", $formCutDetail->id_roll)->first();
 
+                    // Get scanned item roll
+                    $formCutDetailRoll = ScannedItem::where("id_roll", $formCutDetail->id_roll)->first();
                     if ($formCutDetailRoll) {
+
+                        // Update scanned item qty
                         $formCutDetailRoll->qty_pakai = ($formCutDetailRoll->qty_pakai - round($formCutDetail->total_pemakaian_roll, 2) > 0 ? $formCutDetailRoll->qty_pakai - round($formCutDetail->total_pemakaian_roll, 2) : 0);
                         $formCutDetailRoll->qty += ($formCutDetail->status == 'extension complete' || $formCutDetail->status == 'extension' ? round($formCutDetail->total_pemakaian_roll, 2) : round(($formCutDetail->qty ?? 0) - ($formCutDetail->sisa_kain ?? 0), 2));
 
@@ -906,6 +910,7 @@ class CompletedFormController extends Controller
                 }
             }
 
+            // Add to Form Cut Detail Deleted Logs
             DB::table("form_cut_input_detail_delete")->insert([
                 "form_cut_id" => $formCutDetail['form_cut_id'],
                 "no_form_cut_input" => $formCutDetail['no_form_cut_input'],
@@ -941,6 +946,7 @@ class CompletedFormController extends Controller
                 "deleted_at" => Carbon::now(),
             ]);
 
+            // Delete Form Cut Detail
             if ($formCutDetail->delete()) {
                 return array(
                     "status" => 200,
