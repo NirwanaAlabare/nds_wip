@@ -351,7 +351,12 @@ group by a.po, a.dest
         select * from ppic_master_so where id = '$cbopo'
         ");
 
+
         $cek_dest_po = $cek_po[0]->po;
+
+
+        $id_so_det =  $cek_po[0]->id_so_det;
+        $id_ppic =  $cek_po[0]->id;
 
         $cek_data = DB::select("
         select count(barcode) cek from ppic_master_so p
@@ -384,15 +389,15 @@ group by a.po, a.dest
             $cek_stok_fix = $cek_stok[0]->tot_s;
 
             $cek_qty_isi_karton = DB::select("SELECT qty, coalesce(tot_input,0) tot_input from
-(select po, no_carton, barcode, dest ,qty from packing_master_packing_list
-where po = '$cek_dest_po' and no_carton = '$no_carton' and barcode = '$barcode' and dest = '$dest'
-)a
-left join
-(
-select po, no_carton, barcode, dest,count(barcode) tot_input
-from packing_packing_out_scan
-where po = '$cek_dest_po' and no_carton = '$no_carton' and barcode = '$barcode' and dest = '$dest'
-) b on a.po = b.po and a.dest = b.dest and a.no_carton = b.no_carton and a.barcode = b.barcode");
+            (select po, no_carton, barcode, dest ,qty from packing_master_packing_list
+            where po = '$cek_dest_po' and no_carton = '$no_carton' and barcode = '$barcode' and dest = '$dest'
+            )a
+            left join
+            (
+            select po, no_carton, barcode, dest,count(barcode) tot_input
+            from packing_packing_out_scan
+            where po = '$cek_dest_po' and no_carton = '$no_carton' and barcode = '$barcode' and dest = '$dest'
+            ) b on a.po = b.po and a.dest = b.dest and a.no_carton = b.no_carton and a.barcode = b.barcode");
 
             if ($cek_qty_isi_karton) {
                 $cek_qty_isi = $cek_qty_isi_karton[0]->qty;
@@ -401,21 +406,23 @@ where po = '$cek_dest_po' and no_carton = '$no_carton' and barcode = '$barcode' 
 
                     if ($cek_qty_isi > $tot_out) {
                         $insert = DB::insert("
-                insert into packing_packing_out_scan
-                (tgl_trans,barcode,po,dest,no_carton,notes,created_by,created_at,updated_at)
-                values
-                (
-                    '$tgl_trans',
-                    '$barcode',
-                    '$cek_dest_po',
-                    '$dest',
-                    '$no_carton',
-                    '-',
-                    '$user',
-                    '$timestamp',
-                    '$timestamp'
-                )
-                ");
+                            insert into packing_packing_out_scan
+                            (tgl_trans,barcode,po,dest,no_carton,notes,created_by,created_at,updated_at, id_so_det, id_ppic)
+                            values
+                            (
+                                '$tgl_trans',
+                                '$barcode',
+                                '$cek_dest_po',
+                                '$dest',
+                                '$no_carton',
+                                '-',
+                                '$user',
+                                '$timestamp',
+                                '$timestamp',
+                                '$id_so_det',
+                                '$id_ppic'
+                            )
+                        ");
                         return array(
                             'icon' => 'benar',
                             'msg' => 'Data berhasil Disimpan',
