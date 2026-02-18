@@ -1384,7 +1384,6 @@ class LoadingLineController extends Controller
         }
 
         $additionalFilter = "";
-
         if ($request->filter_line && count($request->filter_line) > 0) {
             $additionalFilter .= " and loading_stock.nama_line in (".addQuotesAround(implode("\n", $request->filter_line)).")";
         }
@@ -1460,6 +1459,7 @@ class LoadingLineController extends Controller
                 WHERE
                     loading_stock.tanggal_loading IS NOT NULL
                     ".$additionalFilter."
+                    ".$generalFilter."
                 GROUP BY
                     loading_stock.tanggal_loading,
                     loading_line_plan.id,
