@@ -997,7 +997,7 @@ where a.po = '$po' and a.dest = '$dest'
 left join
 (
 select
-a.po,a.barcode, a.no_carton, a.dest, id_so_det, count(a.barcode) qty_scan
+a.po,a.barcode, a.no_carton, a.dest, a.id_so_det, count(a.barcode) qty_scan
 from packing_packing_out_scan a
 left join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
 where a.po = '$po' and a.dest = '$dest'
