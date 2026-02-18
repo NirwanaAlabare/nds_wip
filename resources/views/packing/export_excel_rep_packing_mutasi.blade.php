@@ -2,7 +2,7 @@
 <html lang="en">
 <table class="table">
     <tr>
-        <td colspan='13'>Laporan Packing Line</td>
+        <td colspan='13'> Laporan Mutasi Packing (WIP) Periode {{ $from }} s/d {{ $to }}</td>
     </tr>
     {{-- <tr>
         <td colspan='13'>{{ date('d-M-Y', strtotime($from)) }} - {{ date('d-M-Y', strtotime($to)) }}
@@ -12,21 +12,33 @@
         <td></td>
     </tr>
     <thead>
-        <tr>
-            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">No. Carton</th>
-            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Barcode</th>
-            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">PO</th>
-            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Buyer</th>
-            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">WS</th>
-            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Color</th>
-            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Size</th>
-            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Dest</th>
-            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Qty PL</th>
-            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Qty Scan</th>
-            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Qty FG in</th>
-            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Qty FG Out</th>
-            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Lokasi</th>
-            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Balance</th>
+        <tr style='text-align:center; vertical-align:middle'>
+            <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
+            <th colspan="5" style="background-color: #90EE90; text-align:center;">Packing Line</th>
+            <th colspan="4" style="background-color: lightsteelblue; text-align:center;">Transfer Garment
+            </th>
+            <th colspan="4" style="background-color: lightgoldenrodyellow; text-align:center;">Packing
+                Central</th>
+        </tr>
+        <tr style='text-align:center; vertical-align:middle'>
+            <th style="background-color: lightblue;">WS</th>
+            <th style="background-color: lightblue;">Buyer</th>
+            <th style="background-color: lightblue;">Style</th>
+            <th style="background-color: lightblue;">Color</th>
+            <th style="background-color: lightblue;">Size</th>
+            <th style="background-color: #90EE90;">Saldo Awal</th>
+            <th style="background-color: #90EE90;">Terima RFT</th>
+            <th style="background-color: #90EE90;">Terima Reject</th>
+            <th style="background-color: #90EE90;">Keluar</th>
+            <th style="background-color: #90EE90;">Saldo Akhir</th>
+            <th style="background-color: lightsteelblue;">Saldo Awal</th>
+            <th style="background-color: lightsteelblue;">Terima</th>
+            <th style="background-color: lightsteelblue;">Keluar</th>
+            <th style="background-color: lightsteelblue;">Saldo Akhir</th>
+            <th style="background-color: lightgoldenrodyellow;">Saldo Awal</th>
+            <th style="background-color: lightgoldenrodyellow;">Terima</th>
+            <th style="background-color: lightgoldenrodyellow;">Packing Scan</th>
+            <th style="background-color: lightgoldenrodyellow;">Saldo Akhir</th>
         </tr>
     </thead>
     <tbody>
@@ -35,20 +47,24 @@
         @endphp
         @foreach ($data as $item)
             <tr>
-                <td>{{ $item->no_carton }}</td>
-                <td>{{ $item->barcode }}</td>
-                <td>{{ $item->po }}</td>
-                <td>{{ $item->buyer }}</td>
                 <td>{{ $item->ws }}</td>
+                <td>{{ $item->buyer }}</td>
+                <td>{{ $item->style }}</td>
                 <td>{{ $item->color }}</td>
                 <td>{{ $item->size }}</td>
-                <td>{{ $item->dest }}</td>
-                <td>{{ $item->qty_pl }}</td>
-                <td>{{ $item->tot_scan }}</td>
-                <td>{{ $item->qty_fg_in }}</td>
-                <td>{{ $item->qty_fg_out }}</td>
-                <td>{{ $item->lokasi }}</td>
-                <td>{{ $item->balance }}</td>
+                <td>{{ $item->pl_saldo_awal }}</td>
+                <td>{{ $item->pl_rft }}</td>
+                <td>{{ $item->pl_reject }}</td>
+                <td>{{ $item->pl_keluar }}</td>
+                <td>{{ $item->pl_saldo_akhir }}</td>
+                <td>{{ $item->tg_saldo_awal }}</td>
+                <td>{{ $item->tg_masuk }}</td>
+                <td>{{ $item->tg_keluar }}</td>
+                <td>{{ $item->tg_saldo_akhir }}</td>
+                <td>{{ $item->pc_saldo_awal }}</td>
+                <td>{{ $item->pc_terima }}</td>
+                <td>{{ $item->pc_packing_scan }}</td>
+                <td>{{ $item->pc_saldo_akhir }}</td>
             </tr>
         @endforeach
     </tbody>
