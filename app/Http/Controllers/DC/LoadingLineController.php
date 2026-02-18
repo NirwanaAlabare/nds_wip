@@ -547,24 +547,28 @@ class LoadingLineController extends Controller
                 LEFT JOIN users ON users.id = loading_line.created_by
                 LEFT JOIN (
                     select
-                        p.panel,
-                        s.form_cut_id,
-                        s.so_det_id,
-                        s.group_stocker,
-                        s.ratio,
-                        s.stocker_reject,
-                        GROUP_CONCAT(ll.stocker_id) stocker_id,
-                        MIN(ll.qty) loading_qty
+						COALESCE(p_com.panel, p.panel) panel,
+						s.form_cut_id,
+						s.form_reject_id,
+						s.form_piece_id,
+						s.so_det_id,
+						s.group_stocker,
+						s.ratio,
+						s.stocker_reject,
+						GROUP_CONCAT(ll.stocker_id) stocker_id,
+						MIN(ll.qty) loading_qty
                     from
                         loading_line ll
                         left join stocker_input s on s.id = ll.stocker_id
                         left join part_detail pd on pd.id = s.part_detail_id
+                        left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
                         left join part p on p.id = pd.part_id
+                        left join part p_com on p_com.id = pd_com.part_id
                     where
                         ll.tanggal_loading between '".$dateFrom."' AND '".$dateTo."' AND
                         (s.cancel IS NULL OR s.cancel != 'y')
                     group by
-                        p.panel,
+                        COALESCE(p_com.panel, p.panel),
                         s.form_cut_id,
                         s.form_reject_id,
                         s.form_piece_id,
@@ -572,7 +576,14 @@ class LoadingLineController extends Controller
                         s.group_stocker,
                         s.ratio,
                         s.stocker_reject
-                ) as loading_qty on loading_qty.panel = COALESCE(part_com.panel, part.panel) AND loading_qty.form_cut_id = stocker_input.form_cut_id AND loading_qty.so_det_id = stocker_input.so_det_id AND loading_qty.group_stocker = stocker_input.group_stocker AND loading_qty.ratio = stocker_input.ratio AND loading_qty.stocker_reject = stocker_input.stocker_reject
+                ) as loading_qty on loading_qty.panel = COALESCE(part_com.panel, part.panel)
+                AND loading_qty.form_cut_id    <=> stocker_input.form_cut_id
+                AND loading_qty.form_reject_id <=> stocker_input.form_reject_id
+                AND loading_qty.form_piece_id  <=> stocker_input.form_piece_id
+                AND loading_qty.so_det_id      <=> stocker_input.so_det_id
+                AND loading_qty.group_stocker  <=> stocker_input.group_stocker
+                AND loading_qty.ratio          <=> stocker_input.ratio
+                AND loading_qty.stocker_reject <=> stocker_input.stocker_reject
             WHERE
                 loading_line_plan.id = '".$id."' and
                 (loading_line.tanggal_loading between '".$dateFrom."' and '".$dateTo."')
@@ -752,7 +763,7 @@ class LoadingLineController extends Controller
                     loading_line_plan.line_id,
                     loading_line_plan.act_costing_ws,
                     loading_line_plan.style,
-                    loading_line_plan.color,
+                    TRIM(loading_line_plan.color) color,
                     loading_line_plan.target_sewing,
                     loading_line_plan.target_loading,
                     sum( loading_stock.qty ) loading_qty,
@@ -790,6 +801,7 @@ class LoadingLineController extends Controller
                             ".$detailDateFilter."
                         GROUP BY
                             loading_line.tanggal_loading,
+                            loading_line.loading_plan_id,
                             stocker_input.form_cut_id,
                             stocker_input.form_reject_id,
                             stocker_input.form_piece_id,
@@ -845,7 +857,7 @@ class LoadingLineController extends Controller
         if ($from || $to) {
             $innerDetailDateFilter = "AND ";
             $dateFromFilter = " COALESCE( loading_line.tanggal_loading, DATE ( loading_line.updated_at ) ) >= '".$from."' ";
-            $dateToFilter = " COALESCE(  loading_line.tanggal_loading, DATE ( loading_line.updated_at ) ) <= '".$to."' ";
+            $dateToFilter = " COALESCE( loading_line.tanggal_loading, DATE ( loading_line.updated_at ) ) <= '".$to."' ";
 
             if ($from && $to) {
                 $innerDetailDateFilter .= $dateFromFilter." AND ".$dateToFilter;
@@ -885,21 +897,24 @@ class LoadingLineController extends Controller
                 stocker_input.group_stocker,
                 stocker_input.range_awal,
                 stocker_input.range_akhir,
-                loading_line_plan.act_costing_id,
-                loading_line_plan.act_costing_ws,
-                loading_line_plan.buyer,
-                loading_line_plan.style,
-                loading_line_plan.color,
+                master_sb_ws.id_act_cost act_costing_id,
+                master_sb_ws.ws act_costing_ws,
+                master_sb_ws.buyer,
+                master_sb_ws.styleno style,
+                TRIM(master_sb_ws.color) color,
                 loading_line_plan.line_id,
                 COALESCE(form_cut_input.no_form, form_cut_piece.no_form, form_cut_reject.no_form) no_form,
                 COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
                 (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) type,
-                COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
-                CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL THEN CONCAT(' - ', part_detail.part_status) ELSE '' END)) part,
+                COALESCE(part_com.panel, part.panel) panel,
+                COALESCE(part_com.panel_status, part.panel_status) panel_status,
+                master_part.nama_part part,
+                part_detail.part_status part_status,
                 loading_line.no_bon,
                 DATE_FORMAT(loading_line.updated_at, '%H:%i:%s') waktu_loading,
                 users.username as user,
-                part_detail.part_status
+                part_detail.part_status,
+                stocker_input.notes
             FROM
                 loading_line
                 LEFT JOIN loading_line_plan ON loading_line_plan.id = loading_line.loading_plan_id
@@ -919,32 +934,46 @@ class LoadingLineController extends Controller
                 LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
                 LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
                 LEFT JOIN users ON users.id = loading_line.created_by
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                 LEFT JOIN (
                     select
-                        p.panel,
-                        s.form_cut_id,
-                        s.so_det_id,
-                        s.group_stocker,
-                        s.ratio,
-                        s.stocker_reject,
-                        GROUP_CONCAT(ll.stocker_id) stocker_id,
-                        MIN(ll.qty) loading_qty
+						COALESCE(p_com.panel, p.panel) panel,
+						s.form_cut_id,
+						s.form_reject_id,
+						s.form_piece_id,
+						s.so_det_id,
+						s.group_stocker,
+						s.ratio,
+						s.stocker_reject,
+						GROUP_CONCAT(ll.stocker_id) stocker_id,
+						MIN(ll.qty) loading_qty
                     from
                         loading_line ll
                         left join stocker_input s on s.id = ll.stocker_id
                         left join part_detail pd on pd.id = s.part_detail_id
+                        left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
                         left join part p on p.id = pd.part_id
+                        left join part p_com on p_com.id = pd_com.part_id
                     where
                         ll.tanggal_loading between '".$from."' AND '".$to."' AND
                         (s.cancel IS NULL OR s.cancel != 'y')
                     group by
-                        p.panel,
+                        COALESCE(p_com.panel, p.panel),
                         s.form_cut_id,
+                        s.form_reject_id,
+                        s.form_piece_id,
                         s.so_det_id,
                         s.group_stocker,
                         s.ratio,
                         s.stocker_reject
-                ) as loading_qty on loading_qty.panel = COALESCE(part_com.panel, part.panel) AND loading_qty.form_cut_id = stocker_input.form_cut_id AND loading_qty.so_det_id = stocker_input.so_det_id AND loading_qty.group_stocker = stocker_input.group_stocker AND loading_qty.ratio = stocker_input.ratio AND loading_qty.stocker_reject = stocker_input.stocker_reject
+                ) as loading_qty on loading_qty.panel = COALESCE(part_com.panel, part.panel)
+                AND loading_qty.form_cut_id    <=> stocker_input.form_cut_id
+                AND loading_qty.form_reject_id <=> stocker_input.form_reject_id
+                AND loading_qty.form_piece_id  <=> stocker_input.form_piece_id
+                AND loading_qty.so_det_id      <=> stocker_input.so_det_id
+                AND loading_qty.group_stocker  <=> stocker_input.group_stocker
+                AND loading_qty.ratio          <=> stocker_input.ratio
+                AND loading_qty.stocker_reject <=> stocker_input.stocker_reject
             WHERE
                 loading_line_plan.id in ".$loadingPlanIds."
                 ".$innerDetailDateFilter."
@@ -991,6 +1020,7 @@ class LoadingLineController extends Controller
         $sheet->writeTo('S2', 'Waktu Loading')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('T2', 'User')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('U2', 'Part Status')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('V2', 'Stocker Notes')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
             $sheet->writeAreas();
@@ -1018,6 +1048,7 @@ class LoadingLineController extends Controller
                     $row->waktu_loading ?? "-",
                     $row->user ?? "-",
                     $row->part_status ?? "-",
+                    $row->notes ?? "-",
                 ];
 
                 $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
