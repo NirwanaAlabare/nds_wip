@@ -50,6 +50,7 @@
                             <th>Style</th>
                             <th>Color</th>
                             <th>Size</th>
+                            <th>Panel</th>
                             <th>Part</th>
                             <th>Saldo Awal</th>
                             <th>Masuk</th>
@@ -65,7 +66,7 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="6">TOTAL</th>
+                            <th colspan="7">TOTAL</th>
                             <th></th>
                             <th></th>
                             <th></th>
@@ -138,6 +139,7 @@
                 { data: 'style' },
                 { data: 'color' },
                 { data: 'size' },
+                { data: 'panel' },
                 { data: 'nama_part' },
                 { data: 'current_saldo_awal', defaultContent: 0 },
                 { data: 'qty_in', defaultContent: 0 },
@@ -224,7 +226,6 @@
                 };
 
                 $(api.column(0).footer()).html('<b>TOTAL</b>');
-                $(api.column(6).footer()).html(sumCol(6));
                 $(api.column(7).footer()).html(sumCol(7));
                 $(api.column(8).footer()).html(sumCol(8));
                 $(api.column(9).footer()).html(sumCol(9));
@@ -233,6 +234,7 @@
                 $(api.column(12).footer()).html(sumCol(12));
                 $(api.column(13).footer()).html(sumCol(13));
                 $(api.column(14).footer()).html(sumCol(14));
+                $(api.column(15).footer()).html(sumCol(15));
 
                 let totalSaldoAkhir = 0;
 
@@ -241,7 +243,7 @@
                     totalSaldoAkhir += intVal(r.current_saldo_awal) + intVal(r.qty_in) - intVal(r.kirim_secondary_dalam) + intVal(r.terima_repaired_secondary_dalam) + intVal(r.terima_good_secondary_dalam) - intVal(r.kirim_secondary_luar) + intVal(r.terima_repaired_secondary_luar) + intVal(r.terima_good_secondary_luar) - intVal(r.loading);
                 });
 
-                $(api.column(15).footer()).html(totalSaldoAkhir);
+                $(api.column(16).footer()).html(totalSaldoAkhir);
             }
         });
 
