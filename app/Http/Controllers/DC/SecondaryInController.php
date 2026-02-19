@@ -1511,6 +1511,7 @@ class SecondaryInController extends Controller
             "txtqtyreject" => "required"
         ]);
 
+        // Check stocker's availability on secondary in
         $checkSecondaryIn = SecondaryIn::where("id_qr_stocker", $request->txtno_stocker)->where('urutan', $request->txturutan)->first();
         if ($checkSecondaryIn) {
             return array(
@@ -1522,6 +1523,7 @@ class SecondaryInController extends Controller
             );
         }
 
+        // Check if last step of process
         $lastStep = Stocker::selectRaw("MAX(part_detail_secondary.urutan) as urutan")->
             leftJoin("part_detail_secondary", "part_detail_secondary.part_detail_id", "=", "stocker_input.part_detail_id")->
             where("stocker_input.id_qr_stocker", $request['txtno_stocker'])->
@@ -1530,6 +1532,8 @@ class SecondaryInController extends Controller
 
         // Update Rak/Trolley (One Step Before Loading) On Last Step/No Step at all
         if (!$lastStep || $lastStep <= $request->txturutan) {
+
+            // Update Rak
             if ($request['cborak']) {
                 $rak = DB::table('rack_detail')
                 ->select('id')
@@ -1547,6 +1551,7 @@ class SecondaryInController extends Controller
                 ]);
             }
 
+            // Update Trolley
             if ($request['cbotrolley']) {
                 $lastTrolleyStock = TrolleyStocker::select('kode')->orderBy('id', 'desc')->first();
                 $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
@@ -1574,6 +1579,7 @@ class SecondaryInController extends Controller
             }
         }
 
+        // Save Secondary IN
         $savein = SecondaryIn::updateOrCreate(
             ['id_qr_stocker' => $request['txtno_stocker'], 'urutan' => $request->txturutan],
             [
@@ -1589,6 +1595,7 @@ class SecondaryInController extends Controller
             ]
         );
 
+        // Update Stocker status
         DB::update(
             "update stocker_input set status = 'non secondary' ".($request->txturutan ? ", urutan = '".(intval($request->txturutan) + 1)."' " : "")." where id_qr_stocker = '" . $request->txtno_stocker . "'"
         );
@@ -1610,6 +1617,7 @@ class SecondaryInController extends Controller
         $tgltrans = date('Y-m-d');
         $timestamp = Carbon::now();
 
+        // Get Stocker
         $thisStocker = Stocker::selectRaw("stocker_input.id_qr_stocker, stocker_input.act_costing_ws, stocker_input.color, COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') as no_cut")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
             leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
@@ -1618,6 +1626,7 @@ class SecondaryInController extends Controller
             first();
 
         if ($thisStocker) {
+            // Check Stocker Family Specification
             $cekdata = DB::select("
                 SELECT
                     s.id_qr_stocker,
@@ -1679,6 +1688,7 @@ class SecondaryInController extends Controller
             ");
 
             foreach ($cekdata as $d) {
+                // When stocker's destination is rack
                 if ($d->tempat_tujuan == 'RAK') {
                     $rak = DB::table('rack_detail')
                     ->select('id')
@@ -1696,6 +1706,7 @@ class SecondaryInController extends Controller
                     ]);
                 }
 
+                // When stocker's destination is trolley
                 if ($d->tempat_tujuan == 'TROLLEY') {
                     $lastTrolleyStock = TrolleyStocker::select('kode')->orderBy('id', 'desc')->first();
                     $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
@@ -1722,6 +1733,7 @@ class SecondaryInController extends Controller
                     }
                 }
 
+                // Save Secondary Inhouse
                 $saveinhouse = SecondaryIn::updateOrCreate(
                     ['id_qr_stocker' => $d->id_qr_stocker],
                     [
@@ -1737,6 +1749,7 @@ class SecondaryInController extends Controller
                     ]
                 );
 
+                // Update Stocker status
                 DB::update(
                     "update stocker_input set status = 'non secondary' where id_qr_stocker = '" . $d->id_qr_stocker . "'"
                 );
