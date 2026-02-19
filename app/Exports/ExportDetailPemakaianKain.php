@@ -67,12 +67,12 @@ class ExportDetailPemakaianKain implements FromView, WithEvents, ShouldAutoSize 
                         detail_item,
                         lot,
                         COALESCE(roll_buyer, roll) roll,
-                        MAX(qty) qty,
+                        (SUM(qty-sisa_kain)+MIN(sisa_kain)) qty,
                         ROUND(MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END), 2) sisa_kain,
                         unit,
                         ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
                         ROUND(SUM(short_roll), 2) total_short_roll_2,
-                        ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty), 2) total_short_roll
+                        ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - (SUM(qty-sisa_kain)+MIN(sisa_kain)), 2) total_short_roll
                     from
                         laravel_nds.form_cut_input_detail
                     WHERE

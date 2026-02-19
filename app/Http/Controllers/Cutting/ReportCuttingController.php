@@ -412,12 +412,12 @@ class ReportCuttingController extends Controller
                             detail_item,
                             lot,
                             COALESCE(roll_buyer, roll) roll,
-                            MAX(qty) qty,
+                            SUM(qty-sisa_kain)+MIN(sisa_kain) qty,
                             ROUND(MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END), 2) sisa_kain,
                             unit,
                             ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
                             ROUND(SUM(short_roll), 2) total_short_roll_2,
-                            ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty), 2) total_short_roll
+                            ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - (SUM(qty-sisa_kain)+MIN(sisa_kain)), 2) total_short_roll
                         from
                             laravel_nds.form_cut_input_detail
                         WHERE
@@ -464,9 +464,10 @@ class ReportCuttingController extends Controller
                     ) piping on piping.id_roll = req.id_roll
                 "));
 
+                $qtyRollUsage = ($row->unit == 'YARD' || $row->unit == 'YRD') ? round($rolls->sum("qty") * 1.0361, 2) : $rolls->sum("qty");
                 $rollCutting = $rolls ? $rolls->where("total_pemakaian_roll", ">", 0)->count() : '0';
                 $balanceRoll = $rolls ? $row->roll_out - $rollCutting : $row->roll_out;
-                $balancePakai = $rolls ? $row->qty_out - (($row->unit == 'YARD' || $row->unit == 'YRD') ? $rolls->sum("total_pemakaian_roll") * 1.0361 : $rolls->sum("total_pemakaian_roll")) : $row->qty_out;
+                $balancePakai = $rolls ? (($qtyRollUsage > $row->qty_req) ? $qtyRollUsage : $row->qty_out) - (($row->unit == 'YARD' || $row->unit == 'YRD') ? $rolls->sum("total_pemakaian_roll") * 1.0361 : $rolls->sum("total_pemakaian_roll")) : $row->qty_out;
 
                 $rollData->push(collect([
                     'bppbno' => $row->bppbno,
@@ -479,11 +480,11 @@ class ReportCuttingController extends Controller
                     'buyer' => $row->buyer,
                     'id_item' => $row->id_item,
                     'itemdesc' => $row->itemdesc,
-                    'qty_req' => $row->qty_req,
+                    'qty_req' => (($qtyRollUsage > $row->qty_req) ? $qtyRollUsage : $row->qty_req),
                     'unit' => $row->unit,
                     'no_out' => $row->no_out,
                     'roll_out' => $row->roll_out,
-                    'qty_out' => $row->qty_out,
+                    'qty_out' => (($qtyRollUsage > $row->qty_out) ? $qtyRollUsage : $row->qty_out),
                     'total_roll_cutting' => $rollCutting,
                     'total_pakai_cutting' => $rolls ? (($row->unit == 'YARD' || $row->unit == 'YRD') ? round($rolls->sum("total_pemakaian_roll") * 1.0361, 2) : round($rolls->sum("total_pemakaian_roll"), 2)) : 0,
                     'total_qty_cutting' => $rolls ? (($row->unit == 'YARD' || $row->unit == 'YRD') ? round($rolls->sum("qty") * 1.09361, 2) : round($rolls->sum("qty"), 2)) : 0,
@@ -532,13 +533,13 @@ class ReportCuttingController extends Controller
                         detail_item,
                         lot,
                         COALESCE ( roll_buyer, roll ) roll,
-                        MAX( qty ) qty,
+                        (SUM(qty-sisa_kain)+MIN(sisa_kain)) qty,
                         unit,
                         ROUND( SUM( total_pemakaian_roll ), 2 ) total_pemakaian_roll,
-                        ROUND(MAX(qty) - SUM(total_pemakaian_roll), 2) total_sisa_kain_1,
+                        ROUND((SUM(qty-sisa_kain)+MIN(sisa_kain)) - SUM(total_pemakaian_roll), 2) total_sisa_kain_1,
                         ROUND(MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END), 2) total_sisa_kain,
-                        ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty), 2) total_short_roll,
-                        CONCAT(ROUND((((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty))/(SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) * 100), 2), ' %') total_short_roll_percentage,
+                        ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - (SUM(qty-sisa_kain)+MIN(sisa_kain)), 2) total_short_roll,
+                        CONCAT(ROUND((((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - (SUM(qty-sisa_kain)+MIN(sisa_kain)))/(SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) * 100), 2), ' %') total_short_roll_percentage,
                         '" . $rollId->tgl_dok . "' tanggal_return
                     FROM
                         `form_cut_input_detail`
@@ -690,7 +691,7 @@ class ReportCuttingController extends Controller
                     form_cut_input_detail.detail_item,
                     form_cut_input_detail.lot,
                     COALESCE(form_cut_input_detail.roll_buyer, form_cut_input_detail.roll) roll,
-                    MAX(form_cut_input_detail.qty) qty,
+                    COALESCE(scanned_item.qty_in, (SUM(form_cut_input_detail.qty-form_cut_input_detail.sisa_kain)+MIN(form_cut_input_detail.sisa_kain))) qty,
                     form_cut_input_detail.unit,
                     ROUND(SUM(form_cut_input_detail.total_pemakaian_roll) + COALESCE(piping.piping, 0), 2) total_pemakaian_roll,
                     ROUND(SUM(CASE WHEN form_cut_input_detail.short_roll < 0 THEN form_cut_input_detail.short_roll ELSE 0 END), 2) total_short_roll
@@ -713,7 +714,8 @@ class ReportCuttingController extends Controller
             if ($rolls->count() > 0) {
                 $totalQtyRequest += $req->qty_req;
                 $totalRollIn += $req->roll_out;
-                $totalQtyIn += $req->qty_out;
+                // $totalQtyIn += $req->qty_out;
+                $totalQtyIn += $rolls->sum('qty');
                 $totalRollCutting += $rolls->count("id_roll");
                 $totalQtyCutting += (($req->unit == 'YARD' || $req->unit == 'YRD') ? round($rolls->sum("total_pemakaian_roll") * 1.0361, 2) : round($rolls->sum("total_pemakaian_roll"), 2));
                 $totalRollBalance += $rolls ? $req->roll_out - $rolls->count() : $req->roll_out;

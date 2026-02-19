@@ -72,12 +72,12 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
             //         detail_item,
             //         lot,
             //         COALESCE(roll_buyer, roll) roll,
-            //         MAX(qty) qty,
+            //         SUM(qty-sisa_kain)+MIN(sisa_kain) qty,
             //         ROUND(MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END), 2) sisa_kain,
             //         unit,
             //         ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
             //         ROUND(SUM(short_roll), 2) total_short_roll_2,
-            //         ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty), 2) total_short_roll
+            //         ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - SUM(qty-sisa_kain)+MIN(sisa_kain), 2) total_short_roll
             //     ")->
             //     whereNotNull("id_roll")->
             //     whereIn("id_roll", $rollIds)->
@@ -110,12 +110,12 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
                         detail_item,
                         lot,
                         COALESCE(roll_buyer, roll) roll,
-                        MAX(qty) qty,
+                        SUM(qty-sisa_kain)+MIN(sisa_kain) qty,
                         ROUND(MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END), 2) sisa_kain,
                         unit,
                         ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
                         ROUND(SUM(short_roll), 2) total_short_roll_2,
-                        ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - MAX(qty), 2) total_short_roll
+                        ROUND((SUM(total_pemakaian_roll) + MIN(CASE WHEN status != 'extension' AND status != 'extension complete' THEN (sisa_kain) ELSE (qty - total_pemakaian_roll) END)) - (SUM(qty-sisa_kain)+MIN(sisa_kain)), 2) total_short_roll
                     from
                         laravel_nds.form_cut_input_detail
                     WHERE
@@ -177,6 +177,21 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
         }
 
         $data = $data->flatten(1);
+
+        $data = $data
+        ->groupBy('id_roll')
+        ->map(function ($items) {
+            $first = $items->first();
+
+            $first->tanggal_req = $items->pluck('tanggal_req')->unique()->implode(',');
+            $first->no_req = $items->pluck('no_req')->unique()->implode(',');
+            $first->no_out = $items->pluck('no_out')->unique()->implode(',');
+            $first->no_ws = $items->pluck('no_ws')->unique()->implode(',');
+            $first->no_ws_aktual = $items->pluck('no_ws_aktual')->unique()->implode(',');
+
+            return $first;
+        })
+        ->values();
 
         $this->rowCount = $data->count();
 
