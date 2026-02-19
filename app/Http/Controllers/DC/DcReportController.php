@@ -1179,6 +1179,7 @@ class DcReportController extends Controller
                     style,
                     color,
                     size,
+                    panel,
                     nama_part,
                     SUM(current_saldo_awal) current_saldo_awal,
                     SUM(qty_in) qty_in,
@@ -2440,6 +2441,7 @@ class DcReportController extends Controller
                     style,
                     color,
                     size,
+                    panel,
                     nama_part,
                     SUM(current_saldo_awal) current_saldo_awal,
                     SUM(qty_in) qty_in,
@@ -2542,17 +2544,18 @@ class DcReportController extends Controller
         $sheet->writeTo('C4', 'Style')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('D4', 'Color')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('E4', 'Size')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('F4', 'Part')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('G4', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('H4', 'Masuk')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('I4', 'Kirim Sec Dalam')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('J4', 'Terima Rep Sec Dalam')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('K4', 'Terima Good Sec Dalam')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('L4', 'Kirim Sec Luar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('M4', 'Terima Rep Sec Luar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('N4', 'Terima Good Sec Luar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('O4', 'Loading')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('P4', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('F4', 'Panel')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('G4', 'Part')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('H4', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('I4', 'Masuk')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('J4', 'Kirim Sec Dalam')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('K4', 'Terima Rep Sec Dalam')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('L4', 'Terima Good Sec Dalam')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('M4', 'Kirim Sec Luar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('N4', 'Terima Rep Sec Luar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('O4', 'Terima Good Sec Luar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('P4', 'Loading')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Q4', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         // Data rows - chunk by 10,000
         $row = 5;
@@ -2597,17 +2600,18 @@ class DcReportController extends Controller
                 $sheet->writeTo('C' . $row, $data->style)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
                 $sheet->writeTo('D' . $row, $data->color)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
                 $sheet->writeTo('E' . $row, $data->size)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('F' . $row, $data->nama_part)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('G' . $row, $saldoAwal)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('H' . $row, $masuk)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('I' . $row, $kirimDalam)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('J' . $row, $repDalam)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('K' . $row, $goodDalam)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('L' . $row, $kirimLuar)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('M' . $row, $repLuar)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('N' . $row, $goodLuar)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('O' . $row, $loading)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('P' . $row, $saldoAkhir)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
+                $sheet->writeTo('F' . $row, $data->panel ?? '-')->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
+                $sheet->writeTo('G' . $row, $data->nama_part)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
+                $sheet->writeTo('H' . $row, $saldoAwal)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
+                $sheet->writeTo('I' . $row, $masuk)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
+                $sheet->writeTo('J' . $row, $kirimDalam)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
+                $sheet->writeTo('K' . $row, $repDalam)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
+                $sheet->writeTo('L' . $row, $goodDalam)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
+                $sheet->writeTo('M' . $row, $kirimLuar)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
+                $sheet->writeTo('N' . $row, $repLuar)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
+                $sheet->writeTo('O' . $row, $goodLuar)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
+                $sheet->writeTo('P' . $row, $loading)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
+                $sheet->writeTo('Q' . $row, $saldoAkhir)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
 
                 $row++;
             }
@@ -2615,18 +2619,18 @@ class DcReportController extends Controller
 
         // Total row
         $sheet->writeTo('A' . $row, 'TOTAL')->applyFontStyleBold();
-        $sheet->writeTo('G' . $row, $totalSaldoAwal)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('H' . $row, $totalMasuk)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('I' . $row, $totalKirimSecDalam)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('J' . $row, $totalTerimaRepairedSecDalam)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('K' . $row, $totalTerimaGoodSecDalam)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('L' . $row, $totalKirimSecLuar)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('M' . $row, $totalTerimaRepairedSecLuar)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('N' . $row, $totalTerimaGoodSecLuar)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('O' . $row, $totalLoading)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('P' . $row, $totalSaldoAkhir)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('H' . $row, $totalSaldoAwal)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('I' . $row, $totalMasuk)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('J' . $row, $totalKirimSecDalam)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('K' . $row, $totalTerimaRepairedSecDalam)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('L' . $row, $totalTerimaGoodSecDalam)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('M' . $row, $totalKirimSecLuar)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('N' . $row, $totalTerimaRepairedSecLuar)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('O' . $row, $totalTerimaGoodSecLuar)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('P' . $row, $totalLoading)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Q' . $row, $totalSaldoAkhir)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        $sheet->mergeCells('A'.$row.':F'.$row.'')->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->mergeCells('A'.$row.':G'.$row.'')->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         return $excel->download('Laporan DC ' . $from . ' - ' . $to . '.xlsx');
     }
