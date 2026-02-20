@@ -35,6 +35,7 @@ class DcReportController extends Controller
                                 FROM
                                     dc_report_rekap
                                 WHERE
+                                    tanggal >= '2026-01-01' and
                                     tanggal < '".$dateFrom."'
                             ) tanggal_akhir_rekap on tanggal_akhir_rekap.tanggal = dc_report_rekap.tanggal
                         ),
@@ -69,7 +70,7 @@ class DcReportController extends Controller
                         left join part p on pd.part_id = p.id
                         left join master_part mp on mp.id = pd.master_part_id
                     where
-                        a.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                        a.tgl_trans >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                         a.tgl_trans < '".$dateFrom."' AND
                         s.id is not null AND
                         (s.cancel IS NULL OR s.cancel != 'y') and
@@ -108,7 +109,7 @@ class DcReportController extends Controller
                         left join part pcom on pcom.id = pdcom.part_id
                         left join master_part mp on mp.id = pd.master_part_id
                     where
-                        a.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                        a.tgl_trans >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                         a.tgl_trans < '".$dateFrom."' AND
                         s.id is not null AND
                         (s.cancel IS NULL OR s.cancel != 'y') and
@@ -141,7 +142,7 @@ class DcReportController extends Controller
                         left join stocker_input s on s.id_qr_stocker = sii_in.id_qr_stocker
                         left join part_detail pd on pd.id = s.part_detail_id
                     WHERE
-                        sii_in.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                        sii_in.tgl_trans >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                         sii_in.tgl_trans < '".$dateFrom."' AND
                         s.id is not null AND
                         (s.cancel IS NULL OR s.cancel != 'y') and
@@ -172,7 +173,7 @@ class DcReportController extends Controller
                         left join stocker_input s on s.id_qr_stocker = sii_in.id_qr_stocker
                         left join part_detail pd on pd.id = s.part_detail_id
                     WHERE
-                        sii_in.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                        sii_in.tgl_trans >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                         sii_in.tgl_trans < '".$dateFrom."' AND
                         s.id is not null AND
                         (s.cancel IS NULL OR s.cancel != 'y') and
@@ -205,7 +206,7 @@ class DcReportController extends Controller
                         left join stocker_input s on s.id_qr_stocker = sii.id_qr_stocker
                         left join part_detail pd on pd.id = s.part_detail_id
                     WHERE
-                        sii.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                        sii.tgl_trans >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                         sii.tgl_trans < '".$dateFrom."' AND
                         s.id is not null AND
                         (s.cancel IS NULL OR s.cancel != 'y') and
@@ -236,7 +237,7 @@ class DcReportController extends Controller
                         left join stocker_input s on s.id_qr_stocker = sii.id_qr_stocker
                         left join part_detail pd on pd.id = s.part_detail_id
                     WHERE
-                        sii.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                        sii.tgl_trans >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                         sii.tgl_trans < '".$dateFrom."' AND
                         (s.cancel IS NULL OR s.cancel != 'y') and
                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -269,7 +270,7 @@ class DcReportController extends Controller
                         left join part_detail pd on pd.id = s.part_detail_id
                         left join wip_out wo on wo.id = wod.id_wip_out
                     WHERE
-                        wo.tgl_form > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                        wo.tgl_form >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                         wo.tgl_form < '".$dateFrom."' AND
                         s.id is not null AND
                         (s.cancel IS NULL OR s.cancel != 'y') and
@@ -301,7 +302,7 @@ class DcReportController extends Controller
                         left join part_detail pd on pd.id = s.part_detail_id
                         left join wip_out wo on wo.id = wod.id_wip_out
                     WHERE
-                        wo.tgl_form > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                        wo.tgl_form >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                         wo.tgl_form < '".$dateFrom."' AND
                         s.id is not null AND
                         (s.cancel IS NULL OR s.cancel != 'y') and
@@ -340,7 +341,7 @@ class DcReportController extends Controller
                         left join master_secondary mms on mms.id = pds.master_secondary_id
                         left join secondary_inhouse_input sii on sii.id_qr_stocker = si.id_qr_stocker
                     WHERE
-                        si.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                        si.tgl_trans >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                         si.tgl_trans < '".$dateFrom."' AND
                         s.id is not null AND
                         (s.cancel IS NULL OR s.cancel != 'y') and
@@ -376,7 +377,7 @@ class DcReportController extends Controller
                         left join master_secondary mms on mms.id = pds.master_secondary_id
                         left join secondary_inhouse_input sii on sii.id_qr_stocker = si.id_qr_stocker
                     WHERE
-                        si.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                        si.tgl_trans >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                         si.tgl_trans < '".$dateFrom."' AND
                         s.id is not null AND
                         (s.cancel IS NULL OR s.cancel != 'y') and
@@ -431,7 +432,7 @@ class DcReportController extends Controller
                                 left join part p on p.id = pd.part_id
                                 left join part p_com on p_com.id = pd_com.part_id
                             where
-                                ll.tanggal_loading > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                                ll.tanggal_loading >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                 ll.tanggal_loading < '".$dateFrom."' and
                                 (s.cancel IS NULL OR s.cancel != 'y') and
                                 (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
@@ -453,7 +454,7 @@ class DcReportController extends Controller
                         AND loading_qty.ratio          <=> stocker_input.ratio
                         AND loading_qty.stocker_reject <=> stocker_input.stocker_reject
                     WHERE
-                        loading_line.tanggal_loading > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND loading_line.tanggal_loading < '".$dateFrom."' and
+                        loading_line.tanggal_loading >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND loading_line.tanggal_loading < '".$dateFrom."' and
                         (stocker_input.cancel IS NULL OR stocker_input.cancel != 'y') and
                         (stocker_input.notes IS NULL OR stocker_input.notes NOT LIKE '%STOCKER MANUAL%')
                     group by
@@ -480,7 +481,7 @@ class DcReportController extends Controller
                             left join part p on p.id = pd.part_id
                             left join part p_com on p_com.id = pd_com.part_id
                         where
-                            ll.tanggal_loading > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                            ll.tanggal_loading >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                             ll.tanggal_loading < '".$dateFrom."' and
                             (s.cancel IS NULL OR s.cancel != 'y') and
                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
@@ -500,7 +501,7 @@ class DcReportController extends Controller
                 )
 
                 SELECT
-                    tanggal,
+                    MAX(tanggal) tanggal,
                     stockers,
                     act_costing_ws,
                     buyer,
@@ -525,7 +526,7 @@ class DcReportController extends Controller
                     CURRENT_TIMESTAMP() updated_at
                 FROM (
                         SELECT
-                            '2025-12-31' tanggal,
+                            '".date("Y-m-d", strtotime($dateFrom." -1 day"))."' tanggal,
                             stockers,
                             buyer,
                             ws act_costing_ws,
@@ -643,6 +644,7 @@ class DcReportController extends Controller
                         from
                             dc_report_rekap
                         where
+                            tanggal >= '2026-01-01'
                             tanggal < '".$dateFrom."'
                 ) saldo_dc
                 group by
@@ -1297,6 +1299,7 @@ class DcReportController extends Controller
                                 FROM
                                     dc_report_rekap
                                 WHERE
+                                    tanggal >= '2026-01-01' and
                                     tanggal < '".$dateFrom."'
                             ) tanggal_akhir_rekap on tanggal_akhir_rekap.tanggal = dc_report_rekap.tanggal
                         ),
@@ -1331,7 +1334,7 @@ class DcReportController extends Controller
                         left join part p on pd.part_id = p.id
                         left join master_part mp on mp.id = pd.master_part_id
                     where
-                        a.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                        a.tgl_trans >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                         a.tgl_trans < '".$dateFrom."' AND
                         s.id is not null AND
                         (s.cancel IS NULL OR s.cancel != 'y') and
@@ -1370,7 +1373,7 @@ class DcReportController extends Controller
                         left join part pcom on pcom.id = pdcom.part_id
                         left join master_part mp on mp.id = pd.master_part_id
                     where
-                        a.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                        a.tgl_trans >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                         a.tgl_trans < '".$dateFrom."' AND
                         s.id is not null AND
                         (s.cancel IS NULL OR s.cancel != 'y') and
@@ -1403,7 +1406,7 @@ class DcReportController extends Controller
                         left join stocker_input s on s.id_qr_stocker = sii_in.id_qr_stocker
                         left join part_detail pd on pd.id = s.part_detail_id
                     WHERE
-                        sii_in.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                        sii_in.tgl_trans >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                         sii_in.tgl_trans < '".$dateFrom."' AND
                         s.id is not null AND
                         (s.cancel IS NULL OR s.cancel != 'y') and
@@ -1434,7 +1437,7 @@ class DcReportController extends Controller
                         left join stocker_input s on s.id_qr_stocker = sii_in.id_qr_stocker
                         left join part_detail pd on pd.id = s.part_detail_id
                     WHERE
-                        sii_in.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                        sii_in.tgl_trans >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                         sii_in.tgl_trans < '".$dateFrom."' AND
                         s.id is not null AND
                         (s.cancel IS NULL OR s.cancel != 'y') and
@@ -1467,7 +1470,7 @@ class DcReportController extends Controller
                         left join stocker_input s on s.id_qr_stocker = sii.id_qr_stocker
                         left join part_detail pd on pd.id = s.part_detail_id
                     WHERE
-                        sii.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                        sii.tgl_trans >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                         sii.tgl_trans < '".$dateFrom."' AND
                         s.id is not null AND
                         (s.cancel IS NULL OR s.cancel != 'y') and
@@ -1498,7 +1501,7 @@ class DcReportController extends Controller
                         left join stocker_input s on s.id_qr_stocker = sii.id_qr_stocker
                         left join part_detail pd on pd.id = s.part_detail_id
                     WHERE
-                        sii.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                        sii.tgl_trans >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                         sii.tgl_trans < '".$dateFrom."' AND
                         (s.cancel IS NULL OR s.cancel != 'y') and
                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -1531,7 +1534,7 @@ class DcReportController extends Controller
                         left join part_detail pd on pd.id = s.part_detail_id
                         left join wip_out wo on wo.id = wod.id_wip_out
                     WHERE
-                        wo.tgl_form > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                        wo.tgl_form >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                         wo.tgl_form < '".$dateFrom."' AND
                         s.id is not null AND
                         (s.cancel IS NULL OR s.cancel != 'y') and
@@ -1563,7 +1566,7 @@ class DcReportController extends Controller
                         left join part_detail pd on pd.id = s.part_detail_id
                         left join wip_out wo on wo.id = wod.id_wip_out
                     WHERE
-                        wo.tgl_form > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                        wo.tgl_form >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                         wo.tgl_form < '".$dateFrom."' AND
                         s.id is not null AND
                         (s.cancel IS NULL OR s.cancel != 'y') and
@@ -1602,7 +1605,7 @@ class DcReportController extends Controller
                         left join master_secondary mms on mms.id = pds.master_secondary_id
                         left join secondary_inhouse_input sii on sii.id_qr_stocker = si.id_qr_stocker
                     WHERE
-                        si.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                        si.tgl_trans >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                         si.tgl_trans < '".$dateFrom."' AND
                         s.id is not null AND
                         (s.cancel IS NULL OR s.cancel != 'y') and
@@ -1638,7 +1641,7 @@ class DcReportController extends Controller
                         left join master_secondary mms on mms.id = pds.master_secondary_id
                         left join secondary_inhouse_input sii on sii.id_qr_stocker = si.id_qr_stocker
                     WHERE
-                        si.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                        si.tgl_trans >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                         si.tgl_trans < '".$dateFrom."' AND
                         s.id is not null AND
                         (s.cancel IS NULL OR s.cancel != 'y') and
@@ -1693,7 +1696,7 @@ class DcReportController extends Controller
                                 left join part p on p.id = pd.part_id
                                 left join part p_com on p_com.id = pd_com.part_id
                             where
-                                ll.tanggal_loading > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                                ll.tanggal_loading >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                 ll.tanggal_loading < '".$dateFrom."' and
                                 (s.cancel IS NULL OR s.cancel != 'y') and
                                 (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
@@ -1715,7 +1718,7 @@ class DcReportController extends Controller
                         AND loading_qty.ratio          <=> stocker_input.ratio
                         AND loading_qty.stocker_reject <=> stocker_input.stocker_reject
                     WHERE
-                        loading_line.tanggal_loading > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND loading_line.tanggal_loading < '".$dateFrom."' and
+                        loading_line.tanggal_loading >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND loading_line.tanggal_loading < '".$dateFrom."' and
                         (stocker_input.cancel IS NULL OR stocker_input.cancel != 'y') and
                         (stocker_input.notes IS NULL OR stocker_input.notes NOT LIKE '%STOCKER MANUAL%')
                     group by
@@ -1742,7 +1745,7 @@ class DcReportController extends Controller
                             left join part p on p.id = pd.part_id
                             left join part p_com on p_com.id = pd_com.part_id
                         where
-                            ll.tanggal_loading > COALESCE((select MAX(tanggal) from dc_rekap), '2021-01-01') AND
+                            ll.tanggal_loading >= COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                             ll.tanggal_loading < '".$dateFrom."' and
                             (s.cancel IS NULL OR s.cancel != 'y') and
                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
@@ -1762,7 +1765,7 @@ class DcReportController extends Controller
                 )
 
                 SELECT
-                    tanggal,
+                    MAX(tanggal) tanggal,
                     stockers,
                     act_costing_ws,
                     buyer,
@@ -1787,7 +1790,7 @@ class DcReportController extends Controller
                     CURRENT_TIMESTAMP() updated_at
                 FROM (
                         SELECT
-                            '2025-12-31' tanggal,
+                            '".date('Y-m-d',strtotime($dateFrom.' -1 day'))."' tanggal,
                             stockers,
                             buyer,
                             ws act_costing_ws,
