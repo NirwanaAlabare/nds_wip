@@ -4627,10 +4627,11 @@ class StockerController extends Controller
                                 stocker_input.so_det_id,
                                 stocker_input.group_stocker,
                                 stocker_input.ratio
-                        ) stocker_input ON (year_sequence_num.form_cut_id = stocker_input.form_cut_id and year_sequence_num.tipe = stocker_input.tipe AND year_sequence_num.so_det_id = stocker_input.so_det_id
-                        AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
-                        AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED))
-                        OR stocker_input.id_qr_stocker = year_sequence_num.id_qr_stocker
+                        ) stocker_input ON
+                        -- (year_sequence_num.form_cut_id = stocker_input.form_cut_id and year_sequence_num.tipe = stocker_input.tipe AND year_sequence_num.so_det_id = stocker_input.so_det_id
+                        -- AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
+                        -- AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED))
+                        -- OR stocker_input.id_qr_stocker = year_sequence_num.id_qr_stocker
                         WHERE
                         (
                             stocker_input.waktu_mulai >='".$dateFrom." 00:00:00'
@@ -4725,11 +4726,13 @@ class StockerController extends Controller
                                 COALESCE ( updated_at, created_at )
                             ORDER BY
                                 COALESCE ( updated_at, created_at)
-                        ) year_sequence_num ON (year_sequence_num.form_cut_id = (CASE WHEN year_sequence_num.tipe = 'PIECE' THEN stocker_input.form_piece_id ELSE (CASE WHEN year_sequence_num.tipe = 'REJECT' THEN stocker_input.form_reject_id ELSE stocker_input.form_cut_id END) END)
-                        AND year_sequence_num.so_det_id = stocker_input.so_det_id
-                        AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
-                        AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED))
-                        OR stocker_input.id_qr_stocker = year_sequence_num.id_qr_stocker
+                        ) year_sequence_num ON
+                        -- (year_sequence_num.form_cut_id = (CASE WHEN year_sequence_num.tipe = 'PIECE' THEN stocker_input.form_piece_id ELSE (CASE WHEN year_sequence_num.tipe = 'REJECT' THEN stocker_input.form_reject_id ELSE stocker_input.form_cut_id END) END)
+                        -- AND year_sequence_num.so_det_id = stocker_input.so_det_id
+                        -- AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
+                        -- AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED))
+                        -- OR
+                        stocker_input.id_qr_stocker = year_sequence_num.id_qr_stocker
                     WHERE
                         (
                             form_cut_input.waktu_mulai >= '".$dateFrom." 00:00:00'
@@ -5701,10 +5704,12 @@ class StockerController extends Controller
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
                             stocker_input.ratio
-                    ) stocker_input ON (year_sequence_num.form_cut_id = stocker_input.form_cut_id and year_sequence_num.tipe = stocker_input.tipe AND year_sequence_num.so_det_id = stocker_input.so_det_id
-                    AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
-                    AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED))
-                    OR stocker_input.id_qr_stocker = year_sequence_num.id_qr_stocker
+                    ) stocker_input ON
+                    -- (year_sequence_num.form_cut_id = stocker_input.form_cut_id and year_sequence_num.tipe = stocker_input.tipe AND year_sequence_num.so_det_id = stocker_input.so_det_id
+                    -- AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
+                    -- AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED))
+                    -- OR
+                    stocker_input.id_qr_stocker = year_sequence_num.id_qr_stocker
                     WHERE
                     (
                         stocker_input.waktu_mulai >='".$dateFrom." 00:00:00'
@@ -5818,11 +5823,13 @@ class StockerController extends Controller
                                 COALESCE ( updated_at, created_at )
                             ORDER BY
                                 COALESCE ( updated_at, created_at)
-                        ) year_sequence_num ON (year_sequence_num.form_cut_id = (CASE WHEN year_sequence_num.tipe = 'PIECE' THEN stocker_input.form_piece_id ELSE (CASE WHEN year_sequence_num.tipe = 'REJECT' THEN stocker_input.form_reject_id ELSE stocker_input.form_cut_id END) END)
-                        AND year_sequence_num.so_det_id = stocker_input.so_det_id
-                        AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
-                        AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED))
-                        OR stocker_input.id_qr_stocker = year_sequence_num.id_qr_stocker
+                        ) year_sequence_num ON
+                        -- (year_sequence_num.form_cut_id = (CASE WHEN year_sequence_num.tipe = 'PIECE' THEN stocker_input.form_piece_id ELSE (CASE WHEN year_sequence_num.tipe = 'REJECT' THEN stocker_input.form_reject_id ELSE stocker_input.form_cut_id END) END)
+                        -- AND year_sequence_num.so_det_id = stocker_input.so_det_id
+                        -- AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
+                        -- AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED))
+                        -- OR
+                        stocker_input.id_qr_stocker = year_sequence_num.id_qr_stocker
                     WHERE
                         (
                             form_cut_input.waktu_mulai >= '".$dateFrom." 00:00:00'
