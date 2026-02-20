@@ -156,268 +156,370 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
             $stocker_range_filter = "AND CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir) ) LIKE '%".$this->stocker_range_filter."%' ";
         }
 
-        if ($daysInterval > 3) {
-            $stockerList = DB::select("
-                SELECT
-                    year_sequence_num.updated_at,
-                    stocker_input.id_qr_stocker,
-                    stocker_input.part,
-                    stocker_input.form_cut_id,
-                    stocker_input.act_costing_ws,
-                    stocker_input.so_det_id,
-                    stocker_input.buyer,
-                    stocker_input.style,
-                    stocker_input.color,
-                    stocker_input.size,
-                    stocker_input.dest,
-                    stocker_input.group_stocker,
-                    stocker_input.shade,
-                    stocker_input.ratio,
-                    stocker_input.stocker_range,
-                    stocker_input.qty_stocker,
-                    stocker_input.no_form,
-                    stocker_input.no_cut,
-                    stocker_input.panel,
-                    year_sequence_num.year_sequence,
-                    ( MAX( year_sequence_num.range_akhir ) - MIN( year_sequence_num.range_awal ) + 1 ) qty,
-                    CONCAT( MIN( year_sequence_num.range_awal ), ' - ', MAX( year_sequence_num.range_akhir )) numbering_range,
-                    stocker_input.tipe
-                FROM
-                    (
-                        SELECT
-                            ( CASE WHEN form_cut_id > 0 THEN form_cut_id ELSE ( CASE WHEN form_reject_id > 0 THEN form_reject_id ELSE ( CASE WHEN form_piece_id > 0 THEN form_piece_id ELSE null END ) END ) END ) form_cut_id,
-                            so_det_id,
-                            CONCAT( `year`, '_', year_sequence ) year_sequence,
-                            MIN( number ) range_numbering_awal,
-                            MAX( number ) range_numbering_akhir,
-                            MIN( year_sequence_number ) range_awal,
-                            MAX( year_sequence_number ) range_akhir,
-                            COALESCE ( updated_at, created_at ) updated_at,
-                            (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
-                        FROM
-                            year_sequence
-                        WHERE
-                            year_sequence.so_det_id IS NOT NULL
-                            AND year_sequence.updated_at >= '".$dateFrom." 00:00:00'
-                            AND year_sequence.updated_at <= '".$dateTo." 23:59:59'
-                        GROUP BY
-                            form_cut_id,
-                            form_reject_id,
-                            form_piece_id,
-                            (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END),
-                            so_det_id,
-                            COALESCE ( updated_at, created_at )
-                    ) year_sequence_num
-                    LEFT JOIN (
-                        SELECT
-                            GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
-                            COALESCE(form_cut_input.id, form_cut_reject.id, form_cut_piece.id) form_cut_id,
-                            stocker_input.act_costing_ws,
-                            stocker_input.so_det_id,
-                            master_sb_ws.buyer buyer,
-                            master_sb_ws.styleno style,
-                            master_sb_ws.color,
-                            master_sb_ws.size,
-                            master_sb_ws.dest,
-                            stocker_input.part_detail_id,
-                            stocker_input.shade,
-                            stocker_input.group_stocker,
-                            stocker_input.ratio,
-                            stocker_input.range_awal,
-                            stocker_input.range_akhir,
-                            stocker_input.created_at,
-                            stocker_input.updated_at,
-                            COALESCE(form_cut_input.waktu_mulai, form_cut_reject.created_at, form_cut_piece.created_at) waktu_mulai,
-                            COALESCE(form_cut_input.waktu_selesai, form_cut_reject.updated_at, form_cut_piece.updated_at) waktu_selesai,
-                            COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
-                            COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
-                            COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
-                            GROUP_CONCAT( DISTINCT CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL THEN CONCAT(' - ', part_detail.part_status) ELSE '' END)) ) part,
-                            CONCAT( MIN( stocker_input.range_awal ), '-', MAX( stocker_input.range_akhir )) stocker_range,
-                            ( MAX( stocker_input.range_akhir ) - MIN( stocker_input.range_awal ) + 1 ) qty_stocker,
-                            (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
-                        FROM
-                            stocker_input
-                            left join part_detail on stocker_input.part_detail_id = part_detail.id
-                            left join part on part.id = part_detail.part_id
-                            left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
-                            left join part part_com on part_com.id = part_detail_com.part_id
-                            LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-                            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
-                            LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
-                            LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
-                            LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
-                        GROUP BY
-                            stocker_input.form_cut_id,
-                            stocker_input.form_reject_id,
-                            stocker_input.form_piece_id,
-                            (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END),
-                            stocker_input.so_det_id,
-                            stocker_input.group_stocker,
-                            stocker_input.ratio
-                    ) stocker_input ON year_sequence_num.form_cut_id = stocker_input.form_cut_id and year_sequence_num.tipe = stocker_input.tipe
-                    AND year_sequence_num.so_det_id = stocker_input.so_det_id
-                    AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
-                    AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED)
-                    WHERE
-                    (
-                        stocker_input.waktu_mulai >='".$dateFrom." 00:00:00'
-                        OR stocker_input.waktu_selesai >= '".$dateFrom." 00:00:00'
-                        OR stocker_input.updated_at >= '".$dateFrom." 00:00:00'
-                        OR stocker_input.created_at >= '".$dateFrom." 00:00:00'
-                        OR year_sequence_num.updated_at >= '".$dateFrom." 00:00:00'
-                    )
-                    AND (
-                        stocker_input.waktu_mulai <= '".$dateTo." 23:59:59'
-                        OR stocker_input.waktu_selesai <= '".$dateTo." 23:59:59'
-                        OR stocker_input.updated_at <= '".$dateTo." 23:59:59'
-                        OR stocker_input.created_at <= '".$dateTo." 23:59:59'
-                        OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
-                    )
-                    ".$tanggal_filter."
-                    ".$no_form_filter."
-                    ".$no_cut_filter."
-                    ".$color_filter."
-                    ".$size_filter."
-                    ".$dest_filter."
-                    ".$year_sequence_filter."
-                    ".$buyer_filter."
-                    ".$ws_filter."
-                    ".$style_filter."
-                    ".$group_filter."
-                    ".$shade_filter."
-                    ".$ratio_filter."
-                GROUP BY
-                    stocker_input.form_cut_id,
-                    stocker_input.tipe,
-                    stocker_input.so_det_id,
-                    year_sequence_num.updated_at
-                HAVING
-                    stocker_input.form_cut_id is not null
-                    ".$qty_filter."
-                    ".$numbering_range_filter."
-                    ".$stocker_filter."
-                    ".$part_filter."
-                    ".$stocker_range_filter."
-                ORDER BY
-                    year_sequence_num.range_awal ASC
-            ");
-        } else {
-            $stockerList = DB::select("
-                SELECT
-                    year_sequence_num.updated_at,
-                    GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
-                    COALESCE(form_cut_input.id, form_cut_piece.id, form_cut_reject.id) form_cut_id,
-                    stocker_input.act_costing_ws,
-                    stocker_input.so_det_id,
-                    master_sb_ws.buyer buyer,
-                    master_sb_ws.styleno style,
-                    master_sb_ws.color,
-                    master_sb_ws.size,
-                    master_sb_ws.dest,
-                    COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
-                    GROUP_CONCAT( DISTINCT CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL THEN CONCAT(' - ', part_detail.part_status) ELSE '' END)) ) part,
-                    COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
-                    COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
-                    stocker_input.group_stocker,
-                    stocker_input.shade,
-                    stocker_input.ratio,
-                    CONCAT( MIN( stocker_input.range_awal ), '-', MAX( stocker_input.range_akhir )) stocker_range,
-                    ( MAX( stocker_input.range_akhir ) - MIN( stocker_input.range_awal ) + 1 ) qty_stocker,
-                    year_sequence_num.year_sequence,
-                    ( MAX( year_sequence_num.range_akhir ) - MIN( year_sequence_num.range_awal ) + 1 ) qty,
-                    CONCAT( MIN( year_sequence_num.range_awal ), ' - ', MAX( year_sequence_num.range_akhir )) numbering_range,
-                    (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
-                FROM
-                    stocker_input
-                    left join part_detail on stocker_input.part_detail_id = part_detail.id
-                    left join part on part.id = part_detail.part_id
-                    left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
-                    left join part part_com on part_com.id = part_detail_com.part_id
-                    LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
-                    LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
-                    LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
-                    LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
-                    INNER JOIN (
-                        SELECT
-                            ( CASE WHEN form_cut_id > 0 THEN form_cut_id ELSE ( CASE WHEN form_reject_id > 0 THEN form_reject_id ELSE ( CASE WHEN form_piece_id > 0 THEN form_piece_id ELSE null END ) END ) END ) form_cut_id,
-                            so_det_id,
-                            CONCAT( `year`, '_', year_sequence ) year_sequence,
-                            MIN( number ) range_numbering_awal,
-                            MAX( number ) range_numbering_akhir,
-                            MIN( year_sequence_number ) range_awal,
-                            MAX( year_sequence_number ) range_akhir,
-                            COALESCE ( updated_at, created_at ) updated_at,
-                            (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
-                        FROM
-                            year_sequence
-                        WHERE
-                            year_sequence.so_det_id IS NOT NULL
-                            AND year_sequence.updated_at >= '".$dateFrom." 00:00:00'
-                            AND year_sequence.updated_at <= '".$dateTo." 23:59:59'
-                        GROUP BY
-                            form_cut_id,
-                            form_reject_id,
-                            form_piece_id,
-                            (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END),
-                            so_det_id,
-                            COALESCE ( updated_at, created_at )
-                        ORDER BY
-                            COALESCE ( updated_at, created_at)
-                    ) year_sequence_num ON year_sequence_num.form_cut_id = (CASE WHEN year_sequence_num.tipe = 'PIECE' THEN stocker_input.form_piece_id ELSE (CASE WHEN year_sequence_num.tipe = 'REJECT' THEN stocker_input.form_reject_id ELSE stocker_input.form_cut_id END) END)
-                    AND year_sequence_num.so_det_id = stocker_input.so_det_id
-                    AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
-                    AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED)
-                WHERE
-                    (
-                        form_cut_input.waktu_mulai >= '".$dateFrom." 00:00:00'
-                        OR form_cut_input.waktu_selesai >= '".$dateFrom." 00:00:00'
-                        OR form_cut_reject.updated_at >= '".$dateFrom." 00:00:00'
-                        OR form_cut_piece.updated_at >= '".$dateFrom." 00:00:00'
-                        OR stocker_input.updated_at >= '".$dateFrom." 00:00:00'
-                        OR stocker_input.created_at >= '".$dateFrom." 00:00:00'
-                        OR year_sequence_num.updated_at >= '".$dateFrom." 00:00:00'
-                    )
-                    AND (
-                        form_cut_input.waktu_mulai <= '".$dateTo." 23:59:59'
-                        OR form_cut_input.waktu_selesai <= '".$dateTo." 23:59:59'
-                        OR form_cut_reject.updated_at <= '".$dateTo." 23:59:59'
-                        OR form_cut_piece.updated_at <= '".$dateTo." 23:59:59'
-                        OR stocker_input.updated_at <= '".$dateTo." 23:59:59'
-                        OR stocker_input.created_at <= '".$dateTo." 23:59:59'
-                        OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
-                    )
-                    ".$tanggal_filter."
-                    ".$no_form_filter."
-                    ".$no_cut_filter."
-                    ".$color_filter."
-                    ".$size_filter."
-                    ".$dest_filter."
-                    ".$year_sequence_filter."
-                    ".$buyer_filter."
-                    ".$ws_filter."
-                    ".$style_filter."
-                    ".$group_filter."
-                    ".$shade_filter."
-                    ".$ratio_filter."
-                GROUP BY
-                    stocker_input.form_cut_id,
-                    stocker_input.form_reject_id,
-                    stocker_input.form_piece_id,
-                    stocker_input.so_det_id,
-                    year_sequence_num.updated_at
-                HAVING
-                    (stocker_input.form_cut_id is not null or stocker_input.form_reject_id is not null or stocker_input.form_piece_id is not null)
-                    ".$qty_filter."
-                    ".$numbering_range_filter."
-                    ".$stocker_filter."
-                    ".$part_filter."
-                    ".$stocker_range_filter."
-                ORDER BY
-                    year_sequence_num.range_awal ASC
-            ");
-        }
+        // Deprecated
+        // if ($daysInterval > 3) {
+        //     $stockerList = DB::select("
+        //         SELECT
+        //             year_sequence_num.updated_at,
+        //             stocker_input.id_qr_stocker,
+        //             stocker_input.part,
+        //             stocker_input.form_cut_id,
+        //             stocker_input.act_costing_ws,
+        //             stocker_input.so_det_id,
+        //             stocker_input.buyer,
+        //             stocker_input.style,
+        //             stocker_input.color,
+        //             stocker_input.size,
+        //             stocker_input.dest,
+        //             stocker_input.group_stocker,
+        //             stocker_input.shade,
+        //             stocker_input.ratio,
+        //             stocker_input.stocker_range,
+        //             stocker_input.qty_stocker,
+        //             stocker_input.no_form,
+        //             stocker_input.no_cut,
+        //             stocker_input.panel,
+        //             year_sequence_num.year_sequence,
+        //             ( MAX( year_sequence_num.range_akhir ) - MIN( year_sequence_num.range_awal ) + 1 ) qty,
+        //             CONCAT( MIN( year_sequence_num.range_awal ), ' - ', MAX( year_sequence_num.range_akhir )) numbering_range,
+        //             stocker_input.tipe
+        //         FROM
+        //             (
+        //                 SELECT
+        //                     ( CASE WHEN form_cut_id > 0 THEN form_cut_id ELSE ( CASE WHEN form_reject_id > 0 THEN form_reject_id ELSE ( CASE WHEN form_piece_id > 0 THEN form_piece_id ELSE null END ) END ) END ) form_cut_id,
+        //                     so_det_id,
+        //                     CONCAT( `year`, '_', year_sequence ) year_sequence,
+        //                     MIN( number ) range_numbering_awal,
+        //                     MAX( number ) range_numbering_akhir,
+        //                     MIN( year_sequence_number ) range_awal,
+        //                     MAX( year_sequence_number ) range_akhir,
+        //                     COALESCE ( updated_at, created_at ) updated_at,
+        //                     (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
+        //                 FROM
+        //                     year_sequence
+        //                 WHERE
+        //                     year_sequence.so_det_id IS NOT NULL
+        //                     AND year_sequence.updated_at >= '".$dateFrom." 00:00:00'
+        //                     AND year_sequence.updated_at <= '".$dateTo." 23:59:59'
+        //                 GROUP BY
+        //                     form_cut_id,
+        //                     form_reject_id,
+        //                     form_piece_id,
+        //                     (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END),
+        //                     so_det_id,
+        //                     COALESCE ( updated_at, created_at )
+        //             ) year_sequence_num
+        //             LEFT JOIN (
+        //                 SELECT
+        //                     GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
+        //                     COALESCE(form_cut_input.id, form_cut_reject.id, form_cut_piece.id) form_cut_id,
+        //                     stocker_input.act_costing_ws,
+        //                     stocker_input.so_det_id,
+        //                     master_sb_ws.buyer buyer,
+        //                     master_sb_ws.styleno style,
+        //                     master_sb_ws.color,
+        //                     master_sb_ws.size,
+        //                     master_sb_ws.dest,
+        //                     stocker_input.part_detail_id,
+        //                     stocker_input.shade,
+        //                     stocker_input.group_stocker,
+        //                     stocker_input.ratio,
+        //                     stocker_input.range_awal,
+        //                     stocker_input.range_akhir,
+        //                     stocker_input.created_at,
+        //                     stocker_input.updated_at,
+        //                     COALESCE(form_cut_input.waktu_mulai, form_cut_reject.created_at, form_cut_piece.created_at) waktu_mulai,
+        //                     COALESCE(form_cut_input.waktu_selesai, form_cut_reject.updated_at, form_cut_piece.updated_at) waktu_selesai,
+        //                     COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
+        //                     COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
+        //                     COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
+        //                     GROUP_CONCAT( DISTINCT CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL THEN CONCAT(' - ', part_detail.part_status) ELSE '' END)) ) part,
+        //                     CONCAT( MIN( stocker_input.range_awal ), '-', MAX( stocker_input.range_akhir )) stocker_range,
+        //                     ( MAX( stocker_input.range_akhir ) - MIN( stocker_input.range_awal ) + 1 ) qty_stocker,
+        //                     (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) tipe
+        //                 FROM
+        //                     stocker_input
+        //                     left join part_detail on stocker_input.part_detail_id = part_detail.id
+        //                     left join part on part.id = part_detail.part_id
+        //                     left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
+        //                     left join part part_com on part_com.id = part_detail_com.part_id
+        //                     LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+        //                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+        //                     LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+        //                     LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
+        //                     LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
+        //                 GROUP BY
+        //                     stocker_input.form_cut_id,
+        //                     stocker_input.form_reject_id,
+        //                     stocker_input.form_piece_id,
+        //                     (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END),
+        //                     stocker_input.so_det_id,
+        //                     stocker_input.group_stocker,
+        //                     stocker_input.ratio
+        //             ) stocker_input ON year_sequence_num.form_cut_id = stocker_input.form_cut_id and year_sequence_num.tipe = stocker_input.tipe
+        //             AND year_sequence_num.so_det_id = stocker_input.so_det_id
+        //             AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
+        //             AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED)
+        //             WHERE
+        //             (
+        //                 stocker_input.waktu_mulai >='".$dateFrom." 00:00:00'
+        //                 OR stocker_input.waktu_selesai >= '".$dateFrom." 00:00:00'
+        //                 OR stocker_input.updated_at >= '".$dateFrom." 00:00:00'
+        //                 OR stocker_input.created_at >= '".$dateFrom." 00:00:00'
+        //                 OR year_sequence_num.updated_at >= '".$dateFrom." 00:00:00'
+        //             )
+        //             AND (
+        //                 stocker_input.waktu_mulai <= '".$dateTo." 23:59:59'
+        //                 OR stocker_input.waktu_selesai <= '".$dateTo." 23:59:59'
+        //                 OR stocker_input.updated_at <= '".$dateTo." 23:59:59'
+        //                 OR stocker_input.created_at <= '".$dateTo." 23:59:59'
+        //                 OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
+        //             )
+        //             ".$tanggal_filter."
+        //             ".$no_form_filter."
+        //             ".$no_cut_filter."
+        //             ".$color_filter."
+        //             ".$size_filter."
+        //             ".$dest_filter."
+        //             ".$year_sequence_filter."
+        //             ".$buyer_filter."
+        //             ".$ws_filter."
+        //             ".$style_filter."
+        //             ".$group_filter."
+        //             ".$shade_filter."
+        //             ".$ratio_filter."
+        //         GROUP BY
+        //             stocker_input.form_cut_id,
+        //             stocker_input.tipe,
+        //             stocker_input.so_det_id,
+        //             year_sequence_num.updated_at
+        //         HAVING
+        //             stocker_input.form_cut_id is not null
+        //             ".$qty_filter."
+        //             ".$numbering_range_filter."
+        //             ".$stocker_filter."
+        //             ".$part_filter."
+        //             ".$stocker_range_filter."
+        //         ORDER BY
+        //             year_sequence_num.range_awal ASC
+        //     ");
+        // } else {
+        //     $stockerList = DB::select("
+        //         SELECT
+        //             year_sequence_num.updated_at,
+        //             GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
+        //             COALESCE(form_cut_input.id, form_cut_piece.id, form_cut_reject.id) form_cut_id,
+        //             stocker_input.act_costing_ws,
+        //             stocker_input.so_det_id,
+        //             master_sb_ws.buyer buyer,
+        //             master_sb_ws.styleno style,
+        //             master_sb_ws.color,
+        //             master_sb_ws.size,
+        //             master_sb_ws.dest,
+        //             COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
+        //             GROUP_CONCAT( DISTINCT CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL THEN CONCAT(' - ', part_detail.part_status) ELSE '' END)) ) part,
+        //             COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
+        //             COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
+        //             stocker_input.group_stocker,
+        //             stocker_input.shade,
+        //             stocker_input.ratio,
+        //             CONCAT( MIN( stocker_input.range_awal ), '-', MAX( stocker_input.range_akhir )) stocker_range,
+        //             ( MAX( stocker_input.range_akhir ) - MIN( stocker_input.range_awal ) + 1 ) qty_stocker,
+        //             year_sequence_num.year_sequence,
+        //             ( MAX( year_sequence_num.range_akhir ) - MIN( year_sequence_num.range_awal ) + 1 ) qty,
+        //             CONCAT( MIN( year_sequence_num.range_awal ), ' - ', MAX( year_sequence_num.range_akhir )) numbering_range,
+        //             (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
+        //         FROM
+        //             stocker_input
+        //             left join part_detail on stocker_input.part_detail_id = part_detail.id
+        //             left join part on part.id = part_detail.part_id
+        //             left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
+        //             left join part part_com on part_com.id = part_detail_com.part_id
+        //             LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+        //             LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+        //             LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+        //             LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
+        //             LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
+        //             INNER JOIN (
+        //                 SELECT
+        //                     ( CASE WHEN form_cut_id > 0 THEN form_cut_id ELSE ( CASE WHEN form_reject_id > 0 THEN form_reject_id ELSE ( CASE WHEN form_piece_id > 0 THEN form_piece_id ELSE null END ) END ) END ) form_cut_id,
+        //                     so_det_id,
+        //                     CONCAT( `year`, '_', year_sequence ) year_sequence,
+        //                     MIN( number ) range_numbering_awal,
+        //                     MAX( number ) range_numbering_akhir,
+        //                     MIN( year_sequence_number ) range_awal,
+        //                     MAX( year_sequence_number ) range_akhir,
+        //                     COALESCE ( updated_at, created_at ) updated_at,
+        //                     (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
+        //                 FROM
+        //                     year_sequence
+        //                 WHERE
+        //                     year_sequence.so_det_id IS NOT NULL
+        //                     AND year_sequence.updated_at >= '".$dateFrom." 00:00:00'
+        //                     AND year_sequence.updated_at <= '".$dateTo." 23:59:59'
+        //                 GROUP BY
+        //                     form_cut_id,
+        //                     form_reject_id,
+        //                     form_piece_id,
+        //                     (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END),
+        //                     so_det_id,
+        //                     COALESCE ( updated_at, created_at )
+        //                 ORDER BY
+        //                     COALESCE ( updated_at, created_at)
+        //             ) year_sequence_num ON year_sequence_num.form_cut_id = (CASE WHEN year_sequence_num.tipe = 'PIECE' THEN stocker_input.form_piece_id ELSE (CASE WHEN year_sequence_num.tipe = 'REJECT' THEN stocker_input.form_reject_id ELSE stocker_input.form_cut_id END) END)
+        //             AND year_sequence_num.so_det_id = stocker_input.so_det_id
+        //             AND CAST(year_sequence_num.range_numbering_awal AS UNSIGNED) >= CAST(stocker_input.range_awal AS UNSIGNED)
+        //             AND CAST(year_sequence_num.range_numbering_akhir AS UNSIGNED) <= CAST(stocker_input.range_akhir AS UNSIGNED)
+        //         WHERE
+        //             (
+        //                 form_cut_input.waktu_mulai >= '".$dateFrom." 00:00:00'
+        //                 OR form_cut_input.waktu_selesai >= '".$dateFrom." 00:00:00'
+        //                 OR form_cut_reject.updated_at >= '".$dateFrom." 00:00:00'
+        //                 OR form_cut_piece.updated_at >= '".$dateFrom." 00:00:00'
+        //                 OR stocker_input.updated_at >= '".$dateFrom." 00:00:00'
+        //                 OR stocker_input.created_at >= '".$dateFrom." 00:00:00'
+        //                 OR year_sequence_num.updated_at >= '".$dateFrom." 00:00:00'
+        //             )
+        //             AND (
+        //                 form_cut_input.waktu_mulai <= '".$dateTo." 23:59:59'
+        //                 OR form_cut_input.waktu_selesai <= '".$dateTo." 23:59:59'
+        //                 OR form_cut_reject.updated_at <= '".$dateTo." 23:59:59'
+        //                 OR form_cut_piece.updated_at <= '".$dateTo." 23:59:59'
+        //                 OR stocker_input.updated_at <= '".$dateTo." 23:59:59'
+        //                 OR stocker_input.created_at <= '".$dateTo." 23:59:59'
+        //                 OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
+        //             )
+        //             ".$tanggal_filter."
+        //             ".$no_form_filter."
+        //             ".$no_cut_filter."
+        //             ".$color_filter."
+        //             ".$size_filter."
+        //             ".$dest_filter."
+        //             ".$year_sequence_filter."
+        //             ".$buyer_filter."
+        //             ".$ws_filter."
+        //             ".$style_filter."
+        //             ".$group_filter."
+        //             ".$shade_filter."
+        //             ".$ratio_filter."
+        //         GROUP BY
+        //             stocker_input.form_cut_id,
+        //             stocker_input.form_reject_id,
+        //             stocker_input.form_piece_id,
+        //             stocker_input.so_det_id,
+        //             year_sequence_num.updated_at
+        //         HAVING
+        //             (stocker_input.form_cut_id is not null or stocker_input.form_reject_id is not null or stocker_input.form_piece_id is not null)
+        //             ".$qty_filter."
+        //             ".$numbering_range_filter."
+        //             ".$stocker_filter."
+        //             ".$part_filter."
+        //             ".$stocker_range_filter."
+        //         ORDER BY
+        //             year_sequence_num.range_awal ASC
+        //     ");
+        // }
+
+        $stockerList = DB::select("
+            with
+                stocker_label as (
+                    select
+                        id_qr_stocker,
+                        so_det_id,
+                        CONCAT( YEAR, '_', year_sequence ) year_sequence,
+                        MIN( number ) range_numbering_awal,
+                        MAX( number ) range_numbering_akhir,
+                        MIN( year_sequence_number ) range_awal,
+                        MAX( year_sequence_number ) range_akhir,
+                        COUNT(*) as total,
+                        updated_at,
+                        (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
+                    from
+                        year_sequence
+                    where
+                        year_sequence.updated_at between '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'
+                    group by
+                        year_sequence.id_qr_stocker
+                ),
+
+                stocker_bundle as (
+                    select
+                        year_sequence_num.updated_at,
+                        stocker_input.id_qr_stocker,
+                        GROUP_CONCAT(DISTINCT stocker_bundle.id_qr_stocker) id_qr_stocker_bundle,
+                        master_part.nama_part part,
+                        COALESCE(stocker_input.form_cut_id, stocker_input.form_reject_id, stocker_input.form_piece_id) form_cut_id,
+                        master_sb_ws.ws act_costing_ws,
+                        master_sb_ws.id_so_det so_det_id,
+                        master_sb_ws.buyer,
+                        master_sb_ws.styleno style,
+                        UPPER(TRIM(master_sb_ws.color)) color,
+                        master_sb_ws.size,
+                        master_sb_ws.dest,
+                        stocker_input.group_stocker,
+                        stocker_input.shade,
+                        stocker_input.ratio,
+                        CONCAT( MIN( stocker_input.range_awal ), ' - ', MAX( stocker_input.range_akhir )) stocker_range,
+                        stocker_input.qty_ply qty_stocker,
+                        COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
+                        COALESCE(form_cut_input.no_cut, '-') no_cut,
+                        COALESCE(part_com.panel, part.panel) panel,
+                        year_sequence_num.year_sequence,
+                        year_sequence_num.total qty,
+                        CONCAT( MIN( year_sequence_num.range_awal ), ' - ', MAX( year_sequence_num.range_akhir )) numbering_range,
+                        (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
+                    from
+                        stocker_input
+                        left join stocker_input stocker_bundle on stocker_bundle.form_cut_id <=> stocker_input.form_cut_id
+                            AND stocker_bundle.form_reject_id <=> stocker_input.form_reject_id
+                            AND stocker_bundle.form_piece_id  <=> stocker_input.form_piece_id
+                            AND stocker_bundle.so_det_id      <=> stocker_input.so_det_id
+                            AND stocker_bundle.group_stocker  <=> stocker_input.group_stocker
+                            AND stocker_bundle.ratio          <=> stocker_input.ratio
+                            AND stocker_bundle.stocker_reject <=> stocker_input.stocker_reject
+                        inner join stocker_label year_sequence_num on year_sequence_num.id_qr_stocker = stocker_input.id_qr_stocker
+                        left join part_detail on stocker_input.part_detail_id = part_detail.id
+                        left join part on part.id = part_detail.part_id
+                        left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
+                        left join part part_com on part_com.id = part_detail_com.part_id
+                        LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                        LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+                        LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
+                        LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
+                        ".$tanggal_filter."
+                        ".$no_form_filter."
+                        ".$no_cut_filter."
+                        ".$color_filter."
+                        ".$size_filter."
+                        ".$dest_filter."
+                        ".$year_sequence_filter."
+                        ".$buyer_filter."
+                        ".$ws_filter."
+                        ".$style_filter."
+                        ".$group_filter."
+                        ".$shade_filter."
+                        ".$ratio_filter."
+                    GROUP BY
+                        stocker_input.id_qr_stocker,
+                        stocker_input.form_cut_id,
+                        stocker_input.form_reject_id,
+                        stocker_input.form_piece_id,
+                        (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END),
+                        stocker_input.so_det_id,
+                        stocker_input.group_stocker,
+                        stocker_input.ratio
+                    HAVING
+                        (stocker_input.form_cut_id is not null or stocker_input.form_reject_id is not null or stocker_input.form_piece_id is not null)
+                        ".$qty_filter."
+                        ".$numbering_range_filter."
+                        ".$stocker_filter."
+                        ".$part_filter."
+                        ".$stocker_range_filter."
+                )
+
+                select * from stocker_bundle
+        ");
 
         $this->rowCount = count($stockerList);
 

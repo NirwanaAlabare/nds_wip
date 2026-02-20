@@ -392,7 +392,7 @@
                     data: 'style',
                 },
                 {
-                    data: 'id_qr_stocker'
+                    data: 'id_qr_stocker_bundle'
                 },
                 {
                     data: 'tipe'

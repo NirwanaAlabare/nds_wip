@@ -50,7 +50,7 @@
             <td>{{ $stock->buyer }}</td>
             <td>{{ $stock->act_costing_ws }}</td>
             <td>{{ $stock->style }}</td>
-            <td>{{ $stock->id_qr_stocker }}</td>
+            <td>{{ $stock->id_qr_stocker_bundle }}</td>
             <td>{{ $stock->tipe }}</td>
             <td>{{ $stock->part }}</td>
             <td>{{ $stock->group_stocker }}</td>
