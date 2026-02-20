@@ -2441,7 +2441,7 @@ class DcReportController extends Controller
                     ws,
                     buyer,
                     style,
-                    color,
+                    UPPER(TRIM(color)) color,
                     size,
                     panel,
                     nama_part,
