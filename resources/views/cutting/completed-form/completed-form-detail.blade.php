@@ -630,7 +630,15 @@
                                 </div>
                             </div>
                             <div class="col-6">
-                                <label class="form-label" id="current_qty_real_label"><small><b>Qty</b></small></label>
+                                @php
+                                    $disableQty = true;
+                                @endphp
+                                @role("superadmin")
+                                    @php
+                                        $disableQty = false;
+                                    @endphp
+                                @endrole
+                                <label class="form-label" id="current_qty_real_label" {{ $disableQty ? 'readonly' : '' }}><small><b>Qty</b></small></label>
                                 <input type="hidden" id="current_qty_ori" name="current_qty_ori">
                                 <input type="hidden" id="current_unit_ori" name="current_unit_ori">
                                 <div class="d-flex mb-3">
@@ -941,7 +949,9 @@
                                 </div> --}}
                                 <div class="row justify-content-between">
                                     <div class="col-md-4">
-                                        <button type="button" class="btn btn-no btn-sm btn-block my-3 fw-bold" id="stopLapButton" onclick="deleteTimeRecord()"><i class="fa fa-trash"></i> HAPUS</button>
+                                        @role("superadmin")
+                                            <button type="button" class="btn btn-no btn-sm btn-block my-3 fw-bold" id="stopLapButton" onclick="deleteTimeRecord()"><i class="fa fa-trash"></i> HAPUS</button>
+                                        @endrole
                                     </div>
                                     <div class="col-md-4">
                                         <button type="button" class="btn btn-yes btn-sm btn-block my-3 fw-bold" id="stopLapButton" onclick="storeTimeRecord()"><i class="fa fa-save"></i> SIMPAN</button>
@@ -2229,6 +2239,8 @@
         }
 
         function checkLockQtyInput() {
+            let superadmin = '{{ Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() }}'
+
             let idRollElement = document.getElementById("current_id_roll");
             let idItemElement = document.getElementById("current_id_item");
             let lotElement = document.getElementById("current_lot");
@@ -2240,14 +2252,18 @@
                 idItemElement.setAttribute("readonly", true);
                 lotElement.setAttribute("readonly", true);
                 rollBuyerElement.setAttribute("readonly", true);
-                // qtyElement.setAttribute("readonly", true);
-                // qtyRealElement.setAttribute("readonly", true);
+                if (superadmin < 1) {
+                    qtyElement.setAttribute("readonly", true);
+                    qtyRealElement.setAttribute("readonly", true);
+                }
             } else {
                 idItemElement.removeAttribute("readonly");
                 lotElement.removeAttribute("readonly");
                 rollBuyerElement.removeAttribute("readonly");
-                // qtyElement.removeAttribute("readonly");
-                // qtyRealElement.removeAttribute("readonly");
+                if (superadmin < 1) {
+                    qtyElement.removeAttribute("readonly");
+                    qtyRealElement.removeAttribute("readonly");
+                }
             }
         }
 

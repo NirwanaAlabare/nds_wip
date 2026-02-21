@@ -947,6 +947,7 @@ class GeneralController extends Controller
 
     public function getScannedItem($id = 0, Request $request)
     {
+        // When there is Additional Request
         $newItemAdditional = "";
         $itemAdditional = "";
         if ($request->unit) {
@@ -954,6 +955,7 @@ class GeneralController extends Controller
             $itemAdditional .= " and br.unit = '".$request->unit."'";
         }
 
+        // When there is a certain order Request
         if ($request->act_costing_id) {
             $newItemAdditional .= " and (act_costing.id = '".$request->act_costing_id."' or whs_bppb_h.no_ws_aktual = '".$request->act_costing_ws."')";
             $itemAdditional .= " and ac.id = '".$request->act_costing_id."'";
@@ -963,6 +965,7 @@ class GeneralController extends Controller
         //     $newItemAdditional .= " and masteritem.color = '".$request->color."'";
         // }
 
+        // Current Item QUERY
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
                 id_roll,
@@ -1019,7 +1022,10 @@ class GeneralController extends Controller
                 id_roll
             LIMIT 1
         ");
+        // When current item
         if ($newItem) {
+
+            // Check local stock
             $scannedItem = ScannedItem::selectRaw("
                 scanned_item.id,
                 scanned_item.id_roll,
@@ -1089,7 +1095,11 @@ class GeneralController extends Controller
             where('scanned_item.id_roll', $id)->
             where('scanned_item.id_item', $newItem[0]->id_item)->
             first();
+
+            // When there is local stock
             if ($scannedItem) {
+
+                // Update local stock
                 $scannedItemUpdate = ScannedItem::where("id_roll", $id)->first();
 
                 $newItemQtyStok = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($newItem[0]->qty_stok * 0.9144, 2) : $newItem[0]->qty_stok;
@@ -1097,6 +1107,8 @@ class GeneralController extends Controller
                 $newItemUnit = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? 'METER' : $newItem[0]->unit;
 
                 if ($scannedItemUpdate) {
+
+                    // Update local stock qty & specs
                     $scannedItemUpdate->qty_stok = $newItemQtyStok;
                     $scannedItemUpdate->qty_in = $newItemQty;
                     $scannedItemUpdate->qty = ($scannedItem->qty_pakai > 0 ? floatval(($newItemQty - $scannedItem->qty_in) + $scannedItem->qty) : $newItemQty);
@@ -1109,8 +1121,8 @@ class GeneralController extends Controller
                     }
                 }
 
+                // Return the message when it was because of roll exhausted on other form
                 $formCutInputDetail = FormCutInputDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
-
                 if ($formCutInputDetail) {
                     return "Roll sudah terpakai di form '".$formCutInputDetail->no_form_cut_input."'";
                 } else {
@@ -1121,6 +1133,8 @@ class GeneralController extends Controller
                     }
                 }
             } else {
+
+                // When there ain't no local stock
                 if ($newItem[0]->unit != "PCS" || $newItem[0]->unit != "PCE") {
                     $newItemQtyStok = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? round($newItem[0]->qty_stok * 0.9144, 2) : $newItem[0]->qty_stok;
                     $newItemQty = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? round($newItem[0]->qty * 0.9144, 2) : $newItem[0]->qty;
@@ -1131,6 +1145,7 @@ class GeneralController extends Controller
                     $newItemUnit = $newItem[0]->unit;
                 }
 
+                // Create Local Stock
                 ScannedItem::create(
                     [
                         "id_roll" => strtoupper($id),
@@ -1155,9 +1170,11 @@ class GeneralController extends Controller
                 );
             }
 
+            // Return it
             return json_encode($newItem ? $newItem[0] : null);
         }
 
+        // From here it's old way (the flow might change), it maybe deprecated soon (need to make sure about it tho)
         $item = DB::connection("mysql_sb")->select("
             SELECT
                 br.id id_roll,

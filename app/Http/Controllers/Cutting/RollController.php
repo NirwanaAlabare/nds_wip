@@ -1399,8 +1399,7 @@ class RollController extends Controller
             GROUP BY
                 `form_cut_piping`.`id`
             ORDER BY
-                updated_at asc,
-                no_cut asc
+                qty desc
         ");
 
         return DataTables::of($forms)->toJson();
