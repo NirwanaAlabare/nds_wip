@@ -55,6 +55,7 @@ use App\Http\Controllers\Cutting\CuttingToolsController;
 
 // Stocker
 use App\Http\Controllers\Stocker\StockerController;
+use App\Http\Controllers\Stocker\YearSequenceController;
 use App\Http\Controllers\Stocker\StockerToolsController;
 use App\Http\Controllers\Stocker\StockerRejectController;
 
@@ -849,6 +850,23 @@ Route::middleware('auth')->group(function () {
         Route::get('/get_proses', 'get_proses')->name('stocker-get_proses');
         Route::post('/store_part_secondary', 'store_part_secondary')->name('stocker-store_part_secondary');
 
+        // get stocker
+        Route::get('/get-stocker', 'getStocker')->name('get-stocker');
+
+        // add
+        Route::post('/print-stocker-all-size-add', 'printStockerAllSizeAdd')->name('print-stocker-all-size-add');
+        Route::post('/submit-stocker-add', 'submitStockerAdd')->name('submit-stocker-add');
+
+        // stocker reject
+        Route::post('/print-stocker-reject-all-size/{partDetailId?}', 'printStockerRejectAllSize')->name('print-stocker-reject-all-size');
+        Route::post('/print-stocker-reject-checked', 'printStockerRejectChecked')->name('print-stocker-reject-checked');
+        Route::post('/print-stocker-reject/{id?}', 'printStockerReject')->name('print-stocker-reject');
+
+        // separate stocker
+        Route::post('/separate-stocker', 'separateStocker')->name('separate-stocker');
+    });
+
+    Route::controller(YearSequenceController::class)->prefix("stocker")->middleware("role:cutting,stocker,dc")->group(function () {
         // stocker list
         Route::get('/stocker-list', 'stockerList')->name('stocker-list');
         Route::get('/stocker-list-total', 'stockerListTotal')->name('stocker-list-total');
@@ -883,21 +901,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/modify-year-sequence-delete', 'modifyYearSequenceDelete')->name('delete-year-sequence');
 
         // get stocker
-        Route::get('/get-stocker', 'getStocker')->name('get-stocker');
         Route::get('/get-stocker-month-count', 'getStockerMonthCount')->name('get-stocker-month-count');
         Route::get('/get-stocker-year-sequence', 'getStockerYearSequence')->name('get-stocker-year-sequence');
-
-        // add
-        Route::post('/print-stocker-all-size-add', 'printStockerAllSizeAdd')->name('print-stocker-all-size-add');
-        Route::post('/submit-stocker-add', 'submitStockerAdd')->name('submit-stocker-add');
-
-        // stocker reject
-        Route::post('/print-stocker-reject-all-size/{partDetailId?}', 'printStockerRejectAllSize')->name('print-stocker-reject-all-size');
-        Route::post('/print-stocker-reject-checked', 'printStockerRejectChecked')->name('print-stocker-reject-checked');
-        Route::post('/print-stocker-reject/{id?}', 'printStockerReject')->name('print-stocker-reject');
-
-        // separate stocker
-        Route::post('/separate-stocker', 'separateStocker')->name('separate-stocker');
     });
 
     Route::controller(StockerRejectController::class)->prefix('stocker-reject')->middleware('role:stocker,dc')->group(function () {
