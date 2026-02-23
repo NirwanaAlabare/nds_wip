@@ -2634,6 +2634,6 @@ class DcReportController extends Controller
 
         $sheet->mergeCells('A'.$row.':G'.$row.'')->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        return $excel->download('Laporan DC ' . $from . ' - ' . $to . '.xlsx');
+        return $excel->download('Laporan WIP DC ' . $from . ' - ' . $to . '.xlsx');
     }
 }
