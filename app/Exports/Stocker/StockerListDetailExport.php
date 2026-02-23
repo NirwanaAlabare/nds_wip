@@ -98,6 +98,10 @@ class StockerListDetailExport implements FromView, WithEvents, ShouldAutoSize
         $this->rowCount = 0;
 
         if ($stockerList[0]) {
+            // Get id qr stocker
+            $idQrStocker = addQuotesAround(str_replace(',', "\n", $stockerList[0]->id_qr_stocker));
+
+            // Filter by id_qr_stocker
             $stockerListNumber = YearSequence::selectRaw("
                 year_sequence.id_year_sequence,
                 year_sequence.number,
@@ -109,12 +113,32 @@ class StockerListDetailExport implements FromView, WithEvents, ShouldAutoSize
             ")->
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
             whereRaw("
-                ".$yearSequenceformFilter."
-                year_sequence.so_det_id = '".$this->so_det_id."' and
-                year_sequence.number >= '".$stockerList[0]->range_awal."' and
-                year_sequence.number <= '".$stockerList[0]->range_akhir."'
+                ".($idQrStocker ? "year_sequence.id_qr_stocker in (".$idQrStocker.")" : "")."
             ")->
+            orderByRaw("CAST(year_sequence_number as UNSIGNED) ASC")->
             get();
+
+            // Filter by Form and Range when there is no data by id_qr_stocker
+            if (!$stockerListNumber) {
+                $stockerListNumber = YearSequence::selectRaw("
+                    year_sequence.id_year_sequence,
+                    year_sequence.number,
+                    year_sequence.year,
+                    year_sequence.year_sequence,
+                    year_sequence.year_sequence_number,
+                    master_sb_ws.size,
+                    master_sb_ws.dest
+                ")->
+                leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
+                whereRaw("
+                    ".$yearSequenceFormFilter."
+                    year_sequence.so_det_id = '".$this->so_det_id."' and
+                    year_sequence.number >= '".$stockerList[0]->range_awal."' and
+                    year_sequence.number <= '".$stockerList[0]->range_akhir."'
+                ")->
+                orderByRaw("CAST(year_sequence_number as UNSIGNED) ASC")->
+                get();
+            }
 
             $output = DB::connection("mysql_sb")->
                 table("output_rfts")->

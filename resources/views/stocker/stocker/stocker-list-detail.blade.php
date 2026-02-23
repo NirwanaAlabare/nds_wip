@@ -76,7 +76,7 @@
                 <div class="col-md-3">
                     <div class="mb-3">
                         <label class="form-label">Qty</label>
-                        <input type="text" class="form-control" name="qty" id="qty" value="{{ $stockerList->range_akhir - $stockerList->range_awal + 1 }}" readonly>
+                        <input type="text" class="form-control" name="qty" id="qty" value="{{ ($stockerListNumber ? $stockerListNumber->count() : $stockerList->range_akhir - $stockerList->range_awal + 1) }}" readonly>
                     </div>
                 </div>
                 <div class="col-md-3">

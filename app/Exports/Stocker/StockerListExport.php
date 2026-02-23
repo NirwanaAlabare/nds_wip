@@ -518,7 +518,7 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                         ".$stocker_range_filter."
                 )
 
-                select * from stocker_bundle
+                select * from stocker_bundle order by updated_at desc
         ");
 
         $this->rowCount = count($stockerList);

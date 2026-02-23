@@ -947,6 +947,10 @@ class YearSequenceController extends Controller
             ");
 
             if ($stockerList[0]) {
+                // Get id qr stocker
+                $idQrStocker = addQuotesAround(str_replace(',', "\n", $stockerList[0]->id_qr_stocker));
+
+                // Filter by id_qr_stocker
                 $stockerListNumber = YearSequence::selectRaw("
                     year_sequence.id_year_sequence,
                     year_sequence.number,
@@ -958,14 +962,34 @@ class YearSequenceController extends Controller
                 ")->
                 leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
                 whereRaw("
-                    ".$yearSequenceFormFilter."
-                    year_sequence.so_det_id = '".$so_det_id."' and
-                    year_sequence.number >= '".$stockerList[0]->range_awal."' and
-                    year_sequence.number <= '".$stockerList[0]->range_akhir."'
+                    ".($idQrStocker ? "year_sequence.id_qr_stocker in (".$idQrStocker.")" : "")."
                 ")->
                 orderByRaw("CAST(year_sequence_number as UNSIGNED) ASC")->
                 get();
 
+                // Filter by Form and Range when there is no data by id_qr_stocker
+                if (!$stockerListNumber) {
+                    $stockerListNumber = YearSequence::selectRaw("
+                        year_sequence.id_year_sequence,
+                        year_sequence.number,
+                        year_sequence.year,
+                        year_sequence.year_sequence,
+                        year_sequence.year_sequence_number,
+                        master_sb_ws.size,
+                        master_sb_ws.dest
+                    ")->
+                    leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
+                    whereRaw("
+                        ".$yearSequenceFormFilter."
+                        year_sequence.so_det_id = '".$so_det_id."' and
+                        year_sequence.number >= '".$stockerList[0]->range_awal."' and
+                        year_sequence.number <= '".$stockerList[0]->range_akhir."'
+                    ")->
+                    orderByRaw("CAST(year_sequence_number as UNSIGNED) ASC")->
+                    get();
+                }
+
+                // Get Output List
                 $output = DB::connection("mysql_sb")->
                     table("output_rfts")->
                     selectRaw("
@@ -2257,11 +2281,12 @@ class YearSequenceController extends Controller
         ]);
 
         if ($request->size != null && $request->size_text != null) {
+
+            // Check Output
             if ($request['method'] == "list") {
                 // Decompress
                 $yearSequenceIds = "'-'";
                 if ($request->year_sequence_ids) {
-                    // Decompress
                     $binary = base64_decode($request->year_sequence_ids);
                     $decompressBinary = gzuncompress($binary);
 
@@ -2297,6 +2322,7 @@ class YearSequenceController extends Controller
                 );
             }
 
+            // Allocate Available array and Unavailable array
             $yearSequenceArr = [];
             $yearSequenceFailArr = [];
             foreach ($yearSequences as $yearSequence) {
@@ -2311,13 +2337,16 @@ class YearSequenceController extends Controller
                 }
             }
 
+            // Generate failed message
             $failMessage = "";
             for ($i = 0; $i < count($yearSequenceFailArr); $i++) {
                 $failMessage .= "<small>'".$yearSequenceFailArr[$i]." sudah ada output'</small><br>";
             }
 
+            // If there is available data
             if (count($yearSequenceArr) > 0 && count($yearSequenceArr) <= 5000) {
 
+                // Update QR Label
                 $yearSequence = YearSequence::whereIn("id_year_sequence", $yearSequenceArr)->update([
                     "id_qr_stocker" => $stocker ? $stocker->id_qr_stocker : null,
                     "form_cut_id" => $stocker ? $stocker->form_cut_id : null,
@@ -2326,6 +2355,8 @@ class YearSequenceController extends Controller
                     "so_det_id" => $request->size,
                     "size" => $request->size_text,
                 ]);
+
+                // Update OUTPUT
                 $rft = DB::connection("mysql_sb")->table("output_rfts")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
                 ]);
@@ -2354,6 +2385,7 @@ class YearSequenceController extends Controller
                 // When the updated Size Was in different PO
                 $sewingService->missPackingPo();
 
+                // Return response
                 if ($request['method'] == "list") {
                     if ($yearSequenceIds) {
                         return array(
@@ -2372,18 +2404,26 @@ class YearSequenceController extends Controller
                         "message" => "Year ".$request->year."' <br> Sequence '".$request->sequence."' <br> Range '".$request->range_awal." - ".$request->range_akhir."'. <br> <b>Berhasil di Update</b>".(strlen($failMessage) > 0 ? "<br> Kecuali: <br>".$failMessage : "")
                     );
                 }
-            } else if (count($yearSequenceArr) < 1) {
+            }
+
+            // When no available data
+            else if (count($yearSequenceArr) < 1) {
                 return array(
                     "status" => 400,
                     "message" => "Gagal di ubah ".(strlen($failMessage) > 0 ? "<br> Info : <br>".$failMessage : "")
                 );
-            } else if (count($yearSequenceArr) > 5000) {
+            }
+
+            // When exceeding limit
+            else if (count($yearSequenceArr) > 5000) {
                 return array(
                     "status" => 400,
                     "message" => "Maksimal QTY '5000'"
                 );
             }
         } else {
+
+            // Check Output
             if ($request['method'] == "list") {
                 // Decompress
                 $yearSequenceIds = "'-'";
@@ -2424,6 +2464,7 @@ class YearSequenceController extends Controller
                 );
             }
 
+            // Allocate Available/Unavailable Array
             $yearSequenceArr = [];
             $yearSequenceFailArr = [];
             foreach ($yearSequences as $yearSequence) {
@@ -2438,11 +2479,13 @@ class YearSequenceController extends Controller
                 }
             }
 
+            // Generate fail message
             $failMessage = "";
             for ($i = 0; $i < count($yearSequenceFailArr); $i++) {
                 $failMessage .= "<small>'".$yearSequenceFailArr[$i]." sudah ada output'</small><br>";
             }
 
+            // When there is available data
             if (count($yearSequenceArr) > 0 && count($yearSequenceArr) <= 5000) {
                 $idWs = $request->id_ws;
                 $color = $request->color;
@@ -2546,12 +2589,18 @@ class YearSequenceController extends Controller
                         "message" => "Harap lengkapi form tujuan."
                     );
                 }
-            } else if (count($yearSequenceArr) < 1) {
+            }
+
+            // When there is no avaialable data
+            else if (count($yearSequenceArr) < 1) {
                 return array(
                     "status" => 400,
                     "message" => "Gagal di ubah ".(strlen($failMessage) > 0 ? "<br> Info : <br>".$failMessage : "")
                 );
-            } else if (count($yearSequenceArr) > 5000) {
+            }
+
+            // When exceeding limit
+            else if (count($yearSequenceArr) > 5000) {
                 return array(
                     "status" => 400,
                     "message" => "Maksimal QTY '5000'"
