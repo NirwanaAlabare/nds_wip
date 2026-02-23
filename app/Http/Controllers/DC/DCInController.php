@@ -35,11 +35,11 @@ class DCInController extends Controller
             $additionalQuery = '';
 
             if ($request->dateFrom) {
-                $additionalQuery .= " and a.tgl_trans >= '" . $request->dateFrom . "' ";
+                $additionalQuery .= " and (a.tgl_trans >= '" . $request->dateFrom . "')";
             }
 
             if ($request->dateTo) {
-                $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
+                $additionalQuery .= " and (a.tgl_trans <= '" . $request->dateTo . "')";
             }
 
             if ($request->dc_filter_tipe && count($request->dc_filter_tipe) > 0) {
@@ -1367,6 +1367,30 @@ class DCInController extends Controller
         $timestamp = Carbon::now();
         $user = Auth::user()->name;
 
+        // Check DC
+        $tmpDc = collect(DB::select("
+            select
+                tmp.id_qr_stocker,
+                dc.id dc_id,
+                dc.tgl_trans
+            from
+                tmp_dc_in_input_new tmp
+                left join stocker_input ms on tmp.id_qr_stocker = ms.id_qr_stocker
+                left join dc_in_input dc on dc.id_qr_stocker = ms.id_qr_stocker
+            where
+                tmp.tujuan > '' and
+                tmp.lokasi > '' and
+                tmp.tempat > '' and
+                tmp.user = '$user'
+        "));
+        $dcRescan = $tmpDc->whereNotNull("dc_id");
+
+        // Generate Rescan Message
+        $message = "<br>";
+        foreach ($dcRescan as $rescan) {
+            $message .= "<br> <span class='text-danger fw-bold'>".$rescan->id_qr_stocker." sudah discan pada tanggal ".$rescan->tgl_trans."</span>";
+        }
+
         // DC In Input Insert
         DB::insert("
             REPLACE INTO dc_in_input
@@ -1384,31 +1408,38 @@ class DCInController extends Controller
                 created_by,
                 created_by_username,
                 created_at,
-                updated_at
+                updated_at,
+                rescanned,
+                rescanned_by,
+                rescanned_by_username
             )
             select
                 tmp.id_qr_stocker,
-                '$tgltrans',
+                COALESCE(dc.tgl_trans, '$tgltrans') tgl_trans,
                 tmp.tujuan,
                 tmp.lokasi,
                 tmp.tempat,
-                (case when ms.qty_ply_mod > 0 THEN ms.qty_ply_mod ELSE ms.qty_ply END),
-                qty_reject,
-                qty_replace,
-                user,
+                (case when ms.qty_ply_mod > 0 THEN ms.qty_ply_mod ELSE ms.qty_ply END) qty_awal,
+                tmp.qty_reject,
+                tmp.qty_replace,
+                tmp.user,
                 'N',
-                '".Auth::user()->id."',
-                '".Auth::user()->username."',
-                '$timestamp',
-                '$timestamp'
+                COALESCE(dc.created_by, '".Auth::user()->id."') created_by,
+                COALESCE(dc.created_by_username,'".Auth::user()->username."') created_by_username,
+                COALESCE(dc.created_at, '$timestamp') created_at,
+                '$timestamp' updated_at,
+                (CASE WHEN dc.id IS NOT NULL THEN 1 ELSE 0 END) rescanned,
+                (CASE WHEN dc.id IS NOT NULL THEN '".Auth::user()->id."' ELSE null END) rescanned_by,
+                (CASE WHEN dc.id IS NOT NULL THEN '".Auth::user()->username."' ELSE null END) rescanned_by_username
             from
                 tmp_dc_in_input_new tmp
                 left join stocker_input ms on tmp.id_qr_stocker = ms.id_qr_stocker
+                left join dc_in_input dc on dc.id_qr_stocker = ms.id_qr_stocker
             where
                 tmp.tujuan > '' and
                 tmp.lokasi > '' and
                 tmp.tempat > '' and
-                user = '$user'
+                tmp.user = '$user'
         ");
 
         // Update Stocker
@@ -1476,8 +1507,7 @@ class DCInController extends Controller
                 tmp.tempat > '' and
                 (s.cancel is null or s.cancel != 'y') and
                 user = '$user'
-            "
-        );
+        ");
 
         // Trolley Stocker Insert
         // $lastKode = DB::table('trolley_stocker')
@@ -1524,8 +1554,8 @@ class DCInController extends Controller
         // ");
 
         return array(
-            'status' => 999,
-            'message' => 'Data Sudah Disimpan',
+            'status' => 900,
+            'message' => 'Data Disimpan '.$message,
             'redirect' => 'reload',
             'table' => '',
             'additional' => [],
