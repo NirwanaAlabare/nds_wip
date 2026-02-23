@@ -182,6 +182,7 @@ use App\Http\Controllers\AccountingController;
 // Marketing
 use App\Http\Controllers\MarketingDashboardController;
 use App\Http\Controllers\Marketing_CostingController;
+use App\Http\Controllers\Marketing_BomController;
 
 // QC Inspect Kain
 use App\Http\Controllers\QCInspectDashboardController;
@@ -2359,6 +2360,23 @@ Route::middleware('auth')->group(function () {
         Route::post('/update_header_master_costing', 'update_header_master_costing')->name('update_header_master_costing');
         Route::get('/get_jns_costing_material', 'get_jns_costing_material')->name('get_jns_costing_material');
         Route::get('/get_material_costing', 'get_material_costing')->name('get_material_costing');
+
+    });
+
+    // Master BOM
+    Route::controller(Marketing_BomController::class)->prefix("master-bom")->middleware('marketing')->group(function () {
+        Route::get('/', 'index')->name('master-bom');
+        Route::get('/create', 'create')->name('create-bom');
+        Route::post('/store-color', [Marketing_BomController::class, 'storeColor'])->name('store-color');
+        Route::post('/store-size', [Marketing_BomController::class, 'storeSize'])->name('store-size');
+        Route::post('/get-rule-bom', [Marketing_BomController::class, 'getRuleBom'])->name('get-rule-bom');
+        Route::post('/get-list-data-bom', [Marketing_BomController::class, 'getListData'])->name('get-list-data-bom');
+        Route::get('/detail/{id}', [Marketing_BomController::class, 'showDetail'])->name('show-detail-bom');
+        Route::post('/store-header', [Marketing_BomController::class, 'storeHeader'])->name('store-bom-header');
+        Route::post('/store-detail', [Marketing_BomController::class, 'storeDetail'])->name('store-bom');
+        Route::get('/get-items/{id}', 'getItems')->name('get-items');
+        Route::get('/edit/{id}', 'edit')->name('edit-bom');
+        Route::post('/update-header/{id}', 'updateHeader')->name('update-bom-header');
     });
 
 
