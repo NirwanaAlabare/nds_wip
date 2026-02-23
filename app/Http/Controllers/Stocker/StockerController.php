@@ -4823,5 +4823,66 @@ class StockerController extends Controller
     //         $now = Carbon::now();
     //     }
     // }
+
+    public function getStocker(Request $request) {
+        if ($request->stocker) {
+            $stockerData = Stocker::selectRaw("
+                    stocker_input.id_qr_stocker,
+                    COALESCE(form_cut_input.id, form_cut_piece.id, form_cut_reject.id) form_cut_id,
+                    stocker_input.so_det_id,
+                    stocker_input.act_costing_ws,
+                    part.act_costing_id,
+                    part.style,
+                    UPPER(TRIM(stocker_input.color)) color,
+                    stocker_input.size,
+                    stocker_input.act_costing_ws,
+                    COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
+                    GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
+                    COALESCE(form_cut_input.no_form, form_cut_piece.no_form, form_cut_reject.no_form) no_form,
+                    (
+                        (COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply )) -
+                        (COALESCE ( MAX(dc_in_input.qty_reject), 0 )) +
+                        (COALESCE ( MAX(dc_in_input.qty_replace), 0 )) -
+                        (COALESCE ( MAX(secondary_in_input.qty_reject), 0 )) +
+                        (COALESCE ( MAX(secondary_in_input.qty_replace), 0 )) -
+                        (COALESCE ( MAX(secondary_inhouse_input.qty_reject), 0 )) +
+                        (COALESCE ( MAX(secondary_inhouse_input.qty_replace), 0 ))
+                    ) qty,
+                    stocker_input.range_awal,
+                    stocker_input.range_akhir,
+                    (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
+                ")->
+                leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+                leftJoin("part", "part.id", "=", "part_detail.part_id")->
+                leftJoin("part_detail as part_detail_com", function ($join) {
+                    $join->on("part_detail_com.id", "=", "part_detail.from_part_detail");
+                    $join->on("part_detail.part_status", "=", DB::raw("'complement'"));
+                })->
+                leftJoin("part as part_com", "part_com.id", "=", "part_detail_com.part_id")->
+                leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+                leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+                leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
+                leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
+                leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                where("stocker_input.id_qr_stocker", $request->stocker)->
+                first();
+
+            if ($stockerData) {
+                return json_encode($stockerData);
+            }
+
+            return array(
+                "status" => "400",
+                "message" => "Stocker tidak ditemukan",
+            );
+        }
+
+        return array(
+            "status" => "400",
+            "message" => "Stocker tidak valid",
+        );
+    }
 }
 

@@ -388,7 +388,7 @@ class YearSequenceController extends Controller
                             stocker_input.ratio
                     )
 
-                    select * from stocker_bundle
+                    select * from stocker_bundle order by updated_at desc
             ");
 
             return DataTables::of($stockerList)->toJson();
