@@ -2667,10 +2667,12 @@ class StockerController extends Controller
             $stockerCount = Stocker::lastId()+1;
 
             // Check Separate Stocker
-            $stockerSeparate = StockerSeparate::where("form_cut_id", $request['form_cut_id'])->
-                where("so_det_id", $request['so_det_id_add'][$index])->
-                whereRaw("group_roll = '".$request['group_add'][$index]."' ".($request['group_stocker_add'][$index] && $request['group_stocker_add'][$index] != "" ? " and group_stocker = '" . $request['group_stocker_add'][$index] . "'" : ""))->
-                orderBy("updated_at", "desc")->
+            $stockerSeparate = StockerSeparate::selectRaw("stocker_separate.*, master_sb_ws.size")->
+                leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_separate.so_det_id")->
+                where("form_cut_id", $request['form_cut_id'])->
+                where("master_sb_ws.size", $request['size_add'][$index])->
+                whereRaw("stocker_separate.group_roll = '".$request['group_add'][$index]."' ".($request['group_stocker_add'][$index] && $request['group_stocker_add'][$index] != "" ? " and stocker_separate.group_stocker = '" . $request['group_stocker_add'][$index] . "'" : ""))->
+                orderBy("stocker_separate.updated_at", "desc")->
                 first();
 
             $stockerSeparateDetails = $stockerSeparate ? $stockerSeparate->stockerSeparateDetails()->orderBy('urutan', 'asc')->get() : null;
