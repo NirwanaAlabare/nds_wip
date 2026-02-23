@@ -329,12 +329,13 @@ class YearSequenceController extends Controller
                         where
                             year_sequence.updated_at between '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'
                         group by
-                            year_sequence.id_qr_stocker
+                            year_sequence.id_qr_stocker,
+                            year_sequence.updated_at
                     ),
 
                     stocker_bundle as (
                         select
-                            stocker_label.updated_at,
+                            year_sequence_num.updated_at,
                             stocker_input.id_qr_stocker,
                             GROUP_CONCAT(DISTINCT stocker_bundle.id_qr_stocker) id_qr_stocker_bundle,
                             master_part.nama_part part,
@@ -354,9 +355,9 @@ class YearSequenceController extends Controller
                             COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
                             COALESCE(form_cut_input.no_cut, '-') no_cut,
                             COALESCE(part_com.panel, part.panel) panel,
-                            stocker_label.year_sequence,
-                            stocker_label.total qty,
-                            CONCAT( MIN( stocker_label.range_awal ), ' - ', MAX( stocker_label.range_akhir )) numbering_range,
+                            year_sequence_num.year_sequence,
+                            year_sequence_num.total qty,
+                            CONCAT( MIN( year_sequence_num.range_awal ), ' - ', MAX( year_sequence_num.range_akhir )) numbering_range,
                             (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                         from
                             stocker_input
@@ -367,7 +368,7 @@ class YearSequenceController extends Controller
                                 AND stocker_bundle.group_stocker  <=> stocker_input.group_stocker
                                 AND stocker_bundle.ratio          <=> stocker_input.ratio
                                 AND stocker_bundle.stocker_reject <=> stocker_input.stocker_reject
-                            inner join stocker_label on stocker_label.id_qr_stocker = stocker_input.id_qr_stocker
+                            inner join stocker_label year_sequence_num on year_sequence_num.id_qr_stocker = stocker_input.id_qr_stocker
                             left join part_detail on stocker_input.part_detail_id = part_detail.id
                             left join part on part.id = part_detail.part_id
                             left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
@@ -385,7 +386,8 @@ class YearSequenceController extends Controller
                             (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END),
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
-                            stocker_input.ratio
+                            stocker_input.ratio,
+                            year_sequence_num.updated_at
                     )
 
                     select * from stocker_bundle order by updated_at desc
@@ -781,7 +783,8 @@ class YearSequenceController extends Controller
                     where
                         year_sequence.updated_at between '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'
                     group by
-                        year_sequence.id_qr_stocker
+                        year_sequence.id_qr_stocker,
+                        year_sequence.updated_at
                 ),
 
                 stocker_bundle as (
@@ -852,7 +855,8 @@ class YearSequenceController extends Controller
                         (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END),
                         stocker_input.so_det_id,
                         stocker_input.group_stocker,
-                        stocker_input.ratio
+                        stocker_input.ratio,
+                        year_sequence_num.updated_at
                     HAVING
                         (stocker_input.form_cut_id is not null or stocker_input.form_reject_id is not null or stocker_input.form_piece_id is not null)
                         ".$qty_filter."
@@ -1661,7 +1665,8 @@ class YearSequenceController extends Controller
                     where
                         year_sequence.updated_at between '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'
                     group by
-                        year_sequence.id_qr_stocker
+                        year_sequence.id_qr_stocker,
+                        year_sequence.updated_at
                 ),
 
                 stocker_bundle as (
@@ -1732,7 +1737,8 @@ class YearSequenceController extends Controller
                         (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END),
                         stocker_input.so_det_id,
                         stocker_input.group_stocker,
-                        stocker_input.ratio
+                        stocker_input.ratio,
+                        year_sequence_num.updated_at
                     HAVING
                         (stocker_input.form_cut_id is not null or stocker_input.form_reject_id is not null or stocker_input.form_piece_id is not null)
                         ".$qty_filter."
