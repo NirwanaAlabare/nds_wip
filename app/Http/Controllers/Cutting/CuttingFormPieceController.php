@@ -491,9 +491,9 @@ class CuttingFormPieceController extends Controller
      */
     public function edit(FormCutPiece $formCutPiece, $id = 0)
     {
-        $form = FormCutPiece::where("id", $id)->first();
+        $cuttingFormPiece = FormCutPiece::find($id);
 
-        return view("cutting.cutting-form-piece.edit-cutting-form-piece", ["page" => "dashboard-cutting", "subPageGroup" => "cutting-piece", "subPage" => "cutting-piece", "form" => $form]);
+        return view("cutting.cutting-form-piece.edit-cutting-form-piece", ["page" => "dashboard-cutting", "subPageGroup" => "cutting-piece", "subPage" => "cutting-piece", 'cuttingFormPiece' => $cuttingFormPiece]);
     }
 
     /**
@@ -505,27 +505,44 @@ class CuttingFormPieceController extends Controller
      */
     public function update(Request $request, FormCutPiece $formCutPiece)
     {
-        $validatedRequest = $request->validate([
-            "id" => "required",
-            "no_form" => "required",
-            "tanggal" => "required",
-            "act_costing_id" => "required",
-            "act_costing_ws" => "required",
-            "buyer_id" => "required",
-            "buyer" => "required",
-            "style" => "required",
-            "color" => "required",
-            "panel" => "required",
-            "group" => "required",
-        ]);
+        // Check Stocker
+        $checkStocker = Stocker::where("form_piece_id", $validatedRequest["id"])->first();
+        if ($checkStocker) {
+            return array(
+                "status" => 400,
+                "message" => "Form sudah memiliki Stocker",
+                "additional" => [],
+            );
+        }
 
-        $totalStocker = Stocker::where("form_reject_id", $validatedRequest["id"])->count();
+        switch ($request->process) {
+            case 1 :
+                $validatedRequest = $request->validate([
+                    "id" => "required",
+                    "no_form" => "required",
+                    "tanggal" => "required",
+                    "act_costing_id" => "required",
+                    "act_costing_ws" => "required",
+                    "buyer_id" => "required",
+                    "buyer" => "required",
+                    "style" => "required",
+                    "color" => "required",
+                    "panel" => "required",
+                    "cons_ws" => "required|gt:0",
+                    "unit_cons_ws" => "required|in:PCS",
+                    "employee_id" => "required",
+                    "employee_nik" => "required",
+                    "employee_name" => "required",
+                ],
+                [
+                    "cons_ws.gt" => "Cons. WS harus lebih dari 0.",
+                    "unit_cons_ws.in" => "Unit Cons. WS harus bernilai 'PCS'."
+                ]);
 
-        if ($totalStocker < 1) {
-            if ($validatedRequest) {
+                // Update Cutting Piece
                 $updateFormCutPiece = FormCutPiece::where("id", $validatedRequest["id"])->
+                    where("no_form", $validatedRequest["no_form"])->
                     update([
-                        "no_form" => $validatedRequest["no_form"],
                         "tanggal" => $validatedRequest["tanggal"],
                         "act_costing_id" => $validatedRequest["act_costing_id"],
                         "act_costing_ws" => $validatedRequest["act_costing_ws"],
@@ -534,59 +551,235 @@ class CuttingFormPieceController extends Controller
                         "style" => $validatedRequest["style"],
                         "color" => $validatedRequest["color"],
                         "panel" => $validatedRequest["panel"],
-                        "group" => $validatedRequest["group"],
-                        "created_by"=> Auth::user()->id,
-                        "created_by_username"=> Auth::user()->username,
+                        "cons_ws" => $validatedRequest["cons_ws"],
+                        "unit_cons_ws" => $validatedRequest["unit_cons_ws"],
+                        "employee_id" => $validatedRequest["employee_id"],
+                        "employee_nik" => $validatedRequest["employee_nik"],
+                        "employee_name" => $validatedRequest["employee_name"],
+                        "edited_by" => Auth::user()->id,
+                        "edited_by_username" => Auth::user()->username,
                     ]);
 
                 if ($updateFormCutPiece) {
-                    $formCutPieceDetails = [];
+                    $updatedFormCutPiece = FormCutPiece::where("id", $validatedRequest["id"])->where("no_form", $validatedRequest["no_form"])->first();
 
-                    $soDet = DB::connection("mysql_sb")->table("so_det")->whereIn("id", $request["so_det_id"])->get();
-                    for ($i = 0; $i < count($request["so_det_id"]); $i++) {
-                        $currentSoDet = $soDet->where("id", $request["so_det_id"][$i])->first();
-
-                        array_push($formCutPieceDetails, [
-                            "form_id" => $validatedRequest["id"],
-                            "so_det_id" => $request["so_det_id"][$i],
-                            "size" => $currentSoDet->size,
-                            "qty" => $request["qty"][$i],
-                            "created_by" => Auth::user()->id,
-                            "created_by" => Auth::user()->username
-                        ]);
-                    }
-
-                    $upsertFormCutPieceDetail = FormCutPieceDetail::upsert($formCutPieceDetails, ['form_id', 'so_det_id'], ['qty']);
-
-                    if ($upsertFormCutPieceDetail) {
-                        return array(
-                            "status" => 200,
-                            "message" => "Form Ganti Reject Berhasil disimpan."
-                        );
-                    }
+                    session(['currentFormCutPiece' => $updatedFormCutPiece->id]);
 
                     return array(
-                        "status" => 400,
-                        "message" => "Terjadi Kesalahan."
+                        "status" => 200,
+                        "message" => "Process Form Cut Piece berhasil diupdate.",
+                        "additional" => $updatedFormCutPiece,
                     );
                 }
 
+                break;
+            // case 2 :
+            //     $validatedRequest = $request->validate([
+            //         "id" => "required",
+            //         "method" => "required",
+            //         "id_item" => "required",
+            //         "detail_item" => "required",
+            //         "qty_item" => "required",
+            //         "unit_qty_item" => "required"
+            //     ]);
+
+            //     $idRoll = $validatedRequest["method"] == "scan" ? $request->kode_barang : "-";
+            //     $idItem = $validatedRequest["id_item"];
+            //     $detailItem = $validatedRequest["detail_item"];
+            //     $qtyItem = $validatedRequest["qty_item"];
+            //     $unitQtyItem = $validatedRequest["unit_qty_item"];
+
+            //     $formCutPieceModel = FormCutPiece::where("id", $validatedRequest["id"]);
+
+            //     if ($formCutPieceModel) {
+            //         $storeFormCutPieceDetailArr = [];
+
+            //         if ($validatedRequest["method"] == "scan") {
+            //             $validatedRequestDetail = $request->validate([
+            //                 "kode_barang" => "required",
+            //             ]);
+
+            //             $scannedItem = ScannedItem::where("id_roll", strtoupper($validatedRequestDetail["kode_barang"]))->first();
+
+            //             if ($scannedItem) {
+            //                 $storeFormCutPieceDetailArr = [
+            //                     "form_id" => $validatedRequest["id"],
+            //                     "method" => $validatedRequest["method"],
+            //                     "id_roll" => strtoupper($validatedRequestDetail["kode_barang"]),
+            //                     "id_item" => $scannedItem->id_item,
+            //                     "detail_item" => $scannedItem->detail_item,
+            //                     "lot" => $scannedItem->lot,
+            //                     "roll" => $scannedItem->roll,
+            //                     "roll_buyer" => $scannedItem->roll_buyer,
+            //                     "rule_bom" => $scannedItem->rule_bom,
+            //                     "qty_pengeluaran" => $scannedItem->qty_in,
+            //                     "qty" => $scannedItem->qty,
+            //                     "qty_unit" => $scannedItem->unit,
+            //                     "status" => "incomplete",
+            //                     "created_by" => Auth::user()->id,
+            //                     "created_by_username" => Auth::user()->username
+            //                 ];
+            //             } else {
+            //                 return array(
+            //                     "status" => 400,
+            //                     "message" => "Item tidak ditemukan.",
+            //                     "additional" => [],
+            //                 );
+            //             }
+            //         } else if ($validatedRequest["method"] == "select") {
+            //             $storeFormCutPieceDetailArr = [
+            //                 "form_id" => $validatedRequest["id"],
+            //                 "method" => $validatedRequest["method"],
+            //                 "id_item" => $validatedRequest["id_item"],
+            //                 "detail_item" => $validatedRequest["detail_item"],
+            //                 "qty_pengeluaran" => $validatedRequest["qty_item"],
+            //                 "qty" => $validatedRequest["qty_item"],
+            //                 "qty_unit" => $validatedRequest["unit_qty_item"],
+            //                 "status" => "incomplete",
+            //                 "created_by" => Auth::user()->id,
+            //                 "created_by_username" => Auth::user()->username
+            //             ];
+            //         }
+
+            //         $storeFormCutPieceDetail = FormCutPieceDetail::create($storeFormCutPieceDetailArr);
+
+            //         if ($storeFormCutPieceDetail) {
+            //             $updateFormCutPiece = $formCutPieceModel->update([
+            //                 "process" => $request->process,
+            //             ]);
+
+            //             if ($updateFormCutPiece) {
+            //                 $thisFormCutPieceDetail = FormCutPieceDetail::with("scannedItem")->where("id", $storeFormCutPieceDetail->id)->first();
+
+            //                 return array(
+            //                     "status" => 200,
+            //                     "message" => "Item berhasil disimpan.",
+            //                     "additional" => $thisFormCutPieceDetail,
+            //                 );
+            //             }
+            //         }
+            //     }
+
+            //     break;
+            // case 3 :
+            //     $validatedRequest = $request->validate([
+            //         "id" => "required",
+            //         "id_detail" => "required",
+            //         "group_roll" => "required",
+            //         "lot" => "nullable",
+            //         "roll" => "nullable",
+            //         "roll_buyer" => "nullable",
+            //         "rule_bom" => "nullable",
+            //         "qty_pengeluaran" => "required",
+            //         "qty" => "required",
+            //         "qty_pemakaian" => "required|gt:0",
+            //         "qty_sisa" => "required",
+            //         "qty_unit" => "required|in:PCS",
+            //     ], [
+            //         "qty_pemakaian.gt" => "Harap isi qty piece."
+            //     ]);
+
+            //     $cuttingPieceModel = FormCutPiece::where("id", $validatedRequest["id"]);
+            //     $cuttingPieceDetailModel = FormCutPieceDetail::where("id", $validatedRequest["id_detail"]);
+
+            //     if ($cuttingPieceDetailModel) {
+            //         $updateCuttingPieceDetail = $cuttingPieceDetailModel->update([
+            //             "id" => $validatedRequest['id_detail'],
+            //             "group_roll" => $validatedRequest['group_roll'],
+            //             "lot" => $validatedRequest['lot'],
+            //             "roll" => $validatedRequest['roll'],
+            //             "roll_buyer" => $validatedRequest['roll_buyer'],
+            //             "rule_bom" => $validatedRequest['rule_bom'],
+            //             "qty_pemakaian" => $validatedRequest['qty_pemakaian'],
+            //             "qty_sisa" => $validatedRequest['qty_sisa'],
+            //             "qty_unit" => $validatedRequest['qty_unit'],
+            //             "status" => "complete",
+            //         ]);
+
+            //         if ($updateCuttingPieceDetail) {
+            //             // Scanned Item Qty
+            //             if ($cuttingPieceDetailModel->first() && $cuttingPieceDetailModel->first()->method == "scan" && $cuttingPieceDetailModel->first()->id_roll) {
+            //                 $scannedItem = ScannedItem::where("id_roll", $cuttingPieceDetailModel->first()->id_roll)->first();
+
+            //                 if ($scannedItem) {
+            //                     $scannedItem->qty = $validatedRequest['qty_sisa'];
+            //                     $scannedItem->qty_pakai += $validatedRequest['qty_pemakaian'];
+            //                     $scannedItem->save();
+            //                 }
+            //             }
+
+            //             // Upsert Form Cut Piece Detail Size
+            //             if ($request->so_det_id && count($request->so_det_id) > 0) {
+            //                 $cuttingPieceDetailSizeArr = [];
+            //                 for($i = 0; $i < count($request->so_det_id); $i++) {
+            //                     if ($request->so_det_id[$i] && $request->size[$i] && $request->qty_detail[$i] && $request->qty_detail[$i] > 0) {
+            //                         array_push($cuttingPieceDetailSizeArr, [
+            //                             "form_detail_id" => $validatedRequest["id_detail"],
+            //                             "so_det_id" => $request->so_det_id[$i],
+            //                             "size" => $request->size[$i],
+            //                             "dest" => $request->dest[$i],
+            //                             "qty" => $request->qty_detail[$i],
+            //                             "created_by" => Auth::user()->id,
+            //                             "created_by_username" => Auth::user()->username
+            //                         ]);
+            //                     }
+            //                 }
+
+            //                 $storeCuttingPieceDetailSize = FormCutPieceDetailSize::upsert($cuttingPieceDetailSizeArr, ['form_detail_id', 'so_det_id'], ['size', 'qty', 'created_by', 'created_by_username']);
+            //             }
+
+            //             // Update Form Cut Piece
+            //             $updateCuttingPiece = $cuttingPieceModel->update([
+            //                 "process" => 1,
+            //                 // "status" => 'complete',
+            //             ]);
+
+            //             // session()->forget('currentFormCutPiece');
+
+            //             // // finishing
+            //             // $this->finishProcess($validatedRequest["id"]);
+
+            //             return array(
+            //                 "status" => 200,
+            //                 "message" => "Data Cutting Pcs berhasil disimpan.",
+            //                 "additional" => $cuttingPieceModel->first()
+            //             );
+            //         }
+            //     }
+
+            //     break;
+            // case 4 :
+            //     $validatedRequest = $request->validate([
+            //         "id" => "required"
+            //     ]);
+
+            //     $cuttingPieceModel = FormCutPiece::where("id", $validatedRequest["id"]);
+
+            //     // Update Form Cut Piece
+            //     $updateCuttingPiece = $cuttingPieceModel->update([
+            //         "process" => 3,
+            //         "status" => 'complete',
+            //     ]);
+
+            //     session()->forget('currentFormCutPiece');
+
+            //     // finishing
+            //     $this->finishProcess($validatedRequest["id"]);
+
+            //     return array(
+            //         "status" => 200,
+            //         "message" => "Data Cutting Pcs berhasil disimpan.",
+            //         "additional" => $cuttingPieceModel->first()
+            //     );
+
+            //    break;
+            default :
                 return array(
                     "status" => 400,
-                    "message" => "Terjadi Kesalahan."
+                    "message" => "Proses tidak ditemukan",
+                    "additional" => [],
                 );
-            }
-        } else {
-            return array(
-                "status" => 400,
-                "message" => "Form sudah memiliki Stocker."
-            );
         }
-
-        return array(
-            "status" => 400,
-            "message" => "Terjadi Kesalahan."
-        );
     }
 
     /**

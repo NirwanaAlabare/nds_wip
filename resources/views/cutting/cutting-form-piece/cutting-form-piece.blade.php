@@ -136,7 +136,7 @@
                     targets: [0],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
-                        let buttonEdit = `<a href="{{ route('process-cutting-piece') }}/`+data+`" class="btn btn-sb-secondary btn-sm mx-1"><i class="fa fa-edit"></i></a>`;
+                        let buttonEdit = `<a href="{{ route('edit-cutting-piece') }}/`+data+`" class="btn btn-sb-secondary btn-sm mx-1"><i class="fa fa-edit"></i></a>`;
                         // let buttonDetail = `<a href="{{ route('show-cutting-piece') }}/`+data+`" class="btn btn-sb btn-sm mx-1"><i class="fa fa-search"></i></a>`;
                         let buttonDetail = "";
                         let buttonDelete = `<a href='javascript:void(0);' class='btn btn-danger btn-sm mx-1' data='`+JSON.stringify(row)+`' data-url='`+'{{ route('destroy-cutting-piece') }}'+`/`+data+`' onclick='deleteData(this);'><i class='fa fa-trash'></i></a>`;
