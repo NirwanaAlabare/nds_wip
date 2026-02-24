@@ -732,6 +732,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/detail-pemakaian-roll', 'detailPemakaianRoll')->name('detail-pemakaian-roll');
         Route::get('/total-pemakaian-roll', 'totalPemakaianRoll')->name('total-pemakaian-roll');
         Route::get('/report_cutting_mutasi_fabric', 'report_cutting_mutasi_fabric')->name('report_cutting_mutasi_fabric');
+        Route::get('/report_cutting_mutasi_fabric_proporsional', 'report_cutting_mutasi_fabric_proporsional')->name('report_cutting_mutasi_fabric_proporsional');
         Route::get('/report_gr_set', 'report_gr_set')->name('report_gr_set');
         Route::get('/report_gr_panel', 'report_gr_panel')->name('report_gr_panel');
         Route::get('/report_mutasi_wip_cutting', 'report_mutasi_wip_cutting')->name('report_mutasi_wip_cutting');
@@ -742,6 +743,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/pemakaian-roll/export', 'pemakaianRollExport')->name('pemakaian-roll-export');
         Route::post('/detail-pemakaian-roll/export', 'detailPemakaianRollExport')->name('detail-pemakaian-roll-export');
         Route::get('/export_excel_report_cutting_mutasi_fabric', 'export_excel_report_cutting_mutasi_fabric')->name('export_excel_report_cutting_mutasi_fabric');
+        Route::get('/export_excel_report_cutting_mutasi_fabric_proporsional', 'export_excel_report_cutting_mutasi_fabric_proporsional')->name('export_excel_report_cutting_mutasi_fabric_proporsional');
         Route::get('/export_excel_report_gr_set', 'export_excel_report_gr_set')->name('export_excel_report_gr_set');
         Route::get('/export_excel_report_gr_panel', 'export_excel_report_gr_panel')->name('export_excel_report_gr_panel');
         Route::get('/export_excel_report_mut_wip_cutting', 'export_excel_report_mut_wip_cutting')->name('export_excel_report_mut_wip_cutting');

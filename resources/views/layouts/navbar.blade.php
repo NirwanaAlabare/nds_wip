@@ -229,6 +229,12 @@
                                         </a>
                                     </li>
                                     <li>
+                                        <a href="{{ route('report_cutting_mutasi_fabric_proporsional') }}"
+                                            class="dropdown-item {{ $routeName == 'report_cutting_mutasi_fabric_proporsional' ? 'active' : '' }}">
+                                            Mutasi Fabric Proporsional <i class="fa fa-list"></i>
+                                        </a>
+                                    </li>
+                                    <li>
                                         <a href="{{ route('roll_fabric_cutting_in') }}"
                                             class="dropdown-item {{ $subPage == 'roll_fabric_cutting_in' ? 'active' : '' }}">
                                             Penerimaan Fabric <i class="fa-solid fa-box-open fa-sm"></i>
@@ -410,20 +416,22 @@
                                 </li>
                             </ul>
                         </li>
-                        @endrole
-                        @role('dc')
-                            <li class="nav-item dropdown">
-                                <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'stocker-reject' ? 'active' : '' }}">Reject</a>
-                                <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                                    <li>
-                                        <a href="{{ route('stocker-reject') }}" class="dropdown-item {{ $subPage == 'stocker-reject' ? 'active' : '' }}">
-                                            Stocker Process Reject <i class="fa-solid fa-ticket"></i>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                        @endrole
-                        @role('dc')
+                    @endrole
+                    @role('dc')
+                        <li class="nav-item dropdown">
+                            <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+                                class="nav-link dropdown-toggle {{ $subPageGroup == 'stocker-reject' ? 'active' : '' }}">Reject</a>
+                            <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                                <li>
+                                    <a href="{{ route('stocker-reject') }}"
+                                        class="dropdown-item {{ $subPage == 'stocker-reject' ? 'active' : '' }}">
+                                        Stocker Process Reject <i class="fa-solid fa-ticket"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    @endrole
+                    @role('dc')
                         <li class="nav-item dropdown">
                             <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
                                 class="nav-link dropdown-toggle {{ $subPageGroup == 'stok-dc' ? 'active' : '' }}">Stok</a>
@@ -559,15 +567,13 @@
                                  --}}
                             </ul>
                         </li>
-
-
                     @endrole
                     @role('admin')
                         <li class="nav-item dropdown">
                             <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
                                 class="nav-link dropdown-toggle {{ $subPageGroup == 'report' ? 'active' : '' }}">Report</a>
                             <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                                 <li>
+                                <li>
                                     <a href="{{ route('dc-report') }}"
                                         class="dropdown-item {{ $routeName == 'dc-report' ? 'active' : '' }}">
                                         Report WIP DC <i class="fa-solid fa-file"></i>
