@@ -6,16 +6,17 @@
         <thead>
             <tr>
                 <th colspan="<?= $tipe == 'Barcode' ? 16 : 15 ?>">
-                    Report Mutasi Fabric Proporsional
+                    Report Mutasi Fabric Proporsional {{ date('d-M-Y', strtotime($from)) }} -
+                    {{ date('d-M-Y', strtotime($to)) }}
                 </th>
                 {{-- <th colspan="100">LAPORAN DAILY COST {{ date('d-M-Y', strtotime($from)) }} -
                     {{ date('d-M-Y', strtotime($to)) }}</th> --}}
             </tr>
             <tr>
-                <th style="width:100px; class="text-center align-middle">Worksheet</th>
-                <th style="width:100px; class="text-center align-middle">Buyer</th>
-                <th style="width:100px; class="text-center align-middle">Style</th>
-                <th style="width:100px; class="text-center align-middle">Color</th>
+                <th style="width:100px;" class="text-center align-middle">Worksheet</th>
+                <th style="width:100px;" class="text-center align-middle">Buyer</th>
+                <th style="width:100px;" class="text-center align-middle">Style</th>
+                <th style="width:100px;" class="text-center align-middle">Color</th>
                 @if ($tipe == 'Barcode')
                     <th class="text-center align-middle">Barcode</th>
                 @endif

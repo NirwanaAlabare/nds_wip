@@ -136,6 +136,8 @@ HAVING
         return view('cutting.report.export.export_excel_report_mutasi_fabric_proporsional', [
             'rawData' => $rawData,
             'tipe'    => $tipe,
+            'from'    => $start_date,
+            'to'      => $end_date,
         ]);
     }
 
