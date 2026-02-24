@@ -505,6 +505,16 @@ class CuttingFormPieceController extends Controller
      */
     public function update(Request $request, FormCutPiece $formCutPiece)
     {
+        // Check Stocker
+        $checkStocker = Stocker::where("form_piece_id", $validatedRequest["id"])->first();
+        if ($checkStocker) {
+            return array(
+                "status" => 400,
+                "message" => "Form sudah memiliki Stocker",
+                "additional" => [],
+            );
+        }
+
         switch ($request->process) {
             case 1 :
                 $validatedRequest = $request->validate([
