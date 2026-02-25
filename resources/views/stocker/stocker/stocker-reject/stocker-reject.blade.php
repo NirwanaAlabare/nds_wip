@@ -20,19 +20,24 @@
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
-                <div class="d-flex align-items-end gap-3">
-                    <div>
-                        <label class="form-label">Dari</label>
-                        <input type="date" class="form-control" id="dateFrom" onchange='stockerRejectTableReload()'>
+                <div class="d-flex justify-content-start align-items-end gap-3">
+                    <div class="d-flex align-items-end gap-3">
+                        <div>
+                            <label class="form-label">Dari</label>
+                            <input type="date" class="form-control" id="dateFrom" onchange='stockerRejectTableReload()'>
+                        </div>
+                        <span class='mb-1'> - </span>
+                        <div>
+                            <label class="form-label">Sampai</label>
+                            <input type="date" class="form-control" id="dateTo" onchange='stockerRejectTableReload()'>
+                        </div>
                     </div>
-                    <span class='mb-1'> - </span>
                     <div>
-                        <label class="form-label">Sampai</label>
-                        <input type="date" class="form-control" id="dateTo" onchange='stockerRejectTableReload()'>
+                        <a type="button" href="{{ route('create-stocker-reject') }}" class='btn btn-sb'><i class="fa fa-plus"></i> Baru</a>
                     </div>
                 </div>
                 <div>
-                    <a type="button" href="{{ route('create-stocker-reject') }}" class='btn btn-success'><i class="fa fa-plus"></i> Baru</a>
+                    <button type="button" onclick class='btn btn-success'><i class="fa fa-file"></i> Export</button>
                 </div>
             </div>
             <div class="table-responsive">
