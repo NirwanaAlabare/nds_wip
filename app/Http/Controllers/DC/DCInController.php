@@ -995,7 +995,21 @@ class DCInController extends Controller
             DB::update(
                 "update stocker_input set status = 'dc' where id_qr_stocker = '" . $request->txtqrstocker . "'"
             );
+
+            return array(
+                'status' => 200,
+                'message' => 'Data Stocker berhasil disimpan',
+                'redirect' => '',
+                'table' => 'datatable-scan',
+            );
         }
+
+        return array(
+            'status' => 400,
+            'message' => 'Data Stocker gagal disimpan',
+            'redirect' => '',
+            'table' => 'datatable-scan',
+        );
     }
 
     // mass insert tmp dc in

@@ -96,6 +96,7 @@
                             <th class="text-center align-middle">Barcode</th>
                             <th class="text-center align-middle">ID Item</th>
                             <th class="text-center align-middle">Item Name</th>
+                            <th class="text-center align-middle">Satuan</th>
                             <th class="text-center align-middle">Saldo Awal</th>
                             <th class="text-center align-middle">Penerimaan</th>
                             <th class="text-center align-middle">Pemakaian Cutting</th>
@@ -104,7 +105,6 @@
                             <th class="text-center align-middle">Ganti Reject Panel</th>
                             <th class="text-center align-middle">Retur</th>
                             <th class="text-center align-middle">Saldo Akhir</th>
-                            <th class="text-center align-middle">Satuan</th>
                         </tr>
                     </thead>
                     <tfoot>
@@ -250,6 +250,10 @@
                         data: 'itemdesc'
                     },
                     {
+                        data: 'satuan',
+                        className: 'text-center'
+                    },
+                    {
                         data: 'saldo_awal',
                         className: 'text-end'
                     },
@@ -281,10 +285,6 @@
                         data: 'saldo_akhir',
                         className: 'text-end'
                     },
-                    {
-                        data: 'satuan',
-                        className: 'text-center'
-                    }
                 ],
 
                 initComplete: function() {
@@ -307,7 +307,7 @@
                     };
 
                     // daftar kolom numerik (index sesuai columns di DataTables)
-                    var colsToSum = [7, 8, 9, 10, 11, 12, 13, 14]; // saldo_awal ... saldo_akhir
+                    var colsToSum = [8, 9, 10, 11, 12, 13, 14, 15]; // saldo_awal ... saldo_akhir
 
                     colsToSum.forEach(function(colIndex) {
                         var total = api
