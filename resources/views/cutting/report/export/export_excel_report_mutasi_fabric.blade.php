@@ -12,15 +12,16 @@
                     {{ date('d-M-Y', strtotime($to)) }}</th> --}}
             </tr>
             <tr>
-                <th class="text-center align-middle">Worksheet</th>
-                <th class="text-center align-middle">Buyer</th>
-                <th class="text-center align-middle">Style</th>
-                <th class="text-center align-middle">Color</th>
+                <th style="width:100px;" class="text-center align-middle">Worksheet</th>
+                <th style="width:100px;" class="text-center align-middle">Buyer</th>
+                <th style="width:100px;" class="text-center align-middle">Style</th>
+                <th style="width:100px;" class="text-center align-middle">Color</th>
                 @if ($tipe == 'Barcode')
                     <th class="text-center align-middle">Barcode</th>
                 @endif
                 <th class="text-center align-middle">ID Item</th>
-                <th class="text-center align-middle">Item Name</th>
+                <th style="width:100px;" class="text-center align-middle">Item Name</th>
+                <th class="text-center align-middle">Satuan</th>
                 <th class="text-center align-middle">Saldo Awal</th>
                 <th class="text-center align-middle">Penerimaan</th>
                 <th class="text-center align-middle">Pemakaian Cutting</th>
@@ -29,7 +30,6 @@
                 <th class="text-center align-middle">Ganti Reject Panel</th>
                 <th class="text-center align-middle">Retur</th>
                 <th class="text-center align-middle">Saldo Akhir</th>
-                <th class="text-center align-middle">Satuan</th>
             </tr>
         </thead>
         <tbody>
@@ -44,6 +44,7 @@
                     @endif
                     <td class="text-end">{{ $row->id_item }}</td>
                     <td class="text-end">{{ $row->itemdesc }}</td>
+                    <td class="text-end">{{ $row->satuan }}</td>
                     <td class="text-end">{{ $row->saldo_awal }}</td>
                     <td class="text-end">{{ $row->penerimaan }}</td>
                     <td class="text-end">{{ $row->pemakaian }}</td>
@@ -52,7 +53,6 @@
                     <td class="text-end">{{ $row->gr_panel }}</td>
                     <td class="text-end">{{ $row->retur }}</td>
                     <td class="text-end">{{ $row->saldo_akhir }}</td>
-                    <td class="text-end">{{ $row->satuan }}</td>
                 </tr>
             @endforeach
         </tbody>

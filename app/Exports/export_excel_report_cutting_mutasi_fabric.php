@@ -842,16 +842,14 @@ FROM
 		FROM gr_set
 ) a
 group by barcode, ws, a.satuan
-)
-
+),
+sf as(
 SELECT
 $barcode,
 mut.id_item,
 mi.itemdesc,
 mi.color,
 ws,
-buyer,
-styleno,
 ROUND(SUM(saldo_awal), 2)     AS saldo_awal,
 ROUND(SUM(penerimaan), 2)    AS penerimaan,
 ROUND(SUM(pemakaian), 2)     AS pemakaian,
@@ -893,6 +891,8 @@ m.ws
 FROM m
 ) mut
 left join signalbit_erp.masteritem mi on mut.id_item = mi.id_item
+$group)
+select sf.*, buyer,styleno from sf
 LEFT JOIN (
 SELECT
 		ac.kpno,
@@ -904,8 +904,7 @@ SELECT
         INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
 		WHERE jd.cancel = 'N'
 		GROUP BY jd.id_jo
-) k on mut.ws = k.kpno
-$group
+) k on sf.ws = k.kpno
 order by  ws asc, color asc
     ");
 
