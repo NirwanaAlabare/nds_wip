@@ -37,7 +37,7 @@
                     </div>
                 </div>
                 <div>
-                    <button type="button" onclick class='btn btn-success'><i class="fa fa-file"></i> Export</button>
+                    <button type="button" onclick="exportExcel()" class='btn btn-success'><i class="fa fa-file"></i> Export</button>
                 </div>
             </div>
             <div class="table-responsive">
@@ -178,6 +178,53 @@
         // Stocker Reject Table Reload
         function stockerRejectTableReload() {
             stockerRejectTable.ajax.reload();
+        }
+
+        function exportExcel() {
+            Swal.fire({
+                title: "Exporting",
+                html: "Please Wait...",
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+            });
+
+            $.ajax({
+                url: "{{ route("export-stocker-reject") }}",
+                type: "post",
+                data: {
+                    dateFrom : $("#dateFrom").val(),
+                    dateTo : $("#dateTo").val(),
+                },
+                xhrFields: { responseType : 'blob' },
+                success: function (res) {
+                    Swal.close();
+
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Success',
+                        position: 'topCenter'
+                    });
+
+                    var blob = new Blob([res]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Stocker Reject List "+$("#dateFrom").val()+" - "+$("#dateTo").val()+".xlsx";
+                    link.click();
+                },
+                error: function (jqXHR) {
+                    Swal.close();
+
+                    iziToast.error({
+                        title: 'Error',
+                        message: 'Terjadi Kesalahan',
+                        position: 'topCenter'
+                    });
+
+                    console.error(jqXHR);
+                }
+            });
         }
     </script>
 @endsection

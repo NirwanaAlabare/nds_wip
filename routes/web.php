@@ -915,6 +915,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', 'create')->name('create-stocker-reject');
         Route::post('/print-stocker-process-reject/{id?}', 'printStocker')->name('print-stocker-process-reject');
         Route::post('/store', 'storeStockerProcessReject')->name('store-stocker-reject');
+
+        Route::post('/export', 'exportStockerReject')->name('export-stocker-reject');
     });
 
     // Stocker Tools
