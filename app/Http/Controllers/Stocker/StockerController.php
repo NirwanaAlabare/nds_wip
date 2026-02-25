@@ -4831,6 +4831,7 @@ class StockerController extends Controller
             $stockerData = Stocker::selectRaw("
                     stocker_input.id_qr_stocker,
                     COALESCE(form_cut_input.id, form_cut_piece.id, form_cut_reject.id) form_cut_id,
+                    COALESCE(form_cut_input.no_form, form_cut_piece.no_form, form_cut_reject.no_form) no_form,
                     stocker_input.so_det_id,
                     stocker_input.act_costing_ws,
                     part.act_costing_id,
