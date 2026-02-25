@@ -43,6 +43,9 @@
                         <th>Stocker</th>
                         <th>Proses</th>
                         <th>Qty Reject</th>
+                        <th>Generated Qty</th>
+                        <th>Qty Reject Balance</th>
+                        <th>Status</th>
                     </thead>
                     <tbody></tbody>
                 </table>
@@ -104,6 +107,15 @@
                 },
                 {
                     data: 'qty_reject',
+                },
+                {
+                    data: 'generated_qty_reject',
+                },
+                {
+                    data: 'qty_reject_balance',
+                },
+                {
+                    data: 'qty_reject_balance',
                 }
             ],
             columnDefs: [
@@ -119,6 +131,16 @@
                     targets: [2],
                     render: (data, type, row, meta) => {
                         return `<span><b>`+row.id_qr_stocker+`</b>`+(row.id_qr_similar_stocker ? `, `+row.id_qr_similar_stocker : ``)+`</span>`
+                    }
+                },
+                {
+                    targets: [7],
+                    render: (data, type, row, meta) => {
+                        if (data == 0) {
+                            return "<span class='text-danger fw-bold'>EXHAUSTED</span"
+                        }
+
+                        return "<span class='text-success fw-bold'>AVAILABLE</span";
                     }
                 },
                 {

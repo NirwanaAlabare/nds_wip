@@ -127,7 +127,7 @@
                                 <th>Part Detail</th>
                                 <th>Size</th>
                                 <th>Shade</th>
-                                <th>Ratio</th>
+                                <th>Total Ratio</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -192,7 +192,7 @@
                     $indexReject = 1;
                 @endphp
                 @foreach ($dataStockerReject as $stockerReject)
-                    <div class="table-responsive">
+                    <div class="table-responsive my-3">
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
@@ -200,7 +200,7 @@
                                     <th>Part Detail</th>
                                     <th>Size</th>
                                     <th>Shade</th>
-                                    <th>Ratio</th>
+                                    <th>Ratio ke</th>
                                     <th>Qty</th>
                                     <th>Print</th>
                                 </tr>
@@ -223,7 +223,7 @@
                                         <td>{{ $stocker->nama_part }}</td>
                                         <td>{{ $stocker->size }}</td>
                                         <td>{{ $stocker->shade }}</td>
-                                        <td>{{ $stocker->ratio }}</td>
+                                        <td>{{ $stockerReject->ratio }}</td>
                                         <td>{{ $stockerReject->qty_reject }}</td>
                                         <td><button type="button" class="btn btn-danger" onclick="printStocker({{ $indexReject }})"><i class="fa fa-print"></i></button></td>
                                     </tr>
@@ -236,9 +236,11 @@
                         </table>
                     </div>
                 @endforeach
-                <div class="d-flex justify-content-end">
-                    <button type="button" class="btn btn-danger btn-sm" onclick="printStocker()">Generate All <i class="fa fa-print"></i></button>
-                </div>
+                @if ($dataStockerReject->count() > 0)
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="printStocker()">Generate All <i class="fa fa-print"></i></button>
+                    </div>
+                @endif
             </div>
         </div>
     </form>

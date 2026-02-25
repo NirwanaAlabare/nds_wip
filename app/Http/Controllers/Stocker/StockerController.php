@@ -690,7 +690,8 @@ class StockerController extends Controller
                         panel = '" . $request['panel'] . "' AND
                         shade = '" . $request['group'][$index] . "' AND
                         " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
-                        ratio = " . ($i + 1) . "
+                        ratio = " . ($i + 1) . " AND
+                        stocker_reject IS NULL
                     ")->first();
 
                     $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $i);
@@ -745,7 +746,8 @@ class StockerController extends Controller
                     panel = '" . $request['panel'] . "' AND
                     shade = '" . $request['group'][$index] . "' AND
                     " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
-                    ratio = " . ($i + 1) . "
+                    ratio = " . ($i + 1) . " AND
+                    stocker_reject IS NULL
                 ")->first();
 
                 $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $i);
@@ -824,7 +826,8 @@ class StockerController extends Controller
                 so_det_id = '". $incompleteModSizeQty[$i]['so_det_id']."' and
                 shade = '".$incompleteModSizeQty[$i]['shade']."' and
                 group_stocker = '".$incompleteModSizeQty[$i]['group_stocker']."' and
-                ratio < '".$incompleteModSizeQty[$i]['ratio']."'
+                ratio < '".$incompleteModSizeQty[$i]['ratio']."' AND
+                stocker_reject IS NULL
             ")->first();
 
             if (!$currentStocker) {
@@ -834,7 +837,8 @@ class StockerController extends Controller
                     so_det_id = '". $incompleteModSizeQty[$i]['so_det_id']."' and
                     shade = '".$incompleteModSizeQty[$i]['shade']."' and
                     group_stocker = '".$incompleteModSizeQty[$i]['group_stocker']."' and
-                    ratio > '".$incompleteModSizeQty[$i]['ratio']."'
+                    ratio > '".$incompleteModSizeQty[$i]['ratio']."' AND
+                    stocker_reject IS NULL
                 ")->first();
             }
 
@@ -949,7 +953,8 @@ class StockerController extends Controller
                     panel = '" . $request['panel'] . "' AND
                     shade = '" . $request['group'][$index] . "' AND
                     " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
-                    ratio > " . ($lastRatio) . "
+                    ratio > " . ($lastRatio) . " AND
+                    stocker_reject IS NULL
                 ")->update([
                     "cancel" => "y",
                 ]);
@@ -1020,7 +1025,8 @@ class StockerController extends Controller
                                 panel = '" . $request['panel'] . "' AND
                                 shade = '" . $request['group'][$i] . "' AND
                                 " . ( $request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "" ) . "
-                                ratio = " . ($j + 1) . "
+                                ratio = " . ($j + 1) . " AND
+                                stocker_reject IS NULL
                             ")->first();
 
                             $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $k + 1);
@@ -1083,7 +1089,8 @@ class StockerController extends Controller
                                 panel = '" . $request['panel'] . "' AND
                                 shade = '" . $request['group'][$i] . "' AND
                                 " . ( $request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "" ) . "
-                                ratio = " . ($j + 1) . "
+                                ratio = " . ($j + 1) . " AND
+                                stocker_reject IS NULL
                             ")->first();
 
                             $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $k + 1);
@@ -1166,7 +1173,8 @@ class StockerController extends Controller
                                 panel = '" . $request['panel'] . "' AND
                                 shade = '" . $request['group'][$i] . "' AND
                                 " . ($request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "") . "
-                                ratio > " . ($lastRatio) . "
+                                ratio > " . ($lastRatio) . " AND
+                                stocker_reject IS NULL
                             ")->update([
                                 "cancel" => "y",
                             ]);
@@ -1185,7 +1193,8 @@ class StockerController extends Controller
                 so_det_id = '". $incompleteModSizeQty[$i]['so_det_id']."' and
                 shade = '".$incompleteModSizeQty[$i]['shade']."' and
                 group_stocker = '".$incompleteModSizeQty[$i]['group_stocker']."' and
-                ratio < '".$incompleteModSizeQty[$i]['ratio']."'
+                ratio < '".$incompleteModSizeQty[$i]['ratio']."' AND
+                stocker_reject IS NULL
             ")->first();
 
             if (!$currentStocker) {
@@ -1195,7 +1204,8 @@ class StockerController extends Controller
                     so_det_id = '". $incompleteModSizeQty[$i]['so_det_id']."' and
                     shade = '".$incompleteModSizeQty[$i]['shade']."' and
                     group_stocker = '".$incompleteModSizeQty[$i]['group_stocker']."' and
-                    ratio > '".$incompleteModSizeQty[$i]['ratio']."'
+                    ratio > '".$incompleteModSizeQty[$i]['ratio']."' AND
+                    stocker_reject IS NULL
                 ")->first();
             }
 
@@ -1370,7 +1380,8 @@ class StockerController extends Controller
                         panel = '" . $request['panel'] . "' AND
                         shade = '" . $request['group'][$index] . "' AND
                         " . ( $request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "" ) . "
-                        ratio = " . ($j + 1) . "
+                        ratio = " . ($j + 1) . " AND
+                        stocker_reject IS NULL
                     ")->first();
 
                     $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $i + 1);
@@ -1429,7 +1440,8 @@ class StockerController extends Controller
                         panel = '" . $request['panel'] . "' AND
                         shade = '" . $request['group'][$index] . "' AND
                         " . ( $request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "" ) . "
-                        ratio = " . ($j + 1) . "
+                        ratio = " . ($j + 1) . " AND
+                        stocker_reject IS NULL
                     ")->first();
 
                     $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $i + 1);
@@ -1511,7 +1523,8 @@ class StockerController extends Controller
                         panel = '" . $request['panel'] . "' AND
                         shade = '" . $request['group'][$index] . "' AND
                         " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
-                        ratio > " . ($lastRatio) . "
+                        ratio > " . ($lastRatio) . " AND
+                        stocker_reject IS NULL
                     ")->update([
                         "cancel" => "y",
                     ]);
@@ -1528,7 +1541,8 @@ class StockerController extends Controller
                 so_det_id = '". $incompleteModSizeQty[$i]['so_det_id']."' and
                 shade = '".$incompleteModSizeQty[$i]['shade']."' and
                 group_stocker = '".$incompleteModSizeQty[$i]['group_stocker']."' and
-                ratio < '".$incompleteModSizeQty[$i]['ratio']."'
+                ratio < '".$incompleteModSizeQty[$i]['ratio']."' AND
+                stocker_reject IS NULL
             ")->first();
 
             if (!$currentStocker) {
@@ -1538,7 +1552,8 @@ class StockerController extends Controller
                     so_det_id = '". $incompleteModSizeQty[$i]['so_det_id']."' and
                     shade = '".$incompleteModSizeQty[$i]['shade']."' and
                     group_stocker = '".$incompleteModSizeQty[$i]['group_stocker']."' and
-                    ratio > '".$incompleteModSizeQty[$i]['ratio']."'
+                    ratio > '".$incompleteModSizeQty[$i]['ratio']."' AND
+                    stocker_reject IS NULL
                 ")->first();
             }
 
@@ -1692,7 +1707,8 @@ class StockerController extends Controller
                         panel = '" . $request['panel'] . "' AND
                         shade = '" . $request['group'][$index] . "' AND
                         " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
-                        ratio = " . ($i + 1) . "
+                        ratio = " . ($i + 1) . " AND
+                        stocker_reject IS NULL
                     ")->first();
 
                     $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $i);
@@ -1747,7 +1763,8 @@ class StockerController extends Controller
                     panel = '" . $request['panel'] . "' AND
                     shade = '" . $request['group'][$index] . "' AND
                     " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
-                    ratio = " . ($i + 1) . "
+                    ratio = " . ($i + 1) . " AND
+                    stocker_reject IS NULL
                 ")->first();
 
                 $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $i);
@@ -1803,7 +1820,8 @@ class StockerController extends Controller
                     panel = '" . $request['panel'] . "' AND
                     shade = '" . $request['group'][$index] . "' AND
                     " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
-                    ratio > " . ($lastRatio) . "
+                    ratio > " . ($lastRatio) . " AND
+                    stocker_reject IS NULL
                 ")->update([
                     "cancel" => "y",
                 ]);
@@ -1843,6 +1861,7 @@ class StockerController extends Controller
             where("stocker_input.shade", $request['group'][$index])->
             // where("stocker_input.qty_ply", $request['qty_ply_group'][$index])->
             where("stocker_input.group_stocker", $request['group_stocker'][$index])->
+            whereNull("stocker_input.stocker_reject")->
             groupBy("form_cut_piece.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
             orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.shade", "desc")->
@@ -1901,7 +1920,8 @@ class StockerController extends Controller
                             panel = '" . $request['panel'] . "' AND
                             shade = '" . $request['group'][$i] . "' AND
                             " . ( $request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "" ) . "
-                            ratio = " . ($j + 1) . "
+                            ratio = " . ($j + 1) . " AND
+                            stocker_reject IS NULL
                         ")->first();
 
                         $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $k + 1);
@@ -1962,7 +1982,8 @@ class StockerController extends Controller
                             panel = '" . $request['panel'] . "' AND
                             shade = '" . $request['group'][$i] . "' AND
                             " . ( $request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "" ) . "
-                            ratio = " . ($j + 1) . "
+                            ratio = " . ($j + 1) . " AND
+                            stocker_reject IS NULL
                         ")->first();
 
                         $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $k + 1);
@@ -2019,7 +2040,8 @@ class StockerController extends Controller
                             panel = '" . $request['panel'] . "' AND
                             shade = '" . $request['group'][$i] . "' AND
                             " . ($request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "") . "
-                            ratio > " . ($lastRatio) . "
+                            ratio > " . ($lastRatio) . " AND
+                            stocker_reject IS NULL
                         ")->update([
                             "cancel" => "y",
                         ]);
@@ -2062,6 +2084,7 @@ class StockerController extends Controller
             where("form_cut_piece.status", "complete")->
             where("part_detail.id", $partDetailId)->
             where("stocker_input.form_piece_id", $request['form_cut_id'])->
+            whereNull("stocker_input.stocker_reject")->
             groupBy("form_cut_piece.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
             orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.shade", "desc")->
@@ -2127,7 +2150,8 @@ class StockerController extends Controller
                         panel = '" . $request['panel'] . "' AND
                         shade = '" . $request['group'][$index] . "' AND
                         " . ( $request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "" ) . "
-                        ratio = " . ($j + 1) . "
+                        ratio = " . ($j + 1) . " AND
+                        stocker_reject IS NULL
                     ")->first();
 
                     $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $i + 1);
@@ -2184,7 +2208,8 @@ class StockerController extends Controller
                         panel = '" . $request['panel'] . "' AND
                         shade = '" . $request['group'][$index] . "' AND
                         " . ( $request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "" ) . "
-                        ratio = " . ($j + 1) . "
+                        ratio = " . ($j + 1) . " AND
+                        stocker_reject IS NULL
                     ")->first();
 
                     $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $i + 1);
@@ -2240,7 +2265,8 @@ class StockerController extends Controller
                         panel = '" . $request['panel'] . "' AND
                         shade = '" . $request['group'][$index] . "' AND
                         " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
-                        ratio > " . ($lastRatio) . "
+                        ratio > " . ($lastRatio) . " AND
+                        stocker_reject IS NULL
                     ")->update([
                         "cancel" => "y",
                     ]);
@@ -2282,6 +2308,7 @@ class StockerController extends Controller
             where("form_cut_piece.status", "complete")->
             whereIn("part_detail.id", $request['generate_stocker'])->
             where("stocker_input.form_piece_id", $request['form_cut_id'])->
+            whereNull("stocker_input.stocker_reject")->
             groupBy("form_cut_piece.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
             orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.shade", "desc")->
@@ -2343,7 +2370,8 @@ class StockerController extends Controller
                         panel = '" . $request['panel'] . "' AND
                         shade = '" . $request['group'][$i] . "' AND
                         " . ( $request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "" ) . "
-                        ratio = " . ($j + 1) . "
+                        ratio = " . ($j + 1) . " AND
+                        stocker_reject IS NULL
                     ")->first();
 
                     $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $k + 1);
@@ -2406,7 +2434,8 @@ class StockerController extends Controller
                         panel = '" . $request['panel_add'] . "' AND
                         shade = '" . $request['group_add'][$i] . "' AND
                         " . ( $request['group_stocker_add'][$i] && $request['group_stocker_add'][$i] != "" ? "group_stocker = '" . $request['group_stocker_add'][$i] . "' AND" : "" ) . "
-                        ratio = " . ($j + 1) . "
+                        ratio = " . ($j + 1) . " AND
+                        stocker_reject IS NULL
                     ")->first();
 
                     $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $i + $j);
@@ -2490,7 +2519,8 @@ class StockerController extends Controller
                         panel = '" . $request['panel_add'] . "' AND
                         shade = '" . $request['group_add'][$i] . "' AND
                         " . ($request['group_stocker_add'][$i] && $request['group_stocker_add'][$i] != "" ? "group_stocker = '" . $request['group_stocker_add'][$i] . "' AND" : "") . "
-                        ratio > " . ($lastRatio) . "
+                        ratio > " . ($lastRatio) . " AND
+                        stocker_reject IS NULL
                     ")->update([
                         "cancel" => "y",
                     ]);
@@ -2507,7 +2537,8 @@ class StockerController extends Controller
                 so_det_id = '". $incompleteModSizeQty[$i]['so_det_id']."' and
                 shade = '".$incompleteModSizeQty[$i]['shade']."' and
                 group_stocker = '".$incompleteModSizeQty[$i]['group_stocker']."' and
-                ratio < '".$incompleteModSizeQty[$i]['ratio']."'
+                ratio < '".$incompleteModSizeQty[$i]['ratio']."' AND
+                stocker_reject IS NULL
             ")->first();
 
             if (!$currentStocker) {
@@ -2517,7 +2548,8 @@ class StockerController extends Controller
                     so_det_id = '". $incompleteModSizeQty[$i]['so_det_id']."' and
                     shade = '".$incompleteModSizeQty[$i]['shade']."' and
                     group_stocker = '".$incompleteModSizeQty[$i]['group_stocker']."' and
-                    ratio > '".$incompleteModSizeQty[$i]['ratio']."'
+                    ratio > '".$incompleteModSizeQty[$i]['ratio']."' AND
+                    stocker_reject IS NULL
                 ")->first();
             }
 
@@ -2689,7 +2721,8 @@ class StockerController extends Controller
                         panel = '" . $request['panel'] . "' AND
                         shade = '" . $request['group_add'][$index] . "' AND
                         " . ( $request['group_stocker_add'][$index] && $request['group_stocker_add'][$index] != "" ? "group_stocker = '" . $request['group_stocker_add'][$index] . "' AND" : "" ) . "
-                        ratio = " . ($j + 1) . "
+                        ratio = " . ($j + 1) . " AND
+                        stocker_reject IS NULL
                     ")->first();
 
                     $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $i + 1);
@@ -2747,7 +2780,8 @@ class StockerController extends Controller
                         panel = '" . $request['panel_add'] . "' AND
                         shade = '" . $request['group_add'][$index] . "' AND
                         " . ( $request['group_stocker_add'][$index] && $request['group_stocker_add'][$index] != "" ? "group_stocker = '" . $request['group_stocker_add'][$index] . "' AND" : "" ) . "
-                        ratio = " . ($j + 1) . "
+                        ratio = " . ($j + 1) . " AND
+                        stocker_reject IS NULL
                     ")->first();
 
                     $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $i + 1);
@@ -2829,7 +2863,8 @@ class StockerController extends Controller
                         panel = '" . $request['panel_add'] . "' AND
                         shade = '" . $request['group_add'][$index] . "' AND
                         " . ($request['group_stocker_add'][$index] && $request['group_stocker_add'][$index] != "" ? "group_stocker = '" . $request['group_stocker_add'][$index] . "' AND" : "") . "
-                        ratio > " . ($lastRatio) . "
+                        ratio > " . ($lastRatio) . " AND
+                        stocker_reject IS NULL
                     ")->update([
                         "cancel" => "y",
                     ]);

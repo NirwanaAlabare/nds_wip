@@ -48,7 +48,9 @@ class StockerRejectController extends Controller
                         stocker_input.color,
                         stocker_input.size,
                         'DC In' AS proses,
-                        ( dc_in_input.qty_reject - dc_in_input.qty_replace ) qty_reject
+                        COALESCE( ( dc_in_input.qty_reject - dc_in_input.qty_replace ) ) qty_reject,
+                        COALESCE( stocker_reject.generated_qty_reject, 0 ) generated_qty_reject,
+                        ( COALESCE( ( dc_in_input.qty_reject - dc_in_input.qty_replace ), 0) - COALESCE(stocker_reject.generated_qty_reject, 0) ) qty_reject_balance
                     FROM
                         dc_in_input
                         LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = dc_in_input.id_qr_stocker
@@ -59,6 +61,19 @@ class StockerRejectController extends Controller
                         AND similar_stocker.ratio = stocker_input.ratio
                         AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
                         AND similar_stocker.stocker_reject is null
+                        LEFT JOIN (
+                            SELECT
+                                stocker_reject.*,
+                                SUM(stocker_reject.qty_reject) generated_qty_reject
+                            FROM
+                                dc_in_input
+                                inner join stocker_reject on stocker_reject.dc_in_id = dc_in_input.id
+                            WHERE
+                                ( dc_in_input.qty_reject - dc_in_input.qty_replace ) > 0
+                                AND dc_in_input.tgl_trans BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                            GROUP BY
+                                dc_in_input.id
+                        ) stocker_reject on stocker_reject.dc_in_id = dc_in_input.id
                     WHERE
                         ( dc_in_input.qty_reject - dc_in_input.qty_replace ) > 0
                         AND dc_in_input.tgl_trans BETWEEN '".$dateFrom."' AND '".$dateTo."'
@@ -78,7 +93,9 @@ class StockerRejectController extends Controller
                         stocker_input.color,
                         stocker_input.size,
                         'Secondary Inhouse' AS proses,
-                        ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) qty_reject
+                        COALESCE( ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) ) qty_reject,
+                        COALESCE( stocker_reject.generated_qty_reject, 0 ) generated_qty_reject,
+                        ( COALESCE( ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ), 0) - COALESCE(stocker_reject.generated_qty_reject, 0) ) qty_reject_balance
                     FROM
                         secondary_inhouse_input
                         LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_inhouse_input.id_qr_stocker
@@ -89,6 +106,19 @@ class StockerRejectController extends Controller
                         AND similar_stocker.ratio = stocker_input.ratio
                         AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
                         AND similar_stocker.stocker_reject is null
+                        LEFT JOIN (
+                            SELECT
+                                stocker_reject.*,
+                                SUM(stocker_reject.qty_reject) generated_qty_reject
+                            FROM
+                                secondary_inhouse_input
+                                inner join stocker_reject on stocker_reject.secondary_inhouse_id = secondary_inhouse_input.id
+                            WHERE
+                                ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) > 0
+                                AND secondary_inhouse_input.tgl_trans BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                            GROUP BY
+                                secondary_inhouse_input.id
+                        ) stocker_reject on stocker_reject.secondary_inhouse_id = secondary_inhouse_input.id
                     WHERE
                         ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) > 0
                         AND secondary_inhouse_input.tgl_trans BETWEEN '".$dateFrom."' AND '".$dateTo."'
@@ -108,7 +138,9 @@ class StockerRejectController extends Controller
                         stocker_input.color,
                         stocker_input.size,
                         'Secondary In' AS proses,
-                        ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) qty_reject
+                        COALESCE( ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) ) qty_reject,
+                        COALESCE( stocker_reject.generated_qty_reject, 0 ) generated_qty_reject,
+                        ( COALESCE( ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ), 0) - COALESCE(stocker_reject.generated_qty_reject, 0) ) qty_reject_balance
                     FROM
                         secondary_in_input
                         LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_in_input.id_qr_stocker
@@ -119,6 +151,19 @@ class StockerRejectController extends Controller
                         AND similar_stocker.ratio = stocker_input.ratio
                         AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
                         AND similar_stocker.stocker_reject is null
+                        LEFT JOIN (
+                            SELECT
+                                stocker_reject.*,
+                                SUM(stocker_reject.qty_reject) generated_qty_reject
+                            FROM
+                                secondary_in_input
+                                inner join stocker_reject on stocker_reject.secondary_inhouse_id = secondary_in_input.id
+                            WHERE
+                                ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) > 0
+                                AND secondary_in_input.tgl_trans BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                            GROUP BY
+                                secondary_in_input.id
+                        ) stocker_reject on stocker_reject.secondary_in_id = secondary_in_input.id
                     WHERE
                         ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) > 0
                         AND secondary_in_input.tgl_trans BETWEEN '".$dateFrom."' AND '".$dateTo."'
@@ -495,7 +540,7 @@ class StockerRejectController extends Controller
                     whereRaw("stocker_input.id_qr_stocker in (".$stockerListFilter.")")->
                     get();
 
-                $dataStockerReject = StockerReject::selectRaw("id, qty_reject")->where($filterColumn, $request->id)->get();
+                $dataStockerReject = StockerReject::selectRaw("id, ratio, qty_reject")->where($filterColumn, $request->id)->get();
 
                 return view('stocker.stocker.stocker-reject.stocker-reject-detail', ['data' => $data[0], 'dataStocker' => $dataStocker, 'dataStockerReject' => $dataStockerReject, 'page' => 'dashboard-stocker', 'subPageGroup' => 'stocker-reject', 'subPage' => 'stocker-reject']);
             }
