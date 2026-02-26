@@ -142,6 +142,15 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4 d-none">
+                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#modifyStockerOrderModal">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Modify Stocker Order</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -340,6 +349,110 @@
             </div>
         </div>
     </div>
+
+    <!-- Modify Stocker Data -->
+    <div class="modal fade" id="modifyStockerOrderModal" tabindex="-1" aria-labelledby="modifyStockerOrderModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="modifyStockerOrderModalLabel">Modify Stocker Order</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">ID QR Stocker</label>
+                        <input type="text" class="form-control" id="id_qr_stocker_stocker_order_current">
+                    </div>
+                    <button class="btn btn-success btn-block mb-3" onclick="getStocker('_stocker_order_current')">Get Stocker</button>
+                    <div class="row justify-content-center align-items-center">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">No.WS</label>
+                                <input type='text' name="no_ws_stocker_order_current" id="no_ws_stocker_order_current" class="form-control" style="width: 100%;" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Style</label>
+                                <input type="text" name="style_stocker_order_current" id="style_stocker_order_current" class="form-control" style="width: 100%;" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Color</label>
+                                <input type='text' name="color_stocker_order_current" id="color_stocker_order_current" class="form-control" style="width: 100%;" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Size</label>
+                                <input type='text' name="size_stocker_order_current" id="size_stocker_order_current" class="form-control" style="width: 100%;" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Form</label>
+                                <input type='text' name="no_form_stocker_order_current" id="no_form_stocker_order_current" class="form-control" style="width: 100%;" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Qty</label>
+                                <input type='text' name="qty_stocker_order_current" id="qty_stocker_order_current" class="form-control" style="width: 100%;" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <h5 class="my-3">Update TO </h5>
+                    <hr>
+                    <div class="row justify-content-center align-items-center">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">No.WS</label>
+                                <select name="id_ws_stocker_order" id="id_ws_stocker_order" class="form-control select2bs4stockerorder" style="width: 100%;">
+                                    <option value="">Pilih WS</option>
+                                    @foreach ($orders as $order)
+                                        <option value="{{ $order->id }}">{{ $order->kpno }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Style</label>
+                                <select name="style_stocker_order" id="style_stocker_order" class="form-control select2bs4stockerorder" style="width: 100%;">
+                                    <option value="">Pilih Style</option>
+                                    @foreach ($orders as $style)
+                                        <option value="{{ $style->id }}">{{ $style->styleno }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Color</label>
+                                <select name="color_stocker_order" id="color_stocker_order" class="form-control select2bs4stockerorder" style="width: 100%;">
+                                    <option value="">Pilih Color</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Size</label>
+                                <select name="size_stocker_order" id="size_stocker_order" class="form-control select2bs4stockerorder" style="width: 100%;">
+                                    <option value="">Pilih Size</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
+                    <button type="button" class="btn btn-sb" onclick="modifyStocker()"><i class="fa fa-rotate-left"></i> Undo</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -374,6 +487,10 @@
         $('.select2bs4undostockeradditional').select2({
             theme: 'bootstrap4',
             dropdownParent: $('#undoStockerAdditionalModal')
+        });
+        $('.select2bs4stockerorder').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('#modifyStockerOrderModal')
         });
 
         $(document).ready(function () {
@@ -873,6 +990,148 @@
                 error: function (jqXHR) {
                     console.error(jqXHR);
                 }
+            });
+        }
+
+        // Get Stocker Info
+        function getStocker(suffix ='') {
+            let stockerValue = $("#id_qr_stocker"+suffix).val();
+
+            $("#id_ws"+suffix).val("");
+            $("#no_ws"+suffix).val("");
+            $("#style"+suffix).val("");
+            $("#color"+suffix).val("");
+            $("#so_det_id"+suffix).val("");
+            $("#size"+suffix).val("");
+            $("#no_form"+suffix).val("");
+            $("#qty"+suffix).val("");
+
+            $.ajax({
+                type: "get",
+                url: "{{ route("get-stocker") }}",
+                data: {
+                    stocker: stockerValue
+                },
+                dataType: "json",
+                success: async function (response) {
+                    console.log(response);
+
+                    if (response) {
+                        $("#id_ws"+suffix).val(response.act_costing_id);
+                        $("#no_ws"+suffix).val(response.act_costing_ws);
+                        $("#style"+suffix).val(response.style);
+                        $("#color"+suffix).val(response.color);
+                        $("#so_det_id"+suffix).val(response.so_det_id);
+                        $("#size"+suffix).val(response.size);
+                        $("#no_form"+suffix).val(response.no_form);
+                        $("#qty"+suffix).val(response.qty);
+                    }
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
+                }
+            });
+        }
+
+        $("#id_ws_stocker_order").on("change", async () => {
+            await updateWs("ws", "_stocker_order");
+            await updateColorList("_stocker_order")
+        })
+
+        $("#style_stocker_order").on("change", async () => {
+            await updateWs("style", "_stocker_order");
+            await updateColorList("_stocker_order")
+        })
+
+        // Update WS Select Option
+        function updateWs(currentVal, suffix = '') {
+            console.log(currentVal, $("#style"+suffix).val(), $("#id_ws"+suffix).val());
+            if (currentVal && ($("#style"+suffix).val() != $("#id_ws"+suffix).val())) {
+                if (currentVal == "ws") {
+                    $("#style"+suffix).val($("#id_ws"+suffix).val()).trigger("change");
+                }
+
+                if (currentVal == "style") {
+                    $("#id_ws"+suffix).val($("#style"+suffix).val()).trigger("change");
+                }
+            }
+        }
+
+        // Update Color Select Option
+        function updateColorList(suffix = "") {
+            document.getElementById('color'+suffix).value = null;
+
+            return $.ajax({
+                url: '{{ route("get-colors") }}',
+                type: 'get',
+                data: {
+                    act_costing_id: $('#id_ws'+suffix).val(),
+                },
+                success: function (res) {
+                    if (res) {
+                        let select = document.getElementById('color'+suffix);
+                        select.innerHTML = "";
+
+                        let latestVal = null;
+                        for(let i = 0; i < res.length; i++) {
+                            let option = document.createElement("option");
+                            option.setAttribute("value", res[i].color);
+                            option.innerHTML = res[i].color;
+                            select.appendChild(option);
+                        }
+
+                        $("#color"+suffix).val(res[0].color).trigger("change");
+
+                        // Open this step
+                        $("#color"+suffix).prop("disabled", false);
+                    }
+                },
+            });
+        }
+
+        $("#color_stocker_order").on("change", () => {
+            updateSizeList("_stocker_order")
+        })
+
+        // Update Color Select Option
+        function updateSizeList(suffix = '') {
+            document.getElementById('size'+suffix).value = null;
+
+            return $.ajax({
+                url: '{{ route("get-sizes") }}',
+                type: 'get',
+                data: {
+                    act_costing_id: $('#id_ws'+suffix).val(),
+                    color: $('#color'+suffix).val(),
+                },
+                success: function (res) {
+                    if (res) {
+                        console.log(res, res[0]);
+                        let select = document.getElementById('size'+suffix);
+                        select.innerHTML = "";
+
+                        // Init Option
+                        let option = document.createElement("option");
+                        option.setAttribute("value", "");
+                        option.innerHTML = "DEPEND";
+                        option.setAttribute("size", "");
+                        select.appendChild(option);
+
+                        let latestVal = null;
+                        for(let i = 0; i < res.length; i++) {
+                            let option = document.createElement("option");
+                            option.setAttribute("value", res[i].so_det_id);
+                            option.innerHTML = res[i].size+(res[i].dest && res[i].dest != '-' ? ' - '+res[i].dest : '');
+                            option.setAttribute("size", res[i].size);
+                            select.appendChild(option);
+                        }
+
+                        // $("#size"+suffix).val(res[0].so_det_id).trigger("change");
+
+                        // Open this step
+                        $("#size"+suffix).prop("disabled", false);
+                    }
+                },
             });
         }
     </script>

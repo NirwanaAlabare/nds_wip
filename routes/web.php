@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\PackingLineController;
 use Illuminate\Support\Facades\Route;
 
 // User
@@ -159,6 +158,7 @@ use App\Http\Controllers\PackingNeedleCheckController;
 use App\Http\Controllers\PackingMasterKartonController;
 use App\Http\Controllers\PackingPackingListController;
 use App\Http\Controllers\PackingReportController;
+use App\Http\Controllers\PackingLineController;
 
 // FINISH GOOD
 use App\Http\Controllers\FinishGoodDashboardController;

@@ -30,8 +30,11 @@ use DB;
 class StockerToolsController extends Controller
 {
     public function index() {
+        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno', 'styleno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
+
         return view('stocker.tools.tools', [
-            "page" => "dashboard-stocker"
+            "page" => "dashboard-stocker",
+            "orders" => $orders
         ]);
     }
 
