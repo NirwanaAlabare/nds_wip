@@ -366,7 +366,7 @@ public function getDetailList(Request $request)
             // $data_detail = DB::connection('mysql_sb')->select("select a.supplier,a.id_jo,a.kpno,a.id_item,a.goods_code,a.produk,a.itemdesc,a.unit,a.product_group,a.jo_no,qty qty_po,b.qty_bpb,(qty - COALESCE(qty_bpb,0)) qty,price,curr from (select ms.supplier,s.id_jo,ac.kpno,d.id_item,d.goods_code,IF(d.matclass = '-',d.itemdesc,d.matclass) produk,concat(d.itemdesc,' ',d.color,' ',d.size,' ',d.add_info) itemdesc,s.qty,s.unit,s.price,s.curr,mp.product_group,jo_no from po_header a inner join po_item s on a.id=s.id_po inner join masteritem d on s.id_gen=d.id_gen inner join jo_det jod on s.id_jo=jod.id_jo inner join jo on jod.id_jo=jo.id inner join so on jod.id_so=so.id inner join act_costing ac on so.id_cost=ac.id inner join masterproduct mp on ac.id_product=mp.id INNER JOIN mastersupplier ms on ms.id_supplier = a.id_supplier left join (select id_po_item,sum(qty)-sum(coalesce(qty_reject)) qty_bpb from bpb where pono='" . $request->txt_fill . "' group by id_po_item) tmpbpb on tmpbpb.id_po_item=s.id where a.pono='" . $request->txt_fill . "' and s.cancel='N' group by s.id order by d.id_item) a left join (select a.no_ws,id_jo,id_item,sum(COALESCE(qty_good,0) + COALESCE(qty_reject,0)) qty_bpb from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.no_po ='" . $request->txt_fill . "' GROUP BY no_ws,id_jo,id_item) b on b.no_ws = a.kpno and b.id_jo = a.id_jo and b.id_item = a.id_item ");
             // where (qty - COALESCE(qty_bpb,0)) > 0
     }elseif ($request->name_fill == 'WS'){
-        $data_detail = DB::connection('mysql_sb')->select("select a.id_jo,a.kpno,a.id_item,a.goods_code,a.produk,a.itemdesc,a.unit,qty qty_po,(qty - COALESCE(qty_bpb,0)) qty,price,curr from (select ms.supplier,jd.id_jo,ac.kpno,mi.id_item,mi.goods_code,IF(mi.matclass = '-',itemdesc,matclass) produk,mi.itemdesc,sum(bom.qty) qty,bom.unit,sd.price,ac.curr from bom_jo_global_item bom INNER JOIN jo_det jd on jd.id_jo = bom.id_jo INNER JOIN so on so.id = jd.id_so inner join (select * from so_det GROUP BY id_so) sd on sd.id_so = so.id INNER JOIN act_costing ac on ac.id = so.id_cost INNER JOIN mastersupplier ms on ms.id_supplier = bom.id_supplier INNER JOIN masteritem mi on mi.id_item = bom.id_item where bom.cancel = 'N' and bom.qty != 0 and ms.id_supplier = '" . $request->txt_supp . "' and ac.kpno = '" . $request->txt_fill . "' GROUP BY bom.id_item) a left join ( select no_ws,id_jo,id_item,sum(COALESCE(qty_good,0) + COALESCE(qty_reject,0)) qty_bpb from whs_inmaterial_fabric_det GROUP BY no_ws,id_jo,id_item) b on b.no_ws = a.kpno and b.id_jo = a.id_jo and b.id_item = a.id_item");
+        $data_detail = DB::connection('mysql_sb')->select("select a.id_jo,a.kpno,a.id_item,a.goods_code,a.produk,a.itemdesc,a.unit,qty qty_po,(qty - COALESCE(qty_bpb,0)) qty,0 price,curr from (select ms.supplier,jd.id_jo,ac.kpno,mi.id_item,mi.goods_code,IF(mi.matclass = '-',itemdesc,matclass) produk,mi.itemdesc,sum(bom.qty) qty,bom.unit,sd.price,ac.curr from bom_jo_global_item bom INNER JOIN jo_det jd on jd.id_jo = bom.id_jo INNER JOIN so on so.id = jd.id_so inner join (select * from so_det GROUP BY id_so) sd on sd.id_so = so.id INNER JOIN act_costing ac on ac.id = so.id_cost INNER JOIN mastersupplier ms on ms.id_supplier = bom.id_supplier INNER JOIN masteritem mi on mi.id_item = bom.id_item where bom.cancel = 'N' and bom.qty != 0 and ms.id_supplier = '" . $request->txt_supp . "' and ac.kpno = '" . $request->txt_fill . "' GROUP BY bom.id_item) a left join ( select no_ws,id_jo,id_item,sum(COALESCE(qty_good,0) + COALESCE(qty_reject,0)) qty_bpb from whs_inmaterial_fabric_det GROUP BY no_ws,id_jo,id_item) b on b.no_ws = a.kpno and b.id_jo = a.id_jo and b.id_item = a.id_item");
     }else{
         $data_detail = "";
     }
@@ -676,7 +676,7 @@ public function updatedet(Request $request)
                         "qty" => $request["qty_good"][$i],
                         "unit" => $request["det_unit"][$i],
                         "curr" => $request["det_curr"][$i],
-                        "price" => $request["det_price"][$i],
+                        "price" => $price,
                         "remark" => $deskripsi,
                         "id_supplier" => $id_supp,
                         "invno" => $invno,
@@ -751,7 +751,7 @@ public function updatedet(Request $request)
                         "qty_reject" => $request["qty_reject"][$i],
                         "unit" => $request["det_unit"][$i],
                         "curr" => $request["det_curr"][$i],
-                        "price" => $request["det_price"][$i],
+                        "price" => $price,
                         "status" => 'Y',
                         "created_at" => $timestamp,
                         "updated_at" => $timestamp,
