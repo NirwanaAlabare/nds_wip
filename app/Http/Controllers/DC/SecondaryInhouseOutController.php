@@ -9,6 +9,7 @@ use App\Models\Stocker\Stocker;
 use App\Models\Dc\SecondaryInhouse;
 use App\Exports\DC\ExportSecondaryInHouse;
 use App\Exports\DC\ExportSecondaryInHouseDetail;
+use App\Services\SecondaryInhouseService;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
 use \avadim\FastExcelLaravel\Excel as FastExcel;
@@ -705,7 +706,7 @@ class SecondaryInhouseOutController extends Controller
         return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
     }
 
-    public function cek_data_stocker_inhouse(Request $request)
+    public function cek_data_stocker_inhouse(Request $request, SecondaryInhouseService $secondaryInhouseService)
     {
         // When i wrote this code only god and i knew how it worked, now only god knows it
         // Therefore if you trying to optimize this and fail please increase this counter as a warning for the next person
@@ -724,6 +725,13 @@ class SecondaryInhouseOutController extends Controller
                 if ($partDetailSecondary && $partDetailSecondary->count() > 0) {
                     // If there ain't no urutan
                     if ($stocker->urutan == null) {
+
+                        // Check Secondary Inhouse IN
+                        $secondaryInhouseIn = $secondaryInhouseService->checkSecondaryInhouseIn($request->txtqrstocker);
+                        if (!$secondaryInhouseIn) {
+                            return "Belum discan Secondary Inhouse IN";
+                        }
+
                         $cekdata = DB::select("
                             SELECT
                                 dc.id_qr_stocker,
@@ -740,7 +748,7 @@ class SecondaryInhouseOutController extends Controller
                                 COALESCE(sii.id, '-') as in_id,
                                 COALESCE(sii.updated_at, sii.created_at, '-') as waktu_in,
                                 COALESCE(sii.user, '-') as author_in,
-                                COALESCE(sii.qty_in, coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace) qty_awal,
+                                COALESCE(sii.qty_in) qty_awal,
                                 ifnull(si.id_qr_stocker,'x'),
                                 1 as urutan
                             from dc_in_input dc
@@ -770,6 +778,11 @@ class SecondaryInhouseOutController extends Controller
                         $currentPartDetailSecondary = $partDetailSecondary->where('urutan', $stocker->urutan)->first();
 
                         if ($currentPartDetailSecondary && ($currentPartDetailSecondary->secondary && $currentPartDetailSecondary->secondary->tujuan == 'SECONDARY DALAM')) {
+                            // Check Secondary Inhouse IN
+                            $secondaryInhouseIn = $secondaryInhouseService->checkSecondaryInhouseIn($request->txtqrstocker, $currentPartDetailSecondary->urutan);
+                            if (!$secondaryInhouseIn) {
+                                return "Belum discan Secondary Inhouse IN";
+                            }
 
                             // Check the Secondary Inhouse IN first
                             $cekdata =  DB::select("
@@ -1006,6 +1019,13 @@ class SecondaryInhouseOutController extends Controller
                 }
                 // Default
                 else {
+                    // Check Secondary Inhouse IN
+                    $secondaryInhouseIn = $secondaryInhouseService->checkSecondaryInhouseIn($request->txtqrstocker);
+                    if (!$secondaryInhouseIn) {
+                        return "Belum discan Secondary Inhouse IN";
+                    }
+
+
                     $cekdata =  DB::select("
                         SELECT
                             dc.id_qr_stocker,
