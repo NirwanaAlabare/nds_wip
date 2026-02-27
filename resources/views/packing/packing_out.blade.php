@@ -181,12 +181,13 @@
             },
             ordering: false,
             processing: true,
-            serverSide: true,
+            serverSide: false,
             paging: true,
             searching: true,
             scrollY: '300px',
             scrollX: '300px',
             scrollCollapse: true,
+            deferRender: true,
             ajax: {
                 url: '{{ route('packing-out') }}',
                 data: function(d) {
@@ -306,28 +307,68 @@
                     dateTo
                 },
 
-                success: function(data) {
+                success: async function(data) {
 
-                    // -----------------------------------------
-                    // CREATE CSV
-                    // -----------------------------------------
-                    let csv = "";
+                    // ==========================================
+                    // CREATE EXCEL
+                    // ==========================================
+                    const workbook = new ExcelJS.Workbook();
+                    const worksheet = workbook.addWorksheet("Laporan Packing");
 
-                    // Title rows
-                    csv += "Laporan Packing Scan\n";
-                    csv += `Tgl Transaksi: ${dateFrom} - ${dateTo}\n\n`;
+                    // Title
+                    worksheet.mergeCells('A1:M1');
+                    worksheet.getCell('A1').value = "Laporan Packing Scan";
+                    worksheet.getCell('A1').font = {
+                        size: 14,
+                        bold: true
+                    };
+                    worksheet.getCell('A1').alignment = {
+                        horizontal: 'center'
+                    };
 
-                    // Headers
+                    worksheet.mergeCells('A2:M2');
+                    worksheet.getCell('A2').value = `Tgl Transaksi: ${dateFrom} - ${dateTo}`;
+                    worksheet.getCell('A2').alignment = {
+                        horizontal: 'center'
+                    };
+
+                    worksheet.addRow([]);
+
+                    // Header
                     const headers = [
                         "No", "Tgl. Trans", "No. Carton", "Barcode", "PO",
                         "WS", "Color", "Size", "Dest", "Tgl. Shipment",
                         "Total", "User", "Tgl. Input"
                     ];
-                    csv += headers.join(",") + "\n";
 
-                    // Data rows
+                    const headerRow = worksheet.addRow(headers);
+
+                    headerRow.eachCell((cell) => {
+                        cell.font = {
+                            bold: true
+                        };
+                        cell.alignment = {
+                            horizontal: 'center'
+                        };
+                        cell.border = {
+                            top: {
+                                style: 'thin'
+                            },
+                            left: {
+                                style: 'thin'
+                            },
+                            bottom: {
+                                style: 'thin'
+                            },
+                            right: {
+                                style: 'thin'
+                            }
+                        };
+                    });
+
+                    // Data
                     data.forEach((row, index) => {
-                        csv += [
+                        worksheet.addRow([
                             index + 1,
                             row.tgl_trans_fix,
                             row.no_carton,
@@ -341,23 +382,30 @@
                             row.tot,
                             row.created_by,
                             row.tgl_akt_input
-                        ].map(v => `"${v}"`).join(",") + "\n";
+                        ]);
                     });
 
-                    // -----------------------------------------
-                    // DOWNLOAD CSV
-                    // -----------------------------------------
-                    const blob = new Blob([csv], {
-                        type: "text/csv;charset=utf-8;"
+                    // Auto width column
+                    worksheet.columns.forEach(column => {
+                        column.width = 15;
                     });
+
+                    // ==========================================
+                    // DOWNLOAD FILE
+                    // ==========================================
+                    const buffer = await workbook.xlsx.writeBuffer();
+                    const blob = new Blob([buffer], {
+                        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    });
+
                     const link = document.createElement("a");
                     link.href = URL.createObjectURL(blob);
-                    link.download = "Laporan_Packing_Scan.csv";
+                    link.download = "Laporan_Packing_Scan.xlsx";
                     link.click();
 
-                    // -----------------------------------------
+                    // ==========================================
                     // FINISH
-                    // -----------------------------------------
+                    // ==========================================
                     const endTime = new Date().getTime();
                     const elapsedTime = Math.round((endTime - startTime) / 1000);
 
@@ -368,7 +416,6 @@
                         icon: 'success',
                         confirmButtonText: 'Okay'
                     });
-
                 },
 
                 error: function() {

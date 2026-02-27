@@ -14,6 +14,8 @@ class PackingPackingOutController extends Controller
 {
     public function index(Request $request)
     {
+        ini_set('memory_limit', '-1');
+        set_time_limit(0);
         $tgl_awal = $request->dateFrom;
         $tgl_akhir = $request->dateTo;
         $user = Auth::user()->name;
