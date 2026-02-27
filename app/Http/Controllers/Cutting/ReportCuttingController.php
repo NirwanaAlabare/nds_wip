@@ -11,6 +11,7 @@ use App\Exports\ExportPemakaianKain;
 use App\Exports\ExportDetailPemakaianKain;
 use App\Exports\ExportReportCuttingDaily;
 use App\Exports\export_excel_report_cutting_mutasi_fabric;
+use App\Exports\export_excel_report_cutting_mutasi_fabric_proporsional;
 use App\Exports\export_excel_report_gr_set;
 use App\Exports\export_excel_report_gr_panel;
 use App\Exports\Cutting\CuttingOrderOutputExport;
@@ -2040,16 +2041,14 @@ FROM
 		FROM gr_set
 ) a
 group by barcode, ws, a.satuan
-)
-
+),
+sf as(
 SELECT
 $barcode,
 mut.id_item,
 mi.itemdesc,
 mi.color,
 ws,
-buyer,
-styleno,
 ROUND(SUM(saldo_awal), 2)     AS saldo_awal,
 ROUND(SUM(penerimaan), 2)    AS penerimaan,
 ROUND(SUM(pemakaian), 2)     AS pemakaian,
@@ -2091,6 +2090,8 @@ m.ws
 FROM m
 ) mut
 left join signalbit_erp.masteritem mi on mut.id_item = mi.id_item
+$group)
+select sf.*, buyer,styleno from sf
 LEFT JOIN (
 SELECT
 		ac.kpno,
@@ -2102,8 +2103,7 @@ SELECT
         INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
 		WHERE jd.cancel = 'N'
 		GROUP BY jd.id_jo
-) k on mut.ws = k.kpno
-$group
+) k on sf.ws = k.kpno
 order by  ws asc, color asc
         ");
 
@@ -2131,6 +2131,124 @@ order by  ws asc, color asc
     {
         return Excel::download(new export_excel_report_cutting_mutasi_fabric($request->start_date, $request->end_date, $request->cbotipe), 'Laporan_Penerimaan FG_Stok.xlsx');
     }
+
+
+    public function report_cutting_mutasi_fabric_proporsional(Request $request)
+    {
+
+        $start_date = $request->input('start_date'); // example: 9 (September)
+        $end_date = $request->input('end_date'); // example: 2025
+        $prev_date = date('Y-m-d', strtotime($start_date . ' -1 day'));
+        $tipe = $request->input('cbotipe');
+
+        if ($tipe == 'Barcode') {
+            $barcode = 'id_roll as barcode';
+            $groupBy = 'id_roll, ws';
+        } else {
+            $barcode = 'NULL as barcode';
+            $groupBy = 'id_item, ws';
+        }
+
+        if ($request->ajax()) {
+            // ✅ If bulan or tahun is missing, return no data
+            if ($start_date === null || $end_date === null) {
+                return response()->json(['data' => []]);
+            } else {
+                $rawData = DB::select("SELECT
+ws,
+buyer,
+styleno,
+color,
+$barcode,
+mut.id_item,
+mi.itemdesc,
+ROUND(SUM(saldo_awal), 2) AS saldo_awal,
+ROUND(SUM(qty_in), 2) AS penerimaan,
+ROUND(SUM(qty_pakai), 2) AS pemakaian,
+ROUND(SUM(sr), 2) AS short_roll,
+ROUND(SUM(gr_p), 2) AS gr_panel,
+ROUND(SUM(gr_g), 2) AS gr_set,
+ROUND(SUM(qty_retur), 2) AS retur,
+ROUND(
+SUM(saldo_awal)
+    + SUM(qty_in)
+    - SUM(qty_pakai)
+    + SUM(sr)
+    - SUM(gr_p)
+    - SUM(gr_g)
+    - SUM(qty_retur)
+, 2) AS saldo_akhir,
+satuan
+from
+(
+select
+ws, id_roll, id_item, 0 saldo_awal, sum(qty_in) qty_in, sum(qty_pakai) qty_pakai, sum(sr) sr,sum(gr_p) gr_p,sum(gr_g) gr_g,sum(qty_retur) qty_retur, sum(saldo) as saldo_akhir,satuan
+from mut_cut_fab_saldo_tmp where tgl_trans >= '$start_date' and tgl_trans <= '$end_date'
+GROUP BY $groupBy
+UNION ALL
+select
+ws, id_roll, id_item, sum(saldo) saldo_awal, 0,0,0,0,0,0,0,satuan
+from mut_cut_fab_saldo_tmp where tgl_trans = '$prev_date'
+GROUP BY $groupBy
+) mut
+LEFT JOIN signalbit_erp.masteritem mi on mut.id_item = mi.id_item
+LEFT JOIN (
+SELECT
+		ac.kpno,
+        supplier as buyer,
+        styleno
+		FROM signalbit_erp.jo_det jd
+		INNER JOIN signalbit_erp.so ON jd.id_so = so.id
+		INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+        INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+		WHERE jd.cancel = 'N'
+		GROUP BY jd.id_jo
+) k on mut.ws = k.kpno
+GROUP BY $groupBy
+HAVING
+    ROUND(SUM(saldo_awal), 2) <> 0
+    OR ROUND(SUM(qty_in), 2) <> 0
+    OR ROUND(SUM(qty_pakai), 2) <> 0
+    OR ROUND(SUM(sr), 2) <> 0
+    OR ROUND(SUM(gr_p), 2) <> 0
+    OR ROUND(SUM(gr_g), 2) <> 0
+    OR ROUND(SUM(qty_retur), 2) <> 0
+    OR ROUND(
+        SUM(saldo_awal)
+        + SUM(qty_in)
+        - SUM(qty_pakai)
+        + SUM(sr)
+        - SUM(gr_p)
+        - SUM(gr_g)
+        - SUM(qty_retur),
+    2) <> 0
+order by ws asc, color asc
+        ");
+
+                return response()->json([
+                    'data' => $rawData // ✅ simplified response
+                ]);
+            }
+        }
+
+
+        // For non-AJAX (initial page load)
+        return view(
+            'cutting.report.report_mutasi_fabric_proporsional',
+            [
+                'page' => 'dashboard-cutting',
+                "subPageGroup" => "cutting-report",
+                "subPage" => "report_mutasi_fabric_proporsional",
+                'containerFluid' => true
+            ]
+        );
+    }
+
+    public function export_excel_report_cutting_mutasi_fabric_proporsional(Request $request)
+    {
+        return Excel::download(new export_excel_report_cutting_mutasi_fabric_proporsional($request->start_date, $request->end_date, $request->cbotipe), 'Laporan_Penerimaan FG_Stok.xlsx');
+    }
+
 
     /// Report Ganti Reject Set
     public function report_gr_set(Request $request)

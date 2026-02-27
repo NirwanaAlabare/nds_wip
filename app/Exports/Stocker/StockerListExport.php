@@ -439,7 +439,8 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                     where
                         year_sequence.updated_at between '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'
                     group by
-                        year_sequence.id_qr_stocker
+                        year_sequence.id_qr_stocker,
+                        year_sequence.updated_at
                 ),
 
                 stocker_bundle as (
@@ -508,7 +509,8 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                         (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END),
                         stocker_input.so_det_id,
                         stocker_input.group_stocker,
-                        stocker_input.ratio
+                        stocker_input.ratio,
+                        year_sequence_num.updated_at
                     HAVING
                         (stocker_input.form_cut_id is not null or stocker_input.form_reject_id is not null or stocker_input.form_piece_id is not null)
                         ".$qty_filter."
@@ -518,7 +520,7 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                         ".$stocker_range_filter."
                 )
 
-                select * from stocker_bundle
+                select * from stocker_bundle order by updated_at desc
         ");
 
         $this->rowCount = count($stockerList);

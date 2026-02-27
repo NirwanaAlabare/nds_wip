@@ -535,6 +535,14 @@
                     if (result.isConfirmed) {
                         document.getElementById("loading").classList.remove("d-none");
 
+                        let yearSequenceIds = null;
+                        const yearSequence = $('#year_sequence_ids').val();
+                        if (yearSequence) {
+                            // Compress and encode as base64
+                            const compressed = pako.deflate(yearSequence);
+                            yearSequenceIds = btoa(String.fromCharCode.apply(null, compressed));
+                        }
+
                         $.ajax({
                             url: '{{ route('delete-year-sequence') }}',
                             method: "POST",
@@ -543,7 +551,7 @@
                                 "sequence": $("#sequence").val(),
                                 "range_awal": $("#range_awal").val(),
                                 "range_akhir": $("#range_akhir").val(),
-                                "year_sequence_ids": $('#year_sequence_ids').val(),
+                                "year_sequence_ids": yearSequenceIds,
                                 "method": ($('#switch-method').is(':checked') ? "list" : "range"),
                             },
                             success: function (res) {

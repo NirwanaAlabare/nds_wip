@@ -329,12 +329,13 @@ class YearSequenceController extends Controller
                         where
                             year_sequence.updated_at between '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'
                         group by
-                            year_sequence.id_qr_stocker
+                            year_sequence.id_qr_stocker,
+                            year_sequence.updated_at
                     ),
 
                     stocker_bundle as (
                         select
-                            stocker_label.updated_at,
+                            year_sequence_num.updated_at,
                             stocker_input.id_qr_stocker,
                             GROUP_CONCAT(DISTINCT stocker_bundle.id_qr_stocker) id_qr_stocker_bundle,
                             master_part.nama_part part,
@@ -354,9 +355,9 @@ class YearSequenceController extends Controller
                             COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
                             COALESCE(form_cut_input.no_cut, '-') no_cut,
                             COALESCE(part_com.panel, part.panel) panel,
-                            stocker_label.year_sequence,
-                            stocker_label.total qty,
-                            CONCAT( MIN( stocker_label.range_awal ), ' - ', MAX( stocker_label.range_akhir )) numbering_range,
+                            year_sequence_num.year_sequence,
+                            year_sequence_num.total qty,
+                            CONCAT( MIN( year_sequence_num.range_awal ), ' - ', MAX( year_sequence_num.range_akhir )) numbering_range,
                             (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                         from
                             stocker_input
@@ -367,7 +368,7 @@ class YearSequenceController extends Controller
                                 AND stocker_bundle.group_stocker  <=> stocker_input.group_stocker
                                 AND stocker_bundle.ratio          <=> stocker_input.ratio
                                 AND stocker_bundle.stocker_reject <=> stocker_input.stocker_reject
-                            inner join stocker_label on stocker_label.id_qr_stocker = stocker_input.id_qr_stocker
+                            inner join stocker_label year_sequence_num on year_sequence_num.id_qr_stocker = stocker_input.id_qr_stocker
                             left join part_detail on stocker_input.part_detail_id = part_detail.id
                             left join part on part.id = part_detail.part_id
                             left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
@@ -385,10 +386,11 @@ class YearSequenceController extends Controller
                             (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END),
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
-                            stocker_input.ratio
+                            stocker_input.ratio,
+                            year_sequence_num.updated_at
                     )
 
-                    select * from stocker_bundle
+                    select * from stocker_bundle order by updated_at desc
             ");
 
             return DataTables::of($stockerList)->toJson();
@@ -781,7 +783,8 @@ class YearSequenceController extends Controller
                     where
                         year_sequence.updated_at between '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'
                     group by
-                        year_sequence.id_qr_stocker
+                        year_sequence.id_qr_stocker,
+                        year_sequence.updated_at
                 ),
 
                 stocker_bundle as (
@@ -852,7 +855,8 @@ class YearSequenceController extends Controller
                         (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END),
                         stocker_input.so_det_id,
                         stocker_input.group_stocker,
-                        stocker_input.ratio
+                        stocker_input.ratio,
+                        year_sequence_num.updated_at
                     HAVING
                         (stocker_input.form_cut_id is not null or stocker_input.form_reject_id is not null or stocker_input.form_piece_id is not null)
                         ".$qty_filter."
@@ -947,6 +951,10 @@ class YearSequenceController extends Controller
             ");
 
             if ($stockerList[0]) {
+                // Get id qr stocker
+                $idQrStocker = addQuotesAround(str_replace(',', "\n", $stockerList[0]->id_qr_stocker));
+
+                // Filter by id_qr_stocker
                 $stockerListNumber = YearSequence::selectRaw("
                     year_sequence.id_year_sequence,
                     year_sequence.number,
@@ -958,14 +966,34 @@ class YearSequenceController extends Controller
                 ")->
                 leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
                 whereRaw("
-                    ".$yearSequenceFormFilter."
-                    year_sequence.so_det_id = '".$so_det_id."' and
-                    year_sequence.number >= '".$stockerList[0]->range_awal."' and
-                    year_sequence.number <= '".$stockerList[0]->range_akhir."'
+                    ".($idQrStocker ? "year_sequence.id_qr_stocker in (".$idQrStocker.")" : "")."
                 ")->
                 orderByRaw("CAST(year_sequence_number as UNSIGNED) ASC")->
                 get();
 
+                // Filter by Form and Range when there is no data by id_qr_stocker
+                if (!$stockerListNumber) {
+                    $stockerListNumber = YearSequence::selectRaw("
+                        year_sequence.id_year_sequence,
+                        year_sequence.number,
+                        year_sequence.year,
+                        year_sequence.year_sequence,
+                        year_sequence.year_sequence_number,
+                        master_sb_ws.size,
+                        master_sb_ws.dest
+                    ")->
+                    leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
+                    whereRaw("
+                        ".$yearSequenceFormFilter."
+                        year_sequence.so_det_id = '".$so_det_id."' and
+                        year_sequence.number >= '".$stockerList[0]->range_awal."' and
+                        year_sequence.number <= '".$stockerList[0]->range_akhir."'
+                    ")->
+                    orderByRaw("CAST(year_sequence_number as UNSIGNED) ASC")->
+                    get();
+                }
+
+                // Get Output List
                 $output = DB::connection("mysql_sb")->
                     table("output_rfts")->
                     selectRaw("
@@ -1637,7 +1665,8 @@ class YearSequenceController extends Controller
                     where
                         year_sequence.updated_at between '".$dateFrom." 00:00:00' and '".$dateTo." 23:59:59'
                     group by
-                        year_sequence.id_qr_stocker
+                        year_sequence.id_qr_stocker,
+                        year_sequence.updated_at
                 ),
 
                 stocker_bundle as (
@@ -1708,7 +1737,8 @@ class YearSequenceController extends Controller
                         (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END),
                         stocker_input.so_det_id,
                         stocker_input.group_stocker,
-                        stocker_input.ratio
+                        stocker_input.ratio,
+                        year_sequence_num.updated_at
                     HAVING
                         (stocker_input.form_cut_id is not null or stocker_input.form_reject_id is not null or stocker_input.form_piece_id is not null)
                         ".$qty_filter."
@@ -2257,11 +2287,12 @@ class YearSequenceController extends Controller
         ]);
 
         if ($request->size != null && $request->size_text != null) {
+
+            // Check Output
             if ($request['method'] == "list") {
                 // Decompress
                 $yearSequenceIds = "'-'";
                 if ($request->year_sequence_ids) {
-                    // Decompress
                     $binary = base64_decode($request->year_sequence_ids);
                     $decompressBinary = gzuncompress($binary);
 
@@ -2297,6 +2328,7 @@ class YearSequenceController extends Controller
                 );
             }
 
+            // Allocate Available array and Unavailable array
             $yearSequenceArr = [];
             $yearSequenceFailArr = [];
             foreach ($yearSequences as $yearSequence) {
@@ -2311,13 +2343,16 @@ class YearSequenceController extends Controller
                 }
             }
 
+            // Generate failed message
             $failMessage = "";
             for ($i = 0; $i < count($yearSequenceFailArr); $i++) {
                 $failMessage .= "<small>'".$yearSequenceFailArr[$i]." sudah ada output'</small><br>";
             }
 
+            // If there is available data
             if (count($yearSequenceArr) > 0 && count($yearSequenceArr) <= 5000) {
 
+                // Update QR Label
                 $yearSequence = YearSequence::whereIn("id_year_sequence", $yearSequenceArr)->update([
                     "id_qr_stocker" => $stocker ? $stocker->id_qr_stocker : null,
                     "form_cut_id" => $stocker ? $stocker->form_cut_id : null,
@@ -2326,6 +2361,8 @@ class YearSequenceController extends Controller
                     "so_det_id" => $request->size,
                     "size" => $request->size_text,
                 ]);
+
+                // Update OUTPUT
                 $rft = DB::connection("mysql_sb")->table("output_rfts")->whereIn("kode_numbering", $yearSequenceArr)->update([
                     "so_det_id" => $request->size,
                 ]);
@@ -2354,6 +2391,7 @@ class YearSequenceController extends Controller
                 // When the updated Size Was in different PO
                 $sewingService->missPackingPo();
 
+                // Return response
                 if ($request['method'] == "list") {
                     if ($yearSequenceIds) {
                         return array(
@@ -2372,18 +2410,26 @@ class YearSequenceController extends Controller
                         "message" => "Year ".$request->year."' <br> Sequence '".$request->sequence."' <br> Range '".$request->range_awal." - ".$request->range_akhir."'. <br> <b>Berhasil di Update</b>".(strlen($failMessage) > 0 ? "<br> Kecuali: <br>".$failMessage : "")
                     );
                 }
-            } else if (count($yearSequenceArr) < 1) {
+            }
+
+            // When no available data
+            else if (count($yearSequenceArr) < 1) {
                 return array(
                     "status" => 400,
                     "message" => "Gagal di ubah ".(strlen($failMessage) > 0 ? "<br> Info : <br>".$failMessage : "")
                 );
-            } else if (count($yearSequenceArr) > 5000) {
+            }
+
+            // When exceeding limit
+            else if (count($yearSequenceArr) > 5000) {
                 return array(
                     "status" => 400,
                     "message" => "Maksimal QTY '5000'"
                 );
             }
         } else {
+
+            // Check Output
             if ($request['method'] == "list") {
                 // Decompress
                 $yearSequenceIds = "'-'";
@@ -2424,6 +2470,7 @@ class YearSequenceController extends Controller
                 );
             }
 
+            // Allocate Available/Unavailable Array
             $yearSequenceArr = [];
             $yearSequenceFailArr = [];
             foreach ($yearSequences as $yearSequence) {
@@ -2438,11 +2485,13 @@ class YearSequenceController extends Controller
                 }
             }
 
+            // Generate fail message
             $failMessage = "";
             for ($i = 0; $i < count($yearSequenceFailArr); $i++) {
                 $failMessage .= "<small>'".$yearSequenceFailArr[$i]." sudah ada output'</small><br>";
             }
 
+            // When there is available data
             if (count($yearSequenceArr) > 0 && count($yearSequenceArr) <= 5000) {
                 $idWs = $request->id_ws;
                 $color = $request->color;
@@ -2546,12 +2595,18 @@ class YearSequenceController extends Controller
                         "message" => "Harap lengkapi form tujuan."
                     );
                 }
-            } else if (count($yearSequenceArr) < 1) {
+            }
+
+            // When there is no avaialable data
+            else if (count($yearSequenceArr) < 1) {
                 return array(
                     "status" => 400,
                     "message" => "Gagal di ubah ".(strlen($failMessage) > 0 ? "<br> Info : <br>".$failMessage : "")
                 );
-            } else if (count($yearSequenceArr) > 5000) {
+            }
+
+            // When exceeding limit
+            else if (count($yearSequenceArr) > 5000) {
                 return array(
                     "status" => 400,
                     "message" => "Maksimal QTY '5000'"

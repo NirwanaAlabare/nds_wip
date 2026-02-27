@@ -6,7 +6,8 @@
         <thead>
             <tr>
                 <th colspan="<?= $tipe == 'Barcode' ? 16 : 15 ?>">
-                    Report Mutasi Fabric
+                    Report Mutasi Fabric Proporsional {{ date('d-M-Y', strtotime($from)) }} -
+                    {{ date('d-M-Y', strtotime($to)) }}
                 </th>
                 {{-- <th colspan="100">LAPORAN DAILY COST {{ date('d-M-Y', strtotime($from)) }} -
                     {{ date('d-M-Y', strtotime($to)) }}</th> --}}
@@ -20,7 +21,7 @@
                     <th class="text-center align-middle">Barcode</th>
                 @endif
                 <th class="text-center align-middle">ID Item</th>
-                <th style="width:100px;" class="text-center align-middle">Item Name</th>
+                <th style="width:100px; text-align:center;">Item Name</th>
                 <th class="text-center align-middle">Satuan</th>
                 <th class="text-center align-middle">Saldo Awal</th>
                 <th class="text-center align-middle">Penerimaan</th>
@@ -30,6 +31,7 @@
                 <th class="text-center align-middle">Ganti Reject Panel</th>
                 <th class="text-center align-middle">Retur</th>
                 <th class="text-center align-middle">Saldo Akhir</th>
+
             </tr>
         </thead>
         <tbody>

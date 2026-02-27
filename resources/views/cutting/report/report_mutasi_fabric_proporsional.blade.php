@@ -37,7 +37,7 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Report Mutasi Fabric</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Report Mutasi Fabric Proporsional</h5>
         </div>
 
         <div class="card-body">
@@ -212,7 +212,7 @@
                 processing: false,
 
                 ajax: {
-                    url: '{{ route('report_cutting_mutasi_fabric') }}',
+                    url: '{{ route('report_cutting_mutasi_fabric_proporsional') }}',
                     data(d) {
                         d.start_date = start_date;
                         d.end_date = end_date;
@@ -284,7 +284,7 @@
                     {
                         data: 'saldo_akhir',
                         className: 'text-end'
-                    }
+                    },
                 ],
 
                 initComplete: function() {
@@ -347,7 +347,7 @@
 
             $.ajax({
                 type: "get",
-                url: '{{ route('export_excel_report_cutting_mutasi_fabric') }}',
+                url: '{{ route('export_excel_report_cutting_mutasi_fabric_proporsional') }}',
                 data: {
                     start_date: start_date,
                     end_date: end_date,
