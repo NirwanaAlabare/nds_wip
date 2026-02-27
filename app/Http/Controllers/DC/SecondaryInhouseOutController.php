@@ -725,11 +725,16 @@ class SecondaryInhouseOutController extends Controller
                 if ($partDetailSecondary && $partDetailSecondary->count() > 0) {
                     // If there ain't no urutan
                     if ($stocker->urutan == null) {
+                        // Check Secondary Inhouse OUT
+                        $secondaryInhouseOut = $secondaryInhouseService->checkSecondaryInhouseOut($request->txtqrstocker);
+                        if ($secondaryInhouseOut) {
+                            return "Stocker ".$secondaryInhouseOut->id_qr_stocker." sudah discan di Secondary Inhouse OUT pada tanggal ".$secondaryInhouseOut->tgl_trans."";
+                        }
 
                         // Check Secondary Inhouse IN
                         $secondaryInhouseIn = $secondaryInhouseService->checkSecondaryInhouseIn($request->txtqrstocker);
                         if (!$secondaryInhouseIn) {
-                            return "Belum discan Secondary Inhouse IN";
+                            return "Belum di-scan Secondary Inhouse IN";
                         }
 
                         $cekdata = DB::select("
@@ -778,6 +783,12 @@ class SecondaryInhouseOutController extends Controller
                         $currentPartDetailSecondary = $partDetailSecondary->where('urutan', $stocker->urutan)->first();
 
                         if ($currentPartDetailSecondary && ($currentPartDetailSecondary->secondary && $currentPartDetailSecondary->secondary->tujuan == 'SECONDARY DALAM')) {
+                            // Check Secondary Inhouse OUT
+                            $secondaryInhouseOut = $secondaryInhouseService->checkSecondaryInhouseOut($request->txtqrstocker, $currentPartDetailSecondary->urutan);
+                            if ($secondaryInhouseOut) {
+                                return "Stocker ".$secondaryInhouseOut->id_qr_stocker." sudah discan di Secondary Inhouse OUT pada tanggal ".$secondaryInhouseOut->tgl_trans."";
+                            }
+
                             // Check Secondary Inhouse IN
                             $secondaryInhouseIn = $secondaryInhouseService->checkSecondaryInhouseIn($request->txtqrstocker, $currentPartDetailSecondary->urutan);
                             if (!$secondaryInhouseIn) {
@@ -860,7 +871,7 @@ class SecondaryInhouseOutController extends Controller
                                         where("urutan", $multiSecondaryBefore->urutan)->
                                         first();
 
-                                    // When there is secondary in on the step before then
+                                    // When there is secondary in on the step before then it should pass
                                     if ($multiSecondaryBeforeSecondaryIn) {
 
                                         // Return the data
@@ -1013,12 +1024,23 @@ class SecondaryInhouseOutController extends Controller
                                 return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
                             }
                         } else {
-                            return "Part Detail Secondary tidak sesuai.";
+                            $message = "";
+                            if ($currentPartDetailSecondary && $currentPartDetailSecondary->secondary) {
+                                $message = "Proses saat ini : ".$currentPartDetailSecondary->secondary->proses." - ".$currentPartDetailSecondary->secondary->tujuan;
+                            }
+
+                            return "Part Detail Secondary tidak sesuai.".$message;
                         }
                     }
                 }
                 // Default
                 else {
+                    // Check Secondary Inhouse OUT
+                    $secondaryInhouseOut = $secondaryInhouseService->checkSecondaryInhouseOut($request->txtqrstocker);
+                    if ($secondaryInhouseOut) {
+                        return "Stocker ".$secondaryInhouseOut->id_qr_stocker." sudah discan di Secondary Inhouse OUT pada tanggal ".$secondaryInhouseOut->tgl_trans."";
+                    }
+
                     // Check Secondary Inhouse IN
                     $secondaryInhouseIn = $secondaryInhouseService->checkSecondaryInhouseIn($request->txtqrstocker);
                     if (!$secondaryInhouseIn) {

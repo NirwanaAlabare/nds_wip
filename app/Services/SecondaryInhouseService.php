@@ -26,4 +26,15 @@ class SecondaryInhouseService
 
         return $secondaryInhouseInData;
     }
+
+    public function checkSecondaryInhouseOut($idQrStocker, $urutan = null) {
+        $secondaryInhouseOut = SecondaryInhouse::where("id_qr_stocker", $idQrStocker);
+        if ($urutan) {
+            $secondaryInhouseOut->where("urutan", $urutan);
+        }
+
+        $secondaryInhouseOutData = $secondaryInhouseOut->first();
+
+        return $secondaryInhouseOutData;
+    }
 }
