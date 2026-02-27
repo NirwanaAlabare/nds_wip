@@ -87,9 +87,6 @@
                                 <option value="{{ strtoupper("mending") }}">{{ strtoupper("mending") }}</option>
                                 <option value="{{ strtoupper("spotcleaning") }}">{{ strtoupper("spotcleaning") }}</option>
                                 <option value="{{ strtoupper("qcreject") }}">{{ strtoupper("qc reject") }}</option>
-                                <option value="{{ strtoupper("secondarysewingin") }}">{{ strtoupper("Secondary Sewing IN") }}</option>
-                                <option value="{{ strtoupper("secondarysewingout") }}">{{ strtoupper("Secondary Sewing OUT") }}</option>
-                                <option value="{{ strtoupper("secondarysewinginout") }}">{{ strtoupper("Secondary Sewing IN OUT") }}</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -140,9 +137,6 @@
                                 <option value="{{ strtoupper("mending") }}">{{ strtoupper("mending") }}</option>
                                 <option value="{{ strtoupper("spotcleaning") }}">{{ strtoupper("spotcleaning") }}</option>
                                 <option value="{{ strtoupper("qcreject") }}">{{ strtoupper("qc reject") }}</option>
-                                <option value="{{ strtoupper("secondarysewingin") }}">{{ strtoupper("Secondary Sewing IN") }}</option>
-                                <option value="{{ strtoupper("secondarysewingout") }}">{{ strtoupper("Secondary Sewing OUT") }}</option>
-                                <option value="{{ strtoupper("secondarysewinginout") }}">{{ strtoupper("Secondary Sewing IN OUT") }}</option>
                             </select>
                         </div>
                         <div class="mb-3">
