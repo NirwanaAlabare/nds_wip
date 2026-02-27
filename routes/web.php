@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\PackingLineController;
 use Illuminate\Support\Facades\Route;
 
 // User
@@ -159,6 +158,7 @@ use App\Http\Controllers\PackingNeedleCheckController;
 use App\Http\Controllers\PackingMasterKartonController;
 use App\Http\Controllers\PackingPackingListController;
 use App\Http\Controllers\PackingReportController;
+use App\Http\Controllers\PackingLineController;
 
 // FINISH GOOD
 use App\Http\Controllers\FinishGoodDashboardController;
@@ -914,6 +914,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/show/{id?}/{process?}', 'show')->name('show-stocker-reject');
         Route::get('/create', 'create')->name('create-stocker-reject');
         Route::post('/print-stocker-process-reject/{id?}', 'printStocker')->name('print-stocker-process-reject');
+        Route::post('/store', 'storeStockerProcessReject')->name('store-stocker-reject');
+
+        Route::post('/export', 'exportStockerReject')->name('export-stocker-reject');
     });
 
     // Stocker Tools

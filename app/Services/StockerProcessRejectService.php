@@ -38,22 +38,70 @@ use PDF;
 
 class StockerProcessRejectService
 {
-    function storeStockerProcessReject(Request $request)
+    function storeStockerProcessReject(Request $request, $create = false)
     {
         if ($request->stocker_id && count($request->stocker_id) > 0) {
             $stocker = Stocker::where("id", $request->stocker_id);
 
-            // stocker reject
-            $createStockerReject = StockerReject::updateOrCreate([
-                'dc_in_id' => $request['dc_in_id'],
-                'secondary_inhouse_id' => $request['secondary_inhouse_id'],
-                'secondary_in_id' => $request['secondary_in_id'],
-            ],[
-                "tanggal" => date("Y-m-d"),
-                'qty_reject' => $request['qty_reject'],
-                'created_by' => Auth::user()->id,
-                'created_by_username' => Auth::user()->username,
-            ]);
+            // Check All Stocker Reject
+            $stockerReject = StockerReject::where('dc_in_id', $request['dc_in_id'])->
+                where('secondary_inhouse_id', $request['secondary_inhouse_id'])->
+                where('secondary_in_id', $request['secondary_in_id'])->
+                get();
+
+            // Check Stocker Reject Ratio
+            $stockerRejectNextRatio = $stockerReject->count()+1;
+
+            if ($create) {
+
+                // Check Stocker Reject's Process
+                $stockerRejectProcess = null;
+                if ($request['dc_in_id']) {
+                    $stockerRejectProcess = DCIn::where("id", $request['dc_in_id'])->first();
+                }
+                if ($request['secondary_inhouse_id']) {
+                    $stockerRejectProcess = SecondaryInhouse::where("id", $request['secondary_inhouse_id'])->first();
+                }
+                if ($request['secondary_in_id']) {
+                    $stockerRejectProcess = SecondaryIn::where("id", $request['secondary_in_id'])->first();
+                }
+
+                if ($stockerRejectProcess) {
+                    $stockerRejectQty = $stockerReject->sum("qty_reject");
+                    $stockerRejectProcessQty = $stockerRejectProcess->qty_reject + $stockerRejectProcess->qty_replace;
+
+                    if ($stockerRejectQty >= $stockerRejectProcessQty) {
+                        return array(
+                            "status" => 400,
+                            "message" => "Qty Input tidak dapat melebihi Sisa",
+                        );
+                    }
+                }
+
+                // create stocker reject
+                $createStockerReject = StockerReject::create([
+                    'dc_in_id' => $request['dc_in_id'],
+                    'secondary_inhouse_id' => $request['secondary_inhouse_id'],
+                    'secondary_in_id' => $request['secondary_in_id'],
+                    "tanggal" => date("Y-m-d"),
+                    'qty_reject' => $request['qty_input'],
+                    'ratio' => $stockerRejectNextRatio,
+                    'created_by' => Auth::user()->id,
+                    'created_by_username' => Auth::user()->username,
+                ]);
+            } else {
+                // updateorcreate stocker reject
+                $createStockerReject = StockerReject::updateOrCreate([
+                    'dc_in_id' => $request['dc_in_id'],
+                    'secondary_inhouse_id' => $request['secondary_inhouse_id'],
+                    'secondary_in_id' => $request['secondary_in_id'],
+                ],[
+                    "tanggal" => date("Y-m-d"),
+                    'qty_reject' => $request['qty_input'],
+                    'created_by' => Auth::user()->id,
+                    'created_by_username' => Auth::user()->username,
+                ]);
+            }
 
             if ($createStockerReject) {
                 // stocker
@@ -68,7 +116,7 @@ class StockerProcessRejectService
 
                     if ($checkStocker) {
                         // Update when exist
-                        $checkStocker->qty_ply = $request['qty'];
+                        $checkStocker->qty_ply = $request['qty_input'];
                         $checkStocker->cancel = 'n';
                         $checkStocker->save();
                     } else {
@@ -86,9 +134,9 @@ class StockerProcessRejectService
                             'panel' => $request['panel'],
                             'shade' => $request['shade'][$i],
                             'group_stocker' => $request['group_stocker'][$i],
-                            'ratio' => $request['ratio'][$i],
+                            'ratio' => $createStockerReject->ratio,
                             'size' => $request['size'][$i],
-                            'qty_ply' => $request['qty'],
+                            'qty_ply' => $request['qty_input'],
                             // Process IDs
                             'stocker_reject' => $createStockerReject->id,
                             // End of Process IDs

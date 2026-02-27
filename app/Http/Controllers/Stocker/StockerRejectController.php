@@ -14,8 +14,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
 use DB;
 use PDF;
+use Carbon\Carbon;
 
 class StockerRejectController extends Controller
 {
@@ -48,7 +50,9 @@ class StockerRejectController extends Controller
                         stocker_input.color,
                         stocker_input.size,
                         'DC In' AS proses,
-                        ( dc_in_input.qty_reject - dc_in_input.qty_replace ) qty_reject
+                        COALESCE( ( dc_in_input.qty_reject - dc_in_input.qty_replace ) ) qty_reject,
+                        COALESCE( stocker_reject.generated_qty_reject, 0 ) generated_qty_reject,
+                        ( COALESCE( ( dc_in_input.qty_reject - dc_in_input.qty_replace ), 0) - COALESCE(stocker_reject.generated_qty_reject, 0) ) qty_reject_balance
                     FROM
                         dc_in_input
                         LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = dc_in_input.id_qr_stocker
@@ -59,12 +63,26 @@ class StockerRejectController extends Controller
                         AND similar_stocker.ratio = stocker_input.ratio
                         AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
                         AND similar_stocker.stocker_reject is null
+                        LEFT JOIN (
+                            SELECT
+                                stocker_reject.*,
+                                SUM(stocker_reject.qty_reject) generated_qty_reject
+                            FROM
+                                dc_in_input
+                                inner join stocker_reject on stocker_reject.dc_in_id = dc_in_input.id
+                            WHERE
+                                ( dc_in_input.qty_reject - dc_in_input.qty_replace ) > 0
+                                AND dc_in_input.tgl_trans BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                            GROUP BY
+                                dc_in_input.id
+                        ) stocker_reject on stocker_reject.dc_in_id = dc_in_input.id
                     WHERE
                         ( dc_in_input.qty_reject - dc_in_input.qty_replace ) > 0
                         AND dc_in_input.tgl_trans BETWEEN '".$dateFrom."' AND '".$dateTo."'
                     GROUP BY
                         dc_in_input.id
-                UNION ALL-- secondary_inhouse_input
+                UNION ALL
+                    -- secondary_inhouse_input
                     SELECT
                         tgl_trans tanggal,
                         secondary_inhouse_input.id as id,
@@ -77,7 +95,9 @@ class StockerRejectController extends Controller
                         stocker_input.color,
                         stocker_input.size,
                         'Secondary Inhouse' AS proses,
-                        ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) qty_reject
+                        COALESCE( ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) ) qty_reject,
+                        COALESCE( stocker_reject.generated_qty_reject, 0 ) generated_qty_reject,
+                        ( COALESCE( ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ), 0) - COALESCE(stocker_reject.generated_qty_reject, 0) ) qty_reject_balance
                     FROM
                         secondary_inhouse_input
                         LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_inhouse_input.id_qr_stocker
@@ -88,12 +108,26 @@ class StockerRejectController extends Controller
                         AND similar_stocker.ratio = stocker_input.ratio
                         AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
                         AND similar_stocker.stocker_reject is null
+                        LEFT JOIN (
+                            SELECT
+                                stocker_reject.*,
+                                SUM(stocker_reject.qty_reject) generated_qty_reject
+                            FROM
+                                secondary_inhouse_input
+                                inner join stocker_reject on stocker_reject.secondary_inhouse_id = secondary_inhouse_input.id
+                            WHERE
+                                ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) > 0
+                                AND secondary_inhouse_input.tgl_trans BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                            GROUP BY
+                                secondary_inhouse_input.id
+                        ) stocker_reject on stocker_reject.secondary_inhouse_id = secondary_inhouse_input.id
                     WHERE
                         ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) > 0
                         AND secondary_inhouse_input.tgl_trans BETWEEN '".$dateFrom."' AND '".$dateTo."'
                     GROUP BY
                         secondary_inhouse_input.id
-                UNION ALL-- secondary_in_input
+                UNION ALL
+                    -- secondary_in_input
                     SELECT
                         tgl_trans tanggal,
                         secondary_in_input.id AS id,
@@ -106,7 +140,9 @@ class StockerRejectController extends Controller
                         stocker_input.color,
                         stocker_input.size,
                         'Secondary In' AS proses,
-                        ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) qty_reject
+                        COALESCE( ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) ) qty_reject,
+                        COALESCE( stocker_reject.generated_qty_reject, 0 ) generated_qty_reject,
+                        ( COALESCE( ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ), 0) - COALESCE(stocker_reject.generated_qty_reject, 0) ) qty_reject_balance
                     FROM
                         secondary_in_input
                         LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_in_input.id_qr_stocker
@@ -117,6 +153,19 @@ class StockerRejectController extends Controller
                         AND similar_stocker.ratio = stocker_input.ratio
                         AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
                         AND similar_stocker.stocker_reject is null
+                        LEFT JOIN (
+                            SELECT
+                                stocker_reject.*,
+                                SUM(stocker_reject.qty_reject) generated_qty_reject
+                            FROM
+                                secondary_in_input
+                                inner join stocker_reject on stocker_reject.secondary_inhouse_id = secondary_in_input.id
+                            WHERE
+                                ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) > 0
+                                AND secondary_in_input.tgl_trans BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                            GROUP BY
+                                secondary_in_input.id
+                        ) stocker_reject on stocker_reject.secondary_in_id = secondary_in_input.id
                     WHERE
                         ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) > 0
                         AND secondary_in_input.tgl_trans BETWEEN '".$dateFrom."' AND '".$dateTo."'
@@ -339,6 +388,7 @@ class StockerRejectController extends Controller
         if ($request->id && $request->process) {
 
             $data = null;
+            $filterColumn = "";
             switch ($request->process) {
                 case 'DC In' :
                     $data = DB::select("
@@ -378,6 +428,8 @@ class StockerRejectController extends Controller
                         GROUP BY
                             dc_in_input.id
                     ");
+
+                    $filterColumn = "dc_in_id";
 
                     break;
                 case 'Secondary Inhouse' :
@@ -419,6 +471,8 @@ class StockerRejectController extends Controller
                             secondary_inhouse_input.id
                     ");
 
+                    $filterColumn = "secondary_inhouse_id";
+
                     break;
                 case 'Secondary In' :
                     $data = DB::select("
@@ -459,6 +513,8 @@ class StockerRejectController extends Controller
                             secondary_in_input.id
                     ");
 
+                    $filterColumn = "secondary_in_id";
+
                     break;
             }
 
@@ -486,180 +542,70 @@ class StockerRejectController extends Controller
                     whereRaw("stocker_input.id_qr_stocker in (".$stockerListFilter.")")->
                     get();
 
-                return view('stocker.stocker.stocker-reject.stocker-reject-detail', ['data' => $data[0], 'dataStocker' => $dataStocker, 'page' => 'dashboard-stocker', 'subPageGroup' => 'stocker-reject', 'subPage' => 'stocker-reject']);
+                $dataStockerReject = StockerReject::selectRaw("id, ratio, qty_reject")->where($filterColumn, $request->id)->get();
+
+                return view('stocker.stocker.stocker-reject.stocker-reject-detail', ['data' => $data[0], 'dataStocker' => $dataStocker, 'dataStockerReject' => $dataStockerReject, 'page' => 'dashboard-stocker', 'subPageGroup' => 'stocker-reject', 'subPage' => 'stocker-reject']);
             }
         }
     }
 
     function storeStockerProcessReject(Request $request, StockerProcessRejectService $stockerProcessRejectService)
     {
-        if ($request->stocker_id && count($request->stocker_id) > 0) {
-            $stocker = Stocker::where("id", $request->stocker_id);
+        if (($request['dc_in_id'] || $request['secondary_inhouse_id'] || $request['secondary_in_id']) && $request['qty_input']) {
+            $createStockerReject = $stockerProcessRejectService->storeStockerProcessReject($request, true);
 
-            // stocker reject
-            $createStockerReject = StockerReject::create([
-                "tanggal" => $request['tanggal'],
-                'dc_in_id' => $request['dc_in_id'],
-                'secondary_inhouse_id' => $request['secondary_inhouse_id'],
-                'secondary_in_id' => $request['secondary_in_id'],
-                'qty_reject' => $request['qty_reject'],
-                'created_by' => Auth::user()->id,
-                'created_by_username' => Auth::user()->username,
-            ]);
-
-            if ($createStockerReject) {
-                $batch = Str::uuid();
-                for ($i = 0; $i < count($request->stocker_id); $i++) {
-                    array_push($storeItemArr, [
-                        'id_qr_stocker' => $request['stocker_id'][$i],
-                        'act_costing_ws' => $request['act_costing_ws'],
-                        'part_detail_id' => $request['part_detail_id'][$i],
-                        'form_cut_id' => $request['form_cut_id'],
-                        'so_det_id' => $request['so_det_id'][$i],
-                        'color' => $request['color'],
-                        'panel' => $request['panel'],
-                        'shade' => $request['shade'][$i],
-                        'group_stocker' => $request['group_stocker'][$i],
-                        'ratio' => $request['ratio'][$i],
-                        'size' => $request['size'][$i],
-                        'qty_ply' => $request['qty'],
-                        // Process IDs
-                        'stocker_reject' => $createStockerReject->id,
-                        // End of Process IDs
-                        'notes' => 'Stocker Reject Process',
-                        'urutan' => $request['secondary_in_id'][$i],
-                        'created_by' => Auth::user()->id,
-                        'created_by_username' => Auth::user()->username,
-                        'batch' => $batch,
-                        'created_at' => Carbon::now(),
-                        'updated_at' => Carbon::now()
-                    ]);
-                }
-
-                // Create Stocker
-                Stocker::create($storeItemArr);
-
-                // Get Created Stocker
-                $storedStocker = StockerController::where("batch", $batch)->get();
-
-                if ($storedStocker) {
-
-                    // Copy created Stocker's process
-                    foreach ($storedStocker as $stocker) {
-                        // When DC
-                        $currentDc = null;
-                        if ($stocker->dc_in_id) {
-                            // Current DC
-                            $currentDc = DCIn::where("id", $stocker->dc_in_id)->first();
-                            if ($currentDc) {
-                                $createDc = DCIn::create([
-                                    "id_qr_stocker" => $stocker->id_qr_stocker,
-                                    "no_form" => $currentDc->no_form,
-                                    "tujuan" => $currentDc->tujuan,
-                                    "lokasi" => $currentDc->lokasi,
-                                    "qty_awal" => $stocker->qty_ply,
-                                    "qty_reject" => 0,
-                                    "qty_replace" => 0,
-                                    "tempat" => $currentDc->tempat,
-                                    "tgl_trans" => $currentDc->tgl_trans,
-                                    "user" => $currentDc->user,
-                                    "created_by" => Auth::user()->id,
-                                    "created_by_username" => Auth::user()->username,
-                                ]);
-                            }
-                        }
-
-                        // When Secondary Inhouse
-                        $currentSecondaryInhouse = null;
-                        if ($stocker->secondary_inhouse_id) {
-
-                            $currentSecondaryInhouse = SecondaryInhouse::where("id", $stocker->secondary_inhouse_id)->first();
-
-                            if ($currentSecondaryInhouse) {
-                                // Copy DC
-                                $stockerRejectProcessService->copyDcInTransaction($currentSecondaryInhouse->id_qr_stocker);
-
-                                // Current Secondary Inhouse
-                                $createSecondaryInhouse = SecondaryInhouse::create([
-                                    "tgl_trans" => $currentSecondaryInhouse->tgl_trans,
-                                    "no_form" => $currentSecondaryInhouse->no_form,
-                                    "id_qr_stocker" => $stocker->id_qr_stocker,
-                                    "qty_awal" => $stocker->qty_ply,
-                                    "qty_reject" => 0,
-                                    "qty_replace" => 0,
-                                    "qty_in" => $stocker->qty_ply,
-                                    "urutan" => $currentSecondaryInhouse->urutan,
-                                    "ket" => $currentSecondaryInhouse->ket,
-                                    "user" => Auth::user()->username,
-                                ]);
-                            }
-                        }
-
-                        // When Secondary In
-                        $currentSecondaryIn = null;
-                        if ($stocker->secondary_in_id) {
-
-                            $currentSecondaryIn = SecondaryIn::where("id", $stocker->secondary_in_id)->first();
-
-                            if ($currentSecondaryIn) {
-                                // Copy Inhouse & DC
-                                $copyInhouse = $stockerRejectProcessService->copySecondaryInhouseTransaction($currentSecondaryIn->id_qr_stocker);
-                                if (!$copyInhouse) {
-                                    // Copy DC (if there is no inhouse)
-                                    $copyDc = $stockerRejectProcessService->copyDcInTransaction($currentSecondaryIn->id_qr_stocker);
-                                }
-
-                                // Current Secondary Inhouse
-                                $createSecondaryIn = SecondaryIn::create([
-                                    "tgl_trans" => $currentSecondaryIn->tgl_trans,
-                                    "no_form" => $currentSecondaryIn->no_form,
-                                    "id_qr_stocker" => $stocker->id_qr_stocker,
-                                    "tujuan" => $currentSecondaryIn->tujuan,
-                                    "alokasi" => $currentSecondaryIn->alokasi,
-                                    "qty_awal" => $stocker->qty_ply,
-                                    "qty_reject" => 0,
-                                    "qty_replace" => 0,
-                                    "qty_in" => $stocker->qty_ply,
-                                    "urutan" => $currentSecondaryIn->urutan,
-                                    "ket" => $currentSecondaryIn->ket,
-                                    "user" => Auth::user()->username,
-                                ]);
-                            }
-                        }
-                    }
-
-                    return array(
-                        "status" => 200,
-                        "message" => "Data berhasil disimpan",
-                    );
-                }
-            }
+            return $createStockerReject;
         }
+
+        return array(
+            "status" => 400,
+            "message" => "Data gagal disimpan."
+        );
     }
 
     function printStocker(Request $request, StockerService $stockerService, StockerProcessRejectService $stockerProcessRejectService, $index = null) {
         if ($request->stocker_id) {
-            $stockerProcessRejectService->storeStockerProcessReject($request);
+            // $stockerProcessRejectService->storeStockerProcessReject($request);
 
             $filterArr = [
                 "formCutId" => $request['form_cut_id'],
             ];
 
             // Get stocker reject
-            $currentStockerReject = StockerReject::where("dc_in_id", $request->dc_in_id)->where("secondary_inhouse_id", $request->secondary_inhouse_id)->where("secondary_in_id", $request->secondary_in_id)->first();
+            $currentStockerReject = StockerReject::where("dc_in_id", $request->dc_in_id)->where("secondary_inhouse_id", $request->secondary_inhouse_id)->where("secondary_in_id", $request->secondary_in_id)->get();
+
             if ($currentStockerReject) {
 
-                // Get stocker ids
-                $stockerIds = Stocker::select("id")->
-                    where('stocker_reject', $currentStockerReject->id);
-                    if ($index && isset($request['part_detail_id'][$index])) {
-                        $stockerIds->where("part_detail_id", $request['part_detail_id'][$index]);
-                    }
-                $stockerIds = $stockerIds->get()->pluck("id")->toArray();
+                // If single Print
+                if ($index && isset($request['stocker_reject_id_detail'][$index])) {
+                    $currentStockerRejectId = $request['stocker_reject_id_detail'][$index];
+                    $currentStockerReject = $currentStockerReject->filter(function ($data) use ($currentStockerRejectId) {
+                        return $data->id == $currentStockerRejectId;
+                    });
+                }
 
-                if ($stockerIds) {
+                // Get stocker ids
+                $stockerIdsArr = [];
+                foreach ($currentStockerReject as $stockerReject) {
+
+                    // Get stocker ids
+                    $stockerIds = Stocker::select("id")->
+                        where('stocker_reject', $stockerReject->id);
+
+                        // If single print
+                        if ($index && isset($request['part_detail_id_detail'][$index])) {
+                            $stockerIds->where("part_detail_id", $request['part_detail_id_detail'][$index]);
+                        }
+
+                    $newStockerIds = $stockerIds->get()->pluck("id")->toArray();
+
+                    // Merge Array (Push to stocker ids arr)
+                    $stockerIdsArr = array_merge($stockerIdsArr, $newStockerIds);
+                }
+
+                if ($stockerIdsArr) {
                     // Get Stocker Data
-                    $filterArr['multiStockerId'] = $stockerIds;
+                    $filterArr['multiStockerId'] = $stockerIdsArr;
                     $dataStockers = $stockerService->getStockerForPrint($filterArr);
 
                     // generate pdf
@@ -709,5 +655,210 @@ class StockerRejectController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function exportStockerReject(Request $request)
+    {
+        $dateFrom = $request->dateFrom ? $request->dateFrom : date("Y-m-d");
+        $dateTo = $request->dateTo ? $request->dateTo : date("Y-m-d");
+
+        // Create Excel file using FastExcel
+        $excel = FastExcel::create('Stocker Reject List');
+        $sheet = $excel->getSheet();
+
+        // Title
+        $sheet->writeTo('A1', 'STOCKER REJECT LIST', ['font-size' => 16, 'font-bold' => true]);
+        $sheet->mergeCells('A1:G1');
+
+        // Period
+        $sheet->writeTo('A2', 'Periode : ' . $dateFrom . ' s/d ' . $dateTo);
+        $sheet->mergeCells('A2:G2');
+
+        // Headers
+        $sheet->writeTo('A4', 'Tanggal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('B4', 'Stocker')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('C4', 'Proses')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('D4', 'Qty Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('E4', 'Generated Qty')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('F4', 'Qty Reject Balance')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('G4', 'Status')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+        $dataStockerReject = DB::select("
+                SELECT
+                    *
+                FROM
+                (
+                    -- dc_in_input
+                    SELECT
+                        tgl_trans tanggal,
+                        dc_in_input.id as id,
+                        dc_in_input.id dc_in_id,
+                        NULL AS secondary_inhouse_id,
+                        NULL AS secondary_in_id,
+                        stocker_input.id_qr_stocker,
+                        GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
+                        stocker_input.act_costing_ws,
+                        stocker_input.color,
+                        stocker_input.size,
+                        'DC In' AS proses,
+                        COALESCE( ( dc_in_input.qty_reject - dc_in_input.qty_replace ) ) qty_reject,
+                        COALESCE( stocker_reject.generated_qty_reject, 0 ) generated_qty_reject,
+                        ( COALESCE( ( dc_in_input.qty_reject - dc_in_input.qty_replace ), 0) - COALESCE(stocker_reject.generated_qty_reject, 0) ) qty_reject_balance
+                    FROM
+                        dc_in_input
+                        LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = dc_in_input.id_qr_stocker
+                        LEFT JOIN stocker_input AS similar_stocker ON similar_stocker.form_cut_id = stocker_input.form_cut_id
+                        AND similar_stocker.so_det_id = stocker_input.so_det_id
+                        AND similar_stocker.shade = stocker_input.shade
+                        AND similar_stocker.group_stocker = stocker_input.group_stocker
+                        AND similar_stocker.ratio = stocker_input.ratio
+                        AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
+                        AND similar_stocker.stocker_reject is null
+                        LEFT JOIN (
+                            SELECT
+                                stocker_reject.*,
+                                SUM(stocker_reject.qty_reject) generated_qty_reject
+                            FROM
+                                dc_in_input
+                                inner join stocker_reject on stocker_reject.dc_in_id = dc_in_input.id
+                            WHERE
+                                ( dc_in_input.qty_reject - dc_in_input.qty_replace ) > 0
+                                AND dc_in_input.tgl_trans BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                            GROUP BY
+                                dc_in_input.id
+                        ) stocker_reject on stocker_reject.dc_in_id = dc_in_input.id
+                    WHERE
+                        ( dc_in_input.qty_reject - dc_in_input.qty_replace ) > 0
+                        AND dc_in_input.tgl_trans BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                    GROUP BY
+                        dc_in_input.id
+                UNION ALL
+                    -- secondary_inhouse_input
+                    SELECT
+                        tgl_trans tanggal,
+                        secondary_inhouse_input.id as id,
+                        NULL dc_in_id,
+                        secondary_inhouse_input.id secondary_inhouse_id,
+                        NULL AS secondary_in_id,
+                        stocker_input.id_qr_stocker,
+                        GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
+                        stocker_input.act_costing_ws,
+                        stocker_input.color,
+                        stocker_input.size,
+                        'Secondary Inhouse' AS proses,
+                        COALESCE( ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) ) qty_reject,
+                        COALESCE( stocker_reject.generated_qty_reject, 0 ) generated_qty_reject,
+                        ( COALESCE( ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ), 0) - COALESCE(stocker_reject.generated_qty_reject, 0) ) qty_reject_balance
+                    FROM
+                        secondary_inhouse_input
+                        LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_inhouse_input.id_qr_stocker
+                        LEFT JOIN stocker_input AS similar_stocker ON similar_stocker.form_cut_id = stocker_input.form_cut_id
+                        AND similar_stocker.so_det_id = stocker_input.so_det_id
+                        AND similar_stocker.shade = stocker_input.shade
+                        AND similar_stocker.group_stocker = stocker_input.group_stocker
+                        AND similar_stocker.ratio = stocker_input.ratio
+                        AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
+                        AND similar_stocker.stocker_reject is null
+                        LEFT JOIN (
+                            SELECT
+                                stocker_reject.*,
+                                SUM(stocker_reject.qty_reject) generated_qty_reject
+                            FROM
+                                secondary_inhouse_input
+                                inner join stocker_reject on stocker_reject.secondary_inhouse_id = secondary_inhouse_input.id
+                            WHERE
+                                ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) > 0
+                                AND secondary_inhouse_input.tgl_trans BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                            GROUP BY
+                                secondary_inhouse_input.id
+                        ) stocker_reject on stocker_reject.secondary_inhouse_id = secondary_inhouse_input.id
+                    WHERE
+                        ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) > 0
+                        AND secondary_inhouse_input.tgl_trans BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                    GROUP BY
+                        secondary_inhouse_input.id
+                UNION ALL
+                    -- secondary_in_input
+                    SELECT
+                        tgl_trans tanggal,
+                        secondary_in_input.id AS id,
+                        NULL dc_in_id,
+                        NULL secondary_inhouse_id,
+                        secondary_in_input.id AS secondary_in_id,
+                        stocker_input.id_qr_stocker,
+                        GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
+                        stocker_input.act_costing_ws,
+                        stocker_input.color,
+                        stocker_input.size,
+                        'Secondary In' AS proses,
+                        COALESCE( ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) ) qty_reject,
+                        COALESCE( stocker_reject.generated_qty_reject, 0 ) generated_qty_reject,
+                        ( COALESCE( ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ), 0) - COALESCE(stocker_reject.generated_qty_reject, 0) ) qty_reject_balance
+                    FROM
+                        secondary_in_input
+                        LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_in_input.id_qr_stocker
+                        LEFT JOIN stocker_input AS similar_stocker ON similar_stocker.form_cut_id = stocker_input.form_cut_id
+                        AND similar_stocker.so_det_id = stocker_input.so_det_id
+                        AND similar_stocker.shade = stocker_input.shade
+                        AND similar_stocker.group_stocker = stocker_input.group_stocker
+                        AND similar_stocker.ratio = stocker_input.ratio
+                        AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
+                        AND similar_stocker.stocker_reject is null
+                        LEFT JOIN (
+                            SELECT
+                                stocker_reject.*,
+                                SUM(stocker_reject.qty_reject) generated_qty_reject
+                            FROM
+                                secondary_in_input
+                                inner join stocker_reject on stocker_reject.secondary_inhouse_id = secondary_in_input.id
+                            WHERE
+                                ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) > 0
+                                AND secondary_in_input.tgl_trans BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                            GROUP BY
+                                secondary_in_input.id
+                        ) stocker_reject on stocker_reject.secondary_in_id = secondary_in_input.id
+                    WHERE
+                        ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) > 0
+                        AND secondary_in_input.tgl_trans BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                    GROUP BY
+                        secondary_in_input.id
+                ) dc_reject_transaction
+            ");
+
+        $sheet->writeAreas();
+        foreach ($dataStockerReject as $data) {
+            $rowArr = [
+                $data->tanggal ?? '-',
+                $data->id_qr_stocker ?? '-',
+                $data->proses ?? '-',
+                $data->qty_reject ?? 0,
+                $data->generated_qty_reject ?? 0,
+                $data->qty_reject_balance ?? 0,
+                $data->qty_reject_balance > 0 ? 'AVAILABLE' : 'EXHAUSTED',
+            ];
+
+            $statusColor = "#000";
+            if ($data->qty_reject_balance > 0) {
+                $statusColor = "#118036";
+            } else {
+                $statusColor = "#cb461d";
+            }
+
+            $cellStyles = [
+                // [],
+                // [],
+                // [],
+                // [],
+                // [],
+                // [],
+                "G" => ['font-color' => $statusColor, 'font-style' => 'bold',],
+            ];
+
+            $sheet->writeRow($rowArr, [], $cellStyles)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        }
+
+        $filename = 'Stocker Reject List ' . $dateFrom . ' - ' . $dateTo . ' (' . Carbon::now()->format('Y-m-d H:i:s') . ').xlsx';
+
+        return $excel->download($filename);
     }
 }

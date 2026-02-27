@@ -20,19 +20,24 @@
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
-                <div class="d-flex align-items-end gap-3">
-                    <div>
-                        <label class="form-label">Dari</label>
-                        <input type="date" class="form-control" id="dateFrom" onchange='stockerRejectTableReload()'>
+                <div class="d-flex justify-content-start align-items-end gap-3">
+                    <div class="d-flex align-items-end gap-3">
+                        <div>
+                            <label class="form-label">Dari</label>
+                            <input type="date" class="form-control" id="dateFrom" onchange='stockerRejectTableReload()'>
+                        </div>
+                        <span class='mb-1'> - </span>
+                        <div>
+                            <label class="form-label">Sampai</label>
+                            <input type="date" class="form-control" id="dateTo" onchange='stockerRejectTableReload()'>
+                        </div>
                     </div>
-                    <span class='mb-1'> - </span>
                     <div>
-                        <label class="form-label">Sampai</label>
-                        <input type="date" class="form-control" id="dateTo" onchange='stockerRejectTableReload()'>
+                        <a type="button" href="{{ route('create-stocker-reject') }}" class='btn btn-sb'><i class="fa fa-plus"></i> Baru</a>
                     </div>
                 </div>
                 <div>
-                    <a type="button" href="{{ route('create-stocker-reject') }}" class='btn btn-success'><i class="fa fa-plus"></i> Baru</a>
+                    <button type="button" onclick="exportExcel()" class='btn btn-success'><i class="fa fa-file"></i> Export</button>
                 </div>
             </div>
             <div class="table-responsive">
@@ -43,6 +48,9 @@
                         <th>Stocker</th>
                         <th>Proses</th>
                         <th>Qty Reject</th>
+                        <th>Generated Qty</th>
+                        <th>Qty Reject Balance</th>
+                        <th>Status</th>
                     </thead>
                     <tbody></tbody>
                 </table>
@@ -104,6 +112,15 @@
                 },
                 {
                     data: 'qty_reject',
+                },
+                {
+                    data: 'generated_qty_reject',
+                },
+                {
+                    data: 'qty_reject_balance',
+                },
+                {
+                    data: 'qty_reject_balance',
                 }
             ],
             columnDefs: [
@@ -119,6 +136,16 @@
                     targets: [2],
                     render: (data, type, row, meta) => {
                         return `<span><b>`+row.id_qr_stocker+`</b>`+(row.id_qr_similar_stocker ? `, `+row.id_qr_similar_stocker : ``)+`</span>`
+                    }
+                },
+                {
+                    targets: [7],
+                    render: (data, type, row, meta) => {
+                        if (data == 0) {
+                            return "<span class='text-danger fw-bold'>EXHAUSTED</span"
+                        }
+
+                        return "<span class='text-success fw-bold'>AVAILABLE</span";
                     }
                 },
                 {
@@ -151,6 +178,53 @@
         // Stocker Reject Table Reload
         function stockerRejectTableReload() {
             stockerRejectTable.ajax.reload();
+        }
+
+        function exportExcel() {
+            Swal.fire({
+                title: "Exporting",
+                html: "Please Wait...",
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+            });
+
+            $.ajax({
+                url: "{{ route("export-stocker-reject") }}",
+                type: "post",
+                data: {
+                    dateFrom : $("#dateFrom").val(),
+                    dateTo : $("#dateTo").val(),
+                },
+                xhrFields: { responseType : 'blob' },
+                success: function (res) {
+                    Swal.close();
+
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Success',
+                        position: 'topCenter'
+                    });
+
+                    var blob = new Blob([res]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Stocker Reject List "+$("#dateFrom").val()+" - "+$("#dateTo").val()+".xlsx";
+                    link.click();
+                },
+                error: function (jqXHR) {
+                    Swal.close();
+
+                    iziToast.error({
+                        title: 'Error',
+                        message: 'Terjadi Kesalahan',
+                        position: 'topCenter'
+                    });
+
+                    console.error(jqXHR);
+                }
+            });
         }
     </script>
 @endsection

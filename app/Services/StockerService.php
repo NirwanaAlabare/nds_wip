@@ -110,7 +110,7 @@ class StockerService
                 if ($groupStocker) {
                     $stockerSql->where("stocker_input.group_stocker", $groupStocker);
                 }
-                $stockerData = $stockerSql->groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
+                $stockerData = $stockerSql->groupBy("form_cut_input.id", "form_cut_input.id", "stocker_input.stocker_reject", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
                     orderBy("stocker_input.group_stocker", "desc")->
                     orderBy("stocker_input.so_det_id", "asc")->
                     orderByRaw("CAST(stocker_input.ratio AS UNSIGNED) ASC")->

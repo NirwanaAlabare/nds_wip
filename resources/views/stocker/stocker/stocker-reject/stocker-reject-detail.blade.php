@@ -116,19 +116,10 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-header bg-sb-secondary">
-                <h5 class="card-title">
-                    Stocker
-                </h5>
-            </div>
-            <div class="card-body">
                 @php
-                    $index = 0;
+                    $index = 1;
                 @endphp
-                <div class="table-responsive">
+                <div class="table-responsive mt-3">
                     <table class="table table-bordered">
                         <thead>
                             <tr>
@@ -136,15 +127,10 @@
                                 <th>Part Detail</th>
                                 <th>Size</th>
                                 <th>Shade</th>
-                                <th>Ratio</th>
-                                <th>Qty</th>
-                                <th>Print</th>
+                                <th>Total Ratio</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @php
-                                $index = 1;
-                            @endphp
                             @foreach ($dataStocker as $stocker)
                                 <tr>
                                     <input type="text" class="form-control d-none" id="stocker_id_{{ $index }}" name="stocker_id[{{ $index }}]" value="{{ $stocker->id }}" readonly >
@@ -161,8 +147,6 @@
                                     <td>{{ $stocker->size }}</td>
                                     <td>{{ $stocker->shade }}</td>
                                     <td>{{ $stocker->ratio }}</td>
-                                    <td>{{ $data->qty_reject }}</td>
-                                    <td><button type="button" class="btn btn-danger" onclick="printStocker({{ $index }})"><i class="fa fa-print"></i></button></td>
                                 </tr>
 
                                 @php
@@ -172,9 +156,91 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="d-flex justify-content-end">
-                    <button type="button" class="btn btn-danger btn-sm" onclick="printStocker()">Generate All <i class="fa fa-print"></i></button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header bg-sb-secondary">
+                <h5 class="card-title">
+                    Stocker
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-end mb-3">
+                    <div class="col-md-3">
+                        <div>
+                            <label class="form-label">Qty Reject</label>
+                            <input type="text" class="form-control" name="qty_reject_stock" id="qty_reject_stock" value="{{ $data->qty_reject }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div>
+                            <label class="form-label">Qty Reject Balance</label>
+                            <input type="text" class="form-control" name="qty_reject_balance" id="qty_reject_balance" value="{{ $data->qty_reject - $dataStockerReject->sum('qty_reject') }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div>
+                            <label class="form-label">Qty</label>
+                            <input type="number" class="form-control" name="qty_input" id="qty_input" value="{{ $data->qty_reject }}" >
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-success btn-block fw-bold" name="save" id="save" onclick="saveStockerReject()"><i class="fa fa-save"></i> TAMBAH STOCKER</button>
+                    </div>
                 </div>
+                @php
+                    $indexReject = 1;
+                @endphp
+                @foreach ($dataStockerReject as $stockerReject)
+                    <div class="table-responsive my-3">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Stocker Source</th>
+                                    <th>Part Detail</th>
+                                    <th>Size</th>
+                                    <th>Shade</th>
+                                    <th>Ratio ke</th>
+                                    <th>Qty</th>
+                                    <th>Print</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($dataStocker as $stocker)
+                                    <tr>
+                                        <input type="text" class="form-control d-none" id="stocker_reject_id_detail_{{ $indexReject }}" name="stocker_reject_id_detail[{{ $indexReject }}]" value="{{ $stockerReject->id }}" readonly >
+                                        <input type="text" class="form-control d-none" id="stocker_id_detail_{{ $indexReject }}" name="stocker_id_detail[{{ $indexReject }}]" value="{{ $stocker->id }}" readonly >
+                                        <input type="text" class="form-control d-none" id="id_qr_stocker_detail_{{ $indexReject }}" name="id_qr_stocker_detail[{{ $indexReject }}]" value="{{ $stocker->id_qr_stocker }}" readonly >
+                                        <input type="text" class="form-control d-none" id="part_detail_id_detail_{{ $indexReject }}" name="part_detail_id_detail[{{ $indexReject }}]" value="{{ $stocker->part_detail_id }}" readonly >
+                                        <input type="text" class="form-control d-none" id="shade_detail_{{ $indexReject }}" name="shade_detail[{{ $indexReject }}]" value="{{ $stocker->shade }}" readonly >
+                                        <input type="text" class="form-control d-none" id="group_stocker_detail_{{ $indexReject }}" name="group_stocker_detail[{{ $indexReject }}]" value="{{ $stocker->group_stocker }}" readonly >
+                                        <input type="text" class="form-control d-none" id="so_det_id_detail_{{ $indexReject }}" name="so_det_id_detail[{{ $indexReject }}]" value="{{ $stocker->so_det_id }}" readonly >
+                                        <input type="text" class="form-control d-none" id="size_detail_{{ $indexReject }}" name="size_detail[{{ $indexReject }}]" value="{{ $stocker->size }}" readonly >
+                                        <input type="text" class="form-control d-none" id="ratio_detail_{{ $indexReject }}" name="ratio_detail[{{ $indexReject }}]" value="{{ $stocker->ratio }}" readonly >
+                                        <input type="text" class="form-control d-none" id="urutan_detail_{{ $indexReject }}" name="urutan_detail[{{ $indexReject }}]" value="{{ $stocker->urutan }}" readonly >
+                                        <input type="text" class="form-control d-none" id="qty_reject_detail_{{ $indexReject }}" name="qty_reject_detail[{{ $indexReject }}]" value="{{ $stockerReject->qty_reject }}" readonly >
+                                        <td>{{ $stocker->id_qr_stocker }}</td>
+                                        <td>{{ $stocker->nama_part }}</td>
+                                        <td>{{ $stocker->size }}</td>
+                                        <td>{{ $stocker->shade }}</td>
+                                        <td>{{ $stockerReject->ratio }}</td>
+                                        <td>{{ $stockerReject->qty_reject }}</td>
+                                        <td><button type="button" class="btn btn-danger" onclick="printStocker({{ $indexReject }})"><i class="fa fa-print"></i></button></td>
+                                    </tr>
+
+                                    @php
+                                        $indexReject++;
+                                    @endphp
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endforeach
+                @if ($dataStockerReject->count() > 0)
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="printStocker()">Generate All <i class="fa fa-print"></i></button>
+                    </div>
+                @endif
             </div>
         </div>
     </form>
@@ -191,6 +257,105 @@
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
     <script>
+        // Save stocker reject
+        function saveStockerReject() {
+            document.getElementById("loading").classList.remove("d-none")
+
+            let stockerRejectForm = new FormData(document.getElementById("stocker-reject-form"));
+
+            let qty = $("#qty_input").val();
+            let qtyBalance = $("#qty_reject_balance").val();
+
+            // Qty Sisa Reject Habis
+            if (qtyBalance < 0) {
+                document.getElementById("loading").classList.add("d-none")
+                return Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: "Sisa Qty Reject Habis",
+                        confirmButtonText: 'Oke',
+                        showCancelButton: true,
+                        cancelButtonText: 'Batalkan',
+                    })
+            }
+
+            console.log(qtyBalance, qty, qtyBalance < qty);
+            // Qty Sisa Reject lebih banyak dari Qty
+            if (qtyBalance < qty) {
+                document.getElementById("loading").classList.add("d-none")
+                return Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: "Qty tidak bisa melebihi Qty Sisa Reject",
+                        confirmButtonText: 'Oke',
+                        showCancelButton: true,
+                        cancelButtonText: 'Batalkan',
+                    })
+            }
+
+            // Qty Input
+            if (qty < 1) {
+                document.getElementById("loading").classList.add("d-none")
+                return Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: "Harap tentukan qty",
+                        confirmButtonText: 'Oke',
+                        showCancelButton: true,
+                        cancelButtonText: 'Batalkan',
+                    })
+            }
+
+            // Simpan Stocker Reject
+            $.ajax({
+                type: "post",
+                url: "{{ route("store-stocker-reject") }}",
+                processData: false,
+                contentType: false,
+                data: stockerRejectForm,
+                success: function (response) {
+                    document.getElementById("loading").classList.add("d-none")
+
+                    if (response.status == 200) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: response.message,
+                            confirmButtonText: 'Oke',
+                            showCancelButton: true,
+                            cancelButtonText: 'Batalkan',
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: response.message,
+                            confirmButtonText: 'Oke',
+                            showCancelButton: true,
+                            cancelButtonText: 'Batalkan',
+                        })
+                    }
+
+                    console.log(response);
+                },
+                error: function (jqXHR) {
+                    document.getElementById("loading").classist.add("d-none")
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Terjadi kesalahan',
+                        confirmButtonText: 'Oke',
+                        showCancelButton: true,
+                        cancelButtonText: 'Batalkan',
+                    })
+
+                    console.error(jqXHR);
+                }
+            });
+        }
 
         // Generate Stocker
         function printStocker(index) {

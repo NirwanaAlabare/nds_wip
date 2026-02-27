@@ -591,7 +591,7 @@
             let piping = document.getElementById("piping").value;
             let qtySisa = document.getElementById("qty_sisa").value;
 
-            let shortRoll = (Number(piping) + Number(qtySisa)) - Number(qtyItem);
+            let shortRoll = (Number(piping) + Number(qtySisa)).round(2) - Number(qtyItem).round(2);
 
             console.log(qtyItem, piping, qtySisa, shortRoll);
 
