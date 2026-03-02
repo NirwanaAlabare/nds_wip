@@ -25,7 +25,6 @@ class SecondaryInhouseInController extends Controller
         $tglskrg = date('Y-m-d');
 
         $data_rak = DB::select("select nama_detail_rak isi, nama_detail_rak tampil from rack_detail");
-        // dd($data_rak);
         if ($request->ajax()) {
             $additionalQuery = '';
 
@@ -422,8 +421,6 @@ class SecondaryInhouseInController extends Controller
                             where
                                 dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and dc.tujuan = 'SECONDARY DALAM'
                         ");
-
-                        dd($stocker, $stocker->urutan, $partDetailSecondary);
                     }
                     // If there is urutan
                     else {
