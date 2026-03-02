@@ -671,10 +671,10 @@
                 var api = this.api();
 
                 $(api.column(0).footer()).html('Total');
-                $(api.column(14).footer()).html('...');
                 $(api.column(15).footer()).html('...');
                 $(api.column(16).footer()).html('...');
                 $(api.column(17).footer()).html('...');
+                $(api.column(18).footer()).html('...');
 
                 $.ajax({
                     url: '{{ route('total_secondary_in') }}',
@@ -700,10 +700,10 @@
                     },
                     success: function(response) {
                         if (response) {
-                            $(api.column(14).footer()).html(response['total_qty_awal'] ?? 0);
-                            $(api.column(15).footer()).html(response['total_qty_reject'] ?? 0);
-                            $(api.column(16).footer()).html(response['total_qty_replace'] ?? 0);
-                            $(api.column(17).footer()).html(response['total_qty_in'] ?? 0);
+                            $(api.column(15).footer()).html(response['total_qty_awal'] ?? 0);
+                            $(api.column(16).footer()).html(response['total_qty_reject'] ?? 0);
+                            $(api.column(17).footer()).html(response['total_qty_replace'] ?? 0);
+                            $(api.column(18).footer()).html(response['total_qty_in'] ?? 0);
                         }
                     },
                     error: function() {}
