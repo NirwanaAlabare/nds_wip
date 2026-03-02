@@ -3,61 +3,41 @@
 namespace App\Http\Controllers\General;
 
 use App\Http\Controllers\Controller;
-use App\Models\Marker\Marker;
-use App\Models\Marker\MarkerDetail;
-use App\Models\SignalBit\DefectInOut;
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
-use App\Models\Stocker\Stocker;
-use App\Models\MarkerInput;
+use App\Models\Marker\Marker;
+use App\Models\Marker\MarkerDetail;
 use App\Models\Part\Part;
 use App\Models\Part\PartDetail;
 use App\Models\Part\PartDetailItem;
-use App\Models\CuttingPlanOutput;
+use App\Models\Cutting\CutPlanOutput;
 use App\Models\Stocker\StockerAdditional;
 use App\Models\Cutting\Piping;
-use App\Models\MasterPiping;
-use App\Models\PipingProcess;
+use App\Models\Cutting\MasterPiping;
+use App\Models\Cutting\PipingProcess;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
 use App\Models\Cutting\FormCutPiece;
 use App\Models\Cutting\FormCutPieceDetail;
 use App\Models\Cutting\FormCutReject;
 use App\Models\Cutting\ScannedItem;
+use App\Models\Stocker\Stocker;
 use App\Models\Dc\LoadingLinePlan;
 use App\Models\SignalBit\MasterPlan;
+use App\Models\SignalBit\DefectInOut;
 use App\Models\SignalBit\RejectIn;
 use App\Models\Hris\MasterEmployee;
 use App\Services\GeneralService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use PDF;
 
 class GeneralController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create(Request $request)
-    {
-        //
-    }
-
     public function getNoFormCut(Request $request)
     {
+        // Get No. Form Cutting List
         $formCuts = collect(
             DB::select("
                     SELECT
@@ -98,6 +78,7 @@ class GeneralController extends Controller
 
     public function getFormGroup(Request $request)
     {
+        // Get Form's Grouping List
         $formType = 'stocker_input.form_cut_id';
         switch ($request->form_type) {
             case 'reject' :
@@ -123,6 +104,9 @@ class GeneralController extends Controller
 
     public function getFormStocker(Request $request)
     {
+        // Get Form's Stocker
+
+        // Define current form cut type (different table)
         $formType = 'stocker_input.form_cut_id';
         switch ($request->form_type) {
             case 'reject' :
@@ -136,6 +120,7 @@ class GeneralController extends Controller
                 break;
         }
 
+        // Stocker Query
         $stockers = Stocker::selectRaw('GROUP_CONCAT(stocker_input.id) stocker_ids, '.$formType.' form_cut_id, stocker_input.group_stocker, stocker_input.size, stocker_input.ratio, GROUP_CONCAT(stocker_input.id_qr_stocker) id_qr_stocker')
             ->whereRaw('DATE(stocker_input.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()')
             ->whereRaw($formType.' = "'.$request->form_cut_id.'"')
@@ -149,6 +134,7 @@ class GeneralController extends Controller
 
     public function getBuyers(Request $request)
     {
+        // Get Buyer List (From mastersupplier SB)
         $buyers = DB::select("
             SELECT
                 Id_Supplier as id,
@@ -168,42 +154,8 @@ class GeneralController extends Controller
         return $buyers ? $buyers : null;
     }
 
-    public function getOrders(Request $request)
-    {
-        $orders = DB::select("select id_act_cost, ws from master_sb_ws where buyer = '" . $request->buyer . "' and tgl_kirim >= DATE_SUB( CURRENT_DATE, INTERVAL 1 YEAR ) group by id_act_cost");
-
-        return $orders ? $orders : null;
-    }
-
-    public function getColors(Request $request)
-    {
-        $colors = DB::connection("mysql_sb")->select("select color from so_det left join so on so.id = so_det.id_so left join act_costing on act_costing.id = so.id_cost where act_costing.id = '" . $request->act_costing_id . "' group by color");
-
-        return $colors ? $colors : null;
-    }
-
-    public function getSizes(Request $request) {
-        $sizes = DB::connection("mysql_sb")->table("so_det")->selectRaw("
-                so_det.id as so_det_id,
-                act_costing.kpno no_ws,
-                so_det.color,
-                so_det.size,
-                so_det.dest,
-                (CASE WHEN so_det.dest IS NOT NULL AND so_det.dest != '-' THEN CONCAT(so_det.size, ' - ', so_det.dest) ELSE so_det.size END) size_dest
-            ")->
-            leftJoin("so", "so.id", "=", "so_det.id_so")->
-            leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
-            leftJoin("master_size_new", "master_size_new.size", "=", "so_det.size")->
-            where("act_costing.id", $request->act_costing_id)->
-            where("so_det.color", $request->color)->
-            groupBy("so_det.id")->
-            orderBy("master_size_new.urutan")->
-            get();
-
-        return $sizes ? $sizes : null;
-    }
-
     public function getPos(Request $request) {
+        // Get Inserted PO by PPIC on Costing, Color and Size (For Packing Line)
         $pos = DB::table("ppic_master_so")->selectRaw("
                 ppic_master_so.id,
                 ppic_master_so.po as po
@@ -229,27 +181,17 @@ class GeneralController extends Controller
         return $pos ? $pos : null;
     }
 
-    public function getPanelListNew(Request $request)
+    public function getOrders(Request $request)
     {
-        $panels = DB::connection('mysql_sb')->select("
-                select nama_panel panel from
-                    (select id_panel from bom_jo_item k
-                        inner join so_det sd on k.id_so_det = sd.id
-                        inner join so on sd.id_so = so.id
-                        inner join act_costing ac on so.id_cost = ac.id
-                        inner join masteritem mi on k.id_item = mi.id_gen
-                        where ac.id = '" . $request->act_costing_id . "' and sd.color = '" . $request->color . "' and k.status = 'M'
-                        and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
-                        group by id_panel
-                    ) a
-                inner join masterpanel mp on a.id_panel = mp.id
-            ");
+        // Get Costing List (From act_costing SB) by Buyer
+        $orders = DB::select("select id_act_cost, ws from master_sb_ws where buyer = '" . $request->buyer . "' and tgl_kirim >= DATE_SUB( CURRENT_DATE, INTERVAL 1 YEAR ) group by id_act_cost");
 
-        return $panels;
+        return $orders ? $orders : null;
     }
 
     public function getOrderInfo(Request $request)
     {
+        // Get Costing Detail by Costing ID
         $order = DB::connection('mysql_sb')->
             table('act_costing')->
             selectRaw('
@@ -271,8 +213,17 @@ class GeneralController extends Controller
         return json_encode($order);
     }
 
+    public function getColors(Request $request)
+    {
+        // Get Color List (From so_det group by color SB) by Costing
+        $colors = DB::connection("mysql_sb")->select("select color from so_det left join so on so.id = so_det.id_so left join act_costing on act_costing.id = so.id_cost where act_costing.id = '" . $request->act_costing_id . "' group by color");
+
+        return $colors ? $colors : null;
+    }
+
     public function getColorList(Request $request)
     {
+        // Get Color List by Costing ID
         $colors = DB::connection('mysql_sb')->select("
             select sd.color from so_det sd
             inner join so on sd.id_so = so.id
@@ -283,8 +234,31 @@ class GeneralController extends Controller
         return $colors ? $colors : null;
     }
 
+    public function getSizes(Request $request) {
+        // Get Size List (From so_det group by id SB) by Costing & Color
+        $sizes = DB::connection("mysql_sb")->table("so_det")->selectRaw("
+                so_det.id as so_det_id,
+                act_costing.kpno no_ws,
+                so_det.color,
+                so_det.size,
+                so_det.dest,
+                (CASE WHEN so_det.dest IS NOT NULL AND so_det.dest != '-' THEN CONCAT(so_det.size, ' - ', so_det.dest) ELSE so_det.size END) size_dest
+            ")->
+            leftJoin("so", "so.id", "=", "so_det.id_so")->
+            leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "so_det.size")->
+            where("act_costing.id", $request->act_costing_id)->
+            where("so_det.color", $request->color)->
+            groupBy("so_det.id")->
+            orderBy("master_size_new.urutan")->
+            get();
+
+        return $sizes ? $sizes : null;
+    }
+
     public function getSizeList(Request $request)
     {
+        // Get Size List by Costing ID, Color (with additional size_list or marker)
         $sizeQuery = DB::table("master_sb_ws")->selectRaw("
                 master_sb_ws.id_so_det so_det_id,
                 master_sb_ws.ws no_ws,
@@ -298,6 +272,7 @@ class GeneralController extends Controller
             ")->
             where("master_sb_ws.id_act_cost", $request->act_costing_id)->
             where("master_sb_ws.color", $request->color);
+            // When there is size list filter
             if ($request->size_list) {
                 $sizeQuery->whereRaw("master_sb_ws.size in (".addQuotesAround(str_replace(", ", "\n", $request->size_list)).")");
             }
@@ -305,6 +280,7 @@ class GeneralController extends Controller
             leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->
             leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
 
+        // When there is marker filter
         $thisMarkerDetail = MarkerDetail::where("marker_id", $request->marker_id)->count();
         if ($thisMarkerDetail > 0) {
             $sizeQuery->where("marker_input_detail.marker_id", $request->marker_id);
@@ -312,6 +288,7 @@ class GeneralController extends Controller
 
         $sizes = $sizeQuery->groupBy("id_so_det")->orderBy("master_size_new.urutan")->get();
 
+        // return Datatable
         return json_encode([
             "draw" => intval($request->input('draw')),
             "recordsTotal" => intval(count($sizes)),
@@ -322,6 +299,7 @@ class GeneralController extends Controller
 
     public function getPanelList(Request $request)
     {
+        // Get Panel List (From masterpanel SB) by Costing and Color
         $panels = DB::connection('mysql_sb')->select("
                 select nama_panel panel from
                     (select id_panel from bom_jo_item k
@@ -342,11 +320,33 @@ class GeneralController extends Controller
             $html .= " <option value='" . $panel->panel . "'>" . $panel->panel . "</option> ";
         }
 
+        // Return Option HTML (string)
         return $html;
+    }
+
+    public function getPanelListNew(Request $request)
+    {
+        // Get Panel List (From masterpanel SB) by Costing and Color
+        $panels = DB::connection('mysql_sb')->select("
+                select nama_panel panel from
+                    (select id_panel from bom_jo_item k
+                        inner join so_det sd on k.id_so_det = sd.id
+                        inner join so on sd.id_so = so.id
+                        inner join act_costing ac on so.id_cost = ac.id
+                        inner join masteritem mi on k.id_item = mi.id_gen
+                        where ac.id = '" . $request->act_costing_id . "' and sd.color = '" . $request->color . "' and k.status = 'M'
+                        and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
+                        group by id_panel
+                    ) a
+                inner join masterpanel mp on a.id_panel = mp.id
+            ");
+
+        return $panels;
     }
 
     public function getNumber(Request $request)
     {
+        // Ger BOM JO consumption and qty
         $number = DB::connection('mysql_sb')->select("
                 select k.cons cons_ws, k.unit unit_cons_ws, sum(sd.qty) order_qty from bom_jo_item k
                     inner join so_det sd on k.id_so_det = sd.id
@@ -365,70 +365,16 @@ class GeneralController extends Controller
 
     public function getCount(Request $request)
     {
+        // Marker Counter
         $countMarker = Marker::where('act_costing_id', $request->act_costing_id)->where('color', $request->color)->where('panel', $request->panel)->count() + 1;
 
         return $countMarker ? $countMarker : 1;
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Marker\Marker  $marker
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Marker\Marker  $marker
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Marker $marker, $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Marker\Marker  $marker
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Marker $marker, Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Marker\Marker  $marker
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Marker $marker)
-    {
-        //
-    }
-
+    // Deprecated
     public function generateUnlockToken(Request $request) {
         if ($request->id) {
+            // Generate Unlock Token for specific user
             $user = User::where("type", "admin")->where("id", $request->id)->first();
 
             if ($user) {
@@ -438,6 +384,7 @@ class GeneralController extends Controller
 
             return $user->unlock_token;
         } else {
+            // Generate Unlock Token for all user
             $users = User::where("type", "admin")->get();
 
             if ($users->count() > 0) {
@@ -451,7 +398,9 @@ class GeneralController extends Controller
         }
     }
 
+    // Tools
     public function generalTools(Request $request) {
+        // Costing List
         $orders = DB::table("master_sb_ws")->
             selectRaw("
                 master_sb_ws.id_act_cost act_costing_id,
@@ -467,13 +416,17 @@ class GeneralController extends Controller
         ]);
     }
 
+    // Synchronize NDS SB Detail Data
     public function updateMasterSbWs(GeneralService $generalService) {
+        // Call a Service
         return $generalService->updateMasterSbWs();
     }
 
+    // Resynchronize Detail Information on NDS Production Data
     public function updateGeneralOrder(Request $request) {
         ini_set('max_execution_time', 3600); // 1 hour
 
+        // Get order data and join with production data
         $orderInfo = DB::table("master_sb_ws")->
             selectRaw("
                 master_sb_ws.buyer buyer,
@@ -536,6 +489,7 @@ class GeneralController extends Controller
         $formCutReject = 0;
         $loadingLinePlan = 0;
         foreach ($orderInfo as $oi) {
+            // Update marker
             if (strlen($oi->marker_ids) > 0) {
                 $updateData = Marker::whereRaw("id in (".$oi->marker_ids.")")->update([
                     "buyer" => $oi->buyer,
@@ -550,6 +504,7 @@ class GeneralController extends Controller
                 }
             }
 
+            // Update part
             if (strlen($oi->part_ids) > 0) {
                 $updateData = Part::whereRaw("id in (".$oi->part_ids.")")->update([
                     "buyer" => $oi->buyer,
@@ -563,8 +518,9 @@ class GeneralController extends Controller
                 }
             }
 
+            // Update cutting
             if (strlen($oi->cutting_plan_ids) > 0) {
-                $updateData = CuttingPlanOutput::whereRaw("id in (".$oi->cutting_plan_ids.")")->update([
+                $updateData = CutPlanOutput::whereRaw("id in (".$oi->cutting_plan_ids.")")->update([
                     "ws" => $oi->act_costing_ws,
                     "style" => $oi->style,
                     "color" => $oi->color
@@ -575,6 +531,7 @@ class GeneralController extends Controller
                 }
             }
 
+            // Update stocker
             if ($oi->act_costing_ws && $oi->color) {
                 $updateData = Stocker::where("act_costing_ws", $oi->act_costing_ws)->whereRaw("'".$oi->color."' LIKE CONCAT('%', stocker_input.color, '%')")->update([
                     "act_costing_ws" => $oi->act_costing_ws,
@@ -586,6 +543,7 @@ class GeneralController extends Controller
                 }
             }
 
+            // Update stocker additional
             if (strlen($oi->stocker_ws_additional_ids) > 0) {
                 $updateData = StockerAdditional::whereRaw("id in (".$oi->stocker_ws_additional_ids.")")->update([
                     "buyer" => $oi->buyer,
@@ -599,6 +557,7 @@ class GeneralController extends Controller
                 }
             }
 
+            // Update piping master
             if (strlen($oi->master_piping_ids) > 0) {
                 $updateData = MasterPiping::whereRaw("id in (".$oi->master_piping_ids.")")->update([
                     "buyer" => $oi->buyer,
@@ -611,6 +570,7 @@ class GeneralController extends Controller
                 }
             }
 
+            // Update piping
             if (strlen($oi->form_cut_piping_ids) > 0) {
                 $updateData = Piping::whereRaw("id in (".$oi->form_cut_piping_ids.")")->update([
                     "act_costing_ws" => $oi->act_costing_ws,
@@ -623,6 +583,7 @@ class GeneralController extends Controller
                 }
             }
 
+            // Update form cut reject
             if (strlen($oi->form_cut_reject_ids) > 0) {
                 $updateData = FormCutReject::whereRaw("id in (".$oi->form_cut_reject_ids.")")->update([
                     "buyer" => $oi->buyer,
@@ -636,6 +597,7 @@ class GeneralController extends Controller
                 }
             }
 
+            // Update loading line
             if (strlen($oi->loading_line_plan_ids) > 0) {
                 $updateData = LoadingLinePlan::whereRaw("id in (".$oi->loading_line_plan_ids.")")->update([
                     "buyer" => $oi->buyer,
@@ -656,9 +618,11 @@ class GeneralController extends Controller
         );
     }
 
+    // Get NDS Production Color List Data
     public function getGeneralOrderColorFrom(Request $request) {
         $id = $request->id;
 
+        // Filter by Costing ID on various table
         $msbFilter = "";
         $ndsFilter = "";
         $idWsFilter = "";
@@ -668,6 +632,7 @@ class GeneralController extends Controller
             $idWsFilter = " WHERE id_ws = ".$id." ";
         }
 
+        // Color List
         $colors = DB::table('master_sb_ws as m')
             ->selectRaw("
                 m.buyer AS buyer,
@@ -709,6 +674,7 @@ class GeneralController extends Controller
         return response()->json($colors);
     }
 
+    // Get Color List (for target)
     public function getGeneralOrderColorTo(Request $request) {
         $colors = DB::table('master_sb_ws as m')
             ->selectRaw("
@@ -725,9 +691,11 @@ class GeneralController extends Controller
         return response()->json($colors);
     }
 
+    // Update to synchronize nds production color data with sb
     public function updateGeneralOrderColor(Request $request) {
         ini_set('max_execution_time', 3600); // 1 hour
 
+        // NDS Production Data
         $orderInfo = DB::table("master_sb_ws")->
             selectRaw("
                 master_sb_ws.buyer buyer,
@@ -791,6 +759,7 @@ class GeneralController extends Controller
         $formCutReject = 0;
         $loadingLinePlan = 0;
         foreach ($orderInfo as $oi) {
+            // Update marker
             if (strlen($oi->marker_ids) > 0) {
                 $updateData = Marker::whereRaw("id in (".$oi->marker_ids.")")->update([
                     "buyer" => $oi->buyer,
@@ -805,6 +774,7 @@ class GeneralController extends Controller
                 }
             }
 
+            // Update part
             if (strlen($oi->part_ids) > 0) {
                 $updateData = Part::whereRaw("id in (".$oi->part_ids.")")->update([
                     "buyer" => $oi->buyer,
@@ -818,8 +788,9 @@ class GeneralController extends Controller
                 }
             }
 
+            // Update Cutting Plan Output
             if (strlen($oi->cutting_plan_ids) > 0) {
-                $updateData = CuttingPlanOutput::whereRaw("id in (".$oi->cutting_plan_ids.")")->update([
+                $updateData = CutPlanOutput::whereRaw("id in (".$oi->cutting_plan_ids.")")->update([
                     "ws" => $oi->act_costing_ws,
                     "style" => $oi->style,
                     "color" => $oi->color
@@ -830,6 +801,7 @@ class GeneralController extends Controller
                 }
             }
 
+            // Update Stocker
             if ($oi->act_costing_ws && $oi->color) {
                 $updateData = Stocker::where("act_costing_ws", $oi->act_costing_ws)->whereRaw("color LIKE ?", ['%'.$request->colorFrom.'%'])->update([
                     "act_costing_ws" => $oi->act_costing_ws,
@@ -841,6 +813,7 @@ class GeneralController extends Controller
                 }
             }
 
+            // Update Stocker Additional
             if (strlen($oi->stocker_ws_additional_ids) > 0) {
                 $updateData = StockerAdditional::whereRaw("id in (".$oi->stocker_ws_additional_ids.")")->update([
                     "buyer" => $oi->buyer,
@@ -854,6 +827,7 @@ class GeneralController extends Controller
                 }
             }
 
+            // Update Master Piping
             if (strlen($oi->master_piping_ids) > 0) {
                 $updateData = MasterPiping::whereRaw("id in (".$oi->master_piping_ids.")")->update([
                     "buyer" => $oi->buyer,
@@ -866,6 +840,7 @@ class GeneralController extends Controller
                 }
             }
 
+            // Update Piping
             if (strlen($oi->form_cut_piping_ids) > 0) {
                 $updateData = Piping::whereRaw("id in (".$oi->form_cut_piping_ids.")")->update([
                     "act_costing_ws" => $oi->act_costing_ws,
@@ -878,6 +853,7 @@ class GeneralController extends Controller
                 }
             }
 
+            // Update Form Cut Reject
             if (strlen($oi->form_cut_reject_ids) > 0) {
                 $updateData = FormCutReject::whereRaw("id in (".$oi->form_cut_reject_ids.")")->update([
                     "buyer" => $oi->buyer,
@@ -891,6 +867,7 @@ class GeneralController extends Controller
                 }
             }
 
+            // Update Loading Line Plan
             if (strlen($oi->loading_line_plan_ids) > 0) {
                 $updateData = LoadingLinePlan::whereRaw("id in (".$oi->loading_line_plan_ids.")")->update([
                     "buyer" => $oi->buyer,
@@ -913,6 +890,7 @@ class GeneralController extends Controller
 
     public function getScannedEmployee($id = 0)
     {
+        // Get Employee Data by Enroll ID
         $employee = MasterEmployee::select(
                 "enroll_id",
                 "employee_name",
@@ -1174,7 +1152,7 @@ class GeneralController extends Controller
             return json_encode($newItem ? $newItem[0] : null);
         }
 
-        // From here it's old way (the flow might change), it maybe deprecated soon (need to make sure about it tho)
+        // From here it's just the old way (the flow might change), it maybe deprecated soon (need to make sure about it tho)
         $item = DB::connection("mysql_sb")->select("
             SELECT
                 br.id id_roll,
