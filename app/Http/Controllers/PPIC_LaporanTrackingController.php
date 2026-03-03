@@ -358,6 +358,7 @@ order by buyer asc");
         $size = $request->size_filter;
 
         $curdate = date('Y-m-d');
+        $prevdate = date('Y-m-d', strtotime($curdate . ' -7 day'));
 
         if (!empty($reff)) {
             $cond_reff = " and sd.reff_no = '" . $reff  . "'";
@@ -437,7 +438,7 @@ FROM (
 				laravel_nds.loading_line a
 				LEFT JOIN laravel_nds.stocker_input b ON a.stocker_id = b.id
 		WHERE
-				b.form_cut_id > 0 and tanggal_loading = '$curdate'
+				b.form_cut_id > 0 and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
 		GROUP BY
 				b.so_det_id,
 				b.form_cut_id,
@@ -456,7 +457,7 @@ FROM (
 				LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
 		WHERE
 				form_reject_id IS NOT NULL
-				and tanggal_loading = '$curdate'
+				and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
 		GROUP BY
 				so_det_id,
 				form_reject_id,
@@ -474,7 +475,7 @@ FROM (
 				LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
 		WHERE
 				form_piece_id IS NOT NULL
-				and tanggal_loading = '$curdate'
+				and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
 		GROUP BY
 				so_det_id,
 				form_piece_id,
@@ -492,7 +493,7 @@ FROM (
 				LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
 		WHERE
 				form_cut_id IS NULL AND form_reject_id IS NULL AND form_piece_id IS NULL
-				and tanggal_loading = '$curdate'
+				and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
 		GROUP BY
 				so_det_id,
 				group_stocker,
@@ -509,7 +510,7 @@ sew_now as (
                 COUNT(*) qty_sewing
                 from signalbit_erp.output_rfts a
                 inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
-                where updated_at >= '$curdate 00:00:00' and mp.cancel = 'N'
+                where updated_at >= '$prevdate 00:00:00' and updated_at <= '$curdate 23:59:59' and mp.cancel = 'N'
                 group by so_det_id
 ),
 fin_now as (
@@ -518,7 +519,7 @@ fin_now as (
                 COUNT(*) qty_finishing
                 from signalbit_erp.output_rfts_packing a
                 inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
-                where updated_at >= '$curdate 00:00:00'   and mp.cancel = 'N'
+                where updated_at >= '$prevdate 00:00:00' and updated_at <= '$curdate 23:59:59' and mp.cancel = 'N'
                 group by so_det_id
 ),
 pck_now as (
@@ -527,7 +528,7 @@ pck_now as (
 								COUNT(*) qty_rft_packing
 								FROM signalbit_erp.output_rfts_packing_po a
 								JOIN signalbit_erp.master_plan mp ON a.master_plan_id = mp.id
-								WHERE updated_at >= '$curdate 00:00:00' AND mp.cancel = 'N'
+								WHERE updated_at >= '$prevdate 00:00:00' AND updated_at <= '$curdate 23:59:59' AND mp.cancel = 'N'
 								GROUP BY so_det_id
 ),
 cutt as (
@@ -710,7 +711,7 @@ FROM
 		SUM(qty_finishing) qty_finishing,
 		SUM(qty_rft_packing) qty_rft_packing
 		FROM signalbit_erp.mut_wip_tmp tmp
-		where tgl_trans < '$curdate'
+		where tgl_trans < '$prevdate'
 		group by id_so_det
 		UNION ALL
 		SELECT
@@ -1355,6 +1356,7 @@ order by color asc, urutan asc
         $size = $request->size_filter;
 
         $curdate = date('Y-m-d');
+        $prevdate = date('Y-m-d', strtotime($curdate . ' -7 day'));
 
         if (!empty($reff)) {
             $cond_reff = " and sd.reff_no = '" . $reff  . "'";
@@ -1777,7 +1779,7 @@ FROM (
 				laravel_nds.loading_line a
 				LEFT JOIN laravel_nds.stocker_input b ON a.stocker_id = b.id
 		WHERE
-				b.form_cut_id > 0 and tanggal_loading = '$curdate'
+				b.form_cut_id > 0 and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
 		GROUP BY
 				b.so_det_id,
 				b.form_cut_id,
@@ -1796,7 +1798,7 @@ FROM (
 				LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
 		WHERE
 				form_reject_id IS NOT NULL
-				and tanggal_loading = '$curdate'
+				and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
 		GROUP BY
 				so_det_id,
 				form_reject_id,
@@ -1814,7 +1816,7 @@ FROM (
 				LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
 		WHERE
 				form_piece_id IS NOT NULL
-				and tanggal_loading = '$curdate'
+				and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
 		GROUP BY
 				so_det_id,
 				form_piece_id,
@@ -1832,7 +1834,7 @@ FROM (
 				LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
 		WHERE
 				form_cut_id IS NULL AND form_reject_id IS NULL AND form_piece_id IS NULL
-				and tanggal_loading = '$curdate'
+				and tanggal_loading >= '$prevdate' and tanggal_loading <= '$curdate'
 		GROUP BY
 				so_det_id,
 				group_stocker,
@@ -1849,7 +1851,7 @@ sew_now as (
                 COUNT(*) qty_sewing
                 from signalbit_erp.output_rfts a
                 inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
-                where updated_at >= '$curdate 00:00:00' and mp.cancel = 'N'
+                where updated_at >= '$prevdate 00:00:00' and updated_at <= '$curdate 23:59:59' and mp.cancel = 'N'
                 group by so_det_id
 ),
 fin_now as (
@@ -1858,7 +1860,7 @@ fin_now as (
                 COUNT(*) qty_finishing
                 from signalbit_erp.output_rfts_packing a
                 inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
-                where updated_at >= '$curdate 00:00:00'   and mp.cancel = 'N'
+                where updated_at >= '$prevdate 00:00:00' and updated_at <= '$curdate 23:59:59' and mp.cancel = 'N'
                 group by so_det_id
 ),
 pck_now as (
@@ -1867,7 +1869,7 @@ pck_now as (
 								COUNT(*) qty_rft_packing
 								FROM signalbit_erp.output_rfts_packing_po a
 								JOIN signalbit_erp.master_plan mp ON a.master_plan_id = mp.id
-								WHERE updated_at >= '$curdate 00:00:00' AND mp.cancel = 'N'
+								WHERE updated_at >= '$prevdate 00:00:00' AND updated_at <= '$curdate 23:59:59' AND mp.cancel = 'N'
 								GROUP BY so_det_id
 ),
 cutt as (
@@ -2050,7 +2052,7 @@ FROM
 		SUM(qty_finishing) qty_finishing,
 		SUM(qty_rft_packing) qty_rft_packing
 		FROM signalbit_erp.mut_wip_tmp tmp
-		where tgl_trans < '$curdate'
+		where tgl_trans < '$prevdate'
 		group by id_so_det
 		UNION ALL
 		SELECT
