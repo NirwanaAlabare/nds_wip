@@ -25,6 +25,7 @@ class SecondaryInhouseInController extends Controller
         $tglskrg = date('Y-m-d');
 
         $data_rak = DB::select("select nama_detail_rak isi, nama_detail_rak tampil from rack_detail");
+        // dd($data_rak);
         if ($request->ajax()) {
             $additionalQuery = '';
 
@@ -579,14 +580,9 @@ class SecondaryInhouseInController extends Controller
                                 ");
                             }
                         } else {
-                            $message = "";
-                            if ($currentPartDetailSecondary && $currentPartDetailSecondary->secondary) {
-                                $message = "Proses saat ini : ".$currentPartDetailSecondary->secondary->proses." - ".$currentPartDetailSecondary->secondary->tujuan;
-                            }
-
                             return array(
                                 "message" => 400,
-                                "message" => "Part Detail Secondary tidak sesuai.".$message
+                                "message" => "Part Detail Secondary tidak sesuai."
                             );
                         }
                     }
@@ -633,7 +629,7 @@ class SecondaryInhouseInController extends Controller
 
         if ($cekdata && $cekdata[0]) {
             // Check Secondary Inhouse
-            $checkSecInhouseIn = SecondaryInhouseIn::where("id_qr_stocker", $request->txtqrstocker)->where("urutan", $cekdata[0]->urutan)->first();
+            $checkSecInhouseIn = SecondaryInhouseIn::where("id_qr_stocker", $request->txtqrstocker)->first();
             if ($checkSecInhouseIn) {
                 return array(
                     "status" => 400,
