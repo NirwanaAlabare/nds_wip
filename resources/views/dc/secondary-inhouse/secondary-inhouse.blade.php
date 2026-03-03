@@ -1015,18 +1015,18 @@
                     //         initScan1();
                     //     }
                     // });
-
                 },
-                error: function(request, status, error) {
-                    console.error(request, status, error);
-
+                error: function(jqXHR) {
                     reset();
+
+                    let message = jqXHR.responseText;
 
                     Swal.fire({
                         icon: 'warning',
                         title: 'Data Tidak Ada',
+                        html: message,
                         showConfirmButton: true,
-                    })
+                    });
                 },
             });
         };
