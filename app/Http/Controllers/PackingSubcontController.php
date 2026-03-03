@@ -54,7 +54,7 @@ class PackingSubcontController extends Controller
         $arealok = DB::connection('mysql_sb')->table('whs_master_area')->select('id', 'area')->where('status', '=', 'active')->get();
         $unit = DB::connection('mysql_sb')->table('whs_master_unit')->select('id', 'nama_unit')->where('status', '=', 'active')->get();
 
-        return view("packing-subcont.packing-out", ['status' => $status,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,'page' => 'dashboard-sewing-eff', "subPageGroup" => "sewing-packing-out", "subPage" => "sewing-out-subcont"]);
+        return view("packing-subcont.packing-out", ['status' => $status,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,'page' => 'dashboard-packing', "subPageGroup" => "packing-packing-out", "subPage" => "packing-out-subcont"]);
     }
 
     /**
@@ -81,7 +81,7 @@ class PackingSubcontController extends Controller
         DB::connection('mysql_sb')->delete("DELETE FROM packing_out_det_temp WHERE created_by = ? ", [Auth::user()->name]);
 
 
-        return view('packing-subcont.create-packing-out', ['no_req' => $no_req,'kode_gr' => $kode_gr,'jns_klr' => $jns_klr,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit ,'no_po' => $no_po, 'page' => 'dashboard-sewing-eff', "subPageGroup" => "sewing-packing-out", "subPage" => "sewing-out-subcont"]);
+        return view('packing-subcont.create-packing-out', ['no_req' => $no_req,'kode_gr' => $kode_gr,'jns_klr' => $jns_klr,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit ,'no_po' => $no_po, 'page' => 'dashboard-packing', "subPageGroup" => "packing-packing-out", "subPage" => "packing-out-subcont"]);
     }
 
 
@@ -89,25 +89,25 @@ class PackingSubcontController extends Controller
     {
         $user = Auth::user()->name;
         // $data_detail = DB::connection('mysql_sb')->select("select styleno, a.id_item, a.id_jo, itemdesc, qtyitem_sisa, qtyreq, qty_sdh_out, (qtyreq - qty_sdh_out) qty_sisa_out, Coalesce(qty_input,0) qty_input, unit from (select a.bppbno, ac.styleno, a.id_item, mi.itemdesc, a.qty qtyreq, COALESCE(a.qty_out,0) qty_sdh_out, a.id_jo,a.unit  from bppb_req a inner join mastersupplier s on a.id_supplier=s.id_supplier inner join jo on a.id_jo=jo.id left join jo_det jod on a.id_jo=jod.id_jo left join so on jod.id_so=so.id left join act_costing ac on so.id_cost=ac.id inner join mastersupplier b on ac.id_buyer=b.id_supplier inner join masteritem mi on a.id_item=mi.id_item where bppbno='".$request->no_req."' GROUP BY a.id) a LEFT JOIN
-        //     (select id_jo, id_item, sum(sal_akhir) qtyitem_sisa from data_stock_fabric GROUP BY id_jo, id_item) b on a.id_item = b.id_item and a.id_jo = b.id_jo LEFT JOIN
+        //     (select id_jo, id_item, sum(sal_akhir) qtyitem_sisa from data_stock_fabric GROUP BY id_jo, id_item) b on a.id_item = b.id_item and a.id_jo = b.id_jo LEFT JOIN 
         //     (select id_item iditem,sum(qty_out) qty_input from whs_bppb_det_temp where created_by = '".$user."' GROUP BY id_item) c on c.iditem = a.id_item");
 
-         $data_detail = DB::connection('mysql_sb')->select(" WITH detail_po as (select pono, kpno, styleno, jo.jo_no, c.id_jo, e.id_item, e.itemdesc, b.unit, b.qty, b.id_po, g.id_buyer, h.supplier buyer from po_header a
-                INNER JOIN po_item b on b.id_po = a.id
+         $data_detail = DB::connection('mysql_sb')->select(" WITH detail_po as (select pono, kpno, styleno, jo.jo_no, c.id_jo, e.id_item, e.itemdesc, b.unit, b.qty, b.id_po, g.id_buyer, h.supplier buyer from po_header a 
+                INNER JOIN po_item b on b.id_po = a.id 
                 INNER JOIN bom_jo_item c on c.id_jo = b.id_jo and c.id_item = b.id_gen
                 left join jo on jo.id = c.id_jo
                 left join jo_det d on d.id_jo = c.id_jo
                 left join so on so.id = d.id_so
-                left join masteritem e on c.id_item = e.id_item
+                left join masteritem e on c.id_item = e.id_item 
                 left join so_det f on f.id_so = so.id
                 left join act_costing g on g.id = so.id_cost
                 left join mastersupplier h on h.id_supplier = g.id_buyer
                 where pono = '".$request->pono."' and a.app = 'A' GROUP BY b.id_gen, b.id_jo),
-
+                                
                 detail_input as (select id_po, id_jo, id_item, sum(qty) qty_input from packing_out_det_temp where created_by = '".$user."' GROUP BY id_po, id_jo, id_item),
-
+                                
                 detail_out as (select id_po, id_jo, id_item, sum(qty) qty_out from packing_out_det where status = 'Y' GROUP BY id_po, id_jo, id_item)
-
+                                
                 select a.*, COALESCE(qty_out,0) qty_out, COALESCE(qty_input,0) qty_input, (a.qty - COALESCE(qty_input,0) - COALESCE(qty_out,0)) qty_balance from detail_po a LEFT JOIN detail_input b on b.id_po = a.id_po and b.id_jo = a.id_jo and b.id_item = a.id_item LEFT JOIN detail_out c on c.id_po = a.id_po and c.id_jo = a.id_jo and c.id_item = a.id_item order by a.kpno asc");
 
         return json_encode([
@@ -121,13 +121,13 @@ class PackingSubcontController extends Controller
     public function showdetailitem(Request $request)
     {
 
-        $det_item = DB::connection('mysql_sb')->select("select pono, kpno, styleno, jo.jo_no, c.id_jo, e.id_item, e.itemdesc, b.id_po, g.id_buyer, h.supplier buyer, f.color, f.size, f.unit from po_header a
-                INNER JOIN po_item b on b.id_po = a.id
+        $det_item = DB::connection('mysql_sb')->select("select pono, kpno, styleno, jo.jo_no, c.id_jo, e.id_item, e.itemdesc, b.id_po, g.id_buyer, h.supplier buyer, f.color, f.size, f.unit from po_header a 
+                INNER JOIN po_item b on b.id_po = a.id 
                 INNER JOIN bom_jo_item c on c.id_jo = b.id_jo and c.id_item = b.id_gen
                 left join jo on jo.id = c.id_jo
                 left join jo_det d on d.id_jo = c.id_jo
                 left join so on so.id = d.id_so
-                left join masteritem e on c.id_item = e.id_item
+                left join masteritem e on c.id_item = e.id_item 
                 left join so_det f on f.id_so = so.id
                 left join act_costing g on g.id = so.id_cost
                 left join mastersupplier h on h.id_supplier = g.id_buyer
@@ -325,7 +325,7 @@ public function DeleteOutDetailTemp(Request $request)
                 'jenis_trans' => $request['txt_jns_klr'],
                 'id_po' => $request["id_po"][$i],
             ]);
-
+            
         }
 
 
@@ -362,7 +362,7 @@ public function DeleteOutDetailTemp(Request $request)
             "status" =>  $stat,
             "message" => $massage,
             "additional" => [],
-            "redirect" => route('sewing-out-subcont')
+            "redirect" => route('packing-out-subcont')
         );
 
     }
@@ -408,7 +408,7 @@ public function ApprovePackingOutSubcont(Request $request)
         $arealok = DB::connection('mysql_sb')->table('whs_master_area')->select('id', 'area')->where('status', '=', 'active')->get();
         $unit = DB::connection('mysql_sb')->table('whs_master_unit')->select('id', 'nama_unit')->where('status', '=', 'active')->get();
 
-        return view("packing-subcont.approve-packing-out", ['status' => $status,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,'page' => 'dashboard-sewing-eff', "subPageGroup" => "sewing-packing-out", "subPage" => "approve-sewing-out-subcont"]);
+        return view("packing-subcont.approve-packing-out", ['status' => $status,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,'page' => 'dashboard-packing', "subPageGroup" => "approve-packing-packing-out", "subPage" => "approve-packing-out-subcont"]);
     }
 
     public function SaveApprovePackingOut(Request $request)
@@ -464,7 +464,7 @@ public function ApprovePackingOutSubcont(Request $request)
             return DataTables::of($data_pemasukan)->toJson();
         }
 
-        return view("packing-subcont.report-packing-out", ['page' => 'dashboard-sewing-eff', "subPageGroup" => "sewing-report", "subPage" => "report-sewing-out-subcont"]);
+        return view("packing-subcont.report-packing-out", ['page' => 'dashboard-packing', "subPageGroup" => "packing-report", "subPage" => "report-packing-out-subcont"]);
     }
 
 
@@ -583,7 +583,7 @@ foreach ($maxLen as $i => $len) {
         $arealok = DB::connection('mysql_sb')->table('whs_master_area')->select('id', 'area')->where('status', '=', 'active')->get();
         $unit = DB::connection('mysql_sb')->table('whs_master_unit')->select('id', 'nama_unit')->where('status', '=', 'active')->get();
 
-        return view("packing-subcont.packing-in", ['status' => $status,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,'page' => 'dashboard-sewing-eff', "subPageGroup" => "sewing-packing-in", "subPage" => "sewing-in-subcont"]);
+        return view("packing-subcont.packing-in", ['status' => $status,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,'page' => 'dashboard-packing', "subPageGroup" => "packing-packing-in", "subPage" => "packing-in-subcont"]);
     }
 
     public function createIN()
@@ -605,23 +605,23 @@ foreach ($maxLen as $i => $len) {
         DB::connection('mysql_sb')->delete("DELETE FROM packing_in_det_temp WHERE created_by = ? ", [Auth::user()->name]);
 
 
-        return view('packing-subcont.create-packing-in', ['no_req' => $no_req,'kode_gr' => $kode_gr,'jns_klr' => $jns_klr,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit ,'no_po' => $no_po, 'page' => 'dashboard-sewing-eff', "subPageGroup" => "sewing-packing-in", "subPage" => "sewing-in-subcont"]);
+        return view('packing-subcont.create-packing-in', ['no_req' => $no_req,'kode_gr' => $kode_gr,'jns_klr' => $jns_klr,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit ,'no_po' => $no_po, 'page' => 'dashboard-packing', "subPageGroup" => "packing-packing-in", "subPage" => "packing-in-subcont"]);
     }
 
     public function getDetailListIN(Request $request)
     {
         $user = Auth::user()->name;
         // $data_detail = DB::connection('mysql_sb')->select("select styleno, a.id_item, a.id_jo, itemdesc, qtyitem_sisa, qtyreq, qty_sdh_out, (qtyreq - qty_sdh_out) qty_sisa_out, Coalesce(qty_input,0) qty_input, unit from (select a.bppbno, ac.styleno, a.id_item, mi.itemdesc, a.qty qtyreq, COALESCE(a.qty_out,0) qty_sdh_out, a.id_jo,a.unit  from bppb_req a inner join mastersupplier s on a.id_supplier=s.id_supplier inner join jo on a.id_jo=jo.id left join jo_det jod on a.id_jo=jod.id_jo left join so on jod.id_so=so.id left join act_costing ac on so.id_cost=ac.id inner join mastersupplier b on ac.id_buyer=b.id_supplier inner join masteritem mi on a.id_item=mi.id_item where bppbno='".$request->no_req."' GROUP BY a.id) a LEFT JOIN
-        //     (select id_jo, id_item, sum(sal_akhir) qtyitem_sisa from data_stock_fabric GROUP BY id_jo, id_item) b on a.id_item = b.id_item and a.id_jo = b.id_jo LEFT JOIN
+        //     (select id_jo, id_item, sum(sal_akhir) qtyitem_sisa from data_stock_fabric GROUP BY id_jo, id_item) b on a.id_item = b.id_item and a.id_jo = b.id_jo LEFT JOIN 
         //     (select id_item iditem,sum(qty_out) qty_input from whs_bppb_det_temp where created_by = '".$user."' GROUP BY id_item) c on c.iditem = a.id_item");
 
-         $data_detail = DB::connection('mysql_sb')->select("WITH
+         $data_detail = DB::connection('mysql_sb')->select("WITH 
 detail_po as (select a.no_po pono, kpno, styleno, jo_no,    b.id_jo, b.id_item, mi.itemdesc, b.unit, sum(b.qty) qty, b.id_po, id_buyer, buyer from packing_out_h a INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer, ac.id_buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo LEFT JOIN jo on jo.id = b.id_jo INNER JOIN masteritem mi on mi.id_item = b.id_item where a.no_po = '".$request->pono."' GROUP BY b.id_item, b.id_jo),
-
+                                
 detail_input as (select id_po, id_jo, id_item, sum(qty) qty_input, sum(qty_reject) qty_input_reject from packing_in_det_temp where created_by = '".$user."' GROUP BY id_po, id_jo, id_item),
-
+                                
 detail_out as (select id_po, id_jo, id_item, sum(qty + qty_reject) qty_terima from packing_in_det where status = 'Y' GROUP BY id_po, id_jo, id_item)
-
+                                
 select a.*, COALESCE(qty_terima,0) qty_terima, COALESCE(qty_input,0) qty_input, COALESCE(qty_input_reject,0) qty_input_reject, (a.qty - COALESCE(qty_input,0) - COALESCE(qty_input_reject,0) - COALESCE(qty_terima,0)) qty_balance from detail_po a LEFT JOIN detail_input b on b.id_po = a.id_po and b.id_jo = a.id_jo and b.id_item = a.id_item LEFT JOIN detail_out c on c.id_po = a.id_po and c.id_jo = a.id_jo and c.id_item = a.id_item order by a.kpno asc");
 
         return json_encode([
@@ -856,7 +856,7 @@ if ($qty > 0 || $qtyReject > 0) {
 
 }
 
-
+            
         }
 
 
@@ -891,7 +891,7 @@ if ($qty > 0 || $qtyReject > 0) {
             "status" =>  $stat,
             "message" => $massage,
             "additional" => [],
-            "redirect" => route('sewing-in-subcont')
+            "redirect" => route('packing-in-subcont')
         );
 
     }
@@ -931,7 +931,7 @@ if ($qty > 0 || $qtyReject > 0) {
             return DataTables::of($data_pemasukan)->toJson();
         }
 
-        return view("packing-subcont.report-packing-in", ['page' => 'dashboard-sewing-eff', "subPageGroup" => "sewing-report", "subPage" => "report-packing-in-subcont"]);
+        return view("packing-subcont.report-packing-in", ['page' => 'dashboard-packing', "subPageGroup" => "packing-report", "subPage" => "report-packing-in-subcont"]);
     }
 
 
@@ -1039,7 +1039,7 @@ public function ReportMonitoringSubcont(Request $request)
             }
 
 
-            $data = DB::connection('mysql_sb')->select("WITH
+            $data = DB::connection('mysql_sb')->select("WITH                                      
 det_kirim as (select a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_out from packing_out_h a INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where b.status = 'Y' ".$additionalQuery." GROUP BY a.no_po, supplier, buyer, kpno, styleno, b.color, b.size),
 
 det_terima as (select a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_in, sum(b.qty_reject) qty_in_reject from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where b.status = 'Y' ".$additionalQuery." GROUP BY a.no_po, supplier, buyer, kpno, styleno, b.color, b.size)
@@ -1050,7 +1050,7 @@ select a.*, COALESCE(qty_in,0) qty_in, COALESCE(qty_in_reject,0) qty_in_reject, 
             return DataTables::of($data)->toJson();
         }
 
-        return view("packing-subcont.report-monitoring-packing", ['msupplier' => $msupplier, 'no_po' => $no_po, 'page' => 'dashboard-sewing-eff', "subPageGroup" => "sewing-report", "subPage" => "report-packing-monitoring-subcont"]);
+        return view("packing-subcont.report-monitoring-packing", ['msupplier' => $msupplier, 'no_po' => $no_po, 'page' => 'dashboard-packing', "subPageGroup" => "packing-report", "subPage" => "report-packing-monitoring-subcont"]);
     }
 
 
@@ -1073,7 +1073,7 @@ select a.*, COALESCE(qty_in,0) qty_in, COALESCE(qty_in_reject,0) qty_in_reject, 
     // ==============================
     // SQL
     // ==============================
-    $sql = "WITH
+    $sql = "WITH                                      
 det_kirim as (select a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_out from packing_out_h a INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where b.status = 'Y' ".$additionalQuery." GROUP BY a.no_po, supplier, buyer, kpno, styleno, b.color, b.size),
 
 det_terima as (select a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_in, sum(b.qty_reject) qty_in_reject from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where b.status = 'Y' ".$additionalQuery." GROUP BY a.no_po, supplier, buyer, kpno, styleno, b.color, b.size)
@@ -1095,7 +1095,7 @@ select a.*, COALESCE(qty_in,0) qty_in, COALESCE(qty_in_reject,0) qty_in_reject, 
 
 $sheet->writeRow(['Laporan Monitoring Subcont Packing'])
       ->applyFontStyleBold()
-      ->applyFontSize(16);
+      ->applyFontSize(16);  
 
 $sheet->mergeCells('A1:K1');
 
@@ -1169,10 +1169,10 @@ out_trx as (select b.id_item, itemdesc, a.no_po, supplier, buyer, kpno, styleno,
 in_trx as (select b.id_item, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty + b.qty_reject) qty_in from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where a.tgl_bpb BETWEEN '".$request->dateFrom."' and '".$request->dateTo."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
 
 saldo_out as (select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  sum(sal_awal) sal_awal, sum(qty_out) qty_out from (
-select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  qty sal_awal, 0 qty_out from saldo_awal
-UNION
+select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  qty sal_awal, 0 qty_out from saldo_awal 
+UNION 
 select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  qty_out sal_awal, 0 qty_out from out_before
-UNION
+UNION 
 select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  0 sal_awal, qty_out from out_trx) a GROUP BY no_po, kpno, color, size, id_item)
 select a.id_item, itemdesc, a.no_po, a.supplier, a.buyer, a.kpno, a.styleno, a.color, a.size, (a.sal_awal - COALESCE(b.qty_in,0)) saldo_awal, a.qty_out, COALESCE(c.qty_in,0) qty_in, ((a.sal_awal - COALESCE(b.qty_in,0)) + a.qty_out - COALESCE(c.qty_in,0)) saldo_akhir from saldo_out a left join in_before b on b.no_po = a.no_po and b.kpno = a.kpno and b.color = a.color and b.size = a.size and b.id_item = a.id_item left join in_trx c on c.no_po = a.no_po and c.kpno = a.kpno and c.color = a.color and c.size = a.size and c.id_item = a.id_item where (a.sal_awal - COALESCE(b.qty_in,0)) + a.qty_out + COALESCE(c.qty_in,0) != 0");
 
@@ -1180,7 +1180,7 @@ select a.id_item, itemdesc, a.no_po, a.supplier, a.buyer, a.kpno, a.styleno, a.c
             return DataTables::of($data)->toJson();
         }
 
-        return view("packing-subcont.report-mutasi-packing", ['page' => 'dashboard-sewing-eff', "subPageGroup" => "sewing-report", "subPage" => "report-packing-mutasi-subcont"]);
+        return view("packing-subcont.report-mutasi-packing", ['page' => 'dashboard-packing', "subPageGroup" => "packing-report", "subPage" => "report-packing-mutasi-subcont"]);
     }
 
 
@@ -1204,10 +1204,10 @@ out_trx as (select b.id_item, itemdesc, a.no_po, supplier, buyer, kpno, styleno,
 in_trx as (select b.id_item, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty + b.qty_reject) qty_in from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where a.tgl_bpb BETWEEN '".$request->from."' and '".$request->to."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
 
 saldo_out as (select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  sum(sal_awal) sal_awal, sum(qty_out) qty_out from (
-select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  qty sal_awal, 0 qty_out from saldo_awal
-UNION
+select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  qty sal_awal, 0 qty_out from saldo_awal 
+UNION 
 select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  qty_out sal_awal, 0 qty_out from out_before
-UNION
+UNION 
 select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  0 sal_awal, qty_out from out_trx) a GROUP BY no_po, kpno, color, size, id_item)
 select a.id_item, itemdesc, a.no_po, a.supplier, a.buyer, a.kpno, a.styleno, a.color, a.size, (a.sal_awal - COALESCE(b.qty_in,0)) saldo_awal, a.qty_out, COALESCE(c.qty_in,0) qty_in, ((a.sal_awal - COALESCE(b.qty_in,0)) + a.qty_out - COALESCE(c.qty_in,0)) saldo_akhir from saldo_out a left join in_before b on b.no_po = a.no_po and b.kpno = a.kpno and b.color = a.color and b.size = a.size and b.id_item = a.id_item left join in_trx c on c.no_po = a.no_po and c.kpno = a.kpno and c.color = a.color and c.size = a.size and c.id_item = a.id_item where (a.sal_awal - COALESCE(b.qty_in,0)) + a.qty_out + COALESCE(c.qty_in,0) != 0";
 
@@ -1226,8 +1226,8 @@ select a.id_item, itemdesc, a.no_po, a.supplier, a.buyer, a.kpno, a.styleno, a.c
 
     $sheet->writeRow(['Laporan Mutasi Subcont Packing'])
       ->applyFontStyleBold()
-      ->applyFontSize(16);
-    $sheet->writeRow(["Periode {$from} s/d {$to}"])->applyFontStyleBold();
+      ->applyFontSize(16); 
+    $sheet->writeRow(["Periode {$from} s/d {$to}"])->applyFontStyleBold(); 
 
     $sheet->mergeCells('A1:M1');
 
@@ -1304,7 +1304,7 @@ public function ApprovePackingInSubcont(Request $request)
         $arealok = DB::connection('mysql_sb')->table('whs_master_area')->select('id', 'area')->where('status', '=', 'active')->get();
         $unit = DB::connection('mysql_sb')->table('whs_master_unit')->select('id', 'nama_unit')->where('status', '=', 'active')->get();
 
-        return view("packing-subcont.approve-packing-in", ['status' => $status,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,'page' => 'dashboard-sewing-eff', "subPageGroup" => "sewing-packing-in", "subPage" => "approve-sewing-in-subcont"]);
+        return view("packing-subcont.approve-packing-in", ['status' => $status,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,'page' => 'dashboard-packing', "subPageGroup" => "packing-packing-in", "subPage" => "approve-packing-in-subcont"]);
     }
 
 
@@ -1332,8 +1332,8 @@ public function ApprovePackingInSubcont(Request $request)
             ]);
 
             $cekdata = DB::connection('mysql_sb')->select("
-                select
-                SUBSTR(bpbno_int,1,3) fil_wip, phd.tipe_com, mi.itemdesc, bpb.confirm, bpbno, bpbno_int, bpb.bpbdate,
+                select 
+                SUBSTR(bpbno_int,1,3) fil_wip, phd.tipe_com, mi.itemdesc, bpb.confirm, bpbno, bpbno_int, bpb.bpbdate, 
                 bpb.id_supplier, supplier, mattype, n_code_category,
                 if(matclass like '%ACCESORIES%','ACCESORIES',mi.matclass) matclass,
                 bpb.curr, COALESCE(ph.tax,0) tax, bpb.username, bpb.dateinput,

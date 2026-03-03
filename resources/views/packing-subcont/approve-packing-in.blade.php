@@ -14,7 +14,7 @@
     @endsection
 
     @section('content')
-    <form action="{{ route('save-approve-sewing-in') }}" method="post" onsubmit="submitappForm(this, event)">
+    <form action="{{ route('save-approve-packing-in') }}" method="post" onsubmit="submitappForm(this, event)">
         @method('GET')
         <div class="card card-sb">
             <div class="card-header">
@@ -304,7 +304,7 @@ let detailDT = null;
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '{{ route('approve-sewing-in-subcont') }}',
+                url: '{{ route('approve-packing-in-subcont') }}',
                 dataType: 'json',
                 dataSrc: 'data',
                 data: function(d) {
@@ -371,10 +371,10 @@ let detailDT = null;
             targets: [8],
             render: (data, type, row, meta) => {
                 console.log(row);
-
+    
                         return '<div class="d-flex gap-1 justify-content-center" style="padding-top:5px;"><input type="checkbox" id="chek_id' + meta.row +
                         '" name="chek_id[' + meta.row + ']" class="flat" value="1" ></td></div>';
-
+                   
             }
         },
         {
@@ -403,7 +403,7 @@ async function dataTableReload() {
 
 function showDetail(id) {
 
-    let url = "{{ route('get-detail-sewing-in', ':id') }}".replace(':id', id);
+    let url = "{{ route('get-detail-packing-in', ':id') }}".replace(':id', id);
 
     $.get(url, function(res){
 
@@ -457,14 +457,14 @@ function showDetail(id) {
 
             columnDefs:[
                 {
-                    targets:6,
+                    targets:6, 
                     className:'text-end',
                     render:function(data){
                         return (parseFloat(data)||0).toLocaleString('en-US');
                     }
                 },
                 {
-                    targets:7,
+                    targets:7, 
                     className:'text-end',
                     render:function(data){
                         return (parseFloat(data)||0).toLocaleString('en-US');

@@ -14,7 +14,7 @@
     @endsection
 
     @section('content')
-    <form action="{{ route('save-approve-sewing-out') }}" method="post" onsubmit="submitappForm(this, event)">
+    <form action="{{ route('save-approve-packing-out') }}" method="post" onsubmit="submitappForm(this, event)">
         @method('GET')
         <div class="card card-sb">
             <div class="card-header">
@@ -299,7 +299,7 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '{{ route('approve-sewing-out-subcont') }}',
+                url: '{{ route('approve-packing-out-subcont') }}',
                 dataType: 'json',
                 dataSrc: 'data',
                 data: function(d) {
@@ -366,10 +366,10 @@
             targets: [8],
             render: (data, type, row, meta) => {
                 console.log(row);
-
+    
                         return '<div class="d-flex gap-1 justify-content-center" style="padding-top:5px;"><input type="checkbox" id="chek_id' + meta.row +
                         '" name="chek_id[' + meta.row + ']" class="flat" value="1" ></td></div>';
-
+                   
             }
         },
         {
@@ -399,7 +399,7 @@ async function dataTableReload() {
 function showDetail(id) {
     let detailDT = null;
 
-    let url = "{{ route('get-detail-sewing-out', ':id') }}".replace(':id', id);
+    let url = "{{ route('get-detail-packing-out', ':id') }}".replace(':id', id);
 
     $.get(url, function(res){
 
@@ -452,7 +452,7 @@ function showDetail(id) {
 
             columnDefs:[
                 {
-                    targets:6,
+                    targets:6, 
                     className:'text-end',
                     render:function(data){
                         return (parseFloat(data)||0).toLocaleString('en-US');
