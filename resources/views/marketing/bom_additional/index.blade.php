@@ -15,14 +15,14 @@
     </div>
     <div class="card-body">
         <div class="mb-3">
-            <a href="{{ route('create-bom') }}" class="btn btn-outline-primary">
+            <a href="{{ route('create-bom-additional') }}" class="btn btn-outline-primary">
                 <i class="fas fa-plus"></i>
                 Create BOM
             </a>
         </div>
 
         <div class="table-responsive">
-            <table class="table table-bordered table-hover w-100" id="table-bom">
+            <table class="table table-bordered table-hover w-100" id="table-bom-additional">
                 <thead>
                     <tr class="text-center">
                         <th>No</th>
@@ -46,7 +46,7 @@
                                 <button class="btn btn-sm btn-info mr-1 py-1 px-2" style="font-size: 12px;" onclick="viewDetail({{ $item->id }})">
                                     <i class="fas fa-eye"></i> Detail
                                 </button>
-                                <a href="{{ route('edit-bom', $item->id) }}" class="btn btn-sm btn-success py-1 px-2" style="font-size: 12px;">
+                                <a href="{{ route('edit-bom-additional', $item->id) }}" class="btn btn-sm btn-success py-1 px-2" style="font-size: 12px;">
                                     <i class="fas fa-edit"></i> Edit
                                 </a>
                             </div>
@@ -119,7 +119,7 @@
                 }
             });
 
-            $('#table-bom').DataTable({
+            $('#table-bom-additional').DataTable({
                 "paging": true,
                 "lengthChange": true,
                 "searching": true,
@@ -152,7 +152,7 @@
         function viewDetail(id) {
             $('#modalDetail').modal('show');
 
-            let url = "{{ route('show-detail-bom', ':id') }}";
+            let url = "{{ route('show-detail-bom-additional', ':id') }}";
             url = url.replace(':id', id);
 
             if ($.fn.DataTable.isDataTable('#table-detail')) {

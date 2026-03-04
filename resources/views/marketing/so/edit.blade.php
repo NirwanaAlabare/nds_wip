@@ -50,11 +50,7 @@
         </div>
         <div class="card-body bg-light">
             <div class="row">
-                <div class="col-md-3">
-                    <label class="form-label"><small class="fw-bold">No Katalog BOM</small></label>
-                    <input type="text" class="form-control" name="no_katalog_bom" id="no_katalog_bom" value="{{ $bom->no_katalog_bom }}" readonly>
-                </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label"><small class="fw-bold">Buyer</small></label>
                     <select name="id_buyer" class="form-control select2bs4" disabled>
                         <option value="">Pilih Buyer</option>
@@ -65,11 +61,11 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label"><small class="fw-bold">Style</small></label>
                     <input type="text" class="form-control" name="style" id="style" value="{{ $bom->style }}" readonly>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label"><small class="fw-bold">Market</small></label>
                     <input type="text" class="form-control" name="market" id="market" value="{{ $bom->market }}" readonly>
                 </div>
@@ -106,12 +102,8 @@
     </div>
 
     <div class="card mt-3 card-success" id="section-list-item">
-        <div class="card-header bg-sb">
-            <h5 class="card-title fw-bold mb-0">  Tambah Item Baru</h5>
-            <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
-                </button>
-            </div>
+        <div class="card-header bg-sb text-light">
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-plus-circle"></i> Tambah Item Baru</h5>
         </div>
         <div class="card-body">
             <div class="row">
@@ -126,17 +118,12 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label><small class="fw-bold">Category</small></label>
-                        <select name="category" id="category" class="form-control select2bs4" onchange="get_item_contents()">
-                            <option value="">Pilih Category</option>
-                            <option value="Material">Material</option>
-                            <option value="Manufacturing">Manufacturing</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
                         <label><small class="fw-bold">Item Contents *</small></label>
-                        <select name="item_contents" id="item_contents" class="form-control select2bs4" onchange="get_rule()" disabled>
-                            <option value="">Pilih Kategori Terlebih Dahulu</option>
+                        <select name="item_contents" id="item_contents" class="form-control select2bs4" onchange="get_rule()">
+                            <option value="">Pilih Item Contents</option>
+                            @foreach ($itemContents as $item)
+                                <option value="{{ $item->isi }}">{{ $item->tampil }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="form-group">
@@ -145,6 +132,7 @@
                             <option value="">Pilih Rule</option>
                         </select>
                     </div>
+
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
@@ -179,7 +167,6 @@
                             <th width="25%">Color | Size</th>
                             <th>Item</th>
                             <th width="15%">Cons</th>
-                            <th width="15%">Price</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -193,119 +180,61 @@
             </div>
         </div>
     </div>
-</form>
 
-<div class="card card-sb mt-3" id="section_table_list_item">
-    <div class="card-header bg-sb">
-        <h5 class="card-title fw-bold mb-0">BOM Detail Material & Manufacturing</h5>
-        <div class="card-tools">
-            <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
-            </button>
+    <div class="card card-outline card-info mt-3" id="section_table_list_item">
+        <div class="card-header">
+            <h5 class="card-title fw-bold text-info"><i class="fas fa-clipboard-list"></i> BOM Detail</h5>
         </div>
-    </div>
-    <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="fw-bold text-dark mb-0"><i class="fas fa-list"></i> Item BOM</h6>
-            <div class="d-flex align-items-center">
-                <button type="button" class="btn btn-info btn-sm shadow-sm mr-2" onclick="export_excel()">
-                    <i class="fas fa-file-excel"></i> Export Excel
-                </button>
-                <div id="delete-batch-container" style="display:none;">
-                    <button type="button" class="btn btn-danger btn-sm shadow-sm" onclick="delete_batch()">
-                        <i class="fas fa-trash"></i> Hapus Batch (<span id="count-selected">0</span>)
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold text-dark mb-0"><i class="fas fa-list"></i> Item BOM</h6>
+                <div class="d-flex align-items-center">
+                    <button type="button" class="btn btn-info btn-sm shadow-sm mr-2" onclick="export_excel()">
+                        <i class="fas fa-file-excel"></i> Export Excel
                     </button>
+                    <div id="delete-batch-container" style="display:none;">
+                        <button type="button" class="btn btn-danger btn-sm shadow-sm" onclick="delete_batch()">
+                            <i class="fas fa-trash"></i> Hapus Batch (<span id="count-selected">0</span>)
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="table-responsive">
-            <table class="table table-sm table-striped table-bordered w-100" id="table-detail-bom">
-                <thead class="bg-light">
-                    <tr class="text-center">
-                        <th width="2%"><input type="checkbox" id="check-all"></th>
-                        <th width="5%">No</th>
-                        <th width="10%">Category</th>
-                        <th width="20%">Content</th>
-                        <th width="20%">Item Description</th>
-                        <th width="10%">Color</th>
-                        <th width="5%">Size</th>
-                        <th width="5%">Cons</th>
-                        <th width="5%">Price</th>
-                        <th width="10%">Unit</th>
-                        <th width="5%">Shell</th>
-                        <th width="5%">Action</th>
-                    </tr>
-                    <tr class="filter-row">
-                        <th></th>
-                        <th></th>
-                        <th><input type="text" class="form-control form-control-sm column-search" data-column="2"></th>
-                        <th><input type="text" class="form-control form-control-sm column-search" data-column="3"></th>
-                        <th><input type="text" class="form-control form-control-sm column-search" data-column="4"></th>
-                        <th><input type="text" class="form-control form-control-sm column-search" data-column="5"></th>
-                        <th><input type="text" class="form-control form-control-sm column-search" data-column="6"></th>
-                        <th></th>
-                        <th></th>
-                        <th><input type="text" class="form-control form-control-sm column-search" data-column="9"></th>
-                        <th><input type="text" class="form-control form-control-sm column-search" data-column="10"></th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped table-bordered w-100" id="table-detail-bom">
+                    <thead class="bg-light">
+                        <tr class="text-center">
+                            <th width="2%"><input type="checkbox" id="check-all"></th>
+                            <th width="5%">No</th>
+                            <th width="20%">Content</th>
+                            <th width="20%">Item Description</th>
+                            <th width="10%">Color</th>
+                            <th width="5%">Size</th>
+                            <th width="5%">Cons</th>
+                            <th width="10%">Unit</th>
+                            <th width="5%">Shell</th>
+                            <th width="5%">Action</th>
+                        </tr>
+
+                        <tr class="filter-row">
+                            <th></th>
+                            <th></th>
+                            <th><input type="text" class="form-control form-control-sm column-search" data-column="2"></th>
+                            <th><input type="text" class="form-control form-control-sm column-search" data-column="3"></th>
+                            <th><input type="text" class="form-control form-control-sm column-search" data-column="4"></th>
+                            <th><input type="text" class="form-control form-control-sm column-search" data-column="5"></th>
+                            <th></th>
+                            <th><input type="text" class="form-control form-control-sm column-search" data-column="7"></th>
+                            <th><input type="text" class="form-control form-control-sm column-search" data-column="8"></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
-
-<div class="card card-sb mt-3" id="section_table_other">
-    <div class="card-header bg-sb">
-        <h5 class="card-title fw-bold mb-0">  BOM Detail Other</h5>
-        <div class="card-tools">
-            <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
-        </div>
-    </div>
-    <div class="card-body">
-        <div class="row g-2 mb-4 align-items-end">
-            <div class="col-md-5">
-                <label class="form-label fw-bold small">Pilih Item</label>
-                <select name="id_item_others" id="id_item_others" class="form-control form-control-sm select2bs4">
-                    <option value="">Pilih Item</option>
-                    @foreach ($master_items_other as $other)
-                        <option value="{{ $other->isi }}">{{ $other->tampil }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold small">Price USD</label>
-                <input type="number" name="price_usd" id="price_usd" class="form-control form-control-sm" placeholder="0.00" step="0.01">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold small">Price IDR</label>
-                <input type="number" name="price_idr" id="price_idr" class="form-control form-control-sm" placeholder="0">
-            </div>
-            <div class="col-md-auto">
-                <button type="button" class="btn btn-sm btn-primary" id="btn-tambah-item" title="Tambah Item">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
-        </div>
-
-        <div class="table-responsive">
-            <table class="table table-sm table-striped table-bordered w-100" id="table-detail-other">
-                <thead class="table-light text-center">
-                    <tr class="small">
-                        <th width="40%">Description</th>
-                        <th width="20%">Price USD</th>
-                        <th width="20%">Price IDR</th>
-                        <th width="5%">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="small">
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
+</form>
 <div class="modal fade" id="modalEdit" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -357,16 +286,12 @@
                         </div>
                         <div class="col-md-6 mb-2">
                            <label><small class="fw-bold">Shell</small></label>
-                            <select name="shell" id="edit_shell" class="form-control select2bs4-edit">
+                            <select name="shell" id="edit_shell" class="form-control select2bs4">
                                 <option value="">Pilih Shell</option>
                                 <option value="A">A</option>
                                 <option value="B">B</option>
                                 <option value="C">C</option>
                             </select>
-                        </div>
-                        <div class="col-md-6 mb-2">
-                            <label><small class="fw-bold">Price</small></label>
-                            <input type="number" step="0.0001" name="price" id="edit_price" class="form-control form-control-sm text-center price_input" required>
                         </div>
                     </div>
                 </div>
@@ -395,7 +320,6 @@
         $('.select2bs4').select2({ theme: 'bootstrap4' });
 
         load_items(bom_id);
-        loadDataOther();
 
         $('#form-bom').on('submit', function(e) {
             e.preventDefault();
@@ -425,53 +349,9 @@
         });
 
         $(document).on('keypress', '.qty_input', function(e) {
-            if (e.which == 45) { return false; }
-        });
-
-        $(document).on('click', '.btn-hapus-row', function() {
-            $(this).closest('tr').remove();
-        });
-
-        $('#btn-tambah-item').on('click', function() {
-            let id_item_others = $('#id_item_others').val();
-
-            if (!id_item_others) {
-                Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Item wajib dipilih terlebih dahulu!' });
-                return;
+            if (e.which == 45) {
+                return false;
             }
-
-            let data = {
-                _token: "{{ csrf_token() }}",
-                id_bom_marketing: bom_id,
-                id_item_others: id_item_others,
-                price_usd: $('#price_usd').val(),
-                price_idr: $('#price_idr').val(),
-            };
-
-            Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-
-            $.ajax({
-                url: "{{ route('bom.store_other') }}",
-                type: "POST",
-                data: data,
-                success: function(res) {
-                    $('#id_item_others').val('').trigger('change');
-                    $('#price_usd').val('');
-                    $('#price_idr').val('');
-
-                    loadDataOther();
-
-                    Swal.fire({
-                        icon: 'success', title: 'Berhasil!',
-                        text: res.message || 'Item berhasil ditambahkan.',
-                        timer: 1500, showConfirmButton: false
-                    });
-                },
-                error: function(err) {
-                    let errorMsg = err.responseJSON ? err.responseJSON.message : "Terjadi kesalahan pada server.";
-                    Swal.fire({ icon: 'error', title: 'Gagal Menyimpan', text: errorMsg });
-                }
-            });
         });
     });
 
@@ -490,7 +370,6 @@
 
     function get_list_data() {
         let id_contents = $('#item_contents').val();
-        let category = $('#category').val();
         let rule = $('#rule_bom').val();
 
         let selected_colors = $('#colorList').select2('data');
@@ -514,8 +393,7 @@
 
         $.post("{{ route('get-list-data-bom') }}", {
             _token: "{{ csrf_token() }}",
-            id_contents: id_contents,
-            category: category
+            id_contents: id_contents
         }, function(res) {
             let tbody = $("#itemTable tbody");
             tbody.empty();
@@ -546,7 +424,6 @@
                     </td>
                     <td><select name="id_item[${idx}]" class="form-control select2-item">${itemOptions}</select></td>
                     <td><input type="number" step="0.0001" name="qty_input[${idx}]" class="form-control form-control-sm text-center qty_input" placeholder="0.0000"></td>
-                    <td><input type="number" step="0.0001" name="price_input[${idx}]" class="form-control form-control-sm text-center price_input" placeholder="0.0000"></td>
                 </tr>`;
                 tbody.append(row);
             });
@@ -555,26 +432,86 @@
         });
     }
 
+    // function submit_form(form) {
+    //     Swal.fire({
+    //         title: 'Simpan Item BOM?',
+    //         html: "Item ini akan ditambahkan ke list bawah.",
+    //         icon: 'question',
+    //         showCancelButton: true,
+    //         confirmButtonColor: '#28a745',
+    //         confirmButtonText: 'Ya, Simpan'
+    //     }).then((result) => {
+    //         if (result.isConfirmed) {
+    //             Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+    //             let formData = new FormData(form);
+    //             formData.append('id_bom_marketing', bom_id);
+
+    //             let colors = $('#colorList').val();
+    //             let sizes = $('#sizeList').val();
+
+    //             if(colors) colors.forEach(id => formData.append('colors[]', id));
+    //             if(sizes) sizes.forEach(id => formData.append('sizes[]', id));
+
+    //             $.ajax({
+    //                 url: $(form).attr('action'),
+    //                 type: 'POST',
+    //                 data: formData,
+    //                 processData: false,
+    //                 contentType: false,
+    //                 success: function(res) {
+    //                     if (res.status == 200) {
+    //                         Swal.fire({ icon: 'success', title: 'Berhasil!', timer: 1500, showConfirmButton: false });
+
+    //                         $('#item_contents, #rule_bom, #unit, #shell, select[name="id_supplier"]').val('').trigger('change');
+    //                         $(form).find('textarea[name="notes"]').val('');
+    //                         $("#itemTable tbody").empty();
+
+    //                         load_items(bom_id);
+    //                     } else {
+    //                         Swal.fire('Gagal!', res.message, 'error');
+    //                     }
+    //                 },
+    //                 error: function(xhr) {
+    //                     Swal.fire('Error!', 'Terjadi kesalahan sistem', 'error');
+    //                 }
+    //             });
+    //         }
+    //     });
+    // }
+
     function submit_form(form) {
+
         let content = $('#item_contents').val();
         let rule = $('#rule_bom').val();
         let supplier = $('select[name="id_supplier"]').val();
 
         if (!content || !rule || !supplier) {
-            Swal.fire({ icon: 'warning', title: 'Data Belum Lengkap!', text: 'Content, Rule BOM, dan Supplier wajib diisi.' });
+            Swal.fire({
+                icon: 'warning',
+                title: 'Data Belum Lengkap!',
+                text: 'Content, Rule BOM, dan Supplier wajib diisi.'
+            });
             return false;
         }
 
         let rowCount = $("#itemTable tbody tr").length;
         if (rowCount === 0) {
-            Swal.fire({ icon: 'warning', title: 'Item Kosong!', text: 'Silakan tambahkan minimal satu item ke dalam list.' });
+            Swal.fire({
+                icon: 'warning',
+                title: 'Item Kosong!',
+                text: 'Silakan tambahkan minimal satu item ke dalam list.'
+            });
             return false;
         }
 
         let isTableValid = true;
+
         $("#itemTable tbody tr").each(function(index) {
             let itemId = $(this).find('[name^="id_item"]').val();
             let qty    = $(this).find('[name^="qty_input"]').val();
+
+            console.log("Validasi Baris " + (index + 1) + ":", {id_item: itemId, qty: qty});
 
             if (!itemId || itemId === "" || !qty || parseFloat(qty) <= 0) {
                 isTableValid = false;
@@ -585,7 +522,11 @@
         });
 
         if (!isTableValid) {
-            Swal.fire({ icon: 'warning', title: 'Data Tidak Valid', text: 'Terdapat item yang belum dipilih atau quantity masih kosong/0.' });
+            Swal.fire({
+                icon: 'warning',
+                title: 'Data Tidak Valid',
+                text: 'Terdapat item yang belum dipilih atau quantity masih kosong/0.'
+            });
             return false;
         }
 
@@ -598,7 +539,11 @@
             confirmButtonText: 'Ya, Simpan'
         }).then((result) => {
             if (result.isConfirmed) {
-                Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                Swal.fire({
+                    title: 'Menyimpan...',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
 
                 let formData = new FormData(form);
                 formData.append('id_bom_marketing', bom_id);
@@ -613,7 +558,8 @@
                     url: $(form).attr('action'),
                     type: 'POST',
                     data: formData,
-                    processData: false, contentType: false,
+                    processData: false,
+                    contentType: false,
                     success: function(res) {
                         if (res.status == 200) {
                             Swal.fire({ icon: 'success', title: 'Berhasil!', timer: 1500, showConfirmButton: false });
@@ -647,38 +593,52 @@
         }
 
         table_add_item = $('#table-detail-bom').DataTable({
-            processing: true, serverSide: true, destroy: true,
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            pageLength: 10, ajax: url,
+            processing: true,
+            serverSide: true,
+            destroy: true,
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "All"]
+            ],
+            pageLength: 10,
+            ajax: url,
             columns: [
                 {
-                    data: 'id', orderable: false, searchable: false, className: 'text-center align-middle',
+                    data: 'id',
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-center align-middle',
                     render: data => `<input type="checkbox" class="row-checkbox" value="${data}">`
                 },
-                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center' },
-                { data: 'category', name: 'category', className: 'text-center' },
-                { data: 'content_name', name: 'content_name', render: data => data ? data : '-' },
-                { data: 'item_name', name: 'item_name' },
+                {
+                    data: 'DT_RowIndex',
+                    name: 'DT_RowIndex',
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-center'
+                },
+                {
+                    data: 'content_name',
+                    name: 'content_name',
+                    render: data => data ? data : '-'
+                },
+                { data: 'item_name', name: 'i.itemdesc' },
                 { data: 'color_name', name: 'color_name', className: 'text-center' },
                 { data: 'size_name', name: 'size_name', className: 'text-center' },
                 {
-                    data: 'qty', name: 'qty', className: 'text-center', searchable: false,
-                    render: function(data) {
-                        let nilai = parseFloat(data);
-                        return isNaN(nilai) ? '0.00' : nilai.toFixed(4);
-                    }
-                },
-                {
-                    data: 'price', name: 'price', className: 'text-center', searchable: false,
-                    render: function(data) {
-                        let nilai = parseFloat(data);
-                        return isNaN(nilai) ? '0.00' : nilai.toFixed(4);
-                    }
+                    data: 'qty',
+                    name: 'qty',
+                    className: 'text-center',
+                    searchable: false,
+                    render: data => parseInt(data)
                 },
                 { data: 'unit_name', name: 'unit_name', className: 'text-center' },
                 { data: 'shell', name: 'shell', className: 'text-center' },
                 {
-                    data: 'id', orderable: false, searchable: false, className: 'text-center align-middle',
+                    data: 'id',
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-center align-middle',
                     render: data => `
                         <button type="button" class="btn btn-sm btn-info py-1 px-2"
                                 onclick="edit_item_row(${data})" title="Edit Item">
@@ -688,13 +648,17 @@
             ],
             drawCallback: function() {
                 $('#check-all').prop('checked', false);
-                if (typeof handle_delete_button === "function") { handle_delete_button(); }
+                if (typeof handle_delete_button === "function") {
+                    handle_delete_button();
+                }
             },
             language: {
                 emptyTable: "Belum ada item yang ditambahkan.",
                 processing: '<i class="fa fa-spinner fa-spin fa-fw"></i> Menampilkan data...'
             },
-            autoWidth: false, responsive: true, orderCellsTop: true
+            autoWidth: false,
+            responsive: true,
+            orderCellsTop: true
         });
 
         $('#table-detail-bom thead').on('keyup change clear', '.column-search', function() {
@@ -712,12 +676,15 @@
             $('#edit_item_desc').val(res.item_name);
             $('#edit_id_color').val(res.id_color).trigger('change');
             $('#edit_id_size').val(res.id_size).trigger('change');
-            $('#edit_qty').val(res.qty || 0);
-            $('#edit_price').val(res.price || 0);
+            $('#edit_qty').val(Math.round(res.qty));
             $('#edit_id_unit').val(res.id_unit).trigger('change');
             $('#edit_shell').val(res.shell).trigger('change');
 
-            $('.select2bs4-edit').select2({ theme: 'bootstrap4', dropdownParent: $('#modalEdit') });
+            $('.select2bs4-edit').select2({
+                theme: 'bootstrap4',
+                dropdownParent: $('#modalEdit')
+            });
+
             $('#modalEdit').modal('show');
         });
     }
@@ -737,18 +704,34 @@
             reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
-                Swal.fire({ title: 'Sedang memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                Swal.fire({
+                    title: 'Sedang memproses...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
 
                 let id = $('#edit_id_detail').val();
                 let url = "{{ route('update-item-row-bom', ':id') }}";
                 url = url.replace(':id', id);
 
                 $.ajax({
-                    url: url, type: 'POST', data: $(form).serialize(),
+                    url: url,
+                    type: 'POST',
+                    data: $(form).serialize(),
                     success: function(res) {
                         if (res.status == 200) {
                             $('#modalEdit').modal('hide');
-                            Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'item berhasil diedit.', timer: 1500, showConfirmButton: false });
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: 'item berhasil diedit.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+
                             table_add_item.ajax.reload(null, false);
                         } else {
                             Swal.fire('Gagal', res.message, 'error');
@@ -771,15 +754,22 @@
     $('#table-detail-bom').on('change', '.row-checkbox', function() {
         let total_row = $('#table-detail-bom tbody').find('.row-checkbox').length;
         let total_checked = $('#table-detail-bom tbody').find('.row-checkbox:checked').length;
-        $('#check-all').prop('checked', (total_checked === total_row && total_row > 0));
+
+        if (total_checked === total_row && total_row > 0) {
+            $('#check-all').prop('checked', true);
+        } else {
+            $('#check-all').prop('checked', false);
+        }
         handle_delete_button();
     });
 
     function handle_delete_button() {
         let checked_count = $('.row-checkbox:checked').length;
         let container = $('#delete-batch-container');
+        let span_count = $('#count-selected');
+
         if (checked_count > 0) {
-            $('#count-selected').text(checked_count);
+            span_count.text(checked_count);
             container.fadeIn(200);
         } else {
             container.fadeOut(200);
@@ -789,130 +779,103 @@
 
     function delete_batch() {
         let ids = [];
-        $('.row-checkbox:checked').each(function() { ids.push($(this).val()); });
+        $('.row-checkbox:checked').each(function() {
+            ids.push($(this).val());
+        });
+
         if (ids.length === 0) return;
 
         Swal.fire({
             title: 'Hapus Batch?',
             text: `Anda akan menghapus ${ids.length} item secara permanen`,
-            icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33',
-            confirmButtonText: 'Ya, Hapus', reverseButtons: true
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Ya, Hapus',
+            reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
                 Swal.fire({ title: 'Menghapus...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
                 $.ajax({
-                    url: "{{ route('delete-batch-bom') }}", type: 'POST',
-                    data: { _token: "{{ csrf_token() }}", ids: ids },
+                    url: "{{ route('delete-batch-bom') }}",
+                    type: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        ids: ids
+                    },
                     success: function(res) {
                         if (res.status == 200) {
-                            Swal.fire({ icon: 'success', title: 'Terhapus!', text: res.message, timer: 1500, showConfirmButton: false });
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Terhapus!',
+                                text: res.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+
                             $('#check-all').prop('checked', false);
                             handle_delete_button();
+
                             if ($.fn.DataTable.isDataTable('#table-detail-bom')) {
                                 $('#table-detail-bom').DataTable().ajax.reload(null, false);
                             }
-                        } else { Swal.fire('Gagal!', res.message, 'error'); }
+                        } else {
+                            Swal.fire('Gagal!', res.message, 'error');
+                        }
                     },
-                    error: function() { Swal.fire('Error!', 'Terjadi kesalahan pada server.', 'error'); }
+                    error: function() {
+                        Swal.fire('Error!', 'Terjadi kesalahan pada server.', 'error');
+                    }
                 });
             }
         });
     }
 
     async function export_excel() {
-        Swal.fire({ title: "Exporting", html: "Please Wait...", timerProgressBar: true, didOpen: () => { Swal.showLoading(); } });
+        Swal.fire({
+            title: "Exporting",
+            html: "Please Wait...",
+            timerProgressBar: true,
+            didOpen: () => {
+                Swal.showLoading();
+            },
+        });
         try {
             const res = await $.ajax({
-                url: '{{ route('export-excel-bom') }}', type: "GET", data: { id : bom_id }, xhrFields: { responseType: 'blob' }
+                url: '{{ route('export-excel-bom') }}',
+                type: "GET",
+                data: {
+                    id : bom_id
+                },
+                xhrFields: { responseType: 'blob' }
             });
 
             Swal.close();
-            iziToast.success({ title: 'Success', message: 'Success', position: 'topCenter' });
+
+            iziToast.success({
+                title: 'Success',
+                message: 'Success',
+                position: 'topCenter'
+            });
 
             const blob = new Blob([res]);
             const link = document.createElement('a');
             link.href = window.URL.createObjectURL(blob);
-            link.download = "Laporan Marketing BOM Item.xlsx";
+            link.download =
+                "Laporan Marketing BOM Item.xlsx";
             link.click();
+
         } catch (err) {
             Swal.close();
-            iziToast.error({ title: 'Error', message: 'Export gagal', position: 'topCenter' });
+            console.error(err);
+
+            iziToast.error({
+                title: 'Error',
+                message: 'Export gagal',
+                position: 'topCenter'
+            });
         }
-    }
-
-    function get_item_contents() {
-        let kategori = $('#category').val();
-
-        if (!kategori) {
-            $('#item_contents').html('<option value="">Pilih Kategori Terlebih Dahulu</option>').prop('disabled', true);
-            $('#rule_bom').html('<option value="">Pilih Rule</option>');
-            $("#itemTable tbody").empty();
-            return;
-        }
-
-        $('#item_contents').html('<option value="">Memuat data...</option>').prop('disabled', true);
-
-        $.post("{{ route('get-item-contents-bom') }}", {
-            _token: "{{ csrf_token() }}", kategori: kategori
-        }, function(res) {
-            $('#item_contents').html(res).prop('disabled', false).trigger('change');
-            $('#rule_bom').html('<option value="">Pilih Rule</option>');
-            $("#itemTable tbody").empty();
-        }).fail(function() {
-            Swal.fire('Error', 'Gagal mengambil data item contents', 'error');
-            $('#item_contents').html('<option value="">Pilih Kategori Terlebih Dahulu</option>').prop('disabled', true);
-        });
-    }
-
-    function loadDataOther() {
-        let id_bom = bom_id;
-        $.ajax({
-            url: "{{ route('bom.get_other', '') }}/" + id_bom,
-            type: "GET", dataType: "json",
-            success: function(data) {
-                let row = '';
-                $('#table-detail-other tbody').empty();
-
-                $.each(data, function(key, val) {
-                    row += `<tr>
-                        <td>${val.tampil}</td>
-                        <td class="text-end">${parseFloat(val.price_usd).toFixed(4)}</td>
-                        <td class="text-end">${parseInt(val.price_idr).toLocaleString('id-ID')}</td>
-                        <td class="text-center">
-                            <button type="button" class="btn btn-xs btn-danger" onclick="deleteOther(${val.id})" title="Hapus Item">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>`;
-                });
-                $('#table-detail-other tbody').append(row);
-            }
-        });
-    }
-
-    function deleteOther(id) {
-        Swal.fire({
-            title: 'Hapus Item?', text: "Data yang dihapus tidak dapat dikembalikan!", icon: 'warning',
-            showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6',
-            confirmButtonText: '<i class="fas fa-trash"></i> Ya, Hapus', cancelButtonText: 'Batal', reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({ title: 'Menghapus...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-
-                $.ajax({
-                    url: "{{ route('bom.destroy_other', '') }}/" + id, type: "DELETE",
-                    data: { _token: "{{ csrf_token() }}" },
-                    success: function(res) {
-                        loadDataOther();
-                        Swal.fire({ icon: 'success', title: 'Terhapus!', text: 'Item berhasil dihapus.', timer: 1500, showConfirmButton: false });
-                    },
-                    error: function() {
-                        Swal.fire({ icon: 'error', title: 'Oops...', text: 'Terjadi kesalahan saat menghapus data.' });
-                    }
-                });
-            }
-        });
     }
 </script>
 @endsection

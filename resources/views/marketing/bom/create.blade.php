@@ -23,6 +23,7 @@
 @section('content')
 <form id="form-bom" action="{{ route('store-bom') }}" method="POST">
     @csrf
+
     <div class="card card-primary ">
         <div class="card-header bg-sb">
             <div class="d-flex justify-content-between align-items-center">
@@ -38,7 +39,7 @@
             <div class="row">
                 <div class="col-md-4">
                     <label class="form-label"><small class="fw-bold">Buyer</small></label>
-                    <select name="buyer" class="form-control select2bs4">
+                    <select name="id_buyer" id="id_buyer" class="form-control select2bs4">
                         <option value="">Pilih Buyer</option>
                         @foreach ($buyers as $buyer)
                             <option value="{{ $buyer->Id_Supplier }}">{{ $buyer->Supplier }}</option>
@@ -108,21 +109,30 @@
                             @endforeach
                         </select>
                     </div>
+
                     <div class="form-group">
-                        <label><small class="fw-bold">Item Contents *</small></label>
-                        <select name="item_contents" id="item_contents" class="form-control select2bs4" onchange="getRule()">
-                            <option value="">Pilih Item Contents</option>
-                            @foreach ($itemContents as $item)
-                                <option value="{{ $item->isi }}">{{ $item->tampil }}</option>
-                            @endforeach
+                        <label><small class="fw-bold">Category</small></label>
+                        <select name="category" id="category" class="form-control select2bs4" onchange="get_item_contents()">
+                            <option value="">Pilih Category</option>
+                            <option value="Material">Material</option>
+                            <option value="Manufacturing">Manufacturing</option>
                         </select>
                     </div>
+
+                    <div class="form-group">
+                        <label><small class="fw-bold">Item Contents *</small></label>
+                        <select name="item_contents" id="item_contents" class="form-control select2bs4" onchange="get_rule()" disabled>
+                            <option value="">Pilih Kategori Terlebih Dahulu</option>
+                        </select>
+                    </div>
+
                     <div class="form-group">
                         <label><small class="fw-bold">Rule BOM *</small></label>
-                        <select name="rule_bom" id="rule_bom" class="form-control select2bs4" onchange="getListData()">
+                        <select name="rule_bom" id="rule_bom" class="form-control select2bs4" onchange="get_list_data()">
                             <option value="">Pilih Rule</option>
                         </select>
                     </div>
+
                     <div class="form-group">
                         <label><small class="fw-bold">Unit</small></label>
                         <select name="unit" id="unit" class="form-control select2bs4">
@@ -133,7 +143,17 @@
                         </select>
                     </div>
                 </div>
+
                 <div class="col-md-6">
+                    <div class="form-group">
+                        <label><small class="fw-bold">Shell</small></label>
+                        <select name="shell" id="shell" class="form-control select2bs4">
+                            <option value="">Pilih Shell</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label><small class="fw-bold">Notes</small></label>
                         <textarea name="notes" class="form-control" rows="7" placeholder="Input catatan..."></textarea>
@@ -148,6 +168,7 @@
                             <th width="25%">Color | Size</th>
                             <th>Item</th>
                             <th width="15%">Cons</th>
+                            <th width="15%">Price</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -167,28 +188,34 @@
             <h5 class="card-title fw-bold text-info"><i class="fas fa-clipboard-list"></i> BOM Detail</h5>
         </div>
         <div class="card-body p-0">
-            <table class="table table-sm table-striped table-bordered mb-0" id="table-added-items" style="width: 100%;">
-                <thead>
-                    <tr class="text-center bg-light">
-                        <th width="5%">No</th>
-                        <th width="20%">Content</th>
-                        <th>Item Description</th>
-                        <th width="15%">Color</th>
-                        <th width="15%">Size</th>
-                        <th width="10%">Qty</th>
-                        <th width="10%">Unit</th>
-                    </tr>
-                    <tr class="bg-light filter-row">
-                        <th></th> <th><input type="text" class="form-control form-control-sm column-search" data-column="1" placeholder="Filter Content..."></th>
-                        <th><input type="text" class="form-control form-control-sm column-search" data-column="2" placeholder="Filter Item..."></th>
-                        <th><input type="text" class="form-control form-control-sm column-search" data-column="3" placeholder="Filter Color..."></th>
-                        <th><input type="text" class="form-control form-control-sm column-search" data-column="4" placeholder="Filter Size..."></th>
-                        <th></th> <th><input type="text" class="form-control form-control-sm column-search" data-column="6" placeholder="Filter Unit..."></th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped table-bordered mb-0 w-100" id="table-added-items">
+                    <thead>
+                        <tr class="text-center bg-light">
+                            <th width="5%">No</th>
+                            <th width="20%">Content</th>
+                            <th>Item Description</th>
+                            <th width="15%">Color</th>
+                            <th width="15%">Size</th>
+                            <th width="10%">Qty</th>
+                            <th width="10%">Price</th>
+                            <th width="10%">Unit</th>
+                        </tr>
+                        <tr class="bg-light filter-row">
+                            <th></th>
+                            <th><input type="text" class="form-control form-control-sm column-search" data-column="1" placeholder="Filter Content..."></th>
+                            <th><input type="text" class="form-control form-control-sm column-search" data-column="2" placeholder="Filter Item..."></th>
+                            <th><input type="text" class="form-control form-control-sm column-search" data-column="3" placeholder="Filter Color..."></th>
+                            <th><input type="text" class="form-control form-control-sm column-search" data-column="4" placeholder="Filter Size..."></th>
+                            <th></th>
+                            <th></th>
+                            <th><input type="text" class="form-control form-control-sm column-search" data-column="7" placeholder="Filter Unit..."></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </form>
@@ -243,6 +270,9 @@
 <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 <script>
+    let currentBomId = null;
+    let tableAddedItems = null;
+
     $(document).ready(function() {
         $('.select2bs4').select2({ theme: 'bootstrap4' });
 
@@ -256,7 +286,7 @@
         });
 
         $('#item_contents, #rule_bom, #colorList, #sizeList').on('change', function() {
-            getListData();
+            get_list_data();
         });
 
         $(document).on('change', '.qty_input', function() {
@@ -275,19 +305,20 @@
         });
 
         $(document).on('keypress', '.qty_input', function(e) {
-            if (e.which == 45) {
-                return false;
-            }
+            if (e.which == 45) { return false; }
         });
     });
 
-    let currentBomId = null;
-
     function confirmCatalog() {
-        let buyer = $('select[name="buyer"]').val();
+        let buyer = $('#id_buyer').val();
         let style = $('#style').val();
         let selectedColors = $('#colorList').select2('data');
         let selectedSizes = $('#sizeList').select2('data');
+
+        if (!buyer) {
+            Swal.fire('Peringatan', 'Mohon lengkapi data Buyer terlebih dahulu!', 'warning');
+            return;
+        }
 
         if (selectedColors.length === 0 || selectedSizes.length === 0) {
             Swal.fire('Peringatan', 'Mohon lengkapi Color, dan Size terlebih dahulu!', 'warning');
@@ -298,7 +329,7 @@
 
         Swal.fire({
             title: 'Konfirmasi Katalog',
-            html: `Apakah Anda yakin ingin membuat katalog ? <br> (Terdapat ${total_data} data yang akan di proses)`,
+            html: `Apakah Anda yakin ingin membuat katalog ? <br> (Terdapat ${total_data} kombinasi data)`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
@@ -322,9 +353,9 @@
                     sizes: $('#sizeList').val()
                 }, function(res) {
                     if(res.status == 200) {
+
                         let editUrl = "{{ route('edit-bom', ':id') }}";
                         editUrl = editUrl.replace(':id', res.id);
-
                         window.location.href = editUrl;
 
                     } else {
@@ -337,7 +368,32 @@
         });
     }
 
-    function getRule() {
+    function get_item_contents() {
+        let kategori = $('#category').val();
+
+        if (!kategori) {
+            $('#item_contents').html('<option value="">Pilih Kategori Terlebih Dahulu</option>').prop('disabled', true);
+            $('#rule_bom').html('<option value="">Pilih Rule</option>');
+            $("#itemTable tbody").empty();
+            return;
+        }
+
+        $('#item_contents').html('<option value="">Memuat data...</option>').prop('disabled', true);
+
+        $.post("{{ route('get-item-contents-bom') }}", {
+            _token: "{{ csrf_token() }}",
+            kategori: kategori
+        }, function(res) {
+            $('#item_contents').html(res).prop('disabled', false).trigger('change');
+            $('#rule_bom').html('<option value="">Pilih Rule</option>');
+            $("#itemTable tbody").empty();
+        }).fail(function() {
+            Swal.fire('Error', 'Gagal mengambil data item contents', 'error');
+            $('#item_contents').html('<option value="">Pilih Kategori Terlebih Dahulu</option>').prop('disabled', true);
+        });
+    }
+
+    function get_rule() {
         let id_contents = $('#item_contents').val();
         if (!id_contents) return $('#rule_bom').html('<option value="">Pilih Rule</option>');
 
@@ -346,12 +402,13 @@
             id_contents: id_contents
         }, function(res) {
             $("#rule_bom").html(res).trigger('change');
-            getListData();
+            get_list_data();
         });
     }
 
-    function getListData() {
+    function get_list_data() {
         let id_contents = $('#item_contents').val();
+        let category = $('#category').val();
         let rule = $('#rule_bom').val();
 
         let selected_colors = $('#colorList').select2('data');
@@ -375,7 +432,8 @@
 
         $.post("{{ route('get-list-data-bom') }}", {
             _token: "{{ csrf_token() }}",
-            id_contents: id_contents
+            id_contents: id_contents,
+            category: category
         }, function(res) {
             let tbody = $("#itemTable tbody");
             tbody.empty();
@@ -406,6 +464,7 @@
                     </td>
                     <td><select name="id_item[${idx}]" class="form-control select2-item">${itemOptions}</select></td>
                     <td><input type="number" step="0.0001" name="qty_input[${idx}]" class="form-control form-control-sm text-right qty_input" placeholder="0.0000"></td>
+                    <td><input type="number" step="0.0001" name="price_input[${idx}]" class="form-control form-control-sm text-right price_input" placeholder="0.0000"></td>
                 </tr>`;
                 tbody.append(row);
             });
@@ -450,6 +509,51 @@
             return;
         }
 
+        let content = $('#item_contents').val();
+        let rule = $('#rule_bom').val();
+        let supplier = $('select[name="id_supplier"]').val();
+
+        if (!content || !rule || !supplier) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Data Belum Lengkap!',
+                text: 'Content, Rule BOM, dan Supplier wajib diisi.'
+            });
+            return false;
+        }
+
+        let rowCount = $("#itemTable tbody tr").length;
+        if (rowCount === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Item Kosong!',
+                text: 'Silakan tambahkan minimal satu item ke dalam list.'
+            });
+            return false;
+        }
+
+        let isTableValid = true;
+        $("#itemTable tbody tr").each(function(index) {
+            let itemId = $(this).find('[name^="id_item"]').val();
+            let qty    = $(this).find('[name^="qty_input"]').val();
+
+            if (!itemId || itemId === "" || !qty || parseFloat(qty) <= 0) {
+                isTableValid = false;
+                $(this).addClass('table-danger');
+            } else {
+                $(this).removeClass('table-danger');
+            }
+        });
+
+        if (!isTableValid) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Data Tidak Valid',
+                text: 'Terdapat item yang belum dipilih atau quantity masih kosong/0.'
+            });
+            return false;
+        }
+
         Swal.fire({
             title: 'Simpan Item BOM?',
             text: "Item ini akan ditambahkan ke list bawah.",
@@ -464,9 +568,9 @@
                 let formData = new FormData(form);
                 formData.append('id_bom_marketing', currentBomId);
 
+                // Tambahkan manual array colors/sizes krn Select2-nya sudah disabled
                 let colors = $('#colorList').val();
                 let sizes = $('#sizeList').val();
-
                 if(colors) colors.forEach(id => formData.append('colors[]', id));
                 if(sizes) sizes.forEach(id => formData.append('sizes[]', id));
 
@@ -480,7 +584,7 @@
                         if (res.status == 200) {
                             Swal.fire({ icon: 'success', title: 'Berhasil!', timer: 1500, showConfirmButton: false });
 
-                            $('#item_contents, #rule_bom, #unit, select[name="supplier_item"]').val('').trigger('change');
+                            $('#category, #item_contents, #rule_bom, #unit, #shell, select[name="id_supplier"]').val('').trigger('change');
                             $(form).find('textarea[name="notes"]').val('');
                             $("#itemTable tbody").empty();
 
@@ -496,8 +600,6 @@
             }
         });
     }
-
-    let tableAddedItems = null;
 
     function loadSubmittedItems(idHeader) {
         if (!idHeader) return;
@@ -522,7 +624,7 @@
                             return `<b>${data ? data : '-'}</b>`;
                         }
                     },
-                    { data: 'item_name', name: 'i.itemdesc' },
+                    { data: 'item_name', name: 'item_name' },
                     { data: 'color_name', name: 'color_name', className: 'text-center' },
                     { data: 'size_name', name: 'size_name', className: 'text-center' },
                     {
@@ -532,6 +634,16 @@
                         searchable: false,
                         render: function(data) {
                             return parseFloat(data).toFixed(4);
+                        }
+                    },
+                    {
+                        data: 'price',
+                        name: 'price',
+                        className: 'text-right font-weight-bold',
+                        searchable: false,
+                        render: function(data) {
+                            let nilai = parseFloat(data);
+                            return isNaN(nilai) ? '0.00' : nilai.toFixed(4);
                         }
                     },
                     { data: 'unit_name', name: 'unit_name', className: 'text-center font-italic' }

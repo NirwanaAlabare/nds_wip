@@ -1638,6 +1638,18 @@
                                     BOM <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('master-marketing-so') }}"
+                                    class="dropdown-item {{ $subPage == 'marketing-master-so' ? 'active' : '' }}">
+                                    Sales Order <i class="fa-solid fa-list-ul fa-sm"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('master-bom-additional') }}"
+                                    class="dropdown-item {{ $subPage == 'marketing-master-bom-additional' ? 'active' : '' }}">
+                                    BOM Additional<i class="fa-solid fa-list-ul fa-sm"></i>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif
