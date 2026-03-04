@@ -11,7 +11,7 @@
 @endsection
 
 @section('content')
-<form action="{{ route('store-sewing-out-subcont') }}" method="post" id="store-outmaterial-fabric" onsubmit="submitForm(this, event)">
+<form action="{{ route('store-packing-out-subcont') }}" method="post" id="store-outmaterial-fabric" onsubmit="submitForm(this, event)">
     @csrf
     <div class="card card-sb">
         <div class="card-header">
@@ -208,7 +208,7 @@
             <div class="mb-1">
                 <div class="form-group">
                     <button class="btn btn-sb float-end mt-2 ml-2"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
-                    <a href="{{ route('sewing-out-subcont') }}" class="btn btn-danger float-end mt-2" onclick="delete_all_temp()">
+                    <a href="{{ route('packing-out-subcont') }}" class="btn btn-danger float-end mt-2" onclick="delete_all_temp()">
                     <i class="fas fa-arrow-circle-left"></i> Kembali</a>
                 </div>
             </div>
@@ -554,7 +554,7 @@ function submitFormScan(e, evt) {
 }
 
 
-
+        
 
         function sum_qty_barcode(val){
             var table = document.getElementById("tableshow");
@@ -952,9 +952,9 @@ function delete_temp($id_po,$id_jo,$id_item){
             });
     }
 
+    
 
-
-
+    
 
         function tambahqty($val){
             var table = document.getElementById("datatable");

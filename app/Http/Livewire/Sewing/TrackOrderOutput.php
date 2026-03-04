@@ -6,8 +6,6 @@ use Livewire\Component;
 use App\Models\SignalBit\MasterPlan;
 use App\Models\SignalBit\ActCosting;
 use App\Models\SignalBit\Rft;
-use App\Models\SignalBit\RftPacking;
-use App\Models\SignalBit\RftPackingPo;
 use DB;
 
 class TrackOrderOutput extends Component
@@ -73,19 +71,7 @@ class TrackOrderOutput extends Component
     public function updatedSelectedOrder()
     {
         $firstPlan = MasterPlan::selectRaw("tgl_plan")->where("id_ws", $this->selectedOrder)->orderBy("tgl_plan", "asc")->first();
-
-        $lastPlan = collect(DB::connection("mysql_sb")->select("
-            SELECT
-                MAX(tgl_plan) as tgl_plan
-            FROM
-                (
-                    SELECT DATE(MAX(output_rfts_packing_po.updated_at)) as tgl_plan FROM output_rfts_packing_po LEFT JOIN master_plan ON master_plan.id = output_rfts_packing_po.master_plan_id WHERE master_plan.id_ws = '".$this->selectedOrder."'
-                        UNION ALL
-                    SELECT DATE(MAX(output_rfts_packing.updated_at)) as tgl_plan FROM output_rfts_packing LEFT JOIN master_plan ON master_plan.id = output_rfts_packing.master_plan_id WHERE master_plan.id_ws = '".$this->selectedOrder."'
-                        UNION ALL
-                    SELECT DATE(MAX(output_rfts.updated_at)) as tgl_plan FROM output_rfts LEFT JOIN master_plan ON master_plan.id = output_rfts.master_plan_id WHERE master_plan.id_ws = '".$this->selectedOrder."'
-                ) as output
-        "))->first();
+        $lastPlan = Rft::selectRaw("DATE(output_rfts.updated_at) as tgl_plan")->leftJoin("master_plan", "master_plan.id", "=", "output_rfts.master_plan_id")->where("master_plan.id_ws", $this->selectedOrder)->orderBy("output_rfts.updated_at", "desc")->first();
 
         if ($firstPlan) {
             $this->dateFromFilter = $firstPlan->tgl_plan;

@@ -8,27 +8,21 @@ use DB;
 
 class GeneralService
 {
-    // Synchronize with SignalBit Master
     public function updateMasterSbWs()
     {
         ini_set('max_execution_time', 360000);
 
-        // check master_sb_ws total rows
         $masterSbWsCountBefore = DB::table("master_sb_ws")->count();
 
-        // truncate master_sb_ws data
         $truncateMasterSbWs = DB::table('master_sb_ws')->truncate();
 
-        // re-populate master_sb_ws data
         $insertSelectMasterSbWs = DB::statement("
-            -- Insert INTO NDS
             INSERT INTO master_sb_ws (
                 id_act_cost, ws, cost_no, tgl_kirim, styleno,
                 main_dest, brand, so_no, buyer, id_so_det, dest,
                 color, size, qty, price, reff_no,
                 styleno_prod, product_group, product_item, curr
             )
-            -- Source SB Query
             select
                 ac.id id_act_cost,
                 ac.kpno as ws,
@@ -92,7 +86,6 @@ class GeneralService
                 tgl_kirim desc, ws asc
         ");
 
-        // check master_sb_ws total_rows
         $masterSbWsCountAfter = DB::table("master_sb_ws")->count();
 
         return array(

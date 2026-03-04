@@ -94,7 +94,7 @@
             scrollX: '300px',
             scrollCollapse: true,
             ajax: {
-                url: '{{ route('report-sewing-mutasi-subcont') }}',
+                url: '{{ route('report-packing-mutasi-subcont') }}',
                 data: function(d) {
                     d.dateFrom = $('#from').val();
                     d.dateTo = $('#to').val();
@@ -168,7 +168,7 @@
 
     $.ajax({
         type: "get",
-        url: '{{ route('export-excel-sewing-subcont-mutasi') }}',
+        url: '{{ route('export-excel-packing-subcont-mutasi') }}',
         data: {
             from: from,
             to: to
