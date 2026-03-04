@@ -761,59 +761,6 @@ SELECT
 ) mb on m.id_so_det = mb.id_so_det
 LEFT JOIN signalbit_erp.master_size_new msn on mb.size = msn.size
 $filter
-HAVING NOT (
-    saldo_awal_loading = 0 AND
-    qty_loading = 0 AND
-    input_rework_sewing = 0 AND
-    input_rework_spotcleaning = 0 AND
-    input_rework_mending = 0 AND
-    defect_sewing = 0 AND
-    defect_spotcleaning = 0 AND
-    defect_mending = 0 AND
-    qty_sew_reject = 0 AND
-    qty_sewing = 0 AND
-    saldo_akhir_sewing = 0 AND
-
-    saldo_awal_finishing = 0 AND
-    input_rework_sewing_f = 0 AND
-    input_rework_spotcleaning_f = 0 AND
-    input_rework_mending_f = 0 AND
-    defect_sewing_f = 0 AND
-    defect_spotcleaning_f = 0 AND
-    defect_mending_f = 0 AND
-    qty_fin_reject = 0 AND
-    qty_finishing = 0 AND
-    saldo_akhir_finishing = 0 AND
-
-    saldo_awal_secondary_proses = 0 AND
-    total_in_sp = 0 AND
-    rework_sp = 0 AND
-    defect_sp = 0 AND
-    reject_sp = 0 AND
-    rft_sp = 0 AND
-    saldo_akhir_secondary_proses = 0 AND
-
-    saldo_awal_defect_sewing = 0 AND
-    total_defect_sewing = 0 AND
-    total_input_rework_sewing = 0 AND
-    saldo_akhir_defect_sewing = 0 AND
-
-    saldo_awal_defect_spotcleaning = 0 AND
-    total_defect_spotcleaning = 0 AND
-    total_input_rework_spotcleaning = 0 AND
-    saldo_akhir_defect_spotcleaning = 0 AND
-
-    saldo_awal_defect_mending = 0 AND
-    total_defect_mending = 0 AND
-    total_input_rework_mending = 0 AND
-    saldo_akhir_mending = 0 AND
-
-    saldo_awal_reject = 0 AND
-    qty_reject_in = 0 AND
-    qty_rejected = 0 AND
-    qty_reworked = 0 AND
-    saldo_akhir_qc_reject = 0
-)
 ORDER BY buyer asc, ws asc, color asc, urutan asc
 ");
 
