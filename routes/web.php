@@ -1964,45 +1964,45 @@ Route::middleware('auth')->group(function () {
         Route::post('/track-packing-output/export', 'exportPackingOutput')->name('export-packing-output');
     });
 
-    Route::controller(PackingSubcontController::class)->prefix("packing-subcont")->middleware('packing')->group(function () {
-        Route::get('/packing-out-subcont', 'index')->name('packing-out-subcont');
-        Route::get('/create-packing-out-subcont', 'create')->name('create-packing-out-subcont');
+    Route::controller(PackingSubcontController::class)->prefix("packing-subcont")->middleware('role:sewing,packing')->group(function () {
+        Route::get('/packing-out-subcont', 'index')->name('sewing-out-subcont');
+        Route::get('/create-packing-out-subcont', 'create')->name('create-sewing-out-subcont');
         Route::get('/get-detail-item-subcont', 'getDetailList')->name('get-detail-item-subcont');
         Route::get('/show-detail-so-subcont', 'showdetailitem')->name('show-detail-so-subcont');
         Route::post('/save-out-detail-temp', 'SaveOutDetailTemp')->name('save-out-detail-temp');
         Route::get('/delete-out-detail-temp', 'DeleteOutDetailTemp')->name('delete-out-detail-temp');
-        Route::post('/store', 'store')->name('store-packing-out-subcont');
-        Route::get('/get-detail-packing-out/{id?}', 'DetailPackingOut')->name('get-detail-packing-out');
-        Route::get('/export-pl-packing-out/{id?}', 'PLPackingOut')->name('export-pl-packing-out');
+        Route::post('/store', 'store')->name('store-sewing-out-subcont');
+        Route::get('/get-detail-packing-out/{id?}', 'DetailPackingOut')->name('get-detail-sewing-out');
+        Route::get('/export-pl-packing-out/{id?}', 'PLPackingOut')->name('export-pl-sewing-out');
 
-        Route::get('/approve-packing-out-subcont', 'ApprovePackingOutSubcont')->name('approve-packing-out-subcont');
-        Route::get('/save-approve-packing-out', 'SaveApprovePackingOut')->name('save-approve-packing-out');
+        Route::get('/approve-packing-out-subcont', 'ApprovePackingOutSubcont')->name('approve-sewing-out-subcont');
+        Route::get('/save-approve-packing-out', 'SaveApprovePackingOut')->name('save-approve-sewing-out');
 
-        Route::get('/report-packing-out-subcont', 'ReportOutSubcont')->name('report-packing-out-subcont');
-        Route::get('/export-excel-packing-subcont-out', 'ExportOutSubcont')->name('export-excel-packing-subcont-out');
+        Route::get('/report-packing-out-subcont', 'ReportOutSubcont')->name('report-sewing-out-subcont');
+        Route::get('/export-excel-packing-subcont-out', 'ExportOutSubcont')->name('export-excel-sewing-subcont-out');
 
-        Route::get('/packing-in-subcont', 'indexIN')->name('packing-in-subcont');
-        Route::get('/create-packing-in-subcont', 'createIN')->name('create-packing-in-subcont');
+        Route::get('/packing-in-subcont', 'indexIN')->name('sewing-in-subcont');
+        Route::get('/create-packing-in-subcont', 'createIN')->name('create-sewing-in-subcont');
         Route::get('/get-detail-item-in-subcont', 'getDetailListIN')->name('get-detail-item-in-subcont');
         Route::get('/get-supplier-subcont', 'getsupplierSubcont')->name('get-supplier-subcont');
         Route::get('/show-detail-po-in-subcont', 'showdetailitemIN')->name('show-detail-po-in-subcont');
         Route::post('/save-in-detail-temp', 'SaveINDetailTemp')->name('save-in-detail-temp');
-        Route::post('/store-in', 'storeIN')->name('store-packing-in-subcont');
-        Route::get('/get-detail-packing-in/{id?}', 'DetailPackingIN')->name('get-detail-packing-in');
+        Route::post('/store-in', 'storeIN')->name('store-sewing-in-subcont');
+        Route::get('/get-detail-packing-in/{id?}', 'DetailPackingIN')->name('get-detail-sewing-in');
 
-        Route::get('/report-packing-in-subcont', 'ReportINSubcont')->name('report-packing-in-subcont');
-        Route::get('/export-excel-packing-subcont-in', 'ExportINSubcont')->name('export-excel-packing-subcont-in');
+        Route::get('/report-packing-in-subcont', 'ReportINSubcont')->name('report-sewing-in-subcont');
+        Route::get('/export-excel-packing-subcont-in', 'ExportINSubcont')->name('export-excel-sewing-subcont-in');
 
-        Route::get('/report-packing-monitoring-subcont', 'ReportMonitoringSubcont')->name('report-packing-monitoring-subcont');
-        Route::get('/export-excel-packing-subcont-monitoring', 'ExportMonitoringSubcont')->name('export-excel-packing-subcont-monitoring');
+        Route::get('/report-packing-monitoring-subcont', 'ReportMonitoringSubcont')->name('report-sewing-monitoring-subcont');
+        Route::get('/export-excel-packing-subcont-monitoring', 'ExportMonitoringSubcont')->name('export-excel-sewing-subcont-monitoring');
 
-        Route::get('/report-packing-mutasi-subcont', 'ReportMutasiSubcont')->name('report-packing-mutasi-subcont');
-        Route::get('/export-excel-packing-subcont-mutasi', 'ExportMutasiSubcont')->name('export-excel-packing-subcont-mutasi');
+        Route::get('/report-packing-mutasi-subcont', 'ReportMutasiSubcont')->name('report-sewing-mutasi-subcont');
+        Route::get('/export-excel-packing-subcont-mutasi', 'ExportMutasiSubcont')->name('export-excel-sewing-subcont-mutasi');
 
-        Route::get('/approve-packing-in-subcont', 'ApprovePackingInSubcont')->name('approve-packing-in-subcont');
-        Route::get('/save-approve-packing-in', 'SaveApprovePackingIn')->name('save-approve-packing-in');
-        Route::post('/cancel-packing-in-subcont', 'CancelPackingInSubcont')->name('cancel-packing-in-subcont');
-        Route::post('/cancel-packing-out-subcont', 'CancelPackingOutSubcont')->name('cancel-packing-out-subcont');
+        Route::get('/approve-packing-in-subcont', 'ApprovePackingInSubcont')->name('approve-sewing-in-subcont');
+        Route::get('/save-approve-packing-in', 'SaveApprovePackingIn')->name('save-approve-sewing-in');
+        Route::post('/cancel-packing-in-subcont', 'CancelPackingInSubcont')->name('cancel-sewing-in-subcont');
+        Route::post('/cancel-packing-out-subcont', 'CancelPackingOutSubcont')->name('cancel-sewing-out-subcont');
     });
 
     // Needle Check

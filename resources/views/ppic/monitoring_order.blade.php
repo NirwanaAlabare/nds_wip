@@ -232,8 +232,10 @@
                             const expectedValue = goals[0].value;
                             const difference = expectedValue - val; // Calculate the difference
                             // Format the difference with parentheses and a sign
-                            const formattedDifference = Number(difference) > 0 ? `(-${difference})` : `(${difference*-1})`;
-                            console.log(formattedDifference, difference, val, expectedValue, Number(difference) >= 0);
+                            const formattedDifference = Number(difference) > 0 ? `(-${difference})` :
+                                `(${difference*-1})`;
+                            console.log(formattedDifference, difference, val, expectedValue, Number(difference) >=
+                                0);
                             return `${val} ${formattedDifference} / ${expectedValue}`; // Format the output
                         }
                         return val;
@@ -443,28 +445,28 @@
                         data: 'blc_output_rfts'
                     },
                     {
+                        data: 'final_output_finishing'
+                    },
+                    {
+                        data: 'blc_output_finishing'
+                    },
+                    {
                         data: 'final_output_rfts_packing'
                     },
                     {
                         data: 'blc_output_rfts_packing'
                     },
                     {
-                        data: 'final_output_rfts_packing_po'
+                        data: 'final_qty_scan'
                     },
                     {
-                        data: 'blc_output_rfts_packing_po'
+                        data: 'blc_qty_scan'
                     },
                     {
-                        data: 'tot_scan'
+                        data: 'final_qty_fg'
                     },
                     {
-                        data: 'blc_tot_scan'
-                    },
-                    {
-                        data: 'tot_fg_out'
-                    },
-                    {
-                        data: 'blc_tot_fg_out'
+                        data: 'blc_qty_fg'
                     },
                 ],
                 columnDefs: [{
@@ -525,8 +527,8 @@
                         blcOutputRftsCell.css('color', 'black');
                     }
 
-                    if (parseFloat(data.blc_output_rfts_packing) < parseFloat(data.qty_po) &&
-                        parseFloat(data.blc_output_rfts_packing) < '0') {
+                    if (parseFloat(data.blc_output_finishing) < parseFloat(data.qty_po) &&
+                        parseFloat(data.blc_output_finishing) < '0') {
                         // If final_cut is less than qty_po, set text color to red for final_cut
                         blcOutputRftsPackingCell.css('color', 'red');
                     } else {
@@ -534,8 +536,8 @@
                         blcOutputRftsPackingCell.css('color', 'black');
                     }
 
-                    if (parseFloat(data.blc_output_rfts_packing_po) < parseFloat(data.qty_po) &&
-                        parseFloat(data.blc_output_rfts_packing_po) < '0') {
+                    if (parseFloat(data.blc_output_rfts_packing) < parseFloat(data.qty_po) &&
+                        parseFloat(data.blc_output_rfts_packing) < '0') {
                         // If final_cut is less than qty_po, set text color to red for final_cut
                         blcOutputRftsPackingPoCell.css('color', 'red');
                     } else {
@@ -543,8 +545,8 @@
                         blcOutputRftsPackingPoCell.css('color', 'black');
                     }
 
-                    if (parseFloat(data.blc_tot_scan) < parseFloat(data.qty_po) &&
-                        parseFloat(data.blc_tot_scan) < '0') {
+                    if (parseFloat(data.blc_qty_scan) < parseFloat(data.qty_po) &&
+                        parseFloat(data.blc_qty_scan) < '0') {
                         // If final_cut is less than qty_po, set text color to red for final_cut
                         blcScanCell.css('color', 'red');
                     } else {
@@ -552,8 +554,8 @@
                         blcScanCell.css('color', 'black');
                     }
 
-                    if (parseFloat(data.blc_tot_fg_out) < parseFloat(data.qty_po) && parseFloat(data
-                            .blc_tot_fg_out) < '0') {
+                    if (parseFloat(data.blc_qty_fg) < parseFloat(data.qty_po) && parseFloat(data
+                            .blc_qty_fg) < '0') {
                         // If final_cut is less than qty_po, set text color to red for final_cut
                         blcFGOutCell.css('color', 'red');
                     } else {
@@ -672,9 +674,11 @@
                     $('#total_blc_output_rfts').text(totalblcOutputRfts).css('color', totalblcOutputRfts < 0 ?
                         'red' : 'black');
                     $('#total_final_output_rfts_packing').text(totalFinalOutputRftsPacking);
-                    $('#total_blc_output_rfts_packing').text(totalblcOutputRftsPacking).css('color', totalblcOutputRftsPacking < 0 ? 'red' : 'black');
+                    $('#total_blc_output_rfts_packing').text(totalblcOutputRftsPacking).css('color',
+                        totalblcOutputRftsPacking < 0 ? 'red' : 'black');
                     $('#total_final_output_rfts_packing_po').text(totalFinalOutputRftsPackingPo);
-                    $('#total_blc_output_rfts_packing_po').text(totalblcOutputRftsPackingPo).css('color', totalblcOutputRftsPackingPo < 0 ? 'red' : 'black');
+                    $('#total_blc_output_rfts_packing_po').text(totalblcOutputRftsPackingPo).css('color',
+                        totalblcOutputRftsPackingPo < 0 ? 'red' : 'black');
                     $('#total_final_scan').text(totalTotScan);
                     $('#total_blc_scan').text(totalblcTotScan).css('color', totalblcTotScan < 0 ? 'red' :
                         'black');
@@ -848,14 +852,14 @@
                         const blcLoading = Number(row.blc_loading);
                         const sewing = Number(row.final_output_rfts);
                         const blcSewing = Number(row.blc_output_rfts);
-                        const packingLine = Number(row.final_output_rfts_packing);
-                        const blcPackingLine = Number(row.blc_output_rfts_packing);
-                        const packingPo = Number(row.final_output_rfts_packing_po);
-                        const blcPackingPo = Number(row.blc_output_rfts_packing_po);
-                        const packingScan = Number(row.tot_scan);
-                        const blcPackingScan = Number(row.blc_tot_scan);
-                        const shipment = Number(row.tot_fg_out);
-                        const blcShipment = Number(row.blc_tot_fg_out);
+                        const packingLine = Number(row.final_output_finishing);
+                        const blcPackingLine = Number(row.blc_output_finishing);
+                        const packingPo = Number(row.final_output_rfts_packing);
+                        const blcPackingPo = Number(row.blc_output_rfts_packing);
+                        const packingScan = Number(row.final_qty_scan);
+                        const blcPackingScan = Number(row.blc_qty_scan);
+                        const shipment = Number(row.final_qty_fg);
+                        const blcShipment = Number(row.blc_qty_fg);
 
                         // Update sums
                         sumQtyPO += qtyPO;
