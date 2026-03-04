@@ -116,7 +116,7 @@
     scrollX: '300px',
     scrollCollapse: true,
     ajax: {
-        url: '{{ route('report-packing-monitoring-subcont') }}',
+        url: '{{ route('report-sewing-monitoring-subcont') }}',
         data: function(d) {
             d.id_supplier = $('#txt_supp').val();
             d.no_po = $('#txt_no_po').val();
@@ -179,7 +179,7 @@
 
     $.ajax({
         type: "get",
-        url: '{{ route('export-excel-packing-subcont-monitoring') }}',
+        url: '{{ route('export-excel-sewing-subcont-monitoring') }}',
         data: {
             id_supplier: id_supplier,
             no_po: no_po
