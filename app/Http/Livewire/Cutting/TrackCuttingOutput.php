@@ -57,10 +57,10 @@ class TrackCuttingOutput extends Component
         // $this->dateFromFilter = date('Y-m-d');
         // $this->dateToFilter = date("Y-m-d");
 
-        $this->colorFilter = $colorFilter;
-        $this->panelFilter = $panelFilter;
-        $this->mejaFilter = $mejaFilter;
-        $this->sizeFilter = $sizeFilter;
+        $this->colorFilter = $colorFilter ?? null;
+        $this->panelFilter = $panelFilter ?? null;
+        $this->mejaFilter = $mejaFilter ?? null;
+        $this->sizeFilter = $sizeFilter ?? null;
 
         if ($this->colorFilter || $this->panelFilter || $this->mejaFilter || $this->sizeFilter) {
             $this->onFilter = true;
