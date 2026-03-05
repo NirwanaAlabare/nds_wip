@@ -585,7 +585,7 @@ FROM (
 						WHERE
 							form_cut_input.`status` = 'SELESAI PENGERJAAN'
 							AND form_cut_input.waktu_mulai is not null
-							and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '2025-07-01'
+							and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '2025-01-01'
 						GROUP BY
 							form_cut_input.id
 					) form_cut on form_cut.id_marker = marker_input.kode
@@ -618,7 +618,7 @@ FROM (
 				LEFT JOIN laravel_nds.`master_sb_ws` ON `form_cut_reject_detail`.`so_det_id` = `master_sb_ws`.`id_so_det`
 			WHERE
 				form_cut_reject_detail.`qty` > 0
-				AND COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) >= '2025-07-01' AND form_cut_reject.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
+				AND COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) >= '2025-05-01' AND form_cut_reject.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
 			GROUP BY
 				form_cut_reject.id,
 				form_cut_reject_detail.so_det_id
@@ -644,7 +644,7 @@ FROM (
 			WHERE
 				form_cut_piece.`status` = 'complete'
 				AND COALESCE ( form_cut_piece_detail_size.qty ) > 0
-				AND COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) >= '2025-07-01'
+				AND COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) >= '2025-01-01'
 				AND form_cut_piece.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
 			GROUP BY
 				form_cut_piece.id,
@@ -815,7 +815,6 @@ then LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
 when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_cut and LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
 then '0'
 end,0) - qty_po blc_cut,
-
 coalesce(qty_loading,0) qty_loading,
 coalesce(case
 when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_loading >= qty_po then qty_po
@@ -856,12 +855,13 @@ when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_sh
 then '0'
 end,0) - qty_po blc_output_rfts,
 
+
 coalesce(output_finishing,0) output_finishing,
 coalesce(case
 when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_finishing >= qty_po then qty_po
 when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_finishing <= qty_po then output_finishing
 when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_finishing and LAG(output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_finishing and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
 then LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
 when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_finishing and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
 then '0'
@@ -876,14 +876,15 @@ when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY t
 then '0'
 end,0) - qty_po blc_output_finishing,
 
+
 coalesce(output_rfts_packing,0) output_rfts_packing,
 coalesce(case
 when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing >= qty_po then qty_po
 when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing <= qty_po then output_rfts_packing
 when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
 then LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
 then '0'
 end,0) as final_output_rfts_packing,
 coalesce(case
@@ -896,41 +897,43 @@ when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER B
 then '0'
 end,0) - qty_po blc_output_rfts_packing,
 
+
 coalesce(qty_scan,0) qty_scan,
 coalesce(case
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan >= qty_po then qty_po
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan <= qty_po then qty_scan
+when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan <= qty_po then output_rfts_packing
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
 then LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
 then '0'
 end,0) as final_qty_scan,
 coalesce(case
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan >= qty_po then qty_po
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan <= qty_po then qty_scan
+when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan <= qty_po then output_rfts_packing
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
 then LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
 then '0'
 end,0) - qty_po blc_qty_scan,
 
+
 coalesce(qty_fg,0) qty_fg,
 coalesce(case
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg >= qty_po then qty_po
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then qty_fg
+when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then output_rfts_packing
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
 then LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
 then '0'
 end,0) as final_qty_fg,
 coalesce(case
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg >= qty_po then qty_po
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then qty_fg
+when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then output_rfts_packing
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
 then LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
 then '0'
@@ -938,7 +941,7 @@ end,0) - qty_po blc_qty_fg
 
 FROM CTE
 left join signalbit_erp.master_size_new msn on CTE.size = msn.size
-order by color asc, urutan asc
+order by tgl_shipment asc, color asc, urutan asc
 
         ");
 
@@ -1926,7 +1929,7 @@ FROM (
 						WHERE
 							form_cut_input.`status` = 'SELESAI PENGERJAAN'
 							AND form_cut_input.waktu_mulai is not null
-							and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '2025-07-01'
+							and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '2025-01-01'
 						GROUP BY
 							form_cut_input.id
 					) form_cut on form_cut.id_marker = marker_input.kode
@@ -1959,7 +1962,7 @@ FROM (
 				LEFT JOIN laravel_nds.`master_sb_ws` ON `form_cut_reject_detail`.`so_det_id` = `master_sb_ws`.`id_so_det`
 			WHERE
 				form_cut_reject_detail.`qty` > 0
-				AND COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) >= '2025-07-01' AND form_cut_reject.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
+				AND COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) >= '2025-01-01' AND form_cut_reject.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
 			GROUP BY
 				form_cut_reject.id,
 				form_cut_reject_detail.so_det_id
@@ -1985,7 +1988,7 @@ FROM (
 			WHERE
 				form_cut_piece.`status` = 'complete'
 				AND COALESCE ( form_cut_piece_detail_size.qty ) > 0
-				AND COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) >= '2025-07-01'
+				AND COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) >= '2025-01-01'
 				AND form_cut_piece.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
 			GROUP BY
 				form_cut_piece.id,
@@ -2156,7 +2159,6 @@ then LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
 when LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_cut and LAG(balance_cut) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
 then '0'
 end,0) - qty_po blc_cut,
-
 coalesce(qty_loading,0) qty_loading,
 coalesce(case
 when LAG(balance_loading) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_loading >= qty_po then qty_po
@@ -2197,12 +2199,13 @@ when LAG(balance_output_rfts) OVER (PARTITION BY ws, color, size ORDER BY tgl_sh
 then '0'
 end,0) - qty_po blc_output_rfts,
 
+
 coalesce(output_finishing,0) output_finishing,
 coalesce(case
 when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_finishing >= qty_po then qty_po
 when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_finishing <= qty_po then output_finishing
 when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_finishing and LAG(output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_finishing and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
 then LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
 when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_finishing and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
 then '0'
@@ -2217,14 +2220,15 @@ when LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY t
 then '0'
 end,0) - qty_po blc_output_finishing,
 
+
 coalesce(output_rfts_packing,0) output_rfts_packing,
 coalesce(case
 when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing >= qty_po then qty_po
 when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and output_rfts_packing <= qty_po then output_rfts_packing
 when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
 then LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= output_rfts_packing and LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
 then '0'
 end,0) as final_output_rfts_packing,
 coalesce(case
@@ -2237,41 +2241,43 @@ when LAG(balance_output_rfts_packing) OVER (PARTITION BY ws, color, size ORDER B
 then '0'
 end,0) - qty_po blc_output_rfts_packing,
 
+
 coalesce(qty_scan,0) qty_scan,
 coalesce(case
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan >= qty_po then qty_po
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan <= qty_po then qty_scan
+when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan <= qty_po then output_rfts_packing
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
 then LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
 then '0'
 end,0) as final_qty_scan,
 coalesce(case
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan >= qty_po then qty_po
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan <= qty_po then qty_scan
+when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_scan <= qty_po then output_rfts_packing
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
 then LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
 when LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_scan and LAG(balance_qty_scan) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
 then '0'
 end,0) - qty_po blc_qty_scan,
 
+
 coalesce(qty_fg,0) qty_fg,
 coalesce(case
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg >= qty_po then qty_po
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then qty_fg
+when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then output_rfts_packing
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
 then LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_output_finishing) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
+when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
 then '0'
 end,0) as final_qty_fg,
 coalesce(case
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg >= qty_po then qty_po
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then qty_fg
+when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) is null and qty_fg <= qty_po then output_rfts_packing
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) >= qty_po then qty_po
-when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
+when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) > '0'
 then LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment)
 when LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) <= qty_fg and LAG(balance_qty_fg) OVER (PARTITION BY ws, color, size ORDER BY tgl_shipment) < '0'
 then '0'
@@ -2279,7 +2285,8 @@ end,0) - qty_po blc_qty_fg
 
 FROM CTE
 left join signalbit_erp.master_size_new msn on CTE.size = msn.size
-order by color asc, urutan asc
+order by tgl_shipment asc, color asc, urutan asc
+
         ");
 
         return response()->json($data_monitoring_order);
