@@ -495,15 +495,16 @@ $('.select2type').select2({
             {
                 targets: [8],
                 render: (data, type, row, meta) => {
+                    console.log(row);
                  if (row.status == 'Cancel') {
                     return `<div class='d-flex gap-1 justify-content-center'>
                     -
                     </div>`;
-                }else if (row.qty_balance == 0) {
+                }else if (parseFloat(row.qty_balance) == 0) {
                     return `<div class='d-flex gap-1 justify-content-center'>
                     <a href="{{ route('lokasi-retur-inmaterial') }}/`+data+`"><i class="fa-solid fa-location-dot fa-lg" style='color:green;'></i></a>
                     </div>`;
-                }else if(row.qty_balance == row.qty){
+                }else if(parseFloat(row.qty_balance) == parseFloat(row.qty)){
                    return `<div class='d-flex gap-1 justify-content-center'>
                     <a href="{{ route('lokasi-retur-inmaterial') }}/`+data+`"><i class="fa-solid fa-location-dot fa-lg" aria-hidden="true" style='color:red;'></i></a>
                     </div>`;

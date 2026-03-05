@@ -434,7 +434,7 @@
             let colorFilter = "&colorFilter="+$("#color").val();
             let panelFilter = "&panelFilter="+$("#panel").val();
             let mejaFilter = "&mejaFilter="+$("#meja").val();
-            let sizeFilter = "&sizeFilter="+$("#size").val();
+            let sizeFilter = "&sizeFilter="+($("#size").val() ?? '');
             let groupBy = "&groupBy="+($("#group-by").val() ? $("#group-by").val() : "size");
 
             let params = dateFromFilter+dateToFilter+selectedSupplier+selectedOrder+colorFilter+panelFilter+mejaFilter+sizeFilter+groupBy
