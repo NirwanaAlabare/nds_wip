@@ -105,7 +105,7 @@
             scrollX: '300px',
             scrollCollapse: true,
             ajax: {
-                url: '{{ route('report-packing-in-subcont') }}',
+                url: '{{ route('report-sewing-in-subcont') }}',
                 data: function(d) {
                     d.dateFrom = $('#from').val();
                     d.dateTo = $('#to').val();
@@ -212,7 +212,7 @@
 
     $.ajax({
         type: "get",
-        url: '{{ route('export-excel-packing-subcont-in') }}',
+        url: '{{ route('export-excel-sewing-subcont-in') }}',
         data: {
             from: from,
             to: to

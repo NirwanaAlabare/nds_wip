@@ -46,7 +46,7 @@
             <div class="mt-4 ">
                 <button class="btn btn-sm btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Search</button>
                 <!-- <button class="btn btn-info" onclick="tambahdata()"> <i class="fas fa-plus"></i> Add Data</button> -->
-                <a href="{{ route('create-packing-out-subcont') }}" class="btn btn-sm btn-info">
+                <a href="{{ route('create-sewing-out-subcont') }}" class="btn btn-sm btn-info">
                 <i class="fas fa-plus"></i>
                 Add Data
             </a>
@@ -464,7 +464,7 @@ $('.select2type').select2({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
-            url: '{{ route('packing-out-subcont') }}',
+            url: '{{ route('sewing-out-subcont') }}',
             dataType: 'json',
             dataSrc: 'data',
             data: function(d) {
@@ -511,7 +511,7 @@ $('.select2type').select2({
             {
                 targets: [9],
                 render: (data, type, row, meta) => {
-                    let exportUrl = "{{ route('export-pl-packing-out', ':id') }}"
+                    let exportUrl = "{{ route('export-pl-sewing-out', ':id') }}"
             .replace(':id', row.id);
 
                  if (row.status == 'DRAFT') {
@@ -570,7 +570,7 @@ let detailDT = null;
         if (result.isConfirmed) {
 
             $.ajax({
-                url: "{{ route('cancel-packing-out-subcont') }}",
+                url: "{{ route('cancel-sewing-out-subcont') }}",
                 type: "POST",
                 data: {
                     _token: $('meta[name="csrf-token"]').attr('content'),
@@ -612,7 +612,7 @@ let detailDT = null;
 
 function showDetail(id) {
 
-    let url = "{{ route('get-detail-packing-out', ':id') }}".replace(':id', id);
+    let url = "{{ route('get-detail-sewing-out', ':id') }}".replace(':id', id);
 
     $.get(url, function(res){
 
@@ -665,7 +665,7 @@ function showDetail(id) {
 
             columnDefs:[
                 {
-                    targets:6, 
+                    targets:6,
                     className:'text-end',
                     render:function(data){
                         return (parseFloat(data)||0).toLocaleString('en-US');
