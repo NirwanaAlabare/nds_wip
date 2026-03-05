@@ -182,6 +182,9 @@ use App\Http\Controllers\AccountingController;
 // Marketing
 use App\Http\Controllers\MarketingDashboardController;
 use App\Http\Controllers\Marketing_CostingController;
+use App\Http\Controllers\Marketing_BomController;
+use App\Http\Controllers\Marketing_AdditionalBomController;
+use App\Http\Controllers\Marketing_SOController;
 
 // QC Inspect Kain
 use App\Http\Controllers\QCInspectDashboardController;
@@ -2364,6 +2367,68 @@ Route::middleware('auth')->group(function () {
         Route::post('/update_header_master_costing', 'update_header_master_costing')->name('update_header_master_costing');
         Route::get('/get_jns_costing_material', 'get_jns_costing_material')->name('get_jns_costing_material');
         Route::get('/get_material_costing', 'get_material_costing')->name('get_material_costing');
+
+    });
+
+    // Master BOM
+    Route::controller(Marketing_BomController::class)->prefix("master-bom")->middleware('marketing')->group(function () {
+        Route::get('/', 'index')->name('master-bom');
+        Route::get('/create', 'create')->name('create-bom');
+        Route::post('/store-color', [Marketing_BomController::class, 'storeColor'])->name('store-color');
+        Route::post('/store-size', [Marketing_BomController::class, 'storeSize'])->name('store-size');
+        Route::post('/get-rule-bom', [Marketing_BomController::class, 'getRuleBom'])->name('get-rule-bom');
+        Route::post('/get-list-data-bom', [Marketing_BomController::class, 'getListData'])->name('get-list-data-bom');
+        Route::get('/detail/{id}', [Marketing_BomController::class, 'showDetail'])->name('show-detail-bom');
+        Route::post('/store-header', [Marketing_BomController::class, 'storeHeader'])->name('store-bom-header');
+        Route::post('/store-detail', [Marketing_BomController::class, 'storeDetail'])->name('store-bom');
+        Route::get('/get-items/{id}', 'getItems')->name('get-items');
+        Route::get('/edit/{id}', 'edit')->name('edit-bom');
+        Route::get('/get-item-row/{id}', [Marketing_BomController::class, 'getItemRow'])->name('get-item-row-bom');
+        Route::post('/update-item-row/{id}', [Marketing_BomController::class, 'updateItemRow'])->name('update-item-row-bom');
+        Route::post('/delete-batch-bom', [Marketing_BomController::class, 'deleteBatch'])->name('delete-batch-bom');
+        Route::get('/export-excel-bom', [Marketing_BomController::class, 'exportExcel'])->name('export-excel-bom');
+        Route::post('/get-item-contents', [Marketing_BomController::class, 'getItemContents'])->name('get-item-contents-bom');
+        Route::post('store-other', [Marketing_BomController::class, 'storeOther'])->name('bom.store_other');
+        Route::get('/bom-marketing/get-other/{id}', [Marketing_BomController::class, 'getOther'])->name('bom.get_other');
+        Route::delete('/bom-marketing/delete-other/{id}', [Marketing_BomController::class, 'destroyOther'])->name('bom.destroy_other');
+    });
+
+     // Master BOM Additional
+   Route::controller(Marketing_AdditionalBomController::class)->prefix("master-bom-additional")->middleware('marketing')->group(function () {
+
+        Route::get('/', 'index')->name('master-bom-additional');
+        Route::get('/create', 'create')->name('create-bom-additional');
+        Route::get('/edit/{id}', 'edit')->name('edit-bom-additional');
+        Route::get('/detail/{id}', 'showDetail')->name('show-detail-bom-additional');
+
+
+        Route::get('/get-po-by-so', 'getPoBySo')->name('get-po-by-so');
+        Route::get('/get-items/{id}', 'getItems')->name('get-items-additional');
+        Route::get('/get-item-row/{id}', 'getItemRow')->name('get-item-row-bom-additional');
+
+        Route::post('/get-rule-bom-additional', 'getRuleBom')->name('get-rule-bom-additional');
+        Route::post('/get-list-data-bom-additional', 'getListData')->name('get-list-data-bom-additional');
+
+        Route::post('/store-header', 'storeHeader')->name('store-bom-additional-header');
+        Route::post('/store-item', 'storeDetail')->name('store-bom-additional-item');
+        Route::post('/update-po', 'updatePo')->name('bom-add.update-po'); // <--- Route Sync PO baru
+        Route::post('/update-item-row/{id}', 'updateItemRow')->name('update-item-row-bom-additional');
+
+
+        Route::post('/delete-batch-bom-additional', 'deleteBatch')->name('delete-batch-bom-additional');
+        Route::get('/export-excel-bom-additional', 'exportExcel')->name('export-excel-bom-additional');
+
+    });
+
+     // Master SO
+    Route::controller(Marketing_SOController::class)->prefix("master-marketing-so")->middleware('marketing')->group(function () {
+        Route::get('/', 'index')->name('master-marketing-so');
+        Route::get('/create', 'create')->name('create-so');
+        Route::post('/get-product-items', [Marketing_SOController::class, 'getProductItems'])->name('get-product-items');
+        Route::post('/upload-excel', [Marketing_SOController::class, 'uploadExcelSO'])->name('so-upload-excel');
+        Route::post('/store', [Marketing_SOController::class, 'store'])->name('so-store');
+        Route::get('master-marketing-so/detail/{id}', [Marketing_SOController::class, 'get_detail'])->name('get-detail-so');
+        Route::get('/so/get-temp-data', [Marketing_SOController::class, 'getTempData'])->name('so-get-temp-data');
     });
 
 

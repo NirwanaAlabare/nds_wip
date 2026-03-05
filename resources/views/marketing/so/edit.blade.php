@@ -1,0 +1,881 @@
+@extends('layouts.index')
+
+@section('custom-link')
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    <style>
+        #itemTable { table-layout: fixed; width: 100%; }
+        #itemTable td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .select2-container { width: 100% !important; }
+        .select2-selection__rendered { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 400px; }
+        .select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
+            white-space: normal !important; word-wrap: break-word !important; height: auto !important;
+            line-height: 1.5 !important; padding-top: 5px !important; padding-bottom: 5px !important;
+        }
+        .select2-results__option { white-space: normal !important; word-wrap: break-word !important; }
+        .select2-container .select2-selection--single { height: auto !important; }
+
+        table.dataTable thead .sorting::after,
+        table.dataTable thead .sorting::before,
+        table.dataTable thead .sorting_asc::after,
+        table.dataTable thead .sorting_asc::before,
+        table.dataTable thead .sorting_desc::after,
+        table.dataTable thead .sorting_desc::before {
+            display: none !important;
+        }
+
+        table.dataTable thead th {
+            padding-right: 8px !important;
+        }
+    </style>
+@endsection
+
+@section('content')
+<form id="form-bom" action="{{ route('store-bom') }}" method="POST">
+    @csrf
+
+    <div class="card card-primary">
+        <div class="card-header bg-sb">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title fw-bold">
+                    Katalog BOM
+                </h5>
+                <a href="{{ route('master-bom') }}" class="btn btn-sm btn-primary">
+                    <i class="fa fa-reply"></i> Kembali ke List
+                </a>
+            </div>
+        </div>
+        <div class="card-body bg-light">
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="form-label"><small class="fw-bold">Buyer</small></label>
+                    <select name="id_buyer" class="form-control select2bs4" disabled>
+                        <option value="">Pilih Buyer</option>
+                        @foreach ($buyers as $buyer)
+                            <option value="{{ $buyer->Id_Supplier }}" {{ $bom->id_buyer == $buyer->Id_Supplier ? 'selected' : '' }}>
+                                {{ $buyer->Supplier }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label"><small class="fw-bold">Style</small></label>
+                    <input type="text" class="form-control" name="style" id="style" value="{{ $bom->style }}" readonly>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label"><small class="fw-bold">Market</small></label>
+                    <input type="text" class="form-control" name="market" id="market" value="{{ $bom->market }}" readonly>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <div class="form-label d-flex justify-content-between">
+                        <small class="fw-bold">Master Color</small>
+                    </div>
+                    <select id="colorList" name="colors[]" class="form-control select2bs4" multiple disabled>
+                        @foreach ($master_colors as $color)
+                            <option value="{{ $color->id }}" {{ is_array($selectedColors) && in_array($color->id, $selectedColors) ? 'selected' : '' }}>
+                                {{ $color->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-label d-flex justify-content-between">
+                        <small class="fw-bold">Master Size</small>
+                    </div>
+                    <select id="sizeList" name="sizes[]" class="form-control select2bs4" multiple disabled>
+                        @foreach ($master_sizes as $size)
+                            <option value="{{ $size->id }}" {{ is_array($selectedSizes) && in_array($size->id, $selectedSizes) ? 'selected' : '' }}>
+                                {{ $size->size }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3 card-success" id="section-list-item">
+        <div class="card-header bg-sb text-light">
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-plus-circle"></i> Tambah Item Baru</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label><small class="fw-bold">Supplier</small></label>
+                        <select name="id_supplier" class="form-control select2bs4">
+                            <option value="">Pilih Supplier</option>
+                            @foreach ($suppliers as $sup)
+                                <option value="{{ $sup->Id_Supplier }}">{{ $sup->Supplier }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><small class="fw-bold">Item Contents *</small></label>
+                        <select name="item_contents" id="item_contents" class="form-control select2bs4" onchange="get_rule()">
+                            <option value="">Pilih Item Contents</option>
+                            @foreach ($itemContents as $item)
+                                <option value="{{ $item->isi }}">{{ $item->tampil }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><small class="fw-bold">Rule BOM *</small></label>
+                        <select name="rule_bom" id="rule_bom" class="form-control select2bs4" onchange="get_list_data()">
+                            <option value="">Pilih Rule</option>
+                        </select>
+                    </div>
+
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label><small class="fw-bold">Unit</small></label>
+                        <select name="unit" id="unit" class="form-control select2bs4">
+                            <option value="">Pilih Unit</option>
+                            @foreach ($masterUnits as $data)
+                                <option value="{{ $data->id }}">{{ $data->nama_pilihan }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><small class="fw-bold">Shell</small></label>
+                        <select name="shell" id="shell" class="form-control select2bs4">
+                            <option value="">Pilih Shell</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><small class="fw-bold">Notes</small></label>
+                        <textarea name="notes" class="form-control" rows="3" placeholder="Input catatan..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive mt-3">
+                <table class="table table-bordered table-sm w-100" id="itemTable">
+                    <thead class="bg-light text-center">
+                        <tr>
+                            <th width="25%">Color | Size</th>
+                            <th>Item</th>
+                            <th width="15%">Cons</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-end mt-4">
+                <button type="submit" class="btn btn-success btn-md">
+                    <i class="fas fa-save"></i> Simpan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-outline card-info mt-3" id="section_table_list_item">
+        <div class="card-header">
+            <h5 class="card-title fw-bold text-info"><i class="fas fa-clipboard-list"></i> BOM Detail</h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold text-dark mb-0"><i class="fas fa-list"></i> Item BOM</h6>
+                <div class="d-flex align-items-center">
+                    <button type="button" class="btn btn-info btn-sm shadow-sm mr-2" onclick="export_excel()">
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </button>
+                    <div id="delete-batch-container" style="display:none;">
+                        <button type="button" class="btn btn-danger btn-sm shadow-sm" onclick="delete_batch()">
+                            <i class="fas fa-trash"></i> Hapus Batch (<span id="count-selected">0</span>)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-sm table-striped table-bordered w-100" id="table-detail-bom">
+                    <thead class="bg-light">
+                        <tr class="text-center">
+                            <th width="2%"><input type="checkbox" id="check-all"></th>
+                            <th width="5%">No</th>
+                            <th width="20%">Content</th>
+                            <th width="20%">Item Description</th>
+                            <th width="10%">Color</th>
+                            <th width="5%">Size</th>
+                            <th width="5%">Cons</th>
+                            <th width="10%">Unit</th>
+                            <th width="5%">Shell</th>
+                            <th width="5%">Action</th>
+                        </tr>
+
+                        <tr class="filter-row">
+                            <th></th>
+                            <th></th>
+                            <th><input type="text" class="form-control form-control-sm column-search" data-column="2"></th>
+                            <th><input type="text" class="form-control form-control-sm column-search" data-column="3"></th>
+                            <th><input type="text" class="form-control form-control-sm column-search" data-column="4"></th>
+                            <th><input type="text" class="form-control form-control-sm column-search" data-column="5"></th>
+                            <th></th>
+                            <th><input type="text" class="form-control form-control-sm column-search" data-column="7"></th>
+                            <th><input type="text" class="form-control form-control-sm column-search" data-column="8"></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</form>
+<div class="modal fade" id="modalEdit" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="form-edit-item" onsubmit="submit_edit_item(this, event)">
+                @csrf
+                <input type="hidden" name="id_detail" id="edit_id_detail">
+
+                <div class="modal-header bg-sb text-light py-2">
+                    <h6 class="modal-title"><i class="fas fa-edit"></i> Edit Item BOM</h6>
+                    <button type="button" class="btn-close text-light" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12 mb-2">
+                            <label><small class="fw-bold">Item Description</small></label>
+                            <input type="text" id="edit_item_desc" class="form-control form-control-sm bg-light" readonly>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label><small class="fw-bold">Color</small></label>
+                            <select name="id_color" id="edit_id_color" class="form-control select2bs4-edit" style="width: 100%;">
+                                <option value="">Pilih Color</option>
+                                @foreach ($master_colors as $color)
+                                    <option value="{{ $color->id }}">{{ $color->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label><small class="fw-bold">Size</small></label>
+                            <select name="id_size" id="edit_id_size" class="form-control select2bs4-edit" style="width: 100%;">
+                                <option value="">Pilih Size</option>
+                                @foreach ($master_sizes as $size)
+                                    <option value="{{ $size->id }}">{{ $size->size }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label><small class="fw-bold">Qty</small></label>
+                            <input type="number" step="0.0001" name="qty" id="edit_qty" class="form-control form-control-sm text-center qty_input" required>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label><small class="fw-bold">Unit</small></label>
+                            <select name="id_unit" id="edit_id_unit" class="form-control select2bs4-edit" style="width: 100%;">
+                                <option value="">Pilih Unit</option>
+                                @foreach ($masterUnits as $data)
+                                    <option value="{{ $data->id }}">{{ $data->nama_pilihan }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                           <label><small class="fw-bold">Shell</small></label>
+                            <select name="shell" id="edit_shell" class="form-control select2bs4">
+                                <option value="">Pilih Shell</option>
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer py-1">
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
+                    <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-save"></i> Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('custom-script')
+<script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+<script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+<script>
+    let bom_id = {{ $bom->id }};
+    let table_add_item = null;
+
+    $(document).ready(function() {
+        $('.select2bs4').select2({ theme: 'bootstrap4' });
+
+        load_items(bom_id);
+
+        $('#form-bom').on('submit', function(e) {
+            e.preventDefault();
+            submit_form(this);
+        });
+
+        $(document).on('select2:open', () => {
+            document.querySelector('.select2-container--open .select2-search__field').focus();
+        });
+
+        $('#item_contents, #rule_bom, #colorList, #sizeList').on('change', function() {
+            get_list_data();
+        });
+
+        $(document).on('change', '.qty_input', function() {
+            let val = parseFloat(this.value);
+            if (isNaN(val) || val <= 0) {
+                this.value = '';
+                iziToast.warning({
+                    title: 'Peringatan',
+                    message: 'Qty tidak boleh 0 atau minus',
+                    position: 'topRight'
+                });
+            } else {
+                this.value = Math.round(val * 10000) / 10000;
+            }
+        });
+
+        $(document).on('keypress', '.qty_input', function(e) {
+            if (e.which == 45) {
+                return false;
+            }
+        });
+    });
+
+    function get_rule() {
+        let id_contents = $('#item_contents').val();
+        if (!id_contents) return $('#rule_bom').html('<option value="">Pilih Rule</option>');
+
+        $.post("{{ route('get-rule-bom') }}", {
+            _token: "{{ csrf_token() }}",
+            id_contents: id_contents
+        }, function(res) {
+            $("#rule_bom").html(res).trigger('change');
+            get_list_data();
+        });
+    }
+
+    function get_list_data() {
+        let id_contents = $('#item_contents').val();
+        let rule = $('#rule_bom').val();
+
+        let selected_colors = $('#colorList').select2('data');
+        let selected_sizes = $('#sizeList').select2('data');
+
+        if (!id_contents || !rule) {
+            $("#itemTable tbody").empty();
+            return;
+        }
+
+        let proses = false;
+        if (rule === "All Color All Size") proses = true;
+        else if (rule === "All Color Range Size") proses = (selected_sizes.length > 0);
+        else if (rule === "Per Color All Size") proses = (selected_colors.length > 0);
+        else proses = (selected_colors.length > 0 && selected_sizes.length > 0);
+
+        if (!proses) {
+            $("#itemTable tbody").empty();
+            return;
+        }
+
+        $.post("{{ route('get-list-data-bom') }}", {
+            _token: "{{ csrf_token() }}",
+            id_contents: id_contents
+        }, function(res) {
+            let tbody = $("#itemTable tbody");
+            tbody.empty();
+
+            let rows = [];
+            if (rule === "All Color All Size") {
+                rows.push({ label: "All Color | All Size", cId: null, sId: null });
+            } else if (rule === "All Color Range Size") {
+                selected_sizes.forEach(s => rows.push({ label: `All Color | ${s.text}`, cId: null, sId: s.id }));
+            } else if (rule === "Per Color All Size") {
+                selected_colors.forEach(c => rows.push({ label: `${c.text} | All Size`, cId: c.id, sId: null }));
+            } else {
+                selected_colors.forEach(c => {
+                    selected_sizes.forEach(s => rows.push({ label: `${c.text} | ${s.text}`, cId: c.id, sId: s.id }));
+                });
+            }
+
+            let itemOptions = '<option value="">Pilih Item</option>';
+            res.items.forEach(i => itemOptions += `<option value="${i.isi}">${i.tampil}</option>`);
+
+            rows.forEach((data, index) => {
+                let idx = index + 1;
+                let row = `<tr>
+                    <td class="align-middle">
+                        <input type="hidden" name="id_color[${idx}]" value="${data.cId ?? ''}">
+                        <input type="hidden" name="id_size[${idx}]" value="${data.sId ?? ''}">
+                        <small class="fw-bold">${data.label}</small>
+                    </td>
+                    <td><select name="id_item[${idx}]" class="form-control select2-item">${itemOptions}</select></td>
+                    <td><input type="number" step="0.0001" name="qty_input[${idx}]" class="form-control form-control-sm text-center qty_input" placeholder="0.0000"></td>
+                </tr>`;
+                tbody.append(row);
+            });
+
+            $('.select2-item').select2({ theme: 'bootstrap4', width: '100%' });
+        });
+    }
+
+    // function submit_form(form) {
+    //     Swal.fire({
+    //         title: 'Simpan Item BOM?',
+    //         html: "Item ini akan ditambahkan ke list bawah.",
+    //         icon: 'question',
+    //         showCancelButton: true,
+    //         confirmButtonColor: '#28a745',
+    //         confirmButtonText: 'Ya, Simpan'
+    //     }).then((result) => {
+    //         if (result.isConfirmed) {
+    //             Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+    //             let formData = new FormData(form);
+    //             formData.append('id_bom_marketing', bom_id);
+
+    //             let colors = $('#colorList').val();
+    //             let sizes = $('#sizeList').val();
+
+    //             if(colors) colors.forEach(id => formData.append('colors[]', id));
+    //             if(sizes) sizes.forEach(id => formData.append('sizes[]', id));
+
+    //             $.ajax({
+    //                 url: $(form).attr('action'),
+    //                 type: 'POST',
+    //                 data: formData,
+    //                 processData: false,
+    //                 contentType: false,
+    //                 success: function(res) {
+    //                     if (res.status == 200) {
+    //                         Swal.fire({ icon: 'success', title: 'Berhasil!', timer: 1500, showConfirmButton: false });
+
+    //                         $('#item_contents, #rule_bom, #unit, #shell, select[name="id_supplier"]').val('').trigger('change');
+    //                         $(form).find('textarea[name="notes"]').val('');
+    //                         $("#itemTable tbody").empty();
+
+    //                         load_items(bom_id);
+    //                     } else {
+    //                         Swal.fire('Gagal!', res.message, 'error');
+    //                     }
+    //                 },
+    //                 error: function(xhr) {
+    //                     Swal.fire('Error!', 'Terjadi kesalahan sistem', 'error');
+    //                 }
+    //             });
+    //         }
+    //     });
+    // }
+
+    function submit_form(form) {
+
+        let content = $('#item_contents').val();
+        let rule = $('#rule_bom').val();
+        let supplier = $('select[name="id_supplier"]').val();
+
+        if (!content || !rule || !supplier) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Data Belum Lengkap!',
+                text: 'Content, Rule BOM, dan Supplier wajib diisi.'
+            });
+            return false;
+        }
+
+        let rowCount = $("#itemTable tbody tr").length;
+        if (rowCount === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Item Kosong!',
+                text: 'Silakan tambahkan minimal satu item ke dalam list.'
+            });
+            return false;
+        }
+
+        let isTableValid = true;
+
+        $("#itemTable tbody tr").each(function(index) {
+            let itemId = $(this).find('[name^="id_item"]').val();
+            let qty    = $(this).find('[name^="qty_input"]').val();
+
+            console.log("Validasi Baris " + (index + 1) + ":", {id_item: itemId, qty: qty});
+
+            if (!itemId || itemId === "" || !qty || parseFloat(qty) <= 0) {
+                isTableValid = false;
+                $(this).addClass('table-danger');
+            } else {
+                $(this).removeClass('table-danger');
+            }
+        });
+
+        if (!isTableValid) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Data Tidak Valid',
+                text: 'Terdapat item yang belum dipilih atau quantity masih kosong/0.'
+            });
+            return false;
+        }
+
+        Swal.fire({
+            title: 'Simpan Item BOM?',
+            html: "Item ini akan ditambahkan ke list bawah.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            confirmButtonText: 'Ya, Simpan'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Menyimpan...',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                let formData = new FormData(form);
+                formData.append('id_bom_marketing', bom_id);
+
+                let colors = $('#colorList').val();
+                let sizes = $('#sizeList').val();
+
+                if(colors) colors.forEach(id => formData.append('colors[]', id));
+                if(sizes) sizes.forEach(id => formData.append('sizes[]', id));
+
+                $.ajax({
+                    url: $(form).attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(res) {
+                        if (res.status == 200) {
+                            Swal.fire({ icon: 'success', title: 'Berhasil!', timer: 1500, showConfirmButton: false });
+
+                            $('#item_contents, #rule_bom, #unit, #shell, select[name="id_supplier"]').val('').trigger('change');
+                            $(form).find('textarea[name="notes"]').val('');
+                            $("#itemTable tbody").empty();
+
+                            load_items(bom_id);
+                        } else {
+                            Swal.fire('Gagal!', res.message, 'error');
+                        }
+                    },
+                    error: function(xhr) {
+                        Swal.fire('Error!', 'Terjadi kesalahan sistem', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    function load_items(id_header) {
+        if (!id_header) return;
+
+        let url = "{{ route('get-items', ':id') }}";
+        url = url.replace(':id', id_header);
+
+        if ($.fn.DataTable.isDataTable('#table-detail-bom')) {
+            table_add_item.ajax.url(url).load(null, false);
+            return;
+        }
+
+        table_add_item = $('#table-detail-bom').DataTable({
+            processing: true,
+            serverSide: true,
+            destroy: true,
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "All"]
+            ],
+            pageLength: 10,
+            ajax: url,
+            columns: [
+                {
+                    data: 'id',
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-center align-middle',
+                    render: data => `<input type="checkbox" class="row-checkbox" value="${data}">`
+                },
+                {
+                    data: 'DT_RowIndex',
+                    name: 'DT_RowIndex',
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-center'
+                },
+                {
+                    data: 'content_name',
+                    name: 'content_name',
+                    render: data => data ? data : '-'
+                },
+                { data: 'item_name', name: 'i.itemdesc' },
+                { data: 'color_name', name: 'color_name', className: 'text-center' },
+                { data: 'size_name', name: 'size_name', className: 'text-center' },
+                {
+                    data: 'qty',
+                    name: 'qty',
+                    className: 'text-center',
+                    searchable: false,
+                    render: data => parseInt(data)
+                },
+                { data: 'unit_name', name: 'unit_name', className: 'text-center' },
+                { data: 'shell', name: 'shell', className: 'text-center' },
+                {
+                    data: 'id',
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-center align-middle',
+                    render: data => `
+                        <button type="button" class="btn btn-sm btn-info py-1 px-2"
+                                onclick="edit_item_row(${data})" title="Edit Item">
+                            <i class="fas fa-edit"></i>
+                        </button>`
+                }
+            ],
+            drawCallback: function() {
+                $('#check-all').prop('checked', false);
+                if (typeof handle_delete_button === "function") {
+                    handle_delete_button();
+                }
+            },
+            language: {
+                emptyTable: "Belum ada item yang ditambahkan.",
+                processing: '<i class="fa fa-spinner fa-spin fa-fw"></i> Menampilkan data...'
+            },
+            autoWidth: false,
+            responsive: true,
+            orderCellsTop: true
+        });
+
+        $('#table-detail-bom thead').on('keyup change clear', '.column-search', function() {
+            let colIdx = $(this).data('column');
+            table_add_item.column(colIdx).search(this.value).draw();
+        });
+    }
+
+    function edit_item_row(id) {
+        let url = "{{ route('get-item-row-bom', ':id') }}";
+        url = url.replace(':id', id);
+
+        $.get(url, function(res) {
+            $('#edit_id_detail').val(res.id);
+            $('#edit_item_desc').val(res.item_name);
+            $('#edit_id_color').val(res.id_color).trigger('change');
+            $('#edit_id_size').val(res.id_size).trigger('change');
+            $('#edit_qty').val(Math.round(res.qty));
+            $('#edit_id_unit').val(res.id_unit).trigger('change');
+            $('#edit_shell').val(res.shell).trigger('change');
+
+            $('.select2bs4-edit').select2({
+                theme: 'bootstrap4',
+                dropdownParent: $('#modalEdit')
+            });
+
+            $('#modalEdit').modal('show');
+        });
+    }
+
+    function submit_edit_item(form, evt) {
+        evt.preventDefault();
+
+        Swal.fire({
+            title: 'Konfirmasi Update',
+            html: `Apakah Anda yakin ingin mengubah data item ini?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#d33',
+            confirmButtonText: '<i class="fa fa-save"></i> Ya',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Sedang memproses...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                let id = $('#edit_id_detail').val();
+                let url = "{{ route('update-item-row-bom', ':id') }}";
+                url = url.replace(':id', id);
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: $(form).serialize(),
+                    success: function(res) {
+                        if (res.status == 200) {
+                            $('#modalEdit').modal('hide');
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: 'item berhasil diedit.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+
+                            table_add_item.ajax.reload(null, false);
+                        } else {
+                            Swal.fire('Gagal', res.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error', 'Terjadi kesalahan sistem saat menghubungi server.', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    $('#check-all').on('click', function() {
+        let isChecked = $(this).is(':checked');
+        $('#table-detail-bom tbody').find('.row-checkbox').prop('checked', isChecked);
+        handle_delete_button();
+    });
+
+    $('#table-detail-bom').on('change', '.row-checkbox', function() {
+        let total_row = $('#table-detail-bom tbody').find('.row-checkbox').length;
+        let total_checked = $('#table-detail-bom tbody').find('.row-checkbox:checked').length;
+
+        if (total_checked === total_row && total_row > 0) {
+            $('#check-all').prop('checked', true);
+        } else {
+            $('#check-all').prop('checked', false);
+        }
+        handle_delete_button();
+    });
+
+    function handle_delete_button() {
+        let checked_count = $('.row-checkbox:checked').length;
+        let container = $('#delete-batch-container');
+        let span_count = $('#count-selected');
+
+        if (checked_count > 0) {
+            span_count.text(checked_count);
+            container.fadeIn(200);
+        } else {
+            container.fadeOut(200);
+            $('#check-all').prop('checked', false);
+        }
+    }
+
+    function delete_batch() {
+        let ids = [];
+        $('.row-checkbox:checked').each(function() {
+            ids.push($(this).val());
+        });
+
+        if (ids.length === 0) return;
+
+        Swal.fire({
+            title: 'Hapus Batch?',
+            text: `Anda akan menghapus ${ids.length} item secara permanen`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Ya, Hapus',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({ title: 'Menghapus...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+                $.ajax({
+                    url: "{{ route('delete-batch-bom') }}",
+                    type: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        ids: ids
+                    },
+                    success: function(res) {
+                        if (res.status == 200) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Terhapus!',
+                                text: res.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+
+                            $('#check-all').prop('checked', false);
+                            handle_delete_button();
+
+                            if ($.fn.DataTable.isDataTable('#table-detail-bom')) {
+                                $('#table-detail-bom').DataTable().ajax.reload(null, false);
+                            }
+                        } else {
+                            Swal.fire('Gagal!', res.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error!', 'Terjadi kesalahan pada server.', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    async function export_excel() {
+        Swal.fire({
+            title: "Exporting",
+            html: "Please Wait...",
+            timerProgressBar: true,
+            didOpen: () => {
+                Swal.showLoading();
+            },
+        });
+        try {
+            const res = await $.ajax({
+                url: '{{ route('export-excel-bom') }}',
+                type: "GET",
+                data: {
+                    id : bom_id
+                },
+                xhrFields: { responseType: 'blob' }
+            });
+
+            Swal.close();
+
+            iziToast.success({
+                title: 'Success',
+                message: 'Success',
+                position: 'topCenter'
+            });
+
+            const blob = new Blob([res]);
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download =
+                "Laporan Marketing BOM Item.xlsx";
+            link.click();
+
+        } catch (err) {
+            Swal.close();
+            console.error(err);
+
+            iziToast.error({
+                title: 'Error',
+                message: 'Export gagal',
+                position: 'topCenter'
+            });
+        }
+    }
+</script>
+@endsection

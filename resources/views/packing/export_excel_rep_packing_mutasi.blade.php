@@ -15,8 +15,7 @@
         <tr style='text-align:center; vertical-align:middle'>
             <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
             <th colspan="5" style="background-color: #90EE90; text-align:center;">Packing Line</th>
-            <th colspan="4" style="background-color: lightsteelblue; text-align:center;">Transfer Garment
-            </th>
+            {{-- <th colspan="4" style="background-color: lightsteelblue; text-align:center;">Transfer Garment</th> --}}
             <th colspan="4" style="background-color: lightgoldenrodyellow; text-align:center;">Packing
                 Central</th>
         </tr>
@@ -31,10 +30,10 @@
             <th style="background-color: #90EE90;">Terima Reject</th>
             <th style="background-color: #90EE90;">Keluar</th>
             <th style="background-color: #90EE90;">Saldo Akhir</th>
-            <th style="background-color: lightsteelblue;">Saldo Awal</th>
+            {{-- <th style="background-color: lightsteelblue;">Saldo Awal</th>
             <th style="background-color: lightsteelblue;">Terima</th>
             <th style="background-color: lightsteelblue;">Keluar</th>
-            <th style="background-color: lightsteelblue;">Saldo Akhir</th>
+            <th style="background-color: lightsteelblue;">Saldo Akhir</th> --}}
             <th style="background-color: lightgoldenrodyellow;">Saldo Awal</th>
             <th style="background-color: lightgoldenrodyellow;">Terima</th>
             <th style="background-color: lightgoldenrodyellow;">Packing Scan</th>
@@ -57,10 +56,10 @@
                 <td>{{ $item->pl_reject }}</td>
                 <td>{{ $item->pl_keluar }}</td>
                 <td>{{ $item->pl_saldo_akhir }}</td>
-                <td>{{ $item->tg_saldo_awal }}</td>
+                {{-- <td>{{ $item->tg_saldo_awal }}</td>
                 <td>{{ $item->tg_masuk }}</td>
                 <td>{{ $item->tg_keluar }}</td>
-                <td>{{ $item->tg_saldo_akhir }}</td>
+                <td>{{ $item->tg_saldo_akhir }}</td> --}}
                 <td>{{ $item->pc_saldo_awal }}</td>
                 <td>{{ $item->pc_terima }}</td>
                 <td>{{ $item->pc_packing_scan }}</td>
