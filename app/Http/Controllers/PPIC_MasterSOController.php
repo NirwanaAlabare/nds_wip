@@ -77,8 +77,8 @@ class PPIC_MasterSOController extends Controller
                 group by id_ppic_master_so
                 ),
                 pck_out as (
-                select barcode,po,dest,count(barcode) qty_pck_out from packing_packing_out_scan
-                group by barcode,po,dest
+                select id_ppic, count(*) qty_pck_out from packing_packing_out_scan
+                group by id_ppic
                 )
 
                 select
@@ -106,7 +106,7 @@ class PPIC_MasterSOController extends Controller
                 inner join gmt on p.id_so_det = gmt.id_so_det
                 left join pck_trf_gmt on p.id = pck_trf_gmt.id_ppic_master_so
                 left join pck_in on p.id = pck_in.id_ppic_master_so
-                left join pck_out on p.barcode = pck_out.barcode and p.po = pck_out.po and p.dest = pck_out.dest
+                left join pck_out on p.id = pck_out.id_ppic
                 LEFT JOIN signalbit_erp.master_size_new msn ON gmt.size = msn.size
                 $condition
                 ORDER BY
