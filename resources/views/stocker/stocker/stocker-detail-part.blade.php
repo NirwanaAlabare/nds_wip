@@ -72,9 +72,8 @@
 
                                             $rangeAwal = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + 1 + ($qtyBefore) : "-") : 1 + ($qtyBefore)) : 1 + ($qtyBefore));
                                             $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + $qty + ($qtyBefore) : "-") : $qty + ($qtyBefore)) : $qty + ($qtyBefore));
-                                            if ($currentGroupStocker == '2') {
-                                                // dd($rangeAwal, $rangeAkhir, $stockerBefore->range_akhir, $qtyBefore, $qty);
-                                            }
+                                            // if ($currentGroupStocker == '2') {
+                                            // }
                                     @endphp
                                     <tr>
                                         <input type="hidden" name="part_detail_id[{{ $index }}]" id="part_detail_id_{{ $index }}" value="{{ $partDetail->id }}">

@@ -566,7 +566,7 @@ class StockerService
                     "no_cut" => $currentNumber
                 ]);
 
-                $stockerForm = Stocker::where("form_piece_id", $formCut->id_form)->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("so_det_id", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
+                $stockerForm = Stocker::whereRaw("stocker_input.id_qr_stocker IS NOT NULL")->where("form_piece_id", $formCut->id_form)->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("so_det_id", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
 
                 $currentStockerPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
                 $currentStockerSize = "";
@@ -693,13 +693,20 @@ class StockerService
                     $formPartWs = $checkFormPart ? ($checkFormPart->act_costing_ws ?? null) : null;
                     $maxFormRatio = $checkFormRatio ? ($checkFormRatio->ratio ?? null) : null;
 
-                    if (($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1) || ($maxFormRatio && $stocker->ratio > $maxFormRatio)) {
+                    if (
+                        // Qty minimal : 0
+                        ($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1)
+                        // Ratio  exceed
+                        || ($maxFormRatio && $stocker->ratio > $maxFormRatio && !isset($separate))
+                    ) {
                         $stocker->cancel = "y";
                         $stocker->save();
                     } else {
                         $stocker->cancel = "n";
                         $stocker->save();
                     }
+
+                    \Log::info($sizeRangeAkhir);
                 }
 
                 // Stocker Additional
@@ -764,12 +771,21 @@ class StockerService
                     $stocker->range_akhir = isset($sizeRangeAkhirAdd[$stocker->so_det_id]) ? $sizeRangeAkhirAdd[$stocker->so_det_id] : $rangeAwalAdd + $lembarGelaran;
                     $stocker->save();
 
+                    \Log::info($sizeRangeAkhirAdd);
+
                     $checkFormRatio = $stocker->formCut->marker->markerDetails()->where("so_det_id", $stocker->so_det_id)->orderBy("ratio", "desc")->first();
                     $checkFormPart = $stocker->partDetail->part;
                     $formPartWs = $checkFormPart ? ($checkFormPart->act_costing_ws ?? null) : null;
                     $maxFormRatio = $checkFormRatio ? ($checkFormRatio->ratio ?? null) : null;
 
-                    if ($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1 || ($formPartWs && $formPartWs != $stocker->act_costing_ws) || ($maxFormRatio && $stocker->ratio > $maxFormRatio)) {
+                    if (
+                        // Qty minimal : 1
+                        $stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1
+                        // Part not match
+                        || ($formPartWs && $formPartWs != $stocker->act_costing_ws)
+                        // Ratio  Exceed ()
+                        || ($maxFormRatio && $stocker->ratio > $maxFormRatio && !isset($separate))
+                    ) {
                         $stocker->cancel = "y";
                         $stocker->save();
                     } else {
