@@ -810,16 +810,97 @@ END jam) a))) target from (
                         output.tgl_output,
                         output.tgl_plan,
                         output.sewing_line,
-                        SUM(rft) rft,
-                        SUM(output) output,
-                        SUM(output * output.smv) mins_prod,
-                        SUM(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END) * 60 mins_avail,
-                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END) man_power,
-                        MAX(output.last_update) last_update,
-                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)))/60 jam_kerja,
-                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) mins_kerja,
-                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) cumulative_mins_avail,
-                        FLOOR(MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)/AVG(output.smv), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)/AVG(output.smv) ))) cumulative_target
+                        SUM( rft ) rft,
+                        SUM( output ) output,
+                        GROUP_CONCAT( CONCAT(output, '*', output.smv) ) outputsmv,
+                        SUM( output * output.smv ) mins_prod,
+                        SUM( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END ) * 60 mins_avail,
+                        MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END ) man_power,
+                        MAX( output.last_update ) last_update,
+                        (
+                            IF
+                                (
+                                    cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                    ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                    (
+                                        IF (
+                                            cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                            (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                            (
+                                                IF (
+                                                    cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                    (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                    TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                        ) / 60 jam_kerja,
+                        (
+                            IF
+                                (
+                                    cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                    ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                    (
+                                        IF (
+                                            cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                            (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                            (
+                                                IF (
+                                                    cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                    (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                    TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                        ) mins_kerja,
+                        MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*
+                        (
+                            IF
+                                (
+                                    cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                    ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                    (
+                                        IF (
+                                            cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                            (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                            (
+                                                IF (
+                                                    cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                    (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                    TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                        ) cumulative_mins_avail,
+                        FLOOR(
+                            MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*
+                            (
+                                IF
+                                    (
+                                        cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                        ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                        (
+                                            IF (
+                                                cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                                (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                                (
+                                                    IF (
+                                                        cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                        (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                        TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                            ) / AVG( output.smv )
+                        ) cumulative_target
                     FROM
                         (
                             SELECT
@@ -1048,19 +1129,100 @@ END jam) a))) target from (
                 INNER JOIN (
                 SELECT
                     output.tgl_output,
-                    output.tgl_plan,
-                    output.sewing_line,
-                    SUM( rft ) rft,
-                    SUM( output ) output,
-                    SUM( output * output.smv ) mins_prod,
-                    SUM( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END ) * 60 mins_avail,
-                    MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END ) man_power,
-                    MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) last_update,
-                    (".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output) * " : "")." IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 )- 60 )))/ 60 jam_kerja,
-                    (".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output) * " : "")." IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 )- 60 ))) mins_kerja,
-                    MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output)*" : "")."( IF ( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 )- 60 ))) cumulative_mins_avail,
-                    FLOOR( MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output)*" : "")."( IF (  cast( MAX( output.last_update ) AS TIME ) <= '13:00:00', ( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 )/ AVG( output.smv ), (( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE(output.jam_kerja_awal, '07:00:00') ))/ 60 )- 60 )/ AVG( output.smv )  ))) cumulative_target,
-                    SUM(output)
+					output.tgl_plan,
+					output.sewing_line,
+					SUM( rft ) rft,
+					SUM( output ) output,
+					GROUP_CONCAT( CONCAT(output, '*', output.smv) ) outputsmv,
+					SUM( output * output.smv ) mins_prod,
+					SUM( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END ) * 60 mins_avail,
+					MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END ) man_power,
+					MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) last_update,
+					".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output) * " : "")." (
+						IF
+							(
+								cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '12:00:00',
+								( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE ( output.jam_kerja_awal, '07:00:00' ) ))/ 60 ),
+								(
+									IF (
+										cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) >= '12:00:00' AND cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) < '18:45:00',
+										(TIME_TO_SEC(TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE ( output.jam_kerja_awal, '07:00:00' ) ))/ 60 ) - 60,
+										(
+											IF (
+												cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) >= '18:45:00',
+												(TIME_TO_SEC(TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE ( output.jam_kerja_awal, '07:00:00' ) ))/ 60 ) - 90,
+												TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE ( output.jam_kerja_awal, '07:00:00' ) ))/ 60
+											)
+										)
+									)
+								)
+							)
+					) / 60 jam_kerja,
+					".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output) * " : "")." (
+						IF
+							(
+								cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '12:00:00',
+								( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE ( output.jam_kerja_awal, '07:00:00' ) ))/ 60 ),
+								(
+									IF (
+										cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) >= '12:00:00' AND cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) < '18:45:00',
+										(TIME_TO_SEC(TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE ( output.jam_kerja_awal, '07:00:00' ) ))/ 60 ) - 60,
+										(
+											IF (
+												cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) >= '18:45:00',
+												(TIME_TO_SEC(TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE ( output.jam_kerja_awal, '07:00:00' ) ))/ 60 ) - 90,
+												TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE ( output.jam_kerja_awal, '07:00:00' ) ))/ 60
+											)
+										)
+									)
+								)
+							)
+					) mins_kerja,
+					MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*
+					".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output) * " : "")."(
+						IF
+							(
+								cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '12:00:00',
+								( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE ( output.jam_kerja_awal, '07:00:00' ) ))/ 60 ),
+								(
+									IF (
+										cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) >= '12:00:00' AND cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) < '18:45:00',
+										(TIME_TO_SEC(TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE ( output.jam_kerja_awal, '07:00:00' ) ))/ 60 ) - 60,
+										(
+											IF (
+												cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) >= '18:45:00',
+												(TIME_TO_SEC(TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE ( output.jam_kerja_awal, '07:00:00' ) ))/ 60 ) - 90,
+												TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE ( output.jam_kerja_awal, '07:00:00' ) ))/ 60
+											)
+										)
+									)
+								)
+							)
+					) cumulative_mins_avail,
+					FLOOR(
+						MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*
+						".($wsFilter || $styleFilter || $styleProdFilter ? "(SUM(output)/total_output) * " : "")." (
+							IF
+								(
+									cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) <= '12:00:00',
+									( TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE ( output.jam_kerja_awal, '07:00:00' ) ))/ 60 ),
+									(
+										IF (
+											cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) >= '12:00:00' AND cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) < '18:45:00',
+											(TIME_TO_SEC(TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE ( output.jam_kerja_awal, '07:00:00' ) ))/ 60 ) - 60,
+											(
+												IF (
+													cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ) >= '18:45:00',
+													(TIME_TO_SEC(TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE ( output.jam_kerja_awal, '07:00:00' ) ))/ 60 ) - 90,
+													TIME_TO_SEC( TIMEDIFF( cast( MAX( ".($wsFilter || $styleFilter || $styleProdFilter ? "alloutput.last_update" : "output.last_update")." ) AS TIME ), COALESCE ( output.jam_kerja_awal, '07:00:00' ) ))/ 60
+												)
+											)
+										)
+									)
+								)
+						) / AVG( output.smv )
+					) cumulative_target,
+					SUM(output)
                 FROM
                     (
                         SELECT
@@ -1144,7 +1306,7 @@ END jam) a))) target from (
         ");
 
         // dd("
-        //                     SELECT
+        //     SELECT
         //         output_employee_line.*,
         //         output.sewing_line,
         //         SUM( rft ) rft,
@@ -1205,8 +1367,7 @@ END jam) a))) target from (
         //                     ".$styleProdFilter."
         //                     ".$colorFilter."
         //                 GROUP BY
-        //                     rfts.created_by,
-        //                     DATE ( rfts.updated_at )
+        //                     master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
         //                 ORDER BY
         //                     sewing_line
         //             ) output
@@ -1375,16 +1536,97 @@ END jam) a))) target from (
                         output.tgl_output,
                         output.tgl_plan,
                         output.sewing_line,
-                        SUM(rft) rft,
-                        SUM(output) output,
-                        SUM(output * output.smv) mins_prod,
-                        SUM(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END) * 60 mins_avail,
-                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END) man_power,
-                        MAX(output.last_update) last_update,
-                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)))/60 jam_kerja,
-                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) mins_kerja,
-                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) cumulative_mins_avail,
-                        FLOOR(MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)/AVG(output.smv), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)/AVG(output.smv) ))) cumulative_target
+                        SUM( rft ) rft,
+                        SUM( output ) output,
+                        GROUP_CONCAT( CONCAT(output, '*', output.smv) ) outputsmv,
+                        SUM( output * output.smv ) mins_prod,
+                        SUM( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END ) * 60 mins_avail,
+                        MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END ) man_power,
+                        MAX( output.last_update ) last_update,
+                        (
+                            IF
+                                (
+                                    cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                    ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                    (
+                                        IF (
+                                            cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                            (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                            (
+                                                IF (
+                                                    cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                    (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                    TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                        ) / 60 jam_kerja,
+                        (
+                            IF
+                                (
+                                    cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                    ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                    (
+                                        IF (
+                                            cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                            (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                            (
+                                                IF (
+                                                    cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                    (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                    TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                        ) mins_kerja,
+                        MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*
+                        (
+                            IF
+                                (
+                                    cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                    ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                    (
+                                        IF (
+                                            cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                            (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                            (
+                                                IF (
+                                                    cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                    (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                    TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                        ) cumulative_mins_avail,
+                        FLOOR(
+                            MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*
+                            (
+                                IF
+                                    (
+                                        cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                        ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                        (
+                                            IF (
+                                                cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                                (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                                (
+                                                    IF (
+                                                        cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                        (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                        TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                            ) / AVG( output.smv )
+                        ) cumulative_target
                     FROM
                         (
                             SELECT
@@ -1459,16 +1701,97 @@ END jam) a))) target from (
                         output.tgl_output,
                         output.tgl_plan,
                         output.sewing_line,
-                        SUM(rft) rft,
-                        SUM(output) output,
-                        SUM(output * output.smv) mins_prod,
-                        SUM(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END) * 60 mins_avail,
-                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END) man_power,
-                        MAX(output.last_update) last_update,
-                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)))/60 jam_kerja,
-                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) mins_kerja,
-                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) cumulative_mins_avail,
-                        FLOOR(MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)/AVG(output.smv), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)/AVG(output.smv) ))) cumulative_target,
+                        SUM( rft ) rft,
+                        SUM( output ) output,
+                        GROUP_CONCAT( CONCAT(output, '*', output.smv) ) outputsmv,
+                        SUM( output * output.smv ) mins_prod,
+                        SUM( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END ) * 60 mins_avail,
+                        MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END ) man_power,
+                        MAX( output.last_update ) last_update,
+                        (
+                            IF
+                                (
+                                    cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                    ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                    (
+                                        IF (
+                                            cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                            (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                            (
+                                                IF (
+                                                    cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                    (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                    TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                        ) / 60 jam_kerja,
+                        (
+                            IF
+                                (
+                                    cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                    ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                    (
+                                        IF (
+                                            cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                            (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                            (
+                                                IF (
+                                                    cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                    (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                    TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                        ) mins_kerja,
+                        MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*
+                        (
+                            IF
+                                (
+                                    cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                    ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                    (
+                                        IF (
+                                            cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                            (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                            (
+                                                IF (
+                                                    cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                    (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                    TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                        ) cumulative_mins_avail,
+                        FLOOR(
+                            MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*
+                            (
+                                IF
+                                    (
+                                        cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                        ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                        (
+                                            IF (
+                                                cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                                (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                                (
+                                                    IF (
+                                                        cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                        (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                        TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                            ) / AVG( output.smv )
+                        ) cumulative_target,
                         output.target_effy as target_eff,
                         97 as target_rft
                     FROM
@@ -1554,19 +1877,100 @@ END jam) a))) target from (
                 left join userpassword on userpassword.line_id = output_employee_line.line_id
                 inner join (
                     SELECT
-                        output.tgl_output,
+                        tgl_output,
                         output.tgl_plan,
                         output.sewing_line,
-                        SUM(rft) rft,
-                        SUM(output) output,
-                        SUM(output * output.smv) mins_prod,
-                        SUM(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END) * 60 mins_avail,
-                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END) man_power,
-                        MAX(output.last_update) last_update,
-                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)))/60 jam_kerja,
-                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) mins_kerja,
-                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) cumulative_mins_avail,
-                        FLOOR(MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)/AVG(output.smv), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)/AVG(output.smv) ))) cumulative_target
+                        SUM( rft ) rft,
+                        SUM( output ) output,
+                        GROUP_CONCAT( CONCAT(output, '*', output.smv) ) outputsmv,
+                        SUM( output * output.smv ) mins_prod,
+                        SUM( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END ) * 60 mins_avail,
+                        MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END ) man_power,
+                        MAX( output.last_update ) last_update,
+                        (
+                            IF
+                                (
+                                    cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                    ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                    (
+                                        IF (
+                                            cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                            (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                            (
+                                                IF (
+                                                    cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                    (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                    TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                        ) / 60 jam_kerja,
+                        (
+                            IF
+                                (
+                                    cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                    ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                    (
+                                        IF (
+                                            cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                            (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                            (
+                                                IF (
+                                                    cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                    (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                    TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                        ) mins_kerja,
+                        MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*
+                        (
+                            IF
+                                (
+                                    cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                    ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                    (
+                                        IF (
+                                            cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                            (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                            (
+                                                IF (
+                                                    cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                    (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                    TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                        ) cumulative_mins_avail,
+                        FLOOR(
+                            MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*
+                            (
+                                IF
+                                    (
+                                        cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                        ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                        (
+                                            IF (
+                                                cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                                (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                                (
+                                                    IF (
+                                                        cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                        (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                        TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                            ) / AVG( output.smv )
+                        ) cumulative_target
                     FROM
                         (
                             SELECT
@@ -1650,19 +2054,100 @@ END jam) a))) target from (
                 left join userpassword on userpassword.line_id = output_employee_line.line_id
                 inner join (
                     SELECT
-                        output.tgl_output,
+                        tgl_output,
                         output.tgl_plan,
                         output.sewing_line,
-                        SUM(rft) rft,
-                        SUM(output) output,
-                        SUM(output * output.smv) mins_prod,
-                        SUM(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END) * 60 mins_avail,
-                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END) man_power,
-                        MAX(output.last_update) last_update,
-                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)))/60 jam_kerja,
-                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) mins_kerja,
-                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) cumulative_mins_avail,
-                        FLOOR(MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)/AVG(output.smv), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)/AVG(output.smv) ))) cumulative_target
+                        SUM( rft ) rft,
+                        SUM( output ) output,
+                        GROUP_CONCAT( CONCAT(output, '*', output.smv) ) outputsmv,
+                        SUM( output * output.smv ) mins_prod,
+                        SUM( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END ) * 60 mins_avail,
+                        MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END ) man_power,
+                        MAX( output.last_update ) last_update,
+                        (
+                            IF
+                                (
+                                    cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                    ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                    (
+                                        IF (
+                                            cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                            (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                            (
+                                                IF (
+                                                    cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                    (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                    TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                        ) / 60 jam_kerja,
+                        (
+                            IF
+                                (
+                                    cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                    ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                    (
+                                        IF (
+                                            cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                            (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                            (
+                                                IF (
+                                                    cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                    (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                    TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                        ) mins_kerja,
+                        MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*
+                        (
+                            IF
+                                (
+                                    cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                    ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                    (
+                                        IF (
+                                            cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                            (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                            (
+                                                IF (
+                                                    cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                    (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                    TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                        ) cumulative_mins_avail,
+                        FLOOR(
+                            MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*
+                            (
+                                IF
+                                    (
+                                        cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                        ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                        (
+                                            IF (
+                                                cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                                (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                                (
+                                                    IF (
+                                                        cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                        (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                        TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                            ) / AVG( output.smv )
+                        ) cumulative_target
                     FROM
                         (
                             SELECT
@@ -1734,19 +2219,100 @@ END jam) a))) target from (
                 left join userpassword on userpassword.line_id = output_employee_line.line_id
                 inner join (
                     SELECT
-                        output.tgl_output,
+                        tgl_output,
                         output.tgl_plan,
                         output.sewing_line,
-                        SUM(rft) rft,
-                        SUM(output) output,
-                        SUM(output * output.smv) mins_prod,
-                        SUM(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END) * 60 mins_avail,
-                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END) man_power,
-                        MAX(output.last_update) last_update,
-                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)))/60 jam_kerja,
-                        (IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) mins_kerja,
-                        MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60))) cumulative_mins_avail,
-                        FLOOR(MAX(CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END)*(IF(cast(MAX(output.last_update) as time) <= '13:00:00', (TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)/AVG(output.smv), ((TIME_TO_SEC(TIMEDIFF(cast(MAX(output.last_update) as time), '07:00:00'))/60)-60)/AVG(output.smv) ))) cumulative_target
+                        SUM( rft ) rft,
+                        SUM( output ) output,
+                        GROUP_CONCAT( CONCAT(output, '*', output.smv) ) outputsmv,
+                        SUM( output * output.smv ) mins_prod,
+                        SUM( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power * output.jam_kerja END ) * 60 mins_avail,
+                        MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END ) man_power,
+                        MAX( output.last_update ) last_update,
+                        (
+                            IF
+                                (
+                                    cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                    ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                    (
+                                        IF (
+                                            cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                            (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                            (
+                                                IF (
+                                                    cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                    (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                    TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                        ) / 60 jam_kerja,
+                        (
+                            IF
+                                (
+                                    cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                    ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                    (
+                                        IF (
+                                            cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                            (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                            (
+                                                IF (
+                                                    cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                    (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                    TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                        ) mins_kerja,
+                        MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*
+                        (
+                            IF
+                                (
+                                    cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                    ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                    (
+                                        IF (
+                                            cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                            (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                            (
+                                                IF (
+                                                    cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                    (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                    TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                        ) cumulative_mins_avail,
+                        FLOOR(
+                            MAX( CASE WHEN output.tgl_output != output.tgl_plan THEN 0 ELSE output.man_power END )*
+                            (
+                                IF
+                                    (
+                                        cast( MAX( output.last_update ) AS TIME ) <= '12:00:00',
+                                        ( TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ),
+                                        (
+                                            IF (
+                                                cast( MAX( output.last_update ) AS TIME ) >= '12:00:00' AND cast( MAX( output.last_update ) AS TIME ) < '18:45:00',
+                                                (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 60,
+                                                (
+                                                    IF (
+                                                        cast( MAX( output.last_update ) AS TIME ) >= '18:45:00',
+                                                        (TIME_TO_SEC(TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60 ) - 90,
+                                                        TIME_TO_SEC( TIMEDIFF( cast( MAX( output.last_update ) AS TIME ), '07:00:00' ))/ 60
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                            ) / AVG( output.smv )
+                        ) cumulative_target
                     FROM
                         (
                             SELECT
