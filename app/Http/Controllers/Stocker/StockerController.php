@@ -310,7 +310,7 @@ class StockerController extends Controller
             where("marker_input.panel", $dataSpreading->panel)->
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
             where("part_form.part_id", $dataSpreading->part_id)->
-            whereRaw("(stocker_input.cancel != 'y' OR stocker_input.cancel is null OR stocker_input.cancel = '') AND stocker_input.id_qr_stocker IS NOT NULL")->
+            whereRaw("(stocker_input.cancel != 'y' OR stocker_input.cancel is null OR stocker_input.cancel = '') AND stocker_input.id_qr_stocker IS NOT NULL AND stocker_input.stocker_reject IS NULL")->
             // where("marker_input_detail.ratio", ">", "0")->
             groupBy("form_cut_input.no_form", "form_cut_input.no_cut", "marker_input_detail.so_det_id")->
             orderBy("form_cut_input.no_cut", "desc")->
@@ -449,7 +449,7 @@ class StockerController extends Controller
                 where("stocker_ws_additional.panel", $dataAdditional->panel)->
                 where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
                 where("part_form.part_id", $dataSpreading->part_id)->
-                whereRaw("(stocker_input.cancel != 'y' OR stocker_input.cancel is null OR stocker_input.cancel = '') AND stocker_input.id_qr_stocker IS NOT NULL")->
+                whereRaw("(stocker_input.cancel != 'y' OR stocker_input.cancel is null OR stocker_input.cancel = '') AND stocker_input.id_qr_stocker IS NOT NULL AND stocker_input.stocker_reject IS NULL")->
                 // where("marker_input_detail.ratio", ">", "0")->
                 groupBy("form_cut_input.no_form", "form_cut_input.no_cut", "stocker_ws_additional_detail.so_det_id")->
                 orderBy("form_cut_input.no_cut", "desc")->
@@ -714,7 +714,7 @@ class StockerController extends Controller
                             'qty_ply' => $stockerSeparateDetail->qty,
                             'qty_ply_mod' => null,
                             'qty_cut' => $stockerSeparateDetail->qty,
-                            'notes' => 'Separated Stocker',
+                            'notes' => DB::raw("notes")." Separated Stocker",
                             'range_awal' => $cumRangeAwal,
                             'range_akhir' => $cumRangeAkhir,
                             'created_by' => Auth::user()->id,
@@ -728,7 +728,7 @@ class StockerController extends Controller
                         $checkStocker->qty_cut = $stockerSeparateDetail->qty;
                         $checkStocker->range_awal = $cumRangeAwal;
                         $checkStocker->range_akhir = $cumRangeAkhir;
-                        $checkStocker->notes = "Separated Stocker";
+                        $checkStocker->notes .= "Separated Stocker";
                         $checkStocker->cancel = 'n';
                         $checkStocker->save();
                     }
@@ -2746,7 +2746,7 @@ class StockerController extends Controller
                                 'qty_ply' => $stockerSeparateDetail->qty,
                                 'qty_ply_mod' => null,
                                 'qty_cut' => $stockerSeparateDetail->qty,
-                                'notes' => $request['note']." (Separated Stocker)",
+                                'notes' => "ADDITIONAL ".$request['note']." (Separated Stocker)",
                                 'range_awal' => $cumRangeAwal,
                                 'range_akhir' => $cumRangeAkhir,
                                 'created_by' => Auth::user()->id,
@@ -2761,7 +2761,7 @@ class StockerController extends Controller
                         $checkStocker->qty_ply_mod = null;
                         $checkStocker->range_awal = $cumRangeAwal;
                         $checkStocker->range_akhir = $cumRangeAkhir;
-                        $checkStocker->notes = $request['note']." (Separated Stocker)";
+                        $checkStocker->notes = "ADDITIONAL ".$request['note']." (Separated Stocker)";
                         $checkStocker->cancel = 'n';
                         $checkStocker->save();
                     }
