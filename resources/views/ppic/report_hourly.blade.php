@@ -42,7 +42,8 @@
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div class="mb-3">
                         <label class="form-label"><small><b>Tgl Filter</b></small></label>
-                        <input type="date" class="form-control form-control " id="tgl_filter" name="tgl_filter" value="{{ date('Y-m-d') }}">
+                        <input type="date" class="form-control form-control " id="tgl_filter" name="tgl_filter"
+                            value="{{ date('Y-m-d') }}">
                     </div>
                     <div class="mb-3">
                         <a onclick="dataTableReload()" class="btn btn-outline-primary position-relative">
@@ -54,7 +55,8 @@
                     </div>
                 </div>
                 <div class="mb-3">
-                    <a class="btn btn-outline-success position-relative mb-3" data-bs-toggle="modal" data-bs-target="#exportModal">
+                    <a class="btn btn-outline-success position-relative mb-3" data-bs-toggle="modal"
+                        data-bs-target="#exportModal">
                         <i class="fas fa-file-excel fa-sm"></i>
                     </a>
                 </div>
@@ -172,7 +174,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Close</button>
-                    <button type="button" onclick="export_excel_hourly()" class="btn btn-success"><i class="fa fa-file-excel"></i> Export</button>
+                    <button type="button" onclick="export_excel_hourly()" class="btn btn-success"><i
+                            class="fa fa-file-excel"></i> Export</button>
                 </div>
             </div>
         </div>
@@ -203,48 +206,16 @@
         });
     </script>
     <script>
+        let datatable;
+
         $(document).ready(() => {
             checkPeriod();
 
-            dataTableReload();
-            setInterval(dataTableReload, 300000);
-            // 300000
-        });
-
-        function notif() {
-            alert("Maaf, Fitur belum tersedia!");
-        }
-
-        function dataTableReload() {
-
-            // Update the "Last Updated" message
-
-            let now = new Date();
-
-            let options = {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false
-            };
-
-            document.getElementById('last-updated').innerText = 'Last Updated: ' + now.toLocaleString('en-US', options);
-
-
-            // Check if DataTable is already initialized
-            if ($.fn.DataTable.isDataTable('#datatable')) {
-                // Destroy the existing DataTable
-                $('#datatable').DataTable().destroy();
-            }
-
-            // Re-initialize the DataTable
             datatable = $("#datatable").DataTable({
                 scrollY: "450px",
                 scrollX: true,
                 scrollCollapse: true,
+                processing: true,
                 paging: false,
                 ordering: false,
                 fixedColumns: {
@@ -406,7 +377,8 @@
                     var totalUniqueManPower = Object.values(uniqueManPower).reduce((a, b) => a + b, 0);
                     // Update footer for the total unique man_power
                     $(api.column(5).footer()).html(
-                        totalUniqueManPower); // Assuming man_power is in the 7th column (zero-based index 6)
+                        totalUniqueManPower
+                    ); // Assuming man_power is in the 7th column (zero-based index 6)
                     // Your existing sum calculations...
                     var sumTotalA = api
                         .column(10, {
@@ -686,6 +658,38 @@
                     31 // Adjust this index to the correct column (zero-based)
                 ]
             });
+
+            dataTableReload();
+
+            setInterval(dataTableReload, 300000);
+            // 300000
+        });
+
+        function notif() {
+            alert("Maaf, Fitur belum tersedia!");
+        }
+
+        function dataTableReload() {
+
+            // Ambil value filter saat ini
+            let tgl_filter = $('#tgl_filter').val();
+
+            // Update "Last Updated"
+            let now = new Date();
+            let options = {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            };
+            document.getElementById('last-updated').innerText =
+                'Last Updated: ' + now.toLocaleString('en-US', options);
+
+            // Reload datatable dengan filter terbaru
+            datatable.ajax.reload(null, false);
         }
 
         function checkPeriod() {
@@ -750,7 +754,7 @@
                             link.click();
                         }
                     },
-                    error: function (jqXHR) {
+                    error: function(jqXHR) {
                         console.error(jqXHR);
 
                         swal.close();
@@ -774,8 +778,13 @@
                     $.ajax({
                         type: "get",
                         url: '{{ route('export-excel-hourly-monthly') }}',
-                        data: { month, year },
-                        xhrFields: { responseType: 'blob' },
+                        data: {
+                            month,
+                            year
+                        },
+                        xhrFields: {
+                            responseType: 'blob'
+                        },
                         success: function(response) {
                             const blob = new Blob([response]);
                             const link = document.createElement('a');
@@ -792,7 +801,7 @@
                 });
             }
 
-            const endTime  = performance.now();
+            const endTime = performance.now();
             const elapsedMs = endTime - startTime;
             const elapsedTime = formatTimer(elapsedMs);
 
@@ -800,7 +809,7 @@
             Swal.fire({
                 title: 'Data Sudah Di Export!',
                 icon: "success",
-                html: elapsedTime+" elapsed.",
+                html: elapsedTime + " elapsed.",
                 showConfirmButton: true,
                 allowOutsideClick: false
             });
