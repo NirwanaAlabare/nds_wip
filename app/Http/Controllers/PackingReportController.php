@@ -655,7 +655,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
         $tgl_awal  = $request->dateFrom;
         $tgl_akhir = $request->dateTo;
 
-        $tanggal_saldo_awal = '2026-01-01';
+        $tanggal_saldo_awal = '2026-03-01';
 
         $tgl_saldo_akhir = date(
             'Y-m-d',
@@ -713,7 +713,8 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                                     0 AS pc_keluar
                                 FROM
                                     sa_report_pck
-
+                                WHERE
+                                    tgl_saldo = '{$tanggal_saldo_awal}'
                                 UNION ALL
 
                             /* ================= PACKING LINE SALDO ================= */
@@ -1381,12 +1382,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
         $tgl_akhir = $request->to;
 
         return Excel::download(
-                                new Export_excel_rep_packing_mutasi(
-                                    $tgl_awal,
-                                    $tgl_akhir,
-                                ),
-                                'Laporan Mutasi Packing (WIP) '.$tgl_awal.' - '.$tgl_akhir.'.xlsx'
-                            );
-
+            new Export_excel_rep_packing_mutasi(
+                $tgl_awal,
+                $tgl_akhir,
+            ),
+            'Laporan Mutasi Packing (WIP) ' . $tgl_awal . ' - ' . $tgl_akhir . '.xlsx'
+        );
     }
 }

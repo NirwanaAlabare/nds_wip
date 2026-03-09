@@ -170,7 +170,7 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
         $tgl_awal = $this->from;
         $tgl_akhir = $this->to;
 
-        $tanggal_saldo_awal = '2026-01-01';
+        $tanggal_saldo_awal = '2026-03-01';
 
         $tgl_saldo_akhir = date(
             'Y-m-d',
@@ -226,7 +226,8 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                                     0 AS pc_keluar
                                 FROM
                                     sa_report_pck
-
+                                WHERE
+                                    tgl_saldo = '{$tanggal_saldo_awal}'
                                 UNION ALL
 
                             /* ================= PACKING LINE SALDO ================= */
@@ -558,6 +559,4 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
             ]
         );
     }
-
 }
-

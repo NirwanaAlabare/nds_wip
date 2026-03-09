@@ -42,12 +42,12 @@
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Awal</b></small></label>
                     <input type="date" class="form-control form-control-sm " id="tgl-awal" name="tgl_awal"
-                        value="{{ date('Y-m-d') }}" min="2026-01-01">
+                        value="{{ date('Y-m-d') }}" min="2026-03-01">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Akhir</b></small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}" min="2026-01-01">
+                        value="{{ date('Y-m-d') }}" min="2026-03-01">
                 </div>
                 <div class="mb-3">
                     <a onclick="dataTableReload()" class="btn btn-outline-primary btn-sm position-relative">
@@ -395,7 +395,9 @@
                         from: $("#tgl-awal").val(),
                         to: $("#tgl-akhir").val(),
                     },
-                    xhrFields: { responseType: 'blob' }
+                    xhrFields: {
+                        responseType: 'blob'
+                    }
                 });
 
                 Swal.close();
