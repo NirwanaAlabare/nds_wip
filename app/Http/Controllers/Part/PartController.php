@@ -51,7 +51,7 @@ class PartController extends Controller
                     part.buyer,
                     part.act_costing_ws,
                     REPLACE(part.style, '\"', ' ') style,
-                    part.color,
+                    COALESCE(GROUP_CONCAT(DISTINCT marker_input.color), part.color) color,
                     part.panel,
                     UPPER(COALESCE(part.panel_status, '')) panel_status,
                     COUNT(DISTINCT form_cut_input.id) total_form,
@@ -61,6 +61,7 @@ class PartController extends Controller
                 ->leftJoin("master_part", "master_part.id", "part_detail.master_part_id")
                 ->leftJoin("part_form", "part_form.part_id", "part.id")
                 ->leftJoin("form_cut_input", "form_cut_input.id", "part_form.form_id")
+                ->leftJoin("marker_input", "marker_input.id", "form_cut_input.marker_id")
                 ->leftJoin(
                     DB::raw("
                         (
@@ -79,13 +80,13 @@ class PartController extends Controller
 
             return DataTables::eloquent($partQuery)->
             filterColumn('act_costing_ws', function ($query, $keyword) {
-                $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
+                $query->whereRaw("LOWER(part.act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
             })->filterColumn('style', function ($query, $keyword) {
-                $query->whereRaw("LOWER(style) LIKE LOWER('%" . $keyword . "%')");
+                $query->whereRaw("LOWER(part.style) LIKE LOWER('%" . $keyword . "%')");
             })->filterColumn('color', function ($query, $keyword) {
-                $query->whereRaw("LOWER(color) LIKE LOWER('%" . $keyword . "%')");
+                $query->whereRaw("LOWER(marker_input.color) LIKE LOWER('%" . $keyword . "%')");
             })->filterColumn('panel', function ($query, $keyword) {
-                $query->whereRaw("LOWER(panel) LIKE LOWER('%" . $keyword . "%')");
+                $query->whereRaw("LOWER(part.panel) LIKE LOWER('%" . $keyword . "%')");
             })->order(function ($query) {
                 $query->orderBy('part.kode', 'desc')->orderBy('part.updated_at', 'desc');
             })->toJson();
@@ -620,10 +621,16 @@ class PartController extends Controller
                 part.buyer,
                 part.act_costing_ws,
                 part.style,
-                part.color,
+                GROUP_CONCAT(DISTINCT master_sb_ws.color) color,
                 part.panel,
                 GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) ORDER BY master_part.nama_part SEPARATOR ', ') part_details
-            ")->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->leftJoin("master_part", "master_part.id", "part_detail.master_part_id")->where("part.id", $id)->groupBy("part.id")->first();
+            ")->
+            leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
+            leftJoin("master_part", "master_part.id", "part_detail.master_part_id")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_act_cost", "part.act_costing_id")->
+            where("part.id", $id)->
+            groupBy("part.id")->
+            first();
 
         return view("marker.part.manage-part-form", ["part" => $part, "page" => "dashboard-marker",  "subPageGroup" => "proses-marker", "subPage" => "part"]);
     }

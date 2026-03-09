@@ -107,8 +107,7 @@
                                 <div class="mb-3">
                                     <label class="form-label "><small><b>No. WS</b></small></label>
                                     <input type="hidden" name="no_ws" id="no_ws" readonly>
-                                    <select class="form-control select2bs4" id="act_costing_id" name="act_costing_id"
-                                        style="width: 100%;">
+                                    <select class="form-control select2bs4" id="act_costing_id" name="act_costing_id" style="width: 100%;">
                                         <option selected="selected" value="">Pilih WS</option>
                                         @foreach ($orders as $order)
                                             <option value="{{ $order->id }}">
@@ -177,7 +176,7 @@
                             <div class="col-12">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Catatan</b></small></label>
-                                    <textarea class="form-control" name="marker_notes" rows="2"></textarea>
+                                    <textarea class="form-control" id="form_notes" name="form_notes" rows="2"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -323,6 +322,18 @@
                                 <label class="form-label label-input"><small><b>Unit Act</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-input" name="unit_l_act"
                                     id="unit_l_act" value="CM" readonly>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label label-input"><small><b>Lebar WS Act</b></small></label>
+                                <input type="number" class="form-control form-control-sm border-input" name="lebar_ws_act" id="lebar_ws_act" value="{{ isset($formCutInputData) ? ( $formCutInputData->lebar_ws_act ? $formCutInputData->lebar_ws_act : null ) : null  }}">
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label label-input"><small><b>Unit</b></small></label>
+                                <input type="text" class="form-control form-control-sm border-input" name="unit_lebar_ws_act" id="unit_lebar_ws_act" value="{{ isset($formCutInputData) ? ( $formCutInputData->unit_lebar_ws_act ? $formCutInputData->unit_lebar_ws_act : 'CM' ) : 'CM'  }}" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
@@ -1848,6 +1859,8 @@
             var commaUnitActual = document.getElementById('unit_comma_act').value;
             var lActual = document.getElementById('l_act').value;
             var lUnitActual = document.getElementById('unit_l_act').value;
+            var lebarWsActual = document.getElementById('lebar_ws_act').value;
+            var lebarWsUnitActual = document.getElementById('unit_lebar_ws_act').value;
             var consWs = document.getElementById('cons_ws').value;
             var consActual = document.getElementById('cons_act').value;
             var consPipping = document.getElementById('cons_pipping').value;
@@ -1875,6 +1888,8 @@
                     unit_comma_act: commaUnitActual,
                     l_act: lActual,
                     unit_l_act: lUnitActual,
+                    lebar_ws_act: lebarWsActual,
+                    unit_lebar_ws_act: lebarWsUnitActual,
                     cons_ws: consWs,
                     cons_act: consActual,
                     cons_pipping: consPipping,
@@ -2408,6 +2423,7 @@
                             consMarkerUprate: $('#cons_marker_uprate').val(),
                             consWsUprateNoSr: $('#cons_ws_uprate_nosr').val(),
                             consMarkerUprateNoSr: $('#cons_marker_uprate_nosr').val(),
+                            formNotes: $('#form_notes').val(),
                             totalLembar: totalLembar
                         },
                         success: function (res) {
@@ -3212,6 +3228,7 @@
             document.getElementById('p_act').setAttribute('readonly', true);
             document.getElementById('comma_act').setAttribute('readonly', true);
             document.getElementById('l_act').setAttribute('readonly', true);
+            document.getElementById('lebar_ws_act').setAttribute('readonly', true);
             document.getElementById('cons_act').setAttribute('readonly', true);
             document.getElementById('cons_pipping').setAttribute('readonly', true);
             document.getElementById('cons_ampar').setAttribute('readonly', true);
@@ -3219,6 +3236,7 @@
             document.getElementById('est_kain').setAttribute('readonly', true);
             document.getElementById('operator').setAttribute('readonly', true);
             document.getElementById('unit_cons_actual_gelaran').setAttribute('readonly', true);
+            document.getElementById('gramasi').setAttribute('readonly', true);
         }
 
         // -Switch Method-

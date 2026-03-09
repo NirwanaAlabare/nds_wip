@@ -202,12 +202,6 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-sm-6">
-                                    <div class="form-group">
-                                        <label>PO</label>
-                                        <input type='text' class='form-control' id='txt_po_marker' name='txt_po_marker' readonly>
-                                    </div>
-                                </div>
                                 <div class="col-sm-3">
                                     <div class="form-group">
                                         <label>L. Marker</label>
@@ -218,6 +212,27 @@
                                     <div class="form-group">
                                         <label>Unit</label>
                                         <input type='text' class='form-control' id='txt_unit_l_marker' name='txt_unit_l_marker' readonly>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="form-group">
+                                        <label>L. WS</label>
+                                        <input type='text' class='form-control' id='txt_l_ws' name='txt_l_ws' readonly>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="form-group">
+                                        <label>Unit</label>
+                                        <input type='text' class='form-control' id='txt_unit_l_ws' name='txt_unit_l_ws' readonly>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="form-group">
+                                        <label>PO</label>
+                                        <input type='text' class='form-control' id='txt_po_marker' name='txt_po_marker' readonly>
                                     </div>
                                 </div>
                             </div>
@@ -382,6 +397,8 @@
                     document.getElementById('txt_po_marker').value = response.po_marker;
                     document.getElementById('txt_l_marker').value = response.lebar_marker;
                     document.getElementById('txt_unit_l_marker').value = response.unit_lebar_marker;
+                    document.getElementById('txt_l_ws').value = response.lebar_ws;
+                    document.getElementById('txt_unit_l_ws').value = response.unit_lebar_ws;
                     document.getElementById('txt_qty_gelar').value = response.gelar_qty_balance ? response.gelar_qty_balance : response.gelar_qty;
                     document.getElementById('txt_ws').value = response.act_costing_ws;
                     document.getElementById('txt_cons_ws').value = response.cons_ws;

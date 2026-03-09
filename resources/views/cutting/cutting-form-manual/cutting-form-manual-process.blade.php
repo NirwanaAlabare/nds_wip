@@ -182,7 +182,7 @@
                             <div class="col-12">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Catatan</b></small></label>
-                                    <textarea class="form-control" name="marker_notes" rows="2">{{ $formCutInputData->notes }}</textarea>
+                                    <textarea class="form-control" name="form_notes" id="form_notes" rows="2">{{ $formCutInputData->notes }}</textarea>
                                 </div>
                             </div>
                         </div>
@@ -367,6 +367,18 @@
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>Unit Act</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-input" name="unit_l_act" id="unit_l_act" value="{{ $formCutInputData->unit_lebar_marker ? strtoupper($formCutInputData->unit_lebar_marker) : 'CM'  }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label label-input"><small><b>Lebar WS</b></small></label>
+                                <input type="number" class="form-control form-control-sm border-input" name="lebar_ws_act" id="lebar_ws_act" value="{{ $formCutInputData->lebar_ws_act }}">
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label label-input"><small><b>Unit</b></small></label>
+                                <input type="text" class="form-control form-control-sm border-input" name="unit_lebar_ws_act" id="unit_lebar_ws_act" value="{{ $formCutInputData->unit_lebar_ws_act ? strtoupper($formCutInputData->unit_lebar_ws_act) : 'CM'  }}" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
@@ -1846,6 +1858,8 @@
                 var commaUnitActual = document.getElementById('unit_comma_act').value;
                 var lActual = document.getElementById('l_act').value;
                 var lUnitActual = document.getElementById('unit_l_act').value;
+                var lebarWsActual = document.getElementById('lebar_ws_act').value;
+                var lebarWsUnitActual = document.getElementById('unit_lebar_ws_act').value;
                 var consWs = document.getElementById('cons_ws').value;
                 var consActual = document.getElementById('cons_act').value;
                 var consPipping = document.getElementById('cons_pipping').value;
@@ -1872,6 +1886,8 @@
                         unit_comma_act: commaUnitActual,
                         l_act: lActual,
                         unit_l_act: lUnitActual,
+                        lebar_ws_act: lebarWsActual,
+                        unit_lebar_ws_act: lebarWsUnitActual,
                         cons_ws: consWs,
                         cons_act: consActual,
                         cons_pipping: consPipping,
@@ -3213,6 +3229,7 @@
                 document.getElementById('p_act').setAttribute('readonly', true);
                 document.getElementById('comma_act').setAttribute('readonly', true);
                 document.getElementById('l_act').setAttribute('readonly', true);
+                document.getElementById('lebar_ws_act').setAttribute('readonly', true);
                 document.getElementById('cons_act').setAttribute('readonly', true);
                 document.getElementById('cons_pipping').setAttribute('readonly', true);
                 document.getElementById('cons_ampar').setAttribute('readonly', true);

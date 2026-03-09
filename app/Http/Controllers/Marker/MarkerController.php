@@ -31,10 +31,11 @@ class MarkerController extends Controller
                 style,
                 color,
                 panel,
-                CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker)) panjang_marker,
-                CONCAT(comma_marker, ' ', UPPER(unit_comma_marker)) comma_marker,
-                CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker), ' ',comma_marker, ' ', UPPER(unit_comma_marker)) panjang_marker_fix,
-                CONCAT(lebar_marker, ' ', UPPER(unit_lebar_marker)) lebar_marker,
+                CONCAT(COALESCE(panjang_marker, 0), ' ', UPPER(COALESCE(unit_panjang_marker, ''))) panjang_marker,
+                CONCAT(COALESCE(comma_marker, 0), ' ', UPPER(COALESCE(unit_comma_marker, ''))) comma_marker,
+                CONCAT(COALESCE(panjang_marker, 0), ' ', UPPER(COALESCE(unit_panjang_marker, '')), ' ',comma_marker, ' ', UPPER(unit_comma_marker)) panjang_marker_fix,
+                CONCAT(COALESCE(lebar_marker, 0), ' ', UPPER(COALESCE(unit_lebar_marker, ''))) lebar_marker,
+                CONCAT(COALESCE(lebar_ws, 0), ' ', UPPER(COALESCE(unit_lebar_ws, ''))) lebar_ws,
                 COALESCE(gramasi, 0) gramasi,
                 gelar_qty,
                 gelar_qty_balance,
@@ -78,8 +79,12 @@ class MarkerController extends Controller
                     }
                 }, true)->filterColumn('kode', function ($query, $keyword) {
                     $query->whereRaw("LOWER(kode) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('tgl_cut_fix', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(DATE_FORMAT(tgl_cutting, '%d-%m-%Y')) LIKE LOWER('%" . $keyword . "%')");
                 })->filterColumn('act_costing_ws', function ($query, $keyword) {
                     $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('style', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(style) LIKE LOWER('%" . $keyword . "%')");
                 })->filterColumn('color', function ($query, $keyword) {
                     $query->whereRaw("LOWER(color) LIKE LOWER('%" . $keyword . "%')");
                 })->filterColumn('panel', function ($query, $keyword) {
@@ -91,7 +96,7 @@ class MarkerController extends Controller
                 })->toJson();
         }
 
-        return view('marker.marker.marker', ["subPageGroup" => "proses-marker", "subPage" => "marker", "page" => "dashboard-marker"]);
+        return view('marker.marker.marker.marker', ["subPageGroup" => "proses-marker", "subPage" => "marker", "page" => "dashboard-marker"]);
     }
 
     /**
@@ -259,6 +264,8 @@ class MarkerController extends Controller
             "buyer" => "required",
             "style" => "required",
             "cons_ws" => "required|numeric|min:0",
+            "lebar_ws" => "required|numeric|min:0",
+            "lebar_ws_unit" => "required",
             "color" => "required",
             "panel_id" => "required",
             "panel" => "required",
@@ -290,6 +297,8 @@ class MarkerController extends Controller
                 'buyer' => $validatedRequest['buyer'],
                 'style' => $validatedRequest['style'],
                 'cons_ws' => $validatedRequest['cons_ws'],
+                'lebar_ws' => $validatedRequest['lebar_ws'],
+                'unit_lebar_ws' => $validatedRequest['lebar_ws_unit'],
                 'color' => $validatedRequest['color'],
                 'panel_id' => $validatedRequest['panel_id'],
                 'panel' => $validatedRequest['panel'],
@@ -358,8 +367,9 @@ class MarkerController extends Controller
         SELECT a.*,
         a.kode kode_marker,
         DATE_FORMAT(tgl_cutting, '%d-%m-%Y') tgl_cut_fix,
-        CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker), ' ',comma_marker, ' ', UPPER(unit_comma_marker)) panjang_marker_fix,
-        CONCAT(lebar_marker, ' ', UPPER(unit_lebar_marker)) lebar_marker_fix,
+        CONCAT(COALESCE(panjang_marker, 0), ' ', UPPER(COALESCE(unit_panjang_marker, '')), ' ',comma_marker, ' ', UPPER(unit_comma_marker)) panjang_marker_fix,
+        CONCAT(COALESCE(lebar_marker, 0), ' ', UPPER(COALESCE(unit_lebar_marker, ''))) lebar_marker_fix,
+        CONCAT(COALESCE(lebar_ws, 0), ' ', UPPER(COALESCE(unit_lebar_ws, ''))) lebar_ws_fix,
         b.qty_order
         from marker_input a
         left join (select id_act_cost,sum(qty) qty_order from master_sb_ws group by id_act_cost) b on a.act_costing_id = b.id_act_cost
@@ -398,8 +408,8 @@ class MarkerController extends Controller
 
         foreach ($data_marker as $datanomarker) {
 
+            // Ratio List
             $html_table = "";
-
             foreach ($data_marker_det as $item) :
                 $html_table .= "
                     <tr>
@@ -409,9 +419,8 @@ class MarkerController extends Controller
                 ";
             endforeach;
 
-
+            // Form List
             $html_tracking = "";
-
             foreach ($data_marker_tracking as $track) :
                 $bgColor = null;
                 $textColor = null;
@@ -519,6 +528,7 @@ class MarkerController extends Controller
                 ";
             endforeach;
 
+            // Detail
             $html = "
                 <div class='row'>
                     <div class='col-sm-6'>
@@ -561,31 +571,31 @@ class MarkerController extends Controller
                             <input type='text' class='form-control' id='txtbuyer' name='txtbuyer' value = '" . $datanomarker->buyer . "' readonly>
                         </div>
                     </div>
-                    <div class='col-sm-3'>
-                        <div class='form-group'>
-                            <label class='form-label'>Panjang Marker</label>
-                            <input type='text' class='form-control' id='txtp_marker' name='txtp_marker'  value = '" . $datanomarker->panjang_marker_fix . "' readonly>
-                        </div>
-                    </div>
-                    <div class='col-sm-3'>
-                        <div class='form-group'>
-                            <label class='form-label'>Lebar Marker</label>
-                            <input type='text' class='form-control' id='txtl_marker' name='txtl_marker'  value = '" . $datanomarker->lebar_marker_fix . "' readonly>
-                        </div>
-                    </div>
-                </div>
-
-                <div class='row'>
                     <div class='col-sm-6'>
                         <div class='form-group'>
                             <label class='form-label'>Style</label>
                             <input type='text' class='form-control' id='txtstyle' name='txtstyle' value = '" . $datanomarker->style . "' readonly>
                         </div>
                     </div>
+                </div>
+
+                <div class='row'>
+                    <div class='col-sm-3'>
+                        <div class='form-group'>
+                            <label class='form-label'>Panjang Marker</label>
+                            <input type='text' class='form-control' id='txtp_marker' name='txtp_marker'  value = '" . ($datanomarker->panjang_marker_fix ?? 0) . "' readonly>
+                        </div>
+                    </div>
+                    <div class='col-sm-3'>
+                        <div class='form-group'>
+                            <label class='form-label'>Lebar Marker</label>
+                            <input type='text' class='form-control' id='txtl_marker' name='txtl_marker'  value = '" . ($datanomarker->lebar_marker_fix ?? 0) . "' readonly>
+                        </div>
+                    </div>
                     <div class='col-sm-6'>
                         <div class='form-group'>
                             <label class='form-label'>Qty Order</label>
-                            <input type='text' class='form-control' id='txtqty_order' name='txtqty_order' value = '" . $datanomarker->qty_order . "' readonly>
+                            <input type='text' class='form-control' id='txtqty_order' name='txtqty_order' value = '" . ($datanomarker->qty_order ?? 0) . "' readonly>
                         </div>
                     </div>
                 </div>
@@ -594,19 +604,34 @@ class MarkerController extends Controller
                     <div class='col-sm-3'>
                         <div class='form-group'>
                             <label class='form-label'>Cons WS</label>
-                            <input type='text' class='form-control' id='txtcons_ws' name='txtcons_ws' value = '" . $datanomarker->cons_ws . "' readonly>
+                            <input type='text' class='form-control' id='txtcons_ws' name='txtcons_ws' value = '" . ($datanomarker->cons_ws ?? 0) . "' readonly>
+                        </div>
+                    </div>
+                    <div class='col-sm-3'>
+                        <div class='form-group'>
+                            <label class='form-label'>Lebar WS</label>
+                            <input type='text' class='form-control' id='txtlebar_ws' name='txtlebar_ws' value = '" . ($datanomarker->lebar_ws_fix ?? 0) . "' readonly>
                         </div>
                     </div>
                     <div class='col-sm-3'>
                         <div class='form-group'>
                             <label class='form-label'>Cons Piping</label>
-                            <input type='text' class='form-control' id='txtcons_piping' name='txtcons_piping' value = '" . $datanomarker->cons_piping . "' readonly>
+                            <input type='text' class='form-control' id='txtcons_piping' name='txtcons_piping' value = '" . ($datanomarker->cons_piping ?? 0) . "' readonly>
                         </div>
                     </div>
                     <div class='col-sm-3'>
                         <div class='form-group'>
                             <label class='form-label'>Cons Marker</label>
-                            <input type='text' class='form-control' id='txtcons_marker' name='txtcons_marker'  value = '" . $datanomarker->cons_marker . "' readonly>
+                            <input type='text' class='form-control' id='txtcons_marker' name='txtcons_marker'  value = '" . ($datanomarker->cons_marker ?? 0) . "' readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <div class='row'>
+                    <div class='col-sm-3'>
+                        <div class='form-group'>
+                            <label class='form-label'>PO</label>
+                            <input type='text' class='form-control' id='txtpo' name='txtpo' value = '" . $datanomarker->po_marker . "' readonly>
                         </div>
                     </div>
                     <div class='col-sm-3'>
@@ -615,22 +640,13 @@ class MarkerController extends Controller
                             <input type='text' class='form-control' id='txtgelar' name='txtgelar'  value = '" . $datanomarker->gelar_qty . "' readonly>
                         </div>
                     </div>
-                </div>
-
-                <div class='row'>
-                    <div class='col-sm-4'>
-                        <div class='form-group'>
-                            <label class='form-label'>PO</label>
-                            <input type='text' class='form-control' id='txtpo' name='txtpo' value = '" . $datanomarker->po_marker . "' readonly>
-                        </div>
-                    </div>
-                    <div class='col-sm-4'>
+                    <div class='col-sm-3'>
                         <div class='form-group'>
                             <label class='form-label'>Gramasi</label>
                             <input type='text' class='form-control' id='txturutan' name='txturutan'  value = '" . $datanomarker->gramasi . "' readonly>
                         </div>
                     </div>
-                    <div class='col-sm-4'>
+                    <div class='col-sm-3'>
                         <div class='form-group'>
                             <label class='form-label'>Urutan</label>
                             <input type='text' class='form-control' id='txturutan' name='txturutan'  value='" . $datanomarker->urutan_marker . "' readonly>
@@ -751,6 +767,8 @@ class MarkerController extends Controller
             "buyer" => "required",
             "style" => "required",
             "cons_ws" => "required|numeric|min:0",
+            "lebar_ws" => "required|numeric|min:0",
+            "lebar_ws_unit" => "required",
             "color" => "required",
             "panel_id" => "required",
             "panel" => "required",
@@ -793,6 +811,8 @@ class MarkerController extends Controller
                     'buyer' => $validatedRequest['buyer'],
                     'style' => $validatedRequest['style'],
                     'cons_ws' => $validatedRequest['cons_ws'],
+                    'lebar_ws' => $validatedRequest['lebar_ws'],
+                    'unit_lebar_ws' => $validatedRequest['lebar_ws_unit'],
                     'color' => $validatedRequest['color'],
                     'panel_id' => $validatedRequest['panel_id'],
                     'panel' => $validatedRequest['panel'],
@@ -875,9 +895,11 @@ class MarkerController extends Controller
                 }
             }
 
+            $marker = Marker::where('id', $id)->first();
+
             return array(
                 "status" => 200,
-                "message" => "Ratio Marker ".$id." berhasil di ubah <br> ".($updateMarkerPanel ? "" : "Panel Marker tidak diubah <br> (Form Marker sudah memiliki part : <b>'".$markerPartForm->implode("no_form", ", ")."'</b>)"),
+                "message" => "Detail Marker ".$marker->kode." berhasil di ubah <br> ".($updateMarkerPanel ? "" : "Panel Marker tidak diubah <br> (Form Marker sudah memiliki part : <b>'".$markerPartForm->implode("no_form", ", ")."'</b>)"),
                 "redirect" => route('marker'),
                 "additional" => [],
             );

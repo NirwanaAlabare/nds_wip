@@ -252,7 +252,7 @@ class SpreadingController extends Controller
             $bulan = substr($date, 5, 2);
             $now = Carbon::now();
 
-            $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderByRaw("CAST(SUBSTR(no_form, 7) as integer) desc")->first();
+            $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderByRaw("CAST(SUBSTR(no_form, 7) as unsigned) desc")->first();
 
             $urutan =  $lastForm ? (str_replace($hari."-".$bulan."-", "", $lastForm->no_form) + $i + 1) : $i;
 
@@ -529,6 +529,53 @@ class SpreadingController extends Controller
             }
         }
 
+        // Delete Detail
+        $spreadingFormDetails = FormCutInputDetail::where('form_cut_id', $spreadingForm->id)->get();
+
+        $idFormDetailLapArr = [];
+        foreach ($spreadingFormDetails as $spreadingFormDetail) {
+            DB::table("form_cut_input_detail_delete")->insert([
+                "no_form_cut_input" => $spreadingFormDetail['no_form_cut_input'],
+                "id_roll" => $spreadingFormDetail['id_roll'],
+                "id_item" => $spreadingFormDetail['id_item'],
+                "color_act" => $spreadingFormDetail['color_act'],
+                "detail_item" => $spreadingFormDetail['detail_item'],
+                "group_roll" => $spreadingFormDetail['group_roll'],
+                "lot" => $spreadingFormDetail['lot'],
+                "roll" => $spreadingFormDetail['roll'],
+                "qty" => $spreadingFormDetail['qty'],
+                "unit" => $spreadingFormDetail['unit'],
+                "sisa_gelaran" => $spreadingFormDetail['sisa_gelaran'],
+                "sambungan" => $spreadingFormDetail['sambungan'],
+                "est_amparan" => $spreadingFormDetail['est_amparan'],
+                "lembar_gelaran" => $spreadingFormDetail['lembar_gelaran'],
+                "average_time" => $spreadingFormDetail['average_time'],
+                "kepala_kain" => $spreadingFormDetail['kepala_kain'],
+                "sisa_tidak_bisa" => $spreadingFormDetail['sisa_tidak_bisa'],
+                "reject" => $spreadingFormDetail['reject'],
+                "sisa_kain" => $spreadingFormDetail['sisa_kain'],
+                "total_pemakaian_roll" => $spreadingFormDetail['total_pemakaian_roll'],
+                "short_roll" => $spreadingFormDetail['short_roll'],
+                "piping" => $spreadingFormDetail['piping'],
+                "remark" => $spreadingFormDetail['remark'],
+                "status" => $spreadingFormDetail['status'],
+                "metode" => $spreadingFormDetail['metode'],
+                "group_stocker" => $spreadingFormDetail['group_stocker'],
+                "created_at" => $spreadingFormDetail['created_at'],
+                "updated_at" => $spreadingFormDetail['updated_at'],
+                "deleted_by" => Auth::user()->username,
+                "deleted_at" => Carbon::now(),
+            ]);
+
+            array_push($idFormDetailLapArr, $spreadingFormDetail->id);
+        }
+
+        // Delete Detail Lap
+        $deleteSpreadingFormDetailLap = FormCutInputDetailLap::whereIn("form_cut_input_detail_id", $idFormDetailLapArr)->delete();
+
+        // Delete Related Items
+        $deleteCutPlan = CutPlan::where('form_cut_id', $id)->delete();
+
         // Spreading Form Delete Process
         $deleteSpreadingForm = FormCutInput::where('id', $id)->delete();
         if ($deleteSpreadingForm) {
@@ -559,55 +606,6 @@ class SpreadingController extends Controller
                         ]);
                 }
             }
-
-            // Delete Detail
-            $spreadingFormDetails = FormCutInputDetail::where('form_cut_id', $spreadingForm->id)->get();
-            $deleteSpreadingFormDetail = FormCutInputDetail::where('form_cut_id', $spreadingForm->id)->delete();
-            if ($deleteSpreadingFormDetail) {
-                $idFormDetailLapArr = [];
-                foreach ($spreadingFormDetails as $spreadingFormDetail) {
-                    DB::table("form_cut_input_detail_delete")->insert([
-                        "no_form_cut_input" => $spreadingFormDetail['no_form_cut_input'],
-                        "id_roll" => $spreadingFormDetail['id_roll'],
-                        "id_item" => $spreadingFormDetail['id_item'],
-                        "color_act" => $spreadingFormDetail['color_act'],
-                        "detail_item" => $spreadingFormDetail['detail_item'],
-                        "group_roll" => $spreadingFormDetail['group_roll'],
-                        "lot" => $spreadingFormDetail['lot'],
-                        "roll" => $spreadingFormDetail['roll'],
-                        "qty" => $spreadingFormDetail['qty'],
-                        "unit" => $spreadingFormDetail['unit'],
-                        "sisa_gelaran" => $spreadingFormDetail['sisa_gelaran'],
-                        "sambungan" => $spreadingFormDetail['sambungan'],
-                        "est_amparan" => $spreadingFormDetail['est_amparan'],
-                        "lembar_gelaran" => $spreadingFormDetail['lembar_gelaran'],
-                        "average_time" => $spreadingFormDetail['average_time'],
-                        "kepala_kain" => $spreadingFormDetail['kepala_kain'],
-                        "sisa_tidak_bisa" => $spreadingFormDetail['sisa_tidak_bisa'],
-                        "reject" => $spreadingFormDetail['reject'],
-                        "sisa_kain" => $spreadingFormDetail['sisa_kain'],
-                        "total_pemakaian_roll" => $spreadingFormDetail['total_pemakaian_roll'],
-                        "short_roll" => $spreadingFormDetail['short_roll'],
-                        "piping" => $spreadingFormDetail['piping'],
-                        "remark" => $spreadingFormDetail['remark'],
-                        "status" => $spreadingFormDetail['status'],
-                        "metode" => $spreadingFormDetail['metode'],
-                        "group_stocker" => $spreadingFormDetail['group_stocker'],
-                        "created_at" => $spreadingFormDetail['created_at'],
-                        "updated_at" => $spreadingFormDetail['updated_at'],
-                        "deleted_by" => Auth::user()->username,
-                        "deleted_at" => Carbon::now(),
-                    ]);
-
-                    array_push($idFormDetailLapArr, $spreadingFormDetail->id);
-                }
-
-                // Delete Detail Lap
-                $deleteSpreadingFormDetailLap = FormCutInputDetailLap::whereIn("form_cut_input_detail_id", $idFormDetailLapArr)->delete();
-            }
-
-            // Delete Related Items
-            $deleteCutPlan = CutPlan::where('form_cut_id', $id)->delete();
 
             return array(
                 "status" => 200,

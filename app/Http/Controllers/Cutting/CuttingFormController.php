@@ -227,10 +227,54 @@ class CuttingFormController extends Controller
      */
     public function process($id = 0)
     {
-        $formCutInputData = FormCutInput::leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->where('form_cut_input.id', $id)->first();
+        // Form Data
+        $formCutInputData = FormCutInput::selectRaw("
+                form_cut_input.*,
+                marker_input.kode,
+                marker_input.buyer,
+                marker_input.act_costing_id,
+                marker_input.act_costing_ws,
+                marker_input.style,
+                marker_input.color,
+                marker_input.panel,
+                marker_input.panel_id,
+                marker_input.tipe_marker,
+                marker_input.notes marker_notes,
+                marker_input.cons_piping,
+                marker_input.panjang_marker,
+                marker_input.unit_panjang_marker,
+                marker_input.comma_marker,
+                marker_input.unit_comma_marker,
+                marker_input.lebar_marker,
+                marker_input.unit_lebar_marker,
+                marker_input.lebar_ws,
+                marker_input.unit_lebar_ws,
+                marker_input.gelar_qty,
+                marker_input.status_marker,
+                marker_input.tipe_marker,
+                marker_input.po_marker,
+                marker_input.urutan_marker,
+                marker_input.cons_marker,
+                marker_input.gramasi,
+                users.name
+            ")->
+            leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+            where('form_cut_input.id', $id)->
+            first();
 
-        $actCostingData = DB::connection("mysql_sb")->table('act_costing')->selectRaw('act_costing.id id, act_costing.styleno style, mastersupplier.Supplier buyer')->leftJoin('mastersupplier', 'mastersupplier.Id_Supplier', 'act_costing.id_buyer')->groupBy('act_costing.id')->where('act_costing.id', $formCutInputData->act_costing_id)->get();
+        // Costing Data
+        $actCostingData = DB::connection("mysql_sb")->table('act_costing')->selectRaw('
+                act_costing.id id,
+                act_costing.styleno style,
+                mastersupplier.Supplier buyer
+            ')->
+            leftJoin('mastersupplier', 'mastersupplier.Id_Supplier', 'act_costing.id_buyer')->
+            groupBy('act_costing.id')->
+            where('act_costing.id', $formCutInputData->act_costing_id)->
+            get();
 
+        // Marker Detail Data
         $markerDetailData = MarkerDetail::selectRaw("
                 marker_input.kode kode_marker,
                 concat(master_sb_ws.size, CASE WHEN (master_sb_ws.dest != '-' AND master_sb_ws.dest is not null) THEN ' - ' ELSE '' END, CASE WHEN (master_sb_ws.dest != '-' AND master_sb_ws.dest is not null) THEN master_sb_ws.dest ELSE '' END) size,
@@ -315,7 +359,8 @@ class CuttingFormController extends Controller
     {
         $updateFormCutInput = FormCutInput::where("id", $id)->update([
             "status" => "PENGERJAAN FORM CUTTING DETAIL",
-            "shell" => $request->shell
+            "shell" => $request->shell,
+            "notes" => $request->form_notes
         ]);
 
         if ($updateFormCutInput) {
@@ -360,6 +405,8 @@ class CuttingFormController extends Controller
                 "unit_comma_p_act" => $validatedRequest['unit_comma_act'],
                 "l_act" => $validatedRequest['l_act'],
                 "unit_l_act" => $validatedRequest['unit_l_act'],
+                "lebar_ws_act" => $request['lebar_ws_act'],
+                "unit_lebar_ws_act" => $request['unit_lebar_ws_act'],
                 // "cons_act" => $validatedRequest['cons_act'],
                 "cons_pipping" => $validatedRequest['cons_pipping'],
                 "cons_ampar" => $validatedRequest['cons_act'],
@@ -1139,6 +1186,7 @@ class CuttingFormController extends Controller
             "cons_ws_uprate_nosr" => $request->consWsUprateNoSr,
             "cons_marker_uprate_nosr" => $request->consMarkerUprateNoSr,
             "operator" => $request->operator,
+            "notes" => $request->formNotes,
         ]);
 
         // Backup the incomplete Form Cut Detail (Roll Spreading)
