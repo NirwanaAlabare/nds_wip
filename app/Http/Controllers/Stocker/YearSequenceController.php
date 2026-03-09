@@ -1028,7 +1028,7 @@ class YearSequenceController extends Controller
         $validatedRequest = $request->validate([
             "month" => 'required',
             "year" => 'required',
-            "form_cut_id" => 'required',
+            "form_cut_id" => 'nullable',
             "so_det_id" => 'required',
             "size" => 'required',
             "range_awal_stocker" => 'required',
@@ -1101,7 +1101,7 @@ class YearSequenceController extends Controller
         $validatedRequest = $request->validate([
             "year" => 'required',
             "year_sequence" => 'required',
-            "form_cut_id" => 'required',
+            "form_cut_id" => 'nullable',
             "so_det_id" => 'required',
             "size" => 'required',
             "range_awal_stocker" => 'required',
@@ -1136,7 +1136,7 @@ class YearSequenceController extends Controller
         $validatedRequest = $request->validate([
             "year" => 'required',
             "year_sequence" => 'required',
-            "form_cut_id" => 'required',
+            "form_cut_id" => 'nullable',
             "so_det_id" => 'required',
             "size" => 'required',
             "range_awal_stocker" => 'required',
@@ -1778,7 +1778,7 @@ class YearSequenceController extends Controller
         $validatedRequest = $request->validate([
             "year" => 'required',
             "year_sequence" => 'required',
-            "form_cut_id" => 'required',
+            "form_cut_id" => 'nullable',
             "so_det_id" => 'required',
             "size" => 'required',
             "range_awal_stocker" => 'required',
