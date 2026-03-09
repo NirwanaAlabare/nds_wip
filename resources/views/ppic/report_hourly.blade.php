@@ -215,7 +215,9 @@
                 scrollY: "450px",
                 scrollX: true,
                 scrollCollapse: true,
+                scroller: true,
                 processing: true,
+                serverside: true,
                 paging: false,
                 ordering: false,
                 fixedColumns: {
@@ -223,6 +225,7 @@
                 },
                 ajax: {
                     url: '{{ route('report-hourly') }}',
+                    type: "GET",
                     data: function(d) {
                         d.tgl_filter = $('#tgl_filter').val(); // Send the selected date to the server
                     },

@@ -176,7 +176,14 @@ jk as (
 	inner join so_det sd on a.so_det_id = sd.id
 	group by REPLACE(a.username, '_', ' '), sd.styleno_prod
 ),
-td as (select * from rep_hourly_output_tot_days where tanggal = '$tgl_filter_prev')
+td as (SELECT *
+FROM rep_hourly_output_tot_days
+WHERE tanggal = (
+    SELECT MAX(tanggal)
+    FROM rep_hourly_output_tot_days
+    WHERE tanggal < '$tgl_filter'
+    )
+)
 
 select
 a.tgl_trans,
