@@ -1425,7 +1425,8 @@ class DCInController extends Controller
                 updated_at,
                 rescanned,
                 rescanned_by,
-                rescanned_by_username
+                rescanned_by_username,
+                rescanned_at
             )
             select
                 tmp.id_qr_stocker,
@@ -1444,7 +1445,8 @@ class DCInController extends Controller
                 '$timestamp' updated_at,
                 (CASE WHEN dc.id IS NOT NULL THEN 1 ELSE 0 END) rescanned,
                 (CASE WHEN dc.id IS NOT NULL THEN '".Auth::user()->id."' ELSE null END) rescanned_by,
-                (CASE WHEN dc.id IS NOT NULL THEN '".Auth::user()->username."' ELSE null END) rescanned_by_username
+                (CASE WHEN dc.id IS NOT NULL THEN '".Auth::user()->username."' ELSE null END) rescanned_by_username,
+                '$timestamp' rescanned_at
             from
                 tmp_dc_in_input_new tmp
                 left join stocker_input ms on tmp.id_qr_stocker = ms.id_qr_stocker
