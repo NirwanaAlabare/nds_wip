@@ -84,16 +84,22 @@
                                 <input type="text" class="form-control" id="style" name="style" value="{{ $marker->style }}" readonly>
                             </div>
                             <div class="row g-3">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="mb-1">
                                         <label class="form-label"><small>Cons WS</small></label>
                                         <input type="text" class="form-control" id="cons_ws" name="cons_ws" value="{{ $marker->cons_ws }}" readonly>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="mb-1">
                                         <label class="form-label"><small>Qty Order</small></label>
                                         <input type="text" class="form-control" id="order_qty" name="order_qty" value="" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-1">
+                                        <label class="form-label"><small>No. Urut Marker</small></label>
+                                        <input type="text" class="form-control" id="no_urut_marker" name="no_urut_marker" value="{{ $marker->urutan_marker }}" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -153,15 +159,17 @@
                     </div>
                     <div class="col-md-3">
                         <div class="mb-1">
-                            <label class="form-label"><small>No. Urut Marker</small></label>
-                            <input type="text" class="form-control" id="no_urut_marker" name="no_urut_marker" value="{{ $marker->urutan_marker }}" readonly>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="mb-1">
                             <label class="form-label"><small>PO</small></label>
                             <input type="text" class="form-control" id="po" name="po" value="{{ $marker->po_marker }}" readonly>
                         </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label"><small>Lebar WS</small></label>
+                        <div class="input-group mb-1">
+                            <input type="number" class="form-control" id="lebar_ws" name="lebar_ws" value="{{ $marker->lebar_ws }}" step=".001" {{ $totalForm > 0 ? "readonly" : "" }} >
+                            <span class="input-group-text">CM</span>
+                        </div>
+                        <input type="hidden" class="form-control" id="lebar_ws_unit" name="lebar_ws_unit" value="CM">
                     </div>
                     <div class="col-md-3">
                         <div class="mb-1">
@@ -662,7 +670,7 @@
                         // Success Alert
                         Swal.fire({
                             icon: 'success',
-                            title: 'Data Marker berhasil disimpan',
+                            title: 'Data berhasil disimpan',
                             html: res.message,
                             showCancelButton: false,
                             showConfirmButton: true,
@@ -709,7 +717,7 @@
                     }
                 }, error: function (jqXHR) {
                     document.getElementById("loading").classList.add("d-none");
-                    
+
                     // Error Response
 
                     let res = jqXHR.responseJSON;

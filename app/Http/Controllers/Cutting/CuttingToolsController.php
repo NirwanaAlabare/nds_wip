@@ -416,6 +416,7 @@ class CuttingToolsController extends Controller
         ]);
 
         if ($validatedRequest) {
+            // Check Current Form
             $currentForm = FormCutInput::where("id", $validatedRequest['modify_marker_form_id'])->first();
 
             // If not Bypassed
@@ -449,7 +450,8 @@ class CuttingToolsController extends Controller
                         ac.id_buyer,
                         ac.kpno,
                         ac.styleno,
-                        sd.color,
+                        sd.color color_before,
+                        so_det_color.color,
                         ac.qty order_qty,
                         ms.supplier buyer,
                         k.cons cons_ws,
@@ -466,6 +468,19 @@ class CuttingToolsController extends Controller
                         inner join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
                         inner join masteritem mi on k.id_item = mi.id_gen
                         inner join masterpanel mp on k.id_panel = mp.id
+                        left join (
+                            select
+                                ac.id,
+                                GROUP_CONCAT(DISTINCT sd.color) as color
+                            from
+                                so_det sd
+                                inner join so on so.id = sd.id_so
+                                inner join act_costing ac on ac.id = so.id_cost
+                            where
+                                ac.id = '" . $validatedRequest["modify_marker_no_ws"] . "'
+                            group by
+                                ac.id
+                        ) so_det_color on so_det_color.id = ac.id
                     where
                         ac.id = '" . $validatedRequest["modify_marker_no_ws"] . "' and sd.color = '" . $validatedRequest["modify_marker_color"] . "' and mp.nama_panel ='" . $validatedRequest["modify_marker_panel"] . "' and k.status = 'M' and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
                     group by
@@ -490,6 +505,8 @@ class CuttingToolsController extends Controller
                     'unit_comma_marker' => $oldMarker->unit_comma_marker,
                     'lebar_marker' => $oldMarker->lebar_marker,
                     'unit_lebar_marker' => $oldMarker->unit_lebar_marker,
+                    'lebar_ws' => $oldMarker->lebar_ws,
+                    'unit_lebar_ws' => $oldMarker->unit_lebar_ws,
                     'gelar_qty' => $oldMarker->gelar_qty,
                     'gelar_qty_balance' => $oldMarker->gelar_qty_balance,
                     'po_marker' => $oldMarker->po_marker,
@@ -587,6 +604,7 @@ class CuttingToolsController extends Controller
                                 "style" => $currentData->styleno,
                                 "color" => $data->unique('color')->pluck('color')->implode(', '),
                                 "panel" => $data->unique('panel')->pluck('panel')->implode(', '),
+                                "panel_status" => $data->unique('panel_status')->pluck('panel_status')->implode(', '),
                             ]);
                         }
 

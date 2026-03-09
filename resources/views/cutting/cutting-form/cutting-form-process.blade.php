@@ -127,6 +127,12 @@
                                 <input type="text" class="form-control form-control-sm border-fetch" id="qty_ply" name="qty_ply" value="{{ $formCutInputData->qty_ply }}" readonly>
                             </div>
                         </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label class="form-label"><small><b>Catatan</b></small></label>
+                                <textarea class="form-control" id="form_notes" name="form_notes">{{ $formCutInputData->notes }}</textarea>
+                            </div>
+                        </div>
                     </div>
                     <table id="ratio-datatable"
                         class="table table-striped table-bordered table w-100 text-center mt-3">
@@ -307,6 +313,18 @@
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>Unit Act</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-input" name="unit_l_act" id="unit_l_act" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label class="form-label label-fetch"><small><b>Lebar WS</b></small></label>
+                                <input type="number" class="form-control form-control-sm border-fetch" name="lebar_ws_act" id="lebar_ws_act" value="{{ strtoupper($formCutInputData->lebar_ws) }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label class="form-label label-fetch"><small><b>Unit</b></small></label>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="unit_lebar_ws_act" id="unit_lebar_ws_act" value="{{ strtoupper($formCutInputData->unit_lebar_ws) }}" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
@@ -1258,6 +1276,8 @@
 
             // -Process One Transaction-
             function updateToNextProcessOne() {
+                console.log($("#shell").val(), $("#form_notes").val());
+
                 let id = document.getElementById("id").value;
 
                 return $.ajax({
@@ -1265,7 +1285,8 @@
                     type: 'put',
                     dataType: 'json',
                     data: {
-                        shell: $("#shell").val()
+                        shell: $("#shell").val(),
+                        form_notes: $("#form_notes").val()
                     },
                     success: function(res) {
                         if (res) {
@@ -1291,6 +1312,8 @@
                 var commaUnitActual = document.getElementById('unit_comma_act').value;
                 var lActual = document.getElementById('l_act').value;
                 var lUnitActual = document.getElementById('unit_l_act').value;
+                var lebarWsActual = document.getElementById('lebar_ws_act').value;
+                var lebarWsUnitActual = document.getElementById('unit_lebar_ws_act').value;
                 var consActual = document.getElementById('cons_act').value;
                 var consPipping = document.getElementById('cons_pipping').value;
                 var consAmpar = document.getElementById('cons_ampar').value;
@@ -1312,6 +1335,8 @@
                         unit_comma_act: commaUnitActual,
                         l_act: lActual,
                         unit_l_act: lUnitActual,
+                        lebar_ws_act: lebarWsActual,
+                        unit_lebar_ws_act: lebarWsUnitActual,
                         cons_act: consActual,
                         cons_pipping: consPipping,
                         cons_ampar: consAmpar,
@@ -1835,6 +1860,7 @@
                                 consMarkerUprate: $('#cons_marker_uprate').val(),
                                 consWsUprateNoSr: $('#cons_ws_uprate_nosr').val(),
                                 consMarkerUprateNoSr: $('#cons_marker_uprate_nosr').val(),
+                                formNotes: $('#form_notes').val(),
                                 totalLembar: totalLembar
                             },
                             success: function(res) {
@@ -1994,6 +2020,7 @@
                 // }
 
                 calculateEstAmpar();
+                calculateShortRoll("keyup");
             }
 
             function conversion(qty, unit, unitBefore) {

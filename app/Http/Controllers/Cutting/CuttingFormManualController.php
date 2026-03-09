@@ -339,10 +339,43 @@ class CuttingFormManualController extends Controller
      */
     public function process($id = 0)
     {
-        $formCutInputQuery = FormCutInput::leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->where('form_cut_input.id', $id);
-        if (Auth::user()->roles->where("nama_role", "meja")->count() > 0) {
-            $formCutInputQuery->where("form_cut_input.no_meja", Auth::user()->id);
-        }
+        $formCutInputQuery = FormCutInput::selectRaw("
+                form_cut_input.*,
+                marker_input.kode,
+                marker_input.buyer,
+                marker_input.act_costing_id,
+                marker_input.act_costing_ws,
+                marker_input.style,
+                marker_input.color,
+                marker_input.panel,
+                marker_input.panel_id,
+                marker_input.tipe_marker,
+                marker_input.notes marker_notes,
+                marker_input.cons_piping,
+                marker_input.panjang_marker,
+                marker_input.unit_panjang_marker,
+                marker_input.comma_marker,
+                marker_input.unit_comma_marker,
+                marker_input.lebar_marker,
+                marker_input.unit_lebar_marker,
+                marker_input.lebar_ws,
+                marker_input.unit_lebar_ws,
+                marker_input.gelar_qty,
+                marker_input.status_marker,
+                marker_input.tipe_marker,
+                marker_input.po_marker,
+                marker_input.urutan_marker,
+                marker_input.cons_ws,
+                marker_input.cons_marker,
+                marker_input.gramasi,
+                users.name
+            ")->
+            leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+            where('form_cut_input.id', $id);
+            if (Auth::user()->roles->where("nama_role", "meja")->count() > 0) {
+                $formCutInputQuery->where("form_cut_input.no_meja", Auth::user()->id);
+            }
 
         $formCutInputData = $formCutInputQuery->first();
         if (!$formCutInputData) {
@@ -804,7 +837,7 @@ class CuttingFormManualController extends Controller
                             'po_marker' => $request->po ? $request->po : '-',
                             'urutan_marker' => $validatedRequest['urutan_marker'],
                             'tipe_marker' => $validatedRequest['tipe_marker'],
-                            'notes' => $request->marker_notes,
+                            'notes' => $request->form_notes,
                             'cancel' => 'N',
                         ]);
                 }
@@ -825,7 +858,7 @@ class CuttingFormManualController extends Controller
                     'po_marker' => $request->po ? $request->po : '-',
                     'urutan_marker' => $validatedRequest['urutan_marker'],
                     'tipe_marker' => $validatedRequest['tipe_marker'],
-                    'notes' => $request->marker_notes,
+                    'notes' => $request->form_notes,
                     'cancel' => 'N',
                     'created_by' => Auth::user()->id,
                     'created_by_username' => Auth::user()->username
@@ -875,6 +908,7 @@ class CuttingFormManualController extends Controller
                 "id_marker" => $request->id_marker ? $request->id_marker : $markerCode,
                 "status" => "PENGERJAAN FORM CUTTING DETAIL",
                 "shell" => $request->shell,
+                "notes" => $request->form_notes,
                 "qty_ply" => $validatedRequest['gelar_qty']
             ]);
 
@@ -952,6 +986,8 @@ class CuttingFormManualController extends Controller
             "unit_comma_marker" => $validatedRequest['unit_comma_act'],
             "lebar_marker" => $validatedRequest['l_act'],
             "unit_lebar_marker" => $validatedRequest['unit_l_act'],
+            "lebar_ws" => $request['lebar_ws_act'],
+            "unit_lebar_ws" => $request['unit_lebar_ws_act'],
             "cons_ws" => $validatedRequest['cons_ws'],
             "cons_marker" => $validatedRequest['cons_marker'],
             "gramasi" => $validatedRequest['gramasi'],
@@ -967,6 +1003,8 @@ class CuttingFormManualController extends Controller
                 "unit_comma_p_act" => $validatedRequest['unit_comma_act'],
                 "l_act" => $validatedRequest['l_act'],
                 "unit_l_act" => $validatedRequest['unit_l_act'],
+                "lebar_ws_act" => $request['lebar_ws_act'],
+                "unit_lebar_ws_act" => $request['unit_lebar_ws_act'],
                 // "cons_act" => $validatedRequest['cons_act'],
                 "cons_pipping" => $validatedRequest['cons_pipping'],
                 "cons_ampar" => $validatedRequest['cons_act'],
@@ -1731,6 +1769,7 @@ class CuttingFormManualController extends Controller
             "cons_marker_uprate" => $request->consMarkerUprate,
             "cons_ws_uprate_nosr" => $request->consWsUprateNoSr,
             "cons_marker_uprate_nosr" => $request->consMarkerUprateNoSr,
+            "notes" => $request->form_notes,
             "operator" => $request->operator,
         ]);
 

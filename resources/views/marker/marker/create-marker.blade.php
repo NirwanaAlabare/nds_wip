@@ -83,16 +83,22 @@
                                 <input type="text" class="form-control" id="style" name="style" readonly>
                             </div>
                             <div class="row g-3">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="mb-1">
                                         <label class="form-label"><small>Cons WS</small></label>
                                         <input type="text" class="form-control" id="cons_ws" name="cons_ws" readonly>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="mb-1">
                                         <label class="form-label"><small>Qty Order</small></label>
                                         <input type="text" class="form-control" id="order_qty" name="order_qty" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-1">
+                                        <label class="form-label"><small>No. Urut Marker</small></label>
+                                        <input type="text" class="form-control" id="no_urut_marker" name="no_urut_marker" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -152,15 +158,17 @@
                     </div>
                     <div class="col-md-3">
                         <div class="mb-1">
-                            <label class="form-label"><small>No. Urut Marker</small></label>
-                            <input type="text" class="form-control" id="no_urut_marker" name="no_urut_marker" readonly>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="mb-1">
                             <label class="form-label"><small>PO</small></label>
                             <input type="text" class="form-control" id="po" name="po">
                         </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label"><small>Lebar WS</small></label>
+                        <div class="input-group mb-1">
+                            <input type="number" class="form-control" id="lebar_ws" name="lebar_ws" step=".001">
+                            <span class="input-group-text">CM</span>
+                        </div>
+                        <input type="hidden" class="form-control" id="lebar_ws_unit" name="lebar_ws_unit" value="CM">
                     </div>
                     <div class="col-md-3">
                         <div class="mb-1">
@@ -725,7 +733,7 @@
                         Swal.fire({
                             icon: 'success',
                             title: 'Data Marker berhasil disimpan',
-                            text: res.message,
+                            html: res.message,
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',

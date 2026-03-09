@@ -71,7 +71,7 @@
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Kode Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->id_marker }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" id="id_marker" value="{{ $formCutInputData->id_marker }}" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
@@ -113,13 +113,13 @@
                         <div class="col-4 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>PO</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="po" value="{{ $formCutInputData->po_marker }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" id="po" name="po" value="{{ $formCutInputData->po_marker }}" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>QTY Gelar Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="gelar_qty" value="{{ $formCutInputData->gelar_qty }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" id="gelar_qty" name="gelar_qty" value="{{ $formCutInputData->gelar_qty }}" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-4">
@@ -131,7 +131,7 @@
                         <div class="col-12">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Catatan</b></small></label>
-                                <textarea class="form-control border-fetch" name="marker_notes" rows="2" readonly>{{ $formCutInputData->notes }}</textarea>
+                                <textarea class="form-control border-fetch" name="form_notes" rows="2">{{ $formCutInputData->notes }}</textarea>
                             </div>
                         </div>
                     </div>
@@ -316,6 +316,18 @@
                                 <label class="form-label label-input"><small><b>Unit Act</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-input" name="unit_l_act" id="unit_l_act" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}"
                                     readonly>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label label-fetch"><small><b>Lebar WS</b></small></label>
+                                <input type="number" class="form-control form-control-sm border-input border-fetch" name="lebar_ws_act" id="lebar_ws_act" value="{{ $formCutInputData->lebar_ws ?? 0 }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label label-fetch"><small><b>Unit</b></small></label>
+                                <input type="text" class="form-control form-control-sm border-input border-fetch" name="unit_lebar_ws_act" id="unit_lebar_ws_act" value="{{ $formCutInputData->unit_lebar_ws ? strtoupper($formCutInputData->unit_lebar_ws) : 'CM'  }}" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
@@ -1266,7 +1278,8 @@
                     type: 'put',
                     dataType: 'json',
                     data: {
-                        shell: $("#shell").val()
+                        shell: $("#shell").val(),
+                        form_notes: $("#form_notes").val(),
                     },
                     success: function(res) {
                         if (res) {
@@ -1285,12 +1298,15 @@
 
             // -Process Two Transaction-
             function updateToNextProcessTwo() {
+                var idMarker = document.getElementById('id_marker').value;
                 var pActual = document.getElementById('p_act').value;
                 var pUnitActual = document.getElementById('unit_p_act').value;
                 var commaActual = document.getElementById('comma_act').value;
                 var commaUnitActual = document.getElementById('unit_comma_act').value;
                 var lActual = document.getElementById('l_act').value;
                 var lUnitActual = document.getElementById('unit_l_act').value;
+                var lebarWsActual = document.getElementById('lebar_ws_act').value;
+                var lebarWsUnitActual = document.getElementById('unit_lebar_ws_act').value;
                 var consActual = document.getElementById('cons_act').value;
                 var consPipping = document.getElementById('cons_pipping').value;
                 var consAmpar = document.getElementById('cons_ampar').value;
@@ -1306,12 +1322,15 @@
                     type: 'put',
                     dataType: 'json',
                     data: {
+                        id_marker: idMarker,
                         p_act: pActual,
                         unit_p_act: pUnitActual,
                         comma_act: commaActual,
                         unit_comma_act: commaUnitActual,
                         l_act: lActual,
                         unit_l_act: lUnitActual,
+                        lebar_ws_act: lebarWsActual,
+                        unit_lebar_ws_act: lebarWsUnitActual,
                         cons_act: consActual,
                         cons_pipping: consPipping,
                         cons_ampar: consAmpar,
@@ -1817,6 +1836,7 @@
                                 consMarkerUprate: $('#cons_marker_uprate').val(),
                                 consWsUprateNoSr: $('#cons_ws_uprate_nosr').val(),
                                 consMarkerUprateNoSr: $('#cons_marker_uprate_nosr').val(),
+                                notes: $('#form_notes').val(),
                                 totalLembar: totalLembar
                             },
                             success: function(res) {
@@ -3164,8 +3184,8 @@
                 let currentLembar = Number($("#current_lembar_gelaran").val());
                 let qtyPly = Number($("#gelar_qty").val());
 
-                document.getElementById("current_ply_progress_txt").innerText = ((totalLembar ?? 0) + (currentLembar ?? 0)) + "/" + qtyPly;
-                document.getElementById("current_ply_progress").style.width = Number(qtyPly) > 0 ? (Number((totalLembar ?? 0) + (currentLembar ?? 0)) / Number(qtyPly) * 100) + "%" : "0%";
+                document.getElementById("current_ply_progress_txt").innerText = ((totalLembar ?? 0) + (currentLembar ?? 0)) + "/" + (qtyPly ?? 0);
+                document.getElementById("current_ply_progress").style.width = Number(qtyPly) > 0 ? (Number((totalLembar ?? 0) + (currentLembar ?? 0)) / Number(qtyPly ?? 0) * 100) + "%" : "0%";
             }
 
             // -Update Ply Progress on Change Lembar Gelaran-

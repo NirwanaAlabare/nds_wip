@@ -137,7 +137,7 @@
                                     <li>
                                         <a href="{{ route('cut-plan') }}"
                                             class="dropdown-item {{ $routeName == 'cut-plan' ? 'active' : '' }}">
-                                            Cutting Plan Date <i class="fas fa-map fa-sm"></i>
+                                            Daily Cutting Plan <i class="fas fa-map fa-sm"></i>
                                         </a>
                                     </li>
                                     {{-- Deprecated --}}
