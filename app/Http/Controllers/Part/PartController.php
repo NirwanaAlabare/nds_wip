@@ -703,7 +703,7 @@ class PartController extends Controller
         $data_secondary = MasterSecondary::all();
         $data_tujuan = DB::select("select tujuan isi, tujuan tampil from master_tujuan");
 
-        $complementPanels = Part::select("part.id", "part.panel")->where("part.act_costing_id", $part->act_costing_id)->where("part.color", $part->color)->where("part.panel", "!=", $part->panel)->get();
+        $complementPanels = Part::select("part.id", "part.panel")->where("part.act_costing_id", $part->act_costing_id)->where("part.panel", "!=", $part->panel)->get();
 
         $partItemList = DB::connection("mysql_sb")->select("
                 select bom_jo_item.id, masteritem.itemdesc from bom_jo_item
