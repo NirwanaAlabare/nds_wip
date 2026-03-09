@@ -302,6 +302,18 @@
                                 <input type="text" class="form-control form-control-sm border-input" name="unit_l_act" id="unit_l_act" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" readonly>
                             </div>
                         </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label label-fetch"><small><b>Lebar WS</b></small></label>
+                                <input type="number" class="form-control form-control-sm border-fetch" name="lebar_ws" id="lebar_ws" value="{{ $formCutInputData->lebar_ws }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label label-fetch"><small><b>Unit WS</b></small></label>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="unit_lebar_ws" id="unit_lebar_ws" value="{{ strtoupper($formCutInputData->unit_lebar_ws) }}" readonly>
+                            </div>
+                        </div>
                         <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Gramasi</b></small></label>

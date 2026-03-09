@@ -768,7 +768,7 @@ class CompletedFormController extends Controller
         $formCutInput = FormCutInput::where("id", $validatedRequest['id'])->where("no_form", $validatedRequest['no_form_cut_input'])->first();
 
         if ($formCutInput) {
-            if ($validatedRequest['p_act'] != $formCutInput->p_act || $validatedRequest['comma_act'] != $formCutInput->comma_p_act) {
+            if ($validatedRequest['p_act'] != $formCutInput->p_act || $validatedRequest['comma_act'] != $formCutInput->comma_p_act || $validatedRequest['l_act'] != $formCutInput->l_act) {
 
                 if ($validatedRequest['p_act'] != null && $validatedRequest['p_act'] != $formCutInput->p_act) {
                     $formCutInput->p_act = $validatedRequest['p_act'];
@@ -776,6 +776,10 @@ class CompletedFormController extends Controller
 
                 if ($validatedRequest['comma_act'] != null && $validatedRequest['comma_act'] != $formCutInput->comma_p_act) {
                     $formCutInput->comma_p_act = $validatedRequest['comma_act'];
+                }
+
+                if ($validatedRequest['l_act'] != null && $validatedRequest['l_act'] != $formCutInput->l_act) {
+                    $formCutInput->l_act = $validatedRequest['l_act'];
                 }
 
                 $formCutInput->save();
