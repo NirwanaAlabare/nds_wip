@@ -166,7 +166,7 @@
                     <div class="col-md-3">
                         <label class="form-label"><small>Lebar WS</small></label>
                         <div class="input-group mb-1">
-                            <input type="number" class="form-control" id="lebar_ws" name="lebar_ws" value="{{ $marker->lebar_ws }}" step=".001" {{ $totalForm > 0 ? "readonly" : "" }} >
+                            <input type="number" class="form-control" id="lebar_ws" name="lebar_ws" value="{{ $marker->lebar_ws }}" step=".001" >
                             <span class="input-group-text">CM</span>
                         </div>
                         <input type="hidden" class="form-control" id="lebar_ws_unit" name="lebar_ws_unit" value="CM">
