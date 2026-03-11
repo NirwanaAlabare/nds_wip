@@ -58,6 +58,11 @@
                         value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
+                    <label class="form-label"><small><b>PO</b></small></label>
+                    <input type="text" class="form-control form-control-sm" id="txtpo" name="txtpo"
+                        placeholder="Masukkan PO (Opsional)">
+                </div>
+                <div class="mb-3">
                     <button class="btn btn-primary btn-sm" onclick="dataTableReload()">
                         <i class="fas fa-search"></i> Search
                     </button>
@@ -133,6 +138,7 @@
     <script>
         $(document).ready(() => {
             dataTableReload();
+            txtpo = $('#txtpo').val('');
         });
 
 
@@ -193,6 +199,7 @@
                 data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
+                    d.txtpo = $('#txtpo').val();
                 },
             },
             columns: [{
@@ -287,6 +294,7 @@
         }
 
         function export_excel() {
+            let txtpo = $('#txtpo').val();
             let dateFrom = $('#tgl-awal').val();
             let dateTo = $('#tgl-akhir').val();
 
@@ -304,7 +312,8 @@
                 url: '{{ route('export_excel_packing_out') }}',
                 data: {
                     dateFrom,
-                    dateTo
+                    dateTo,
+                    txtpo
                 },
 
                 success: async function(data) {

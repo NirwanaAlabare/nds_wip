@@ -12,7 +12,7 @@
 @endsection
 
 @section('content')
-    <div class="card">
+    {{-- <div class="card">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="p-2 bd-highlight">
@@ -25,7 +25,7 @@
                 </center>
             </div>
         </div>
-    </div>
+    </div> --}}
     <div class="card">
         <div class="card-body">
             <div class="row">
@@ -195,56 +195,56 @@
             dataTableReload();
         });
 
-        $.ajax({
-            url: '{{ route('get_data_dashboard_fg_ekspedisi') }}',
-            type: 'get',
-            dataType: 'json',
-            success: function(res) {
+        // $.ajax({
+        //     url: '{{ route('get_data_dashboard_fg_ekspedisi') }}',
+        //     type: 'get',
+        //     dataType: 'json',
+        //     success: function(res) {
 
-                let newData = res.map(function(element) {
-                    return {
-                        name: element.x, // assuming 'x' is the label
-                        data: element.y // assuming 'y' is the value
-                    };
-                });
-                // console.log(newData);
-                chart.updateOptions({
-                    // series: newData.map,
-                    series: newData.map(function(element) {
-                        return element.data;
-                    }),
-                    labels: newData.map(function(element) {
-                        return element.name;
-                    })
-                });
-            },
-            error: function(jqXHR) {
-                // error handling code
-            }
-        });
+        //         let newData = res.map(function(element) {
+        //             return {
+        //                 name: element.x, // assuming 'x' is the label
+        //                 data: element.y // assuming 'y' is the value
+        //             };
+        //         });
+        //         // console.log(newData);
+        //         chart.updateOptions({
+        //             // series: newData.map,
+        //             series: newData.map(function(element) {
+        //                 return element.data;
+        //             }),
+        //             labels: newData.map(function(element) {
+        //                 return element.name;
+        //             })
+        //         });
+        //     },
+        //     error: function(jqXHR) {
+        //         // error handling code
+        //     }
+        // });
 
-        var options = {
-            series: [100],
-            chart: {
-                width: 380,
-                type: 'pie',
-            },
-            labels: [''],
-            responsive: [{
-                breakpoint: 480,
-                options: {
-                    chart: {
-                        width: 200
-                    },
-                    legend: {
-                        position: 'top'
-                    }
-                }
-            }]
-        };
+        // var options = {
+        //     series: [100],
+        //     chart: {
+        //         width: 380,
+        //         type: 'pie',
+        //     },
+        //     labels: [''],
+        //     responsive: [{
+        //         breakpoint: 480,
+        //         options: {
+        //             chart: {
+        //                 width: 200
+        //             },
+        //             legend: {
+        //                 position: 'top'
+        //             }
+        //         }
+        //     }]
+        // };
 
-        var chart = new ApexCharts(document.querySelector("#chart"), options);
-        chart.render();
+        // var chart = new ApexCharts(document.querySelector("#chart"), options);
+        // chart.render();
 
         function dataTableReload() {
             datatable.ajax.reload();

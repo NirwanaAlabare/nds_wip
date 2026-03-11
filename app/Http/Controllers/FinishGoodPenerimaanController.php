@@ -50,10 +50,12 @@ order by a.created_at desc
         }
 
         $data_po = DB::select("SELECT
+a.po,
 concat(a.po,'_',a.dest) isi,
 concat(a.po, ' - ',a.dest,' - ', m.buyer) tampil
-from packing_master_packing_list a
+from ppic_master_so a
 inner join master_sb_ws m on a.id_so_det = m.id_so_det
+where po is not null and tgl_shipment >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
 group by po
         ");
 
@@ -171,28 +173,54 @@ group by po
             $dest = null; // or set a default value
         }
 
-        $data_no_carton = DB::select("SELECT
-a.no_carton isi,
-concat(a.no_carton,' (', sum(a.qty), ') ') tampil
-FROM
-(
+        $data_no_carton = DB::select("WITH
+pl as (
 select * from packing_master_packing_list where  po = '$po' and dest = '$dest'
-) a
-left join
-(
-select po, barcode, dest, no_carton, count(barcode)tot_scan from packing_packing_out_scan a
+),
+a as (
+select id_ppic, no_carton, count(*)tot_scan from packing_packing_out_scan a
 where po = '$po' and dest = '$dest'
-group by po , barcode, dest, no_carton
-) b on a.po = b.po and a.barcode = b.barcode and a.dest = b.dest and a.no_carton = b.no_carton
-left join
-(
-select po, barcode, dest, no_carton, sum(qty)tot_fg from fg_fg_in
+group by id_ppic, no_carton
+),
+b as (
+select id_ppic_master_so, sum(qty)tot_fg, no_carton from fg_fg_in
 where po = '$po' and dest = '$dest' and status = 'NORMAL'
-GROUP BY po, barcode, dest, no_carton
-) c on a.po = c.po and a.barcode = c.barcode and a.dest = c.dest and a.no_carton = c.no_carton
-group by a.no_carton
+GROUP BY id_ppic_master_so, no_carton
+)
+
+select
+pl.no_carton isi,
+concat(pl.no_carton,' (', sum(pl.qty), ') ') tampil
+from pl
+left join a on pl.id_ppic_master_so = a.id_ppic and pl.no_carton = a.no_carton
+left join b on pl.id_ppic_master_so = b.id_ppic_master_so and pl.no_carton = b.no_carton
+group by pl.no_carton
 having coalesce(sum(qty),0) = coalesce(sum(tot_scan),0) and coalesce(sum(tot_scan),0) - coalesce(sum(tot_fg),0) != '0'
         ");
+
+
+        //         SELECT
+        // a.no_carton isi,
+        // concat(a.no_carton,' (', sum(a.qty), ') ') tampil
+        // FROM
+        // (
+        // select * from packing_master_packing_list where  po = '$po' and dest = '$dest'
+        // ) a
+        // left join
+        // (
+        // select po, barcode, dest, no_carton, count(barcode)tot_scan from packing_packing_out_scan a
+        // where po = '$po' and dest = '$dest'
+        // group by po , barcode, dest, no_carton
+        // ) b on a.po = b.po and a.barcode = b.barcode and a.dest = b.dest and a.no_carton = b.no_carton
+        // left join
+        // (
+        // select po, barcode, dest, no_carton, sum(qty)tot_fg from fg_fg_in
+        // where po = '$po' and dest = '$dest' and status = 'NORMAL'
+        // GROUP BY po, barcode, dest, no_carton
+        // ) c on a.po = c.po and a.barcode = c.barcode and a.dest = c.dest and a.no_carton = c.no_carton
+        // group by a.no_carton
+        // having coalesce(sum(qty),0) = coalesce(sum(tot_scan),0) and coalesce(sum(tot_scan),0) - coalesce(sum(tot_fg),0) != '0'
+
 
         // where coalesce(b.total,0) - coalesce(c.qty_fg,0) >= '1'
 
@@ -227,40 +255,76 @@ having coalesce(sum(qty),0) = coalesce(sum(tot_scan),0) and coalesce(sum(tot_sca
 
         if ($request->ajax()) {
 
-            $data_preview = DB::select("SELECT
-a.id_so_det,
-a.no_carton,
-a.barcode,
-a.po,
-a.dest,
+            $data_preview = DB::select("WITH pl as (
+select * from packing_master_packing_list where  po = '$po' and dest = '$dest' and no_carton = '$no_carton'
+),
+a as (
+select id_ppic, no_carton, count(*)tot_scan from packing_packing_out_scan a
+where po = '$po' and dest = '$dest' and no_carton = '$no_carton'
+group by id_ppic, no_carton
+),
+b as (
+select id_ppic_master_so, no_carton, sum(qty)tot_fg from fg_fg_in where po = '$po' and dest = '$dest' and no_carton = '$no_carton' and status = 'NORMAL'
+group by id_ppic_master_so, no_carton
+)
+
+SELECT
+pl.id_so_det,
+pl.no_carton,
+pl.barcode,
+pl.po,
+pl.dest,
 m.color,
 m.size,
 m.ws,
-coalesce(b.tot_scan,0) - coalesce(tot_fg,0) qty,
+coalesce(a.tot_scan,0) - coalesce(tot_fg,0) qty,
 'PCS' unit,
 m.dest,
 price,
 m.curr,
-a.id_ppic_master_so
-FROM
-(
-select * from packing_master_packing_list where  po = '$po' and dest = '$dest' and no_carton = '$no_carton'
-) a
-left join
-(
-select po, barcode, dest, no_carton, count(barcode)tot_scan from packing_packing_out_scan a
-where po = '$po' and dest = '$dest' and no_carton = '$no_carton'
-group by po , barcode, dest, no_carton
-) b on a.po = b.po and a.barcode = b.barcode and a.dest = b.dest and a.no_carton = b.no_carton
-left join
-(
-select po, barcode, dest, no_carton, sum(qty)tot_fg from fg_fg_in where po = '$po' and dest = '$dest' and no_carton = '$no_carton' and status = 'NORMAL'
-group by po , barcode, dest, no_carton
-) c on a.po = c.po and a.barcode = c.barcode and a.dest = c.dest and a.no_carton = c.no_carton
-inner join master_sb_ws m on a.id_so_det = m.id_so_det
-group by a.id_so_det
-having coalesce(sum(a.qty),0) = coalesce(sum(tot_scan),0) and coalesce(sum(tot_scan),0) - coalesce(sum(tot_fg),0) != '0'
+pl.id_ppic_master_so
+FROM pl
+left join a on pl.id_ppic_master_so = a.id_ppic and pl.no_carton = a.no_carton
+left join b on pl.id_ppic_master_so = b.id_ppic_master_so and pl.no_carton = b.no_carton
+inner join ppic_master_so p on pl.id_ppic_master_so = p.id
+inner join master_sb_ws m on pl.id_so_det = m.id_so_det
+group by m.id_so_det
+having coalesce(sum(pl.qty),0) = coalesce(sum(tot_scan),0) and coalesce(sum(tot_scan),0) - coalesce(sum(tot_fg),0) != '0'
             ");
+
+            // SELECT
+            // a.id_so_det,
+            // a.no_carton,
+            // a.barcode,
+            // a.po,
+            // a.dest,
+            // m.color,
+            // m.size,
+            // m.ws,
+            // coalesce(b.tot_scan,0) - coalesce(tot_fg,0) qty,
+            // 'PCS' unit,
+            // m.dest,
+            // price,
+            // m.curr,
+            // a.id_ppic_master_so
+            // FROM
+            // (
+            // select * from packing_master_packing_list where  po = '$po' and dest = '$dest' and no_carton = '$no_carton'
+            // ) a
+            // left join
+            // (
+            // select po, barcode, dest, no_carton, count(barcode)tot_scan from packing_packing_out_scan a
+            // where po = '$po' and dest = '$dest' and no_carton = '$no_carton'
+            // group by po , barcode, dest, no_carton
+            // ) b on a.po = b.po and a.barcode = b.barcode and a.dest = b.dest and a.no_carton = b.no_carton
+            // left join
+            // (
+            // select po, barcode, dest, no_carton, sum(qty)tot_fg from fg_fg_in where po = '$po' and dest = '$dest' and no_carton = '$no_carton' and status = 'NORMAL'
+            // group by po , barcode, dest, no_carton
+            // ) c on a.po = c.po and a.barcode = c.barcode and a.dest = c.dest and a.no_carton = c.no_carton
+            // inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            // group by a.id_so_det
+            // having coalesce(sum(a.qty),0) = coalesce(sum(tot_scan),0) and coalesce(sum(tot_scan),0) - coalesce(sum(tot_fg),0) != '0'
 
             return DataTables::of($data_preview)->toJson();
         }

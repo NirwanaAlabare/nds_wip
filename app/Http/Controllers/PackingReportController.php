@@ -1160,8 +1160,8 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     SUM( pc_saldo_awal ) + SUM( pc_terima ) - SUM( pc_keluar ) AS pc_saldo_akhir
                 FROM
                     trx_union t
-                    JOIN master_sb_ws msw ON msw.id_so_det = t.so_det_id
-                    JOIN master_size_new msn ON msn.size = msw.size
+                    LEFT JOIN master_sb_ws msw ON msw.id_so_det = t.so_det_id
+                    LEFT JOIN master_size_new msn ON msn.size = msw.size
                 GROUP BY
                     msn.urutan,
                     msw.ws,

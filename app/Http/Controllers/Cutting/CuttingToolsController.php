@@ -133,7 +133,7 @@ class CuttingToolsController extends Controller
                         GROUP BY
                             whs_bppb_det.id
                     ) item
-                    LEFT JOIN (select no_barcode, sum(qty_aktual) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.no_barcode = '".$request->id_roll."' and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = item.id_roll
+                    LEFT JOIN (select a.no_barcode, (CASE WHEN supplier_in.no_barcode IS NULL THEN 0 ELSE sum(qty_aktual) END) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok LEFT JOIN (select b.no_barcode from whs_inmaterial_fabric a left join whs_lokasi_inmaterial b on b.no_dok = a.no_dok where b.no_barcode = '".$request->id_roll."' and supplier != 'Production - Cutting' and b.status = 'Y' GROUP BY no_barcode) supplier_in on supplier_in.no_barcode = a.no_barcode where a.no_barcode = '".$request->id_roll."' and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = item.id_roll
                     GROUP BY
                         id_roll
                     LIMIT 1
