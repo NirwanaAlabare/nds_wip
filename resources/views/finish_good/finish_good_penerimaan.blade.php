@@ -189,19 +189,21 @@
         });
 
         function getno_carton() {
-            let cbopo = document.form.cbopo.value;
-            let html = $.ajax({
+            let cbopo = $('#cbopo').val();
+
+            $.ajax({
                 type: "GET",
                 url: '{{ route('fg_in_getno_carton') }}',
                 data: {
                     cbopo: cbopo
                 },
-                async: false
-            }).responseText;
-            if (html != "") {
-                $("#cbo_no_carton").html(html);
-            }
-        };
+                success: function(res) {
+                    if (res) {
+                        $('#cbo_no_carton').html(res);
+                    }
+                }
+            });
+        }
 
 
         function dataTableReload() {
