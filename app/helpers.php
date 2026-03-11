@@ -21,23 +21,30 @@ function curr($num)
     return 0;
 }
 
-function num($num, $dec = 0)
+function num($num, $dec = 2, $locale = true)
 {
-    if (is_numeric($num)) {
-        $hasil = 0;
-
-        if (is_decimal($num)) {
-            if ($dec == 0) {
-                $dec = 2;
-            }
-        }
-
-        $hasil = number_format($num, $dec, ',', '.');
-
-        return $hasil;
+    if (!is_numeric($num)) {
+        return 0;
     }
 
-    return 0;
+    $num_str = (string)$num;
+
+    // cek apakah ada desimal
+    if (strpos($num_str, '.') !== false) {
+        $decimal = substr(strrchr($num_str, '.'), 1);
+
+        // hanya format jika desimal lebih panjang dari batas
+        if (strlen($decimal) > $dec) {
+            if ($locale) {
+                return number_format($num, $dec, ',', '.');
+            } else {
+                return number_format($num, $dec, '.', ',');
+            }
+        }
+    }
+
+    // jika tidak melebihi batas, kembalikan angka asli
+    return $num;
 }
 
 function localeDateFormat($date, $withDay = true)

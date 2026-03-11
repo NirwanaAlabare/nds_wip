@@ -650,23 +650,42 @@ class SpreadingController extends Controller
                 if ($marker) {
                     $item = DB::connection("mysql_sb")->select("
                         select
-                            DISTINCT masteritem.id_item,
-                            masteritem.itemdesc
+                            DISTINCT
+                            mi.id_item,
+                            mi.itemdesc
                         from
-                            bppb_req
-                            inner join act_costing on act_costing.kpno = bppb_req.idws_act
-                            inner join masteritem on masteritem.id_item = bppb_req.id_item
-                            left join (select id_jo,bom_jo_item.id_item,group_concat(distinct(nama_panel)) nama_panel from bom_jo_item inner join masterpanel mp on bom_jo_item.id_panel = mp.id where id_panel != '0' group by id_item, id_jo) cp on masteritem.id_gen = cp.id_item and bppb_req.id_jo = cp.id_jo
+                            act_costing ac
+                            inner join so on ac.id = so.id_cost
+                            inner join jo_det jod on so.id = jod.id_so
+                            inner join bom_jo_item bji on bji.id_jo = jod.id_jo
+                            inner join masterpanel mp on bji.id_panel = mp.id
+                            inner join masteritem mi on mi.id_gen = bji.id_item
                         where
-                            idws_act = '".$marker->act_costing_ws."' and
-                            act_costing.styleno = '".$marker->style."' and
-                            masteritem.color = '".$marker->color."' and
+                            kpno = '".$marker->act_costing_ws."' AND
+                            mi.color = '".$marker->color."' AND
                             matclass = 'FABRIC' and
                             nama_panel like '%".$marker->panel."%'
                     ");
 
+                    $formNumber = DB::select("
+                        SELECT
+                            *
+                        FROM (
+                            select
+                                ROW_NUMBER() OVER (PARTITION BY marker_id ORDER BY created_at, SUBSTRING_INDEX(no_form,'-',-1)) AS nomor,
+                                no_form,
+                                created_at
+                            from
+                                form_cut_input
+                            where
+                                marker_id = '".$marker->id."'
+                        ) form
+                        WHERE
+                            form.no_form = '".$form->no_form."'
+                    ");
+
                     PDF::setOption(['defaultFont' => 'Helvetica-Bold']);
-                    $pdf = PDF::loadView('cutting.spreading.pdf.cutting-form', ["form" => $form, "item" => ($item && $item[0] ? $item[0] : null)])->setPaper('A4', 'portrait');
+                    $pdf = PDF::loadView('cutting.spreading.pdf.cutting-form', ["form" => $form, "item" => ($item && $item[0] ? $item[0] : null), "formNumber" => ($formNumber && $formNumber[0] ? $formNumber[0] : null)])->setPaper('A4', 'portrait');
 
                     return $pdf->download();
                 }
