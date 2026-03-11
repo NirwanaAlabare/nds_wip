@@ -438,6 +438,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-cut-qty', 'getCutQty')->name('get-cut-qty-data');
         Route::delete('/destroy/{id?}', 'destroy')->name('destroy-spreading');
         Route::post('/export', 'exportExcel')->name('export-cutting-form');
+        Route::post('/export-pdf', 'exportPdf')->name('export-cutting-form-pdf');
         // export excel
         // Route::get('/export_excel', 'export_excel')->name('export_excel');
         // Route::get('/export', 'export')->name('export');

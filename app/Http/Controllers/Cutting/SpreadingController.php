@@ -21,6 +21,7 @@ use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use DB;
+use PDF;
 
 class SpreadingController extends Controller
 {
@@ -343,7 +344,12 @@ class SpreadingController extends Controller
         ]);
 
         $updateNoMeja = FormCutInput::where('id', $validatedRequest['edit_id'])->update([
-            'no_meja' => $validatedRequest['edit_no_meja']
+            'no_meja' => $validatedRequest['edit_no_meja'],
+            'edited' => 1,
+            'edited_by' => Auth::user()->id,
+            'edited_by_username' => Auth::user()->username,
+            'edited_at' => Carbon::now(),
+            'edit_notes' => DB::raw("CONCAT(edit_notes, CHAR(10), ' EDIT STATUS TO ".$validatedRequest['edit_status']." AT ', CURRENT_TIMESTAMP )")
         ]);
 
         if ($updateNoMeja) {
@@ -400,7 +406,12 @@ class SpreadingController extends Controller
         }
 
         $updateStatusForm = FormCutInput::where('id', $validatedRequest['edit_id_status'])->update([
-            'status' => $validatedRequest['edit_status']
+            'status' => $validatedRequest['edit_status'],
+            'edited' => 1,
+            'edited_by' => Auth::user()->id,
+            'edited_by_username' => Auth::user()->username,
+            'edited_at' => Carbon::now(),
+            'edit_notes' => DB::raw("CONCAT(edit_notes, CHAR(10), ' EDIT STATUS TO ".$validatedRequest['edit_status']." AT ', CURRENT_TIMESTAMP )")
         ]);
 
         if ($updateStatusForm) {
@@ -626,5 +637,45 @@ class SpreadingController extends Controller
         ini_set("max_execution_time", 36000);
 
         return Excel::download(new ExportCuttingForm($request->dateFrom, $request->dateTo), 'Laporan_pemakaian_cutting.xlsx');
+    }
+
+    public function exportPdf(Request $request)
+    {
+        if ($request->id) {
+            $form = FormCutInput::where("id", $request->id)->first();
+
+            if ($form) {
+                $marker = $form->marker;
+
+                if ($marker) {
+                    $item = DB::connection("mysql_sb")->select("
+                        select
+                            DISTINCT masteritem.id_item,
+                            masteritem.itemdesc
+                        from
+                            bppb_req
+                            inner join act_costing on act_costing.kpno = bppb_req.idws_act
+                            inner join masteritem on masteritem.id_item = bppb_req.id_item
+                            left join (select id_jo,bom_jo_item.id_item,group_concat(distinct(nama_panel)) nama_panel from bom_jo_item inner join masterpanel mp on bom_jo_item.id_panel = mp.id where id_panel != '0' group by id_item, id_jo) cp on masteritem.id_gen = cp.id_item and bppb_req.id_jo = cp.id_jo
+                        where
+                            idws_act = '".$marker->act_costing_ws."' and
+                            act_costing.styleno = '".$marker->style."' and
+                            masteritem.color = '".$marker->color."' and
+                            matclass = 'FABRIC' and
+                            nama_panel like '%".$marker->panel."%'
+                    ");
+
+                    PDF::setOption(['defaultFont' => 'Helvetica-Bold']);
+                    $pdf = PDF::loadView('cutting.spreading.pdf.cutting-form', ["form" => $form, "item" => ($item && $item[0] ? $item[0] : null)])->setPaper('A4', 'portrait');
+
+                    return $pdf->download();
+                }
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Data form tidak valid",
+        );
     }
 }

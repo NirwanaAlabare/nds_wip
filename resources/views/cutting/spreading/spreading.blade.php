@@ -387,7 +387,8 @@
                         let btnEditMeja = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-info btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-edit'></i></a>" : "<button class='btn btn-info btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);' disabled><i class='fa fa-edit'></i></button>";
                         let btnEditStatus = row.status != 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify({'id_status' : row.id, 'status' : row.status}) + ", \"editStatusModal\", [{\"function\" : \"dataTableRatio1Reload()\"}]);'><i class='fa fa-cog'></i></a>" : "<button class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify({'id_status' : row.id, 'status' : row.status}) + ", \"editStatusModal\", [{\"function\" : \"dataTableRatio1Reload()\"}]);' disabled><i class='fa fa-cog'></i></button>";
                         let btnDelete = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-danger btn-sm' data='"+JSON.stringify(row)+"' data-url='"+'{{ route('destroy-spreading') }}'+"/"+row.id+"' onclick='deleteData(this);'><i class='fa fa-trash'></i></a>" : "<button class='btn btn-danger btn-sm' data='"+JSON.stringify(row)+"' data-url='"+'{{ route('destroy-spreading') }}'+"/"+row.id+"' onclick='deleteData(this);' disabled><i class='fa fa-trash'></i></button>";
-                        let btnPDF = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-danger btn-sm' data='"+JSON.stringify(row)+"' data-url='"+'{{ route('destroy-spreading') }}'+"/"+row.id+"' onclick='deleteData(this);'><i class='fa fa-trash'></i></a>" : "<button class='btn btn-danger btn-sm' data='"+JSON.stringify(row)+"' data-url='"+'{{ route('destroy-spreading') }}'+"/"+row.id+"' onclick='deleteData(this);' disabled><i class='fa fa-trash'></i></button>";
+                        let btnPDF = "<a href='javascript:void(0);' class='btn btn-dark btn-sm' data='"+JSON.stringify(row)+"' onclick='printForm(this);'><i class='fa fa-file-pdf'></i></a>";
+                        // btnPDF = `<a class='btn btn-dark btn-sm' href='{{ route('export-cutting-form-pdf') }}?id=` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-file-pdf'></i></a>`;
                         let btnProcess = "";
 
                         if (row.tipe_form_cut == 'MANUAL') {
@@ -404,7 +405,7 @@
                                 `<button class='btn btn-success btn-sm' data-bs-toggle='tooltip' disabled><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></button>`;
                         }
 
-                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEditMeja + btnEditStatus + btnProcess + btnDelete + `</div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEditMeja + btnEditStatus + btnProcess + btnDelete + btnPDF + `</div>`;
                     }
                 },
                 {
@@ -592,6 +593,47 @@
                     console.log("error", jqXHR);
                 }
             });
+        }
+
+        function printForm(element) {
+            if (element.getAttribute('data')) {
+                let data = JSON.parse(element.getAttribute('data'));
+
+                if (data) {
+                    $.ajax({
+                        url: '{{ route('export-cutting-form-pdf') }}',
+                        type: 'post',
+                        data: {
+                            id: data.id
+                        },
+                        xhrFields:
+                        {
+                            responseType: 'blob'
+                        },
+                        success: function(res) {
+                            if (res) {
+                                if (res.status == 400) {
+                                    return Swal.fire({
+                                        icon: 'error',
+                                        title: 'Gagal',
+                                        text: res.message,
+                                        confirmButtonColor: "#6531a0",
+                                    });
+                                }
+
+                                var blob = new Blob([res], {type: 'application/pdf'});
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = data.no_form+" "+data.ws+" "+data.style+" "+data.color+" "+data.panel+".pdf";
+                                link.click();
+                            }
+                        },
+                        error: function (jqXHR) {
+                            console.error(jqXHR);
+                        }
+                    });
+                }
+            }
         }
     </script>
 @endsection
