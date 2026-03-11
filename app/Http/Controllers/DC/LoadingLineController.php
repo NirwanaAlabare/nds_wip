@@ -1672,6 +1672,7 @@ class LoadingLineController extends Controller
                     GROUP_CONCAT(stocker_input.id SEPARATOR ', ') ids,
                     GROUP_CONCAT(loading_line.id SEPARATOR ', ') loading_line_ids,
                     GROUP_CONCAT(stocker_input.id SEPARATOR ', ') stocker_ids,
+                    GROUP_CONCAT(stocker_input.id_qr_stocker SEPARATOR ', ') stocker_ids_qr,
                     loading_line.tanggal_loading,
                     loading_line.nama_line,
                     stocker_input.act_costing_ws,

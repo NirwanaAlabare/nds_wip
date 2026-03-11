@@ -142,7 +142,7 @@
                     data:'ids'
                 },
                 {
-                    data:'stocker_ids'
+                    data:'stocker_ids_qr'
                 },
                 {
                     data:'tanggal_loading'
