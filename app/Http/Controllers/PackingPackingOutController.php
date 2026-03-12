@@ -362,28 +362,35 @@ group by a.po, a.dest
         $cbopo    = $request->cbopo;
         $no_carton    = $request->cbono_carton;
         $dest    = $request->txtdest;
-
-
-
         // $no_carton_cek    = $request->cbono_carton;
         // $cekArray = explode('_', $no_carton_cek);
         // $no_carton = $cekArray[0];
         // $notes = $cekArray[1];
-        $tgl_trans = date('Y-m-d');
-        $data_packing_master =  DB::select("
-            select * from packing_master_packing_list where barcode = '$barcode' and  dest = '$dest' and  no_carton_akhir = '$no_carton'
-        ");
 
-        $po = $data_packing_master[0]->po;
+
+
+        $cek_po_by_ppic = DB::select("
+                select * from ppic_master_so where id = '$cbopo'
+            ");
+        $cek_dest_po = $cek_po_by_ppic[0]->po;
+
+        $tgl_trans = date('Y-m-d');
 
         $cek_po = DB::select("
-            select * from ppic_master_so where barcode = '$barcode' and  dest = '$dest' and po = '$po'
-        ");
+                select * from ppic_master_so where barcode = '$barcode' and  dest = '$dest' and po = '$cek_dest_po'
+            ");
+
+        if(!$cek_po){
+                return array(
+                'icon' => 'salah',
+                'msg' => 'Data tidak ada di Master PPIC',
+            );
+        }
 
 
-        $cek_dest_po = $po;
         $id_so_det =  $cek_po[0]->id_so_det;
         $id_ppic =  $cek_po[0]->id;
+
 
         $cek_data = DB::select("
         select count(barcode) cek from ppic_master_so p
@@ -480,7 +487,7 @@ group by a.po, a.dest
         } else {
             return array(
                 'icon' => 'salah',
-                'msg' => 'Datat tidak ada di packing list',
+                'msg' => 'Data tidak ada di packing list',
             );
         }
     }
