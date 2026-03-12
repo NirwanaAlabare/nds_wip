@@ -33,7 +33,7 @@
             text-align: center;
             vertical-align: middle;
             padding: 2px 3px;
-            border: 0.1px solid rgba(0, 0, 0, 0.5);;
+            border: 0.1px solid rgba(0, 0, 0, 0.5);
             word-wrap: break-word;
             white-space: wrap
         }

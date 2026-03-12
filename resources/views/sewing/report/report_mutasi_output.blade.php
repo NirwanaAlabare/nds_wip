@@ -282,7 +282,7 @@
                     },
 
                     {
-                        data: 'saldo_awal_loading'
+                        data: 'saldo_awal_sewing'
                     },
                     {
                         data: 'qty_loading'
