@@ -12,9 +12,6 @@ use Carbon\Carbon;
 
 class Marketing_BomController extends Controller
 {
-    // ==========================================
-    // 1. VIEW PAGES (Index, Create, Edit)
-    // ==========================================
 
     public function index()
     {
@@ -22,7 +19,7 @@ class Marketing_BomController extends Controller
 
         $data = $mysql_sb->table('bom_marketing as h')
             ->leftJoin('mastersupplier as b', 'h.id_buyer', '=', 'b.Id_Supplier')
-            ->select('h.*', 'b.Supplier as nama_buyer')
+            ->select('h.*', 'b.Supplier as nama_buyer', DB::raw('(SELECT SUM(qty) FROM bom_marketing_detail WHERE id_bom_marketing = h.id) as total_cons'))
             ->orderBy('h.created_at', 'desc')
             ->get();
 
@@ -82,9 +79,10 @@ class Marketing_BomController extends Controller
             ->orderBy('id', 'DESC')
             ->get();
 
-        $masterUnits = $mysql_sb->table('masterpilihan')->where('kode_pilihan', 'Satuan')->get();
+        $master_units = $mysql_sb->table('masterpilihan')->where('kode_pilihan', 'Satuan')->get();
         $master_colors = $mysql_sb->table('master_colors_gmt')->orderBy('name', 'ASC')->get();
         $master_sizes = $mysql_sb->table('master_size_new')->orderBy('urutan', 'ASC')->get();
+        $master_currency = $mysql_sb->table('masterpilihan')->where('kode_pilihan', 'curr')->get();
 
         return view('marketing.bom.edit', [
             'page'               => 'dashboard-marketing',
@@ -93,9 +91,10 @@ class Marketing_BomController extends Controller
             'bom'                => $bom,
             'buyers'             => $buyers,
             'suppliers'          => $suppliers,
-            'masterUnits'        => $masterUnits,
+            'master_units'        => $master_units,
             'master_colors'      => $master_colors,
             'master_sizes'       => $master_sizes,
+            'master_currency'       => $master_currency,
             'selectedColors'     => $selectedColors,
             'selectedSizes'      => $selectedSizes,
             'master_items_other' => $master_items_other,
@@ -103,10 +102,6 @@ class Marketing_BomController extends Controller
         ]);
     }
 
-
-    // ==========================================
-    // 2. HEADER BOM
-    // ==========================================
 
     public function storeHeader(Request $request)
     {
@@ -161,10 +156,6 @@ class Marketing_BomController extends Controller
     }
 
 
-    // ==========================================
-    // 3. MATERIAL & MANUFACTURING DETAILS
-    // ==========================================
-
     public function storeDetail(Request $request)
     {
         $mysql_sb = DB::connection('mysql_sb');
@@ -177,6 +168,7 @@ class Marketing_BomController extends Controller
             $sizes       = $request->sizes ?? [null];
             $id_supplier = $request->id_supplier;
             $category    = $request->category;
+            $currency    = $request->currency;
             $details     = [];
 
             foreach ($colors as $color_index => $data_color) {
@@ -196,13 +188,14 @@ class Marketing_BomController extends Controller
                             'id_bom_marketing' => $bom_id,
                             'id_contents'      => $request->item_contents,
                             'rule_bom'         => $rule,
-                            'id_unit'          => $request->unit,
+                            'unit'          => $request->unit,
                             'notes'            => $request->notes,
                             'shell'            => $request->shell,
                             'id_color'         => $data_color,
                             'id_size'          => $data_size,
                             'id_item'          => $id_item,
                             'id_supplier'      => $id_supplier,
+                            'id_currency'      => $currency,
                             'qty'              => $qty,
                             'price'            => $price,
                             'category'         => $category,
@@ -224,6 +217,135 @@ class Marketing_BomController extends Controller
         }
     }
 
+    public function updateBomHeader(Request $request)
+    {
+        $id_bom = $request->id_bom ?? $request->id_bom_marketing;
+
+
+        if (!$id_bom) {
+            return response()->json(['status' => 500, 'message' => 'Gagal: ID BOM tidak terdeteksi dari form!']);
+        }
+
+        try {
+            $colors = $request->colors ? array_values(array_unique($request->colors)) : [];
+            $sizes  = $request->sizes ? array_values(array_unique($request->sizes)) : [];
+
+            DB::connection('mysql_sb')->table('bom_marketing')
+                ->where('id', $id_bom)
+                ->update([
+                    'colors'     => json_encode($colors),
+                    'sizes'      => json_encode($sizes),
+                    'updated_at' => now(),
+                ]);
+
+            return response()->json(['status' => 200, 'message' => 'Master Color & Size Berhasil Diperbarui!']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 500, 'message' => 'Gagal: ' . $e->getMessage()]);
+        }
+    }
+
+
+    public function storeDetailEdit(Request $request)
+    {
+        $mysql_sb = DB::connection('mysql_sb');
+        $mysql_sb->beginTransaction();
+
+        try {
+            $bom_id        = $request->id_bom_marketing;
+            $id_supplier   = $request->id_supplier;
+            $category      = $request->category;
+            $currency      = $request->currency;
+            $item_contents = $request->item_contents;
+            $rule_bom      = $request->rule_bom;
+
+
+            $bom_header = $mysql_sb->table('bom_marketing')->where('id', $bom_id)->first();
+            $header_colors = $bom_header && $bom_header->colors ? json_decode($bom_header->colors, true) : [];
+            $header_sizes  = $bom_header && $bom_header->sizes ? json_decode($bom_header->sizes, true) : [];
+
+
+            $items  = $request->id_item ?? [];
+            $colors = $request->id_color ?? [];
+            $sizes  = $request->id_size ?? [];
+            $qtys   = $request->qty_input ?? [];
+            $prices = $request->price_input ?? [];
+
+            $details_to_insert = [];
+
+            foreach ($items as $idx => $id_item) {
+                $qty   = $qtys[$idx] ?? 0;
+                $price = $prices[$idx] ?? 0;
+
+                if (!empty($id_item) && $qty > 0) {
+
+                    $row_color = (!empty($colors[$idx]) && $colors[$idx] !== 'null') ? $colors[$idx] : null;
+                    $row_size  = (!empty($sizes[$idx]) && $sizes[$idx] !== 'null') ? $sizes[$idx] : null;
+
+                    // LOGIKA CARTESIAN (Membaca dari DB Header)
+                    $target_colors = $row_color ? [$row_color] : (count($header_colors) > 0 ? $header_colors : [null]);
+                    $target_sizes  = $row_size  ? [$row_size]  : (count($header_sizes) > 0  ? $header_sizes  : [null]);
+
+                    foreach ($target_colors as $cId) {
+                        foreach ($target_sizes as $sId) {
+
+                            $existing = $mysql_sb->table('bom_marketing_detail')
+                                ->where('id_bom_marketing', $bom_id)
+                                ->where('id_contents', $item_contents)
+                                ->where('id_color', $cId)
+                                ->where('id_size', $sId)
+                                ->first();
+
+                            if ($existing) {
+                                // UPDATE LAMA
+                                $mysql_sb->table('bom_marketing_detail')
+                                    ->where('id', $existing->id)
+                                    ->update([
+                                        'id_item'     => $id_item,
+                                        'id_supplier' => $id_supplier,
+                                        'unit'        => $request->unit,
+                                        'id_currency' => $currency,
+                                        'qty'         => $qty,
+                                        'price'       => $price,
+                                        'notes'       => $request->notes,
+                                        'shell'       => $request->shell,
+                                    ]);
+                            } else {
+                                // INSERT BARU
+                                $details_to_insert[] = [
+                                    'id_bom_marketing' => $bom_id,
+                                    'id_contents'      => $item_contents,
+                                    'rule_bom'         => $rule_bom,
+                                    'unit'             => $request->unit,
+                                    'notes'            => $request->notes,
+                                    'shell'            => $request->shell,
+                                    'id_color'         => $cId,
+                                    'id_size'          => $sId,
+                                    'id_item'          => $id_item,
+                                    'id_supplier'      => $id_supplier,
+                                    'id_currency'      => $currency,
+                                    'qty'              => $qty,
+                                    'price'            => $price,
+                                    'category'         => $category,
+                                    'created_at'       => now(),
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (count($details_to_insert) > 0) {
+                $mysql_sb->table('bom_marketing_detail')->insert($details_to_insert);
+            }
+
+            $mysql_sb->commit();
+            return response()->json(['status' => 200, 'message' => 'Item Material Berhasil Disimpan!']);
+        } catch (\Exception $e) {
+            $mysql_sb->rollback();
+            return response()->json(['status' => 500, 'message' => 'Gagal: ' . $e->getMessage()]);
+        }
+    }
+
     public function getItems(Request $request, $id)
     {
         $mysql_sb = DB::connection('mysql_sb');
@@ -238,7 +360,8 @@ class Marketing_BomController extends Controller
                 ->leftJoin('mastersubgroup as s_grp', 'd2.id_sub_group', '=', 's_grp.id')
                 ->leftJoin('mastergroup as a', 's_grp.id_group', '=', 'a.id')
                 ->leftJoin('mastercf as mfg', 'd.id_contents', '=', 'mfg.id')
-                ->leftJoin('masterpilihan as u', 'd.id_unit', '=', 'u.id')
+                ->leftJoin('masterpilihan as u', 'd.unit', '=', 'u.id')
+                ->leftJoin('masterpilihan as cur', 'd.id_currency', '=', 'cur.id')
                 ->select(
                     'd.*',
                     $mysql_sb->raw("
@@ -257,7 +380,8 @@ class Marketing_BomController extends Controller
                     "),
                     'c.name as color_name',
                     's.size as size_name',
-                    'u.nama_pilihan as unit_name'
+                    'u.nama_pilihan as unit_name',
+                    'cur.nama_pilihan as currency'
                 )
                 ->where('d.id_bom_marketing', $id)
                 ->orderBy('d.id', 'desc');
@@ -285,6 +409,9 @@ class Marketing_BomController extends Controller
                 })
                 ->filterColumn('size_name', function($query, $keyword) {
                     $query->where('s.size', 'like', "%{$keyword}%");
+                })
+                ->filterColumn('currency', function($query, $keyword) {
+                    $query->where('cur.nama_pilihan', 'like', "%{$keyword}%");
                 })
                 ->filterColumn('unit_name', function($query, $keyword) {
                     $query->where('u.nama_pilihan', 'like', "%{$keyword}%");
@@ -314,7 +441,7 @@ class Marketing_BomController extends Controller
                 'id_size'  => $request->id_size,
                 'qty'      => $request->qty,
                 'price'    => $request->price,
-                'id_unit'  => $request->id_unit,
+                'unit'  => $request->unit,
                 'shell'    => $request->shell,
             ]);
             return response()->json(['status' => 200, 'message' => 'Item berhasil diupdate']);
@@ -323,10 +450,6 @@ class Marketing_BomController extends Controller
         }
     }
 
-
-    // ==========================================
-    // 4. OTHER COST (BOM OTHER)
-    // ==========================================
 
     public function storeOther(Request $request)
     {
@@ -371,10 +494,6 @@ class Marketing_BomController extends Controller
         return response()->json(['message' => 'Item berhasil dihapus']);
     }
 
-
-    // ==========================================
-    // 5. FETCH & MASTER DATA HELPER
-    // ==========================================
 
     public function getRuleBom(Request $request)
     {
@@ -426,6 +545,9 @@ class Marketing_BomController extends Controller
     {
         $id_contents = $request->id_contents;
         $category = $request->category;
+
+        $id_bom = $request->id_bom;
+
         $mysql_sb = DB::connection('mysql_sb');
 
         if ($category == 'Manufacturing') {
@@ -456,7 +578,31 @@ class Marketing_BomController extends Controller
                 ->get();
         }
 
-        return response()->json(['items' => $masterItems]);
+
+        $existingDetails = [];
+        if ($id_bom && $id_contents) {
+            $savedItems = $mysql_sb->table('bom_marketing_detail')
+                ->where('id_bom_marketing', $id_bom)
+                ->where('id_contents', $id_contents)
+                ->select('id_color', 'id_size', 'id_item', 'qty', 'price')
+                ->get();
+
+            foreach ($savedItems as $item) {
+                $cId = $item->id_color ?? 'null';
+                $sId = $item->id_size ?? 'null';
+
+                $existingDetails["{$cId}_{$sId}"] = [
+                    'id_item' => $item->id_item,
+                    'qty'     => $item->qty,
+                    'price'   => $item->price
+                ];
+            }
+        }
+
+        return response()->json([
+            'items'    => $masterItems,
+            'existing' => $existingDetails
+        ]);
     }
 
     public function storeColor(Request $request)
@@ -484,10 +630,6 @@ class Marketing_BomController extends Controller
         }
     }
 
-
-    // ==========================================
-    // 6. DELETE BATCH & EXPORT
-    // ==========================================
 
     public function deleteBatch(Request $request)
     {

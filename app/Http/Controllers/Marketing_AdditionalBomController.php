@@ -139,7 +139,7 @@ class Marketing_AdditionalBomController extends Controller
 
         try {
             $monthYear = Carbon::now()->format('my');
-            $prefix = 'BAA/' . $monthYear . '/';
+            $prefix = 'BOM-A/' . $monthYear . '/';
 
             $lastBom = $mysql_sb->table('bom_marketing_additional')
                 ->where('no_katalog_bom', 'LIKE', $prefix . '%')

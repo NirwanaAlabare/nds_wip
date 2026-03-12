@@ -2392,10 +2392,12 @@ Route::middleware('auth')->group(function () {
         Route::post('store-other', [Marketing_BomController::class, 'storeOther'])->name('bom.store_other');
         Route::get('/bom-marketing/get-other/{id}', [Marketing_BomController::class, 'getOther'])->name('bom.get_other');
         Route::delete('/bom-marketing/delete-other/{id}', [Marketing_BomController::class, 'destroyOther'])->name('bom.destroy_other');
+        Route::post('/master-marketing-bom/store-detail-edit', [Marketing_BomController::class, 'storeDetailEdit'])->name('store-bom-detail-edit');
+        Route::post('/master-marketing-bom/update-header', [Marketing_BomController::class, 'updateBomHeader'])->name('update-bom-header');
     });
 
      // Master BOM Additional
-   Route::controller(Marketing_AdditionalBomController::class)->prefix("master-bom-additional")->middleware('marketing')->group(function () {
+    Route::controller(Marketing_AdditionalBomController::class)->prefix("master-bom-additional")->middleware('marketing')->group(function () {
 
         Route::get('/', 'index')->name('master-bom-additional');
         Route::get('/create', 'create')->name('create-bom-additional');
@@ -2425,13 +2427,25 @@ Route::middleware('auth')->group(function () {
     Route::controller(Marketing_SOController::class)->prefix("master-marketing-so")->middleware('marketing')->group(function () {
         Route::get('/', 'index')->name('master-marketing-so');
         Route::get('/create', 'create')->name('create-so');
-        Route::post('/get-product-items', [Marketing_SOController::class, 'getProductItems'])->name('get-product-items');
-        Route::post('/upload-excel', [Marketing_SOController::class, 'uploadExcelSO'])->name('so-upload-excel');
-        Route::post('/store', [Marketing_SOController::class, 'store'])->name('so-store');
-        Route::get('master-marketing-so/detail/{id}', [Marketing_SOController::class, 'get_detail'])->name('get-detail-so');
-        Route::get('/so/get-temp-data', [Marketing_SOController::class, 'getTempData'])->name('so-get-temp-data');
+        Route::get('/detail/{id}', 'get_detail')->name('get-detail-so');
+        Route::post('/get-product-items', 'getProductItems')->name('get-product-items');
+        Route::post('/upload-excel', 'uploadExcelSO')->name('so-upload-excel');
+        Route::get('/get-temp-data', 'getTempData')->name('so-get-temp-data');
+        Route::post('/store', 'store')->name('so-store');
+        Route::get('/get-detail-material/{id}', 'getDetailMaterialSo')->name('get-detail-material-so');
+        Route::post('/store-detail', 'storeDetail')->name('store-bom-detail');
+        Route::post('/so-get-item-contents', 'getItemContents')->name('so-get-item-contents');
+        Route::post('/so-get-rule', 'getRuleBom')->name('so-get-rule');
+        Route::post('/so-get-list-data', 'getListData')->name('so-get-list-data');
+        Route::post('/so-store-bom-detail', 'storeDetail')->name('so-store-bom-detail');
+        Route::get('/so-get-bom-items/{id}', 'getItems')->name('so-get-bom-items');
+        Route::get('/so-get-bom-master', 'getBomMasterData')->name('so-get-bom-master');
+        Route::post('/so-update-bom-header', 'updateBomHeader')->name('so-update-bom-header');
+        Route::post('/so-store-master-color', 'storeMasterColorQuick')->name('so-store-master-color');
+        Route::post('/so-store-master-size', 'storeMasterSizeQuick')->name('so-store-master-size');
+        Route::post('/update-qty', 'updateQtySO')->name('update-qty-so');
+        Route::post('/cancel-restore-so', 'cancelRestoreSO')->name('cancel-restore-so');
     });
-
 
 
     // QC Inspect Kain

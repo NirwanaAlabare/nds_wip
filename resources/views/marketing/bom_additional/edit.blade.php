@@ -35,30 +35,33 @@
 
 @section('content')
 <div class="card card-primary">
-    <div class="card-header bg-sb d-flex justify-content-between align-items-center">
-        <h5 class="card-title fw-bold mb-0">Edit Katalog BOM Additional</h5>
-        <div class="card-tools">
-            <a href="{{ route('master-bom') }}" class="btn btn-sm btn-primary mr-2"><i class="fa fa-reply"></i> Kembali ke List</a>
-            <button type="button" class="btn btn-tool text-light" data-card-widget="collapse" title="Collapse"><i class="fas fa-minus"></i></button>
+    <div class="card-header bg-sb">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title fw-bold">
+                Katalog BOM Additional
+            </h5>
+            <a href="{{ route('master-bom-additional') }}" class="btn btn-sm btn-primary">
+                <i class="fa fa-reply"></i> Kembali ke List
+            </a>
         </div>
     </div>
     <div class="card-body bg-light">
         <div class="row">
             <div class="col-md-3">
                 <label class="form-label"><small class="fw-bold">No Katalog BOM</small></label>
-                <input type="text" class="form-control bg-white" value="{{ $bom->no_katalog_bom }}" readonly>
+                <input type="text" class="form-control" value="{{ $bom->no_katalog_bom }}" readonly>
             </div>
             <div class="col-md-3">
                 <label class="form-label"><small class="fw-bold">No SO</small></label>
-                <input type="text" class="form-control bg-white" value="{{ $bom->so_no }}" readonly>
+                <input type="text" class="form-control" value="{{ $bom->so_no }}" readonly>
             </div>
             <div class="col-md-3">
                 <label class="form-label"><small class="fw-bold">Style</small></label>
-                <input type="text" class="form-control bg-white" value="{{ $bom->style }}" readonly>
+                <input type="text" class="form-control" value="{{ $bom->style }}" readonly>
             </div>
             <div class="col-md-3">
                 <label class="form-label"><small class="fw-bold">Market</small></label>
-                <input type="text" class="form-control bg-white" value="{{ $bom->market }}" readonly>
+                <input type="text" class="form-control" value="{{ $bom->market }}" readonly>
             </div>
         </div>
 
@@ -66,9 +69,6 @@
             <div class="col-12">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <label class="form-label mb-0"><small class="fw-bold text-info"><i class="fas fa-check-square"></i> Checklist PO untuk BOM Additional</small></label>
-                    <button type="button" class="btn btn-warning btn-sm shadow-sm fw-bold" onclick="syncPO()">
-                        <i class="fas fa-sync"></i> Simpan Perubahan PO
-                    </button>
                 </div>
                 <div class="table-responsive border rounded table-po-wrapper">
                     <table class="table table-sm table-hover mb-0">
@@ -86,6 +86,12 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <label class="form-label mb-0"></label>
+                    <button type="button" class="btn btn-warning btn-sm shadow-sm fw-bold" onclick="syncPO()">
+                        <i class="fas fa-sync"></i> Simpan Perubahan PO
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -97,10 +103,11 @@
 </div>
 
 <div class="card mt-3 card-success">
-    <div class="card-header bg-sb text-light d-flex justify-content-between align-items-center">
-        <h5 class="card-title fw-bold mb-0"><i class="fas fa-plus-circle"></i> Tambah Item</h5>
+    <div class="card-header bg-sb">
+        <h5 class="card-title fw-bold mb-0">  Tambah Item</h5>
         <div class="card-tools">
-            <button type="button" class="btn btn-tool text-light" data-card-widget="collapse" title="Collapse"><i class="fas fa-minus"></i></button>
+            <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
+            </button>
         </div>
     </div>
     <div class="card-body">
@@ -184,10 +191,11 @@
 </div>
 
 <div class="card card-sb mt-3" id="section_table_list_item">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title fw-bold mb-0"><i class="fas fa-clipboard-list"></i> BOM Detail Material & Manufacturing</h5>
+    <div class="card-header bg-sb">
+        <h5 class="card-title fw-bold mb-0">BOM Detail Material & Manufacturing</h5>
         <div class="card-tools">
-            <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse"><i class="fas fa-minus"></i></button>
+            <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
+            </button>
         </div>
     </div>
     <div class="card-body">
@@ -326,7 +334,7 @@
     let table_add_item = null;
 
     // Helper Global untuk format decimal yang aman dari null/NaN
-    function formatDecimal(nilai, presisi = 4) {
+    function formatDecimal(nilai, presisi = 2) {
         let n = parseFloat(nilai);
         return isNaN(n) ? (0).toFixed(presisi) : n.toFixed(presisi);
     }
@@ -740,7 +748,7 @@
     }
 
     async function export_excel() {
-        Swal.fire({ title: "Exporting", html: "Please Wait...", timerProgressBar: true, didOpen: () => { Swal.showLoading(); }});
+        Swal.fire({ title: "Exporting", html: "Mohon Tunggu...", timerProgressBar: true, didOpen: () => { Swal.showLoading(); }});
         try {
             const res = await $.ajax({
                 url: '{{ route('export-excel-bom-additional') }}', type: "GET", data: { id : bom_id }, xhrFields: { responseType: 'blob' }

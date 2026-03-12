@@ -34,7 +34,7 @@
 @endsection
 
 @section('content')
-<form id="form-bom" action="{{ route('store-bom') }}" method="POST">
+<form id="form-edit-bom" class="form-add-material" action="{{ route('store-bom-detail-edit') }}" method="POST">
     @csrf
 
     <div class="card card-primary">
@@ -52,54 +52,50 @@
             <div class="row">
                 <div class="col-md-3">
                     <label class="form-label"><small class="fw-bold">No Katalog BOM</small></label>
-                    <input type="text" class="form-control" name="no_katalog_bom" id="no_katalog_bom" value="{{ $bom->no_katalog_bom }}" readonly>
+                    <input type="text" class="form-control" value="{{ $bom->no_katalog_bom }}" readonly>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label"><small class="fw-bold">Buyer</small></label>
-                    <select name="id_buyer" class="form-control select2bs4" disabled>
+                    <select class="form-control select2bs4" disabled>
                         <option value="">Pilih Buyer</option>
                         @foreach ($buyers as $buyer)
-                            <option value="{{ $buyer->Id_Supplier }}" {{ $bom->id_buyer == $buyer->Id_Supplier ? 'selected' : '' }}>
-                                {{ $buyer->Supplier }}
-                            </option>
+                            <option value="{{ $buyer->Id_Supplier }}" {{ $bom->id_buyer == $buyer->Id_Supplier ? 'selected' : '' }}>{{ $buyer->Supplier }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label"><small class="fw-bold">Style</small></label>
-                    <input type="text" class="form-control" name="style" id="style" value="{{ $bom->style }}" readonly>
+                    <input type="text" class="form-control" value="{{ $bom->style }}" readonly>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label"><small class="fw-bold">Market</small></label>
-                    <input type="text" class="form-control" name="market" id="market" value="{{ $bom->market }}" readonly>
+                    <input type="text" class="form-control" value="{{ $bom->market }}" readonly>
                 </div>
             </div>
 
             <div class="row mt-3">
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <div class="form-label d-flex justify-content-between">
                         <small class="fw-bold">Master Color</small>
                     </div>
-                    <select id="colorList" name="colors[]" class="form-control select2bs4" multiple disabled>
+                    <select id="colorList" name="colors[]" class="form-control select2bs4" multiple>
                         @foreach ($master_colors as $color)
-                            <option value="{{ $color->id }}" {{ is_array($selectedColors) && in_array($color->id, $selectedColors) ? 'selected' : '' }}>
-                                {{ $color->name }}
-                            </option>
+                            <option value="{{ $color->id }}" {{ is_array($selectedColors) && in_array($color->id, $selectedColors) ? 'selected' : '' }}>{{ $color->name }}</option>
                         @endforeach
                     </select>
                 </div>
-
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <div class="form-label d-flex justify-content-between">
                         <small class="fw-bold">Master Size</small>
                     </div>
-                    <select id="sizeList" name="sizes[]" class="form-control select2bs4" multiple disabled>
+                    <select id="sizeList" name="sizes[]" class="form-control select2bs4" multiple>
                         @foreach ($master_sizes as $size)
-                            <option value="{{ $size->id }}" {{ is_array($selectedSizes) && in_array($size->id, $selectedSizes) ? 'selected' : '' }}>
-                                {{ $size->size }}
-                            </option>
+                            <option value="{{ $size->id }}" {{ is_array($selectedSizes) && in_array($size->id, $selectedSizes) ? 'selected' : '' }}>{{ $size->size }}</option>
                         @endforeach
                     </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-warning w-100 fw-bold" onclick="updateHeader()"><i class="fas fa-sync-alt"></i> Update Header</button>
                 </div>
             </div>
         </div>
@@ -151,8 +147,8 @@
                         <label><small class="fw-bold">Unit</small></label>
                         <select name="unit" id="unit" class="form-control select2bs4">
                             <option value="">Pilih Unit</option>
-                            @foreach ($masterUnits as $data)
-                                <option value="{{ $data->id }}">{{ $data->nama_pilihan }}</option>
+                            @foreach ($master_units as $data)
+                                <option value="{{ $data->nama_pilihan }}">{{ $data->nama_pilihan }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -166,20 +162,38 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label><small class="fw-bold">Currency</small></label>
+                        <select name="currency" id="currency" class="form-control select2bs4">
+                            <option value="">Pilih Currency</option>
+                            @foreach ($master_currency as $data)
+                                <option value="{{ $data->id }}">{{ $data->nama_pilihan }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label><small class="fw-bold">Notes</small></label>
                         <textarea name="notes" class="form-control" rows="3" placeholder="Input catatan..."></textarea>
                     </div>
                 </div>
             </div>
 
-            <div class="table-responsive mt-3">
-                <table class="table table-bordered table-sm w-100" id="itemTable">
+            <div class="d-flex justify-content-between align-items-end mt-4 mb-2">
+                <label class="mb-0 fw-bold"><i class="fas fa-list"></i> Preview List Item</label>
+                <button type="button" class="btn btn-sm btn-outline-danger" id="btn-hapus-batch-input" style="display:none;">
+                    <i class="fas fa-trash-alt"></i> Hapus Terpilih (<span id="count-input-selected">0</span>)
+                </button>
+            </div>
+
+            <div class="table-responsive border rounded">
+                <table class="table table-bordered table-sm w-100 mb-0" id="itemTable">
                     <thead class="bg-light text-center">
                         <tr>
-                            <th width="25%">Color | Size</th>
+                            <th width="3%"><input type="checkbox" id="check-all-input"></th>
+                            <th width="22%">Color | Size</th>
                             <th>Item</th>
                             <th width="15%">Cons</th>
                             <th width="15%">Price</th>
+                            <th width="5%">Act</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -231,9 +245,10 @@
                         <th width="5%">Size</th>
                         <th width="5%">Cons</th>
                         <th width="5%">Price</th>
+                        <th width="5%">Currency</th>
                         <th width="10%">Unit</th>
                         <th width="5%">Shell</th>
-                        <th width="5%">Action</th>
+                        <th width="10%">Action</th>
                     </tr>
                     <tr class="filter-row">
                         <th></th>
@@ -247,6 +262,7 @@
                         <th></th>
                         <th><input type="text" class="form-control form-control-sm column-search" data-column="9"></th>
                         <th><input type="text" class="form-control form-control-sm column-search" data-column="10"></th>
+                        <th><input type="text" class="form-control form-control-sm column-search" data-column="11"></th>
                         <th></th>
                     </tr>
                 </thead>
@@ -348,10 +364,10 @@
                         </div>
                         <div class="col-md-6 mb-2">
                             <label><small class="fw-bold">Unit</small></label>
-                            <select name="id_unit" id="edit_id_unit" class="form-control select2bs4-edit" style="width: 100%;">
+                            <select name="unit" id="edit_unit" class="form-control select2bs4-edit" style="width: 100%;">
                                 <option value="">Pilih Unit</option>
-                                @foreach ($masterUnits as $data)
-                                    <option value="{{ $data->id }}">{{ $data->nama_pilihan }}</option>
+                                @foreach ($master_units as $data)
+                                    <option value="{{ $data->nama_pilihan }}">{{ $data->nama_pilihan }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -362,6 +378,15 @@
                                 <option value="A">A</option>
                                 <option value="B">B</option>
                                 <option value="C">C</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label><small class="fw-bold">Currency</small></label>
+                            <select name="id_currency" id="edit_id_currency" class="form-control select2bs4-edit" style="width: 100%;">
+                                <option value="">Pilih Currency</option>
+                                @foreach ($master_currency as $data)
+                                    <option value="{{ $data->id }}">{{ $data->nama_pilihan }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-md-6 mb-2">
@@ -397,7 +422,7 @@
         load_items(bom_id);
         loadDataOther();
 
-        $('#form-bom').on('submit', function(e) {
+        $('#form-edit-bom').on('submit', function(e) {
             e.preventDefault();
             submit_form(this);
         });
@@ -498,6 +523,8 @@
 
         if (!id_contents || !rule) {
             $("#itemTable tbody").empty();
+            $('#check-all-input').prop('checked', false);
+            $('#btn-hapus-batch-input').hide();
             return;
         }
 
@@ -509,44 +536,74 @@
 
         if (!proses) {
             $("#itemTable tbody").empty();
+            $('#check-all-input').prop('checked', false);
+            $('#btn-hapus-batch-input').hide();
             return;
         }
 
         $.post("{{ route('get-list-data-bom') }}", {
             _token: "{{ csrf_token() }}",
             id_contents: id_contents,
-            category: category
+            category: category,
+            id_bom: bom_id
         }, function(res) {
             let tbody = $("#itemTable tbody");
             tbody.empty();
+            $('#check-all-input').prop('checked', false);
+            $('#btn-hapus-batch-input').hide();
 
             let rows = [];
             if (rule === "All Color All Size") {
-                rows.push({ label: "All Color | All Size", cId: null, sId: null });
+                rows.push({ label: "All Color | All Size", color_id: null, size_id: null });
             } else if (rule === "All Color Range Size") {
-                selected_sizes.forEach(s => rows.push({ label: `All Color | ${s.text}`, cId: null, sId: s.id }));
+                selected_sizes.forEach(s => rows.push({ label: `All Color | ${s.text}`, color_id: null, size_id: s.id }));
             } else if (rule === "Per Color All Size") {
-                selected_colors.forEach(c => rows.push({ label: `${c.text} | All Size`, cId: c.id, sId: null }));
+                selected_colors.forEach(c => rows.push({ label: `${c.text} | All Size`, color_id: c.id, size_id: null }));
             } else {
                 selected_colors.forEach(c => {
-                    selected_sizes.forEach(s => rows.push({ label: `${c.text} | ${s.text}`, cId: c.id, sId: s.id }));
+                    selected_sizes.forEach(s => rows.push({ label: `${c.text} | ${s.text}`, color_id: c.id, size_id: s.id }));
                 });
             }
 
-            let itemOptions = '<option value="">Pilih Item</option>';
-            res.items.forEach(i => itemOptions += `<option value="${i.isi}">${i.tampil}</option>`);
+            let existingMap = res.existing || {};
 
             rows.forEach((data, index) => {
                 let idx = index + 1;
+
+                let cIdStr = data.color_id !== null ? data.color_id : 'null';
+                let sIdStr = data.size_id !== null ? data.size_id : 'null';
+                let lookupKey = `${cIdStr}_${sIdStr}`;
+
+                let savedData = existingMap[lookupKey];
+
+                let selectedItemId = savedData ? savedData.id_item : null;
+                let savedQty   = (savedData && savedData.qty > 0) ? parseFloat(savedData.qty).toFixed(4) : '';
+                let savedPrice = (savedData && savedData.price > 0) ? parseFloat(savedData.price).toFixed(4) : '';
+
+                let itemOptionsHtml = '<option value="">Pilih Item</option>';
+                res.items.forEach(i => {
+                    let isSelected = (i.isi == selectedItemId) ? 'selected' : '';
+                    itemOptionsHtml += `<option value="${i.isi}" ${isSelected}>${i.tampil}</option>`;
+                });
+
+                // PENAMBAHAN CHECKBOX DAN TOMBOL HAPUS DI SINI
                 let row = `<tr>
+                    <td class="text-center align-middle">
+                        <input type="checkbox" class="check-input-row">
+                    </td>
                     <td class="align-middle">
-                        <input type="hidden" name="id_color[${idx}]" value="${data.cId ?? ''}">
-                        <input type="hidden" name="id_size[${idx}]" value="${data.sId ?? ''}">
+                        <input type="hidden" name="id_color[${idx}]" value="${data.color_id ?? ''}">
+                        <input type="hidden" name="id_size[${idx}]" value="${data.size_id ?? ''}">
                         <small class="fw-bold">${data.label}</small>
                     </td>
-                    <td><select name="id_item[${idx}]" class="form-control select2-item">${itemOptions}</select></td>
-                    <td><input type="number" step="0.0001" name="qty_input[${idx}]" class="form-control form-control-sm text-center qty_input" placeholder="0.0000"></td>
-                    <td><input type="number" step="0.0001" name="price_input[${idx}]" class="form-control form-control-sm text-center price_input" placeholder="0.0000"></td>
+                    <td><select name="id_item[${idx}]" class="form-control select2-item">${itemOptionsHtml}</select></td>
+                    <td><input type="number" step="0.0001" name="qty_input[${idx}]" class="form-control form-control-sm text-center qty_input" placeholder="0.0000" value="${savedQty}"></td>
+                    <td><input type="number" step="0.0001" name="price_input[${idx}]" class="form-control form-control-sm text-center price_input" placeholder="0.0000" value="${savedPrice}"></td>
+                    <td class="text-center align-middle">
+                        <button type="button" class="btn btn-sm btn-danger btn-hapus-row" title="Hapus Baris Ini">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </td>
                 </tr>`;
                 tbody.append(row);
             });
@@ -554,6 +611,44 @@
             $('.select2-item').select2({ theme: 'bootstrap4', width: '100%' });
         });
     }
+
+
+    function toggleBatchDeleteInput() {
+        let checkedCount = $('.check-input-row:checked').length;
+        if (checkedCount > 0) {
+            $('#count-input-selected').text(checkedCount);
+            $('#btn-hapus-batch-input').fadeIn(200);
+        } else {
+            $('#btn-hapus-batch-input').fadeOut(200);
+        }
+    }
+
+    $('#check-all-input').on('click', function() {
+        let isChecked = $(this).is(':checked');
+        $('.check-input-row').prop('checked', isChecked);
+        toggleBatchDeleteInput();
+    });
+
+    $('#itemTable').on('change', '.check-input-row', function() {
+        let total = $('.check-input-row').length;
+        let checked = $('.check-input-row:checked').length;
+        $('#check-all-input').prop('checked', total === checked && total > 0);
+        toggleBatchDeleteInput();
+    });
+
+    $('#btn-hapus-batch-input').on('click', function() {
+        $('.check-input-row:checked').closest('tr').fadeOut(300, function() {
+            $(this).remove();
+
+            $('#check-all-input').prop('checked', false);
+            toggleBatchDeleteInput();
+        });
+    });
+
+    $(document).on('click', '.btn-hapus-row', function() {
+        $(this).closest('tr').remove();
+        toggleBatchDeleteInput();
+    });
 
     function submit_form(form) {
         let content = $('#item_contents').val();
@@ -576,7 +671,7 @@
             let itemId = $(this).find('[name^="id_item"]').val();
             let qty    = $(this).find('[name^="qty_input"]').val();
 
-            if (!itemId || itemId === "" || !qty || parseFloat(qty) <= 0) {
+            if (qty > 0 && (!itemId || itemId === "")) {
                 isTableValid = false;
                 $(this).addClass('table-danger');
             } else {
@@ -585,13 +680,13 @@
         });
 
         if (!isTableValid) {
-            Swal.fire({ icon: 'warning', title: 'Data Tidak Valid', text: 'Terdapat item yang belum dipilih atau quantity masih kosong/0.' });
+            Swal.fire({ icon: 'warning', title: 'Data Tidak Valid', text: 'Terdapat item yang belum dipilih padahal Qty terisi.' });
             return false;
         }
 
         Swal.fire({
             title: 'Simpan Item BOM?',
-            html: "Item ini akan ditambahkan ke list bawah.",
+            html: "Item ini akan ditambahkan/diperbarui ke list bawah.",
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#28a745',
@@ -602,12 +697,6 @@
 
                 let formData = new FormData(form);
                 formData.append('id_bom_marketing', bom_id);
-
-                let colors = $('#colorList').val();
-                let sizes = $('#sizeList').val();
-
-                if(colors) colors.forEach(id => formData.append('colors[]', id));
-                if(sizes) sizes.forEach(id => formData.append('sizes[]', id));
 
                 $.ajax({
                     url: $(form).attr('action'),
@@ -665,25 +754,28 @@
                     data: 'qty', name: 'qty', className: 'text-center', searchable: false,
                     render: function(data) {
                         let nilai = parseFloat(data);
-                        return isNaN(nilai) ? '0.00' : nilai.toFixed(4);
+                        return isNaN(nilai) ? '0.00' : nilai.toFixed(2);
                     }
                 },
                 {
                     data: 'price', name: 'price', className: 'text-center', searchable: false,
                     render: function(data) {
                         let nilai = parseFloat(data);
-                        return isNaN(nilai) ? '0.00' : nilai.toFixed(4);
+                        return isNaN(nilai) ? '0.00' : nilai.toFixed(2);
                     }
                 },
-                { data: 'unit_name', name: 'unit_name', className: 'text-center' },
+                { data: 'currency', name: 'currency', className: 'text-center' },
+                { data: 'unit', name: 'unit', className: 'text-center' },
                 { data: 'shell', name: 'shell', className: 'text-center' },
                 {
                     data: 'id', orderable: false, searchable: false, className: 'text-center align-middle',
                     render: data => `
-                        <button type="button" class="btn btn-sm btn-info py-1 px-2"
-                                onclick="edit_item_row(${data})" title="Edit Item">
-                            <i class="fas fa-edit"></i>
-                        </button>`
+                        <div class="d-flex justify-content-center" style="gap: 5px;">
+                            <button type="button" class="btn btn-sm btn-info py-1 px-2"
+                                    onclick="edit_item_row(${data})" title="Edit Item">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>`
                 }
             ],
             drawCallback: function() {
@@ -714,7 +806,8 @@
             $('#edit_id_size').val(res.id_size).trigger('change');
             $('#edit_qty').val(res.qty || 0);
             $('#edit_price').val(res.price || 0);
-            $('#edit_id_unit').val(res.id_unit).trigger('change');
+            $('#edit_id_currency').val(res.id_currency).trigger('change');
+            $('#edit_unit').val(res.unit).trigger('change');
             $('#edit_shell').val(res.shell).trigger('change');
 
             $('.select2bs4-edit').select2({ theme: 'bootstrap4', dropdownParent: $('#modalEdit') });
@@ -724,6 +817,8 @@
 
     function submit_edit_item(form, evt) {
         evt.preventDefault();
+        let id = $('#edit_id_detail').val();
+        if(!id) return;
 
         Swal.fire({
             title: 'Konfirmasi Update',
@@ -739,7 +834,6 @@
             if (result.isConfirmed) {
                 Swal.fire({ title: 'Sedang memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
-                let id = $('#edit_id_detail').val();
                 let url = "{{ route('update-item-row-bom', ':id') }}";
                 url = url.replace(':id', id);
 
@@ -821,7 +915,7 @@
     }
 
     async function export_excel() {
-        Swal.fire({ title: "Exporting", html: "Please Wait...", timerProgressBar: true, didOpen: () => { Swal.showLoading(); } });
+        Swal.fire({ title: "Exporting", html: "Mohon Tunggu...", timerProgressBar: true, didOpen: () => { Swal.showLoading(); } });
         try {
             const res = await $.ajax({
                 url: '{{ route('export-excel-bom') }}', type: "GET", data: { id : bom_id }, xhrFields: { responseType: 'blob' }
@@ -867,8 +961,11 @@
 
     function loadDataOther() {
         let id_bom = bom_id;
+        let url = "{{ route('bom.get_other', ':id') }}";
+        url = url.replace(':id', id_bom);
+
         $.ajax({
-            url: "{{ route('bom.get_other', '') }}/" + id_bom,
+            url: url,
             type: "GET", dataType: "json",
             success: function(data) {
                 let row = '';
@@ -900,8 +997,11 @@
             if (result.isConfirmed) {
                 Swal.fire({ title: 'Menghapus...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
+                let url = "{{ route('bom.destroy_other', ':id') }}";
+                url = url.replace(':id', id);
+
                 $.ajax({
-                    url: "{{ route('bom.destroy_other', '') }}/" + id, type: "DELETE",
+                    url: url, type: "DELETE",
                     data: { _token: "{{ csrf_token() }}" },
                     success: function(res) {
                         loadDataOther();
@@ -911,6 +1011,36 @@
                         Swal.fire({ icon: 'error', title: 'Oops...', text: 'Terjadi kesalahan saat menghapus data.' });
                     }
                 });
+            }
+        });
+    }
+
+   function updateHeader() {
+        Swal.fire({ title: 'Memperbarui Master BOM...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+        let data = {
+            _token: "{{ csrf_token() }}",
+            id_bom_marketing: bom_id,
+            colors: $('#colorList').val(),
+            sizes: $('#sizeList').val(),
+        };
+
+        console.log(data);
+
+        $.ajax({
+            url: "{{ route('update-bom-header') }}",
+            type: "POST",
+            data: data,
+            success: function(res) {
+                if (res.status == 200) {
+                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: res.message, timer: 1500, showConfirmButton: false });
+                    get_list_data();
+                } else {
+                    Swal.fire('Gagal!', res.message, 'error');
+                }
+            },
+            error: function() {
+                Swal.fire('Error!', 'Terjadi kesalahan sistem', 'error');
             }
         });
     }

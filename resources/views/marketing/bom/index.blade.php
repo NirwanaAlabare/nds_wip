@@ -30,6 +30,7 @@
                         <th>Buyer</th>
                         <th>Style</th>
                         <th>Market</th>
+                        <th>Total Cons</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -41,6 +42,7 @@
                         <td>{{ $item->nama_buyer }}</td>
                         <td>{{ $item->style }}</td>
                         <td>{{ $item->market }}</td>
+                        <td>{{ number_format($item->total_cons, 2, ',', '.') }}</td>
                         <td>
                             <div class="d-flex justify-content-center align-items-center">
                                 <button class="btn btn-sm btn-info mr-1 py-1 px-2" style="font-size: 12px;" onclick="viewDetail({{ $item->id }})">
@@ -185,7 +187,7 @@
                             className: 'text-center align-middle',
                             searchable: false,
                             render: function(data) {
-                                return parseInt(data);
+                                return parseFloat(data);
                             }
                         },
                         { data: 'unit_name', name: 'unit_name', className: 'text-center align-middle' }
