@@ -362,21 +362,26 @@ group by a.po, a.dest
         $cbopo    = $request->cbopo;
         $no_carton    = $request->cbono_carton;
         $dest    = $request->txtdest;
+
+
+
         // $no_carton_cek    = $request->cbono_carton;
         // $cekArray = explode('_', $no_carton_cek);
         // $no_carton = $cekArray[0];
         // $notes = $cekArray[1];
         $tgl_trans = date('Y-m-d');
+        $data_packing_master =  DB::select("
+            select * from packing_master_packing_list where barcode = '$barcode' and  dest = '$dest' and  no_carton_akhir = '$no_carton'
+        ");
+
+        $po = $data_packing_master[0]->po;
+
         $cek_po = DB::select("
-        select * from ppic_master_so where id = '$cbopo'
-         and arcode = '$barcode' and  dest = '$dest'
+            select * from ppic_master_so where barcode = '$barcode' and  dest = '$dest' and po = '$po'
         ");
 
 
-
-        $cek_dest_po = $cek_po[0]->po;
-
-
+        $cek_dest_po = $po;
         $id_so_det =  $cek_po[0]->id_so_det;
         $id_ppic =  $cek_po[0]->id;
 
