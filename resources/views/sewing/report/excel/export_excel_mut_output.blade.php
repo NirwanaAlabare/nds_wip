@@ -114,7 +114,7 @@
                     <td>{{ $row->color }}</td>
                     <td>{{ $row->size }}</td>
 
-                    <td class="text-end">{{ $row->saldo_awal_loading }}</td>
+                    <td class="text-end">{{ $row->saldo_awal_sewing }}</td>
                     <td class="text-end">{{ $row->qty_loading }}</td>
                     <td class="text-end">{{ $row->input_rework_sewing }}</td>
                     <td class="text-end">{{ $row->input_rework_spotcleaning }}</td>
