@@ -367,10 +367,11 @@ group by a.po, a.dest
         // $no_carton = $cekArray[0];
         // $notes = $cekArray[1];
         $tgl_trans = date('Y-m-d');
-
         $cek_po = DB::select("
         select * from ppic_master_so where id = '$cbopo'
+         and arcode = '$barcode' and  dest = '$dest'
         ");
+
 
 
         $cek_dest_po = $cek_po[0]->po;
@@ -383,6 +384,7 @@ group by a.po, a.dest
         select count(barcode) cek from ppic_master_so p
         where barcode = '$barcode' and po = '$cek_dest_po' and dest = '$dest'
         ");
+
 
         $cek_data_fix = $cek_data[0]->cek;
         // dd("select count(barcode) cek from ppic_master_so p
@@ -407,6 +409,7 @@ group by a.po, a.dest
             ) pack_out on p.id = pack_out.id
             where p.barcode = '$barcode' and p.po = '$cek_dest_po' and dest = '$dest'
             ");
+
             $cek_stok_fix = $cek_stok[0]->tot_s;
 
             $cek_qty_isi_karton = DB::select("SELECT qty, coalesce(tot_input,0) tot_input from

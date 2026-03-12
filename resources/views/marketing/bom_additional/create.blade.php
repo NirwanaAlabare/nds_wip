@@ -3,7 +3,7 @@
 @section('content')
 <div class="card card-primary">
     <div class="card-header bg-sb">
-        <h5 class="card-title fw-bold mb-0">Buat Katalog BOM Additional Baru</h5>
+        <h5 class="card-title fw-bold mb-0">Katalog BOM Additional</h5>
     </div>
     <div class="card-body">
         <div class="row">
@@ -50,7 +50,7 @@
             </div>
             <div class="col-12 text-right mt-3">
                 <button type="button" class="btn btn-primary btn-md" onclick="createHeader()">
-                    <i class="fas fa-save"></i> Buat Header BOM
+                    <i class="fas fa-check-circle"></i> Konfirmasi Katalog BOM
                 </button>
             </div>
         </div>

@@ -14,6 +14,7 @@
             <th>Color</th>
             <th>Size</th>
             <th>Cons / Qty</th>
+            <th>Currency</th>
             <th>Unit</th>
             <th>Shell</th>
             <th>Price</th>
@@ -32,6 +33,7 @@
             <td>{{ $row->color_name }}</td>
             <td>{{ $row->size_name }}</td>
             <td style="text-align: right;">{{ (float) $row->qty }}</td>
+            <td>{{ $row->currency }}</td>
             <td>{{ $row->unit_name }}</td>
             <td>{{ $row->shell }}</td>
             <td>{{ $row->price }}</td>
