@@ -1660,6 +1660,40 @@ class CuttingFormPilotController extends Controller
     {
         $formCutInputData = FormCutInput::where("id", $id)->first();
 
+        // Last Detail
+        $lastDetail = FormCutInputDetail::where("form_cut_id", $formCutInputData->id)->where("no_form_cut_input", $formCutInputData->no_form)->orderBy("created_at", "desc")->first();
+
+        if ($lastDetail) {
+
+            // When extension on last
+            if ($lastDetail->status == "extension") {
+
+                // Get the roll in need for extension
+                $needExtensionDetail = DB::table("form_cut_input_detail")->where("id", $lastDetail->id_sambungan)->first();
+                if ($needExtensionDetail) {
+                    return array(
+                        "status" => 400,
+                        "message" => "Sambungan untuk Roll berikut belum ada <br><b>".($needExtensionDetail->id_roll ? " ROLL ".$needExtensionDetail->id_roll : "  ITEM ".$needExtensionDetail->id_item)."</b><br> (Sisa Gelaran : ".($needExtensionDetail->sisa_gelaran).")" ,
+                    );
+                }
+            }
+            // the needing roll for extension
+            else if ($lastDetail->status == "need extension") {
+                $currentIdRoll = $lastDetail->id_roll;
+
+                // Delete the roll in need for extension (fail to create extension so user must input it again)
+                $lastDetail->delete();
+
+                // Update scanned item (roll detail & qty)
+                $this->fixRollQty($currentIdRoll);
+
+                return array(
+                    "status" => 400,
+                    "message" => "Roll ".$currentIdRoll." gagal disimpan" ,
+                );
+            }
+        }
+
         $formCutInputSimilarCount = FormCutInput::leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->
             where("marker_input.act_costing_ws", $formCutInputData->marker->act_costing_ws)->
             where("marker_input.color", $formCutInputData->marker->color)->

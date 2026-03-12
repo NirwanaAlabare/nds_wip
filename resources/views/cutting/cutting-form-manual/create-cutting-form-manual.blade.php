@@ -2429,22 +2429,38 @@
                         success: function (res) {
                             document.getElementById("loading").classList.add("d-none");
                             if (res) {
-                                lockFormCutInput();
+                                if (res.status && res.status == 400) {
 
-                                status = "SELESAI PENGERJAAN";
+                                    // When Failed
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Gagal',
+                                        html: res.message,
+                                        showCancelButton: false,
+                                        showConfirmButton: true,
+                                        confirmButtonText: 'Oke',
+                                        timerProgressBar: true
+                                    })
+                                } else {
 
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Berhasil',
-                                    text: 'Proses telah berhasil diselesaikan (Laman akan ditutup)',
-                                    showCancelButton: false,
-                                    showConfirmButton: true,
-                                    confirmButtonText: 'Oke',
-                                    timer: 3000,
-                                    timerProgressBar: true
-                                }).then((result) => {
-                                    window.close();
-                                })
+                                    // When Success
+                                    lockFormCutInput();
+
+                                    status = "SELESAI PENGERJAAN";
+
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil',
+                                        text: 'Proses telah berhasil diselesaikan (Laman akan ditutup)',
+                                        showCancelButton: false,
+                                        showConfirmButton: true,
+                                        confirmButtonText: 'Oke',
+                                        timer: 3000,
+                                        timerProgressBar: true
+                                    }).then((result) => {
+                                        window.close();
+                                    })
+                                }
                             }
                         },
                         error: function (jqXHR) {

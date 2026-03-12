@@ -1843,22 +1843,38 @@
                                 document.getElementById("loading").classList.add("d-none");
 
                                 if (res) {
-                                    lockFormCutInput();
+                                    if (res.status && res.status == 400) {
 
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Berhasil',
-                                        text: 'Proses telah berhasil diselesaikan (Laman akan ditutup)',
-                                        showCancelButton: false,
-                                        showConfirmButton: true,
-                                        confirmButtonText: 'Oke',
-                                        timer: 3000,
-                                        timerProgressBar: true
-                                    }).then((result) => {
-                                        status = "PENGERJAAN FORM CUTTING DETAIL";
+                                        // When Failed
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: 'Gagal',
+                                            html: res.message,
+                                            showCancelButton: false,
+                                            showConfirmButton: true,
+                                            confirmButtonText: 'Oke',
+                                            timerProgressBar: true
+                                        })
+                                    } else {
 
-                                        window.close();
-                                    })
+                                        // When Success
+                                        lockFormCutInput();
+
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: 'Berhasil',
+                                            text: 'Proses telah berhasil diselesaikan (Laman akan ditutup)',
+                                            showCancelButton: false,
+                                            showConfirmButton: true,
+                                            confirmButtonText: 'Oke',
+                                            timer: 3000,
+                                            timerProgressBar: true
+                                        }).then((result) => {
+                                            status = "PENGERJAAN FORM CUTTING DETAIL";
+
+                                            window.close();
+                                        })
+                                    }
                                 }
                             },
                             error: function(jqXHR) {
