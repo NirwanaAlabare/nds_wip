@@ -357,6 +357,27 @@
             dropdownParent: $("#filterDetailSecModal")
         });
 
+        // Datatable INPUT column name
+        let datatableInputColumn = [
+            'tgl_trans_fix',
+            'id_qr_stocker',
+            'tipe',
+            'act_costing_ws',
+            'style',
+            'color',
+            'panel',
+            'nama_part',
+            'size',
+            'no_cut',
+            'tujuan',
+            'lokasi',
+            'stocker_range',
+            'qty_in',
+            'buyer',
+            'user',
+            'created_at'
+        ];
+
         // Datatable INPUT
         $('#datatable-input thead tr').clone(true).appendTo('#datatable-input thead');
         $('#datatable-input thead tr:eq(1) th').each(function(i) {
@@ -365,7 +386,7 @@
             if (i == 8) {
                 $(this).html('<select class="form-select" id="size_filter" multiple="multiple" style="min-width: 90px;"></select>');
             } else {
-                $(this).html('<input type="text" class="form-control form-control-sm"/>');
+                $(this).html('<input type="text" class="form-control form-control-sm" id="'+datatableInputColumn[i]+'"/>');
 
                 $('input', this).on('keyup change', function() {
                     if (datatable.column(i).search() !== this.value) {
@@ -404,7 +425,25 @@
                         'sec_filter_tujuan': $('#sec_filter_tujuan').val(),
                         'sec_filter_lokasi': $('#sec_filter_lokasi').val(),
                         'sec_filter_lokasi_rak': $('#sec_filter_lokasi_rak').val(),
-                        'size_filter': $('#size_filter').val()
+                        'size_filter': $('#size_filter').val(),
+                        'tgl_trans_fix': $('#tgl_trans_fix').val(),
+                        'id_qr_stocker': $('#id_qr_stocker').val(),
+                        'tipe': $('#tipe').val(),
+                        'act_costing_ws': $('#act_costing_ws').val(),
+                        'style': $('#style').val(),
+                        'color': $('#color').val(),
+                        'panel': $('#panel').val(),
+                        'nama_part': $('#nama_part').val(),
+                        'size': $('#size').val(),
+                        'no_cut': $('#no_cut').val(),
+                        'tujuan': $('#tujuan').val(),
+                        'lokasi': $('#lokasi').val(),
+                        'stocker_range': $('#stocker_range').val(),
+                        'qty_in': $('#qty_in').val(),
+                        'buyer': $('#buyer').val(),
+                        'user': $('#user').val(),
+                        'created_at': $('#created_at').val(),
+                        'filter': $('#datatable-input_filter input').val(),
                     },
                     success: function(response) {
                         console.log(response);
