@@ -300,8 +300,17 @@ class SecondaryInController extends Controller
 
     public function total_secondary_in(Request $request)
     {
+        $tipeCase = "(CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END)";
+        $panelExpr = "COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END)))";
+        $namaPartExpr = "CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END))";
+        $sizeExpr = "COALESCE(msb.size, s.size)";
+        $noCutExpr = "COALESCE(f.no_cut, fp.no_cut, '-')";
+        $stockerRangeExpr = "CONCAT(s.range_awal, ' - ', s.range_akhir)";
+        $createdAtExpr = "DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i:%s')";
+
         $additionalQuery = '';
 
+        // Date Filter
         if ($request->dateFrom) {
             $additionalQuery .= " and a.tgl_trans >= '" . $request->dateFrom . "' ";
         }
@@ -310,6 +319,90 @@ class SecondaryInController extends Controller
             $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
         }
 
+        // Global Filter
+        if ($request->filter) {
+            $additionalQuery .= " and (
+                DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') LIKE '%" . $request->filter . "%'
+                OR a.id_qr_stocker LIKE '%" . $request->filter . "%'
+                OR " . $tipeCase . " LIKE '%" . $request->filter . "%'
+                OR s.act_costing_ws LIKE '%".$request->filter."%'
+                OR p.style LIKE '%".$request->filter."%'
+                OR s.color LIKE '%".$request->filter."%'
+                OR " . $panelExpr . " LIKE '%".$request->filter."%'
+                OR " . $namaPartExpr . " LIKE '%".$request->filter."%'
+                OR " . $sizeExpr . " LIKE '%".$request->filter."%'
+                OR " . $noCutExpr . " LIKE '%".$request->filter."%'
+                OR dc.tujuan LIKE '%".$request->filter."%'
+                OR dc.lokasi LIKE '%".$request->filter."%'
+                OR (CASE WHEN a.urutan > 0 THEN a.urutan ELSE '-' END) LIKE '%".$request->filter."%'
+                OR " . $stockerRangeExpr . " LIKE '%".$request->filter."%'
+                OR a.qty_awal LIKE '%".$request->filter."%'
+                OR a.qty_reject LIKE '%".$request->filter."%'
+                OR a.qty_replace LIKE '%".$request->filter."%'
+                OR a.qty_in LIKE '%".$request->filter."%'
+                OR p.buyer LIKE '%".$request->filter."%'
+                OR a.user LIKE '%".$request->filter."%'
+                OR " . $createdAtExpr . " LIKE '%".$request->filter."%'
+            )";
+        }
+
+        // Header Filter
+        if ($request->tgl_trans_fix) {
+            $additionalQuery .= " and  DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') LIKE '%" . $request->tgl_trans_fix . "%' ";
+        }
+        if ($request->id_qr_stocker) {
+            $additionalQuery .= " and a.id_qr_stocker LIKE '%" . $request->id_qr_stocker . "%' ";
+        }
+        if ($request->tipe) {
+            $additionalQuery .= " and " . $tipeCase . " LIKE '%" . $request->tipe . "%' ";
+        }
+        if ($request->act_costing_ws) {
+            $additionalQuery .= " and s.act_costing_ws LIKE '%".$request->act_costing_ws."%' ";
+        }
+        if ($request->style) {
+            $additionalQuery .= " and p.style LIKE '%".$request->style."%' ";
+        }
+        if ($request->color) {
+            $additionalQuery .= " and s.color LIKE '%".$request->color."%' ";
+        }
+        if ($request->panel) {
+            $additionalQuery .= " and " . $panelExpr . " LIKE '%".$request->panel."%' ";
+        }
+        if ($request->nama_part) {
+            $additionalQuery .= " and " . $namaPartExpr . " LIKE '%".$request->nama_part."%' ";
+        }
+        if ($request->size) {
+            $additionalQuery .= " and " . $sizeExpr . " LIKE '%".$request->size."%' ";
+        }
+        if ($request->no_cut) {
+            $additionalQuery .= " and " . $noCutExpr . " LIKE '%".$request->no_cut."%' ";
+        }
+        if ($request->tujuan) {
+            $additionalQuery .= " and dc.tujuan LIKE '%".$request->tujuan."%' ";
+        }
+        if ($request->lokasi) {
+            $additionalQuery .= " and dc.lokasi LIKE '%".$request->lokasi."%' ";
+        }
+        if ($request->urutan) {
+            $additionalQuery .= " and (CASE WHEN a.urutan > 0 THEN a.urutan ELSE '-' END) LIKE '%".$request->urutan."%' ";
+        }
+        if ($request->stocker_range) {
+            $additionalQuery .= " and " . $stockerRangeExpr . " LIKE '%".$request->stocker_range."%' ";
+        }
+        if ($request->qty_in) {
+            $additionalQuery .= " and a.qty_in LIKE '%".$request->qty_in."%' ";
+        }
+        if ($request->buyer) {
+            $additionalQuery .= " and p.buyer LIKE '%".$request->buyer."%' ";
+        }
+        if ($request->user) {
+            $additionalQuery .= " and a.user LIKE '%".$request->user."%' ";
+        }
+        if ($request->created_at) {
+            $additionalQuery .= " and " . $createdAtExpr . " LIKE '%".$request->created_at."%' ";
+        }
+
+        // Filter
         $keywordQuery = '';
 
         if ($request->sec_filter_tipe && count($request->sec_filter_tipe) > 0) {

@@ -525,7 +525,7 @@
             if (i == 8) {
                 $(this).html('<select class="form-select" id="size_filter" multiple="multiple" style="min-width: 90px;"></select>');
             } else {
-                $(this).html('<input type="text" class="form-control form-control-sm"/>');
+                $(this).html('<input type="text" class="form-control form-control-sm" id="'+datatableInputColumn[i]+'"/>');
 
                 $('input', this).on('keyup change', function() {
                     if (datatable.column(i).search() !== this.value) {
@@ -538,13 +538,12 @@
             }
         });
 
-
         let datatable = $("#datatable-input").DataTable({
             "footerCallback": function(row, data, start, end, display) {
                 var api = this.api(),
                     data;
 
-                // converting to interger to find total
+                // converting to integer to find total
                 var intVal = function(i) {
                     return typeof i === 'string' ?
                         i.replace(/[\$,]/g, '') * 1 :
