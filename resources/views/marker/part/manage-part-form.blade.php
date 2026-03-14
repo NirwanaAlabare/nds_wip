@@ -333,6 +333,8 @@
         function addToPartForm(element) {
             element.setAttribute('disabled', true);
 
+            document.getElementById("loading").classList.remove("d-none");
+
             let selectedForm = $('#datatable-select').DataTable().rows('.selected').data();
             let partForms = [];
             for (let key in selectedForm) {
@@ -354,6 +356,8 @@
                         partForms: partForms
                     },
                     success: function(res) {
+                        document.getElementById("loading").classList.add("d-none");
+
                         element.removeAttribute('disabled');
 
                         if (res.status == 200) {
@@ -414,6 +418,8 @@
                         }
                     },
                     error: function(jqXHR) {
+                        document.getElementById("loading").classList.add("d-none");
+
                         element.removeAttribute('disabled');
 
                         let res = jqXHR.responseJSON;
@@ -431,6 +437,8 @@
                     }
                 })
             } else {
+                document.getElementById("loading").classList.add("d-none");
+
                 element.removeAttribute('disabled');
 
                 Swal.fire({
@@ -589,6 +597,8 @@
                     confirmButtonColor: "#d33141",
                 }).then(async (result) => {
                     if (result.isConfirmed) {
+                        document.getElementById("loading").classList.remove("d-none");
+
                         $.ajax({
                             type: "DELETE",
                             url: '{!! route('destroy-part-form') !!}',
@@ -597,6 +607,8 @@
                                 partForms: partForms
                             },
                             success: function(res) {
+                                document.getElementById("loading").classList.add("d-none");
+
                                 if (res.status == 200) {
                                     iziToast.success({
                                         title: 'Success',
@@ -649,6 +661,8 @@
                                 }
                             },
                             error: function(jqXHR) {
+                                document.getElementById("loading").classList.add("d-none");
+
                                 let res = jqXHR.responseJSON;
                                 let message = '';
 
