@@ -307,7 +307,8 @@ class CuttingFormController extends Controller
     public function getNumberData(Request $request)
     {
         $numberData = DB::connection('mysql_sb')->table("bom_jo_item")->selectRaw("
-                bom_jo_item.cons cons_ws
+                bom_jo_item.cons cons_ws,
+                bom_jo_item.unit unit_cons_ws
             ")->
             leftJoin("so_det", "so_det.id", "=", "bom_jo_item.id_so_det")->
             leftJoin("so", "so.id", "=", "so_det.id_so")->

@@ -396,7 +396,9 @@ class CuttingFormPilotController extends Controller
             marker_input.po_marker,
             marker_input.urutan_marker,
             marker_input.cons_ws,
+            marker_input.unit_cons_ws,
             marker_input.cons_marker,
+            marker_input.unit_cons_marker,
             marker_input.gramasi,
             users.name,
             form_cut_input.id as form_id

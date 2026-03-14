@@ -322,7 +322,7 @@
                 <td class="borderless"></td>
                 <th colspan="2" class="header-bg text-left header-2">CONS. WS</th>
                 <th class="text-right header-2">{{ num($marker->cons_ws, 4, false) }}</th>
-                <th class="text-left header-2">{{ (shortUnit($marker->unit_panjang_marker)) }}/PC</th>
+                <th class="text-left header-2">{{ (shortUnit($marker->unit_cons_ws)) }}/PC</th>
 
                 <td colspan="2" class="header-bg text-left header-2">EST CONS/AMPAR</td>
                 <td class="text-right header-2">{{ num($marker->panjang_marker/($markerDetails->sum("ratio")), 4, false) }}</td>
@@ -339,11 +339,11 @@
                 <th class="borderless"></th>
                 <th colspan="2" class="header-bg text-left header-2">CONS. MARKER</th>
                 <th class="text-right header-2">{{ num($marker->cons_marker, 4, false) }}</th>
-                <th class="text-left header-2">{{ (shortUnit($marker->unit_panjang_marker)) }}/PC</th>
+                <th class="text-left header-2">{{ (shortUnit($marker->unit_cons_marker)) }}/PC</th>
 
                 <td colspan="2" class="header-bg text-left header-2">NEED KAIN GELAR</td>
-                <td class="text-right header-2">{{ num(($marker->cons_marker * ($markerDetails->sum("ratio"))), 4, false) }}</td>
-                <td class="text-left header-2">{{ (shortUnit($marker->unit_panjang_marker)) }}</td>
+                <td class="text-right header-2">{{ num(($marker->cons_marker * ($markerDetails->sum("ratio") * $form->qty_ply)), 4, false) }}</td>
+                <td class="text-left header-2">{{ (shortUnit($marker->unit_cons_marker)) }}</td>
 
                 <td colspan="2" class="header-bg text-left header-2">LEBAR MARKER</td>
                 <td colspan="3" class="header-2">{{ num($marker->lebar_marker, 4, false)." ".$marker->unit_lebar_marker }}</td>
@@ -356,11 +356,11 @@
                 <th class="borderless"></th>
                 <th colspan="2" class="header-bg text-left header-2">CONS. PIPING</th>
                 <th class="text-right header-2">{{ num($marker->cons_piping, 4, false) }}</th>
-                <th class="text-left header-2">{{ (shortUnit($marker->unit_panjang_marker)) }}/PC</th>
+                <th class="text-left header-2">{{ (shortUnit($marker->unit_cons_piping)) }}/PC</th>
 
-                <td colspan="2" class="header-bg text-left header-2">EST CONS/AMPAR</td>
-                <td class="text-right header-2">{{ num(($marker->cons_piping / ($markerDetails->sum("ratio"))), 4, false) }}</td>
-                <td class="text-left header-2">{{ (shortUnit($marker->unit_panjang_marker)) }}/PC</td>
+                <td colspan="2" class="header-bg text-left header-2">NEED KAIN PIPING</td>
+                <td class="text-right header-2">{{ num(($marker->cons_piping * ($markerDetails->sum("ratio") * $form->qty_ply)), 4, false) }}</td>
+                <td class="text-left header-2">{{ (shortUnit($marker->unit_cons_piping)) }}</td>
 
                 <td colspan="2" class="header-bg text-left header-2">LEBAR WS</td>
                 <td colspan="3" class="header-2">{{ num($marker->lebar_ws, 4, false)." ".$marker->unit_lebar_ws }}</td>

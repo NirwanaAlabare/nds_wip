@@ -341,30 +341,42 @@
                         <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons WS</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws" id="cons_ws" readonly>
+                                <div class="input-group">
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws" id="cons_ws" readonly>
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_cons_ws" id="unit_cons_ws" readonly>
+                                </div>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="cons_marker" id="cons_marker" value="{{ $formCutInputData->cons_marker }}"
-                                    onkeyup="calculateEstKain(this.value)" onchange="calculateEstKain(this.value)"
-                                    readonly>
+                                <div class="input-group">
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="cons_marker" id="cons_marker" value="{{ $formCutInputData->cons_marker }}"
+                                        onkeyup="calculateEstKain(this.value)" onchange="calculateEstKain(this.value)"
+                                        readonly>
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_cons_marker" id="unit_cons_marker" value="{{ $formCutInputData->cons_marker }}" readonly>
+                                </div>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-calc"><small><b>Cons Ampar</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-calc" name="cons_act" id="cons_act" value="{{ round($formCutInputData->cons_ampar, 2) > 0 ? $formCutInputData->cons_ampar : '0' }}" step=".01" readonly>
+                                <div class="input-group">
+                                    <input type="number" class="form-control form-control-sm border-calc" name="cons_act" id="cons_act" value="{{ round($formCutInputData->cons_ampar, 2) > 0 ? $formCutInputData->cons_ampar : '0' }}" step=".01" readonly>
+                                    <input type="text" class="form-control form-control-sm border-calc" name="unit_cons_act" id="unit_cons_act" value="{{ $formCutInputData->unit_cons_ampar ? $formCutInputData->unit_cons_ampar : 'METER' }}" readonly>
+                                </div>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons Piping</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-fetch" step=".01" name="cons_pipping" id="cons_pipping" value="{{ $formCutInputData->cons_pipping ? $formCutInputData->cons_pipping : '0' }}" readonly
-                                    onkeyup="calculateEstPipping(this.value)"
-                                    onchange="calculateEstPipping(this.value)"
-                                >
+                                <div class="input-group">
+                                    <input type="number" class="form-control form-control-sm border-fetch" step=".01" name="cons_pipping" id="cons_pipping" value="{{ $formCutInputData->cons_pipping ? $formCutInputData->cons_pipping : '0' }}" readonly
+                                        onkeyup="calculateEstPipping(this.value)"
+                                        onchange="calculateEstPipping(this.value)"
+                                    >
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_cons_pipping" id="unit_cons_pipping" value="{{ $formCutInputData->unit_cons_pipping ? $formCutInputData->unit_cons_pipping : 'METER' }}" readonly>
+                                </div>
                             </div>
                         </div>
                         <div class="col-6 col-md-6 d-none">
@@ -1308,12 +1320,17 @@
                 var lebarWsActual = document.getElementById('lebar_ws_act').value;
                 var lebarWsUnitActual = document.getElementById('unit_lebar_ws_act').value;
                 var consActual = document.getElementById('cons_act').value;
+                var unitConsActual = document.getElementById('unit_cons_act').value;
                 var consPipping = document.getElementById('cons_pipping').value;
+                var unitConsPipping = document.getElementById('unit_cons_pipping').value;
                 var consAmpar = document.getElementById('cons_ampar').value;
+                var unitConsAmpar = document.getElementById('unit_cons_ampar').value;
                 var estPipping = document.getElementById('est_pipping').value;
                 var estPippingUnit = document.getElementById('est_pipping_unit').value;
                 var estKain = document.getElementById('est_kain').value;
                 var estKainUnit = document.getElementById('est_kain_unit').value;
+                var consMarker = document.getElementById('cons_marker').value;
+                var unitConsMarker = document.getElementById('unit_cons_marker').value;
 
                 clearModified();
 
@@ -1332,12 +1349,17 @@
                         lebar_ws_act: lebarWsActual,
                         unit_lebar_ws_act: lebarWsUnitActual,
                         cons_act: consActual,
+                        unit_cons_act: unitConsActual,
                         cons_pipping: consPipping,
+                        unit_cons_pipping: unitConsPipping,
                         cons_ampar: consAmpar,
+                        unit_cons_ampar: unitConsAmpar,
                         est_pipping: estPipping,
                         est_pipping_unit: estPippingUnit,
                         est_kain: estKain,
                         est_kain_unit: estKainUnit,
+                        cons_marker: consMarker,
+                        unit_cons_marker: unitConsMarker,
                     },
                     success: function(res) {
                         if (res) {
@@ -2099,20 +2121,38 @@
 
             // -Calculate Est. Piping-
             function calculateEstPipping(consPipping = 0) {
-                let consPippingVar = consPipping;
+                let consPippingVar = consPipping ? consPipping : document.getElementById("cons_pipping").value;
 
                 let estPipping = consPippingVar * totalQtyCut;
 
                 document.getElementById('est_pipping').value = estPipping.round(2);
+
+                updateConsPipingUnit();
+            }
+
+            function updateConsPipingUnit() {
+                let unitConsPipingVar = document.getElementById("unit_cons_pipping").value;
+
+                document.getElementById('est_pipping_unit').value = unitConsPipingVar;
             }
 
             // -Calculate Est. Kain-
             function calculateEstKain(consMarker = 0) {
-                let consMarkerVar = consMarker;
+                let consMarkerVar = consMarker ? consMarker : document.getElementById("cons_marker").value;
 
                 let estKain = consMarkerVar * totalQtyCut
 
                 document.getElementById('est_kain').value = estKain.round(2);
+
+                updateConsMarkerUnit();
+
+                console.log(consMarker, consMarkerVar, estKain);
+            }
+
+            function updateConsMarkerUnit() {
+                let unitConsMarkerVar = document.getElementById("unit_cons_marker").value;
+
+                document.getElementById('est_kain_unit').value = unitConsMarkerVar;
             }
 
             // -Calculate Est. Ampar-
@@ -2549,10 +2589,48 @@
                     },
                     dataType: 'json',
                     success: function(res) {
-                        if (res) {
-                            let consWs = res.cons_ws;
+                        // if (res) {
+                        //     let consWs = res.cons_ws;
 
-                            document.getElementById("cons_ws").value = consWs;
+                        //     document.getElementById("cons_ws").value = consWs;
+                        // }
+
+                        if (res) {
+                            let cons = res.cons_ws;
+                            let consUnit = "";
+                            console.log((res.unit_cons_ws || '').toUpperCase())
+                            switch ((res.unit_cons_ws || '').toUpperCase()) {
+                                case 'KG' :
+                                    break;
+                                case 'KGM' :
+                                    consUnit = 'KGM';
+
+                                    break;
+                                case 'MT' :
+                                case 'MTR' :
+                                case 'METER' :
+                                    consUnit = 'METER';
+
+                                    break;
+                                case 'YRD' :
+                                case 'YARD' :
+                                    cons = Number(cons * 0.9144).round(3);
+                                    consUnit = 'METER';
+
+                                    break;
+                                default :
+                                    consUnit = res.unit_cons_ws;
+                                    break;
+                            }
+
+                            $('#cons_ws').val(cons).trigger("change");
+                            $('#unit_cons_ws').val(consUnit).trigger("change");
+                            if (!$('#cons_marker').val()) {
+                                $('#cons_marker').val(cons).trigger("change");
+                            }
+                            if (!$('#unit_cons_marker').val()) {
+                                $("#unit_cons_marker").val(consUnit).trigger("change");
+                            }
                         }
                     }
                 });
