@@ -36,6 +36,7 @@ class TrolleyStockerController extends Controller
                 (CASE WHEN stocker.tipe = 'REJECT' THEN stocker.style ELSE master_sb_ws.styleno END) style,
                 stocker.color,
                 trolley.nama_trolley,
+                GROUP_CONCAT(DISTINCT stocker.id_qr_stocker) id_qr_stocker,
                 SUM(stocker.qty_ply) qty
             ")->
             leftJoin("trolley_stocker", function($join)
@@ -49,6 +50,7 @@ class TrolleyStockerController extends Controller
                     (
                         SELECT
                             stocker_input.id,
+                            GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker) id_qr_stocker,
                             stocker_input.so_det_id,
                             (CASE WHEN stocker_input.form_piece_id > 0 THEN stocker_input.form_piece_id ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN stocker_input.form_reject_id ELSE stocker_input.form_cut_id END) END) form_cut_id,
                             stocker_input.act_costing_ws,
