@@ -64,6 +64,7 @@
                             <th>No. WS</th>
                             <th class="align-bottom" style="text-align: left !important;">Status</th>
                             <th>Plan</th>
+                            <th>Waktu Selesai</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -325,6 +326,9 @@
                 },
                 {
                     data: 'tgl_plan'
+                },
+                {
+                    data: 'waktu_selesai'
                 },
             ],
             columnDefs: [

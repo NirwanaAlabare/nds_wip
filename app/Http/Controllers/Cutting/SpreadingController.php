@@ -350,7 +350,7 @@ class SpreadingController extends Controller
             'edited_by' => Auth::user()->id,
             'edited_by_username' => Auth::user()->username,
             'edited_at' => Carbon::now(),
-            'edit_notes' => DB::raw("CONCAT(edit_notes, CHAR(10), ' EDIT STATUS TO ".$validatedRequest['edit_status']." AT ', CURRENT_TIMESTAMP )")
+            'edit_notes' => DB::raw("CONCAT(COALESCE(edit_notes,''), CHAR(10), ' EDIT STATUS TO ".$validatedRequest['edit_status']." AT ', CURRENT_TIMESTAMP )")
         ]);
 
         if ($updateNoMeja) {
@@ -412,7 +412,7 @@ class SpreadingController extends Controller
             'edited_by' => Auth::user()->id,
             'edited_by_username' => Auth::user()->username,
             'edited_at' => Carbon::now(),
-            'edit_notes' => DB::raw("CONCAT(edit_notes, CHAR(10), ' EDIT STATUS TO ".$validatedRequest['edit_status']." AT ', CURRENT_TIMESTAMP )")
+            'edit_notes' => DB::raw("CONCAT(COALESCE(edit_notes,''), CHAR(10), ' EDIT STATUS TO ".$validatedRequest['edit_status']." AT ', CURRENT_TIMESTAMP )")
         ]);
 
         if ($updateStatusForm) {
@@ -468,12 +468,18 @@ class SpreadingController extends Controller
         }
 
         $updateStatusForm = FormCutInput::where('id', $validatedRequest['edit_id_status'])->update([
-            'status' => $validatedRequest['edit_status']
+            'status' => $validatedRequest['edit_status'],
+            'edited' => 1,
+            'edited_by' => Auth::user()->id,
+            'edited_by_username' => Auth::user()->username,
+            'edited_at' => Carbon::now(),
+            'edit_notes' => DB::raw("CONCAT(COALESCE(edit_notes,''), CHAR(10), ' EDIT STATUS TO ".$validatedRequest['edit_status']." AT ', CURRENT_TIMESTAMP )")
         ]);
 
         if ($updateStatusForm) {
             $updatedData = FormCutInput::where('id', $validatedRequest['edit_id_status'])->first();
 
+            // Redirect Route
             $redirect = '';
             switch ($updatedData->tipe_form_cut) {
                 case 'NORMAL' :
@@ -484,6 +490,9 @@ class SpreadingController extends Controller
                     break;
                 case 'PILOT' :
                     $redirect = route('process-pilot-form-cut', $updatedData->id);
+                    break;
+                default :
+                    $redirect = null;
                     break;
             }
 
@@ -499,7 +508,7 @@ class SpreadingController extends Controller
         return array(
             'status' => 400,
             'message' => 'Data produksi gagal diubah',
-            'redirect' => '',
+            'redirect' => null,
             'table' => 'datatable',
             'additional' => [],
         );
