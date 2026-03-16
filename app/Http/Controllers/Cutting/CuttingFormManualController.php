@@ -798,12 +798,21 @@ class CuttingFormManualController extends Controller
             "cons_ws_marker" => "nullable",
             "unit_cons_ws_marker" => "nullable",
             "color" => "required",
-            "panel_select" => "nullable",
+            "panel_select" => "required",
             "panel" => "required",
             "gelar_qty" => "required|numeric|gt:0",
             "urutan_marker" => "nullable",
             "tipe_marker" => "required"
         ]);
+
+        // Validate Panel
+        if ($validatedRequest["panel"] == "Pilih Panel") {
+            return array(
+                "status" => 400,
+                "message" => "Harap Pilih Panel",
+                "additional" => [],
+            );
+        }
 
         $idForm = $validatedRequest['id'];
         $noForm = $validatedRequest['no_form'];
