@@ -805,6 +805,15 @@ class CuttingFormManualController extends Controller
             "tipe_marker" => "required"
         ]);
 
+        // Validate Panel
+        if ($validatedRequest["panel"] == "Pilih Panel") {
+            return array(
+                "status" => 400,
+                "message" => "Harap Pilih Panel",
+                "additional" => [],
+            );
+        }
+
         $idForm = $validatedRequest['id'];
         $noForm = $validatedRequest['no_form'];
         $tglForm = $validatedRequest['tgl_form'];
