@@ -1552,6 +1552,7 @@ class StockerController extends Controller
                                 'notes' => $request['note'],
                                 'range_awal' => $cumRangeAwal,
                                 'range_akhir' => ($request['group_stocker'][$index] == (($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir),
+                                'urutan' => 1,
                                 'created_by' => Auth::user()->id,
                                 'created_by_username' => Auth::user()->username,
                                 'created_at' => Carbon::now(),
