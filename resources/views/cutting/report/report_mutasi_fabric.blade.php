@@ -48,9 +48,8 @@
                     </label>
                     <select class="form-control form-control-sm select2bs4" id="cbotipe" name="cbotipe"
                         style="width: 100%;">
-                        <option value="">-- Pilih --</option>
+                        <option value="Item" selected>ID Item</option>
                         <option value="Barcode">Barcode</option>
-                        <option value="Item">ID Item</option>
                     </select>
                 </div>
                 <!-- Start Date -->
@@ -176,7 +175,6 @@
         $(document).ready(function() {
             $('#start_date').val('').trigger('change');
             $('#end_date').val('').trigger('change');
-            $('#cbotipe').val('').trigger('change');
             dataTableReload();
         });
 
