@@ -222,7 +222,7 @@ class MarkerController extends Controller
     public function getNumber(Request $request)
     {
         $number = DB::connection('mysql_sb')->select("
-                select k.cons cons_ws,sum(coalesce(sd.qty, 0)) order_qty from bom_jo_item k
+                select k.cons cons_ws, k.unit as unit_cons_ws, sum(coalesce(sd.qty, 0)) order_qty from bom_jo_item k
                     inner join so_det sd on k.id_so_det = sd.id
                     inner join so on sd.id_so = so.id
                     inner join act_costing ac on so.id_cost = ac.id
@@ -264,6 +264,7 @@ class MarkerController extends Controller
             "buyer" => "required",
             "style" => "required",
             "cons_ws" => "required|numeric|min:0",
+            "unit_cons_ws" => "required",
             "lebar_ws" => "nullable|numeric|min:0",
             "lebar_ws_unit" => "nullable",
             "color" => "required",
@@ -279,9 +280,11 @@ class MarkerController extends Controller
             "po" => "required",
             "no_urut_marker" => "required|numeric|gt:0",
             "cons_marker" => "required|numeric|gt:0",
+            "unit_cons_marker" => "required",
             "gramasi" => "required|numeric|gt:0",
             "tipe_marker" => "required",
-            "cons_piping" => "required|numeric|min:0"
+            "cons_piping" => "required|numeric|min:0",
+            "unit_cons_piping" => "required",
         ]);
 
         foreach ($request["cut_qty"] as $qty) {
@@ -297,6 +300,7 @@ class MarkerController extends Controller
                 'buyer' => $validatedRequest['buyer'],
                 'style' => $validatedRequest['style'],
                 'cons_ws' => $validatedRequest['cons_ws'],
+                'unit_cons_ws' => $validatedRequest['unit_cons_ws'],
                 'lebar_ws' => $validatedRequest['lebar_ws'],
                 'unit_lebar_ws' => $validatedRequest['lebar_ws_unit'],
                 'color' => $validatedRequest['color'],
@@ -313,10 +317,12 @@ class MarkerController extends Controller
                 'po_marker' => $validatedRequest['po'],
                 'urutan_marker' => $validatedRequest['no_urut_marker'],
                 'cons_marker' => $validatedRequest['cons_marker'],
+                'unit_cons_marker' => $validatedRequest['unit_cons_marker'],
                 'gramasi' => $validatedRequest['gramasi'],
                 'tipe_marker' => $validatedRequest['tipe_marker'],
                 'notes' => $request['notes'],
                 'cons_piping' => $validatedRequest['cons_piping'],
+                'unit_cons_piping' => $validatedRequest['unit_cons_piping'],
                 'cancel' => 'N',
                 'created_by' => Auth::user()->id,
                 'created_by_username' => Auth::user()->username
@@ -603,26 +609,26 @@ class MarkerController extends Controller
                 <div class='row'>
                     <div class='col-sm-3'>
                         <div class='form-group'>
-                            <label class='form-label'>Cons WS</label>
-                            <input type='text' class='form-control' id='txtcons_ws' name='txtcons_ws' value = '" . ($datanomarker->cons_ws ?? 0) . "' readonly>
-                        </div>
-                    </div>
-                    <div class='col-sm-3'>
-                        <div class='form-group'>
                             <label class='form-label'>Lebar WS</label>
                             <input type='text' class='form-control' id='txtlebar_ws' name='txtlebar_ws' value = '" . ($datanomarker->lebar_ws_fix ?? 0) . "' readonly>
                         </div>
                     </div>
                     <div class='col-sm-3'>
                         <div class='form-group'>
-                            <label class='form-label'>Cons Piping</label>
-                            <input type='text' class='form-control' id='txtcons_piping' name='txtcons_piping' value = '" . ($datanomarker->cons_piping ?? 0) . "' readonly>
+                            <label class='form-label'>Cons WS</label>
+                            <input type='text' class='form-control' id='txtcons_ws' name='txtcons_ws' value = '" . ($datanomarker->cons_ws ?? 0) . " " . ($datanomarker->unit_cons_ws ?? 0) . "' readonly>
                         </div>
                     </div>
                     <div class='col-sm-3'>
                         <div class='form-group'>
                             <label class='form-label'>Cons Marker</label>
-                            <input type='text' class='form-control' id='txtcons_marker' name='txtcons_marker'  value = '" . ($datanomarker->cons_marker ?? 0) . "' readonly>
+                            <input type='text' class='form-control' id='txtcons_marker' name='txtcons_marker'  value = '" . ($datanomarker->cons_marker ?? 0) . " " . ($datanomarker->unit_cons_marker ?? 0) . "' readonly>
+                        </div>
+                    </div>
+                    <div class='col-sm-3'>
+                        <div class='form-group'>
+                            <label class='form-label'>Cons Piping</label>
+                            <input type='text' class='form-control' id='txtcons_piping' name='txtcons_piping' value = '" . ($datanomarker->cons_piping ?? 0) . " " . ($datanomarker->unit_cons_piping ?? 0) . "' readonly>
                         </div>
                     </div>
                 </div>
@@ -767,6 +773,7 @@ class MarkerController extends Controller
             "buyer" => "required",
             "style" => "required",
             "cons_ws" => "required|numeric|min:0",
+            "unit_cons_ws" => "required",
             "lebar_ws" => "nullable|numeric|min:0",
             "lebar_ws_unit" => "nullable",
             "color" => "required",
@@ -782,9 +789,11 @@ class MarkerController extends Controller
             "po" => "required",
             "no_urut_marker" => "required|numeric|gt:0",
             "cons_marker" => "required|numeric|gt:0",
+            "unit_cons_marker" => "required",
             "gramasi" => "required|numeric|gt:0",
             "tipe_marker" => "required",
-            "cons_piping" => "nullable"
+            "cons_piping" => "nullable",
+            "unit_cons_piping" => "required",
         ]);
         $totalQty = 0;
 
@@ -811,6 +820,7 @@ class MarkerController extends Controller
                     'buyer' => $validatedRequest['buyer'],
                     'style' => $validatedRequest['style'],
                     'cons_ws' => $validatedRequest['cons_ws'],
+                    'unit_cons_ws' => $validatedRequest['unit_cons_ws'],
                     'lebar_ws' => $validatedRequest['lebar_ws'],
                     'unit_lebar_ws' => $validatedRequest['lebar_ws_unit'],
                     'color' => $validatedRequest['color'],
@@ -827,10 +837,12 @@ class MarkerController extends Controller
                     'po_marker' => $validatedRequest['po'],
                     'urutan_marker' => $validatedRequest['no_urut_marker'],
                     'cons_marker' => $validatedRequest['cons_marker'],
+                    'unit_cons_marker' => $validatedRequest['unit_cons_marker'],
                     'gramasi' => $validatedRequest['gramasi'],
                     'tipe_marker' => $validatedRequest['tipe_marker'],
                     'notes' => $request['notes'],
                     'cons_piping' => $validatedRequest['cons_piping'],
+                    'unit_cons_piping' => $validatedRequest['unit_cons_piping'],
                     'cancel' => 'N',
                 ];
 
@@ -843,6 +855,7 @@ class MarkerController extends Controller
                     'buyer' => $validatedRequest['buyer'],
                     'style' => $validatedRequest['style'],
                     'cons_ws' => $validatedRequest['cons_ws'],
+                    'unit_cons_ws' => $validatedRequest['unit_cons_ws'],
                     'color' => $validatedRequest['color'],
                     'panjang_marker' => $validatedRequest['p_marker'],
                     'unit_panjang_marker' => $validatedRequest['p_unit'],
@@ -855,10 +868,12 @@ class MarkerController extends Controller
                     'po_marker' => $validatedRequest['po'],
                     'urutan_marker' => $validatedRequest['no_urut_marker'],
                     'cons_marker' => $validatedRequest['cons_marker'],
+                    'unit_cons_marker' => $validatedRequest['unit_cons_marker'],
                     'gramasi' => $validatedRequest['gramasi'],
                     'tipe_marker' => $validatedRequest['tipe_marker'],
                     'notes' => $request['notes'],
                     'cons_piping' => $validatedRequest['cons_piping'],
+                    'unit_cons_piping' => $validatedRequest['unit_cons_piping'],
                     'cancel' => 'N',
                 ];
 
@@ -950,7 +965,7 @@ class MarkerController extends Controller
         }
 
         $update_data = DB::update("
-            update marker_input set cancel = case when cancel = 'Y' then'N' else 'Y' end
+            update marker_input set cancel = case when cancel = 'Y' then 'N' else 'Y' end
             where id = '$request->id_c'
         ");
     }

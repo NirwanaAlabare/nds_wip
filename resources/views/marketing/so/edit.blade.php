@@ -835,7 +835,7 @@
     async function export_excel() {
         Swal.fire({
             title: "Exporting",
-            html: "Please Wait...",
+            html: "Mohon Tunggu...",
             timerProgressBar: true,
             didOpen: () => {
                 Swal.showLoading();

@@ -84,9 +84,10 @@
                             </div>
                             <div class="row g-3">
                                 <div class="col-md-4">
-                                    <div class="mb-1">
-                                        <label class="form-label"><small>Cons WS</small></label>
+                                    <label class="form-label"><small>Cons WS</small></label>
+                                    <div class="input-group mb-1">
                                         <input type="text" class="form-control" id="cons_ws" name="cons_ws" readonly>
+                                        <input type="text" class="form-control" id="unit_cons_ws" name="unit_cons_ws" readonly>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -131,15 +132,23 @@
                                 <input type="hidden" class="form-control" id="l_unit" name="l_unit" value="CM" readonly>
                             </div>
                             <div class="col-6 col-md-6">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>Cons Marker</small></label>
+                                <label class="form-label"><small>Cons Marker</small></label>
+                                <div class="input-group mb-1">
                                     <input type="number" class="form-control" id="cons_marker" name="cons_marker" step=".001">
+                                    <select class="form-control" name="unit_cons_marker" id="unit_cons_marker">
+                                        <option value="METER">METER</option>
+                                        <option value="KGM">KGM</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="col-4 col-md-4">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>Cons Piping</small></label>
+                                <label class="form-label"><small>Cons Piping</small></label>
+                                <div class="input-group mb-1">
                                     <input type="number" class="form-control" id="cons_piping" name="cons_piping" step=".001">
+                                    <select class="form-control" name="unit_cons_piping" id="unit_cons_piping">
+                                        <option value="METER">METER</option>
+                                        <option value="KGM">KGM</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="col-4 col-md-4">
@@ -380,6 +389,7 @@
                         // Reset order information
                         document.getElementById('no_urut_marker').value = null;
                         document.getElementById('cons_ws').value = null;
+                        document.getElementById('unit_cons_ws').value = null;
                         document.getElementById('order_qty').value = null;
                     }
                 },
@@ -407,6 +417,7 @@
                         // Reset order information
                         document.getElementById('no_urut_marker').value = null;
                         document.getElementById('cons_ws').value = null;
+                        document.getElementById('unit_cons_ws').value = null;
                         document.getElementById('order_qty').value = null;
                     }
                 },
@@ -616,6 +627,7 @@
         // Get & Set Order WS Cons and Order Qty Based on Order WS, Order Color and Order Panel
         function getNumber() {
             document.getElementById('cons_ws').value = null;
+            document.getElementById('unit_cons_ws').value = null;
             document.getElementById('order_qty').value = null;
             return $.ajax({
                 url: ' {{ route("get-marker-number") }}',
@@ -628,8 +640,38 @@
                 },
                 success: function (res) {
                     if (res) {
-                        document.getElementById('cons_ws').value = res.cons_ws;
                         document.getElementById('order_qty').value = res.order_qty;
+
+                        let cons = res.cons_ws;
+                        let consUnit = "";
+                        console.log((res.unit_cons_ws || '').toUpperCase())
+                        switch ((res.unit_cons_ws || '').toUpperCase()) {
+                            case 'KG' :
+                                break;
+                            case 'KGM' :
+                                consUnit = 'KGM';
+
+                                break;
+                            case 'MT' :
+                            case 'MTR' :
+                            case 'METER' :
+                                consUnit = 'METER';
+
+                                break;
+                            case 'YRD' :
+                            case 'YARD' :
+                                cons = cons * 0.9144;
+                                consUnit = 'METER';
+
+                                break;
+                            default :
+                                consUnit = res.unit_cons_ws;
+                                break;
+                        }
+
+                        document.getElementById('cons_ws').value = cons;
+                        document.getElementById('unit_cons_ws').value = consUnit;
+                        $("#unit_cons_marker").val(consUnit).trigger("change");
                     }
                 }
             });

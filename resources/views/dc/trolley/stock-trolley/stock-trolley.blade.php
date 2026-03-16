@@ -30,13 +30,14 @@
                             <th>Style</th>
                             <th>Color</th>
                             <th>Qty</th>
+                            <th class="d-none">ID QR Stocker</th>
                             <th class="text-center">Send</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if ($trolleyStocks && $trolleyStocks->count() < 1)
                             <tr>
-                                <td colspan="7">Data tidak ditemukan</td>
+                                <td colspan="8">Data tidak ditemukan</td>
                             </tr>
                         @else
                             @foreach ($trolleyStocks as $trolleyStock)
@@ -53,6 +54,7 @@
                                     <td>{{ $trolleyStock->style }}</td>
                                     <td>{{ $trolleyStock->color }}</td>
                                     <td>{{ num($trolleyStock->qty) }}</td>
+                                    <td class="d-none">{{ $trolleyStock->id_qr_stocker }}</td>
                                     <td class="align-middle">
                                         <div class='d-flex gap-1 justify-content-center'>
                                             <a href='{{ route('send-trolley-stock', ['id' => $trolleyStock->id]) }}/' class='btn btn-primary btn-sm'>
@@ -100,10 +102,14 @@
 
         let datatable = $("#datatable").DataTable({
             ordering: false,
+            language: {
+                search: "",
+                searchPlaceholder: "STK-1112233..."
+            },
             rowsGroup: [
                 0,
                 1,
-                6
+                7
             ],
         });
 

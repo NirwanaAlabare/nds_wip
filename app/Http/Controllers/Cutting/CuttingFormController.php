@@ -241,12 +241,15 @@ class CuttingFormController extends Controller
                 marker_input.tipe_marker,
                 marker_input.notes marker_notes,
                 marker_input.cons_piping,
+                marker_input.unit_cons_piping,
                 marker_input.panjang_marker,
                 marker_input.unit_panjang_marker,
                 marker_input.comma_marker,
                 marker_input.unit_comma_marker,
                 marker_input.lebar_marker,
                 marker_input.unit_lebar_marker,
+                marker_input.cons_ws,
+                marker_input.unit_cons_ws,
                 marker_input.lebar_ws,
                 marker_input.unit_lebar_ws,
                 marker_input.gelar_qty,
@@ -255,6 +258,7 @@ class CuttingFormController extends Controller
                 marker_input.po_marker,
                 marker_input.urutan_marker,
                 marker_input.cons_marker,
+                marker_input.unit_cons_marker,
                 marker_input.gramasi,
                 users.name
             ")->
@@ -307,7 +311,8 @@ class CuttingFormController extends Controller
     public function getNumberData(Request $request)
     {
         $numberData = DB::connection('mysql_sb')->table("bom_jo_item")->selectRaw("
-                bom_jo_item.cons cons_ws
+                bom_jo_item.cons cons_ws,
+                bom_jo_item.unit unit_cons_ws
             ")->
             leftJoin("so_det", "so_det.id", "=", "bom_jo_item.id_so_det")->
             leftJoin("so", "so.id", "=", "so_det.id_so")->
@@ -388,8 +393,11 @@ class CuttingFormController extends Controller
             "l_act" => "required|min:0.1",
             "unit_l_act" => "required",
             "cons_act" => "required",
+            "unit_cons_act" => "nullable",
             "cons_pipping" => "required",
+            "unit_cons_pipping" => "nullable",
             "cons_ampar" => "required",
+            "unit_cons_ampar" => "nullable",
             "est_pipping" => "required",
             "est_pipping_unit" => "required",
             "est_kain" => "required",
@@ -408,8 +416,11 @@ class CuttingFormController extends Controller
                 "lebar_ws_act" => $request['lebar_ws_act'],
                 "unit_lebar_ws_act" => $request['unit_lebar_ws_act'],
                 // "cons_act" => $validatedRequest['cons_act'],
+                // "unit_cons_act" => $validatedRequest['unit_cons_act'],
                 "cons_pipping" => $validatedRequest['cons_pipping'],
+                "unit_cons_pipping" => $validatedRequest['unit_cons_pipping'],
                 "cons_ampar" => $validatedRequest['cons_act'],
+                "unit_cons_ampar" => $validatedRequest['unit_cons_act'],
                 "est_pipping" => $validatedRequest['est_pipping'],
                 "est_pipping_unit" => $validatedRequest['est_pipping_unit'],
                 "est_kain" => $validatedRequest['est_kain'],
@@ -1159,6 +1170,40 @@ class CuttingFormController extends Controller
     public function finishProcess($id = 0, Request $request)
     {
         $formCutInputData = FormCutInput::where("id", $id)->first();
+
+        // Last Detail
+        $lastDetail = FormCutInputDetail::where("form_cut_id", $formCutInputData->id)->where("no_form_cut_input", $formCutInputData->no_form)->orderBy("created_at", "desc")->first();
+
+        if ($lastDetail) {
+
+            // When extension on last
+            if ($lastDetail->status == "extension") {
+
+                // Get the roll in need for extension
+                $needExtensionDetail = DB::table("form_cut_input_detail")->where("id", $lastDetail->id_sambungan)->first();
+                if ($needExtensionDetail) {
+                    return array(
+                        "status" => 400,
+                        "message" => "Sambungan untuk Roll berikut belum ada <br><b>".($needExtensionDetail->id_roll ? " ROLL ".$needExtensionDetail->id_roll : "  ITEM ".$needExtensionDetail->id_item)."</b><br> (Sisa Gelaran : ".($needExtensionDetail->sisa_gelaran).")" ,
+                    );
+                }
+            }
+            // the needing roll for extension
+            else if ($lastDetail->status == "need extension") {
+                $currentIdRoll = $lastDetail->id_roll;
+
+                // Delete the roll in need for extension (fail to create extension so user must input it again)
+                $lastDetail->delete();
+
+                // Update scanned item (roll detail & qty)
+                $this->fixRollQty($currentIdRoll);
+
+                return array(
+                    "status" => 400,
+                    "message" => "Roll ".$currentIdRoll." gagal disimpan" ,
+                );
+            }
+        }
 
         // Get latest no. cut
         $formCutInputSimilarLatest = DB::table("form_cut_input")->leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->

@@ -5,6 +5,24 @@
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    <style>
+        #card-preview .card-body {
+            max-height: 500px;
+            overflow-y: auto;
+            overflow-x: auto;
+            padding: 0;
+        }
+        #table-preview-po {
+            margin-bottom: 0 !important;
+        }
+        #table-preview-po thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: var(--sb-color) !important;
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -88,6 +106,7 @@
                     <input type="text" name="notes" id="notes" class="form-control">
                 </div>
             </div>
+
             <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Jumlah PO</label>
@@ -95,15 +114,22 @@
                 </div>
                 <div class="col-md-3 form-group">
                     <label>No Katalog BOM</label>
-                    <select name="id_bom" id="id_bom" class="form-control select2bs4">
-                        <option value="">Pilih No Katalog BOM</option>
-                        @foreach($bom_catalog as $bom)
-                            <option value="{{ $bom->id }}">{{ $bom->no_katalog_bom }}</option>
-                        @endforeach
-                    </select>
+                    <div class="d-flex align-items-center" style="gap: 5px;">
+                        <select name="id_bom" id="id_bom" class="form-control select2bs4">
+                            <option value="">Pilih No Katalog BOM</option>
+                            @foreach($bom_catalog as $bom)
+                                <option value="{{ $bom->id }}">{{ "{$bom->no_katalog_bom} - {$bom->style}" }}</option>
+                            @endforeach
+                        </select>
+                        <button type="button" class="btn btn-sm btn-info" style="font-size: 12px; white-space: nowrap;" onclick="goToEditBOM()">
+                            <i class="fas fa-edit"></i> Edit BOM
+                        </button>
+                    </div>
                 </div>
             </div>
+
             <hr>
+
             <div class="row">
                 <div class="col-md-3 form-group">
                     <label>VAT (%)</label>
@@ -122,7 +148,9 @@
                     <input type="text" name="profit" id="profit" class="form-control input-decimal" readonly>
                 </div>
             </div>
+
             <hr>
+
             <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Upload Gambar</label>
@@ -144,12 +172,15 @@
                 </div>
             </div>
         </div>
+
         <hr>
+
         <div class="card card-sb" id="card-preview">
             <div class="card-header bg-warning">
                 <h3 class="card-title fw-bold"><i class="fas fa-table"></i> Preview Data Upload</h3>
             </div>
             <div class="card-body">
+                <button type="button" id="btn-reload-preview" class="btn btn-info mb-2" onclick="loadPreviewUpload()"><i class="fas fa-refresh"></i> Reload Table</button>
                 <div class="table-responsive">
                     <table class="table table-bordered table-sm table-striped text-nowrap w-100" id="table-preview-po">
                         <thead class="bg-sb text-white text-center">
@@ -164,12 +195,12 @@
                                 <th>Qty</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
         </div>
+
         <div class="card-footer text-right">
             <button type="button" id="btn-back" class="btn btn-secondary">
                 <i class="fas fa-times"></i> Batal
@@ -178,7 +209,6 @@
         </div>
     </form>
 </div>
-
 @endsection
 
 @section('custom-script')
@@ -188,225 +218,400 @@
 <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 <script>
-   $(document).ready(function() {
-    $('.select2bs4').select2({
-        theme: 'bootstrap4',
-        width: '100%',
-    });
-
-    $(document).on('select2:open', () => {
-        document.querySelector('.select2-container--open .select2-search__field').focus();
-    });
-
-    $('#product_group').on('change', function() {
-        let selected_grup = $(this).val();
-        let select_item = $('#id_product_item');
-
-        if(selected_grup) {
-            $.ajax({
-                url: "{{ route('get-product-items') }}",
-                type: "POST",
-                data: {
-                    _token: "{{ csrf_token() }}",
-                    product_group: selected_grup
-                },
-                success: function(res) {
-                    select_item.empty().append('<option value="">Pilih Product Item</option>');
-                    $.each(res, function(key, value) {
-                        select_item.append(`<option value="${value.id}">${value.product_item}</option>`);
-                    });
-                    select_item.trigger('change');
-                }
-            });
-        } else {
-            select_item.empty().append('<option value="">Pilih Product Item</option>').trigger('change');
-        }
-    });
-
-    $(document).on('input', '.input-decimal', function() {
-        let val = $(this).val().replace(/[^0-9.]/g, '');
-        let parts = val.split('.');
-        if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
-        $(this).val(val);
-    });
-
-    $('#images').on('change', function(e) {
-        let file = e.target.files[0];
-        let reader = new FileReader();
-        if (file) {
-            if (!file.type.match('image.*')) {
-                Swal.fire('Peringatan!', 'File harus berupa gambar.', 'warning');
-                $(this).val('');
-                return;
-            }
-            reader.onload = function(e) {
-                $('#preview_images').attr('src', e.target.result).show();
-                $('#text_preview').hide();
-            }
-            reader.readAsDataURL(file);
-        }
-    });
-
     let previewTable = null;
 
+  function goToEditBOM() {
+        let id_bom = $('#id_bom').val();
+
+        if (!id_bom) {
+            Swal.fire('Peringatan!', 'Silakan pilih No Katalog BOM terlebih dahulu.', 'warning');
+            return;
+        }
+
+        let baseUrl = "{{ url('master-bom/edit') }}";
+        let urlEditBom = baseUrl + '/' + id_bom;
+
+        window.open(urlEditBom, '_blank');
+    }
+
+    // function loadPreviewUpload() {
+    //     let id_bom = $('#id_bom').val();
+    //     if (!id_bom) return;
+
+    //     $('#table-preview-po tbody').html('<tr><td colspan="15" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading data...</td></tr>');
+
+    //     $.ajax({
+    //         url: "{{ route('so-get-temp-data') }}",
+    //         type: 'GET',
+    //         data: { id_bom: id_bom },
+    //         success: function(res) {
+    //             if ($.fn.DataTable.isDataTable('#table-preview-po')) {
+    //                 $('#table-preview-po').DataTable().destroy();
+    //             }
+
+    //             let headerHtml = `<tr><th>Style</th><th>Desc</th><th>PO</th><th>Market</th><th>Ex Fty</th><th>Color</th>`;
+    //             res.available_sizes.forEach(size => {
+    //                 headerHtml += `<th class="bg-warning text-dark text-center">${size}</th>`;
+    //             });
+    //             headerHtml += `</tr>`;
+    //             $('#table-preview-po thead').html(headerHtml);
+
+    //             let bodyHtml = '';
+    //             if(res.data && res.data.length > 0) {
+    //                 res.data.forEach(row => {
+    //                     let colorErrorClass = row.color_error ? 'bg-danger text-white font-weight-bold' : '';
+
+    //                     bodyHtml += `<tr>
+    //                         <td>${row.style || '-'}</td>
+    //                         <td>${row.desc || '-'}</td>
+    //                         <td>${row.po || '-'}</td>
+    //                         <td>${row.market || '-'}</td>
+    //                         <td>${row.ex_fty || '-'}</td>
+    //                         <td class="${colorErrorClass}">${row.color || '-'}</td>`;
+
+    //                     res.available_sizes.forEach(size => {
+    //                         let val = row[size];
+    //                         let qty = val ? Number(val).toLocaleString('id-ID') : '-';
+    //                         let isError = (row.errors && row.errors[size]) ? 'bg-danger text-white font-weight-bold' : '';
+    //                         bodyHtml += `<td class="text-right ${isError}">${qty}</td>`;
+    //                     });
+    //                     bodyHtml += `</tr>`;
+    //                 });
+    //             } else {
+    //                 let colCount = 6 + (res.available_sizes ? res.available_sizes.length : 0);
+    //                 bodyHtml = `<tr><td colspan="${colCount}" class="text-center">Belum ada data di-upload.</td></tr>`;
+    //             }
+    //             $('#table-preview-po tbody').html(bodyHtml);
+
+    //             if ($('#table-preview-po tfoot').length === 0) $('#table-preview-po').append('<tfoot></tfoot>');
+
+    //             let footerHtml = `<tr>
+    //                     <th class="bg-light"></th><th class="bg-light"></th><th class="bg-light"></th>
+    //                     <th class="bg-light"></th><th class="bg-light"></th>
+    //                     <th class="text-right align-middle bg-light text-dark fw-bold">TOTAL</th>`;
+    //             res.available_sizes.forEach(size => {
+    //                 footerHtml += `<th class="text-right bg-light text-dark fw-bold">0</th>`;
+    //             });
+    //             footerHtml += `</tr>`;
+    //             $('#table-preview-po tfoot').html(footerHtml);
+
+    //             $('#total_qty').val(res.total_qty || 0);
+    //             $('#jumlah_po').val(res.jumlah_po || 0);
+
+    //             if (res.data && res.data.length > 0) {
+    //                 previewTable = $('#table-preview-po').DataTable({
+    //                     "paging": false, "info": true, "searching": true, "ordering": false,
+    //                     "autoWidth": false, "responsive": false, "scrollX": true,
+    //                     "footerCallback": function (row, data, start, end, display) {
+    //                         let api = this.api();
+    //                         let intVal = function (i) {
+    //                             if (typeof i === 'string') {
+    //                                 let val = i.replace(/\./g, '');
+    //                                 return val === '-' ? 0 : val * 1;
+    //                             }
+    //                             return typeof i === 'number' ? i : 0;
+    //                         };
+
+    //                         let startColIndex = 6;
+    //                         let numSizes = res.available_sizes.length;
+    //                         for (let i = 0; i < numSizes; i++) {
+    //                             let colIndex = startColIndex + i;
+    //                             let colTotal = api.column(colIndex, { search: 'applied' }).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+    //                             $(api.column(colIndex).footer()).html(colTotal.toLocaleString('id-ID'));
+    //                         }
+    //                     },
+    //                     "drawCallback": function(settings) {
+    //                         let api = this.api();
+    //                         setTimeout(function() { api.columns.adjust(); }, 10);
+    //                     }
+    //                 });
+    //             }
+
+    //             let btnSubmit = $('#form-create-so button[type="submit"]');
+
+    //             if (res.has_bom_error) {
+    //                 btnSubmit.prop('disabled', true);
+
+    //                 // if ($('#btn-fix-bom').length === 0) {
+    //                 //     $('#table-preview-po').before(`<button type="button" id="btn-reload-preview" class="btn btn-info mb-2" onclick="loadPreviewUpload()"><i class="fas fa-refresh"></i> Reload Table</button>`);
+    //                 // }
+
+    //                 Swal.fire({
+    //                     toast: true, position: 'top-end', icon: 'error',
+    //                     title: 'Warna/Size tidak terdaftar di BOM!',
+    //                     text: 'Silakan klik Edit BOM untuk mengubah Material.',
+    //                     showConfirmButton: false, timer: 5000
+    //                 });
+    //             } else {
+    //                 btnSubmit.prop('disabled', false);
+    //                 $('#btn-fix-bom').remove();
+    //             }
+    //         },
+    //         error: function(xhr) {
+    //             $('#table-preview-po tbody').html('<tr><td colspan="10" class="text-center text-danger">Gagal memuat data preview.</td></tr>');
+    //         }
+    //     });
+    // }
+
     function loadPreviewUpload() {
+        let id_bom = $('#id_bom').val();
+        if (!id_bom) return;
+
         $('#table-preview-po tbody').html('<tr><td colspan="15" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading data...</td></tr>');
 
         $.ajax({
             url: "{{ route('so-get-temp-data') }}",
             type: 'GET',
+            data: { id_bom: id_bom },
             success: function(res) {
                 if ($.fn.DataTable.isDataTable('#table-preview-po')) {
                     $('#table-preview-po').DataTable().destroy();
                 }
 
-                let headerHtml = `
-                    <tr>
-                        <th>Style</th>
-                        <th>Desc</th>
-                        <th>PO</th>
-                        <th>Market</th>
-                        <th>Ex Fty</th>
-                        <th>Color</th>`;
-
+                let headerHtml = `<tr><th>Style</th><th>Desc</th><th>PO</th><th>Market</th><th>Ex Fty</th><th>Color</th>`;
                 res.available_sizes.forEach(size => {
                     headerHtml += `<th class="bg-warning text-dark text-center">${size}</th>`;
                 });
                 headerHtml += `</tr>`;
-
                 $('#table-preview-po thead').html(headerHtml);
 
                 let bodyHtml = '';
                 if(res.data && res.data.length > 0) {
                     res.data.forEach(row => {
+                        let colorErrorClass = row.color_error ? 'bg-danger text-white font-weight-bold' : '';
+
                         bodyHtml += `<tr>
                             <td>${row.style || '-'}</td>
                             <td>${row.desc || '-'}</td>
                             <td>${row.po || '-'}</td>
                             <td>${row.market || '-'}</td>
                             <td>${row.ex_fty || '-'}</td>
-                            <td>${row.color || '-'}</td>`;
+                            <td class="${colorErrorClass}">${row.color || '-'}</td>`;
 
                         res.available_sizes.forEach(size => {
-                            let qty = row[size] ? Number(row[size]).toLocaleString('id-ID') : '-';
-                            bodyHtml += `<td class="text-right">${qty}</td>`;
+                            let val = row[size];
+                            let qty = val ? Number(val).toLocaleString('id-ID') : '-';
+                            let isError = (row.errors && row.errors[size]) ? 'bg-danger text-white font-weight-bold' : '';
+                            bodyHtml += `<td class="text-right ${isError}">${qty}</td>`;
                         });
-
                         bodyHtml += `</tr>`;
                     });
                 } else {
-                    bodyHtml = `<tr><td colspan="${6 + res.available_sizes.length}" class="text-center">Belum ada data di-upload.</td></tr>`;
+                    let colCount = 6 + (res.available_sizes ? res.available_sizes.length : 0);
+                    bodyHtml = `<tr><td colspan="${colCount}" class="text-center">Belum ada data di-upload.</td></tr>`;
                 }
-
                 $('#table-preview-po tbody').html(bodyHtml);
+
+                if ($('#table-preview-po tfoot').length === 0) $('#table-preview-po').append('<tfoot></tfoot>');
+
+                let footerHtml = `<tr>
+                        <th class="bg-light"></th><th class="bg-light"></th><th class="bg-light"></th>
+                        <th class="bg-light"></th><th class="bg-light"></th>
+                        <th class="text-right align-middle bg-light text-dark fw-bold">TOTAL</th>`;
+                res.available_sizes.forEach(size => {
+                    footerHtml += `<th class="text-right bg-light text-dark fw-bold">0</th>`;
+                });
+                footerHtml += `</tr>`;
+                $('#table-preview-po tfoot').html(footerHtml);
 
                 $('#total_qty').val(res.total_qty || 0);
                 $('#jumlah_po').val(res.jumlah_po || 0);
 
                 if (res.data && res.data.length > 0) {
                     previewTable = $('#table-preview-po').DataTable({
-                        "paging": true,
-                        "lengthChange": true,
-                        "searching": true,
-                        "ordering": false,
-                        "info": true,
-                        "autoWidth": false,
-                        "responsive": false,
-                        "scrollX": true
+                        "paging": false, "info": true, "searching": true, "ordering": false,
+                        "autoWidth": false, "responsive": false, "scrollX": true,
+                        "footerCallback": function (row, data, start, end, display) {
+                            let api = this.api();
+                            let intVal = function (i) {
+                                if (typeof i === 'string') {
+                                    let val = i.replace(/\./g, '');
+                                    return val === '-' ? 0 : val * 1;
+                                }
+                                return typeof i === 'number' ? i : 0;
+                            };
+
+                            let startColIndex = 6;
+                            let numSizes = res.available_sizes.length;
+                            for (let i = 0; i < numSizes; i++) {
+                                let colIndex = startColIndex + i;
+                                let colTotal = api.column(colIndex, { search: 'applied' }).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+                                $(api.column(colIndex).footer()).html(colTotal.toLocaleString('id-ID'));
+                            }
+                        },
+                        "drawCallback": function(settings) {
+                            let api = this.api();
+                            setTimeout(function() { api.columns.adjust(); }, 10);
+                        }
                     });
+                }
+
+                let btnSubmit = $('#form-create-so button[type="submit"]');
+
+                if (res.has_bom_error) {
+                    btnSubmit.prop('disabled', true);
+
+                    let htmlError = '';
+
+                    if (res.missing_colors && res.missing_colors.length > 0) {
+                        htmlError += `<p class="text-danger mb-1" style="font-size:14px;"><b>Warna di BOM tapi TIDAK ADA di Excel:</b></p>
+                                      <p class="mb-3 text-dark">` + res.missing_colors.join(', ') + `</p>`;
+                    }
+                    if (res.missing_sizes && res.missing_sizes.length > 0) {
+                        htmlError += `<p class="text-danger mb-1" style="font-size:14px;"><b>Size di BOM tapi TIDAK ADA di Excel:</b></p>
+                                      <p class="mb-3 text-dark">` + res.missing_sizes.join(', ') + `</p>`;
+                    }
+
+                    if (htmlError !== '') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Data Excel Kurang Lengkap!',
+                            html: htmlError + '<br><small><b>Solusi:</b> Update File Excel Anda <b>ATAU</b> hapus warna/size tersebut dari BOM.</small>',
+                            confirmButtonText: 'Tutup'
+                        });
+                    } else {
+                        // if ($('#btn-fix-bom').length === 0) {
+                        //     $('#table-preview-po').before(`<button type="button" id="btn-fix-bom" class="btn btn-danger mb-2" onclick="goToEditBOM()"><i class="fas fa-tools"></i> Terdapat Material Belum Terdaftar (Klik untuk Fix di Tab Baru)</button>`);
+                        // }
+
+                        Swal.fire({
+                            toast: true, position: 'top-end', icon: 'error',
+                            title: 'Warna/Size tidak terdaftar di BOM!',
+                            text: 'Silakan klik Edit BOM untuk menambah material.',
+                            showConfirmButton: false, timer: 5000
+                        });
+                    }
+                } else {
+                    btnSubmit.prop('disabled', false);
+                    $('#btn-fix-bom').remove();
                 }
             },
             error: function(xhr) {
-                console.error("Gagal load preview pivot", xhr.responseText);
                 $('#table-preview-po tbody').html('<tr><td colspan="10" class="text-center text-danger">Gagal memuat data preview.</td></tr>');
             }
         });
     }
 
-    loadPreviewUpload();
+    $(document).ready(function() {
 
-    $('#file_so').off('change').on('change', function() {
-        let file = this.files[0];
-        if (!file) return;
+        $('.select2bs4').select2({ theme: 'bootstrap4', width: '100%' });
+        $(document).on('select2:open', () => { document.querySelector('.select2-container--open .select2-search__field').focus(); });
 
-        let inputExcel = $(this);
-        inputExcel.prop('disabled', true);
-
-        let formData = new FormData();
-        formData.append('file_so', file);
-        formData.append('_token', '{{ csrf_token() }}');
-
-        Swal.fire({
-            title: 'Memproses Excel...',
-            didOpen: () => { Swal.showLoading(); }
-        });
-
-        $.ajax({
-            url: "{{ route('so-upload-excel') }}",
-            type: 'POST',
-            data: formData,
-            contentType: false,
-            processData: false,
-            success: function(res) {
-                if (res.status === 200) {
-                    Swal.fire('Berhasil!', res.message, 'success');
-
-                    loadPreviewUpload();
-
-                    inputExcel.val('');
-                }
-            },
-            error: function(xhr) {
-                let res = xhr.responseJSON;
-                if (res && res.errors) {
-                    let errHtml = res.errors.map(e => `<li>${e}</li>`).join('');
-                    Swal.fire('Gagal!', `<ul class="text-left">${errHtml}</ul>`, 'error');
-                } else {
-                    Swal.fire('Error!', 'Gagal memproses file.', 'error');
-                }
-            },
-            complete: function() {
-                inputExcel.prop('disabled', false);
-            }
-        });
-    });
-
-    $('#form-create-so').on('submit', function(e) {
-        e.preventDefault();
-        let formData = new FormData(this);
-
-        Swal.fire({
-            title: 'Simpan Sales Order?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Ya, Simpan',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({ title: 'Sedang Proses...', didOpen: () => { Swal.showLoading(); } });
-
-                $.ajax({
-                    url: "{{ route('so-store') }}",
-                    type: "POST",
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function(res) {
-                        Swal.fire({ icon: 'success', title: 'Berhasil!', text: res.message })
-                        .then(() => { window.location.href = "{{ route('master-marketing-so') }}"; });
-                    },
-                    error: function(xhr) {
-                        let err = xhr.responseJSON;
-                        Swal.fire({ icon: 'error', title: 'Gagal', text: err.message || 'Error Server' });
-                    }
+        $('#product_group').on('change', function() {
+            let selected_grup = $(this).val();
+            let select_item = $('#id_product_item');
+            if(selected_grup) {
+                $.post("{{ route('get-product-items') }}", { _token: "{{ csrf_token() }}", product_group: selected_grup }, function(res) {
+                    select_item.empty().append('<option value="">Pilih Product Item</option>');
+                    $.each(res, function(key, value) { select_item.append(`<option value="${value.id}">${value.product_item}</option>`); });
+                    select_item.trigger('change');
                 });
+            } else {
+                select_item.empty().append('<option value="">Pilih Product Item</option>').trigger('change');
             }
         });
-    });
 
-    $('#btn-back').on('click', function(e) {
-        window.location.href = "{{ route('master-marketing-so') }}";
+        $(document).on('input', '.input-decimal', function() {
+            let val = $(this).val().replace(/[^0-9.]/g, '');
+            let parts = val.split('.');
+            if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+            $(this).val(val);
+        });
+
+        $('#images').on('change', function(e) {
+            let file = e.target.files[0];
+            let reader = new FileReader();
+            if (file) {
+                if (!file.type.match('image.*')) {
+                    Swal.fire('Peringatan!', 'File harus berupa gambar.', 'warning');
+                    $(this).val(''); return;
+                }
+                reader.onload = function(e) {
+                    $('#preview_images').attr('src', e.target.result).show();
+                    $('#text_preview').hide();
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        $('#id_bom').on('change', function() {
+            let id_bom = $(this).val();
+            let hasData = $('#table-preview-po tbody tr td').length > 1;
+
+            if (id_bom && hasData) {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Memvalidasi ulang data...', showConfirmButton: false, timer: 2000 });
+                loadPreviewUpload();
+            } else if (!id_bom && hasData) {
+                $('#form-create-so button[type="submit"]').prop('disabled', true);
+                Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'Pilih BOM!', text: 'Silakan pilih Katalog BOM untuk memvalidasi data.', showConfirmButton: false, timer: 3000 });
+            }
+        });
+
+        $('#file_so').off('change').on('change', function() {
+            let id_bom = $('#id_bom').val();
+            if (!id_bom) {
+                Swal.fire('Peringatan!', 'Silakan pilih No Katalog BOM terlebih dahulu.', 'warning');
+                $(this).val(''); return;
+            }
+
+            let file = this.files[0];
+            if (!file) return;
+
+            let inputExcel = $(this);
+            inputExcel.prop('disabled', true);
+            let formData = new FormData();
+            formData.append('file_so', file);
+            formData.append('id_bom', id_bom);
+            formData.append('_token', '{{ csrf_token() }}');
+
+            Swal.fire({ title: 'Memproses Excel...', didOpen: () => { Swal.showLoading(); } });
+
+            $.ajax({
+                url: "{{ route('so-upload-excel') }}", type: 'POST', data: formData, contentType: false, processData: false,
+                success: function(res) {
+                    if (res.status === 200) {
+                        Swal.fire({ icon: 'success', title: 'Berhasil!', text: res.message, timer: 1500, showConfirmButton: false });
+                        loadPreviewUpload();
+                        inputExcel.val('');
+                    }
+                },
+                error: function(xhr) {
+                    let res = xhr.responseJSON;
+                    if (res && res.errors) {
+                        let errorList = Array.isArray(res.errors) ? res.errors : Object.values(res.errors).flat();
+                        let errHtml = errorList.map(e => `<li>${e}</li>`).join('');
+                        Swal.fire({ icon: 'error', title: res.message || 'Gagal!', html: `<ul class="text-left" style="font-size: 13px;">${errHtml}</ul>` });
+                    } else {
+                        Swal.fire('Error!', res.message || 'Gagal memproses file.', 'error');
+                    }
+                },
+                complete: function() { inputExcel.prop('disabled', false); }
+            });
+        });
+
+        $('#form-create-so').on('submit', function(e) {
+            e.preventDefault();
+            let formData = new FormData(this);
+            Swal.fire({
+                title: 'Simpan Sales Order?', icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, Simpan', cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({ title: 'Sedang Proses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                    $.ajax({
+                        url: "{{ route('so-store') }}", type: "POST", data: formData, processData: false, contentType: false,
+                        success: function(res) {
+                            Swal.fire({ icon: 'success', title: 'Berhasil!', text: res.message })
+                            .then(() => { window.location.href = "{{ route('master-marketing-so') }}"; });
+                        },
+                        error: function(xhr) {
+                            Swal.fire({ icon: 'error', title: 'Gagal', text: xhr.responseJSON.message || 'Error Server' });
+                        }
+                    });
+                }
+            });
+        });
+
+        $('#btn-back').on('click', function(e) { window.location.href = "{{ route('master-marketing-so') }}"; });
     });
-});
 </script>
 @endsection

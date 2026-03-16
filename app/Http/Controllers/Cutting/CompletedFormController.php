@@ -40,12 +40,15 @@ class CompletedFormController extends Controller
         $additionalQuery = "";
 
         if ($request->ajax()) {
-            if ($request->dateFrom) {
-                $additionalQuery .= " and DATE(a.waktu_selesai) >= '" . $request->dateFrom . "' ";
+            $dateFrom = $request->dateFrom ? $request->dateFrom : date("Y-m-d");
+            $dateTo = $request->dateTo ? $request->dateTo : date("Y-m-d");
+
+            if ($dateFrom) {
+                $additionalQuery .= " and DATE(a.waktu_selesai) >= '" . $dateFrom . "' ";
             }
 
-            if ($request->dateTo) {
-                $additionalQuery .= " and DATE(a.waktu_selesai) <= '" . $request->dateTo . "' ";
+            if ($dateTo) {
+                $additionalQuery .= " and DATE(a.waktu_selesai) <= '" . $dateTo . "' ";
             }
 
             $keywordQuery = "";
@@ -73,6 +76,7 @@ class CompletedFormController extends Controller
                     a.no_form,
                     a.no_cut,
                     COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) tgl_form_cut,
+                    COALESCE(a.updated_at, a.waktu_selesai) waktu_selesai,
                     b.id marker_id,
                     b.act_costing_ws ws,
                     b.style,

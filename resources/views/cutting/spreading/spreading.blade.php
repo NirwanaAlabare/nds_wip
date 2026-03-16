@@ -384,13 +384,17 @@
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
+                        // Superadmin Access
+                        let isAdmin = "{{ Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() }}";
+
+                        // Buttons
                         let btnEditMeja = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-info btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-edit'></i></a>" : "<button class='btn btn-info btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);' disabled><i class='fa fa-edit'></i></button>";
                         let btnEditStatus = row.status != 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify({'id_status' : row.id, 'status' : row.status}) + ", \"editStatusModal\", [{\"function\" : \"dataTableRatio1Reload()\"}]);'><i class='fa fa-cog'></i></a>" : "<button class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify({'id_status' : row.id, 'status' : row.status}) + ", \"editStatusModal\", [{\"function\" : \"dataTableRatio1Reload()\"}]);' disabled><i class='fa fa-cog'></i></button>";
                         let btnDelete = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-danger btn-sm' data='"+JSON.stringify(row)+"' data-url='"+'{{ route('destroy-spreading') }}'+"/"+row.id+"' onclick='deleteData(this);'><i class='fa fa-trash'></i></a>" : "<button class='btn btn-danger btn-sm' data='"+JSON.stringify(row)+"' data-url='"+'{{ route('destroy-spreading') }}'+"/"+row.id+"' onclick='deleteData(this);' disabled><i class='fa fa-trash'></i></button>";
                         let btnPDF = "<a href='javascript:void(0);' class='btn btn-dark btn-sm' data='"+JSON.stringify(row)+"' onclick='printForm(this);'><i class='fa fa-file-pdf'></i></a>";
-                        // btnPDF = `<a class='btn btn-dark btn-sm' href='{{ route('export-cutting-form-pdf') }}?id=` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-file-pdf'></i></a>`;
-                        let btnProcess = "";
 
+                        // Set Form Process based on form type
+                        let btnProcess = "";
                         if (row.tipe_form_cut == 'MANUAL') {
                             btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
                                 `<a class='btn btn-success btn-sm' href='{{ route('process-manual-form-cut') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+ (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></a>` :
@@ -405,7 +409,7 @@
                                 `<button class='btn btn-success btn-sm' data-bs-toggle='tooltip' disabled><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></button>`;
                         }
 
-                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEditMeja + btnEditStatus + btnProcess + btnDelete + btnPDF + `</div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEditMeja + (isAdmin > 0 ? btnEditStatus : '') + btnProcess + (isAdmin > 0 ? btnDelete : '') + btnPDF + `</div>`;
                     }
                 },
                 {
@@ -600,6 +604,8 @@
                 let data = JSON.parse(element.getAttribute('data'));
 
                 if (data) {
+                    showLoading();
+
                     $.ajax({
                         url: '{{ route('export-cutting-form-pdf') }}',
                         type: 'post',
@@ -611,6 +617,8 @@
                             responseType: 'blob'
                         },
                         success: function(res) {
+                            hideLoading();
+
                             if (res) {
                                 if (res.status == 400) {
                                     return Swal.fire({
@@ -629,6 +637,8 @@
                             }
                         },
                         error: function (jqXHR) {
+                            hideLoading();
+
                             console.error(jqXHR);
                         }
                     });

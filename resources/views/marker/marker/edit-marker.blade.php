@@ -87,7 +87,10 @@
                                 <div class="col-md-4">
                                     <div class="mb-1">
                                         <label class="form-label"><small>Cons WS</small></label>
-                                        <input type="text" class="form-control" id="cons_ws" name="cons_ws" value="{{ $marker->cons_ws }}" readonly>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="cons_ws" name="cons_ws" value="{{ $marker->cons_ws }}" readonly>
+                                            <input type="text" class="form-control" id="unit_cons_ws" name="unit_cons_ws" value="{{ $marker->unit_cons_ws }}" readonly>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -134,13 +137,19 @@
                             <div class="col-6 col-md-6">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Cons Marker</small></label>
-                                    <input type="number" class="form-control" id="cons_marker" name="cons_marker" step=".001" value="{{ $marker->cons_marker }}" {{ $totalForm > 0 ? "readonly" : "" }}>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="cons_marker" name="cons_marker" step=".001" value="{{ $marker->cons_marker }}" {{ $totalForm > 0 ? "readonly" : "" }}>
+                                        <input type="text" class="form-control" id="unit_cons_marker" name="unit_cons_marker" step=".001" value="{{ $marker->unit_cons_marker }}" readonly>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-4 col-md-4">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Cons Piping</small></label>
-                                    <input type="number" class="form-control" id="cons_piping" name="cons_piping" step=".001" value="{{ $marker->cons_piping }}" {{-- $totalForm > 0 ? "readonly" : "" --}}>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="cons_piping" name="cons_piping" step=".001" value="{{ $marker->cons_piping }}" {{-- $totalForm > 0 ? "readonly" : "" --}}>
+                                        <input type="text" class="form-control" id="unit_cons_piping" name="unit_cons_piping" step=".001" value="{{ $marker->unit_cons_piping }}" readonly>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-4 col-md-4">

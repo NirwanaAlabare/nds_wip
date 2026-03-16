@@ -16,6 +16,8 @@
             <input type="checkbox" name="bypass" id="bypass" value="bypass">
             <label for="bypass">Bypass Stocker</label>
         </div>
+
+        {{-- Header Data PROCESS 1 --}}
         <div class="col-md-6">
             <div class="card card-sb h-100" id="header-data-card">
                 <div class="card-header">
@@ -184,6 +186,8 @@
                 </div>
             </div>
         </div>
+
+        {{-- Detail Data PROCESS 2 --}}
         <div class="col-md-6">
             <div class="card card-sb h-100" id="detail-data-card">
                 <div class="card-header">
@@ -323,25 +327,37 @@
                         <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons WS</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws" id="cons_ws" readonly>
+                                <div class="input-group">
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws" id="cons_ws" readonly>
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_cons_ws" id="unit_cons_ws" readonly>
+                                </div>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="cons_marker" id="cons_marker" value="{{ $formCutInputData->cons_marker }}" readonly>
+                                <div class="input-group">
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="cons_marker" id="cons_marker" value="{{ $formCutInputData->cons_marker }}" readonly>
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_cons_marker" id="unit_cons_marker" value="{{ $formCutInputData->unit_cons_marker }}" readonly>
+                                </div>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-calc"><small><b>Cons Ampar</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-calc" name="cons_act" id="cons_act" value="{{ round($formCutInputData->cons_ampar, 2) > 0 ? $formCutInputData->cons_ampar : 0 }}" step=".01" readonly>
+                                <div class="input-group">
+                                    <input type="number" class="form-control form-control-sm border-calc" name="cons_act" id="cons_act" value="{{ round($formCutInputData->cons_ampar, 2) > 0 ? $formCutInputData->cons_ampar : 0 }}" step=".01" readonly>
+                                    <input type="text" class="form-control form-control-sm border-calc" name="unit_cons_ampar" id="unit_cons_ampar" value="{{ $formCutInputData->unit_cons_marker }}" readonly>
+                                </div>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons Piping</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-fetch" step=".01" name="cons_pipping" id="cons_pipping" value="{{ $formCutInputData->cons_piping ? $formCutInputData->cons_piping : 0 }}" readonly>
+                                <div class="input-group">
+                                    <input type="number" class="form-control form-control-sm border-fetch" step=".01" name="cons_pipping" id="cons_pipping" value="{{ $formCutInputData->cons_piping ? $formCutInputData->cons_piping : 0 }}" readonly>
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_cons_pipping" id="unit_cons_pipping" value="{{ $formCutInputData->unit_cons_piping }}" readonly>
+                                </div>
                             </div>
                         </div>
                         <div class="col-6 col-md-6 d-none">
@@ -390,6 +406,8 @@
                 </div>
             </div>
         </div>
+
+        {{-- Loss Time --}}
         <div class="col-md-12">
             <div class="card card-sb collapsed-card h-100" id="lost-time-card">
                 <div class="card-header">
@@ -432,6 +450,8 @@
         <div class="col-md-12">
             <button class="btn btn-dark btn-block" onclick="recalculateForm()">Recalculate Form</button>
         </div>
+
+        {{-- Spreading Summary List PROCESS 3 --}}
         <div class="col-md-12">
             <div class="card card-sb" id="summary-card">
                 <div class="card-header">
@@ -589,6 +609,8 @@
                 </div>
             </div>
         </div>
+
+        {{-- Edit Selected Spreading Form --}}
         <div class="col-md-12">
             <div class="card card-sb" id="spreading-form-card">
                 <div class="card-header">
@@ -983,23 +1005,27 @@
             </div>
         </div>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <div class="mb-3">
-                <label class="form-label">UBAH STATUS</label>
-                <div class="d-flex gap-1 mb-3">
-                    <select class="form-control select2bs4" name="edit_status" id="edit_status">
-                        <option value="SPREADING">SPREADING</option>
-                        <option value="PENGERJAAN FORM CUTTING">PENGERJAAN FORM CUTTING</option>
-                        <option value="PENGERJAAN FORM CUTTING DETAIL">PENGERJAAN FORM CUTTING DETAIL</option>
-                        <option value="PENGERJAAN FORM CUTTING SPREAD">PENGERJAAN FORM CUTTING SPREAD</option>
-                        <option value="SELESAI PENGERJAAN" selected>SELESAI PENGERJAAN</option>
-                    </select>
-                    <button class="btn btn-success btn-sm" onclick="updateStatus()"><i class="fa fa-save"></i></button>
+
+    {{-- Update Form Status --}}
+    @if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0)
+        <div class="card">
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">UBAH STATUS</label>
+                    <div class="d-flex gap-1 mb-3">
+                        <select class="form-control select2bs4" name="edit_status" id="edit_status">
+                            <option value="SPREADING">SPREADING</option>
+                            <option value="PENGERJAAN FORM CUTTING">PENGERJAAN FORM CUTTING</option>
+                            <option value="PENGERJAAN FORM CUTTING DETAIL">PENGERJAAN FORM CUTTING DETAIL</option>
+                            <option value="PENGERJAAN FORM CUTTING SPREAD">PENGERJAAN FORM CUTTING SPREAD</option>
+                            <option value="SELESAI PENGERJAAN" selected>SELESAI PENGERJAAN</option>
+                        </select>
+                        <button class="btn btn-success btn-sm" onclick="updateStatus()"><i class="fa fa-save"></i></button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    @endif
 @endsection
 
 @section('custom-script')
@@ -2061,10 +2087,46 @@
                 },
                 dataType: 'json',
                 success: function(res) {
-                    if (res) {
-                        let consWs = res.cons_ws;
+                    // if (res) {
+                    //     let consWs = res.cons_ws;
 
-                        document.getElementById("cons_ws").value = consWs;
+                    //     document.getElementById("cons_ws").value = consWs;
+                    // }
+
+                    if (res) {
+                        let cons = res.cons_ws;
+                        let consUnit = "";
+                        console.log((res.unit_cons_ws || '').toUpperCase())
+                        switch ((res.unit_cons_ws || '').toUpperCase()) {
+                            case 'KG' :
+                                break;
+                            case 'KGM' :
+                                consUnit = 'KGM';
+
+                                break;
+                            case 'MT' :
+                            case 'MTR' :
+                            case 'METER' :
+                                consUnit = 'METER';
+
+                                break;
+                            case 'YRD' :
+                            case 'YARD' :
+                                cons = Number(cons * 0.9144).round(3);
+                                consUnit = 'METER';
+
+                                break;
+                            default :
+                                consUnit = res.unit_cons_ws;
+                                break;
+                        }
+
+                        $('#cons_ws').val(cons).trigger("change");
+                        $('#unit_cons_ws').val(consUnit).trigger("change");
+                        // $('#cons_ws_marker').val(cons).trigger("change");
+                        // $("#unit_cons_ws_marker").val(consUnit).trigger("change");
+                        // $('#cons_marker').val(cons).trigger("change");
+                        // $("#unit_cons_marker").val(consUnit).trigger("change");
                     }
                 }
             });
@@ -2865,9 +2927,25 @@
                         document.getElementById("loading").classList.add('d-none');
 
                         if (res.redirect) {
-                            window.open(res.redirect, '_blank');
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: 'Status form berhasil diubah.',
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            }).then(() => {
+                                window.open(res.redirect, '_blank');
+                            });
                         } else {
-                            window.location.reload();
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: res.message,
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
                         }
                     },
                     error: function(jqXHR) {

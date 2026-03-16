@@ -366,7 +366,9 @@ class CuttingFormManualController extends Controller
                 marker_input.po_marker,
                 marker_input.urutan_marker,
                 marker_input.cons_ws,
+                marker_input.unit_cons_ws,
                 marker_input.cons_marker,
+                marker_input.unit_cons_marker,
                 marker_input.gramasi,
                 users.name
             ")->
@@ -794,6 +796,7 @@ class CuttingFormManualController extends Controller
             "buyer" => "required",
             "style" => "required",
             "cons_ws_marker" => "nullable",
+            "unit_cons_ws_marker" => "nullable",
             "color" => "required",
             "panel_select" => "nullable",
             "panel" => "required",
@@ -829,6 +832,7 @@ class CuttingFormManualController extends Controller
                             'buyer' => $validatedRequest['buyer'],
                             'style' => $validatedRequest['style'],
                             'cons_ws' => $validatedRequest['cons_ws_marker'] ? $validatedRequest['cons_ws_marker'] : '0',
+                            'unit_cons_ws' => $validatedRequest['unit_cons_ws_marker'] ? $validatedRequest['unit_cons_ws_marker'] : '0',
                             'color' => $validatedRequest['color'],
                             'panel_id' => $validatedRequest['panel_select'],
                             'panel' => $validatedRequest['panel'],
@@ -850,6 +854,7 @@ class CuttingFormManualController extends Controller
                     'buyer' => $validatedRequest['buyer'],
                     'style' => $validatedRequest['style'],
                     'cons_ws' => $validatedRequest['cons_ws_marker'] ? $validatedRequest['cons_ws_marker'] : '0',
+                    'unit_cons_ws' => $validatedRequest['unit_cons_ws_marker'] ? $validatedRequest['unit_cons_ws_marker'] : '0',
                     'color' => $validatedRequest['color'],
                     'panel_id' => $validatedRequest['panel_select'],
                     'panel' => $validatedRequest['panel'],
@@ -968,15 +973,20 @@ class CuttingFormManualController extends Controller
             "l_act" => "required|numeric",
             "unit_l_act" => "required",
             "cons_ws" => "required|numeric",
+            "unit_cons_ws" => "required",
             "cons_act" => "required|numeric",
+            "unit_cons_act" => "required",
             "cons_pipping" => "required|numeric",
+            "unit_cons_pipping" => "required",
             "cons_ampar" => "required|numeric",
+            "unit_cons_ampar" => "required",
             "est_pipping" => "required|numeric",
             "est_pipping_unit" => "required",
             "est_kain" => "required|numeric",
             "est_kain_unit" => "required",
             "gramasi" => "required|numeric|gt:0",
             "cons_marker" => "required|numeric|gt:0",
+            "unit_cons_marker" => "required",
         ]);
 
         $updateMarker = Marker::where('kode', $validatedRequest['id_marker'])->update([
@@ -989,7 +999,9 @@ class CuttingFormManualController extends Controller
             "lebar_ws" => $request['lebar_ws_act'],
             "unit_lebar_ws" => $request['unit_lebar_ws_act'],
             "cons_ws" => $validatedRequest['cons_ws'],
+            "unit_cons_ws" => $validatedRequest['unit_cons_ws'],
             "cons_marker" => $validatedRequest['cons_marker'],
+            "unit_cons_marker" => $validatedRequest['unit_cons_marker'],
             "gramasi" => $validatedRequest['gramasi'],
         ]);
 
@@ -1007,7 +1019,9 @@ class CuttingFormManualController extends Controller
                 "unit_lebar_ws_act" => $request['unit_lebar_ws_act'],
                 // "cons_act" => $validatedRequest['cons_act'],
                 "cons_pipping" => $validatedRequest['cons_pipping'],
+                "unit_cons_pipping" => $validatedRequest['unit_cons_pipping'],
                 "cons_ampar" => $validatedRequest['cons_act'],
+                "unit_cons_ampar" => $validatedRequest['unit_cons_act'],
                 "est_pipping" => $validatedRequest['est_pipping'],
                 "est_pipping_unit" => $validatedRequest['est_pipping_unit'],
                 "est_kain" => $validatedRequest['est_kain'],
@@ -1744,6 +1758,40 @@ class CuttingFormManualController extends Controller
     public function finishProcess($id = 0, Request $request)
     {
         $formCutInputData = FormCutInput::where("id", $id)->first();
+
+        // Last Detail
+        $lastDetail = FormCutInputDetail::where("form_cut_id", $formCutInputData->id)->where("no_form_cut_input", $formCutInputData->no_form)->orderBy("created_at", "desc")->first();
+
+        if ($lastDetail) {
+
+            // When extension on last
+            if ($lastDetail->status == "extension") {
+
+                // Get the roll in need for extension
+                $needExtensionDetail = DB::table("form_cut_input_detail")->where("id", $lastDetail->id_sambungan)->first();
+                if ($needExtensionDetail) {
+                    return array(
+                        "status" => 400,
+                        "message" => "Sambungan untuk Roll berikut belum ada <br><b>".($needExtensionDetail->id_roll ? " ROLL ".$needExtensionDetail->id_roll : "  ITEM ".$needExtensionDetail->id_item)."</b><br> (Sisa Gelaran : ".($needExtensionDetail->sisa_gelaran).")" ,
+                    );
+                }
+            }
+            // the needing roll for extension
+            else if ($lastDetail->status == "need extension") {
+                $currentIdRoll = $lastDetail->id_roll;
+
+                // Delete the roll in need for extension (fail to create extension so user must input it again)
+                $lastDetail->delete();
+
+                // Update scanned item (roll detail & qty)
+                $this->fixRollQty($currentIdRoll);
+
+                return array(
+                    "status" => 400,
+                    "message" => "Roll ".$currentIdRoll." gagal disimpan" ,
+                );
+            }
+        }
 
         $formCutInputSimilarCount = FormCutInput::leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->
             where("marker_input.act_costing_ws", $formCutInputData->marker->act_costing_ws)->

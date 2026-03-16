@@ -137,10 +137,6 @@ class SecondaryInhouseInController extends Controller
             $additionalQuery .= " and a.tgl_trans >= '" . $request->dateFrom . "' ";
         }
 
-        if ($request->dateTo) {
-            $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
-        }
-
         $data_input = collect(DB::select("
             SELECT a.*,
             (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
@@ -209,7 +205,15 @@ class SecondaryInhouseInController extends Controller
     public function total_secondary_inhouse_in(Request $request)
     {
         $additionalQuery = '';
+        $tipeCase = "(CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END)";
+        $panelExpr = "COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END)))";
+        $namaPartExpr = "CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END))";
+        $sizeExpr = "COALESCE(msb.size, s.size)";
+        $noCutExpr = "COALESCE(f.no_cut, fp.no_cut, '-')";
+        $stockerRangeExpr = "CONCAT(s.range_awal, ' - ', s.range_akhir)";
+        $createdAtExpr = "DATE_FORMAT(a.created_at, '%d-%m-%Y %H:%i:%s')";
 
+        // Date Filter
         if ($request->dateFrom) {
             $additionalQuery .= " and a.tgl_trans >= '" . $request->dateFrom . "' ";
         }
@@ -218,6 +222,83 @@ class SecondaryInhouseInController extends Controller
             $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
         }
 
+        // Global Filter
+        if ($request->filter) {
+            $additionalQuery .= " and (
+                DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') LIKE '%" . $request->filter . "%'
+                OR a.id_qr_stocker LIKE '%" . $request->filter . "%'
+                OR " . $tipeCase . " LIKE '%" . $request->filter . "%'
+                OR s.act_costing_ws LIKE '%".$request->filter."%'
+                OR p.style LIKE '%".$request->filter."%'
+                OR s.color LIKE '%".$request->filter."%'
+                OR " . $panelExpr . " LIKE '%".$request->filter."%'
+                OR " . $namaPartExpr . " LIKE '%".$request->filter."%'
+                OR " . $sizeExpr . " LIKE '%".$request->filter."%'
+                OR " . $noCutExpr . " LIKE '%".$request->filter."%'
+                OR dc.tujuan LIKE '%".$request->filter."%'
+                OR dc.lokasi LIKE '%".$request->filter."%'
+                OR " . $stockerRangeExpr . " LIKE '%".$request->filter."%'
+                OR a.qty_in LIKE '%".$request->filter."%'
+                OR p.buyer LIKE '%".$request->filter."%'
+                OR a.user LIKE '%".$request->filter."%'
+                OR " . $createdAtExpr . " LIKE '%".$request->filter."%'
+            )";
+        }
+
+        // Header Filter
+        if ($request->tgl_trans_fix) {
+            $additionalQuery .= " and  DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') LIKE '%" . $request->tgl_trans_fix . "%' ";
+        }
+        if ($request->id_qr_stocker) {
+            $additionalQuery .= " and a.id_qr_stocker LIKE '%" . $request->id_qr_stocker . "%' ";
+        }
+        if ($request->tipe) {
+            $additionalQuery .= " and " . $tipeCase . " LIKE '%" . $request->tipe . "%' ";
+        }
+        if ($request->act_costing_ws) {
+            $additionalQuery .= " and s.act_costing_ws LIKE '%".$request->act_costing_ws."%' ";
+        }
+        if ($request->style) {
+            $additionalQuery .= " and p.style LIKE '%".$request->style."%' ";
+        }
+        if ($request->color) {
+            $additionalQuery .= " and s.color LIKE '%".$request->color."%' ";
+        }
+        if ($request->panel) {
+            $additionalQuery .= " and " . $panelExpr . " LIKE '%".$request->panel."%' ";
+        }
+        if ($request->nama_part) {
+            $additionalQuery .= " and " . $namaPartExpr . " LIKE '%".$request->nama_part."%' ";
+        }
+        if ($request->size) {
+            $additionalQuery .= " and " . $sizeExpr . " LIKE '%".$request->size."%' ";
+        }
+        if ($request->no_cut) {
+            $additionalQuery .= " and " . $noCutExpr . " LIKE '%".$request->no_cut."%' ";
+        }
+        if ($request->tujuan) {
+            $additionalQuery .= " and dc.tujuan LIKE '%".$request->tujuan."%' ";
+        }
+        if ($request->lokasi) {
+            $additionalQuery .= " and dc.lokasi LIKE '%".$request->lokasi."%' ";
+        }
+        if ($request->stocker_range) {
+            $additionalQuery .= " and " . $stockerRangeExpr . " LIKE '%".$request->stocker_range."%' ";
+        }
+        if ($request->qty_in) {
+            $additionalQuery .= " and a.qty_in LIKE '%".$request->qty_in."%' ";
+        }
+        if ($request->buyer) {
+            $additionalQuery .= " and p.buyer LIKE '%".$request->buyer."%' ";
+        }
+        if ($request->user) {
+            $additionalQuery .= " and a.user LIKE '%".$request->user."%' ";
+        }
+        if ($request->created_at) {
+            $additionalQuery .= " and " . $createdAtExpr . " LIKE '%".$request->created_at."%' ";
+        }
+
+        // Filter
         if ($request->sec_filter_tipe && count($request->sec_filter_tipe) > 0) {
             $additionalQuery .= " and (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) in (".addQuotesAround(implode("\n", $request->sec_filter_tipe)).")";
         }
@@ -233,6 +314,9 @@ class SecondaryInhouseInController extends Controller
         if ($request->sec_filter_color && count($request->sec_filter_color) > 0) {
             $additionalQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->sec_filter_color)).")";
         }
+        if ($request->sec_filter_panel && count($request->sec_filter_panel) > 0) {
+            $additionalQuery .= " and " . $panelExpr . " in (".addQuotesAround(implode("\n", $request->sec_filter_panel)).")";
+        }
         if ($request->sec_filter_part && count($request->sec_filter_part) > 0) {
             $additionalQuery .= " and mp.nama_part in (".addQuotesAround(implode("\n", $request->sec_filter_part)).")";
         }
@@ -243,13 +327,13 @@ class SecondaryInhouseInController extends Controller
             $additionalQuery .= " and COALESCE(f.no_cut, fp.no_cut, '-') in (".addQuotesAround(implode("\n", $request->sec_filter_no_cut)).")";
         }
         if ($request->sec_filter_tujuan && count($request->sec_filter_tujuan) > 0) {
-            $additionalQuery .= " and a.tujuan in (".addQuotesAround(implode("\n", $request->sec_filter_tujuan)).")";
+            $additionalQuery .= " and dc.tujuan in (".addQuotesAround(implode("\n", $request->sec_filter_tujuan)).")";
         }
         if ($request->sec_filter_tempat && count($request->sec_filter_tempat) > 0) {
-            $additionalQuery .= " and a.tempat in (".addQuotesAround(implode("\n", $request->sec_filter_tempat)).")";
+            $additionalQuery .= " and dc.tempat in (".addQuotesAround(implode("\n", $request->sec_filter_tempat)).")";
         }
         if ($request->sec_filter_lokasi && count($request->sec_filter_lokasi) > 0) {
-            $additionalQuery .= " and a.lokasi in (".addQuotesAround(implode("\n", $request->sec_filter_lokasi)).")";
+            $additionalQuery .= " and dc.lokasi in (".addQuotesAround(implode("\n", $request->sec_filter_lokasi)).")";
         }
         if ($request->size_filter && count($request->size_filter) > 0) {
             $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->size_filter)).")";
@@ -266,7 +350,10 @@ class SecondaryInhouseInController extends Controller
             left join form_cut_piece fp on fp.id = s.form_piece_id
             left join part_detail pd on s.part_detail_id = pd.id
             left join part p on pd.part_id = p.id
+            left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
+            left join part p_com on p_com.id = pd_com.part_id
             left join master_part mp on mp.id = pd.master_part_id
+            left join (select id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
             where
                 a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
                 ".$additionalQuery."
