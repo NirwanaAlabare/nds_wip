@@ -899,18 +899,18 @@
                 <div class="row mb-3" id="output-line-summary">
                     <div class="col-md-3">
                         <div class="info-box h-100">
-                            <span class="info-box-icon bg-success"><i class="fa-solid fa-check"></i></span>
+                            <span class="info-box-icon bg-sb"><i class="fa-solid fa-check"></i></span>
                             <div class="info-box-content">
-                                <span class="info-box-text text-success fw-bold">RFT</span>
+                                <span class="info-box-text text-sb fw-bold">RFT</span>
                                 <span class="info-box-number" id="output-rft"></span>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="info-box h-100">
-                            <span class="info-box-icon bg-primary"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                            <span class="info-box-icon bg-sb-secondary"><i class="fa-solid fa-triangle-exclamation"></i></span>
                             <div class="info-box-content">
-                                <span class="info-box-text text-primary fw-bold">DEFECT</span>
+                                <span class="info-box-text text-sb-secondary fw-bold">DEFECT</span>
                                 <span class="info-box-number" id="output-defect"></span>
                             </div>
                         </div>
@@ -926,9 +926,9 @@
                     </div>
                     <div class="col-md-3">
                         <div class="info-box h-100">
-                            <span class="info-box-icon bg-sb"><i class="fa-solid fa-box"></i></span>
+                            <span class="info-box-icon bg-success"><i class="fa-solid fa-box"></i></span>
                             <div class="info-box-content">
-                                <span class="info-box-text text-sb fw-bold">PACKING</span>
+                                <span class="info-box-text text-success fw-bold">PACKING</span>
                                 <span class="info-box-number" id="output-packing"></span>
                             </div>
                         </div>
@@ -1249,6 +1249,12 @@
                                     </div>
                                 `;
                             }
+                        }
+                    },
+                    {
+                        targets: [2],
+                        render: (data, type, row, meta) => {
+                            return data ? `<a class='fw-bold' href='{{ route('edit-marker') }}/ `+row.id+`' target='_blank'><u>`+data+`</u></a>` : "-";;
                         }
                     },
                     {
@@ -1844,6 +1850,36 @@
                         }
                     },
                     {
+                        targets: [2],
+                        render: (data, type, row, meta) => {
+                            if (row.status == "SELESAI PENGERJAAN") {
+                                return `<a class='fw-bold' href='{{ route('detail-cutting') }}/ `+row.id+`' target='_blank'><u>`+data+`</u></a>`;
+                            } else {
+                                let color = "";
+
+                                if (row.status == 'SELESAI PENGERJAAN') {
+                                    color = '#087521';
+                                } else if (row.status == 'PENGERJAAN MARKER') {
+                                    color = '#2243d6';
+                                } else if (row.status == 'PENGERJAAN FORM CUTTING') {
+                                    color = '#2243d6';
+                                } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
+                                    color = '#2243d6';
+                                } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
+                                    color = '#2243d6';
+                                }
+
+                                return  "<span style='font-weight: 600; color: "+ color + "' >" + (data ? data : '-') + "</span>"
+                            }
+                        }
+                    },
+                    {
+                        targets: [4],
+                        render: (data, type, row, meta) => {
+                            return `<a class='fw-bold' href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'><u>`+data+`</u></a>`;
+                        }
+                    },
+                    {
                         targets: [7],
                         render: (data, type, row, meta) => {
                             return `
@@ -2126,6 +2162,12 @@
                         className: "text-nowrap"
                     },
                     {
+                        targets: [2],
+                        render: (data, type, row, meta) => {
+                            return `<a class='fw-bold' href='{{ route('detail-cutting') }}/ `+row.form_cut_id+`' target='_blank'><u>`+data+`</u></a>`;
+                        }
+                    },
+                    {
                         targets: [6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
                         className: "text-nowrap",
                         render: (data, type, row, meta) => {
@@ -2153,21 +2195,21 @@
                     let totalRoll = await getTotalRoll();
 
                     if (await totalRoll) {
-                        api.column(6).footer().innerHTML = totalRoll.totalQty;
+                        api.column(6).footer().innerHTML = Number(totalRoll.totalQty).round(2);
                         api.column(7).footer().innerHTML = totalRoll.totalUnit;
                         api.column(8).footer().innerHTML = totalRoll.totalLembarGelaran;
-                        api.column(9).footer().innerHTML = totalRoll.totalTotalPemakaian;
-                        api.column(10).footer().innerHTML = totalRoll.totalShortRoll;
-                        api.column(11).footer().innerHTML = totalRoll.totalRemark;
-                        api.column(12).footer().innerHTML = totalRoll.totalSisaGelaran;
-                        api.column(13).footer().innerHTML = totalRoll.totalSambungan;
-                        api.column(14).footer().innerHTML = totalRoll.totalKepalaKain;
-                        api.column(15).footer().innerHTML = totalRoll.totalSisaTidakBisa;
-                        api.column(16).footer().innerHTML = totalRoll.totalReject;
-                        api.column(17).footer().innerHTML = totalRoll.totalSisaKain;
-                        api.column(18).footer().innerHTML = totalRoll.totalPiping;
+                        api.column(9).footer().innerHTML = Number(totalRoll.totalTotalPemakaian).round(2);
+                        api.column(10).footer().innerHTML = Number(totalRoll.totalShortRoll).round(2);
+                        api.column(11).footer().innerHTML = Number(totalRoll.totalRemark).round(2);
+                        api.column(12).footer().innerHTML = Number(totalRoll.totalSisaGelaran).round(2);
+                        api.column(13).footer().innerHTML = Number(totalRoll.totalSambungan).round(2);
+                        api.column(14).footer().innerHTML = Number(totalRoll.totalKepalaKain).round(2);
+                        api.column(15).footer().innerHTML = Number(totalRoll.totalSisaTidakBisa).round(2);
+                        api.column(16).footer().innerHTML = Number(totalRoll.totalReject).round(2);
+                        api.column(17).footer().innerHTML = Number(totalRoll.totalSisaKain).round(2);
+                        api.column(18).footer().innerHTML = Number(totalRoll.totalPiping).round(2);
 
-                        document.getElementById('total-roll-qty').innerText = totalRoll.totalQty+" "+totalRoll.totalUnit;
+                        document.getElementById('total-roll-qty').innerText = Number(totalRoll.totalQty).round(2)+" "+totalRoll.totalUnit;
                         document.getElementById('total-roll-lembar').innerText = totalRoll.totalLembarGelaran+" Lembar";
                         document.getElementById('total-roll-pemakaian').innerText = totalRoll.totalTotalPemakaian+" "+totalRoll.totalUnit;
                     }
@@ -2299,8 +2341,14 @@
                     ],
                     columnDefs: [
                         {
-                            targets: [0, 1, 2, 3, 4, 5],
+                            targets: [0, 1, 2, 4, 5],
                             className: "text-nowrap"
+                        },
+                        {
+                        targets: [3],
+                            render: (data, type, row, meta) => {
+                                return `<a class='fw-bold' href='{{ route('show-stocker') }}/`+row.form_cut_id+`' target='_blank'><u>`+data+`</u></a>`;
+                            }
                         },
                         {
                             targets: [7, 8, 9],
@@ -2401,7 +2449,7 @@
                         show: true
                     }
                 },
-                colors: ['#b02ffa', '#428af5', '#1c59ff', '#2e8a57'],
+                colors: ['#082149', '#238380', '#fa4456', '#2e8a57'],
                 grid: {
                     borderColor: '#e7e7e7',
                     row: {

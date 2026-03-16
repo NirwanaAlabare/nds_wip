@@ -154,8 +154,6 @@ class TrackController extends Controller
                     master_sb_ws.id_so_det
             ");
 
-            dd($worksheet);
-
             return DataTables::of($worksheet)
                 ->addColumn('output_sewing', function ($row) {
                     $outputData = DB::connection("mysql_sb")->select("
@@ -746,8 +744,7 @@ class TrackController extends Controller
                     SUM( b.kepala_kain ) kepala_kain,
                     SUM( b.sisa_tidak_bisa ) sisa_tidak_bisa,
                     SUM( b.reject ) reject,
-                    SUM(
-                    COALESCE ( b.sisa_kain, 0 )) sisa_kain,
+                    SUM(COALESCE ( b.sisa_kain, 0 )) sisa_kain,
                     SUM( b.total_pemakaian_roll ) total_pemakaian_roll,
                     SUM( b.short_roll ) short_roll,
                     SUM( b.piping ) piping,
@@ -926,6 +923,7 @@ class TrackController extends Controller
             $dateTo = $request->dateTo;
 
             $stockerSql = Stocker::selectRaw("
+                form_cut_input.id as form_cut_id,
                 COALESCE(marker_input.color, form_cut_reject.color, form_cut_piece.color) color,
                 COALESCE(marker_input.panel, form_cut_reject.panel, form_cut_piece.panel) panel,
                 COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
