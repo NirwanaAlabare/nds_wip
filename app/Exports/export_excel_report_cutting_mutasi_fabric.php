@@ -35,6 +35,7 @@ class export_excel_report_cutting_mutasi_fabric implements FromView, ShouldAutoS
         $start_date = $this->start_date;
         $end_date = $this->end_date;
         $tipe = $this->cbotipe;
+        $tgl_saldo = '2026-03-01';
 
         if ($tipe == 'Barcode') {
             $barcode = 'mut.barcode';
@@ -46,7 +47,7 @@ class export_excel_report_cutting_mutasi_fabric implements FromView, ShouldAutoS
 
         $rawData = DB::select("WITH
 sau as (
-SELECT * from sa_report_cut_barcode where tgl_saldo = '2026-01-01'
+SELECT * from sa_report_cut_barcode where tgl_saldo = '$tgl_saldo'
 ),
 gk_out_sa as (
 SELECT
@@ -67,7 +68,7 @@ CASE
 ifnull(no_ws_aktual,no_ws) ws
 from signalbit_erp.whs_bppb_h a
 inner join signalbit_erp.whs_bppb_det b on a.no_bppb = b.no_bppb
-where tgl_bppb >= '2026-01-01' and tgl_bppb < '$start_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
+where tgl_bppb >= '$tgl_saldo' and tgl_bppb < '$start_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
 group by id_roll, ws
 ),
 gr_set_sa as (
@@ -89,7 +90,7 @@ a.act_costing_ws as ws
 from form_cut_reject a
 inner join form_cut_reject_barcode b on a.id = b.form_id
 left join scanned_item s on b.barcode = s.id_roll
-where b.created_at >= '2026-01-01 00:00:00' and b.created_at < '$start_date 00:00:00'
+where b.created_at >= '$tgl_saldo 00:00:00' and b.created_at < '$start_date 00:00:00'
 group by barcode, ws
 ),
 gr_set_alokasi_sa as (
@@ -111,7 +112,7 @@ ws,
 min(sisa_kain) sisa_kain
 from form_cut_alokasi_gr_panel_barcode a
 left join scanned_item s on a.barcode = s.id_roll
-where a.tgl_trans >= '2026-01-01' and a.tgl_trans < '$start_date'
+where a.tgl_trans >= '$tgl_saldo' and a.tgl_trans < '$start_date'
 group by barcode, ws
 ),
 gk_retur_sa as (
@@ -134,7 +135,7 @@ from signalbit_erp.whs_lokasi_inmaterial a
 inner join signalbit_erp.whs_inmaterial_fabric b on a.no_dok = b.no_dok
 left join signalbit_erp.bppb_req c on b.no_invoice = c.bppbno and a.id_item = c.id_item and a.id_jo = c.id_jo
 
-where b.tgl_dok >= '2026-01-01' and b.tgl_dok < '$start_date' and supplier = 'Production - Cutting' and a.status = 'Y'
+where b.tgl_dok >= '$tgl_saldo' and b.tgl_dok < '$start_date' and supplier = 'Production - Cutting' and a.status = 'Y'
 group by no_barcode, ifnull(c.idws_act,a.no_ws)
 ),
 cutt_sa as (
@@ -229,8 +230,8 @@ FROM (
 		left join form_cut_input_detail b on a.id = b.form_cut_id
 		left join form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and (c.status = 'extension' OR c.status = 'extension complete')
 		LEFT JOIN form_cut_input_detail d on d.id_roll = b.id_roll AND b.id != d.id AND d.created_at > b.created_at
-		and d.created_at >= '2026-01-01 00:00:00' and d.created_at < '$start_date 00:00:00'
-		LEFT JOIN form_cut_piping e on e.id_roll = b.id_roll AND e.created_at > b.created_at and e.created_at >= '2026-01-01 00:00:00' and e.created_at < '$start_date 00:00:00'
+		and d.created_at >= '$tgl_saldo 00:00:00' and d.created_at < '$start_date 00:00:00'
+		LEFT JOIN form_cut_piping e on e.id_roll = b.id_roll AND e.created_at > b.created_at and e.created_at >= '$tgl_saldo 00:00:00' and e.created_at < '$start_date 00:00:00'
 		left join users meja on meja.id = a.no_meja
 		left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
 		left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
@@ -241,7 +242,7 @@ FROM (
 		AND a.status = 'SELESAI PENGERJAAN'
 		and b.status != 'not complete'
 		and b.id_item is not null
-		and b.created_at >= '2026-01-01 00:00:00' and b.created_at < '$start_date 00:00:00'
+		and b.created_at >= '$tgl_saldo 00:00:00' and b.created_at < '$start_date 00:00:00'
 	group by
 		b.id
 	UNION ALL
@@ -314,15 +315,15 @@ FROM (
 		(CASE WHEN c.id is null THEN 'latest' ELSE 'not latest' END) roll_status
 	from
 		form_cut_piping
-		LEFT JOIN form_cut_input_detail b on b.id_roll = form_cut_piping.id_roll AND b.created_at > form_cut_piping.created_at and b.created_at >= '2026-01-01 00:00:00'
+		LEFT JOIN form_cut_input_detail b on b.id_roll = form_cut_piping.id_roll AND b.created_at > form_cut_piping.created_at and b.created_at >= '$tgl_saldo 00:00:00'
 		and b.created_at < '$start_date 00:00:00'
-		LEFT JOIN form_cut_piping c on c.id_roll = form_cut_piping.id_roll AND c.id != form_cut_piping.id and c.created_at > form_cut_piping.created_at and c.created_at >= '2026-01-01 00:00:00'
+		LEFT JOIN form_cut_piping c on c.id_roll = form_cut_piping.id_roll AND c.id != form_cut_piping.id and c.created_at > form_cut_piping.created_at and c.created_at >= '$tgl_saldo 00:00:00'
         and c.created_at < '$start_date 00:00:00'
 		left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
 		left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
 	where
 		scanned_item.id_item is not null
-		and form_cut_piping.created_at >= '2026-01-01 00:00:00' and form_cut_piping.created_at < '$start_date 00:00:00'
+		and form_cut_piping.created_at >= '$tgl_saldo 00:00:00' and form_cut_piping.created_at < '$start_date 00:00:00'
 	group by
 		form_cut_piping.id
 	UNION ALL
@@ -403,7 +404,7 @@ FROM (
 	WHERE
 		scanned_item.id_item IS NOT NULL
 		AND form_cut_piece_detail.STATUS = 'complete'
-		and form_cut_piece_detail.created_at >= '2026-01-01 00:00:00' and form_cut_piece_detail.created_at < '$start_date 00:00:00'
+		and form_cut_piece_detail.created_at >= '$tgl_saldo 00:00:00' and form_cut_piece_detail.created_at < '$start_date 00:00:00'
 	GROUP BY
 		form_cut_piece_detail.id
 ) cutting
