@@ -604,6 +604,8 @@
                 let data = JSON.parse(element.getAttribute('data'));
 
                 if (data) {
+                    showLoading();
+
                     $.ajax({
                         url: '{{ route('export-cutting-form-pdf') }}',
                         type: 'post',
@@ -615,6 +617,8 @@
                             responseType: 'blob'
                         },
                         success: function(res) {
+                            hideLoading();
+
                             if (res) {
                                 if (res.status == 400) {
                                     return Swal.fire({
@@ -633,6 +637,8 @@
                             }
                         },
                         error: function (jqXHR) {
+                            hideLoading();
+
                             console.error(jqXHR);
                         }
                     });
