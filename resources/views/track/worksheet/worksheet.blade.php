@@ -214,7 +214,7 @@
                     targets: [1],
                     className: "text-nowrap",
                     render: function (data, type, row, meta) {
-                        let column = '<a href="{{ route('track-ws-detail') }}/'+row.id_act_cost+'" target="_blank">'+data+'</a>';
+                        let column = '<a href="{{ route('track-ws-detail') }}/'+row.id_act_cost+'" target="_blank"><u>'+data+'</u></a>';
                         return column;
                     }
                 },
