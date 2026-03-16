@@ -1094,7 +1094,7 @@ class GeneralController extends Controller
                     $scannedItemUpdate->size_list = $newItem[0]->size_list;
                     $scannedItemUpdate->save();
 
-                    if ($scannedItemUpdate->qty > 0) {
+                    if (floatval($scannedItemUpdate->qty) > 0) {
                         return json_encode($scannedItemUpdate);
                     }
                 }
