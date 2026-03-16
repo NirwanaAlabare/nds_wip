@@ -455,6 +455,7 @@ class CuttingToolsController extends Controller
                         ac.qty order_qty,
                         ms.supplier buyer,
                         k.cons cons_ws,
+                        k.unit unit_cons_ws,
                         mp.nama_panel panel,
                         sd.id as so_det_id,
                         sd.size,
@@ -497,6 +498,7 @@ class CuttingToolsController extends Controller
                     'buyer' => $currentData->buyer,
                     'style' => $currentData->styleno,
                     'cons_ws' => $currentData->cons_ws,
+                    'unit_cons_ws' => $currentData->unit_cons_ws,
                     'color' => $currentData->color,
                     'panel' => $currentData->panel,
                     'panjang_marker' => $oldMarker->panjang_marker,
@@ -512,10 +514,12 @@ class CuttingToolsController extends Controller
                     'po_marker' => $oldMarker->po_marker,
                     'urutan_marker' => $oldMarker->urutan_marker,
                     'cons_marker' => $oldMarker->cons_marker,
+                    'unit_cons_marker' => $oldMarker->unit_cons_marker,
                     'gramasi' => $oldMarker->gramasi,
                     'tipe_marker' => $oldMarker->tipe_marker,
                     'notes' => $oldMarker->notes,
                     'cons_piping' => $oldMarker->cons_piping,
+                    'unit_cons_piping' => $oldMarker->unit_cons_piping,
                     'cancel' => 'N',
                 ]);
 
