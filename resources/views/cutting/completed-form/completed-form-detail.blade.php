@@ -16,6 +16,8 @@
             <input type="checkbox" name="bypass" id="bypass" value="bypass">
             <label for="bypass">Bypass Stocker</label>
         </div>
+
+        {{-- Header Data PROCESS 1 --}}
         <div class="col-md-6">
             <div class="card card-sb h-100" id="header-data-card">
                 <div class="card-header">
@@ -184,6 +186,8 @@
                 </div>
             </div>
         </div>
+
+        {{-- Detail Data PROCESS 2 --}}
         <div class="col-md-6">
             <div class="card card-sb h-100" id="detail-data-card">
                 <div class="card-header">
@@ -402,6 +406,8 @@
                 </div>
             </div>
         </div>
+
+        {{-- Loss Time --}}
         <div class="col-md-12">
             <div class="card card-sb collapsed-card h-100" id="lost-time-card">
                 <div class="card-header">
@@ -444,6 +450,8 @@
         <div class="col-md-12">
             <button class="btn btn-dark btn-block" onclick="recalculateForm()">Recalculate Form</button>
         </div>
+
+        {{-- Spreading Summary List PROCESS 3 --}}
         <div class="col-md-12">
             <div class="card card-sb" id="summary-card">
                 <div class="card-header">
@@ -601,6 +609,8 @@
                 </div>
             </div>
         </div>
+
+        {{-- Edit Selected Spreading Form --}}
         <div class="col-md-12">
             <div class="card card-sb" id="spreading-form-card">
                 <div class="card-header">
@@ -995,23 +1005,27 @@
             </div>
         </div>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <div class="mb-3">
-                <label class="form-label">UBAH STATUS</label>
-                <div class="d-flex gap-1 mb-3">
-                    <select class="form-control select2bs4" name="edit_status" id="edit_status">
-                        <option value="SPREADING">SPREADING</option>
-                        <option value="PENGERJAAN FORM CUTTING">PENGERJAAN FORM CUTTING</option>
-                        <option value="PENGERJAAN FORM CUTTING DETAIL">PENGERJAAN FORM CUTTING DETAIL</option>
-                        <option value="PENGERJAAN FORM CUTTING SPREAD">PENGERJAAN FORM CUTTING SPREAD</option>
-                        <option value="SELESAI PENGERJAAN" selected>SELESAI PENGERJAAN</option>
-                    </select>
-                    <button class="btn btn-success btn-sm" onclick="updateStatus()"><i class="fa fa-save"></i></button>
+
+    {{-- Update Form Status --}}
+    @if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0)
+        <div class="card">
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">UBAH STATUS</label>
+                    <div class="d-flex gap-1 mb-3">
+                        <select class="form-control select2bs4" name="edit_status" id="edit_status">
+                            <option value="SPREADING">SPREADING</option>
+                            <option value="PENGERJAAN FORM CUTTING">PENGERJAAN FORM CUTTING</option>
+                            <option value="PENGERJAAN FORM CUTTING DETAIL">PENGERJAAN FORM CUTTING DETAIL</option>
+                            <option value="PENGERJAAN FORM CUTTING SPREAD">PENGERJAAN FORM CUTTING SPREAD</option>
+                            <option value="SELESAI PENGERJAAN" selected>SELESAI PENGERJAAN</option>
+                        </select>
+                        <button class="btn btn-success btn-sm" onclick="updateStatus()"><i class="fa fa-save"></i></button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    @endif
 @endsection
 
 @section('custom-script')
