@@ -6,14 +6,21 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Stocker\Stocker\Stocker;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class PartForm extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $table = 'part_form';
 
     protected $guarded = [];
+
+    //only the `deleted` event will get logged automatically
+    protected static $recordEvents = ['deleted'];
+
+    protected static $logAttributes = ['*'];
 
     /**
      * Get the part that own the relation.

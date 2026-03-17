@@ -591,19 +591,22 @@ class SpreadingController extends Controller
 
             array_push($idRolls, $spreadingFormDetail->id_roll);
             array_push($idFormDetailLapArr, $spreadingFormDetail->id);
+
+            // Delete Spreading Form Detail
+            $spreadingFormDetail->delete();
         }
 
         // Delete Detail Lap
         $deleteSpreadingFormDetailLap = FormCutInputDetailLap::whereIn("form_cut_input_detail_id", $idFormDetailLapArr)->delete();
 
-        // Delete Related Items
+        // Delete Cutting Plan Items
         $deleteCutPlan = CutPlan::where('form_cut_id', $id)->delete();
 
         // Spreading Form Delete Process
         $deleteSpreadingForm = FormCutInput::where('id', $id)->delete();
         if ($deleteSpreadingForm) {
 
-            // Delete Spreading Form Detail
+            // Delete Spreading Form Detail All
             $deleteSpreadingFormDetails = FormCutInputDetail::where('form_cut_id', $spreadingForm->id)->delete();
 
             // Update Scanned Item Balance

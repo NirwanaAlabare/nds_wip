@@ -147,8 +147,8 @@
                                 <div class="mb-1">
                                     <label class="form-label"><small>Cons Piping</small></label>
                                     <div class="input-group">
-                                        <input type="number" class="form-control" id="cons_piping" name="cons_piping" step=".001" value="{{ $marker->cons_piping }}" {{-- $totalForm > 0 ? "readonly" : "" --}}>
-                                        <input type="text" class="form-control" id="unit_cons_piping" name="unit_cons_piping" step=".001" value="{{ $marker->unit_cons_piping }}" readonly>
+                                        <input type="number" class="form-control" id="cons_piping" name="cons_piping" step=".001" value="{{ $marker->cons_piping ? $marker->cons_piping : 0 }}" {{-- $totalForm > 0 ? "readonly" : "" --}}>
+                                        <input type="text" class="form-control" id="unit_cons_piping" name="unit_cons_piping" step=".001" value="{{ $marker->unit_cons_piping ? $marker->unit_cons_piping : 'METER' }}" readonly>
                                     </div>
                                 </div>
                             </div>

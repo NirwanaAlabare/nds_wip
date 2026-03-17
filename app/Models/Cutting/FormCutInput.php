@@ -8,14 +8,20 @@ use App\Models\Auth\User;
 use App\Models\Marker\Marker;
 use App\Models\Part\PartForm;
 use App\Scopes\ThisYearScope;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class FormCutInput extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $table = 'form_cut_input';
 
     protected $guarded = [];
+
+    //only the `deleted` event will get logged automatically
+    protected static $recordEvents = ['updated', 'deleted'];
+
+    protected static $logAttributes = ['*'];
 
     protected static function boot()
     {

@@ -662,7 +662,7 @@ class SecondaryInhouseInController extends Controller
                                         left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
                                     where
                                         dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and
-                                        dc.tujuan = 'SECONDARY DALAM' and
+                                        dc.tujuan = 'SECONDARY DALAM'
                                 ");
                             }
                         } else {

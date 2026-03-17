@@ -30,6 +30,7 @@ use App\Models\SignalBit\RejectIn;
 use App\Models\Hris\MasterEmployee;
 use App\Services\GeneralService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use PDF;
 
@@ -1094,7 +1095,7 @@ class GeneralController extends Controller
                     $scannedItemUpdate->size_list = $newItem[0]->size_list;
                     $scannedItemUpdate->save();
 
-                    if ($scannedItemUpdate->qty > 0) {
+                    if (floatval($scannedItemUpdate->qty) > 0) {
                         return json_encode($scannedItemUpdate);
                     }
                 }
@@ -1143,7 +1144,9 @@ class GeneralController extends Controller
                         "unit" => $newItemUnit,
                         "rule_bom" => $newItem[0]->rule_bom,
                         "so_det_list" => $newItem[0]->so_det_list,
-                        "size_list" => $newItem[0]->size_list
+                        "size_list" => $newItem[0]->size_list,
+                        "created_by" => Auth::user()->id,
+                        "created_by_username" => Auth::user()->username
                     ]
                 );
             }
@@ -1242,7 +1245,9 @@ class GeneralController extends Controller
                         "qty_stok" => $itemQtyStok,
                         "qty_in" => $itemQty,
                         "qty_pakai" => 0,
-                        "unit" => $itemUnit
+                        "unit" => $itemUnit,
+                        "created_by" => Auth::user()->id,
+                        "created_by_username" => Auth::user()->username,
                     ]
                 );
             }

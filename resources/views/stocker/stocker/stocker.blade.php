@@ -52,6 +52,7 @@
                             <th>Part</th>
                             <th>Total Lembar</th>
                             <th>Size Ratio</th>
+                            <th>Part Group</th>
                             <th>No. Marker</th>
                             <th>WS</th>
                             <th>Buyer</th>
@@ -150,6 +151,9 @@
                     searchable: false
                 },
                 {
+                    data: 'part_kode'
+                },
+                {
                     data: 'id_marker'
                 },
                 {
@@ -181,6 +185,8 @@
                     render: (data, type, row, meta) => {
                         if (row.type == "PIECE") {
                             return data ? `<a class='fw-bold' href='{{ route('process-cutting-piece') }}/ `+row.form_cut_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
+                        } else if (row.type == "GENERAL") {
+                            return data ? `<a class='fw-bold' href='{{ route('detail-cutting') }}/ `+row.form_cut_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
                         }
 
                         return data;
@@ -192,9 +198,16 @@
                     className: "text-nowrap",
                     render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
                 },
-                // Marker Hyperlink
+                // Part Hyperlink
                 {
                     targets: [10],
+                    render: (data, type, row, meta) => {
+                        return data ? `<a class='fw-bold' href='{{ route('manage-part-secondary') }}/ `+row.part_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
+                    }
+                },
+                // Marker Hyperlink
+                {
+                    targets: [11],
                     render: (data, type, row, meta) => {
                         return data ? `<a class='fw-bold' href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
                     }

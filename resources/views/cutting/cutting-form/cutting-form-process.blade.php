@@ -352,7 +352,7 @@
                                         onkeyup="calculateEstKain(this.value)"
                                         onchange="calculateEstKain(this.value)"
                                     >
-                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_cons_marker" id="unit_cons_marker" readonly>
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_cons_marker" id="unit_cons_marker" onchange="updateConsMarkerUnit()" readonly>
                                 </div>
 
                             </div>
@@ -374,7 +374,7 @@
                                         onkeyup="calculateEstPipping(this.value)"
                                         onchange="calculateEstPipping(this.value)"
                                     >
-                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_cons_pipping" id="unit_cons_pipping" value="{{ $formCutInputData->unit_cons_pipping ? $formCutInputData->unit_cons_pipping : $formCutInputData->unit_panjang_marker }}" readonly>
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_cons_pipping" id="unit_cons_pipping" value="{{ $formCutInputData->unit_cons_pipping ? $formCutInputData->unit_cons_pipping : $formCutInputData->unit_panjang_marker }}" onchange="updateConsPipingUnit()" readonly>
                                 </div>
                             </div>
                         </div>

@@ -8,6 +8,22 @@
                 <h3 class="card-title fw-bold text-sb">Halo, {{ strtoupper(auth()->user()->name) }}</h3>
                 <br>
                 <div class="row g-3 mt-3">
+                    {{-- @role('admin')
+                        <div class="col-lg-2 col-md-3 col-sm-6">
+                            <a href="{{ route('track-ws') }}" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/worksheet.png') }}" class="img-fluid p-3"
+                                                alt="marker image">
+                                            <p class="text-center fw-bold text-uppercase text-dark">Worksheet</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endrole --}}
+
                     @role('marker')
                         <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-marker') }}" class="home-item">
