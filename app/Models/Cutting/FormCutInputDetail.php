@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use App\Scopes\ThisYearScopeDetail;
 use App\Models\Traits\HasUuid;
 use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
 
 class FormCutInputDetail extends Model
 {
@@ -20,12 +19,7 @@ class FormCutInputDetail extends Model
     //only the `deleted` event will get logged automatically
     protected static $recordEvents = ['updated', 'deleted'];
 
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logAll()
-            ->logOnlyDirty();
-    }
+    protected static $logAttributes = ['*'];
 
     protected static function boot()
     {

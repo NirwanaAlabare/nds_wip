@@ -9,7 +9,6 @@ use App\Models\Marker\Marker;
 use App\Models\Part\PartForm;
 use App\Scopes\ThisYearScope;
 use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
 
 class FormCutInput extends Model
 {
@@ -22,12 +21,7 @@ class FormCutInput extends Model
     //only the `deleted` event will get logged automatically
     protected static $recordEvents = ['updated', 'deleted'];
 
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logAll()
-            ->logOnlyDirty();
-    }
+    protected static $logAttributes = ['*'];
 
     protected static function boot()
     {

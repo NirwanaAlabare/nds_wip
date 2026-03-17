@@ -20,12 +20,7 @@ class PartForm extends Model
     //only the `deleted` event will get logged automatically
     protected static $recordEvents = ['deleted'];
 
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logAll()
-            ->logOnlyDirty();
-    }
+    protected static $logAttributes = ['*'];
 
     /**
      * Get the part that own the relation.
