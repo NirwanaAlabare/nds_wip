@@ -534,12 +534,17 @@ class StockerRejectController extends Controller
                         stocker_input.shade,
                         stocker_input.ratio,
                         master_part.nama_part,
-                        stocker_input.urutan
+                        stocker_input.urutan,
+                        COALESCE(GROUP_CONCAT(CONCAT(master_secondary.tujuan,'-',master_secondary.proses) SEPARATOR ' || '), CONCAT(master_secondary_old.tujuan,'-',master_secondary_old.proses)) secondary
                     ")->
                     leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+                    leftJoin("part_detail_secondary", "part_detail_secondary.part_detail_id", "=", "part_detail.id")->
+                    leftJoin("master_secondary", "master_secondary.id", "=", "part_detail_secondary.master_secondary_id")->
+                    leftJoin("master_secondary as master_secondary_old", "master_secondary_old.id", "=", "part_detail.master_secondary_id")->
                     leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                     leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
                     whereRaw("stocker_input.id_qr_stocker in (".$stockerListFilter.")")->
+                    groupBy("stocker_input.id")->
                     get();
 
                 $dataStockerReject = StockerReject::selectRaw("id, ratio, qty_reject")->where($filterColumn, $request->id)->get();
