@@ -141,7 +141,7 @@ class StockerProcessRejectService
                             'stocker_reject' => $createStockerReject->id,
                             // End of Process IDs
                             'notes' => 'Stocker Reject Process',
-                            'urutan' => $request['current_urutan'],
+                            'urutan' => 1,
                             'created_by' => Auth::user()->id,
                             'created_by_username' => Auth::user()->username,
                             'batch' => $batch,
@@ -160,6 +160,19 @@ class StockerProcessRejectService
                 if ($storedStocker->count() > 0) {
                     // Copy created Stocker's process
                     foreach ($storedStocker as $stocker) {
+                        // Tujuan
+                        $partDetail = $stocker->partDetail;
+                        $secondary = $partDetail ? $partDetail->secondary : null;
+                        $secondaries = $partDetail ? $partDetail->secondaries : null;
+                        $currentSecondary = null;
+                        if ($secondaries) {
+                            $currentSecondary = $secondaries->where("urutan", 1)->first();
+                            $currentSecondary = $currentSecondary ? $currentSecondary->secondary : null;
+                        }
+                        if (!$currentSecondary) {
+                            $currentSecondary = $secondary;
+                        }
+
                         // When DC
                         $currentDc = null;
                         if ($request['dc_in_id']) {
@@ -191,11 +204,22 @@ class StockerProcessRejectService
                         $currentSecondaryInhouse = null;
                         if ($request['secondary_inhouse_id']) {
 
+                            // Current Secondary
                             $currentSecondaryInhouse = SecondaryInhouse::where("id", $request['secondary_inhouse_id'])->first();
 
-                            if ($currentSecondaryInhouse) {
+                            // Secondaries Checking
+                            $currentSecondary = null;
+                            if ($secondaries) {
+                                $currentSecondary = $secondaries->where("urutan", $currentSecondaryInhouse->urutan)->first();
+                                $currentSecondary = $currentSecondary ? $currentSecondary->secondary : null;
+                            } else {
+                                $currentSecondary = $secondary;
+                            }
+
+                            if ($currentSecondaryInhouse && ($currentSecondary && $currentSecondary->tujuan == "SECONDARY DALAM")) {
                                 // Copy DC
                                 $this->copyDcInTransaction($currentSecondaryInhouse->id_qr_stocker, $stocker->id_qr_stocker);
+
 
                                 // Current Secondary Inhouse
                                 $createSecondaryInhouse = SecondaryInhouse::updateOrCreate([
@@ -211,6 +235,10 @@ class StockerProcessRejectService
                                     "ket" => $currentSecondaryInhouse->ket,
                                     "user" => Auth::user()->username,
                                 ]);
+
+                                // Update urutan stocker
+                                $stocker->urutan = $currentSecondaryInhouse->urutan + 1;
+                                $stocker->save();
                             }
                         }
 
@@ -220,7 +248,16 @@ class StockerProcessRejectService
 
                             $currentSecondaryIn = SecondaryIn::where("id", $request['secondary_in_id'])->first();
 
-                            if ($currentSecondaryIn) {
+                            // Secondaries Checking
+                            $currentSecondary = null;
+                            if ($secondaries) {
+                                $currentSecondary = $secondaries->where("urutan", $currentSecondaryInhouse->urutan)->first();
+                                $currentSecondary = $currentSecondary ? $currentSecondary->secondary : null;
+                            } else {
+                                $currentSecondary = $secondary;
+                            }
+
+                            if ($currentSecondaryIn && ($currentSecondary && ($currentSecondary == "SECONDARY DALAM" || $currentSecondary == "SECONDARY LUAR"))) {
                                 // Copy Inhouse & DC
                                 $copyInhouse = $this->copySecondaryInhouseTransaction($currentSecondaryIn->id_qr_stocker, $stocker->id_qr_stocker);
                                 if (!$copyInhouse) {
@@ -244,6 +281,10 @@ class StockerProcessRejectService
                                     "ket" => $currentSecondaryIn->ket,
                                     "user" => Auth::user()->username,
                                 ]);
+
+                                // Update urutan stocker
+                                $stocker->urutan = $currentSecondaryInhouse->urutan + 1;
+                                $stocker->save();
                             }
                         }
                     }

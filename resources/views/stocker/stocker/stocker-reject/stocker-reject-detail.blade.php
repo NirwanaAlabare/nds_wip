@@ -125,6 +125,7 @@
                             <tr>
                                 <th>Stocker Source</th>
                                 <th>Part Detail</th>
+                                <th>Secondary</th>
                                 <th>Size</th>
                                 <th>Shade</th>
                                 <th>Total Ratio</th>
@@ -144,6 +145,7 @@
                                     <input type="text" class="form-control d-none" id="urutan_{{ $index }}" name="urutan[{{ $index }}]" value="{{ $stocker->urutan }}" readonly >
                                     <td>{{ $stocker->id_qr_stocker }}</td>
                                     <td>{{ $stocker->nama_part }}</td>
+                                    <td>{{ $stocker->secondary }}</td>
                                     <td>{{ $stocker->size }}</td>
                                     <td>{{ $stocker->shade }}</td>
                                     <td>{{ $stocker->ratio }}</td>
@@ -198,6 +200,7 @@
                                 <tr>
                                     <th>Stocker Source</th>
                                     <th>Part Detail</th>
+                                    <th>Secondary</th>
                                     <th>Size</th>
                                     <th>Shade</th>
                                     <th>Ratio ke</th>
@@ -221,6 +224,7 @@
                                         <input type="text" class="form-control d-none" id="qty_reject_detail_{{ $indexReject }}" name="qty_reject_detail[{{ $indexReject }}]" value="{{ $stockerReject->qty_reject }}" readonly >
                                         <td>{{ $stocker->id_qr_stocker }}</td>
                                         <td>{{ $stocker->nama_part }}</td>
+                                        <td>{{ $stocker->secondary }}</td>
                                         <td>{{ $stocker->size }}</td>
                                         <td>{{ $stocker->shade }}</td>
                                         <td>{{ $stockerReject->ratio }}</td>
