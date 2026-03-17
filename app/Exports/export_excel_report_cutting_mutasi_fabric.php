@@ -500,7 +500,7 @@ CASE
 ifnull(c.idws_act,a.no_ws) as no_ws
 from signalbit_erp.whs_lokasi_inmaterial a
 inner join signalbit_erp.whs_inmaterial_fabric b on a.no_dok = b.no_dok
-inner join signalbit_erp.bppb_req c on b.no_invoice = c.bppbno and a.id_item = c.id_item and a.id_jo = c.id_jo
+left join signalbit_erp.bppb_req c on b.no_invoice = c.bppbno and a.id_item = c.id_item and a.id_jo = c.id_jo
 where b.tgl_dok >= '$start_date' and b.tgl_dok <= '$end_date' and supplier = 'Production - Cutting' and a.status = 'Y'
 group by no_barcode, ifnull(c.idws_act,a.no_ws)
 ),
@@ -865,7 +865,7 @@ FROM
 SELECT
 sa.barcode,
 sa.id_item,
-round(COALESCE(saldo_awal,0) + sa.qty_out - sa.qty_pakai + sa.short_roll  - sa.qty_reject_set - sa.qty_reject_panel - qty_retur,2) as saldo_awal,
+round(sa.qty_out - sa.qty_pakai + sa.short_roll  - sa.qty_reject_set - sa.qty_reject_panel - qty_retur,2) as saldo_awal,
 0 as penerimaan,
 0 as pemakaian,
 0 as retur,
@@ -875,7 +875,20 @@ round(COALESCE(saldo_awal,0) + sa.qty_out - sa.qty_pakai + sa.short_roll  - sa.q
 sa.satuan,
 sa.ws
 FROM sa
-LEFT JOIN sau on sa.barcode = sau.barcode and sa.ws = sau.ws and sa.satuan = sau.satuan
+UNION ALL
+SELECT
+barcode,
+id_item,
+saldo_awal,
+0 as penerimaan,
+0 as pemakaian,
+0 as retur,
+0 as gr_set,
+0 as gr_panel,
+0 as short_roll,
+satuan,
+ws
+FROM sau
 UNION ALL
 SELECT
 m.barcode,

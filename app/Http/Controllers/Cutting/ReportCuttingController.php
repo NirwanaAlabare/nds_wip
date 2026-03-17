@@ -1699,7 +1699,7 @@ CASE
 ifnull(c.idws_act,a.no_ws) as no_ws
 from signalbit_erp.whs_lokasi_inmaterial a
 inner join signalbit_erp.whs_inmaterial_fabric b on a.no_dok = b.no_dok
-inner join signalbit_erp.bppb_req c on b.no_invoice = c.bppbno and a.id_item = c.id_item and a.id_jo = c.id_jo
+left join signalbit_erp.bppb_req c on b.no_invoice = c.bppbno and a.id_item = c.id_item and a.id_jo = c.id_jo
 where b.tgl_dok >= '$start_date' and b.tgl_dok <= '$end_date' and supplier = 'Production - Cutting' and a.status = 'Y'
 group by no_barcode, ifnull(c.idws_act,a.no_ws)
 ),
@@ -2064,7 +2064,7 @@ FROM
 SELECT
 sa.barcode,
 sa.id_item,
-round(COALESCE(saldo_awal,0) + sa.qty_out - sa.qty_pakai + sa.short_roll  - sa.qty_reject_set - sa.qty_reject_panel - qty_retur,2) as saldo_awal,
+round(sa.qty_out - sa.qty_pakai + sa.short_roll  - sa.qty_reject_set - sa.qty_reject_panel - qty_retur,2) as saldo_awal,
 0 as penerimaan,
 0 as pemakaian,
 0 as retur,
@@ -2074,7 +2074,20 @@ round(COALESCE(saldo_awal,0) + sa.qty_out - sa.qty_pakai + sa.short_roll  - sa.q
 sa.satuan,
 sa.ws
 FROM sa
-LEFT JOIN sau on sa.barcode = sau.barcode and sa.ws = sau.ws and sa.satuan = sau.satuan
+UNION ALL
+SELECT
+barcode,
+id_item,
+saldo_awal,
+0 as penerimaan,
+0 as pemakaian,
+0 as retur,
+0 as gr_set,
+0 as gr_panel,
+0 as short_roll,
+satuan,
+ws
+FROM sau
 UNION ALL
 SELECT
 m.barcode,
@@ -2396,16 +2409,7 @@ order by a.tgl_trans asc
 
         $start_date = $request->input('start_date'); // example: 9 (September)
         $end_date = $request->input('end_date'); // example: 2025
-
-        $bulan_awal = date('n', strtotime($start_date)); // Returns month as number without leading zero (e.g., 9)
-        $tahun_awal = date('Y', strtotime($start_date)); // Returns full year (e.g., 2025)
-
-        $bulan_akhir = date('n', strtotime($end_date)); // Returns month as number without leading zero (e.g., 9)
-        $tahun_akhir = date('Y', strtotime($end_date)); // Returns full year (e.g., 2025)
-
-        $today = date('Y-m-d');
-        $month = date('m');
-        $year = date('Y');
+        $tgl_saldo = '2026-03-01';
 
         if ($request->ajax()) {
             // ✅ If bulan or tahun is missing, return no data
@@ -2470,7 +2474,7 @@ SELECT
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
             WHERE
                 form_cut_input.`status` = 'SELESAI PENGERJAAN' and
-                COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '2026-01-01'
+                COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '$tgl_saldo'
 								and
 								COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) < '$start_date'
 								and
@@ -2506,7 +2510,7 @@ SELECT
                 LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
             WHERE
-                DATE(form_cut_piece_detail.created_at) >= '2026-01-01' and DATE(form_cut_piece_detail.created_at) < '$start_date'
+                DATE(form_cut_piece_detail.created_at) >= '$tgl_saldo' and DATE(form_cut_piece_detail.created_at) < '$start_date'
 								and form_cut_piece_detail.status = 'complete'
             GROUP BY
                 form_cut_piece.id,
@@ -2688,7 +2692,7 @@ FROM
 				left join part p on pd.part_id = p.id
 				left join master_part mp on mp.id = pd.master_part_id
 		where
-				a.tgl_trans >= '2026-01-01' AND a.tgl_trans < '$start_date'
+				a.tgl_trans >= '$tgl_saldo' AND a.tgl_trans < '$start_date'
 				AND s.id is not null AND
 				(s.cancel IS NULL OR s.cancel != 'y') and
 				pd.part_status = 'main'
@@ -2735,7 +2739,7 @@ FROM
 				left join part pcom on pcom.id = pdcom.part_id
 				left join master_part mp on mp.id = pd.master_part_id
 		where
-				a.tgl_trans >= '2026-01-01' AND a.tgl_trans < '$start_date'
+				a.tgl_trans >= '$tgl_saldo' AND a.tgl_trans < '$start_date'
 				AND s.id is not null AND
 				(s.cancel IS NULL OR s.cancel != 'y') and
 				(pd.part_status != 'main' OR pd.part_status IS NULL)

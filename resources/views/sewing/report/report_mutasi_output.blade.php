@@ -69,7 +69,7 @@
                             <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
                             <th colspan="11" style="background-color: lightyellow; text-align:center;">Sewing</th>
                             <th colspan="11" style="background-color: pink; text-align:center;">QC Finishing</th>
-                            <th colspan="7" style="background-color: lightsteelblue; text-align:center;">Secondary Proses
+                            <th colspan="7" style="background-color: lightsteelblue; text-align:center;">Finishing
                             </th>
                             <th colspan="4" style="background-color: #FFE5B4; text-align:center;">Defect Sewing
                             </th>
