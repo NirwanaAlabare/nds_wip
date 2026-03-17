@@ -1430,7 +1430,7 @@ class SecondaryInController extends Controller
                                     }
                                 } else {
                                     // Check the secondary in data
-                                    return "when there is no step after and the step before was secondary in then you could not be able to scan the secondary in again, I mean you got yourself here from secondary in already.";
+                                    return "when there is no step after (last step) and the step before was secondary in then you could not be able to scan the secondary in again, I mean you got yourself here from secondary in already.";
                                 }
                             } else {
                                 $cekdata =  DB::select("
@@ -1446,7 +1446,7 @@ class SecondaryInController extends Controller
                                         dc.lokasi,
                                         COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
                                         CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
-                                        ".$multiSecondaryBeforeSecondary->qty_in." qty_awal,
+                                        if(dc.tujuan = 'SECONDARY LUAR', (dc.qty_awal - dc.qty_reject + dc.qty_replace), (si.qty_awal - si.qty_reject + si.qty_replace)) qty_awal,
                                         s.lokasi lokasi_tujuan,
                                         s.tempat tempat_tujuan,
                                         ".($multiSecondaryBefore->urutan + 1)." urutan,
