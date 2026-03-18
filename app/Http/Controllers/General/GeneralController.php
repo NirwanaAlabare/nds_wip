@@ -1337,6 +1337,7 @@ class GeneralController extends Controller
 
         return Datatables::of($kodeNumberingOutput)->toJson();
     }
+
     public function getMasterPlan(Request $request) {
         $masterPlanSql = MasterPlan::selectRaw('
                 master_plan.id,

@@ -24,7 +24,7 @@
             <li>
                 <a href="{{ route('sewing-secondary-master') }}"
                     class="dropdown-item {{ $routeName == 'sewing-secondary-master' ? 'active' : '' }}">
-                    Secondary Sewing Master <i class="fa-solid fa-diagram-project"></i>
+                    Master Secondary Sewing <i class="fa-solid fa-diagram-project"></i>
                 </a>
             </li>
         </ul>
