@@ -35,7 +35,7 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-3 form-group">
-                    <label>Buyer</label>
+                    <label>Buyer <span class="text-danger">*</span></label>
                     <select name="id_buyer" class="form-control select2bs4">
                         <option value="">Pilih Buyer</option>
                         @foreach ($buyers as $buyer)
@@ -44,7 +44,7 @@
                     </select>
                 </div>
                 <div class="col-md-3 form-group">
-                    <label>Product Group</label>
+                    <label>Product Group <span class="text-danger">*</span></label>
                     <select name="product_group" id="product_group" class="form-control select2bs4">
                         <option value="">Pilih Product Group</option>
                         @foreach($product_groups as $group)
@@ -53,39 +53,43 @@
                     </select>
                 </div>
                 <div class="col-md-3 form-group">
-                    <label>Product Item</label>
+                    <label>Product Item <span class="text-danger">*</span></label>
                     <select name="id_product_item" id="id_product_item" class="form-control select2bs4">
                         <option value="">Pilih Product Item</option>
                     </select>
                 </div>
                 <div class="col-md-3 form-group">
-                    <label>Brand</label>
+                    <label>Brand <span class="text-danger">*</span></label>
                     <input type="text" name="brand" id="brand" class="form-control">
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-md-3 form-group">
-                    <label>Style</label>
-                    <input type="text" name="style" id="style" class="form-control" required>
+                    <label>Style <span class="text-danger">*</span></label>
+                    <input type="text" name="style" id="style" class="form-control">
                 </div>
                 <div class="col-md-3 form-group">
-                    <label>Market</label>
+                    <label>Market <span class="text-danger">*</span></label>
                     <input type="text" name="market" id="market" class="form-control">
                 </div>
                 <div class="col-md-3 form-group">
-                    <label>Marketing Order</label>
-                    <input type="text" name="marketing_order" id="marketing_order" class="form-control">
+                    <label>Marketing Order <span class="text-danger">*</span></label>
+                    <select name="marketing_order" id="marketing_order" class="form-control select2bs4">
+                        <option value="">Pilih Marketing Order</option>
+                        <option value="BANDUNG">Bandung</option>
+                        <option value="JAKARTA">Jakarta</option>
+                    </select>
                 </div>
                 <div class="col-md-3 form-group">
-                    <label>SMV</label>
+                    <label>SMV <span class="text-danger">*</span></label>
                     <input type="text" name="smv" id="smv" class="form-control input-decimal">
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-md-3 form-group">
-                    <label>Currency</label>
+                    <label>Currency <span class="text-danger">*</span></label>
                    <select name="id_currency" id="id_currency" class="form-control select2bs4">
                         <option value="">Pilih Currency</option>
                         @foreach($currency as $curr)
@@ -94,7 +98,7 @@
                     </select>
                 </div>
                 <div class="col-md-3 form-group">
-                    <label>Confirm Price</label>
+                    <label>Confirm Price <span class="text-danger">*</span></label>
                     <input type="text" name="confirm_price" id="confirm_price" class="form-control input-decimal">
                 </div>
                 <div class="col-md-3 form-group">
@@ -102,7 +106,7 @@
                     <input type="text" name="total_qty" id="total_qty" class="form-control bg-light input-decimal" readonly>
                 </div>
                 <div class="col-md-3 form-group">
-                    <label>Notes</label>
+                    <label>Notes <span class="text-danger">*</span></label>
                     <input type="text" name="notes" id="notes" class="form-control">
                 </div>
             </div>
@@ -113,7 +117,7 @@
                     <input type="text" name="jumlah_po" id="jumlah_po" class="form-control bg-light input-decimal" readonly>
                 </div>
                 <div class="col-md-3 form-group">
-                    <label>No Katalog BOM</label>
+                    <label>No Katalog BOM <span class="text-danger">*</span></label>
                     <div class="d-flex align-items-center" style="gap: 5px;">
                         <select name="id_bom" id="id_bom" class="form-control select2bs4">
                             <option value="">Pilih No Katalog BOM</option>
@@ -132,15 +136,15 @@
 
             <div class="row">
                 <div class="col-md-3 form-group">
-                    <label>VAT (%)</label>
+                    <label>VAT (%) <span class="text-danger">*</span></label>
                     <input type="text" name="vat" id="vat" class="form-control input-decimal">
                 </div>
                 <div class="col-md-3 form-group">
-                    <label>GA Cost (%)</label>
+                    <label>GA Cost (%) <span class="text-danger">*</span></label>
                     <input type="text" name="ga_cost" id="ga_cost" class="form-control input-decimal">
                 </div>
                 <div class="col-md-3 form-group">
-                    <label>Commission Fee (%)</label>
+                    <label>Commission Fee (%) <span class="text-danger">*</span></label>
                     <input type="text" name="commission_fee" id="commission_fee" class="form-control input-decimal">
                 </div>
                 <div class="col-md-3 form-group">
@@ -153,7 +157,7 @@
 
             <div class="row">
                 <div class="col-md-3 form-group">
-                    <label>Upload Gambar</label>
+                    <label>Upload Gambar <span class="text-danger">*</span></label>
                     <input type="file" name="images" id="images" class="form-control-file mb-2" accept="image/*">
                     <div class="border rounded d-flex justify-content-center align-items-center bg-light" style="height: 150px; overflow: hidden;">
                         <img id="preview_images" src="" alt="Preview Gambar" style="max-height: 100%; display: none;">
@@ -162,7 +166,7 @@
                 </div>
 
                 <div class="col-md-4 form-group">
-                    <label>Upload File (Excel)</label>
+                    <label>Upload File (Excel) <span class="text-danger">*</span></label>
                     <div class="d-flex mb-2">
                         <a href="{{ asset('template/template_upload_so.xlsx') }}" class="btn btn-outline-info btn-sm mr-2">
                             <i class="fas fa-download"></i> Download Template Excel
@@ -591,6 +595,52 @@
 
         $('#form-create-so').on('submit', function(e) {
             e.preventDefault();
+
+            let empty_input = [];
+
+            const checkEmpty = (selector, name) => {
+                let val = $(selector).val();
+                if (!val || val.trim() === '') {
+                    empty_input.push(name);
+                }
+            };
+
+            checkEmpty('select[name="id_buyer"]', 'Buyer');
+            checkEmpty('#product_group', 'Product Group');
+            checkEmpty('#id_product_item', 'Product Item');
+            checkEmpty('#brand', 'Brand');
+            checkEmpty('#style', 'Style');
+            checkEmpty('#market', 'Market');
+            checkEmpty('#marketing_order', 'Marketing Order');
+            checkEmpty('#smv', 'SMV');
+            checkEmpty('#id_currency', 'Currency');
+            checkEmpty('#confirm_price', 'Confirm Price');
+            checkEmpty('#notes', 'Notes');
+            checkEmpty('#id_bom', 'No Katalog BOM');
+            checkEmpty('#vat', 'VAT (%)');
+            checkEmpty('#ga_cost', 'GA Cost (%)');
+            checkEmpty('#commission_fee', 'Commission Fee (%)');
+
+            if ($('#images').get(0).files.length === 0) {
+                empty_input.push('Upload Gambar');
+            }
+
+            let totalQty = $('#total_qty').val();
+            if (!totalQty || totalQty == 0) {
+                empty_input.push('Upload File Excel (Data Preview masih kosong)');
+            }
+
+            if (empty_input.length > 0) {
+                let errHtml = empty_input.map(e => `<li>${e}</li>`).join('');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Data Belum Lengkap!',
+                    html: `Silakan isi kolom berikut sebelum menyimpan:<br><br><ul class="text-left" style="font-size: 14px;">${errHtml}</ul>`,
+                    confirmButtonText: 'Mengerti'
+                });
+                return;
+            }
+
             let formData = new FormData(this);
             Swal.fire({
                 title: 'Simpan Sales Order?', icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, Simpan', cancelButtonText: 'Batal'

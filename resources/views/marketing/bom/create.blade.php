@@ -38,7 +38,7 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-4">
-                    <label class="form-label"><small class="fw-bold">Buyer</small></label>
+                    <label class="form-label"><small class="fw-bold">Buyer <span class="text-danger">*</span></small></label>
                     <select name="id_buyer" id="id_buyer" class="form-control select2bs4">
                         <option value="">Pilih Buyer</option>
                         @foreach ($buyers as $buyer)
@@ -47,7 +47,7 @@
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label"><small class="fw-bold">Style</small></label>
+                    <label class="form-label"><small class="fw-bold">Style <span class="text-danger">*</span></small></label>
                     <input type="text" class="form-control" name="style" id="style">
                 </div>
                 <div class="col-md-4">
@@ -59,7 +59,7 @@
             <div class="row mt-3">
                 <div class="col-md-6">
                     <div class="form-label d-flex justify-content-between">
-                        <small class="fw-bold">Master Color</small>
+                        <small class="fw-bold">Master Color <span class="text-danger">*</span></small>
                         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalColor">
                             <i class="fas fa-plus"></i>
                         </button>
@@ -73,7 +73,7 @@
 
                 <div class="col-md-6">
                     <div class="form-label d-flex justify-content-between">
-                        <small class="fw-bold">Master Size</small>
+                        <small class="fw-bold">Master Size <span class="text-danger">*</span></small>
                         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalSize">
                             <i class="fas fa-plus"></i>
                         </button>
@@ -310,18 +310,25 @@
     });
 
     function confirmCatalog() {
+        let emptyFields = [];
         let buyer = $('#id_buyer').val();
         let style = $('#style').val();
         let selectedColors = $('#colorList').select2('data');
         let selectedSizes = $('#sizeList').select2('data');
 
-        if (!buyer) {
-            Swal.fire('Peringatan', 'Mohon lengkapi data Buyer terlebih dahulu!', 'warning');
-            return;
-        }
+        if (!buyer) emptyFields.push('Buyer');
+        if (!style || style.trim() === '') emptyFields.push('Style');
+        if (selectedColors.length === 0) emptyFields.push('Master Color');
+        if (selectedSizes.length === 0) emptyFields.push('Master Size');
 
-        if (selectedColors.length === 0 || selectedSizes.length === 0) {
-            Swal.fire('Peringatan', 'Mohon lengkapi Color, dan Size terlebih dahulu!', 'warning');
+        if (emptyFields.length > 0) {
+            let errHtml = emptyFields.map(e => `<li>${e}</li>`).join('');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Data Belum Lengkap!',
+                html: `Silakan lengkapi data berikut sebelum membuat katalog:<br><br><ul class="text-left" style="font-size: 14px;">${errHtml}</ul>`,
+                confirmButtonText: 'Mengerti'
+            });
             return;
         }
 

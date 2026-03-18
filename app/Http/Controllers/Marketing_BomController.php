@@ -133,7 +133,7 @@ class Marketing_BomController extends Controller
 
             $id_bom = $mysql_sb->table('bom_marketing')->insertGetId([
                 'no_katalog_bom' => $no_katalog_bom,
-                'id_buyer'       => $request->id_buyer,
+                'id_buyer'       => $request->buyer,
                 'style'          => $request->style,
                 'market'         => $request->market,
                 'colors'         => $colors_json,
@@ -281,7 +281,6 @@ class Marketing_BomController extends Controller
                     $row_color = (!empty($colors[$idx]) && $colors[$idx] !== 'null') ? $colors[$idx] : null;
                     $row_size  = (!empty($sizes[$idx]) && $sizes[$idx] !== 'null') ? $sizes[$idx] : null;
 
-                    // LOGIKA CARTESIAN (Membaca dari DB Header)
                     $target_colors = $row_color ? [$row_color] : (count($header_colors) > 0 ? $header_colors : [null]);
                     $target_sizes  = $row_size  ? [$row_size]  : (count($header_sizes) > 0  ? $header_sizes  : [null]);
 
@@ -296,7 +295,6 @@ class Marketing_BomController extends Controller
                                 ->first();
 
                             if ($existing) {
-                                // UPDATE LAMA
                                 $mysql_sb->table('bom_marketing_detail')
                                     ->where('id', $existing->id)
                                     ->update([
@@ -310,7 +308,6 @@ class Marketing_BomController extends Controller
                                         'shell'       => $request->shell,
                                     ]);
                             } else {
-                                // INSERT BARU
                                 $details_to_insert[] = [
                                     'id_bom_marketing' => $bom_id,
                                     'id_contents'      => $item_contents,
@@ -415,6 +412,9 @@ class Marketing_BomController extends Controller
                 })
                 ->filterColumn('unit_name', function($query, $keyword) {
                     $query->where('u.nama_pilihan', 'like', "%{$keyword}%");
+                })
+                ->filterColumn('category', function($query, $keyword) {
+                    $query->where('d.category', 'like', "%{$keyword}%");
                 })
                 ->make(true);
         }
@@ -535,7 +535,9 @@ class Marketing_BomController extends Controller
                 ->orderBy('id', 'DESC')
                 ->get();
 
-            foreach ($items as $item) { $html .= "<option value='{$item->isi}'>{$item->tampil}</option>"; }
+            foreach ($items as $item){
+                $html .= "<option value='{$item->isi}'>{$item->tampil}</option>";
+            }
         }
 
         return response()->json($html);

@@ -2462,8 +2462,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/so-store-master-size', 'storeMasterSizeQuick')->name('so-store-master-size');
         Route::post('/update-qty', 'updateQtySO')->name('update-qty-so');
         Route::post('/cancel-restore-so', 'cancelRestoreSO')->name('cancel-restore-so');
+        Route::get('/print-pdf/{id}', 'printPdfSO')->name('print-pdf-so');
     });
-
 
     // QC Inspect Kain
     // Dashboard

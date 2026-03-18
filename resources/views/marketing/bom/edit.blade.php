@@ -655,8 +655,8 @@
         let rule = $('#rule_bom').val();
         let supplier = $('select[name="id_supplier"]').val();
 
-        if (!content || !rule || !supplier) {
-            Swal.fire({ icon: 'warning', title: 'Data Belum Lengkap!', text: 'Content, Rule BOM, dan Supplier wajib diisi.' });
+        if (!content || !rule) {
+            Swal.fire({ icon: 'warning', title: 'Data Belum Lengkap!', text: 'Content dan Rule BOM wajib diisi.' });
             return false;
         }
 

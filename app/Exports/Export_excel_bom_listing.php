@@ -33,7 +33,6 @@ class Export_excel_bom_listing implements FromView, WithEvents, ShouldAutoSize
             ->leftJoin('signalbit_erp.mastersubgroup as s_grp', 'd2.id_sub_group', '=', 's_grp.id')
             ->leftJoin('signalbit_erp.mastergroup as a', 's_grp.id_group', '=', 'a.id')
             ->leftJoin('signalbit_erp.mastercf as mfg', 'd.id_contents', '=', 'mfg.id')
-            ->leftJoin('signalbit_erp.masterpilihan as u', 'd.id_unit', '=', 'u.id')
             ->leftJoin('signalbit_erp.masterpilihan as cur', 'd.id_currency', '=', 'cur.id')
             ->leftJoin('signalbit_erp.mastersupplier as supp', 'bm.id_buyer', '=', 'supp.id_Supplier')
             ->select(
@@ -57,7 +56,7 @@ class Export_excel_bom_listing implements FromView, WithEvents, ShouldAutoSize
                 'd.qty',
                 'c.name as color_name',
                 's.size as size_name',
-                'u.nama_pilihan as unit_name',
+                'd.unit as unit_name',
                 'cur.nama_pilihan as currency',
                 'd.shell',
                 'd.category',

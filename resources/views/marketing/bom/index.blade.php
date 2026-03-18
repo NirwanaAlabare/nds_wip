@@ -195,8 +195,8 @@
                     language: { emptyTable: "Data tidak ditemukan" },
                     autoWidth: false,
                     responsive: true,
-                    lengthMenu: [5, 10, 25, 50],
-                    pageLength: 10
+                    lengthMenu: [[5, 10, 25, -1], [5, 10, 25, "All"]],
+                    pageLength: -1
                 });
 
                 $('#table-detail .column-search').on('keyup change clear', function() {

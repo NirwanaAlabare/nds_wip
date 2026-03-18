@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
+use PDF;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use Illuminate\Support\Facades\File;
 
 class Marketing_SOController extends Controller
 {
@@ -56,6 +58,8 @@ class Marketing_SOController extends Controller
 
                     $url_pdf = $base_url . '/erp/pages/marketting/pdfSO.php?id=' . $row->id;
 
+                    $url_pdf_so = route('print-pdf-so', $row->id);
+
                    return '
                         <button class="btn btn-info btn-sm" onclick="showDetail('.$row->id.')" title="Detail SO">
                             <i class="fas fa-eye"></i>
@@ -64,6 +68,9 @@ class Marketing_SOController extends Controller
                             <i class="fas fa-boxes"></i>
                         </button>
                         <a href="'.$url_pdf.'" target="_blank" class="btn btn-danger btn-sm" title="Cetak PDF SO">
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
+                        <a href="'.$url_pdf_so.'" target="_blank" class="btn btn-success btn-sm" title="Cetak PDF SO Market">
                             <i class="fas fa-file-pdf"></i>
                         </a>
                     ';
@@ -141,7 +148,6 @@ class Marketing_SOController extends Controller
         $colors = $mysql_sb->table('master_colors_gmt')->whereIn('id', $c_ids)->select('id', 'name as text')->get();
         $sizes = $mysql_sb->table('master_size_new')->whereIn('id', $s_ids)->select('id', 'size as text')->orderBy('urutan', 'asc')->get();
 
-        // INI KUNCI UTAMANYA: Ambil data material yang SUDAH TERSIMPAN di database
         $existing = $mysql_sb->table('bom_marketing_detail')
             ->where('id_bom_marketing', $request->id_bom)
             ->select('id_contents', 'id_color', 'id_size')
@@ -150,7 +156,7 @@ class Marketing_SOController extends Controller
         return response()->json([
             'colors' => $colors,
             'sizes' => $sizes,
-            'existing' => $existing // <--- Dikirim ke JS untuk filter Anti-Double
+            'existing' => $existing
         ]);
     }
 
@@ -262,16 +268,12 @@ class Marketing_SOController extends Controller
     //     if (count($errors_color) > 0) return response()->json(['status' => 422, 'message' => 'Kesalahan warna', 'errors' => array_unique($errors_color)], 422);
     //     if (count($errors_size) > 0) return response()->json(['status' => 422, 'message' => 'Kesalahan size', 'errors' => array_unique($errors_size)], 422);
 
-    //     // ==========================================
-    //     // 2. TWO-WAY EXACT MATCH VALIDATION (SO vs BOM DETAIL)
-    //     // ==========================================
 
     //     $bom_details = $mysql_sb->table('bom_marketing_detail')
     //         ->where('id_bom_marketing', $id_bom)
     //         ->select('id_color', 'id_size', 'rule_bom')
     //         ->get();
 
-    //     // VALIDASI A: Cek apakah ada di EXCEL tapi TIDAK ADA materialnya di BOM (Warna salah)
     //     foreach ($so_combinations as $combo) {
     //         $is_covered = false;
 
@@ -292,7 +294,6 @@ class Marketing_SOController extends Controller
     //         }
     //     }
 
-    //     // VALIDASI B: Cek apakah ada di BOM tapi KETINGGALAN di EXCEL
     //     foreach ($bom_details as $bom) {
     //         $is_used = false;
 
@@ -336,9 +337,6 @@ class Marketing_SOController extends Controller
     //         ], 422);
     //     }
 
-    //     // ==========================================
-    //     // 3. SIMPAN KE TEMP
-    //     // ==========================================
     //     $mysql_sb->table('temp_so_detail')->where('user_id', $user_id)->delete();
 
     //     if (count($temp_data) > 0) {
@@ -403,7 +401,6 @@ class Marketing_SOController extends Controller
     //         }
     //     }
 
-    //     // Buang duplikat agar punya daftar array unik murni
     //     $bom_colors = array_unique($bom_colors);
     //     $bom_sizes  = array_unique($bom_sizes);
 
@@ -440,7 +437,6 @@ class Marketing_SOController extends Controller
     //                 $id_size = $master_sizes[$size_name];
     //                 $has_qty_in_row = true;
 
-    //                 // Tampung Size unik yang ada isinya di Excel
     //                 if (!in_array($id_size, $excel_sizes)) {
     //                     $excel_sizes[] = $id_size;
     //                 }
@@ -460,27 +456,22 @@ class Marketing_SOController extends Controller
     //             }
     //         }
 
-    //         // Tampung Warna unik yang ada isinya di Excel
     //         if ($has_qty_in_row && !in_array($id_color, $excel_colors)) {
     //             $excel_colors[] = $id_color;
     //         }
     //     }
 
-    //     // Stop eksekusi jika master data ada yang keliru
     //     if (count($errors_color) > 0) return response()->json(['status' => 422, 'message' => 'Kesalahan penulisan warna', 'errors' => array_unique($errors_color)], 422);
     //     if (count($errors_size) > 0) return response()->json(['status' => 422, 'message' => 'Kesalahan penulisan size', 'errors' => array_unique($errors_size)], 422);
 
 
-    //     // Jika BOM punya settingan warna spesifik, lakukan validasi warna
     //     if (!empty($bom_colors)) {
-    //         // Warna salah (Ada di Excel, ga ada di BOM)
     //         $salah_colors = array_diff($excel_colors, $bom_colors);
     //         foreach ($salah_colors as $sc) {
     //             $nama_warna = $master_colors_reverse[$sc] ?? 'Unknown';
     //             $errors_bom[] = "Warna salah: <b>{$nama_warna}</b> di-upload, tidak terdaftar di Material BOM.";
     //         }
 
-    //         // Warna Ketinggalan (Diwajibkan BOM, ga di-upload di Excel)
     //         $missing_colors = array_diff($bom_colors, $excel_colors);
     //         foreach ($missing_colors as $mc) {
     //             $nama_warna = $master_colors_reverse[$mc] ?? 'Unknown';
@@ -488,16 +479,13 @@ class Marketing_SOController extends Controller
     //         }
     //     }
 
-    //     // Jika BOM punya settingan size spesifik, lakukan validasi size
     //     if (!empty($bom_sizes)) {
-    //         // Size salah (Ada di Excel, ga ada di BOM)
     //         $salah_sizes = array_diff($excel_sizes, $bom_sizes);
     //         foreach ($salah_sizes as $ss) {
     //             $nama_size = $master_sizes_reverse[$ss] ?? 'Unknown';
     //             $errors_bom[] = "Size salah: <b>{$nama_size}</b> di-upload, tidak terdaftar di Material BOM.";
     //         }
 
-    //         // Size Ketinggalan (Diwajibkan BOM, ga di-upload di Excel)
     //         $missing_sizes = array_diff($bom_sizes, $excel_sizes);
     //         foreach ($missing_sizes as $ms) {
     //             $nama_size = $master_sizes_reverse[$ms] ?? 'Unknown';
@@ -505,7 +493,6 @@ class Marketing_SOController extends Controller
     //         }
     //     }
 
-    //     // Blok jika ada kesalahan
     //     if (count($errors_bom) > 0) {
     //         return response()->json([
     //             'status' => 422,
@@ -604,7 +591,6 @@ class Marketing_SOController extends Controller
         $allowed_colors = $bom_header && $bom_header->colors ? json_decode($bom_header->colors, true) : [];
         $allowed_sizes  = $bom_header && $bom_header->sizes ? json_decode($bom_header->sizes, true) : [];
 
-        // CEK DETAIL MATERIAL (Kombinasi id_contents)
         $bom_details = $mysql_sb->table('bom_marketing_detail')->where('id_bom_marketing', $id_bom)->get();
 
         $required_contents = [];
@@ -621,7 +607,6 @@ class Marketing_SOController extends Controller
             $content_combinations[$content_id][] = "{$c}_{$s}";
         }
 
-        // Ambil data Temp (Excel SO)
         $temp_data = $mysql_sb->table('temp_so_detail as t')
             ->leftJoin('master_colors_gmt as c', 't.id_color', '=', 'c.id')
             ->leftJoin('master_size_new as s', 't.size', '=', 's.id')
@@ -634,7 +619,6 @@ class Marketing_SOController extends Controller
             )
             ->get();
 
-        // CARI WARNA/SIZE BOM YANG TIDAK ADA DI EXCEL
         $uploaded_colors = [];
         $uploaded_sizes = [];
         foreach ($temp_data as $row) {
@@ -658,7 +642,6 @@ class Marketing_SOController extends Controller
             }
         }
 
-        // PROSES GROUPING & PIVOT DATA
         $pivot_data = [];
         $available_sizes_raw = [];
         $total_qty = 0;
@@ -695,10 +678,8 @@ class Marketing_SOController extends Controller
         asort($available_sizes_raw);
         $available_sizes_array = array_keys($available_sizes_raw);
 
-        // VALIDASI KETAT (Excel -> BOM)
         $has_bom_error = false;
 
-        // Jika ada warna BOM yang tidak diupload di Excel, langsung nyatakan Error!
         if (count($missing_colors_names) > 0 || count($missing_sizes_names) > 0) {
             $has_bom_error = true;
         }
@@ -1030,9 +1011,10 @@ class Marketing_SOController extends Controller
                     'ga_cost'     => $request->ga_cost,
                     'comm_cost'   => $request->commission_fee,
                     'cfm_price'   => $request->confirm_price,
+                    'mkt_order'   => $request->marketing_order,
                     'dateinput'   => now(),
                     'aktif'       => 'Y',
-                    'attach_file' => $file_name,
+
                 ]);
 
                 $id_so = $mysql_sb->table('so')->insertGetId([
@@ -1046,6 +1028,9 @@ class Marketing_SOController extends Controller
                     'username' => $username,
                     'd_insert' => now(),
                     'id_bom'   => $request->id_bom,
+                    'market'   => $request->market,
+                    'nm_file'  => $file_name,
+
                 ]);
 
                 $details_insert = [];
@@ -1167,7 +1152,7 @@ class Marketing_SOController extends Controller
                 'h.market as dest',
                 'i.itemdesc as item_desc',
                 'd.qty as cons',
-                'u.nama_pilihan as unit',
+                'd.unit as unit',
                 'd.notes'
             )
             ->get();
@@ -1198,7 +1183,7 @@ class Marketing_SOController extends Controller
                     $is_match = true; // Per Color Per Size
                 }
 
-                // Jika cocok, rakit baris barunya
+                // Jika cocok, buat baris barunya
                 if ($is_match) {
                     $final_data[] = [
                         'id_item'    => $bom->id_item,
@@ -1554,4 +1539,335 @@ class Marketing_SOController extends Controller
             return response()->json(['status' => 500, 'message' => 'Gagal memproses data: ' . $e->getMessage()]);
         }
     }
+
+    public function printPdfSO(Request $request, $id)
+    {
+        $mysql_sb = DB::connection('mysql_sb');
+
+        $header = $mysql_sb->table('so')
+            ->select('so.*', 'act.kpno', 'act.styleno', 'ms.Supplier as buyer', 'mp.product_group', 'mp.product_item')
+            ->leftJoin('act_costing as act', 'so.id_cost', '=', 'act.id')
+            ->leftJoin('mastersupplier as ms', 'act.id_buyer', '=', 'ms.Id_Supplier')
+            ->leftJoin('masterproduct as mp', 'act.id_product', '=', 'mp.id')
+            ->where('so.id', $id)
+            ->first();
+
+        if (!$header) {
+            return abort(404, 'Data SO tidak ditemukan');
+        }
+
+        $detail_data = $mysql_sb->table('so_det')
+            ->leftJoin('master_colors_gmt as c', 'so_det.id_color', '=', 'c.id')
+            ->leftJoin('master_size_new as s', 'so_det.id_size', '=', 's.id')
+            ->where('so_det.id_so', $id)
+            ->select('c.name as color', 's.size as size_name', 's.urutan', 'so_det.qty', 'so_det.deldate_det', 'so_det.id_color', 'so_det.id_size')
+            ->orderBy('s.urutan', 'asc')
+            ->get();
+
+        $item_qty = [];
+        $list_size = [];
+        $header->ex_fty_date = $detail_data->first()->deldate_det ?? '-';
+
+        foreach ($detail_data as $row) {
+            $color = $row->color ?? 'Warna Tidak Sesuai Master';
+            $size = $row->size_name ?? 'Size Tidak Sesuai Master';
+
+            if (!isset($item_qty[$color][$size])) {
+                $item_qty[$color][$size] = 0;
+            }
+            $item_qty[$color][$size] += $row->qty;
+
+            if (!in_array($size, $list_size)) {
+                $list_size[] = $size;
+            }
+        }
+
+        $master_groups = $mysql_sb->table('mastergroup')
+            ->whereNotNull('root_group')
+            ->orderBy('root_group', 'asc')
+            ->pluck('nama_group')
+            ->toArray();
+
+        $group_names = array_map(function($name) {
+            return strtoupper(trim($name));
+        }, $master_groups);
+
+        $bom_materials = $mysql_sb->table('bom_marketing_detail as bmd')
+            ->select(
+                'mg.nama_group',
+                'c.name as color_gmt',
+                'bmd.id_color',
+                'bmd.id_size',
+                'bmd.shell',
+                'bmd.notes as description',
+                's.size as size_gmt',
+                'i.color as color_item',
+                'i.size as size_item',
+                'bmd.qty as cons',
+                'bmd.unit as unit',
+                DB::raw("
+                    CASE
+                        WHEN bmd.category = 'Manufacturing'
+                        THEN CONCAT(IFNULL(i.itemdesc,''), ' ', IFNULL(i.color,''), ' ', IFNULL(i.size,''), ' ', IFNULL(i.add_info,''))
+                        ELSE i.itemdesc
+                    END as item_name
+                ")
+            )
+            ->leftJoin('masteritem as i', 'bmd.id_item', '=', 'i.id_item')
+            ->leftJoin('mastercontents as mc', 'bmd.id_contents', '=', 'mc.id')
+            ->leftJoin('mastertype2 as mt', 'mc.id_type', '=', 'mt.id')
+            ->leftJoin('mastersubgroup as msg', 'mt.id_sub_group', '=', 'msg.id')
+            ->leftJoin('mastergroup as mg', 'msg.id_group', '=', 'mg.id')
+            ->leftJoin('master_colors_gmt as c', 'bmd.id_color', '=', 'c.id')
+            ->leftJoin('master_size_new as s', 'bmd.id_size', '=', 's.id')
+            ->leftJoin('masterpilihan as u', 'bmd.unit', '=', 'u.id')
+            ->where('bmd.id_bom_marketing', $header->id_bom)
+            ->where('bmd.category', 'Material')
+            ->whereIn('mg.nama_group', $master_groups)
+            ->get();
+
+        $total_so_qty = $detail_data->sum('qty');
+        $materials_by_group = [];
+        $detail_collection = collect($detail_data);
+
+        foreach ($bom_materials as $mat) {
+            $has_color = !empty($mat->id_color);
+            $has_size = !empty($mat->id_size);
+
+            if (!$has_color && !$has_size) {
+                $mat_qty = $total_so_qty;
+            } elseif ($has_color && !$has_size) {
+                $mat_qty = $detail_collection->where('id_color', $mat->id_color)->sum('qty');
+            } elseif (!$has_color && $has_size) {
+                $mat_qty = $detail_collection->where('id_size', $mat->id_size)->sum('qty');
+            } else {
+                $mat_qty = $detail_collection->where('id_color', $mat->id_color)->where('id_size', $mat->id_size)->sum('qty');
+            }
+
+            $mat->qty = $mat_qty;
+            $mat->cons = (float) ($mat->cons ?? 0);
+
+            $g_name = strtoupper(trim($mat->nama_group));
+            $c_name = strtoupper(trim($mat->color_gmt ?? '-'));
+
+            $materials_by_group[$g_name][$c_name][] = $mat;
+        }
+
+        foreach ($materials_by_group as $g_name => $color_groups) {
+            ksort($color_groups);
+            $materials_by_group[$g_name] = $color_groups;
+        }
+
+        // manufacturing
+
+        $bom_materials_manufacturing = $mysql_sb->table('bom_marketing_detail as bmd')
+            ->select(
+                'c.name as color_gmt',
+                'bmd.id_color',
+                'bmd.id_size',
+                'bmd.shell',
+                'bmd.notes as description',
+                's.size as size_gmt',
+                'i.color as color_item',
+                'i.size as size_item',
+                'bmd.qty as cons',
+                'bmd.unit as unit',
+                DB::raw("
+                    CASE
+                        WHEN bmd.category = 'Manufacturing'
+                        THEN CONCAT(IFNULL(i.itemdesc,''), ' ', IFNULL(i.color,''), ' ', IFNULL(i.size,''), ' ', IFNULL(i.add_info,''))
+                        ELSE i.itemdesc
+                    END as item_name
+                ")
+            )
+            ->leftJoin('masteritem as i', 'bmd.id_item', '=', 'i.id_item')
+            ->leftJoin('mastercontents as mc', 'bmd.id_contents', '=', 'mc.id')
+            ->leftJoin('mastertype2 as mt', 'mc.id_type', '=', 'mt.id')
+            ->leftJoin('mastersubgroup as msg', 'mt.id_sub_group', '=', 'msg.id')
+            ->leftJoin('mastergroup as mg', 'msg.id_group', '=', 'mg.id')
+            ->leftJoin('master_colors_gmt as c', 'bmd.id_color', '=', 'c.id')
+            ->leftJoin('master_size_new as s', 'bmd.id_size', '=', 's.id')
+            ->leftJoin('masterpilihan as u', 'bmd.unit', '=', 'u.id')
+            ->where('bmd.id_bom_marketing', $header->id_bom)
+            ->where('bmd.category', 'Manufacturing')
+            ->get();
+
+
+        $total_so_qty_manufacturing = $detail_data->sum('qty');
+        $materials_manufacturing = [];
+
+        foreach ($bom_materials_manufacturing as $mat) {
+            $has_color = !empty($mat->id_color);
+            $has_size = !empty($mat->id_size);
+
+            if (!$has_color && !$has_size) {
+                $mat_qty = $total_so_qty_manufacturing;
+            } elseif ($has_color && !$has_size) {
+                $mat_qty = $detail_collection->where('id_color', $mat->id_color)->sum('qty');
+            } elseif (!$has_color && $has_size) {
+                $mat_qty = $detail_collection->where('id_size', $mat->id_size)->sum('qty');
+            } else {
+                $mat_qty = $detail_collection->where('id_color', $mat->id_color)->where('id_size', $mat->id_size)->sum('qty');
+            }
+
+            $mat->qty = $mat_qty;
+            $mat->cons = (float) ($mat->cons ?? 0);
+
+            $c_name = strtoupper(trim($mat->color_gmt ?? '-'));
+
+            $materials_manufacturing[$c_name][] = $mat;
+        }
+
+        ksort($materials_manufacturing);
+
+
+        $view_data = [
+            'header'       => $header,
+            'details'      => $item_qty,
+            'sizes'        => $list_size,
+            'materials'    => $materials_by_group,
+            'materials_manufacturing'    => $materials_manufacturing,
+            'group_names'  => $group_names
+        ];
+
+        PDF::setOption(['dpi' => 150, 'defaultFont' => 'courier']);
+        $pdf = PDF::loadView('marketing.so.pdf_ws', $view_data)->setPaper('a4', 'landscape');
+
+        $fileName = 'Worksheet-SO-' . ($header->so_no ?? $id) . '.pdf';
+        return $pdf->stream(str_replace("/", "_", $fileName));
+    }
+    // public function printPdfSO(Request $request, $id)
+    // {
+    //     $mysql_sb = DB::connection('mysql_sb');
+
+    //     $header = $mysql_sb->table('so')
+    //         ->select('so.*', 'act.kpno', 'act.styleno', 'ms.Supplier as buyer', 'mp.product_group', 'mp.product_item')
+    //         ->leftJoin('act_costing as act', 'so.id_cost', '=', 'act.id')
+    //         ->leftJoin('mastersupplier as ms', 'act.id_buyer', '=', 'ms.Id_Supplier')
+    //         ->leftJoin('masterproduct as mp', 'act.id_product', '=', 'mp.id')
+    //         ->where('so.id', $id)
+    //         ->first();
+
+    //     if (!$header) {
+    //         return abort(404, 'Data SO tidak ditemukan');
+    //     }
+
+    //     $detail_data = $mysql_sb->table('so_det')
+    //         ->leftJoin('master_colors_gmt as c', 'so_det.id_color', '=', 'c.id')
+    //         ->leftJoin('master_size_new as s', 'so_det.id_size', '=', 's.id')
+    //         ->where('so_det.id_so', $id)
+    //         ->select('c.name as color', 's.size as size_name', 's.urutan', 'so_det.qty', 'so_det.deldate_det', 'so_det.id_color', 'so_det.id_size')
+    //         ->orderBy('s.urutan', 'asc')
+    //         ->get();
+
+    //     $data = [];
+    //     $list_size = [];
+    //     $header->ex_fty_date = "";
+
+    //     foreach ($detail_data as $row) {
+    //         $header->ex_fty_date = $row->deldate_det;
+    //         $color = $row->color ?? 'Warna Tidak Sesuai dengan Master';
+    //         $size = $row->size_name ?? 'Warna Tidak Sesuai dengan Master';
+
+    //         if (!isset($data[$color])) {
+    //             $data[$color] = [];
+    //         }
+
+    //         // Jumlahkan jika ada qty duplikat (PO digabung)
+    //         if (!isset($data[$color][$size])) {
+    //             $data[$color][$size] = 0;
+    //         }
+    //         $data[$color][$size] += $row->qty;
+
+    //         if (!in_array($size, $list_size)) {
+    //             $list_size[] = $size;
+    //         }
+    //     }
+
+    //     $bom_materials = $mysql_sb->table('bom_marketing_detail as bmd')
+    //         ->select(
+    //             'mg.nama_group',
+    //             'c.name as color_gmt',
+    //             'bmd.id_color',
+    //             'bmd.id_size',
+    //             'bmd.shell',
+    //             'bmd.notes as description',
+    //             's.size as size_gmt',
+    //             'i.color as color_item',
+    //             'i.size as size_item',
+    //             'bmd.qty as cons',
+    //             'u.nama_pilihan as unit',
+    //             DB::raw("
+    //                 CASE
+    //                     WHEN bmd.category = 'Manufacturing'
+    //                     THEN CONCAT(IFNULL(i.itemdesc,''), ' ', IFNULL(i.color,''), ' ', IFNULL(i.size,''), ' ', IFNULL(i.add_info,''))
+    //                     ELSE i.itemdesc
+    //                 END as item_name
+    //             ")
+    //         )
+    //         ->leftJoin('masteritem as i', 'bmd.id_item', '=', 'i.id_item')
+    //         ->leftJoin('mastercontents as mc', 'bmd.id_contents', '=', 'mc.id')
+    //         ->leftJoin('mastertype2 as mt', 'mc.id_type', '=', 'mt.id')
+    //         ->leftJoin('mastersubgroup as msg', 'mt.id_sub_group', '=', 'msg.id')
+    //         ->leftJoin('mastergroup as mg', 'msg.id_group', '=', 'mg.id')
+    //         ->leftJoin('master_colors_gmt as c', 'bmd.id_color', '=', 'c.id')
+    //         ->leftJoin('master_size_new as s', 'bmd.id_size', '=', 's.id')
+    //         ->leftJoin('masterpilihan as u', 'bmd.unit', '=', 'u.id')
+    //         ->where('bmd.id_bom_marketing', $header->id_bom)
+    //         ->get();
+
+    //     $total_so_qty = $detail_data->sum('qty');
+    //     $materials_by_group = [];
+    //     $added_groups = [];
+
+    //     foreach ($bom_materials as $mat) {
+    //         $mat_qty = 0;
+    //         $has_color = !empty($mat->id_color);
+    //         $has_size = !empty($mat->id_size);
+
+    //         // Hitung QTY BOM sesuai rule (All Color/Per Color)
+    //         if (!$has_color && !$has_size) {
+    //             $mat_qty = $total_so_qty;
+    //         } elseif ($has_color && !$has_size) {
+    //             $mat_qty = $detail_data->where('id_color', $mat->id_color)->sum('qty');
+    //         } elseif (!$has_color && $has_size) {
+    //             $mat_qty = $detail_data->where('id_size', $mat->id_size)->sum('qty');
+    //         } else {
+    //             $mat_qty = $detail_data->where('id_color', $mat->id_color)->where('id_size', $mat->id_size)->sum('qty');
+    //         }
+
+    //         $mat->qty = $mat_qty;
+    //         $mat->cons = (float) ($mat->cons ?? 0);
+
+    //         $g_name = strtoupper(trim($mat->nama_group ?? 'OTHER'));
+
+    //         // Otomatis tarik semua yang mengandung kata FABRIC atau ACC (tidak peduli salah ketik di database)
+    //         if (str_contains($g_name, 'FABRIC') || str_contains($g_name, 'ACC')) {
+    //             $materials_by_group[$g_name][] = $mat;
+    //             if(!in_array($g_name, $added_groups)) {
+    //                 $added_groups[] = $g_name;
+    //             }
+    //         }
+    //     }
+
+    //     usort($added_groups, function($a, $b) {
+    //         $scoreA = str_contains($a, 'FABRIC') ? 1 : (str_contains($a, 'SEWING') ? 2 : (str_contains($a, 'PACKING') ? 3 : 4));
+    //         $scoreB = str_contains($b, 'FABRIC') ? 1 : (str_contains($b, 'SEWING') ? 2 : (str_contains($b, 'PACKING') ? 3 : 4));
+    //         return $scoreA <=> $scoreB;
+    //     });
+
+    //     $view_data = [
+    //         'header'       => $header,
+    //         'details'      => $data,
+    //         'sizes'        => $list_size,
+    //         'materials'    => $materials_by_group,
+    //         'added_groups' => $added_groups // Array ini yang dipakai di Blade
+    //     ];
+
+    //     PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica']);
+    //     $pdf = PDF::loadView('marketing.so.pdf_ws', $view_data)->setPaper('a4', 'landscape');
+
+    //     $fileName = 'Worksheet-SO-' . ($header->so_no ?? $id) . '.pdf';
+    //     return $pdf->stream(str_replace("/", "_", $fileName));
+    // }
 }
