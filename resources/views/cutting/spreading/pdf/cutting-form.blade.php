@@ -363,9 +363,9 @@
                 <td class="text-left header-2">{{ (shortUnit($marker->unit_cons_piping)) }}</td>
 
                 <td colspan="2" class="header-bg text-left header-2">LEBAR WS</td>
-                <td colspan="3" class="header-2">{{ num($marker->lebar_ws, 4, false)." ".$marker->unit_lebar_ws }}</td>
+                <td colspan="3" class="header-2">{{ num($marker->lebar_ws, 4, false) > 0 ? (num($marker->lebar_ws, 4, false)." ".$marker->unit_lebar_ws) : null }}</td>
 
-                <td colspan="2" class="header-bg text-left header-2">LEBAR AKTUAL</td>
+                <td colspan="2" class="header-bg text-left header-2">CONS 1 AMPAR</td>
                 <td colspan="3"></td>
                 <td class="borderless"></td>
             </tr>
