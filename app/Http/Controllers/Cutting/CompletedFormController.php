@@ -887,6 +887,8 @@ class CompletedFormController extends Controller
         $formCutDetail = FormCutInputDetail::find($id);
 
         if ($formCutDetail) {
+
+            // Check Stocker
             $stockerForm = Stocker::where('form_cut_id', $formCutDetail->form_cut_id)->first();
             Log::channel("completedFormBypassStocker")->info($stockerForm);
             if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
@@ -956,6 +958,10 @@ class CompletedFormController extends Controller
 
             // Delete Form Cut Detail
             if ($formCutDetail->delete()) {
+
+                // Fix Roll Qty after form_cut_detail has been deleted, in case the qty is still not updating
+                $cuttingService->fixRollQty($formCutDetail['id_roll'], null);
+
                 return array(
                     "status" => 200,
                     "message" => "alright"
