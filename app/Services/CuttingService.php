@@ -327,8 +327,8 @@ class CuttingService
     }
 
     public function fixRollQty($idRoll, $qty = null) {
-        $rollId = $request->id_roll;
-        $rollQty = $request->qty;
+        $rollId = $idRoll;
+        $rollQty = $qty;
         $rollUse = null;
 
         // When there are no input
@@ -339,7 +339,7 @@ class CuttingService
                 SUM(total_pemakaian_roll) total_pakai,
                 MIN( CASE WHEN form_cut_input_detail.STATUS = 'extension' OR form_cut_input_detail.STATUS = 'extension complete' THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll ELSE form_cut_input_detail.sisa_kain END ) as sisa_kain
             ")->
-            where("id_roll", $request->id_roll)->
+            where("id_roll", $idRoll)->
             groupBy("id_roll")->
             first();
 
@@ -388,21 +388,21 @@ class CuttingService
                         FROM
                             whs_bppb_det
                             LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
-                            LEFT JOIN (SELECT no_barcode, id_item, no_roll_buyer FROM whs_lokasi_inmaterial where no_barcode = '".$request->id_roll."' GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                            LEFT JOIN (SELECT no_barcode, id_item, no_roll_buyer FROM whs_lokasi_inmaterial where no_barcode = '".$idRoll."' GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
                             LEFT JOIN masteritem ON masteritem.id_item = whs_lokasi_inmaterial.id_item
                             LEFT JOIN bom_jo_item bji ON bji.id_item = masteritem.id_gen
                             LEFT JOIN so_det ON so_det.id = bji.id_so_det
                             LEFT JOIN so ON so.id = so_det.id_so
                             LEFT JOIN act_costing ON act_costing.id = so.id_cost
                         WHERE
-                            whs_bppb_det.id_roll = '".$request->id_roll."'
+                            whs_bppb_det.id_roll = '".$idRoll."'
                             AND whs_bppb_h.tujuan = 'Production - Cutting'
                             AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
                             AND whs_bppb_det.no_bppb LIKE '%GK/OUT%'
                         GROUP BY
                             whs_bppb_det.id
                     ) item
-                    LEFT JOIN (select a.no_barcode, (CASE WHEN supplier_in.no_barcode IS NULL THEN 0 ELSE sum(qty_aktual) END) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok LEFT JOIN (select b.no_barcode from whs_inmaterial_fabric a left join whs_lokasi_inmaterial b on b.no_dok = a.no_dok where b.no_barcode = '".$request->id_roll."' and supplier != 'Production - Cutting' and b.status = 'Y' GROUP BY no_barcode) supplier_in on supplier_in.no_barcode = a.no_barcode where a.no_barcode = '".$request->id_roll."' and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = item.id_roll
+                    LEFT JOIN (select a.no_barcode, (CASE WHEN supplier_in.no_barcode IS NULL THEN 0 ELSE sum(qty_aktual) END) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok LEFT JOIN (select b.no_barcode from whs_inmaterial_fabric a left join whs_lokasi_inmaterial b on b.no_dok = a.no_dok where b.no_barcode = '".$idRoll."' and supplier != 'Production - Cutting' and b.status = 'Y' GROUP BY no_barcode) supplier_in on supplier_in.no_barcode = a.no_barcode where a.no_barcode = '".$idRoll."' and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = item.id_roll
                     GROUP BY
                         id_roll
                     LIMIT 1
