@@ -434,10 +434,8 @@
                             // Image point
                             defectAreaImagePoints[i].style.width = 0.03 * rect.width + 'px';
                             defectAreaImagePoints[i].style.height = defectAreaImagePoints[i].style.width;
-                            defectAreaImagePoints[i].style.left = (defectAreaImagePoints[i].offsetLeft - (
-                                0.015 * rect.width)) + 'px';
-                            defectAreaImagePoints[i].style.top = (defectAreaImagePoints[i].offsetTop - (
-                                0.015 * rect.width)) + 'px';
+                            defectAreaImagePoints[i].style.left = (defectAreaImagePoints[i].offsetLeft - (0.015 * rect.width)) + 'px';
+                            defectAreaImagePoints[i].style.top = (defectAreaImagePoints[i].offsetTop - (0.015 * rect.width)) + 'px';
                         } else {
                             console.log("❌ Image not loaded or failed");
                         }
@@ -658,26 +656,32 @@
                             }).filter(index => index >= 0);
 
                             if (defectTypeIndexes.length > 0 && defectTypeIndexes[0] <= 9) {
-                                let defectAreaImagePoint = document.createElement('div');
-                                defectAreaImagePoint.classList.add("all-defect-area-img-point");
+                                // Check Defect Point ID
+                                let currentDefectPointElement = document.getElementById("defect-point-"+item.items[i])
 
-                                defectAreaImagePoint.setAttribute('defect_type', item.items[i]
-                                    .defect_type_id);
-                                defectAreaImagePoint.style.background = defectTypeIndexes[0] > 9 ?
-                                    '#bdbdbd' : colorList[defectTypeIndexes[0]];
-                                defectAreaImagePoint.style.borderColor = defectTypeIndexes[0] > 9 ?
-                                    '#bdbdbd' : colorList[defectTypeIndexes[0]];
-                                defectAreaImagePoint.style.width = 0.03 * rect.width + 'px';
-                                defectAreaImagePoint.style.height = defectAreaImagePoint.style.width;
-                                defectAreaImagePoint.style.left =
-                                    `calc(${item.items[i].defect_area_x}% - ${0.015 * rect.width}px)`;
-                                defectAreaImagePoint.style.top =
-                                    `calc(${item.items[i].defect_area_y}% - ${0.015 * rect.width}px)`;
+                                // Create the point if there is no element that has Current Defect Point ID (Prevent DUPLICATE DEFECT POINT)
+                                if (!currentDefectPointElement) {
+                                    // Set Defect Point ID
+                                    let defectAreaImagePoint = document.createElement('div');
+                                    defectAreaImagePoint.setAttribute("id", "defect-point-"+item.items[i].id);
+                                    defectAreaImagePoint.classList.add("all-defect-area-img-point");
 
-                                defectAreaImageContainer.appendChild(defectAreaImagePoint);
+                                    // Stylize Defect Point ID
+                                    defectAreaImagePoint.setAttribute('defect_type', item.items[i].defect_type_id);
+                                    defectAreaImagePoint.style.background = defectTypeIndexes[0] > 9 ? '#bdbdbd' : colorList[defectTypeIndexes[0]];
+                                    defectAreaImagePoint.style.borderColor = defectTypeIndexes[0] > 9 ? '#bdbdbd' : colorList[defectTypeIndexes[0]];
+                                    defectAreaImagePoint.style.width = 0.03 * rect.width + 'px';
+                                    defectAreaImagePoint.style.height = defectAreaImagePoint.style.width;
+                                    defectAreaImagePoint.style.left = `calc(${item.items[i].defect_area_x}% - ${0.015 * rect.width}px)`;
+                                    defectAreaImagePoint.style.top = `calc(${item.items[i].defect_area_y}% - ${0.015 * rect.width}px)`;
+
+                                    // Append Element
+                                    defectAreaImageContainer.appendChild(defectAreaImagePoint);
+                                }
                             }
                         };
 
+                        // Append to Parent
                         scrollDefectAreaImage.appendChild(defectAreaImageContainer);
                         scrollDefectAreaImageContainer.appendChild(scrollDefectAreaImage);
                         resolve(); // Resolve the promise once loading is done
