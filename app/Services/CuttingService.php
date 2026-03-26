@@ -532,7 +532,7 @@ class CuttingService
             $rollQty = null;
             $rollUse = null;
 
-            $fixRollQty = $this->fixRollQty($idRoll, $rollQty);
+            $fixRollQty = $this->fixRollQty($rollId, $rollQty);
 
             if ($fixRollQty && $fixRollQty->status == 200) {
                 array_push($rollSuccessArr, $rollId);
