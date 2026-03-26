@@ -142,7 +142,7 @@
                     <a href="{{ route('modify-secondary-type') }}" class="home-item">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-diagram-project"></i> Modify Secondary Type</h5>
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-diagram-project"></i> Modify Secondary Process</h5>
                             </div>
                         </div>
                     </a>
