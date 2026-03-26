@@ -69,7 +69,10 @@ class CuttingToolsController extends Controller
         $rollQty = $request->qty;
         $rollUse = null;
 
+        // When there are no input
         if (!$rollQty) {
+
+            // Check Last Input
             $lastInput = FormCutInputDetail::selectRaw("
                 SUM(total_pemakaian_roll) total_lembar,
                 MIN(sisa_kain) as sisa_kain
@@ -79,9 +82,12 @@ class CuttingToolsController extends Controller
             first();
 
             if ($lastInput) {
+                // Set Qty based on Last Input
                 $rollQty = $lastInput->sisa_kain;
                 $rollUse = $lastInput->total_lembar;
             } else {
+
+                // Check Origin
                 $newItem = DB::connection("mysql_sb")->select("
                     SELECT
                         id_roll,
@@ -139,11 +145,13 @@ class CuttingToolsController extends Controller
                     LIMIT 1
                 ");
 
-                $rollQty = $newItem && $newItem[0] ? $newItem[0]->qty : null;
+                // Set Qty based on Origin Source
+                $rollQty = $newItem && $newItem[0] ? ($newItem[0]->unit == 'YARD' || $newItem[0]->unit == 'YRD' ? round(($newItem[0]->qty * 0.9144), 2) : $newItem[0]->qty) : null;
                 $rollUse = 0;
             }
         }
 
+        // Roll Filter Query
         $additionalQuery = "";
         if ($rollId) {
             $additionalQuery = "WHERE scanned_item.id_roll = '".$rollId."'";
@@ -151,6 +159,7 @@ class CuttingToolsController extends Controller
             $additionalQuery = "WHERE scanned_item.qty != sub.sisa_kain";
         }
 
+        // Roll Query
         $roll = collect(DB::select("
             SELECT
                 scanned_item.id_roll,
@@ -161,10 +170,10 @@ class CuttingToolsController extends Controller
             FROM scanned_item
             INNER JOIN (
                 SELECT
-                        id_roll,
+                    id_roll,
                     MAX(qty) AS max_qty,
-                        SUM(total_pemakaian_roll + short_roll) AS total_pakai_qty,
-                        MIN( CASE WHEN form_cut_input_detail.STATUS = 'extension' OR form_cut_input_detail.STATUS = 'extension complete' THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll ELSE form_cut_input_detail.sisa_kain END ) sisa_kain
+                    SUM(total_pemakaian_roll + short_roll) AS total_pakai_qty,
+                    MIN( CASE WHEN form_cut_input_detail.STATUS = 'extension' OR form_cut_input_detail.STATUS = 'extension complete' THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll ELSE form_cut_input_detail.sisa_kain END ) sisa_kain
                 FROM form_cut_input_detail
                 WHERE id_roll IS NOT NULL
                 GROUP BY id_roll
@@ -173,6 +182,8 @@ class CuttingToolsController extends Controller
         "));
 
         if ($roll) {
+
+            // Single Item
             if ($rollId) {
                 $scannedItem = ScannedItem::where("id_roll", $rollId)->first();
 
@@ -206,7 +217,10 @@ class CuttingToolsController extends Controller
                         "message" => $scannedItem->id_roll." berhasil diubah."
                     );
                 }
-            } else {
+            }
+
+            // Multi Item
+            else {
                 Log::channel('fixRollQty')->info([
                     "Fix Roll Qty",
                     "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
