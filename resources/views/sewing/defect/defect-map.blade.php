@@ -657,7 +657,7 @@
 
                             if (defectTypeIndexes.length > 0 && defectTypeIndexes[0] <= 9) {
                                 // Check Defect Point ID
-                                let currentDefectPointElement = document.getElementById("defect-point-"+item.items[i])
+                                let currentDefectPointElement = document.getElementById("defect-point-"+item.items[i].id)
 
                                 // Create the point if there is no element that has Current Defect Point ID (Prevent DUPLICATE DEFECT POINT)
                                 if (!currentDefectPointElement) {
