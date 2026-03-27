@@ -337,7 +337,7 @@ class CuttingService
             // Check Last Input
             $lastInput = FormCutInputDetail::selectRaw("
                 SUM(total_pemakaian_roll) total_pakai,
-                MIN( CASE WHEN form_cut_input_detail.STATUS = 'extension' OR form_cut_input_detail.STATUS = 'extension complete' THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll ELSE form_cut_input_detail.sisa_kain END ) as sisa_kain
+                ROUND(MIN( CASE WHEN form_cut_input_detail.STATUS = 'extension' OR form_cut_input_detail.STATUS = 'extension complete' THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll ELSE form_cut_input_detail.sisa_kain END ), 2) as sisa_kain
             ")->
             where("id_roll", $idRoll)->
             groupBy("id_roll")->
@@ -436,7 +436,7 @@ class CuttingService
                     id_roll,
                     MAX(qty) AS max_qty,
                     SUM(total_pemakaian_roll + short_roll) AS total_pakai_qty,
-                    MIN( CASE WHEN form_cut_input_detail.STATUS = 'extension' OR form_cut_input_detail.STATUS = 'extension complete' THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll ELSE form_cut_input_detail.sisa_kain END ) sisa_kain
+                    ROUND(MIN( CASE WHEN form_cut_input_detail.STATUS = 'extension' OR form_cut_input_detail.STATUS = 'extension complete' THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll ELSE form_cut_input_detail.sisa_kain END ), 2) sisa_kain
                 FROM form_cut_input_detail
                 WHERE id_roll IS NOT NULL
                 GROUP BY id_roll
@@ -495,12 +495,15 @@ class CuttingService
                     INNER JOIN (
                         SELECT
                             id_roll,
-                            MIN(
-                                CASE
-                                    WHEN form_cut_input_detail.status IN ('extension', 'extension complete')
-                                    THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll
-                                    ELSE form_cut_input_detail.sisa_kain
-                                END
+                            ROUND(
+                                MIN(
+                                    CASE
+                                        WHEN form_cut_input_detail.status IN ('extension', 'extension complete')
+                                        THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll
+                                        ELSE form_cut_input_detail.sisa_kain
+                                    END
+                                ),
+                                2
                             ) AS sisa_kain
                         FROM form_cut_input_detail
                         WHERE id_roll IS NOT NULL
