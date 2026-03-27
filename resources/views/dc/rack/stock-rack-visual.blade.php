@@ -62,9 +62,13 @@
                                         </tr>
                                         <tr>
                                             @foreach ($rack->rackDetails as $rackDetail)
-                                                <th class="{{ ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0) ? 'bg-warning align-top h-100' : '' }} w-50 p-3">
+                                                @php
+                                                    $currentRackDetailStockers = $rackDetail->rackDetailStockers()->where("status", "active")->where("updated_at", ">=", date("Y-m-d", strtotime(date("Y-m-d")." - 7 days")))->get();
+                                                    // dd($currentRackDetailStockers);
+                                                @endphp
+                                                <th class="{{ ($currentRackDetailStockers && $currentRackDetailStockers->count() > 0) ? 'bg-warning align-top h-100' : '' }} w-50 p-3">
                                                     <div class="row row-cols-1 row-cols-sm-2 g-3">
-                                                        @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
+                                                        @if ($currentRackDetailStockers && $currentRackDetailStockers->count() > 0)
                                                             @php
                                                                 $stockerData = $stockers->where('detail_rack_id', $rackDetail->id);
                                                             @endphp
@@ -179,6 +183,8 @@
         });
 
         function openModal(data) {
+            document.getElementById("loading").classList.remove("d-none");
+
             for (let key in data) {
                 if (key != "detail_rack_id" && key != "form_cut_id" && key != 'group_stocker' && key != 'so_det_id') {
                     let tr = document.createElement("tr");
@@ -204,8 +210,11 @@
                     'so_det_id' : data.so_det_id,
                     'group_stocker' : data.group_stocker,
                     'ratio' : data.ratio,
+                    'stocker_reject' : data.stocker_reject,
                 },
                 success: async function(res) {
+                    document.getElementById("loading").classList.add("d-none");
+
                     if (res) {
                         let tr = document.createElement("tr");
                         let th = document.createElement("th");
@@ -228,6 +237,8 @@
                             detailTableTbody.appendChild(tr);
                         });
                     }
+                }, error: function(jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
                 }
             });
 
@@ -240,5 +251,9 @@
 
             $('#detailModal').hide();
         }
+
+        $('#detailModal').on('hide.bs.modal', function (e) {
+            closeModal();
+        });
     </script>
 @endsection

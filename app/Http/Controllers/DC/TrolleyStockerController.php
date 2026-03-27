@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Dc\DCIn;
 use App\Models\Dc\SecondaryInhouse;
 use App\Models\Dc\SecondaryIn;
+use App\Models\Dc\Rack;
+use App\Models\Dc\RackDetail;
+use App\Models\Dc\RackDetailStocker;
 use App\Models\Dc\Trolley;
 use App\Models\Dc\TrolleyStocker;
 use App\Models\Stocker\Stocker;
@@ -380,8 +383,10 @@ class TrolleyStockerController extends Controller
 
         // Allocate Stocker (Bundle) to Trolley
         $trolleyStockArr = [];
+        $idQrStocker = [];
         $i = 0;
         foreach ($similarStockerData as $stocker) {
+            // Generate Trolley Stock
             array_push($trolleyStockArr, [
                 "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
                 "trolley_id" => $validatedRequest['trolley_id'],
@@ -393,6 +398,9 @@ class TrolleyStockerController extends Controller
                 "created_by" => Auth::user()->id,
                 "created_by_username" => Auth::user()->username
             ]);
+
+            // Collect ID QR Stocker
+            array_push($idQrStocker, $stocker['id_qr_stocker']);
 
             $i++;
         }
@@ -409,6 +417,11 @@ class TrolleyStockerController extends Controller
                     "status" => "trolley",
                     "latest_alokasi" => Carbon::now()
                 ]);
+
+            // Update Rack Status
+            $updateRack = RackDetailStocker::whereIn("stocker_id", $idQrStocker)->update([
+                "status" => "not active"
+            ]);
 
             if ($updateStocker) {
                 return array(
@@ -527,8 +540,10 @@ class TrolleyStockerController extends Controller
 
         // Allocate Stocker (Bundle) to Trolley
         $trolleyStockArr = [];
+        $idQrStocker = [];
         $i = 0;
         foreach ($similarStockerData as $stocker) {
+            // Generate Trolley Stock
             array_push($trolleyStockArr, [
                 "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
                 "trolley_id" => $validatedRequest['trolley_id'],
@@ -539,12 +554,16 @@ class TrolleyStockerController extends Controller
                 "created_by_username" => Auth::user()->username
             ]);
 
+            // Collect ID QR Stocker
+            array_push($idQrStocker, $stocker['id_qr_stocker']);
+
             $i++;
         }
 
         $storeTrolleyStock = TrolleyStocker::upsert($trolleyStockArr, ['stocker_id'], ['trolley_id', 'status', 'tanggal_alokasi', 'created_at', 'updated_at', 'created_by', 'created_by_username']);
 
         if (count($trolleyStockArr) > 0) {
+            // Update Stocker Status
             $updateStocker = Stocker::where(($stockerData->form_piece_id > 0 ? "form_piece_id" : ($stockerData->form_reject_id > 0 ? "form_reject_id" : "form_cut_id")), ($stockerData->form_piece_id > 0 ? $stockerData->form_piece_id : ($stockerData->form_reject_id > 0 ? $stockerData->form_reject_id : $stockerData->form_cut_id)))->
                 where("so_det_id", $stockerData->so_det_id)->
                 where("group_stocker", $stockerData->group_stocker)->
@@ -554,6 +573,11 @@ class TrolleyStockerController extends Controller
                     "status" => "trolley",
                     "latest_alokasi" => Carbon::now()
                 ]);
+
+            // Update Rack Status
+            $updateRack = RackDetailStocker::whereIn("stocker_id", $idQrStocker)->update([
+                "status" => "not active"
+            ]);
 
             if ($updateStocker) {
                 return array(
@@ -642,15 +666,25 @@ class TrolleyStockerController extends Controller
             delete();
 
         if ($deleteTrolleyStock) {
-            $updateStocker = Stocker::whereRaw("( CASE WHEN stocker_input.form_cut_id > 0 THEN stocker_input.form_cut_id ELSE ( CASE WHEN stocker_input.form_reject_id > 0 THEN stocker_input.form_reject_id ELSE ( CASE WHEN stocker_input.form_piece_id > 0 THEN stocker_input.form_piece_id ELSE null END ) END ) END ) = '".($stockerData->form_cut_id ?: $stockerData->form_reject_id ?: $stockerData->form_piece_id)."'")->
+            // Get Stocker QR
+            $currentStockerQr = Stocker::whereRaw("( CASE WHEN stocker_input.form_cut_id > 0 THEN stocker_input.form_cut_id ELSE ( CASE WHEN stocker_input.form_reject_id > 0 THEN stocker_input.form_reject_id ELSE ( CASE WHEN stocker_input.form_piece_id > 0 THEN stocker_input.form_piece_id ELSE null END ) END ) END ) = '".($stockerData->form_cut_id ?: $stockerData->form_reject_id ?: $stockerData->form_piece_id)."'")->
                 where("stocker_input.so_det_id", $stockerData->so_det_id)->
                 where("stocker_input.group_stocker", $stockerData->group_stocker)->
                 where("stocker_input.ratio", $stockerData->ratio)->
                 where("stocker_input.stocker_reject", $stockerData->stocker_reject)->
+                pluck('id_qr_stocker')->values()->toArray();
+
+            // Update Stocker Status
+            $updateStocker = Stocker::whereIn("id_qr_stocker", $currentStockerQr)->
                 update([
                     "status" => "idle",
                     "latest_alokasi" => Carbon::now()
                 ]);
+
+            // Update Rack Status
+            $updateRack = RackDetailStocker::whereIn("stocker_id", $currentStockerQr)->update([
+                "status" => "active"
+            ]);
 
             if ($updateStocker) {
                 return array(
@@ -1073,6 +1107,7 @@ class TrolleyStockerController extends Controller
                 $storeLoadingStock = LoadingLine::insert($loadingStockArr);
                 // Get Stored Loading Stock
                 $storedLoadingStock = LoadingLine::where('batch', $batchId)->pluck("stocker_id")->toArray();
+                $storedLoadingStockQr = LoadingLine::select("stocker_input.id_qr_stocker")->leftJoin("stocker_input", "stocker_input.id", "=", "loading_line.stocker_id")->where('loading_line.batch', $batchId)->pluck("id_qr_stocker")->toArray();
 
                 if (count($storedLoadingStock) > 0) {
                     $updateStocker = Stocker::whereIn("id", $storedLoadingStock)->
@@ -1082,6 +1117,11 @@ class TrolleyStockerController extends Controller
                         ]);
 
                     $updateTrolleyStocker = TrolleyStocker::whereIn("stocker_id", $storedLoadingStock)->
+                        update([
+                            "status" => "not active"
+                        ]);
+
+                    $updateRackStocker = RackDetailStocker::whereIn("stocker_id", $storedLoadingStockQr)->
                         update([
                             "status" => "not active"
                         ]);
