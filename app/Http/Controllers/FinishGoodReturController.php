@@ -93,7 +93,7 @@ group by buyer");
         from fg_fg_in a
         inner join ppic_master_so p on a.id_ppic_master_so = p.id
         inner join master_sb_ws m on p.id_so_det = m.id_so_det
-				left join fg_fg_out b on a.id = b.id_fg_in
+		left join fg_fg_out b on a.id = b.id_fg_in
         where m.buyer = '" . $request->cbobuyer . "' and a.status = 'NORMAL' and b.id_fg_in is null
         group by p.po
         order by p.po asc
