@@ -8,6 +8,21 @@
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 @endsection
 
+<style>
+    #table-detail thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background-color: #f8f9fa;
+        box-shadow: inset 0 -1px 0 #dee2e6;
+    }
+
+    #table-detail thead tr:nth-child(2) th {
+        top: 36px;
+        z-index: 1;
+    }
+</style>
+
 @section('content')
 <div class="card card-sb">
     <div class="card-header">
@@ -20,6 +35,23 @@
                 Create BOM
             </a>
         </div>
+
+        <div class="row align-items-end mb-4">
+            <div class="col-md-2">
+                <label class="small fw-bold">Tgl Awal</label>
+                <input type="date" id="date_from" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="small fw-bold">Tgl Akhir</label>
+                <input type="date" id="date_to" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary btn-sm" onclick="refreshTable()">
+                    <i class="fas fa-search"></i> Filter
+                </button>
+            </div>
+        </div>
+
 
         <div class="table-responsive">
             <table class="table table-bordered table-hover w-100" id="table-bom">
@@ -35,26 +67,6 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($data as $key => $item)
-                    <tr>
-                        <td>{{ $key + 1 }}</td>
-                        <td>{{ $item->no_katalog_bom }}</td>
-                        <td>{{ $item->nama_buyer }}</td>
-                        <td>{{ $item->style }}</td>
-                        <td>{{ $item->market }}</td>
-                        <td>{{ number_format($item->total_cons, 2, ',', '.') }}</td>
-                        <td>
-                            <div class="d-flex justify-content-center align-items-center">
-                                <button class="btn btn-sm btn-info mr-1 py-1 px-2" style="font-size: 12px;" onclick="viewDetail({{ $item->id }})">
-                                    <i class="fas fa-eye"></i> Detail
-                                </button>
-                                <a href="{{ route('edit-bom', $item->id) }}" class="btn btn-sm btn-success py-1 px-2" style="font-size: 12px;">
-                                    <i class="fas fa-edit"></i> Edit
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforeach
                 </tbody>
             </table>
         </div>
@@ -71,7 +83,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <div class="table-responsive">
+                <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
                     <table class="table table-sm table-striped table-bordered w-100" id="table-detail">
                         <thead class="bg-light">
                             <tr class="text-center">
@@ -110,8 +122,11 @@
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
+        let tableBom;
+        let tableDetail = null;
+
         $(document).ready(function() {
-            $(".close").click(function(){
+            $(".close").click(function() {
                 $("#modalDetail").modal("hide");
             });
 
@@ -121,46 +136,84 @@
                 }
             });
 
-            $('#table-bom').DataTable({
-                "paging": true,
-                "lengthChange": true,
-                "searching": true,
-                "ordering": true,
-                "info": true,
-                "autoWidth": false,
-                "responsive": true,
-                "columnDefs": [
-                    {
-                        "targets": [0],
-                        "width": "5%",
-                        "className": "text-center align-middle"
-                    },
-                    {
-                        "targets": [5],
-                        "width": "15%",
-                        "className": "text-center align-middle",
-                        "orderable": false
-                    },
-                    {
-                        "targets": "_all",
-                        "className": "align-middle"
+            tableBom = $('#table-bom').DataTable({
+                processing: true,
+                serverSide: false,
+                ajax: {
+                    url: window.location.pathname,
+                    type: "GET",
+                    data: function (d) {
+                        d.date_from = $('#date_from').val();
+                        d.date_to = $('#date_to').val();
                     }
-                ]
+                },
+                columns: [
+                    {
+                        data: null,
+                        className: "text-center align-middle",
+                        width: "5%",
+                        render: (data, type, row, meta) => meta.row + 1
+                    },
+                    { data: 'no_katalog_bom', className: "align-middle" },
+                    { data: 'nama_buyer', className: "align-middle" },
+                    { data: 'style', className: "align-middle" },
+                    { data: 'market', className: "align-middle" },
+                    {
+                        data: 'total_cons',
+                        className: "align-middle text-right",
+                        render: function (data) {
+                            return data ? parseFloat(data).toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0,00';
+                        }
+                    },
+                    {
+                        data: 'id',
+                        className: "text-center align-middle",
+                        width: "15%",
+                        orderable: false,
+                        render: function (data) {
+                            let editUrl = "{{ route('edit-bom', ':id') }}".replace(':id', data);
+                            return `
+                                <div class="d-flex justify-content-center align-items-center">
+                                    <button class="btn btn-sm btn-info mr-1 py-1 px-2" style="font-size: 12px;" onclick="viewDetail(${data})">
+                                        <i class="fas fa-eye"></i> Detail
+                                    </button>
+                                    <a href="${editUrl}" class="btn btn-sm btn-success py-1 px-2" style="font-size: 12px;">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                </div>
+                            `;
+                        }
+                    }
+                ],
+                paging: true,
+                lengthChange: true,
+                searching: true,
+                ordering: true,
+                info: true,
+                autoWidth: false,
+                responsive: true
+            });
+
+            $('#table-detail .column-search').on('keyup change clear', function() {
+                let colIdx = $(this).data('column');
+                if (tableDetail && tableDetail.column(colIdx).search() !== this.value) {
+                    tableDetail.column(colIdx).search(this.value).draw();
+                }
             });
         });
 
-        let tableDetail = null;
+        function refreshTable() {
+            tableBom.ajax.reload(null, false);
+        }
 
         function viewDetail(id) {
             $('#modalDetail').modal('show');
 
-            let url = "{{ route('show-detail-bom', ':id') }}";
-            url = url.replace(':id', id);
+            let url = "{{ route('show-detail-bom', ':id') }}".replace(':id', id);
 
             if ($.fn.DataTable.isDataTable('#table-detail')) {
                 $('.column-search').val('');
                 tableDetail.search('').columns().search('');
-
                 tableDetail.ajax.url(url).load();
             } else {
                 tableDetail = $('#table-detail').DataTable({
@@ -171,39 +224,30 @@
                     columns: [
                         { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center align-middle' },
                         {
-                            data: 'content_name',
-                            name: 'content_name',
-                            className: 'align-middle',
-                            render: function(data) {
-                                return `${data ? data : '-'}`;
-                            }
+                            data: 'content_name', name: 'content_name', className: 'align-middle',
+                            render: (data) => data ? data : '-'
                         },
                         { data: 'item_name', name: 'i.itemdesc', className: 'align-middle' },
                         { data: 'color_name', name: 'color_name', className: 'text-center align-middle' },
                         { data: 'size_name', name: 'size_name', className: 'text-center align-middle' },
                         {
-                            data: 'qty',
-                            name: 'qty',
-                            className: 'text-center align-middle',
-                            searchable: false,
-                            render: function(data) {
-                                return parseFloat(data);
-                            }
+                            data: 'qty', name: 'qty', className: 'text-center align-middle', searchable: false,
+                            render: (data) => parseFloat(data)
                         },
-                        { data: 'unit_name', name: 'unit_name', className: 'text-center align-middle' }
+                        {
+                            data: 'unit',
+                            name: 'unit',
+                            className: 'text-center align-middle',
+                            render: function(data, type, row) {
+                                return data ? data : '-';
+                            }
+                        }
                     ],
                     language: { emptyTable: "Data tidak ditemukan" },
                     autoWidth: false,
                     responsive: true,
                     lengthMenu: [[5, 10, 25, -1], [5, 10, 25, "All"]],
                     pageLength: -1
-                });
-
-                $('#table-detail .column-search').on('keyup change clear', function() {
-                    let colIdx = $(this).data('column');
-                    if (tableDetail.column(colIdx).search() !== this.value) {
-                        tableDetail.column(colIdx).search(this.value).draw();
-                    }
                 });
             }
         }

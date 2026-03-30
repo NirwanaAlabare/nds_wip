@@ -737,8 +737,9 @@
 
         table_add_item = $('#table-detail-bom').DataTable({
             processing: true, serverSide: true, destroy: true,
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            pageLength: 10, ajax: url,
+            lengthMenu: [[5, 10, 25, -1], [5, 10, 25, "All"]],
+            pageLength: -1,
+            ajax: url,
             columns: [
                 {
                     data: 'id', orderable: false, searchable: false, className: 'text-center align-middle',

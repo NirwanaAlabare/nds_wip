@@ -491,20 +491,27 @@
     }
 
     function submitAddMaster(form, targetSelect, inputId, modalId) {
-        let val = $(inputId).val().toUpperCase();
         $.ajax({
             url: $(form).attr('action'),
             type: 'POST',
             data: new FormData(form),
-            processData: false, contentType: false,
+            processData: false,
+            contentType: false,
             success: function(res) {
                 if (res.status == 200) {
-                    if ($(targetSelect + " option[value='" + val + "']").length == 0) {
-                        $(targetSelect).append(new Option(val, val, false, false)).trigger('change');
+                    let id   = res.data.id;
+                    let name = res.data.name;
+
+                    if ($(targetSelect + " option[value='" + id + "']").length == 0) {
+                        let newOption = new Option(name, id, true, true);
+                        $(targetSelect).append(newOption).trigger('change');
+                    } else {
+                        $(targetSelect).val(id).trigger('change');
                     }
+
                     $(modalId).modal('hide');
                     form.reset();
-                    Swal.fire({ icon: 'success', title: 'Tersimpan', timer: 1000, showConfirmButton: false });
+                    Swal.fire({ icon: 'success', title: 'Data Tersimpan', timer: 1000, showConfirmButton: false });
                 }
             }
         });

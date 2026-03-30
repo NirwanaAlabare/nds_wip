@@ -32,7 +32,8 @@ class Marketing_SOController extends Controller
                     'ms.Supplier as buyer',
                     'mp.product_group',
                     'mp.product_item'
-                ]);
+                ])
+                ->orderBy('so.id', 'desc');
 
             if ($request->date_from && $request->date_to) {
                 $query->whereBetween(DB::raw('DATE(so.d_insert)'), [$request->date_from, $request->date_to]);
@@ -515,11 +516,77 @@ class Marketing_SOController extends Controller
     //     ]);
     // }
 
+    // public function uploadExcelSO(Request $request)
+    // {
+    //     $request->validate(['file_so' => 'required|mimes:xls,xlsx', 'id_bom' => 'required']);
+    //     $user_id = auth()->id();
+    //     $file = $request->file('file_so');
+
+    //     $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getPathname());
+    //     $data = $spreadsheet->getActiveSheet()->toArray();
+    //     $headers = $data[0];
+
+    //     $temp_data = []; $errors_color = []; $errors_size = [];
+    //     $mysql_sb = DB::connection('mysql_sb');
+    //     $master_colors = $mysql_sb->table('master_colors_gmt')->pluck('id', 'name')->toArray();
+    //     $master_sizes = $mysql_sb->table('master_size_new')->pluck('id', 'size')->toArray();
+
+    //     for ($i = 1; $i < count($data); $i++) {
+    //         $row = $data[$i];
+    //         if (empty($row[0])) continue;
+
+    //         $style = trim($row[0]);
+    //         $po    = trim($row[2]);
+    //         $color_name = trim($row[5]);
+
+    //         if (!isset($master_colors[$color_name])) {
+    //             $errors_color[] = "Warna: <b>$color_name</b> tidak ada di Master."; continue;
+    //         }
+
+    //         for ($col_index = 6; $col_index < count($row); $col_index++) {
+    //             $size_name = trim($headers[$col_index]);
+    //             if (empty($size_name)) continue;
+
+    //             if (!isset($master_sizes[$size_name])) {
+    //                 $errors_size[] = "Size: <b>$size_name</b> tidak ada di Master."; continue;
+    //             }
+
+    //             $qty = $row[$col_index];
+    //             if (!empty($qty) && is_numeric($qty) && $qty > 0) {
+    //                 $temp_data[] = [
+    //                     'user_id'    => $user_id,
+    //                     'style'      => $style,
+    //                     'desc'       => trim($row[1]),
+    //                     'po'         => $po,
+    //                     'market'     => trim($row[3]),
+    //                     'ex_fty'     => trim($row[4]),
+    //                     'id_color'   => $master_colors[$color_name],
+    //                     'size'       => $master_sizes[$size_name],
+    //                     'qty'        => $qty,
+    //                     'created_at' => now()
+    //                 ];
+    //             }
+    //         }
+    //     }
+
+    //     if (count($errors_color) > 0) return response()->json(['status' => 422, 'errors' => array_unique($errors_color)], 422);
+    //     if (count($errors_size) > 0) return response()->json(['status' => 422, 'errors' => array_unique($errors_size)], 422);
+
+    //     $mysql_sb->table('temp_so_detail')->where('user_id', $user_id)->delete();
+    //     if (count($temp_data) > 0) {
+    //         foreach (array_chunk($temp_data, 500) as $chunk) {
+    //             $mysql_sb->table('temp_so_detail')->insert($chunk);
+    //         }
+    //     }
+    //     return response()->json(['status' => 200, 'message' => 'Excel berhasil diproses ke Temp.']);
+    // }
+
     public function uploadExcelSO(Request $request)
     {
         $request->validate(['file_so' => 'required|mimes:xls,xlsx', 'id_bom' => 'required']);
         $user_id = auth()->id();
         $file = $request->file('file_so');
+        $id_bom = $request->id_bom;
 
         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getPathname());
         $data = $spreadsheet->getActiveSheet()->toArray();
@@ -527,8 +594,25 @@ class Marketing_SOController extends Controller
 
         $temp_data = []; $errors_color = []; $errors_size = [];
         $mysql_sb = DB::connection('mysql_sb');
+
+
         $master_colors = $mysql_sb->table('master_colors_gmt')->pluck('id', 'name')->toArray();
         $master_sizes = $mysql_sb->table('master_size_new')->pluck('id', 'size')->toArray();
+
+
+        $bom_colors = $mysql_sb->table('bom_marketing_detail')
+            ->where('id_bom_marketing', $id_bom)
+            ->whereNotNull('id_color')
+            ->pluck('id_color')
+            ->toArray();
+        $bom_colors = array_unique($bom_colors);
+
+        $bom_sizes = $mysql_sb->table('bom_marketing_detail')
+            ->where('id_bom_marketing', $id_bom)
+            ->whereNotNull('id_size')
+            ->pluck('id_size')
+            ->toArray();
+        $bom_sizes = array_unique($bom_sizes);
 
         for ($i = 1; $i < count($data); $i++) {
             $row = $data[$i];
@@ -538,46 +622,70 @@ class Marketing_SOController extends Controller
             $po    = trim($row[2]);
             $color_name = trim($row[5]);
 
+
             if (!isset($master_colors[$color_name])) {
-                $errors_color[] = "Warna: <b>$color_name</b> tidak ada di Master."; continue;
+                $errors_color[] = "Warna: <b>$color_name</b> tidak ada di Master.";
+                continue;
+            }
+            $color_id = $master_colors[$color_name];
+
+
+            if (count($bom_colors) > 0 && !in_array($color_id, $bom_colors)) {
+                $errors_color[] = "Warna: <b>$color_name</b> dilarang karena tidak terdaftar di BOM.";
+                continue;
             }
 
             for ($col_index = 6; $col_index < count($row); $col_index++) {
+                $qty = $row[$col_index];
+
+
+                if (empty($qty) || !is_numeric($qty) || $qty <= 0) continue;
+
                 $size_name = trim($headers[$col_index]);
                 if (empty($size_name)) continue;
 
+
                 if (!isset($master_sizes[$size_name])) {
-                    $errors_size[] = "Size: <b>$size_name</b> tidak ada di Master."; continue;
+                    $errors_size[] = "Size: <b>$size_name</b> tidak ada di Master.";
+                    continue;
+                }
+                $size_id = $master_sizes[$size_name];
+
+
+                if (count($bom_sizes) > 0 && !in_array($size_id, $bom_sizes)) {
+                    $errors_size[] = "Size: <b>$size_name</b> (pada warna $color_name) dilarang karena tidak terdaftar di BOM.";
+                    continue;
                 }
 
-                $qty = $row[$col_index];
-                if (!empty($qty) && is_numeric($qty) && $qty > 0) {
-                    $temp_data[] = [
-                        'user_id'    => $user_id,
-                        'style'      => $style,
-                        'desc'       => trim($row[1]),
-                        'po'         => $po,
-                        'market'     => trim($row[3]),
-                        'ex_fty'     => trim($row[4]),
-                        'id_color'   => $master_colors[$color_name],
-                        'size'       => $master_sizes[$size_name],
-                        'qty'        => $qty,
-                        'created_at' => now()
-                    ];
-                }
+
+                $temp_data[] = [
+                    'user_id'    => $user_id,
+                    'style'      => $style,
+                    'desc'       => trim($row[1]),
+                    'po'         => $po,
+                    'market'     => trim($row[3]),
+                    'ex_fty'     => trim($row[4]),
+                    'id_color'   => $color_id,
+                    'size'       => $size_id,
+                    'qty'        => $qty,
+                    'created_at' => now()
+                ];
             }
         }
 
+        // Tampilkan Error jika ada yang diblok
         if (count($errors_color) > 0) return response()->json(['status' => 422, 'errors' => array_unique($errors_color)], 422);
         if (count($errors_size) > 0) return response()->json(['status' => 422, 'errors' => array_unique($errors_size)], 422);
 
+        // Bersihkan data temp lama dan Insert data baru
         $mysql_sb->table('temp_so_detail')->where('user_id', $user_id)->delete();
         if (count($temp_data) > 0) {
             foreach (array_chunk($temp_data, 500) as $chunk) {
                 $mysql_sb->table('temp_so_detail')->insert($chunk);
             }
         }
-        return response()->json(['status' => 200, 'message' => 'Excel berhasil diproses ke Temp.']);
+
+        return response()->json(['status' => 200, 'message' => 'Excel berhasil diproses.']);
     }
 
     public function getTempData(Request $request)
@@ -1030,6 +1138,7 @@ class Marketing_SOController extends Controller
                     'id_bom'   => $request->id_bom,
                     'market'   => $request->market,
                     'nm_file'  => $file_name,
+                    'price_costing'   => $request->price_costing,
 
                 ]);
 
@@ -1280,7 +1389,7 @@ class Marketing_SOController extends Controller
                     'cur.nama_pilihan as currency'
                 )
                 ->where('d.id_bom_marketing', $id)
-                ->orderBy('d.id', 'desc');
+                ->orderBy('a.root_group', 'asc');
 
             return DataTables::of($data)
                 ->addIndexColumn()
@@ -1649,6 +1758,7 @@ class Marketing_SOController extends Controller
 
             $g_name = strtoupper(trim($mat->nama_group));
             $c_name = strtoupper(trim($mat->color_gmt ?? '-'));
+
 
             $materials_by_group[$g_name][$c_name][] = $mat;
         }

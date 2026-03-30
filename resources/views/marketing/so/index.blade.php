@@ -36,6 +36,14 @@
         .modal-xl {
             max-width: 95% !important;
         }
+
+        #table-material-so thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background-color: #f8f9fa;
+            box-shadow: inset 0 -1px 0 #dee2e6, inset 0 1px 0 #dee2e6;
+        }
     </style>
 @endsection
 
@@ -454,7 +462,6 @@
                     "paging": true,
                     "info": true,
                     "searching": true,
-                    "scrollX": true,
                     "lengthMenu": [
                         [5, 10, 25, -1],
                         [5, 10, 25, "All"]

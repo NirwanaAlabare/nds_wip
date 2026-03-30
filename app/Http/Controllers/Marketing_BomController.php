@@ -13,18 +13,26 @@ use Carbon\Carbon;
 class Marketing_BomController extends Controller
 {
 
-    public function index()
+    public function index(Request $request)
     {
-        $mysql_sb = DB::connection('mysql_sb');
+        if ($request->ajax()) {
+            $mysql_sb = DB::connection('mysql_sb');
 
-        $data = $mysql_sb->table('bom_marketing as h')
-            ->leftJoin('mastersupplier as b', 'h.id_buyer', '=', 'b.Id_Supplier')
-            ->select('h.*', 'b.Supplier as nama_buyer', DB::raw('(SELECT SUM(qty) FROM bom_marketing_detail WHERE id_bom_marketing = h.id) as total_cons'))
-            ->orderBy('h.created_at', 'desc')
-            ->get();
+            $dateFrom = $request->get('date_from', date('Y-m-d'));
+            $dateTo = $request->get('date_to', date('Y-m-d'));
+
+            $data = $mysql_sb->table('bom_marketing as h')
+                ->leftJoin('mastersupplier as b', 'h.id_buyer', '=', 'b.Id_Supplier')
+                ->select('h.*', 'b.Supplier as nama_buyer', DB::raw('(SELECT SUM(qty) FROM bom_marketing_detail WHERE id_bom_marketing = h.id) as total_cons'))
+                ->where('h.created_at', '>=', $dateFrom . ' 00:00:00')
+                ->where('h.created_at', '<=', $dateTo . ' 23:59:59')
+                ->orderBy('h.created_at', 'desc')
+                ->get();
+
+            return response()->json(['data' => $data]);
+        }
 
         return view('marketing.bom.index', [
-            'data'           => $data,
             'page'           => 'dashboard-marketing',
             'subPageGroup'   => 'marketing-master',
             'subPage'        => 'marketing-master-bom',
@@ -347,6 +355,7 @@ class Marketing_BomController extends Controller
     {
         $mysql_sb = DB::connection('mysql_sb');
 
+
         if ($request->ajax()) {
             $data = $mysql_sb->table('bom_marketing_detail as d')
                 ->leftJoin('masteritem as i', 'd.id_item', '=', 'i.id_item')
@@ -381,7 +390,14 @@ class Marketing_BomController extends Controller
                     'cur.nama_pilihan as currency'
                 )
                 ->where('d.id_bom_marketing', $id)
-                ->orderBy('d.id', 'desc');
+                ->orderByRaw("
+                    CASE
+                        WHEN d.category = 'Manufacturing' THEN 999
+                        WHEN a.root_group IS NULL THEN 998
+                        ELSE a.root_group
+                    END ASC
+                ")
+                ->orderBy('d.id', 'asc');
 
             return DataTables::of($data)
                 ->addIndexColumn()
@@ -401,20 +417,23 @@ class Marketing_BomController extends Controller
                             END like ?";
                     $query->whereRaw($sql, ["%{$keyword}%"]);
                 })
-                ->filterColumn('color_name', function($query, $keyword) {
-                    $query->where('c.name', 'like', "%{$keyword}%");
-                })
-                ->filterColumn('size_name', function($query, $keyword) {
-                    $query->where('s.size', 'like', "%{$keyword}%");
+                ->filterColumn('shell', function($query, $keyword) {
+                    $query->whereRaw("d.shell like ?", ["%{$keyword}%"]);
                 })
                 ->filterColumn('currency', function($query, $keyword) {
-                    $query->where('cur.nama_pilihan', 'like', "%{$keyword}%");
+                    $query->whereRaw("cur.nama_pilihan like ?", ["%{$keyword}%"]);
                 })
-                ->filterColumn('unit_name', function($query, $keyword) {
-                    $query->where('u.nama_pilihan', 'like', "%{$keyword}%");
+                ->filterColumn('unit', function($query, $keyword) {
+                    $query->whereRaw("d.unit like ?", ["%{$keyword}%"]);
+                })
+                ->filterColumn('color_name', function($query, $keyword) {
+                    $query->whereRaw("c.name like ?", ["%{$keyword}%"]);
+                })
+                ->filterColumn('size_name', function($query, $keyword) {
+                    $query->whereRaw("s.size like ?", ["%{$keyword}%"]);
                 })
                 ->filterColumn('category', function($query, $keyword) {
-                    $query->where('d.category', 'like', "%{$keyword}%");
+                    $query->whereRaw("d.category like ?", ["%{$keyword}%"]);
                 })
                 ->make(true);
         }
@@ -607,26 +626,52 @@ class Marketing_BomController extends Controller
         ]);
     }
 
-    public function storeColor(Request $request)
+   public function storeColor(Request $request)
     {
-        $mysql_sb = DB::connection('mysql_sb');
-        $mysql_sb->table('master_colors_gmt')->updateOrInsert(
-            ['name' => strtoupper($request->color_name)],
+        $name = strtoupper($request->color_name);
+
+        // Menggunakan updateOrCreate agar langsung mengembalikan objek model
+        // Jika tidak pakai Model (pake DB::table), kita cari manual setelah insert
+        $color = DB::connection('mysql_sb')->table('master_colors_gmt')->updateOrInsert(
+            ['name' => $name],
             ['created_at' => now()]
         );
-        return response()->json(['status' => 200, 'message' => 'Warna Berhasil Disimpan']);
+
+        $getData = DB::connection('mysql_sb')->table('master_colors_gmt')
+                    ->where('name', $name)
+                    ->first();
+
+        return response()->json([
+            'status' => 200,
+            'data' => [
+                'id'   => $getData->id,
+                'name' => $getData->name
+            ]
+        ]);
     }
 
     public function storeSize(Request $request)
     {
-        $mysql_sb = DB::connection('mysql_sb');
         try {
+            $sizeName = strtoupper($request->size_name);
+            $mysql_sb = DB::connection('mysql_sb');
+
             $lastUrutan = $mysql_sb->table('master_size_new')->max('urutan') ?? 0;
+
             $mysql_sb->table('master_size_new')->updateOrInsert(
-                ['size' => strtoupper($request->size_name)],
+                ['size' => $sizeName],
                 ['urutan' => $lastUrutan + 1]
             );
-            return response()->json(['status' => 200, 'message' => 'Size Berhasil Disimpan']);
+
+            $getData = $mysql_sb->table('master_size_new')->where('size', $sizeName)->first();
+
+            return response()->json([
+                'status' => 200,
+                'data' => [
+                    'id'   => $getData->id,
+                    'name' => $getData->size
+                ]
+            ]);
         } catch (\Exception $e) {
             return response()->json(['status' => 500, 'message' => $e->getMessage()]);
         }

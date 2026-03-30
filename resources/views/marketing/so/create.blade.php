@@ -130,6 +130,10 @@
                         </button>
                     </div>
                 </div>
+                 <div class="col-md-3 form-group">
+                    <label>Price Costing</label>
+                    <input type="text" name="price_costing" id="price_costing" class="form-control input-decimal">
+                </div>
             </div>
 
             <hr>
@@ -555,7 +559,8 @@
             let id_bom = $('#id_bom').val();
             if (!id_bom) {
                 Swal.fire('Peringatan!', 'Silakan pilih No Katalog BOM terlebih dahulu.', 'warning');
-                $(this).val(''); return;
+                $(this).val('');
+                return;
             }
 
             let file = this.files[0];
@@ -571,12 +576,15 @@
             Swal.fire({ title: 'Memproses Excel...', didOpen: () => { Swal.showLoading(); } });
 
             $.ajax({
-                url: "{{ route('so-upload-excel') }}", type: 'POST', data: formData, contentType: false, processData: false,
+                url: "{{ route('so-upload-excel') }}",
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
                 success: function(res) {
                     if (res.status === 200) {
                         Swal.fire({ icon: 'success', title: 'Berhasil!', text: res.message, timer: 1500, showConfirmButton: false });
                         loadPreviewUpload();
-                        inputExcel.val('');
                     }
                 },
                 error: function(xhr) {
@@ -589,7 +597,10 @@
                         Swal.fire('Error!', res.message || 'Gagal memproses file.', 'error');
                     }
                 },
-                complete: function() { inputExcel.prop('disabled', false); }
+                complete: function() {
+                    inputExcel.prop('disabled', false);
+                    inputExcel.val('');
+                }
             });
         });
 
