@@ -1525,7 +1525,7 @@
                 if ($("#status_sambungan").val() != "extension") {
                     // Not an Extension :
                     return $.ajax({
-                        url: '{{ route('store-time-pilot-form-cut') }}',
+                        url: '{{ route('store-time-form-cut-input') }}',
                         type: 'post',
                         dataType: 'json',
                         data: dataObj,
@@ -1596,7 +1596,7 @@
                     // An Extension :
 
                     return $.ajax({
-                        url: '{{ route('store-time-ext-pilot-form-cut') }}',
+                        url: '{{ route('store-time-ext-form-cut-input') }}',
                         type: 'post',
                         dataType: 'json',
                         data: dataObj,

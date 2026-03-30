@@ -2136,7 +2136,7 @@
                 if ($("#status_sambungan").val() != "extension") {
                     // Not an Extension :
                     return $.ajax({
-                        url: '{{ route('store-time-manual-form-cut') }}',
+                        url: '{{ route('store-time-form-cut-input') }}',
                         type: 'post',
                         dataType: 'json',
                         data: dataObj,
@@ -2217,7 +2217,7 @@
                     // An Extension :
 
                     return $.ajax({
-                        url: '{{ route('store-time-ext-manual-form-cut') }}',
+                        url: '{{ route('store-time-ext-form-cut-input') }}',
                         type: 'post',
                         dataType: 'json',
                         data: dataObj,
@@ -2405,7 +2405,7 @@
                 spreadingForm.forEach((value, key) => dataObj[key] = value);
 
                 return $.ajax({
-                    url: '{{ route('store-this-time-manual-form-cut') }}',
+                    url: '{{ route('store-this-time-form-cut-input') }}',
                     type: 'post',
                     dataType: 'json',
                     data: dataObj,

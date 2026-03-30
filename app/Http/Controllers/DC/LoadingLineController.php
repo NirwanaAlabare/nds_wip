@@ -1663,6 +1663,7 @@ class LoadingLineController extends Controller
                     where("so_det_id", $stockerData->so_det_id)->
                     where("group_stocker", $stockerData->group_stocker)->
                     where("ratio", $stockerData->ratio)->
+                    where("stocker_reject", $stockerData->stocker_reject)->
                     get();
 
                 array_push($allStockerIds, ...$similarStockerData->pluck('id')->toArray());
