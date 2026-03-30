@@ -29,6 +29,8 @@ use App\Models\SignalBit\RejectOut;
 use App\Models\SignalBit\RejectOutDetail;
 use App\Models\SignalBit\OutputGudangStok;
 use App\Models\SignalBit\DefectInOut;
+use App\Models\SignalBit\SewingSecondaryMaster;
+use App\Models\SignalBit\SewingSecondaryIn;
 use App\Models\OutputPackingNds;
 use App\Models\Stocker\YearSequence;
 use App\Services\SewingService;
@@ -3925,6 +3927,106 @@ class SewingToolsController extends Controller
 
             return array("rft" => $rft, "defect" => $defect, "reject" => $reject, "rework" => $rework);
         }
+    }
+
+    public function modifySecondaryType() {
+        $secondaryTypes = SewingSecondaryMaster::where("hidden", "N")->get();
+
+        return view("sewing.tools.modify-secondary-type", ['page' => 'dashboard-sewing-eff', 'secondaryTypes' => $secondaryTypes]);
+    }
+
+    public function modifySecondaryTypeUpdate(Request $request) {
+        $kodeNumbering = addQuotesAround($request->kode_numbering);
+
+        $outputSecondaryIn = SewingSecondaryIn::whereRaw("kode_numbering in (".($kodeNumbering).")")->update([
+
+        ]);
+
+        return $outputSecondaryIn;
+    }
+
+    public function getOutputSecondary(Request $request) {
+        if ($request->kode_numbering) {
+            $kodeNumbering = addQuotesAround($request->kode_numbering);
+        } else {
+            $kodeNumbering = "'no_filter'";
+        }
+
+        $outputSecondary = DB::connection("mysql_sb")->select("
+            select
+                output_secondary_in.*,
+                act_costing.kpno ws,
+                act_costing.styleno style,
+                so_det.color,
+                so_det.size,
+                so_det.id,
+                output_secondary_master.secondary,
+                master_plan.tgl_plan,
+                COALESCE(userpassword.username, master_plan.sewing_line) sewing_line
+            from
+                output_secondary_in
+                left join output_rfts on output_rfts.id = output_secondary_in.rft_id
+                left join so_det on so_det.id = output_rfts.so_det_id
+                left join so on so.id = so_det.id_so
+                left join act_costing on act_costing.id = so.id_cost
+                left join output_secondary_master on output_secondary_master.id = output_secondary_in.secondary_id
+                left join user_sb_wip on user_sb_wip.id = output_rfts.created_by
+                left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                left join master_plan on master_plan.id = output_rfts.master_plan_id
+            where
+                output_secondary_in.kode_numbering in (".$kodeNumbering.")
+        ");
+
+        return Datatables::of($outputSecondary)->toJson();
+    }
+
+    public function updateSecondary(Request $request) {
+        if ($request->kode_numbering) {
+            $kodeNumbering = addQuotesAround($request->kode_numbering);
+        } else {
+            $kodeNumbering = "'no_filter'";
+        }
+
+        if ($request->edit_secondary) {
+            $message = [];
+            $sewingSecondaryIn = SewingSecondaryIn::whereRaw("kode_numbering in (".$kodeNumbering.")")->get();
+            foreach ($sewingSecondaryIn as $secondaryIn) {
+                $secondaryIn->secondary_id = $request->edit_secondary;
+                $secondaryIn->save();
+
+                array_push($message, $secondaryIn->kode_numbering." berhasil diubah");
+            }
+
+            return array(
+                "status" => 200,
+                "message" => implode("<br>", $message)
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Secondary gagal diubah"
+        );
+    }
+
+    public function undoSecondary(Request $request) {
+        if ($request->kode_numbering) {
+            $kodeNumbering = addQuotesAround($request->kode_numbering);
+        } else {
+            $kodeNumbering = "'no_filter'";
+        }
+
+        $message = [];
+        $sewingSecondaryIn = SewingSecondaryIn::whereRaw("kode_numbering in (".$kodeNumbering.")")->get();
+        foreach ($sewingSecondaryIn as $secondaryIn) {
+            $secondaryIn->delete();
+
+            array_push($message, $secondaryIn->kode_numbering." berhasil dihapus");
+        }
+
+        return array(
+            "message" => implode("<br>", $message)
+        );
     }
 
     public function printLineLabel() {

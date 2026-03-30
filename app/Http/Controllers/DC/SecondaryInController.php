@@ -1676,6 +1676,7 @@ class SecondaryInController extends Controller
                     'detail_rack_id' => $rak_data,
                     'stocker_id' => $request['txtno_stocker'],
                     'qty_in' => $request['txtqtyin'],
+                    'status' => 'active',
                     'created_at' => $timestamp,
                     'updated_at' => $timestamp,
                 ]);
@@ -1691,6 +1692,8 @@ class SecondaryInController extends Controller
                 $thisStocker = Stocker::whereRaw("id_qr_stocker = '" . $request['txtno_stocker'] . "'")->first();
                 $thisTrolley = Trolley::where("nama_trolley", $request['cbotrolley'])->first();
                 if ($thisTrolley && $thisStocker) {
+
+                    // Create Trolley Stock
                     $trolleyCheck = TrolleyStocker::where('stocker_id', $thisStocker->id)->first();
                     if (!$trolleyCheck) {
                         TrolleyStocker::create([
@@ -1702,9 +1705,15 @@ class SecondaryInController extends Controller
                         ]);
                     }
 
+                    // Update Stocker Status
                     $thisStocker->status = "trolley";
                     $thisStocker->latest_alokasi = Carbon::now();
                     $thisStocker->save();
+
+                    // Update Status Rak
+                    RackDetailStocker::where("stocker_id", $thisStocker->id_qr_stocker)->update([
+                        "status" => "not active"
+                    ]);
                 }
             }
         }
@@ -1727,7 +1736,7 @@ class SecondaryInController extends Controller
 
         // Update Stocker status
         DB::update(
-            "update stocker_input set status = 'non secondary' ".($request->txturutan ? ", urutan = '".(intval($request->txturutan) + 1)."' " : "")." where id_qr_stocker = '" . $request->txtno_stocker . "'"
+            "update stocker_input set status = '".($request['cbotrolley'] ? "trolley" : "non secondary")."' ".($request->txturutan ? ", urutan = '".(intval($request->txturutan) + 1)."' " : "")." where id_qr_stocker = '" . $request->txtno_stocker . "'"
         );
         // dd($savemutasi);
         // $message .= "$tglpindah <br>";
@@ -1831,6 +1840,7 @@ class SecondaryInController extends Controller
                         'detail_rack_id' => $rak_data,
                         'stocker_id' => $d->id_qr_stocker,
                         'qty_in' => $d->qty_awal,
+                        'status' => 'active',
                         'created_at' => $timestamp,
                         'updated_at' => $timestamp,
                     ]);
@@ -1846,6 +1856,8 @@ class SecondaryInController extends Controller
                     $thisStocker = Stocker::whereRaw("id_qr_stocker = '" . $d->id_qr_stocker . "'")->first();
                     $thisTrolley = Trolley::where("nama_trolley", $d->lokasi_tujuan)->first();
                     if ($thisTrolley && $thisStocker) {
+
+                        // Update Trolley Stocker
                         $trolleyCheck = TrolleyStocker::where('stocker_id', $thisStocker->id)->first();
                         if (!$trolleyCheck) {
                             TrolleyStocker::create([
@@ -1857,9 +1869,15 @@ class SecondaryInController extends Controller
                             ]);
                         }
 
+                        // Update Status Stocker
                         $thisStocker->status = "trolley";
                         $thisStocker->latest_alokasi = Carbon::now();
                         $thisStocker->save();
+
+                        // Update Status Rak
+                        RackDetailStocker::where("stocker_id", $thisStocker->id_qr_stocker)->update([
+                            "status" => "not active"
+                        ]);
                     }
                 }
 

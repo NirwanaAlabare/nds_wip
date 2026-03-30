@@ -1255,7 +1255,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('destroy-secondary-master/{id?}', 'destroySecondaryMaster')->name('destroy-sewing-secondary-master');
     });
 
-    // Report Daily
+    // Report Daily Sewing
     Route::controller(ReportController::class)->prefix('report')->middleware('role:sewing')->group(function () {
         Route::get('/index/{type}', 'index')->name("daily-sewing");
         Route::get('/defect-in-out', 'defectInOut')->name("report-defect-in-out");
@@ -1267,23 +1267,23 @@ Route::middleware('auth')->group(function () {
         Route::post('/defect-in-out/export', 'exportDefectInOut');
     });
 
-    // Pareto Chart
+    // Pareto Chart Defect Sewing
     Route::controller(OrderDefectController::class)->prefix('order-defects')->middleware('role:sewing')->group(function () {
         Route::get('/', 'index')->name('order-defects');
         Route::get('/{buyerId?}/{dateFrom?}/{dateTo?}/{type?}', 'getOrderDefects')->name('get-order-defects');
     });
 
-    // Track Order Output
+    // Track Order Output Sewing
     Route::controller(TrackOrderOutputController::class)->prefix('track-order-output')->middleware('role:sewing')->group(function () {
         Route::get('/', 'index')->name('sewing-track-order-output');
     });
 
-    // Transfer Output
+    // Transfer Output Sewing
     Route::controller(TransferOutputController::class)->prefix('transfer-output')->middleware('role:superadmin')->group(function () {
         Route::get('/', 'index')->name('sewing-transfer-output');
     });
 
-    // Dashboard List
+    // Dashboard List Sewing
     Route::controller(LineDashboardController::class)->prefix('line-dashboards')->middleware('role:sewing')->group(function () {
         Route::get('/', 'index')->name('sewing-dashboard');
     });
@@ -1461,35 +1461,49 @@ Route::middleware('auth')->group(function () {
     // Sewing Tools
     Route::controller(SewingToolsController::class)->prefix("sewing-tools")->middleware("role:superadmin")->group(function () {
         Route::get('/', 'index')->name("sewing-tools");
+
+        // General synchronize (usually miss on update)
         Route::post('/miss-user', 'missUser')->name("sewing-miss-user");
         Route::post('/miss-masterplan', 'missMasterPlan')->name("sewing-miss-masterplan");
         Route::post('/miss-rework', 'missRework')->name("sewing-miss-rework");
         Route::post('/miss-reject', 'missReject')->name("sewing-miss-reject");
         Route::post('/miss-packing-po', 'missPackingPo')->name("sewing-miss-packing-po");
 
+        // Check Output Detail
         Route::get('/check-output-detail', 'checkOutputDetail')->name("check-output-detail");
         Route::post('/check-output-detail-list', 'checkOutputDetailList')->name("check-output-detail-list");
         Route::post('/check-output-detail-export', 'checkOutputDetailExport')->name("check-output-detail-export");
 
+        // Output Line Migration
         Route::get('/line-migration', 'lineMigration')->name("line-migration");
         Route::post('/line-migration-submit', 'lineMigrationSubmit')->name("line-migration-submit");
 
+        // Modify Output Manual
         Route::get('/modify-output', 'modifyOutput')->name("modify-output");
         Route::post('/modify-output/action', 'modifyOutputAction')->name("modify-output-action");
 
+        // Undo & Restore
         Route::get('/undo-output', 'undoOutput')->name("undo-output");
         Route::post('/undo-output-submit', 'undoOutputSubmit')->name("undo-output-submit");
-
         Route::get('/restore-undo', 'restoreUndo')->name("restore-undo");
         Route::post('/restore-undo-submit', 'restoreUndoSubmit')->name("restore-undo-submit");
 
+        // Reject IN OUT
         Route::get('/undo-reject', 'undoReject')->name("undo-reject");
         Route::post('/undo-reject-submit', 'undoRejectSubmit')->name("undo-reject-submit");
 
+        // Defect IN OUT
         Route::get('/undo-defect-in-out', 'undoDefectInOut')->name("undo-defect-in-out");
         Route::post('/undo-defect-in-out-submit', 'undoDefectInOutSubmit')->name("undo-defect-in-out-submit");
 
+        // Print Line
         Route::post('/print-line-label', 'printLineLabel')->name("print-line-label");
+
+        // Sewing Secondary
+        Route::get('/modify-secondary-type', 'modifySecondaryType')->name("modify-secondary-type");
+        Route::post('/get-output-secondary', 'getOutputSecondary')->name('get-output-secondary');
+        Route::put('/update-secondary', 'updateSecondary')->name('update-secondary');
+        Route::post('/undo-secondary', 'undoSecondary')->name('undo-secondary');
     });
 
     // Mutasi Mesin

@@ -1243,7 +1243,7 @@ class ReportDefectController extends Controller
 
         if ($request->department == "_packing") {
             $defect = DefectPacking::select(
-                "act_costing.id",
+                "output_defects_packing.id",
                 "act_costing.kpno",
                 "act_costing.styleno",
                 "master_plan.gambar",
@@ -1277,7 +1277,7 @@ class ReportDefectController extends Controller
             }
         } else {
             $defect = Defect::select(
-                "act_costing.id",
+                "output_defects.id",
                 "act_costing.kpno",
                 "act_costing.styleno",
                 "master_plan.gambar",

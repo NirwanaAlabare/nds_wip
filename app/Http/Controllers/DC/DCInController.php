@@ -843,7 +843,7 @@ class DCInController extends Controller
             FROM
                 tmp_dc_in_input_new x
                 left JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
-                LEFT JOIN stocker_input ms ON ms.form_cut_id = y.form_cut_id AND ms.so_det_id = y.so_det_id AND ms.group_stocker = y.group_stocker AND ms.ratio = y.ratio
+                LEFT JOIN stocker_input ms ON ms.form_cut_id = y.form_cut_id AND ms.so_det_id = y.so_det_id AND ms.group_stocker = y.group_stocker AND ms.ratio = y.ratio AND COALESCE(ms.stocker_reject, '') = COALESCE(y.stocker_reject, '')
                 LEFT JOIN master_sb_ws msb ON msb.id_so_det = ms.so_det_id
                 LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
                 left join part_detail pd on ms.part_detail_id = pd.id
@@ -881,7 +881,7 @@ class DCInController extends Controller
             FROM
                 tmp_dc_in_input_new x
                 left JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
-                LEFT JOIN stocker_input ms ON ms.form_reject_id = y.form_reject_id AND ms.so_det_id = y.so_det_id AND ms.shade = y.shade
+                LEFT JOIN stocker_input ms ON ms.form_reject_id = y.form_reject_id AND ms.so_det_id = y.so_det_id AND ms.shade = y.shade AND COALESCE(ms.stocker_reject, '') = COALESCE(y.stocker_reject, '')
                 LEFT JOIN master_sb_ws msb ON msb.id_so_det = ms.so_det_id
                 LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
                 left join part_detail pd on ms.part_detail_id = pd.id
@@ -919,7 +919,7 @@ class DCInController extends Controller
             FROM
                 tmp_dc_in_input_new x
                 left JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
-                LEFT JOIN stocker_input ms ON ms.form_piece_id = y.form_piece_id AND ms.so_det_id = y.so_det_id
+                LEFT JOIN stocker_input ms ON ms.form_piece_id = y.form_piece_id AND ms.so_det_id = y.so_det_id AND COALESCE(ms.stocker_reject, '') = COALESCE(y.stocker_reject, '')
                 LEFT JOIN master_sb_ws msb ON msb.id_so_det = ms.so_det_id
                 LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
                 left join part_detail pd on ms.part_detail_id = pd.id
@@ -1502,6 +1502,7 @@ class DCInController extends Controller
                 nm_rak,
                 stocker_id,
                 qty_in,
+                status,
                 created_at,
                 updated_at
             )
@@ -1509,6 +1510,7 @@ class DCInController extends Controller
                 r.id,nama_detail_rak,
                 tmp.id_qr_stocker,
                 (case when s.qty_ply_mod > 0 THEN s.qty_ply_mod ELSE s.qty_ply END) - qty_reject + qty_replace qty_in,
+                'active',
                 '$timestamp',
                 '$timestamp'
             from

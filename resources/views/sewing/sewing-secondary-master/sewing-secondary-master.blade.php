@@ -15,14 +15,14 @@
     <div class="card card-sb">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-diagram-project"></i> Sewing Secondary Master</h5>
+                <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-diagram-project"></i> Master Secondary Sewing</h5>
             </div>
         </div>
         <div class="card-body">
             @role('superadmin')
                 <button type="button" class="btn btn-success btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#createSecondaryMasterModal">
                     <i class="fas fa-plus"></i>
-                    Create Secondary Master
+                    Create
                 </button>
             @endrole
             <div class="table-responsive">
@@ -48,7 +48,7 @@
             <div class="modal-content">
                 <form action="{{ route('store-sewing-secondary-master') }}" method="post" onsubmit="submitForm(this, event)">
                     <div class="modal-header bg-sb text-light">
-                        <h1 class="modal-title fs-5" id="createSecondaryMasterLabel"><i class="fa fa-plus-square"></i> Create Secondary Master Data</h1>
+                        <h1 class="modal-title fs-5" id="createSecondaryMasterLabel"><i class="fa fa-plus-square"></i> Create Master Secondary Data</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">

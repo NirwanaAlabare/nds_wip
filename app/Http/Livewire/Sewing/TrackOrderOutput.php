@@ -122,6 +122,7 @@ class TrackOrderOutput extends Component
 
         $this->loadingOrderOutput = false;
 
+        // Supplier List
         $this->suppliers = DB::connection('mysql_sb')->table('mastersupplier')->
             selectRaw('Id_Supplier as id, Supplier as name')->
             leftJoin('act_costing', 'act_costing.id_buyer', '=', 'mastersupplier.Id_Supplier')->
@@ -133,6 +134,7 @@ class TrackOrderOutput extends Component
             groupBy('Id_Supplier', 'Supplier')->
             get();
 
+        // Order List
         $orderSql = DB::connection('mysql_sb')->
             table('act_costing')->
             selectRaw('
@@ -143,13 +145,13 @@ class TrackOrderOutput extends Component
             where('cost_date', '>=', '2023-01-01')->
             where('type_ws', 'STD');
             if ($this->selectedSupplier) $orderSql->where('id_buyer', $this->selectedSupplier);
-
         $this->orders = $orderSql->
             orderBy('cost_date', 'desc')->
             orderBy('kpno', 'asc')->
             groupBy('kpno')->
             get();
 
+        // Query for Filtering
         $orderFilterSql = DB::connection('mysql_sb')->table('master_plan')->
             selectRaw("
                 master_plan.tgl_plan tanggal,
@@ -211,9 +213,11 @@ class TrackOrderOutput extends Component
         $dateTotals = [];
         $grandTotal = 0;
 
+        // Only run the query when the search is active
         if ($this->search) {
             $this->search = false;
 
+            // Query for Grouping
             $dailyOrderGroupSql = DB::connection('mysql_sb')->table('master_plan')->
                 selectRaw("
                     master_plan.tgl_plan tanggal,
@@ -277,6 +281,7 @@ class TrackOrderOutput extends Component
 
                 $this->dailyOrderGroup = $dailyOrderGroupSql->get();
 
+            // Query for Output
             $dailyOrderOutputSql = DB::connection('mysql_sb')->table('master_plan')->
                 selectRaw("
                     rfts.tanggal,
@@ -362,7 +367,6 @@ class TrackOrderOutput extends Component
             $rowTotals  = [];
             $dateTotals = [];
             $grandTotal = 0;
-
             foreach ($this->dailyOrderOutputs as $row) {
                 $key = implode('|', [
                     $row->ws,

@@ -24,7 +24,7 @@
             <li>
                 <a href="{{ route('sewing-secondary-master') }}"
                     class="dropdown-item {{ $routeName == 'sewing-secondary-master' ? 'active' : '' }}">
-                    Secondary Sewing Master <i class="fa-solid fa-diagram-project"></i>
+                    Master Secondary Sewing <i class="fa-solid fa-diagram-project"></i>
                 </a>
             </li>
         </ul>
@@ -195,12 +195,6 @@
             </li>
         </ul>
     </li>
-    <li class="nav-item">
-        <a href="{{ route('dashboard-wip') }}"
-            class="nav-link {{ $routeName == 'dashboard-wip' ? 'active' : '' }}" target="_blank">
-            Dashboard
-        </a>
-    </li>
     <li class="nav-item dropdown">
         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-packing-in' ? 'active' : '' }}">Sewing In</a>
         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
@@ -234,6 +228,12 @@
                 </a>
             </li>
         </ul>
+    </li>
+    <li class="nav-item">
+        <a href="{{ route('dashboard-wip') }}"
+            class="nav-link {{ $routeName == 'dashboard-wip' ? 'active' : '' }}" target="_blank">
+            <i class="fa fa-pager"></i>
+        </a>
     </li>
 @endrole
 @role('superadmin')
