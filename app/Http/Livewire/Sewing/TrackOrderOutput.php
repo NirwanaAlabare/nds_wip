@@ -111,6 +111,7 @@ class TrackOrderOutput extends Component
     public function render()
     {
         ini_set("max_execution_time", 3600);
+        ini_set("memory_limit", "2048M");
 
         if (!$this->dateFromFilter) {
             $this->dateFromFilter = date("Y-m-d");

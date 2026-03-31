@@ -327,12 +327,20 @@ class CuttingService
     }
 
     public function fixRollQty($idRoll, $qty = null) {
-        $rollId = $idRoll;
+         $rollId = $idRoll;
         $rollQty = $qty;
         $rollUse = null;
 
         // When there are no input
         if (!$rollQty) {
+            $roll = ScannedItem::where("id_roll", $idRoll)->first();
+
+            if ($roll && $roll->unit == 'PCS') {
+                return array(
+                    "status" => 200,
+                    "message" => "Qty Roll ID ".$idRoll." dengan unit PCS belum bisa diperbaiki otomatis."
+                );
+            }
 
             // Check Last Input
             $lastInput = FormCutInputDetail::selectRaw("
