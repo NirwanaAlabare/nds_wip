@@ -1529,6 +1529,37 @@ class PartController extends Controller
         return DataTables::of($list_part)->toJson();
     }
 
+    public function cancelPartDetail($id=0) {
+        $partDetail = PartDetail::with('masterPart')->find($id);
+
+        if ($partDetail) {
+            // Update Part Detail Status to Inactive
+            $partDetailUpdate = $partDetail->update([
+               "status" => "inactive",
+               "updated_by" => Auth::user() ? Auth::user()->id : null,
+               "updated_by_username" => Auth::user() ? Auth::user()->username : null,
+            ]);
+
+            if ($partDetailUpdate) {
+                return array(
+                    'status' => 200,
+                    'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> berhasil diupdate menjadi Inactive. <br> "'.$partDetail->id.'"',
+                    'redirect' => '',
+                    'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
+                    'additional' => [],
+                );
+            }
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> gagal diupdate menjadi Inactive. <br> "'.$partDetail->id.'"',
+            'redirect' => '',
+            'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
+            'additional' => [],
+        );
+    }
+
     public function destroyPartDetail($id=0) {
         ini_set('max_execution_time', 3600);
 

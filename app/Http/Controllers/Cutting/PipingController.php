@@ -41,8 +41,8 @@ class PipingController extends Controller
             leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_piping.id_roll");
 
             return DataTables::eloquent($data)->filter(function ($query) {
-                    $tglAwal = request('tgl_awal');
-                    $tglAkhir = request('tgl_akhir');
+                    $tglAwal = request('dateFrom');
+                    $tglAkhir = request('dateTo');
 
                     if ($tglAwal) {
                         $query->whereRaw("form_cut_piping.tanggal_piping >= '" . $tglAwal . "'");

@@ -808,6 +808,9 @@
                                 <button class='btn btn-danger btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
                                     <i class='fa fa-trash'></i>
                                 </button>
+                                <button class='btn btn-warning btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('cancel-part-detail') }}/`+row['id']+`' onclick='deleteData(this, "cancel")' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
+                                    <i class='fa fa-ban'></i>
+                                </button>
                             `;
                         }
                     },
