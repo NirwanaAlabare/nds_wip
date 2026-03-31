@@ -622,7 +622,7 @@ async function editData(e, modal, addons = []) {
 }
 
 // Delete data confirmation
-function deleteData(e) {
+function deleteData(e, type = null) {
     console.log(e, e.getAttribute('data'));
 
     let data = JSON.parse(e.getAttribute('data'));
@@ -630,10 +630,10 @@ function deleteData(e) {
     if (data.hasOwnProperty('id')) {
         Swal.fire({
             icon: 'error',
-            title: 'Hapus data?',
+            title: type === 'cancel' ? 'Batalkan data?' : 'Hapus data?',
             showCancelButton: true,
             showConfirmButton: true,
-            confirmButtonText: 'Hapus',
+            confirmButtonText: type === 'cancel' ? 'Batalkan' : 'Hapus',
             cancelButtonText: 'Batal',
             confirmButtonColor: '#fa4456',
         }).then((result) => {

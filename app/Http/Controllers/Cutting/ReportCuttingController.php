@@ -2885,6 +2885,10 @@ k.status
 
 FROM
 (
+SELECT id_so_det, panel, sum(saldo) qty_cut_awal, 0 as qty_dc_awal, 0 AS qty_cut, 0 AS qty_dc, 0 as qty_replace FROM mut_cut_pcs_tmp
+where tgl_trans = '$tgl_saldo'
+group by id_so_det, panel
+UNION ALL
 SELECT id_so_det, panel, sum(qty) qty_cut_awal, 0 as qty_dc_awal, 0 AS qty_cut, 0 AS qty_dc, 0 as qty_replace FROM cutt_awal group by id_so_det, panel
 UNION ALL
 SELECT id_so_det, panel, 0 AS qty_cut_awal, 0 AS qty_dc_awal, sum(qty) qty_cut, 0 AS qty_dc, 0 as qty_replace FROM cutt_in group by id_so_det, panel
@@ -2900,7 +2904,17 @@ INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
 INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
 ) k on a.id_so_det = k.id_so_det
 LEFT JOIN signalbit_erp.master_size_new msn on k.size = msn.size
-group by a.id_so_det, a.panel
+group by ws, color, size, a.panel
+HAVING
+    (SUM(qty_cut_awal) - SUM(qty_dc_awal)) <> 0
+    OR SUM(qty_cut) <> 0
+    OR (SUM(qty_dc) - SUM(qty_replace)) <> 0
+    OR SUM(qty_replace) <> 0
+    OR (
+        (SUM(qty_cut_awal) - SUM(qty_dc_awal))
+        + SUM(qty_cut)
+        - SUM(qty_dc)
+    ) <> 0
 ORDER BY ws asc, color asc, urutan asc
         ");
 

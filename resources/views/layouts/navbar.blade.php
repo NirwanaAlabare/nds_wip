@@ -18,6 +18,22 @@
 @endif
 {{-- Nav Configuration --}}
 
+<style>
+    .dropdown-submenu {
+        position: relative;
+    }
+
+    .dropdown-submenu .dropdown-menu {
+        top: 0;
+        left: 100%;
+        margin-top: -1px;
+    }
+
+    .dropdown-submenu:hover .dropdown-menu {
+        display: block;
+    }
+</style>
+
 <nav class="main-header navbar navbar-expand-md navbar-light navbar-white sticky-top">
     <div class="container">
         <!-- LEFT SECTION -->
@@ -921,7 +937,7 @@
                                     Costing <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>
-                             <li>
+                            <li>
                                 <a href="{{ route('master-bom') }}"
                                     class="dropdown-item {{ $subPage == 'marketing-master-bom' ? 'active' : '' }}">
                                     BOM <i class="fa-solid fa-list-ul fa-sm"></i>
@@ -975,6 +991,25 @@
                                     Data BC Signalbit
                                 </a>
                             </li>
+                            <!-- MENU BARU YANG ADA SUBMENU -->
+                            <li class="dropdown-submenu">
+                                <a href="#" class="dropdown-item dropdown-toggle">
+                                    Laporan WIP
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a href="#" class="dropdown-item">
+                                            WIP 1
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#" class="dropdown-item">
+                                            WIP 2
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+
                         </ul>
                     </li>
                 @endif

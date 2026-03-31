@@ -368,6 +368,7 @@ Route::middleware('auth')->group(function () {
 
         // part detail
         Route::delete('/destroy-part-detail/{id?}', 'destroyPartDetail')->name('destroy-part-detail');
+        Route::delete('/cancel-part-detail/{id?}', 'cancelPartDetail')->name('cancel-part-detail');
 
         // get order
         Route::get('/get-order', 'getOrderInfo')->name('get-part-order');

@@ -858,7 +858,8 @@ class DCInController extends Controller
                 and (ms.cancel != 'y' or ms.cancel IS NULL) and
                 y.id is not null and
                 ms.id is not null and
-                y.form_reject_id is null
+                y.form_reject_id is null and
+                (pd.status is null OR pd.status = 'active')
             group by
                 ms.id_qr_stocker
             UNION
@@ -896,7 +897,8 @@ class DCInController extends Controller
                 and (ms.cancel != 'y' or ms.cancel IS NULL) and
                 y.id is not null and
                 ms.id is not null and
-                y.form_reject_id is not null
+                y.form_reject_id is not null and
+                (pd.status is null OR pd.status = 'active')
             group by
                 ms.id_qr_stocker
             UNION
@@ -935,7 +937,8 @@ class DCInController extends Controller
                 y.id is not null and
                 ms.id is not null and
                 (y.form_cut_id < 1 or y.form_cut_id is null) and
-                (y.form_reject_id < 1 or y.form_reject_id is null)
+                (y.form_reject_id < 1 or y.form_reject_id is null) and
+                (pd.status is null OR pd.status = 'active')
             group by
                 ms.id_qr_stocker
         ");

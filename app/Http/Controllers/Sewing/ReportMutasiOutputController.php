@@ -623,7 +623,7 @@ COALESCE(su.finishing, 0)
 - COALESCE(qty_fin_reject_awal, 0)
 - COALESCE(qty_finishing_awal, 0)
 )
-+ COALESCE(ss.input_rework_sewing_f, 0) + COALESCE(ss.input_rework_spotcleaning_f, 0) + COALESCE(ss.input_rework_mending_f, 0)
++ COALESCE(qty_sewing, 0) + COALESCE(ss.input_rework_sewing_f, 0) + COALESCE(ss.input_rework_spotcleaning_f, 0) + COALESCE(ss.input_rework_mending_f, 0)
 - COALESCE(ss.defect_sewing_f, 0) - COALESCE(ss.defect_spotcleaning_f, 0) - COALESCE(ss.defect_mending_f, 0)
 - COALESCE(ss.qty_fin_reject, 0) - COALESCE(ss.qty_finishing, 0)
 AS saldo_akhir_finishing,
