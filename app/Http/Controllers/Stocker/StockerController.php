@@ -260,6 +260,7 @@ class StockerController extends Controller
             leftJoin("part_detail_secondary", "part_detail_secondary.part_detail_id", "=", "part_detail.id")->
             leftJoin("master_secondary as master_secondary_new", "master_secondary_new.id", "=", "part_detail_secondary.master_secondary_id")->
             where("form_cut_input.id", $formCutId)->
+            whereRaw("(part_detail.status IS NULL OR part_detail.status = 'active')")->
             groupBy("master_part.id")->
             get();
 
@@ -277,6 +278,7 @@ class StockerController extends Controller
             leftJoin("part", "part.id", "=", "part_form.part_id")->
             leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
             where("marker_input.id", $dataSpreading->marker_id)->
+            whereRaw("(part_detail.status IS NULL OR part_detail.status = 'active')")->
             // where("marker_input_detail.ratio", ">", "0")->
             orderBy("marker_input_detail.id", "asc")->
             groupBy("marker_input_detail.id")->
@@ -398,6 +400,7 @@ class StockerController extends Controller
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                 leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
                 where("stocker_ws_additional.id", $dataAdditional->id)->
+                whereRaw("(part_detail.status IS NULL OR part_detail.status = 'active')")->
                 groupBy("master_part.id")->
                 get();
 
@@ -553,6 +556,7 @@ class StockerController extends Controller
             leftJoin("form_cut_piece", "form_cut_piece.id", "part_form.form_pcs_id")->
             leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
             where("form_cut_piece.id", $formCutId)->
+            whereRaw("(part_detail.status IS NULL OR part_detail.status = 'active')")->
             groupBy("master_part.id")->
             get();
 
