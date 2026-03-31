@@ -33,6 +33,7 @@ class export_excel_report_mut_wip_cutting implements FromView, ShouldAutoSize, W
 
         $start_date = $this->start_date;
         $end_date = $this->end_date;
+        $tgl_saldo = '2026-03-01';
 
         $rawData = DB::select("WITH
 cutt_awal as (
@@ -92,7 +93,7 @@ SELECT
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
             WHERE
                 form_cut_input.`status` = 'SELESAI PENGERJAAN' and
-                COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '2026-01-01'
+                COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '$tgl_saldo'
 								and
 								COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) < '$start_date'
 								and
@@ -128,7 +129,7 @@ SELECT
                 LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
             WHERE
-                DATE(form_cut_piece_detail.created_at) >= '2026-01-01' and DATE(form_cut_piece_detail.created_at) < '$start_date'
+                DATE(form_cut_piece_detail.created_at) >= '$tgl_saldo' and DATE(form_cut_piece_detail.created_at) < '$start_date'
 								and form_cut_piece_detail.status = 'complete'
             GROUP BY
                 form_cut_piece.id,
@@ -310,7 +311,7 @@ FROM
 				left join part p on pd.part_id = p.id
 				left join master_part mp on mp.id = pd.master_part_id
 		where
-				a.tgl_trans >= '2026-01-01' AND a.tgl_trans < '$start_date'
+				a.tgl_trans >= '$tgl_saldo' AND a.tgl_trans < '$start_date'
 				AND s.id is not null AND
 				(s.cancel IS NULL OR s.cancel != 'y') and
 				pd.part_status = 'main'
@@ -357,7 +358,7 @@ FROM
 				left join part pcom on pcom.id = pdcom.part_id
 				left join master_part mp on mp.id = pd.master_part_id
 		where
-				a.tgl_trans >= '2026-01-01' AND a.tgl_trans < '$start_date'
+				a.tgl_trans >= '$tgl_saldo' AND a.tgl_trans < '$start_date'
 				AND s.id is not null AND
 				(s.cancel IS NULL OR s.cancel != 'y') and
 				(pd.part_status != 'main' OR pd.part_status IS NULL)
@@ -503,6 +504,10 @@ k.status
 
 FROM
 (
+SELECT id_so_det, panel, sum(saldo) qty_cut_awal, 0 as qty_dc_awal, 0 AS qty_cut, 0 AS qty_dc, 0 as qty_replace FROM mut_cut_pcs_tmp
+where tgl_trans = '$tgl_saldo'
+group by id_so_det, panel
+UNION ALL
 SELECT id_so_det, panel, sum(qty) qty_cut_awal, 0 as qty_dc_awal, 0 AS qty_cut, 0 AS qty_dc, 0 as qty_replace FROM cutt_awal group by id_so_det, panel
 UNION ALL
 SELECT id_so_det, panel, 0 AS qty_cut_awal, 0 AS qty_dc_awal, sum(qty) qty_cut, 0 AS qty_dc, 0 as qty_replace FROM cutt_in group by id_so_det, panel
@@ -518,7 +523,17 @@ INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
 INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
 ) k on a.id_so_det = k.id_so_det
 LEFT JOIN signalbit_erp.master_size_new msn on k.size = msn.size
-group by a.id_so_det, a.panel
+group by ws, color, size, a.panel
+HAVING
+    (SUM(qty_cut_awal) - SUM(qty_dc_awal)) <> 0
+    OR SUM(qty_cut) <> 0
+    OR (SUM(qty_dc) - SUM(qty_replace)) <> 0
+    OR SUM(qty_replace) <> 0
+    OR (
+        (SUM(qty_cut_awal) - SUM(qty_dc_awal))
+        + SUM(qty_cut)
+        - SUM(qty_dc)
+    ) <> 0
 ORDER BY ws asc, color asc, urutan asc
     ");
 
