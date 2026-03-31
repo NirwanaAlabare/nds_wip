@@ -29,6 +29,7 @@ use App\Models\SignalBit\DefectInOut;
 use App\Models\SignalBit\RejectIn;
 use App\Models\Hris\MasterEmployee;
 use App\Services\GeneralService;
+use App\Services\CuttingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -924,8 +925,11 @@ class GeneralController extends Controller
         return null;
     }
 
-    public function getScannedItem($id = 0, Request $request)
+    public function getScannedItem($id = 0, Request $request, CuttingService $cuttingService)
     {
+        // Fix Roll Qty right before the roll is used
+        $fixRollQty = $cuttingService->fixRollQty($id);
+
         // When there is Additional Request
         $newItemAdditional = "";
         $itemAdditional = "";
@@ -1001,6 +1005,7 @@ class GeneralController extends Controller
                 id_roll
             LIMIT 1
         ");
+
         // When current item
         if ($newItem) {
 
@@ -1255,7 +1260,7 @@ class GeneralController extends Controller
             return json_encode($item ? $item[0] : null);
         }
 
-        return  null;
+        return null;
     }
 
     public function getItem(Request $request) {
