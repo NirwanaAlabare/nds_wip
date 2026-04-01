@@ -370,6 +370,8 @@ Route::middleware('auth')->group(function () {
 
         // part detail
         Route::delete('/destroy-part-detail/{id?}', 'destroyPartDetail')->name('destroy-part-detail');
+        Route::delete('/cancel-part-detail/{id?}', 'cancelPartDetail')->name('cancel-part-detail');
+        Route::put('/uncancel-part-detail/{id?}', 'uncancelPartDetail')->name('uncancel-part-detail');
 
         // get order
         Route::get('/get-order', 'getOrderInfo')->name('get-part-order');
@@ -1518,6 +1520,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/get-output-secondary', 'getOutputSecondary')->name('get-output-secondary');
         Route::put('/update-secondary', 'updateSecondary')->name('update-secondary');
         Route::post('/undo-secondary', 'undoSecondary')->name('undo-secondary');
+
+        // Modify Packing PO
+        Route::get('/get-po', 'getPo')->name('get-po-qr');
+        Route::post('/get-packing-po', 'getPackingPo')->name('get-packing-po');
+        Route::get('/modify-packing-po', 'modifyPackingPo')->name('modify-packing-po');
+        Route::put('/modify-packing-po/update', 'modifyPackingPoUpdate')->name('modify-packing-po-update');
+        Route::post('/modify-packing-po/delete', 'modifyPackingPoDelete')->name('modify-packing-po-delete');
     });
 
     // Mutasi Mesin

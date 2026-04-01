@@ -1428,7 +1428,8 @@ class PartController extends Controller
                 UPPER(pd.unit) unit,
                 COALESCE(pd.part_status, '-') part_status,
                 stocker.total total_stocker,
-                GROUP_CONCAT(DISTINCT masteritem.itemdesc) item
+                GROUP_CONCAT(DISTINCT masteritem.itemdesc) item,
+                pd.status
             FROM
                 `part_detail` pd
                 inner join master_part mp on pd.master_part_id = mp.id
@@ -1487,7 +1488,8 @@ class PartController extends Controller
                 UPPER(pd.unit) com_unit,
                 COALESCE(pd.part_status, '-') com_part_status,
                 stocker.total com_total_stocker,
-                GROUP_CONCAT(DISTINCT masteritem.itemdesc) com_item
+                GROUP_CONCAT(DISTINCT masteritem.itemdesc) com_item,
+                pd.status
             FROM
                 `part_detail` pd
                 inner join master_part mp on pd.master_part_id = mp.id
@@ -1554,6 +1556,37 @@ class PartController extends Controller
         return array(
             'status' => 400,
             'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> gagal diupdate menjadi Inactive. <br> "'.$partDetail->id.'"',
+            'redirect' => '',
+            'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
+            'additional' => [],
+        );
+    }
+
+    public function uncancelPartDetail($id=0) {
+        $partDetail = PartDetail::with('masterPart')->find($id);
+
+        if ($partDetail) {
+            // Update Part Detail Status to Inactive
+            $partDetailUpdate = $partDetail->update([
+               "status" => "active",
+               "updated_by" => Auth::user() ? Auth::user()->id : null,
+               "updated_by_username" => Auth::user() ? Auth::user()->username : null,
+            ]);
+
+            if ($partDetailUpdate) {
+                return array(
+                    'status' => 200,
+                    'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> berhasil diupdate menjadi Active. <br> "'.$partDetail->id.'"',
+                    'redirect' => '',
+                    'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
+                    'additional' => [],
+                );
+            }
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> gagal diupdate menjadi Active. <br> "'.$partDetail->id.'"',
             'redirect' => '',
             'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
             'additional' => [],

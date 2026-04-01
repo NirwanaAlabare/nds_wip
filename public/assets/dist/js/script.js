@@ -700,6 +700,85 @@ function deleteData(e, type = null) {
     }
 }
 
+// Restore data confirmation
+function restoreData(e, type = null) {
+    console.log(e, e.getAttribute('data'));
+
+    let data = JSON.parse(e.getAttribute('data'));
+
+    if (data.hasOwnProperty('id')) {
+        Swal.fire({
+            icon: 'info',
+            title: type === 'cancel' ? 'Aktifkan data?' : 'Pulihkan data?',
+            showCancelButton: true,
+            showConfirmButton: true,
+            confirmButtonText: type === 'cancel' ? 'Aktifkan' : 'Pulihkan',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#449ffa',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if (document.getElementById("loading")) {
+                    document.getElementById("loading").classList.remove("d-none");
+                }
+
+                $.ajax({
+                    url: e.getAttribute('data-url'),
+                    type: 'POST',
+                    data: {
+                        _method: 'PUT'
+                    },
+                    success: function (res) {
+                        if (document.getElementById("loading")) {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+
+                        if (res.status == 200) {
+                            iziToast.success({
+                                title: 'Success',
+                                message: res.message,
+                                position: 'topCenter'
+                            });
+
+                            // $('.modal').modal('hide');
+                        } else {
+                            iziToast.error({
+                                title: 'Error',
+                                message: res.message,
+                                position: 'topCenter'
+                            });
+                        }
+
+                        if (res.table) {
+                            $('#' + res.table).DataTable().ajax.reload();
+                        }
+
+                        if (res.callback != '') {
+                            eval(res.callback);
+                        }
+                    }, error: function (jqXHR) {
+                        if (document.getElementById("loading")) {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+
+                        let res = jqXHR.responseJSON;
+                        let message = '';
+
+                        for (let key in res.errors) {
+                            message = res.errors[key];
+                        }
+
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Terjadi kesalahan. ' + message,
+                            position: 'topCenter'
+                        });
+                    }
+                })
+            }
+        })
+    }
+}
+
 function generateToken(id, route) {
     $.ajax({
         url: route,
