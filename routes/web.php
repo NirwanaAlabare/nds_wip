@@ -51,6 +51,8 @@ use App\Http\Controllers\Cutting\PipingLoadingController;
 use App\Http\Controllers\Cutting\PipingStockController;
 // Cutting Tools
 use App\Http\Controllers\Cutting\CuttingToolsController;
+// Penerimaan Cutting
+use App\Http\Controllers\Cutting\PenerimaanCuttingController;
 
 // Stocker
 use App\Http\Controllers\Stocker\StockerController;
@@ -368,7 +370,6 @@ Route::middleware('auth')->group(function () {
 
         // part detail
         Route::delete('/destroy-part-detail/{id?}', 'destroyPartDetail')->name('destroy-part-detail');
-        Route::delete('/cancel-part-detail/{id?}', 'cancelPartDetail')->name('cancel-part-detail');
 
         // get order
         Route::get('/get-order', 'getOrderInfo')->name('get-part-order');
@@ -446,6 +447,18 @@ Route::middleware('auth')->group(function () {
     Route::controller(SpreadingController::class)->prefix("spreading")->middleware('role:superadmin')->group(function () {
         Route::put('/update-status', 'updateStatus')->name('update-status');
         Route::put('/update-status-redirect', 'updateStatusRedirect')->name('update-status-redirect');
+    });
+
+    // Penerimaan Cutting
+    Route::controller(PenerimaanCuttingController::class)->prefix("penerimaan-cutting")->middleware("role:cutting")->group(function () {
+        Route::get('/', 'index')->name('penerimaan-cutting');
+        Route::get('/create', 'create')->name('create-penerimaan-cutting');
+        Route::post('/store', 'store')->name('store-penerimaan-cutting');
+        Route::get('/edit/{id?}', 'edit')->name('edit-penerimaan-cutting');
+        Route::post('/update', 'update')->name('update-penerimaan-cutting');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-penerimaan-cutting');
+        Route::post('/export', 'exportPenerimaanCutting')->name('export-penerimaan-cutting');
+        Route::get('/get-scanned-item/{id?}', 'getBarcodeFabric')->name('get-scanned-penerimaan-cutting');
     });
 
     // Form Cut Input

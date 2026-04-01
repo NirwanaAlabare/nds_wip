@@ -10,6 +10,12 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('penerimaan-cutting') }}"
+                    class="appeared dropdown-item {{ $routeName == 'penerimaan-cutting' ? 'active' : '' }}">
+                    Penerimaan Fabric Cutting <i class="fas fa-cut fa-sm"></i>
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('form-cut-input') }}"
                     class="appeared dropdown-item {{ $routeName == 'form-cut-input' ? 'active' : '' }}">
                     Form Cutting <i class="fas fa-cut fa-sm"></i>
