@@ -325,6 +325,9 @@
                 let diffDays = (to - from) / (1000 * 60 * 60 * 24);
 
                 if (diffDays > maxDays) {
+
+                    Livewire.emit("alert", "Maksimal 30 hari jika order belum dipilih");
+
                     if (changed === 'from') {
                         let newTo = new Date(from);
                         newTo.setDate(newTo.getDate() + maxDays);
