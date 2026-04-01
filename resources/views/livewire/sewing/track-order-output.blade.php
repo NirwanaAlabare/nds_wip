@@ -1,5 +1,5 @@
 <div>
-    <div class="loading-container-fullscreen" wire:loading wire:target='setSearch, selectedSupplier, selectedOrder, groupBy, colorFilter, lineFilter, sizeFilter, clearFilter, outputType'>
+    <div class="loading-container-fullscreen" wire:loading wire:target='dateFromFilter, dateToFilter, setSearch, selectedSupplier, selectedOrder, groupBy, colorFilter, lineFilter, sizeFilter, clearFilter, outputType'>
         <div class="loading-container">
             <div class="loading"></div>
         </div>
@@ -311,6 +311,59 @@
         //     }
         // }
 
+        // Enforce max 7 days range when the order is empty
+        function enforceMaxDateRange(fromSelector, toSelector, changed, maxDays = 30) {
+            let order = $('#order').val();
+
+            let fromVal = $(fromSelector).val();
+            let toVal = $(toSelector).val();
+
+            if (!order && fromVal && toVal) {
+                let from = new Date(fromVal);
+                let to = new Date(toVal);
+
+                let diffDays = (to - from) / (1000 * 60 * 60 * 24);
+
+                if (diffDays > maxDays) {
+                    if (changed === 'from') {
+                        let newTo = new Date(from);
+                        newTo.setDate(newTo.getDate() + maxDays);
+
+                        toVal = formatDate(newTo);
+                        $(toSelector).val(toVal);
+                        @this.set('dateToFilter', toVal);
+
+                        console.log("adjust to", toSelector, toVal);
+                    } else {
+                        let newFrom = new Date(to);
+                        newFrom.setDate(newFrom.getDate() - maxDays);
+
+                        fromVal = formatDate(newFrom);
+                        $(fromSelector).val(fromVal);
+                        @this.set('dateFromFilter', fromVal);
+                    }
+                }
+
+                // 🔥 IMPORTANT: recalc after adjustment
+                from = new Date(fromVal);
+                to = new Date(toVal);
+
+                console.log("diff", from, to, diffDays, fromVal, toVal);
+
+                if (from > to) {
+                    if (changed === 'from') {
+                        $(toSelector).val(fromVal);
+                        toVal = fromVal;
+                    } else {
+                        $(fromSelector).val(toVal);
+                        fromVal = toVal;
+                    }
+                }
+            }
+
+            return { fromVal, toVal };
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             // new DataTable('#trackdatatable', {
             //     fixedColumns: {
@@ -333,17 +386,21 @@
             $('#dateFrom').on('change', async function (e) {
                 await clearFixedColumn();
 
-                @this.set('dateFromFilter', this.value);
+                let { fromVal, toVal } = enforceMaxDateRange('#dateFrom', '#dateTo', 'from');
 
-                updateSupplierList($('#dateFrom').val(), $('#dateTo').val());
+                @this.set('dateFromFilter', fromVal);
+
+                updateSupplierList(fromVal, toVal);
             });
 
             $('#dateTo').on('change', async function (e) {
                 await clearFixedColumn();
 
-                @this.set('dateToFilter', this.value);
+                let { fromVal, toVal } = enforceMaxDateRange('#dateFrom', '#dateTo', 'to');
 
-                updateSupplierList($('#dateFrom').val(), $('#dateTo').val());
+                @this.set('dateToFilter', toVal);
+
+                updateSupplierList(fromVal, toVal);
             });
 
             $('#supplier').on('change', async function (e) {
@@ -356,6 +413,8 @@
 
             $('#order').on('change', async function (e) {
                 await clearFixedColumn();
+
+                let { fromVal, toVal } = enforceMaxDateRange('#dateFrom', '#dateTo', 'to');
 
                 @this.set('loadingOrderOutput', true);
 
