@@ -4089,4 +4089,127 @@ class SewingToolsController extends Controller
 
         return $pdf->download(str_replace("/", "_", $fileName));
     }
+
+    public function modifyPackingPo() {
+        return view("sewing.tools.modify-packing-po", ['page' => 'dashboard-sewing-eff']);
+    }
+
+    public function getPo(Request $request) {
+        if ($request->kode_numbering) {
+            $kodeNumbering = addQuotesAround($request->kode_numbering);
+        } else {
+            $kodeNumbering = "'no_filter'";
+        }
+
+        $pos = DB::connection("mysql_sb")->table("output_rfts_packing_po")->selectRaw("
+                ppic_master_so.id,
+                ppic_master_so.po as po
+            ")
+            ->join('laravel_nds.ppic_master_so', 'ppic_master_so.id_so_det', '=', 'output_rfts_packing_po.so_det_id')
+            ->whereRaw("output_rfts_packing_po.kode_numbering in (".$kodeNumbering.")")
+            ->groupBy('ppic_master_so.po')
+            ->get();
+
+        return response()->json($pos);
+    }
+
+    public function getPackingPo(Request $request) {
+        if ($request->kode_numbering) {
+            $kodeNumbering = addQuotesAround($request->kode_numbering);
+        } else {
+            $kodeNumbering = "'no_filter'";
+        }
+
+        $packingPo = RftPackingPo::selectRaw("
+                output_rfts_packing_po.kode_numbering,
+                ppic_master_so.po,
+                act_costing.kpno ws,
+                act_costing.styleno style,
+                so_det.color,
+                so_det.size,
+                output_rfts_packing_po.created_by_username,
+                output_rfts_packing_po.created_by_line sewing_line,
+                output_rfts_packing_po.created_at,
+                output_rfts_packing_po.updated_at
+            ")->
+            leftJoin("so_det", "output_rfts_packing_po.so_det_id", "=", "so_det.id")->
+            leftJoin("so", "so.id", "=", "so_det.id_so")->
+            leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
+            leftJoin("laravel_nds.ppic_master_so", "ppic_master_so.id", "=", "output_rfts_packing_po.po_id")->
+            whereRaw("kode_numbering in (".$kodeNumbering.")")->get();
+
+        return Datatables::of($packingPo)->toJson();
+    }
+
+    public function modifyPackingPoUpdate(Request $request) {
+        $kodeNumbering = addQuotesAround($request->kode_numbering);
+
+        if ($kodeNumbering && $request->edit_packing_po) {
+
+            // PPIC Master SO
+            $poList = DB::table("ppic_master_so")->where("po", $request->edit_packing_po)->get();
+
+            // RFT Packing PO
+            $message = "";
+            $packingPos = RftPackingPo::whereRaw("kode_numbering in (".$kodeNumbering.")")->get();
+            if ($packingPos && $packingPos->count() > 0) {
+                foreach ($packingPos as $packingPo) {
+                    // Get current PO with matching so_det_id
+                    $currentPo = $poList->filter(function($item) use ($packingPo) {
+                        return $item->id_so_det == $packingPo->so_det_id;
+                    })->first();
+
+                    if ($currentPo) {
+                        // Update PO ID
+                        $packingPo->po_id = $currentPo->id;
+                        $packingPo->save();
+
+                        $message .= $packingPo->kode_numbering." berhasil diubah <br>";
+                    } else {
+                        $message .= $packingPo->kode_numbering." tidak ditemukan PO yang sesuai <br>";
+                    }
+                }
+            }
+
+            if ($packingPos) {
+                return array(
+                    "status" => 200,
+                    "message" => $message
+                );
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Packing PO gagal diubah"
+        );
+    }
+
+    public function modifyPackingPoDelete(Request $request) {
+        $kodeNumbering = addQuotesAround($request->kode_numbering);
+
+        if ($kodeNumbering) {
+            $deletePackingPo = RftPackingPo::whereRaw("kode_numbering in (".$kodeNumbering.")")->get();
+
+            if ($deletePackingPo) {
+                // Delete Packing Po
+                foreach ($deletePackingPo as $packingPo) {
+                    $packingPo->delete();
+                }
+
+                // Delete Gudang Stok
+                OutputGudangStok::whereRaw("kode_numbering in (".$kodeNumbering.")")->delete();
+
+                return array(
+                    "status" => 200,
+                    "message" => "Packing PO berhasil dihapus"
+                );
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Packing PO gagal dihapus"
+        );
+    }
 }
