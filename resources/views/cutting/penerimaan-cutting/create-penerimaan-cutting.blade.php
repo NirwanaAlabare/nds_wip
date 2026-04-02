@@ -243,6 +243,8 @@
 
         $(document).ready(async function () {
             initScan();
+            
+            $("#scan_item").focus();
 
             table_list_barcode = $('#datatable').DataTable({
                 processing: true,
