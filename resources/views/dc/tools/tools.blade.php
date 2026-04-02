@@ -20,23 +20,8 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-4">
-                    <a type="button" class="home-item" onclick="emptyOrderLoading()">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Fix Empty Order Loading</h5>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a type="button" class="home-item" onclick="redundantLoadingPlan()">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Fix Redundant Loading Plan</h5>
-                            </div>
-                        </div>
-                    </a>
+                <div class="col-md-12">
+                    <h5 class="text-sb-secondary fw-bold mt-3">Modify Data</h5>
                 </div>
                 <div class="col-md-4">
                     <a href="{{ route("modify-dc-qty") }}" class="home-item" target="_blank">
@@ -61,6 +46,27 @@
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Modify Year Sequence</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-12">
+                    <h5 class="text-sb-secondary fw-bold mt-3">Synchronize Data</h5>
+                </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" onclick="emptyOrderLoading()">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Fix Empty Order Loading</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" onclick="redundantLoadingPlan()">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Fix Redundant Loading Plan</h5>
                             </div>
                         </div>
                     </a>

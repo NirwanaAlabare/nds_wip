@@ -20,6 +20,9 @@
         </div>
         <div class="card-body">
             <div class="row">
+                <div class="col-md-12">
+                    <h5 class="text-sb-secondary fw-bold mt-3">Modify Data</h5>
+                </div>
                 <div class="col-md-4">
                     <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#modifyFormRatio">
                         <div class="card">
@@ -55,6 +58,9 @@
                             </div>
                         </div>
                     </a>
+                </div>
+                <div class="col-md-12">
+                    <h5 class="text-sb-secondary fw-bold mt-3">Synchronize Data</h5>
                 </div>
                 <div class="col-md-4">
                     <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#fixRollQty">

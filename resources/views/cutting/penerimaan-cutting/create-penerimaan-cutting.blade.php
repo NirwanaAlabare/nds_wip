@@ -358,7 +358,18 @@
                 });
             });
 
+            $('#scan_item').on('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+
+                    let id = $(this).val();
+                    getScannedItem(id);
+
+                    $(this).val('');
+                }
+            });
         });
+
 
         $(document).on('click', '#btnSimpan', function() {
             let data = table_list_barcode.rows().data().toArray();

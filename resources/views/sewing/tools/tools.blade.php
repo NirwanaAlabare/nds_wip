@@ -20,6 +20,9 @@
         </div>
         <div class="card-body">
             <div class="row">
+                <div class="col-md-12">
+                    <h5 class="text-sb-secondary fw-bold mt-3">Transfer/Modify Data</h5>
+                </div>
                 <div class="col-md-4">
                     <a href="{{ route('sewing-transfer-output') }}" type="button" class="home-item">
                         <div class="card">
@@ -29,6 +32,45 @@
                             </div>
                         </div>
                     </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ route('line-migration') }}" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-shuffle"></i> Line Migration</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ route('modify-output') }}" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-shirt"></i> Modify Output</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ route('modify-packing-po') }}" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-box"></i> Modify Packing PO</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ route('modify-secondary-type') }}" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-diagram-project"></i> Modify Secondary Process</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-12">
+                    <h5 class="text-sb-secondary fw-bold mt-3">Incomplete Data</h5>
                 </div>
                 <div class="col-md-4">
                     <a type="button" class="home-item" onclick="missUser()">
@@ -75,6 +117,9 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-12">
+                    <h5 class="text-sb-secondary fw-bold mt-3">Check Data</h5>
+                </div>
                 <div class="col-md-4">
                     <a href="{{ route('check-output-detail') }}" class="home-item">
                         <div class="card">
@@ -84,38 +129,14 @@
                         </div>
                     </a>
                 </div>
-                <div class="col-md-4">
-                    <a href="{{ route('line-migration') }}" class="home-item">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-shuffle"></i> Line Migration</h5>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a href="{{ route('modify-output') }}" class="home-item">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-shirt"></i> Modify Output</h5>
-                            </div>
-                        </div>
-                    </a>
+                <div class="col-md-12">
+                    <h5 class="text-sb-secondary fw-bold mt-3">Undo Data</h5>
                 </div>
                 <div class="col-md-4">
                     <a href="{{ route('undo-output') }}" class="home-item">
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="text-sb mb-0"><i class="fa-solid fa-arrows-rotate"></i> Undo Output</h5>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a href="{{ route('undo-reject') }}" class="home-item">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-rotate"></i> Undo QC Reject</h5>
                             </div>
                         </div>
                     </a>
@@ -130,28 +151,22 @@
                     </a>
                 </div>
                 <div class="col-md-4">
+                    <a href="{{ route('undo-reject') }}" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-rotate"></i> Undo QC Reject</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-12">
+                    <h5 class="text-sb-secondary fw-bold mt-3">Misc</h5>
+                </div>
+                <div class="col-md-4">
                     <a type="button" onclick="printLineLabel()" class="home-item">
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="text-sb mb-0"><i class="fa-solid fa-print"></i> Print Line Label</h5>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a href="{{ route('modify-secondary-type') }}" class="home-item">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-diagram-project"></i> Modify Secondary Process</h5>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a href="{{ route('modify-packing-po') }}" class="home-item">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-box"></i> Modify Packing PO</h5>
                             </div>
                         </div>
                     </a>
