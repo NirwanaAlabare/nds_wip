@@ -1099,7 +1099,27 @@ class PartController extends Controller
                         PartDetail::where("id", $validatedRequest['edit_com_id'])->update([
                             "master_part_id" => $validatedRequest['edit_com_master_part_id'],
                             "from_part_detail" => $validatedRequest['edit_com_from_part_id'],
+                            "from_part_detail" => $validatedRequest['edit_com_from_part_id'],
                         ]);
+
+                        // Phase 7 (Update Part Item)
+                        if ($request->edit_com_item && count($request->edit_com_item) > 0) {
+                            // Delete Current Part Detail Item
+                            PartDetailItem::where("part_detail_id", $validatedRequest['edit_com_id'])->delete();
+
+                            // Repopulate Part Detail Item
+                            $partItemData = [];
+                            for ($i = 0; $i < count($request->edit_com_item); $i++) {
+                                array_push($partItemData, [
+                                    "part_detail_id" => $validatedRequest['edit_com_id'],
+                                    "bom_jo_item_id" => $request->edit_com_item[$i],
+                                    "created_at" => $timestamp,
+                                    "updated_at" => $timestamp,
+                                ]);
+                            }
+
+                            PartDetailItem::upsert($partItemData, ['part_detail_id', 'bom_jo_item_id'], ["updated_at"]);
+                        }
 
                         $status = "200";
                         $message = 'Data Part Secondary "' . $validatedRequest["edit_com_id"] . '" berhasil disimpan.';
