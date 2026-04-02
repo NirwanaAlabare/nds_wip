@@ -1318,7 +1318,7 @@ class RollController extends Controller
         $forms = DB::select("
             SELECT
                 form_cut_input.id id_form,
-                no_form_cut_input,
+                form_cut_input.no_form as no_form_cut_input,
                 form_cut_input.no_cut,
                 id_roll,
                 MAX( qty ) qty,
