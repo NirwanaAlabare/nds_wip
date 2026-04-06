@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
-use App\Models\Cutting\ScannedItem;
 use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\ScannedItem;
+use App\Services\CuttingService;
 use App\Exports\ExportLaporanRoll;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Redirect;
@@ -1147,8 +1148,11 @@ class RollController extends Controller
         return view("cutting.roll.sisa-kain-roll", ['page' => 'dashboard-cutting', "subPageGroup" => "laporan-cutting", "subPage" => "sisa-kain-roll"]);
     }
 
-    public function getScannedItem($id)
+    public function getScannedItem($id, CuttingService $cuttingService)
     {
+        // Fix Roll Qty right before the roll is used
+        $fixRollQty = $cuttingService->fixRollQty($id);
+
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
                 buyer,
