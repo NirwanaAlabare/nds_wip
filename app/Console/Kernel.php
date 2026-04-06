@@ -27,6 +27,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('production:fixrollqty')->hourlyAt(15)->between('8:00', '20:00')->sendOutputTo(public_path().'/tasks/log.txt');
         $schedule->command('production:missrework')->hourlyAt(15)->between('8:00', '20:00')->sendOutputTo(public_path().'/tasks/log.txt');
         $schedule->command('production:missreject')->hourlyAt(15)->between('8:00', '20:00')->sendOutputTo(public_path().'/tasks/log.txt');
+        $schedule->command('dc:rekap')->monthlyOn(1, '23:30')->sendOutputTo(public_path().'/tasks/log.txt');
+        $schedule->command('dc:rekap')->lastDayOfMonth('23:30')->sendOutputTo(public_path().'/tasks/log.txt');
     }
 
     /**

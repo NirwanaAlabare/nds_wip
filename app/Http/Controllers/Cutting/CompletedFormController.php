@@ -883,7 +883,7 @@ class CompletedFormController extends Controller
         //
     }
 
-    public function destroySpreadingRoll($id) {
+    public function destroySpreadingRoll($id, CuttingService $cuttingService) {
         $formCutDetail = FormCutInputDetail::find($id);
 
         if ($formCutDetail) {

@@ -86,7 +86,7 @@
                     <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#resetStockerIdModal">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Reset Stocker ID</h5>
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Reset Stocker by ID</h5>
                             </div>
                         </div>
                     </a>
