@@ -133,11 +133,11 @@ class PenerimaanCuttingController extends Controller
                     ", ["%{$keyword}%"]);
                 })->
                 order(function ($query) {
-                    $query->orderBy('penerimaan_cutting.updated_at', 'desc');
+                    $query->orderBy('penerimaan_cutting.created_at', 'desc');
                 })->toJson();
         }
 
-        return view('cutting.penerimaan-cutting.penerimaan-cutting', ["page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "form-cut-piping"]);
+        return view('cutting.penerimaan-cutting.penerimaan-cutting', ["page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "penerimaan-cutting"]);
     }
 
     /**
@@ -149,7 +149,7 @@ class PenerimaanCuttingController extends Controller
     {
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
-        return view('cutting.penerimaan-cutting.create-penerimaan-cutting', ['orders' => $orders, 'page' => 'dashboard-cutting', "subPageGroup" => "proses-cutting", "subPage" => "form-cut-piping"]);
+        return view('cutting.penerimaan-cutting.create-penerimaan-cutting', ['orders' => $orders, 'page' => 'dashboard-cutting', "subPageGroup" => "proses-cutting", "subPage" => "penerimaan-cutting"]);
     }
 
     /**
