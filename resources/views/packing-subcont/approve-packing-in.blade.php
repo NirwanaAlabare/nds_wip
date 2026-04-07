@@ -18,7 +18,7 @@
         @method('GET')
         <div class="card card-sb">
             <div class="card-header">
-                <h5 class="card-title fw-bold mb-0">Approval Packing In Subcont</h5>
+                <h5 class="card-title fw-bold mb-0">Approval Sewing In Subcont</h5>
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-end gap-3 mb-3">
