@@ -30,6 +30,10 @@
     filter: invert(1);
 }
 
+.nav-link {
+    padding: 0.5rem 0.7rem !important;
+}
+
 body {
     font-family: 'Roboto', 'Nunito', sans-serif;
     font-size: 15px;
