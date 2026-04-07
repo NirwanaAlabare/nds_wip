@@ -17,10 +17,12 @@
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-scroll fa-sm"></i> Spreading</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-spreading') }}" class="btn btn-success btn-sm mb-3">
-                <i class="fas fa-plus"></i>
-                Baru
-            </a>
+            <div class="d-flex justify-content-between">
+                <a href="{{ route('create-spreading') }}" class="btn btn-success btn-sm mb-3">
+                    <i class="fas fa-plus"></i>
+                    Baru
+                </a>
+            </div>
             <div class="row justify-content-between align-items-end g-3 mb-3">
                 <div class="col-md-6">
                     <div class="d-flex align-items-end gap-3 mb-3">
@@ -40,6 +42,9 @@
 
                 <div class="col-md-6">
                     <div class="d-flex justify-content-end align-items-end gap-1 mb-3">
+                        <button class="btn btn-sb-secondary btn-sm" onclick="dataTableReload()">
+                            <i class="fas fa-rotate"></i>
+                        </button>
                         <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb"><i class="fas fa-clipboard-list"></i> Manual</a>
                         {{-- <a href="{{ url('pilot-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb-secondary"><i class="fas fa-clipboard-list"></i> Pilot</a> --}}
                         {{-- <button type="button" onclick="updateNoCut()" class="btn btn-sm btn-sb"><i class="fas fa-sync-alt"></i> Generate No. Cut</button> --}}
@@ -311,9 +316,9 @@
 
             $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
 
-            window.addEventListener("focus", () => {
-                dataTableReload();
-            });
+            // window.addEventListener("focus", () => {
+            //     dataTableReload();
+            // });
         });
 
         let datatable = $("#datatable").DataTable({
