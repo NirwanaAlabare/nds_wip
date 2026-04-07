@@ -736,7 +736,7 @@ class RekapDC extends Command
                                     left join part p on pd.part_id = p.id
                                     left join master_part mp on mp.id = pd.master_part_id
                             where
-                                    a.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') AND
+                                    a.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
                                     s.id is not null AND
                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -774,7 +774,7 @@ class RekapDC extends Command
                                     left join part pcom on pcom.id = pdcom.part_id
                                     left join master_part mp on mp.id = pd.master_part_id
                             where
-                                    a.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') AND
+                                    a.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
                                     s.id is not null AND
                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -806,7 +806,7 @@ class RekapDC extends Command
                                     left join stocker_input s on s.id_qr_stocker = sii_in.id_qr_stocker
                                     left join part_detail pd on pd.id = s.part_detail_id
                             WHERE
-                                    sii_in.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') AND
+                                    sii_in.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
                                     s.id is not null AND
                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -836,7 +836,7 @@ class RekapDC extends Command
                                     left join stocker_input s on s.id_qr_stocker = sii_in.id_qr_stocker
                                     left join part_detail pd on pd.id = s.part_detail_id
                             WHERE
-                                    sii_in.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') AND
+                                    sii_in.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
                                     s.id is not null AND
                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -868,7 +868,7 @@ class RekapDC extends Command
                                     left join stocker_input s on s.id_qr_stocker = sii.id_qr_stocker
                                     left join part_detail pd on pd.id = s.part_detail_id
                             WHERE
-                                    sii.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') AND
+                                    sii.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
                                     s.id is not null AND
                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -898,7 +898,7 @@ class RekapDC extends Command
                                     left join stocker_input s on s.id_qr_stocker = sii.id_qr_stocker
                                     left join part_detail pd on pd.id = s.part_detail_id
                             WHERE
-                                    sii.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') AND
+                                    sii.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                     (pd.part_status != 'main' OR pd.part_status IS NULL)
@@ -931,7 +931,7 @@ class RekapDC extends Command
                                     left join wip_out wo on wo.id = wod.id_wip_out
                                     left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                             WHERE
-                                    wo.tgl_form between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') and
+                                    wo.tgl_form between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' and
                                     s.id is not null AND
                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -964,7 +964,7 @@ class RekapDC extends Command
                                     left join wip_out wo on wo.id = wod.id_wip_out
                                     left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                             WHERE
-                                    wo.tgl_form between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') and
+                                    wo.tgl_form between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' and
                                     s.id is not null AND
                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -1002,7 +1002,7 @@ class RekapDC extends Command
                                     left join master_secondary mms on mms.id = pds.master_secondary_id
                                     left join secondary_inhouse_input sii on sii.id_qr_stocker = si.id_qr_stocker
                             WHERE
-                                    si.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') AND
+                                    si.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
                                     s.id is not null AND
                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -1037,7 +1037,7 @@ class RekapDC extends Command
                                     left join master_secondary mms on mms.id = pds.master_secondary_id
                                     left join secondary_inhouse_input sii on sii.id_qr_stocker = si.id_qr_stocker
                             WHERE
-                                    si.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') AND
+                                    si.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
                                     s.id is not null AND
                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -1091,7 +1091,7 @@ class RekapDC extends Command
                                                     left join part p on p.id = pd.part_id
                                                     left join part p_com on p_com.id = pd_com.part_id
                                             where
-                                                    ll.tanggal_loading between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') AND
+                                                    ll.tanggal_loading between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
                                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
                                             group by
@@ -1111,7 +1111,7 @@ class RekapDC extends Command
                             AND loading_qty.group_stocker  <=> stocker_input.group_stocker
                             AND loading_qty.ratio          <=> stocker_input.ratio
                             AND loading_qty.stocker_reject <=> stocker_input.stocker_reject
-                            WHERE loading_line.tanggal_loading between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') and
+                            WHERE loading_line.tanggal_loading between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' and
                             (stocker_input.cancel IS NULL OR stocker_input.cancel != 'y') and
                             (stocker_input.notes IS NULL OR stocker_input.notes NOT LIKE '%STOCKER MANUAL%')
                             group by
@@ -1138,7 +1138,7 @@ class RekapDC extends Command
                                             left join part p on p.id = pd.part_id
                                             left join part p_com on p_com.id = pd_com.part_id
                                     where
-                                            ll.tanggal_loading between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') AND
+                                            ll.tanggal_loading between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
                                     group by
@@ -1228,7 +1228,7 @@ class RekapDC extends Command
                 )
 
                 SELECT
-                    LAST_DAY('".$refDate."') AS tanggal,
+                    '".$refDate."' AS tanggal,
                     stockers,
                     buyer,
                     ws,
@@ -2040,7 +2040,7 @@ class RekapDC extends Command
                                     left join part p on pd.part_id = p.id
                                     left join master_part mp on mp.id = pd.master_part_id
                             where
-                                    a.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') AND
+                                    a.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
                                     s.id is not null AND
                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -2078,7 +2078,7 @@ class RekapDC extends Command
                                     left join part pcom on pcom.id = pdcom.part_id
                                     left join master_part mp on mp.id = pd.master_part_id
                             where
-                                    a.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') AND
+                                    a.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
                                     s.id is not null AND
                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -2110,7 +2110,7 @@ class RekapDC extends Command
                                     left join stocker_input s on s.id_qr_stocker = sii_in.id_qr_stocker
                                     left join part_detail pd on pd.id = s.part_detail_id
                             WHERE
-                                    sii_in.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') AND
+                                    sii_in.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
                                     s.id is not null AND
                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -2140,7 +2140,7 @@ class RekapDC extends Command
                                     left join stocker_input s on s.id_qr_stocker = sii_in.id_qr_stocker
                                     left join part_detail pd on pd.id = s.part_detail_id
                             WHERE
-                                    sii_in.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') AND
+                                    sii_in.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
                                     s.id is not null AND
                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -2172,7 +2172,7 @@ class RekapDC extends Command
                                     left join stocker_input s on s.id_qr_stocker = sii.id_qr_stocker
                                     left join part_detail pd on pd.id = s.part_detail_id
                             WHERE
-                                    sii.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') AND
+                                    sii.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
                                     s.id is not null AND
                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -2202,7 +2202,7 @@ class RekapDC extends Command
                                     left join stocker_input s on s.id_qr_stocker = sii.id_qr_stocker
                                     left join part_detail pd on pd.id = s.part_detail_id
                             WHERE
-                                    sii.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') AND
+                                    sii.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                     (pd.part_status != 'main' OR pd.part_status IS NULL)
@@ -2235,7 +2235,7 @@ class RekapDC extends Command
                                     left join wip_out wo on wo.id = wod.id_wip_out
                                     left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                             WHERE
-                                    wo.tgl_form between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') and
+                                    wo.tgl_form between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' and
                                     s.id is not null AND
                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -2268,7 +2268,7 @@ class RekapDC extends Command
                                     left join wip_out wo on wo.id = wod.id_wip_out
                                     left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                             WHERE
-                                    wo.tgl_form between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') and
+                                    wo.tgl_form between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' and
                                     s.id is not null AND
                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -2306,7 +2306,7 @@ class RekapDC extends Command
                                     left join master_secondary mms on mms.id = pds.master_secondary_id
                                     left join secondary_inhouse_input sii on sii.id_qr_stocker = si.id_qr_stocker
                             WHERE
-                                    si.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') AND
+                                    si.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
                                     s.id is not null AND
                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -2341,7 +2341,7 @@ class RekapDC extends Command
                                     left join master_secondary mms on mms.id = pds.master_secondary_id
                                     left join secondary_inhouse_input sii on sii.id_qr_stocker = si.id_qr_stocker
                             WHERE
-                                    si.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') AND
+                                    si.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
                                     s.id is not null AND
                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
@@ -2395,7 +2395,7 @@ class RekapDC extends Command
                                                     left join part p on p.id = pd.part_id
                                                     left join part p_com on p_com.id = pd_com.part_id
                                             where
-                                                    ll.tanggal_loading between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') AND
+                                                    ll.tanggal_loading between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
                                                     (s.cancel IS NULL OR s.cancel != 'y') and
                                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
                                             group by
@@ -2415,7 +2415,7 @@ class RekapDC extends Command
                             AND loading_qty.group_stocker  <=> stocker_input.group_stocker
                             AND loading_qty.ratio          <=> stocker_input.ratio
                             AND loading_qty.stocker_reject <=> stocker_input.stocker_reject
-                            WHERE loading_line.tanggal_loading between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') and
+                            WHERE loading_line.tanggal_loading between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' and
                             (stocker_input.cancel IS NULL OR stocker_input.cancel != 'y') and
                             (stocker_input.notes IS NULL OR stocker_input.notes NOT LIKE '%STOCKER MANUAL%')
                             group by
@@ -2442,7 +2442,7 @@ class RekapDC extends Command
                                             left join part p on p.id = pd.part_id
                                             left join part p_com on p_com.id = pd_com.part_id
                                     where
-                                            ll.tanggal_loading between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND LAST_DAY('".$refDate."') AND
+                                            ll.tanggal_loading between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
                                     group by
@@ -2532,7 +2532,7 @@ class RekapDC extends Command
                 )
 
                 SELECT
-                    LAST_DAY('".$refDate."') AS tanggal,
+                    '".$refDate."' AS tanggal,
                     stockers,
                     buyer,
                     ws,

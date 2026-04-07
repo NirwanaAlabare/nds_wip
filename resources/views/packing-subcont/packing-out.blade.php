@@ -16,7 +16,7 @@
 @section('content')
 <div class="card card-sb">
     <div class="card-header">
-        <h5 class="card-title fw-bold mb-0">Data Packing Out Subcont</h5>
+        <h5 class="card-title fw-bold mb-0">Data Sewing Out Subcont</h5>
     </div>
     <div class="card-body">
         <div class="d-flex align-items-end gap-1 mb-1">

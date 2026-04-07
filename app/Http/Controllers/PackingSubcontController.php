@@ -491,7 +491,7 @@ public function ApprovePackingOutSubcont(Request $request)
     $sheet = $excel->getSheet();
 
     // Judul (tanpa merge & tanpa style)
-    $sheet->writeRow(['Laporan Pengeluaran Subcont Packing'])->applyFontStyleBold();
+    $sheet->writeRow(['Laporan Pengeluaran Subcont Sewing'])->applyFontStyleBold();
     $sheet->writeRow(["Periode {$from} s/d {$to}"])->applyFontStyleBold();
     $sheet->writeRow([]); // kosong
     $sheet->mergeCells('A1:Y1');
@@ -551,7 +551,7 @@ foreach ($maxLen as $i => $len) {
 
 
     // DOWNLOAD
-    $filename = "Laporan_Pengeluaran_subcont_Packing_dari_{$from}_sd_{$to}.xlsx";
+    $filename = "Laporan_Pengeluaran_subcont_Sewing_dari_{$from}_sd_{$to}.xlsx";
     return $excel->download($filename);
 }
 
@@ -958,7 +958,7 @@ if ($qty > 0 || $qtyReject > 0) {
     $sheet = $excel->getSheet();
 
     // Judul (tanpa merge & tanpa style)
-    $sheet->writeRow(['Laporan Penerimaan Subcont Packing'])->applyFontStyleBold();
+    $sheet->writeRow(['Laporan Penerimaan Subcont Sewing'])->applyFontStyleBold();
     $sheet->writeRow(["Periode {$from} s/d {$to}"])->applyFontStyleBold();
     $sheet->writeRow([]); // kosong
     $sheet->mergeCells('A1:X1');
@@ -1093,7 +1093,7 @@ select a.*, COALESCE(qty_in,0) qty_in, COALESCE(qty_in_reject,0) qty_in_reject, 
     $sheet = $excel->getSheet();
 
 
-$sheet->writeRow(['Laporan Monitoring Subcont Packing'])
+$sheet->writeRow(['Laporan Monitoring Subcont Sewing'])
       ->applyFontStyleBold()
       ->applyFontSize(16);
 
@@ -1224,7 +1224,7 @@ select a.id_item, itemdesc, a.no_po, a.supplier, a.buyer, a.kpno, a.styleno, a.c
     $sheet = $excel->getSheet();
 
 
-    $sheet->writeRow(['Laporan Mutasi Subcont Packing'])
+    $sheet->writeRow(['Laporan Mutasi Subcont Sewing'])
       ->applyFontStyleBold()
       ->applyFontSize(16);
     $sheet->writeRow(["Periode {$from} s/d {$to}"])->applyFontStyleBold();
