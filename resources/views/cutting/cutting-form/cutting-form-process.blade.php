@@ -2376,6 +2376,7 @@
 
                 let shortRollPercentage = qtyAwalVar > 0 ? (shortRoll / qtyAwalVar) * 100 : (qtyVar > 0 ? (shortRoll / qtyVar) * 100 : 0);
 
+                // When not unlocked then
                 if (!($('#unlocked_by').val() && $('#unlocked_by').val() > 0)) {
                     if (status == "PENGERJAAN FORM CUTTING SPREAD") {
                         if (!isNaN(shortRollPercentage) && shortRollPercentage < -2) {

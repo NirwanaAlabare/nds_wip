@@ -469,11 +469,11 @@ class CuttingService
         $additionalQuery = "";
         $additionalQuerySub = "";
         if ($rollId) {
-            $additionalQuery = "WHERE scanned_item.id_roll = '".$rollId."'";
+            $additionalQuery = "WHERE si.id_roll = '".$rollId."'";
             $additionalQuerySub = " and id_roll = '".$rollId."'";
         } else {
-            $additionalQuery = "WHERE scanned_item.qty != sub.sisa_kain";
-            $additionalQuerySub = " and id_roll = '".$rollId."'";
+            $additionalQuery = "WHERE si.qty != sub.sisa_kain";
+            $additionalQuerySub = "";
         }
 
         // Roll Query
@@ -557,6 +557,7 @@ class CuttingService
             FROM scanned_item si
             LEFT JOIN agg ON si.id_roll = agg.id_roll
             INNER JOIN latest_sisa_overall ON si.id_roll = latest_sisa_overall.id_roll
+            ".$additionalQuery."
         "));
 
         if ($roll) {
@@ -599,31 +600,110 @@ class CuttingService
 
             // Multi Item
             else {
-                Log::channel('fixRollQty')->info([
-                    "Fix Roll Qty",
-                    "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
-                    $roll
-                ]);
-
-                $updateRollQty = DB::statement("
-                    UPDATE scanned_item
+                // Pre update Log
+                $toUpdateRoll = DB::select("
+                    SELECT si.* FROM scanned_item si
                     INNER JOIN (
-                        SELECT id_roll, sisa_kain
+                        SELECT cand.id_roll, cand.sisa_kain
                         FROM (
                             SELECT
                                 id_roll,
-                                CASE WHEN status IN ('extension','extension complete') THEN qty - total_pemakaian_roll ELSE sisa_kain END AS sisa_kain,
-                                ROW_NUMBER() OVER (
-                                    PARTITION BY id_roll
-                                    ORDER BY COALESCE(created_at, updated_at) DESC
-                                ) AS rn
+                                ROUND(
+                                    CASE
+                                        WHEN status IN ('extension','extension complete')
+                                            THEN qty - total_pemakaian_roll
+                                        ELSE sisa_kain
+                                    END,
+                                    2
+                                ) AS sisa_kain,
+                                COALESCE(created_at, updated_at) AS ts
                             FROM form_cut_input_detail
                             WHERE id_roll IS NOT NULL
-                        ) t
-                        WHERE rn = 1
-                    ) sub ON scanned_item.id_roll = sub.id_roll
-                    SET scanned_item.qty = sub.sisa_kain
-                    WHERE scanned_item.qty != sub.sisa_kain
+
+                            UNION ALL
+
+                            SELECT
+                                id_roll,
+                                qty_sisa AS sisa_kain,
+                                created_at AS ts
+                            FROM form_cut_piping
+                            WHERE id_roll IS NOT NULL
+                        ) cand
+                        JOIN (
+                            SELECT id_roll, MAX(ts) AS ts
+                            FROM (
+                                SELECT id_roll, COALESCE(created_at, updated_at) AS ts
+                                FROM form_cut_input_detail
+                                WHERE id_roll IS NOT NULL
+
+                                UNION ALL
+
+                                SELECT id_roll, created_at AS ts
+                                FROM form_cut_piping
+                                WHERE id_roll IS NOT NULL
+                            ) all_ts
+                            GROUP BY id_roll
+                        ) last_ts ON cand.id_roll = last_ts.id_roll
+                        AND cand.ts = last_ts.ts
+                    ) sub ON si.id_roll = sub.id_roll
+                    WHERE si.qty != sub.sisa_kain
+                ");
+
+                Log::channel('fixRollQty')->info([
+                    "Fix Roll Qty",
+                    "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                    $roll,
+                    $toUpdateRoll
+                ]);
+
+                // Update Roll
+                $updateRollQty = DB::statement("
+                    UPDATE scanned_item si
+                    INNER JOIN (
+                        SELECT cand.id_roll, cand.sisa_kain
+                        FROM (
+                            SELECT
+                                id_roll,
+                                ROUND(
+                                    CASE
+                                        WHEN status IN ('extension','extension complete')
+                                            THEN qty - total_pemakaian_roll
+                                        ELSE sisa_kain
+                                    END,
+                                    2
+                                ) AS sisa_kain,
+                                COALESCE(created_at, updated_at) AS ts
+                            FROM form_cut_input_detail
+                            WHERE id_roll IS NOT NULL
+
+                            UNION ALL
+
+                            SELECT
+                                id_roll,
+                                qty_sisa AS sisa_kain,
+                                created_at AS ts
+                            FROM form_cut_piping
+                            WHERE id_roll IS NOT NULL
+                        ) cand
+                        JOIN (
+                            SELECT id_roll, MAX(ts) AS ts
+                            FROM (
+                                SELECT id_roll, COALESCE(created_at, updated_at) AS ts
+                                FROM form_cut_input_detail
+                                WHERE id_roll IS NOT NULL
+
+                                UNION ALL
+
+                                SELECT id_roll, created_at AS ts
+                                FROM form_cut_piping
+                                WHERE id_roll IS NOT NULL
+                            ) all_ts
+                            GROUP BY id_roll
+                        ) last_ts ON cand.id_roll = last_ts.id_roll
+                        AND cand.ts = last_ts.ts
+                    ) sub ON si.id_roll = sub.id_roll
+                    SET si.qty = sub.sisa_kain
+                    WHERE si.qty != sub.sisa_kain
                 ");
 
                 return array(
