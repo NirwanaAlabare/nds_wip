@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Cutting\FormCutInput;
+use App\Models\Cutting\Piping;
 use App\Models\Cutting\FormCutInputDetail;
 use App\Models\Cutting\ScannedItem;
 use Illuminate\Http\Request;
@@ -326,8 +327,9 @@ class CuttingService
         );
     }
 
+    // Fix Roll Qty (Excep)
     public function fixRollQty($idRoll, $qty = null) {
-         $rollId = $idRoll;
+        $rollId = $idRoll;
         $rollQty = $qty;
         $rollUse = null;
 
@@ -342,24 +344,56 @@ class CuttingService
                 );
             }
 
-            $agg = FormCutInputDetail::selectRaw('SUM(total_pemakaian_roll) AS total_pakai')
-                ->where('id_roll', $idRoll)
-                ->groupBy('id_roll')
-                ->first();
+            $agg = DB::table(function ($q) use ($idRoll) {
+                $q->selectRaw('id_roll, SUM(total_pemakaian_roll) AS total_pakai')
+                    ->from('form_cut_input_detail')
+                    ->where('id_roll', $idRoll)
+                    ->groupBy('id_roll');
 
-            $newestSisa = FormCutInputDetail::selectRaw("
+                $q->unionAll(function ($q2) use ($idRoll) {
+                    $q2->selectRaw('id_roll, SUM(piping) AS total_pakai')
+                        ->from('form_cut_piping')
+                        ->where('id_roll', $idRoll)
+                        ->groupBy('id_roll');
+                });
+            }, 'form')
+            ->selectRaw('id_roll, SUM(total_pakai) AS total_pakai')
+            ->groupBy('id_roll')
+            ->first();
+
+            $inputLatest = FormCutInputDetail::selectRaw("
+                    id_roll,
                     ROUND(
                         CASE
-                            WHEN status IN ('extension', 'extension complete')
+                            WHEN status IN ('extension','extension complete')
                                 THEN qty - total_pemakaian_roll
-                            ELSE
-                                sisa_kain
+                            ELSE sisa_kain
                         END,
                         2
-                    ) AS sisa_kain
+                    ) AS sisa_kain,
+                    COALESCE(edited_at, updated_at) AS ts
                 ")
                 ->where('id_roll', $idRoll)
-                ->orderByDesc('created_at')  // or whatever column means “newest”
+                ->orderByDesc('ts')
+                ->limit(1);
+
+            $pipingLatest = Piping::selectRaw("
+                    id_roll,
+                    ROUND(qty_sisa, 2) AS sisa_kain,
+                    created_at AS ts
+                ")
+                ->where('id_roll', $idRoll)
+                ->orderByDesc('created_at')
+                ->limit(1);
+
+            $latestUnion = DB::query()
+                ->select('id_roll','sisa_kain','ts')
+                ->fromSub($inputLatest, 'input')
+                ->unionAll($pipingLatest);
+
+            $newestSisa = DB::query()
+                ->fromSub($latestUnion, 'latest')
+                ->orderByDesc('ts')
                 ->value('sisa_kain');
 
             if ($agg) {
@@ -433,54 +467,96 @@ class CuttingService
 
         // Roll Filter Query
         $additionalQuery = "";
+        $additionalQuerySub = "";
         if ($rollId) {
             $additionalQuery = "WHERE scanned_item.id_roll = '".$rollId."'";
+            $additionalQuerySub = " and id_roll = '".$rollId."'";
         } else {
             $additionalQuery = "WHERE scanned_item.qty != sub.sisa_kain";
+            $additionalQuerySub = " and id_roll = '".$rollId."'";
         }
 
         // Roll Query
         $roll = collect(DB::select("
-            WITH
-            latest_sisa AS (
-                SELECT id_roll, sisa_kain
-                FROM (
-                    SELECT
+            WITH latest_input AS (
+                SELECT
                     id_roll,
-                    CASE
-                        WHEN status IN ('extension','extension complete') THEN qty - total_pemakaian_roll
-                        ELSE sisa_kain
-                    END AS sisa_kain,
+                    ROUND(
+                        CASE
+                            WHEN status IN ('extension', 'extension complete') THEN qty - total_pemakaian_roll
+                            ELSE sisa_kain
+                        END,
+                        2
+                    ) AS sisa_kain,
+                    COALESCE(edited_at, updated_at) AS ts,
                     ROW_NUMBER() OVER (
                         PARTITION BY id_roll
                         ORDER BY COALESCE(edited_at, updated_at) DESC
                     ) AS rn
-                    FROM form_cut_input_detail
-                    WHERE id_roll IS NOT NULL
-                ) t
-                WHERE rn = 1
+                FROM form_cut_input_detail
+                WHERE id_roll IS NOT NULL ".$additionalQuerySub."
+            ),
+            latest_piping AS (
+                SELECT
+                    id_roll,
+                    qty,
+                    qty_sisa AS sisa_kain,
+                    created_at AS ts,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY id_roll
+                        ORDER BY created_at DESC
+                    ) AS rn
+                FROM form_cut_piping
+                WHERE id_roll IS NOT NULL ".$additionalQuerySub."
             ),
             agg AS (
-                SELECT
-                    f.id_roll,
-                    MAX(f.qty) AS max_qty,
-                    SUM(f.total_pemakaian_roll + f.short_roll) AS total_pakai_qty,
-                    ROUND(latest_sisa.sisa_kain, 2) AS sisa_kain
-                FROM form_cut_input_detail f
-                JOIN latest_sisa ON f.id_roll = latest_sisa.id_roll
-                WHERE f.id_roll IS NOT NULL
-                GROUP BY f.id_roll, latest_sisa.sisa_kain
+                    SELECT id_roll, MAX(max_qty) max_qty, SUM(total_pakai_qty) total_pakai_qty FROM (
+                        SELECT
+                                id_roll,
+                                MAX(qty) AS max_qty,
+                                SUM(total_pemakaian_roll + short_roll) AS total_pakai_qty
+                        FROM form_cut_input_detail
+                        WHERE id_roll IS NOT NULL  ".$additionalQuerySub."
+                        GROUP BY id_roll
+
+                        UNION ALL
+
+                        SELECT
+                                id_roll,
+                                MAX(qty) AS max_qty,
+                                SUM(piping) AS total_pakai_qty
+                        FROM form_cut_piping
+                        WHERE id_roll IS NOT NULL ".$additionalQuerySub."
+                        GROUP BY id_roll
+                    ) form
+                    group by id_roll
+            ),
+            combined_latest AS (
+                SELECT id_roll, sisa_kain, ts FROM latest_input WHERE rn = 1
+                UNION ALL
+                SELECT id_roll, sisa_kain, ts FROM latest_piping WHERE rn = 1
+            ),
+            latest_sisa_overall AS (
+                SELECT id_roll, sisa_kain
+                FROM (
+                    SELECT *,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY id_roll
+                            ORDER BY ts DESC
+                        ) AS rn
+                    FROM combined_latest
+                ) t
+                WHERE rn = 1
             )
             SELECT
-                scanned_item.id_roll,
-                scanned_item.qty_in,
-                scanned_item.qty,
+                si.id_roll,
+                si.qty_in,
+                si.qty,
                 agg.total_pakai_qty,
-                latest_sisa.sisa_kain
-            FROM scanned_item
-            JOIN agg ON scanned_item.id_roll = agg.id_roll
-            LEFT JOIN latest_sisa ON scanned_item.id_roll = latest_sisa.id_roll
-            ".$additionalQuery."
+                latest_sisa_overall.sisa_kain
+            FROM scanned_item si
+            LEFT JOIN agg ON si.id_roll = agg.id_roll
+            INNER JOIN latest_sisa_overall ON si.id_roll = latest_sisa_overall.id_roll
         "));
 
         if ($roll) {
