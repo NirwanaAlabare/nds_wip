@@ -371,7 +371,7 @@ class CuttingService
                         END,
                         2
                     ) AS sisa_kain,
-                    COALESCE(edited_at, updated_at) AS ts
+                    COALESCE(created_at, updated_at) AS ts
                 ")
                 ->where('id_roll', $idRoll)
                 ->orderByDesc('ts')
@@ -488,10 +488,10 @@ class CuttingService
                         END,
                         2
                     ) AS sisa_kain,
-                    COALESCE(edited_at, updated_at) AS ts,
+                    COALESCE(created_at, updated_at) AS ts,
                     ROW_NUMBER() OVER (
                         PARTITION BY id_roll
-                        ORDER BY COALESCE(edited_at, updated_at) DESC
+                        ORDER BY COALESCE(created_at, updated_at) DESC
                     ) AS rn
                 FROM form_cut_input_detail
                 WHERE id_roll IS NOT NULL ".$additionalQuerySub."
@@ -615,7 +615,7 @@ class CuttingService
                                 CASE WHEN status IN ('extension','extension complete') THEN qty - total_pemakaian_roll ELSE sisa_kain END AS sisa_kain,
                                 ROW_NUMBER() OVER (
                                     PARTITION BY id_roll
-                                    ORDER BY COALESCE(edited_at, updated_at) DESC
+                                    ORDER BY COALESCE(created_at, updated_at) DESC
                                 ) AS rn
                             FROM form_cut_input_detail
                             WHERE id_roll IS NOT NULL
