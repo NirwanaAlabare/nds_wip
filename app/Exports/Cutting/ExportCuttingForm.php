@@ -122,7 +122,7 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
             WHERE
-                DATE(form_cut_piece_detail.tanggal) between '".$this->dateFrom."' and '".$this->dateTo."' and
+                DATE(form_cut_piece.tanggal) between '".$this->dateFrom."' and '".$this->dateTo."' and
                 form_cut_piece_detail.status = 'complete'
             GROUP BY
                 form_cut_piece.id,
