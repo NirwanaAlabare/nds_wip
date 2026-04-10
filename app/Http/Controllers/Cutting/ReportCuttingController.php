@@ -39,11 +39,11 @@ class ReportCuttingController extends Controller
 
             $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '" . ($dateFrom) . "'";
             // $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) >= '" . ($dateFrom) . "'";
-            $additionalQuery1 .= " form_cut_piece.tanggal >= '" . ($dateFrom) . "'";
+            $additionalQuery1 .= " AND form_cut_piece.tanggal >= '" . ($dateFrom) . "'";
 
             $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) <= '" . ($dateTo) . "'";
             // $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) <= '" . ($dateTo) . "'";
-            $additionalQuery1 .= " form_cut_piece.tanggal <= '" . ($dateTo) . "'";
+            $additionalQuery1 .= " AND form_cut_piece.tanggal <= '" . ($dateTo) . "'";
 
             $keywordQuery = "";
             if ($request->search["value"]) {
