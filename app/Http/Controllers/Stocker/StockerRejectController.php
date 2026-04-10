@@ -363,7 +363,7 @@ class StockerRejectController extends Controller
      */
     public function create()
     {
-        return view('stocker.stocker.stocker-reject.create-stocker-reject', ['page' => 'dashboard-stocker', 'subPageGroup' => 'stocker-reject', 'subPage' => 'stocker-reject']);
+        return view('stocker.stocker.stocker-reject.create-stocker-reject', ['page' => 'dashboard-dc', 'subPageGroup' => 'stocker-reject', 'subPage' => 'stocker-reject']);
     }
 
     /**
@@ -549,7 +549,7 @@ class StockerRejectController extends Controller
 
                 $dataStockerReject = StockerReject::selectRaw("id, ratio, qty_reject")->where($filterColumn, $request->id)->get();
 
-                return view('stocker.stocker.stocker-reject.stocker-reject-detail', ['data' => $data[0], 'dataStocker' => $dataStocker, 'dataStockerReject' => $dataStockerReject, 'page' => 'dashboard-stocker', 'subPageGroup' => 'stocker-reject', 'subPage' => 'stocker-reject']);
+                return view('stocker.stocker.stocker-reject.stocker-reject-detail', ['data' => $data[0], 'dataStocker' => $dataStocker, 'dataStockerReject' => $dataStockerReject, 'page' => 'dashboard-dc', 'subPageGroup' => 'stocker-reject', 'subPage' => 'stocker-reject']);
             }
         }
     }

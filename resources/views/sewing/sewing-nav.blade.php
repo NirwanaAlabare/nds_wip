@@ -119,7 +119,7 @@
             <li>
                 <a href="{{ route('report_mut_output') }}"
                     class="dropdown-item {{ $subPage == 'report_mut_output' ? 'active' : '' }}">
-                    Report Mutasi Output <i class="fa-solid fa-file"></i>
+                    Report Mutasi Sewing <i class="fa-solid fa-file"></i>
                 </a>
             </li>
             <li>

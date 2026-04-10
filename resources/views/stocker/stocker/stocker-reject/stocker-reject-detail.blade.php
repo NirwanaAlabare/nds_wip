@@ -13,7 +13,7 @@
 
 @section('content')
     <div class="d-flex justify-content-between mb-3">
-        <h5 class="text-sb"><i class="fa fa-search-plus fa-sm"></i> Stocker Reject Detail</h5>
+        <h5 class="text-sb"><i class="fa fa-search-plus fa-sm"></i> Stocker Ganti Reject Detail</h5>
         <a class="btn btn-primary btn-sm" href="{{ route('stocker-reject') }}"><i class="fa fa-reply"></i> Kembali ke stocker reject</a>
     </div>
     <form id="stocker-reject-form">
