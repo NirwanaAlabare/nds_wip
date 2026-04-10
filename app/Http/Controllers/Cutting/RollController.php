@@ -189,7 +189,7 @@ class RollController extends Controller
 
             $keywordQuery2 = "
                 and (
-                    act_costing_ws like '%" . $request->search["value"] . "%' OR
+                    mrk.act_costing_ws like '%" . $request->search["value"] . "%' OR
                     DATE_FORMAT(form_cut_piece_detail.created_at, '%d-%m-%Y') like '%" . $request->search["value"] . "%'
                 )
             ";
