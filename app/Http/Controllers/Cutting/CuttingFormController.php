@@ -1347,12 +1347,42 @@ class CuttingFormController extends Controller
             "id" => "required",
         ]);
 
-        $formCut = FormCutInput::where("id", $validatedRequest['id'])->update([
-            "locked" => 1,
-            "unlocked_by" => null,
-        ]);
+        // Set Locktype
+        $lockType = $request->locktype ? $request->locktype : "shortroll";
 
-        return $formCut;
+        // Determine the column to update based on lock type
+        $updateColumn = [];
+        switch ($lockType) {
+            case "shortroll":
+                $updateColumn = [
+                    "locked" => 1,
+                    "unlocked_by" => null,
+                ];
+
+                break;
+            case "consmarker":
+                $updateColumn = [
+                    "cons_locked" => 1,
+                    "cons_unlocked_by" => null,
+                ];
+
+                break;
+            default:
+                return response()->json(['message' => 'Invalid lock type'], 400);
+        }
+
+        // At least one column
+        if (count($updateColumn) > 0) {
+            $formCut = FormCutInput::where("id", $validatedRequest['id'])->update($updateColumn);
+
+            return $formCut;
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Terjadi kesalahan",
+            "additional" => [],
+        );
     }
 
     public function formCutUnlock(Request $request) {
@@ -1366,15 +1396,47 @@ class CuttingFormController extends Controller
             $unlocker = User::where("username", $validatedRequest['username'])->whereIn("type", ["admin", "superadmin"])->where("cutting_unlocker", 1)->first();
 
             if ($unlocker) {
-                FormCutInput::where("id", $validatedRequest['id'])->update([
-                    "locked" => 0,
-                    "unlocked_by" => $unlocker->id,
-                ]);
+                // Set Locktype
+                $lockType = $request->locktype ? $request->locktype : "shortroll";
 
-                $formCut = FormCutInput::where("id", $validatedRequest['id'])->first();
+                // Determine the column to update based on lock type
+                $updateColumn = [];
+                switch ($lockType) {
+                    case "shortroll":
+                        $updateColumn = [
+                            "locked" => 0,
+                            "unlocked_by" => $unlocker->id,
+                        ];
 
-                if ($formCut) {
-                    return $formCut;
+                        break;
+                    case "consmarker":
+                        $updateColumn = [
+                            "cons_locked" => 0,
+                            "cons_unlocked_by" => $unlocker->id,
+                        ];
+
+                        break;
+                    default:
+                        return response()->json(['message' => 'Invalid lock type'], 400);
+                }
+
+                // At least one column
+                if (count($updateColumn) > 0) {
+                    $formCut = FormCutInput::where("id", $validatedRequest['id'])->update($updateColumn);
+                }
+
+                $formCutFetch = FormCutInput::where("id", $validatedRequest['id'])->first();
+
+                if ($formCutFetch) {
+
+                    return $formCutFetch;
+
+                } else {
+                    return array(
+                        "status" => 400,
+                        "message" => "Terjadi kesalahan saat membuka kunci",
+                        "additional" => [],
+                    );
                 }
 
                 // $unlocker->unlock_token = ($unlocker->unlock_token ? $unlocker->id."".Carbon::now()->format('ymd')."".substr($unlocker->unlock_token, -1)+1 : $unlocker->id."".Carbon::now()->format('Ymd')."1");
