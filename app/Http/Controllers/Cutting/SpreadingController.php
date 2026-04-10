@@ -98,6 +98,7 @@ class SpreadingController extends Controller
                     GROUP_CONCAT(DISTINCT CONCAT(COALESCE(master_size_new.size, master_sb_ws.size, marker_input_detail.size), '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' /  ') marker_details,
                     cutting_plan.tgl_plan,
                     cutting_plan.app,
+                    cutting_plan.app as approve,
                     a.created_by_username,
                     a.created_at,
                     a.updated_at
@@ -344,14 +345,51 @@ class SpreadingController extends Controller
             "edit_no_meja" => "required",
         ]);
 
+        // Form
+        $formCutting = FormCutInput::where("id", $validatedRequest['edit_id'])->first();
+
+        // Update Form
         $updateNoMeja = FormCutInput::where('id', $validatedRequest['edit_id'])->update([
             'no_meja' => $validatedRequest['edit_no_meja'],
             'edited' => 1,
             'edited_by' => Auth::user()->id,
             'edited_by_username' => Auth::user()->username,
             'edited_at' => Carbon::now(),
-            'edit_notes' => DB::raw("CONCAT(COALESCE(edit_notes,''), CHAR(10), ' EDIT STATUS TO ".$validatedRequest['edit_status']." AT ', CURRENT_TIMESTAMP )")
+            'app' => $request->edit_approve ? "Y" : "N",
+            'app_by' => $request->edit_approve ? Auth::user()->id : null,
+            'app_at' => $request->edit_approve ? Carbon::now() : null,
         ]);
+
+        // Edit Form Cut Plan
+        if ($request->edit_tgl_plan) {
+            $cuttingPlan = CutPlan::where('form_cut_id', $validatedRequest['edit_id'])->where('tgl_plan', $request->edit_tgl_plan)->first();
+
+            // Update when exist
+            if ($cuttingPlan) {
+                $cuttingPlan->app = $request->edit_approve ? "Y" : "N";
+                $cuttingPlan->app_by = $request->edit_approve ? Auth::user()->id : null;
+                $cuttingPlan->app_at = $request->edit_approve ? Carbon::now() : null;
+                $cuttingPlan->save();
+            }
+
+            // Create Cutting Plan when not exist
+            else {
+                $dateFormat = date("dmY", strtotime($request->edit_tgl_plan));
+                $noCutPlan = "CP-" . $dateFormat;
+
+                CutPlan::create([
+                    'no_cut_plan' => $noCutPlan,
+                    'no_form_cut_input' => $formCutting ? $formCutting->no_form : null,
+                    'form_cut_id' => $validatedRequest['edit_id'],
+                    'tgl_plan' => $request->edit_tgl_plan,
+                    'created_by' => Auth::user()->id,
+                    'created_by_username' => Auth::user()->username,
+                    'app' => $request->edit_approve ? "Y" : "N",
+                    'app_by' => $request->edit_approve ? Auth::user()->id : null,
+                    'app_at' => $request->edit_approve ? Carbon::now() : null,
+                ]);
+            }
+        }
 
         if ($updateNoMeja) {
             $updatedData = FormCutInput::where('id', $validatedRequest['edit_id'])->first();
