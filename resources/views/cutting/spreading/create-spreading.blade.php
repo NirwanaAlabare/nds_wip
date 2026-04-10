@@ -17,117 +17,301 @@
     </div>
     <form action="{{ route('store-spreading') }}" method="post" id="store-spreading" name='form' onsubmit="submitSpreadingForm(this, event)">
         @csrf
-            <div class='row'>
-                <div class="col-md-6">
-                    <div class="card card-primary">
-                        <div class="card-header">
-                            <h3 class="fw-bold card-title">Filter Data :</h3>
-                            <div class="card-tools">
-                                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
-                            </div>
+        <div class='row row-gap-3'>
+            <div class="col-md-6">
+                <div class="card card-sb">
+                    <div class="card-header">
+                        <h3 class="fw-bold card-title">Filter Data :</h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                         </div>
-                        <div class="card-body">
-                            <div class="row align-items-end">
-                                <div class="col-6 col-md-6">
-                                    <div class="form-group">
-                                        <label>No. WS</label>
-                                        <select class="form-control select2bs4" id="cbows" name="cbows" onchange='getno_marker();' style="width: 100%;">
-                                            <option selected="selected" value="">Pilih WS</option>
-                                            @foreach ($data_ws as $dataws)
-                                                <option value="{{ $dataws->act_costing_id }}">
-                                                    {{ $dataws->ws }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <input type='hidden' class='form-control' id='txtid_marker' name='txtid_marker'>
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-end">
+                            <div class="col-6 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label small">No. WS</label>
+                                    <select class="form-control select2bs4" id="cbows" name="cbows" onchange='getno_marker();' style="width: 100%;">
+                                        <option selected="selected" value="">Pilih WS</option>
+                                        @foreach ($data_ws as $dataws)
+                                            <option value="{{ $dataws->act_costing_id }}">
+                                                {{ $dataws->ws }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
-                                <div class="col-6 col-md-6">
-                                    <div class="form-group">
-                                        <label>No. Marker</label>
-                                        <select class='form-control select2bs4' style='width: 100%;' name='cbomarker' id='cbomarker' onchange='getdata_marker();'></select>
-                                    </div>
+                                <input type='hidden' class='form-control' id='txtid_marker' name='txtid_marker'>
+                            </div>
+                            <div class="col-6 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label small">No. Marker</label>
+                                    <select class='form-control select2bs4' style='width: 100%;' name='cbomarker' id='cbomarker' onchange='getdata_marker();'></select>
                                 </div>
-                                <div class="col-12 col-md-4">
-                                    <div class="form-group">
-                                        <label>Tipe Form</label>
-                                        <input type='text' class='form-control' id='tipe_form' name='tipe_form' autocomplete='off' readonly>
-                                    </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label small">Tipe Form</label>
+                                    <input type='text' class='form-control form-control-sm' id='tipe_form' name='tipe_form' autocomplete='off' readonly>
                                 </div>
-                                <div class="col-6 col-md-4">
-                                    <div class="form-group">
-                                        <label>Qty Ply Cutting</label>
-                                        <input type='number' class='form-control' id='txtqty_ply_cut' name='txtqty_ply_cut' oninput='sum();' autocomplete='off'>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-md-4">
-                                    <div class="form-group">
-                                        <label>Total Form</label>
-                                        <input type='number' class='form-control' id='jumlah_form' name='jumlah_form' oninput='customSum();' autocomplete='off'>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label small">Qty Ply Cutting</label>
+                                    <div class="input-group">
+                                        <input type='number' class='form-control form-control-sm w-75' id='txtqty_ply_cut' name='txtqty_ply_cut' oninput='sum();' autocomplete='off'>
+                                        <input type='text' class='form-control form-control-sm w-25' id='txtunit_qty_ply_cut' name='txtunit_qty_ply_cut' value="Ply" readonly>
                                     </div>
                                 </div>
-                                <div class="col-12">
-                                    <div class="form-group">
-                                        <label>Keterangan</label>
-                                        <textarea class='form-control' id='notes' name='notes' rows="2"></textarea>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label small">Total Form</label>
+                                    <div class="input-group">
+                                        <input type='number' class='form-control form-control-sm' id='jumlah_form' name='jumlah_form' oninput='customSum();' autocomplete='off'>
+                                        <input type="text" class="form-control form-control-sm" id="txt_unit_jumlah_form" name="txt_unit_jumlah_form" value="Form" readonly>
                                     </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label class="form-label small">Keterangan</label>
+                                    <textarea class='form-control' id='notes' name='notes' rows="2"></textarea>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="card card-info">
-                        <div class="card-header">
-                            <h3 class="fw-bold card-title">Hasil Data</h3>
-                            <div class="card-tools">
-                                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-sb-secondary">
+                        <h3 class="fw-bold card-title">Hasil Data :</h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-end">
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <label class="form-label small">Qty Ply Marker</label>
+                                    <div class="input-group">
+                                        <input type='text' class='form-control form-control-sm' id='hitungmarker' name='hitungmarker' readonly>
+                                        <input type='text' class='form-control form-control-sm' id='unit_hitungmarker' name='unit_hitungmarker' value="Ply" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <label class="form-label small">Qty Ply Cutting</label>
+                                    <div class="input-group">
+                                        <input type='text' class='form-control form-control-sm' id='hitungcut' name='hitungcut' readonly>
+                                        <input type='text' class='form-control form-control-sm' id='unit_hitungcut' name='unit_hitungcut' value="Ply" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <label class="form-label small">Total Form</label>
+                                    <div class="input-group">
+                                        <input type='text' class='form-control form-control-sm' id='hitungform' name='hitungform' readonly>
+                                        <input type='text' class='form-control form-control-sm' id='unit_hitungform' name='unit_hitungform' value="Form" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <label class="form-label small">Qty Ply Form</label>
+                                    <div class="input-group">
+                                        <input type='text' class='form-control form-control-sm' id='qty_ply_form' name='qty_ply_form' readonly>
+                                        <input type='text' class='form-control form-control-sm' id='unit_qty_ply_form' name='unit_qty_ply_form' value="Ply/Form" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <label class="form-label small">Sisa Ply Marker</label>
+                                    <div class="input-group">
+                                        <input type='text' class='form-control form-control-sm' id='sisa' name='sisa' readonly>
+                                        <input type='text' class='form-control form-control-sm' id='unit_sisa' name='unit_sisa' value="Ply" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="tarik_sisa" id="tarik_sisa" value="tarik">
+                                        <label>Tarik Sisa Ply</label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="card-body">
-                            <div class="row align-items-end">
-                                <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label>Qty Ply Marker</label>
-                                        <input type='text' class='form-control' id='hitungmarker' name='hitungmarker' readonly>
+                    </div>
+                    <div class="card-footer border-1">
+                        {{-- <label>&emsp;&emsp;&emsp;</label> --}}
+                        <button type='submit' name='submit' class='btn btn-block btn-success btn-sm fw-bold h-100'>SIMPAN <i class="fas fa-check"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class='row'>
+            {{-- Detail Data Marker --}}
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-sb-secondary">
+                        <h3 class="fw-bold card-title">Detail Data :</h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="form-label small">Panel</label>
+                                    <input type='text' class='form-control form-control-sm' id='txtpanel' name='txtpanel' readonly>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="form-label small">Color</label>
+                                    <input type='text' class='form-control form-control-sm' id='txtcolor' name='txtcolor' readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="form-label small">Buyer</label>
+                                    <input type='text' class='form-control form-control-sm' id='txtbuyer' name='txtbuyer' readonly>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="form-label small">Style</label>
+                                    <input type='text' class='form-control form-control-sm' id='txtstyle' name='txtstyle' readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="form-label small">Panjang Marker</label>
+                                    <div class="input-group">
+                                        <input type='text' class='form-control form-control-sm' id='txt_p_marker' name='txt_p_marker' readonly>
+                                        <input type='text' class='form-control form-control-sm' id='txt_unit_p_marker' name='txt_unit_p_marker' readonly>
                                     </div>
                                 </div>
-                                <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label>Qty Ply Cutting</label>
-                                        <input type='text' class='form-control' id='hitungcut' name='hitungcut' readonly>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="form-label small">Comma</label>
+                                    <div class="input-group">
+                                        <input type='text' class='form-control form-control-sm' id='txt_comma_p_marker' name='txt_comma_p_marker' readonly>
+                                        <input type='text' class='form-control form-control-sm' id='txt_unit_comma_p_marker' name='txt_unit_comma_p_marker' readonly>
                                     </div>
                                 </div>
-                                <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label>Total Form</label>
-                                        <input type='text' class='form-control' id='hitungform' name='hitungform' readonly>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="form-label small">Lebar Marker</label>
+                                    <div class="input-group">
+                                        <input type='text' class='form-control form-control-sm' id='txt_l_marker' name='txt_l_marker' readonly>
+                                        <input type='text' class='form-control form-control-sm' id='txt_unit_l_marker' name='txt_unit_l_marker' readonly>
                                     </div>
                                 </div>
-                                <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label>Qty Ply Form</label>
-                                        <input type='text' class='form-control' id='qty_ply_form' name='qty_ply_form' readonly>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="form-label small">Lebar WS</label>
+                                    <div class="input-group">
+                                        <input type='text' class='form-control form-control-sm' id='txt_l_ws' name='txt_l_ws' readonly>
+                                        <input type='text' class='form-control form-control-sm' id='txt_unit_l_ws' name='txt_unit_l_ws' readonly>
                                     </div>
                                 </div>
-                                <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label>Sisa Ply Marker</label>
-                                        <input type='text' class='form-control' id='sisa' name='sisa' readonly>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="form-label small">PO Shipment</label>
+                                    <input type='text' class='form-control form-control-sm' id='txt_po_marker' name='txt_po_marker' readonly>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="form-label small">WS</label>
+                                    <input type='text' class='form-control form-control-sm' id='txt_ws' name='txt_ws' readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="form-label small">Cons WS</label>
+                                    <div class="input-group">
+                                        <input type='text' class='form-control form-control-sm' id='txt_cons_ws' name='txt_cons_ws' readonly>
+                                        <input type='text' class='form-control form-control-sm' id='txt_unit_cons_ws' name='txt_unit_cons_ws' readonly>
                                     </div>
                                 </div>
-                                <div class="col-sm-5">
-                                    <div class="form-group">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="tarik_sisa" id="tarik_sisa" value="tarik">
-                                            <label>Tarik Sisa Ply</label>
-                                        </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="form-label small">Cons Marker</label>
+                                    <div class="input-group">
+                                        <input type='text' class='form-control form-control-sm' id='txt_cons_marker' name='txt_cons_marker' readonly>
+                                        <input type='text' class='form-control form-control-sm' id='txt_unit_cons_marker' name='txt_unit_cons_marker' readonly>
                                     </div>
                                 </div>
-                                <div class="col-sm-4">
-                                    <div class="form-group">
-                                        {{-- <label>&emsp;&emsp;&emsp;</label> --}}
-                                        <button type='submit' name='submit' class='btn btn-block btn-success'>Simpan</button>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="form-label small">Cons Piping</label>
+                                    <div class="input-group">
+                                        <input type='text' class='form-control form-control-sm' id='txt_cons_piping' name='txt_cons_piping' readonly>
+                                        <input type='text' class='form-control form-control-sm' id='txt_unit_cons_piping' name='txt_unit_cons_piping' readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="form-label small">Gramasi</label>
+                                    <div class="input-group">
+                                        <input type='number' class='form-control form-control-sm' id='txt_gramasi' name='txt_gramasi' value="0" step=".001" readonly>
+                                        <input type='text' class='form-control form-control-sm' id='txt_unit_gramasi' name='txt_unit_gramasi' value="gr/cm^2" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row d-none">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label class="form-label small">Item</label>
+                                    <div class="input-group">
+                                        <input type='text' class='form-control form-control-sm w-25' id='txt_id_item' name='txt_id_item' readonly>
+                                        <input type='text' class='form-control form-control-sm w-75' id='txt_unit_detail_item' name='txt_unit_detail_item' readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label class="form-label small">Qty Gelar Marker</label>
+                                    <div class="input-group">
+                                        <input type='number' class='form-control form-control-sm w-75' id='txt_qty_gelar' name='txt_qty_gelar' readonly>
+                                        <input type='text' class='form-control form-control-sm w-25' id='txt_unit_qty_gelar' name='txt_unit_qty_gelar' value="Ply" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -136,165 +320,31 @@
                 </div>
             </div>
 
-            <div class='row'>
-                <div class="col-md-6">
-                    <div class="card card-primary">
-                        <div class="card-header">
-                            <h3 class="fw-bold card-title">Detail Data :</h3>
-                            <div class="card-tools">
-                                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-sm-6">
-                                    <div class="form-group">
-                                        <label>Panel</label>
-                                        <input type='text' class='form-control' id='txtpanel' name='txtpanel' readonly>
-                                    </div>
-                                </div>
-                                <div class="col-sm-6">
-                                    <div class="form-group">
-                                        <label>Color</label>
-                                        <input type='text' class='form-control' id='txtcolor' name='txtcolor' readonly>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-6">
-                                    <div class="form-group">
-                                        <label>Buyer</label>
-                                        <input type='text' class='form-control' id='txtbuyer' name='txtbuyer' readonly>
-                                    </div>
-                                </div>
-                                <div class="col-sm-6">
-                                    <div class="form-group">
-                                        <label>Style</label>
-                                        <input type='text' class='form-control' id='txtstyle' name='txtstyle' readonly>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label>P. Marker</label>
-                                        <input type='text' class='form-control' id='txt_p_marker' name='txt_p_marker' readonly>
-                                    </div>
-                                </div>
-                                <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label>Unit</label>
-                                        <input type='text' class='form-control' id='txt_unit_p_marker' name='txt_unit_p_marker' readonly>
-                                    </div>
-                                </div>
-                                <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label>Comma</label>
-                                        <input type='text' class='form-control' id='txt_comma_p_marker' name='txt_comma_p_marker' readonly>
-                                    </div>
-                                </div>
-                                <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label>Unit</label>
-                                        <input type='text' class='form-control' id='txt_unit_comma_p_marker' name='txt_unit_comma_p_marker' readonly>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label>L. Marker</label>
-                                        <input type='text' class='form-control' id='txt_l_marker' name='txt_l_marker' readonly>
-                                    </div>
-                                </div>
-                                <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label>Unit</label>
-                                        <input type='text' class='form-control' id='txt_unit_l_marker' name='txt_unit_l_marker' readonly>
-                                    </div>
-                                </div>
-                                <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label>L. WS</label>
-                                        <input type='text' class='form-control' id='txt_l_ws' name='txt_l_ws' readonly>
-                                    </div>
-                                </div>
-                                <div class="col-sm-3">
-                                    <div class="form-group">
-                                        <label>Unit</label>
-                                        <input type='text' class='form-control' id='txt_unit_l_ws' name='txt_unit_l_ws' readonly>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <div class="form-group">
-                                        <label>PO</label>
-                                        <input type='text' class='form-control' id='txt_po_marker' name='txt_po_marker' readonly>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-sm-6">
-                                    <div class="form-group">
-                                        <label>Qty Gelar Marker</label>
-                                        <input type='text' class='form-control' id='txt_qty_gelar' name='txt_qty_gelar' readonly>
-                                    </div>
-                                </div>
-                                <div class="col-sm-6">
-                                    <div class="form-group">
-                                        <label>WS</label>
-                                        <input type='text' class='form-control' id='txt_ws' name='txt_ws' readonly>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-sm-6">
-                                    <div class="form-group">
-                                        <label>Cons WS</label>
-                                        <input type='text' class='form-control' id='txt_cons_ws' name='txt_cons_ws'
-                                            readonly>
-                                    </div>
-                                </div>
-                                <div class="col-sm-6">
-                                    <div class="form-group">
-                                        <label>Cons Marker</label>
-                                        <input type='text' class='form-control' id='txt_cons_marker'
-                                            name='txt_cons_marker' readonly>
-                                    </div>
-                                </div>
-                            </div>
+            {{-- Detail Data Marker Ratio --}}
+            <div class="col-md-6">
+                <div class="card card-sb">
+                    <div class="card-header">
+                        <h3 class="fw-bold card-title">Ratio Data :</h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card card-info">
-                        <div class="card-header">
-                            <h3 class="fw-bold card-title">Ratio</h3>
-                            <div class="card-tools">
-                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                    <i class="fas fa-minus"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <table id="datatable" class="table table-bordered table-striped table w-100">
-                                <thead>
-                                    <tr>
-                                        <th style='width:30%;text-align: center;'>Size</th>
-                                        <th style='width:35%;text-align: center;'>Ratio</th>
-                                        <th style='width:35%;text-align: center;'>Qty Cut Marker</th>
-                                    </tr>
-                                </thead>
-                            </table>
-                        </div>
+                    <div class="card-body">
+                        <table id="datatable" class="table table-bordered table-striped table-sm table w-100">
+                            <thead>
+                                <tr>
+                                    <th style='width:30%;text-align: center;'>Size</th>
+                                    <th style='width:35%;text-align: center;'>Ratio</th>
+                                    <th style='width:35%;text-align: center;'>Qty Cut Marker</th>
+                                </tr>
+                            </thead>
+                        </table>
                     </div>
                 </div>
             </div>
+        </div>
     </form>
 @endsection
 
@@ -402,7 +452,12 @@
                     document.getElementById('txt_qty_gelar').value = response.gelar_qty_balance ? response.gelar_qty_balance : response.gelar_qty;
                     document.getElementById('txt_ws').value = response.act_costing_ws;
                     document.getElementById('txt_cons_ws').value = response.cons_ws;
+                    document.getElementById('txt_unit_cons_ws').value = response.unit_cons_ws+'/PCS';
                     document.getElementById('txt_cons_marker').value = response.cons_marker;
+                    document.getElementById('txt_unit_cons_marker').value = response.unit_cons_marker+'/PCS';
+                    document.getElementById('txt_cons_piping').value = response.cons_piping;
+                    document.getElementById('txt_unit_cons_piping').value = response.unit_cons_piping+'/PCS';
+                    document.getElementById('txt_gramasi').value = response.gramasi;
                     document.getElementById('hitungmarker').value = response.gelar_qty_balance ? response.gelar_qty_balance : response.gelar_qty;
                     document.getElementById('txtid_marker').value = response.kode;
                     document.getElementById('tipe_form').value = response.tipe_marker == "bulk marker" && response.status_marker == "active" ? "Pilot to Bulk" : capitalizeFirstLetter((response.tipe_marker).replace(' marker', ""));

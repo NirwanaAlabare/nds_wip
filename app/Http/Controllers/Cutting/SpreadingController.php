@@ -178,8 +178,7 @@ class SpreadingController extends Controller
 
     public function getdata_marker(Request $request)
     {
-        $data_marker = DB::select("select a.* from marker_input a
-        where a.id = '" . $request->cri_item . "'");
+        $data_marker = DB::select("select a.* from marker_input a where a.id = '" . $request->cri_item . "'");
 
         return json_encode($data_marker ? $data_marker[0] : null);
     }
