@@ -87,7 +87,7 @@
                 <div class="modal-dialog modal-lg modal-dialog-scrollable">
                     <div class="modal-content">
                         <div class="modal-header bg-sb text-light">
-                            <h1 class="modal-title fs-5" id="editMejaModalLabel"><i class="fa fa-edit fa-sm"></i> Edit Meja</h1>
+                            <h1 class="modal-title fs-5" id="editMejaModalLabel"><i class="fa fa-edit fa-sm"></i> Edit Spreading Form</h1>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body" style="max-height: 65vh !important;">

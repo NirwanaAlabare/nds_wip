@@ -395,9 +395,8 @@ class SpreadingController extends Controller
             $updatedData = FormCutInput::where('id', $validatedRequest['edit_id'])->first();
             $meja = User::where('id', $validatedRequest['edit_no_meja'])->first();
             return array(
-                'status' => 200,
+                'status' => 201,
                 'message' => 'Alokasi Meja "' . ucfirst($meja->name) . '" ke form "' . $updatedData->no_form . '" berhasil',
-                'redirect' => '',
                 'table' => 'datatable',
                 'additional' => [],
             );
@@ -406,7 +405,6 @@ class SpreadingController extends Controller
         return array(
             'status' => 400,
             'message' => 'Data produksi gagal diubah',
-            'redirect' => '',
             'table' => 'datatable',
             'additional' => [],
         );
