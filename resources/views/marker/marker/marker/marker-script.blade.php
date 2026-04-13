@@ -119,13 +119,13 @@
                     }
 
                     let detailBtn = `
-                        <a class='btn btn-primary btn-sm' onclick='getdetail(` + row.id + `);' data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Detail Marker">
+                        <a class='btn btn-info btn-sm' onclick='getdetail(` + row.id + `);' data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Detail Marker">
                             <i class='fa fa-search'></i>
                         </a>
                     `;
 
                     let editBtn = `
-                        <button class='btn btn-info btn-sm' onclick='edit(` + row.id + `);' data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Ubah Marker" ` + (editable ? '' : 'disabled') + `>
+                        <button class='btn btn-primary btn-sm' onclick='edit(` + row.id + `);' data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Ubah Marker" ` + (editable ? '' : 'disabled') + `>
                             <i class='fa fa-edit'></i>
                         </button>
                     `;

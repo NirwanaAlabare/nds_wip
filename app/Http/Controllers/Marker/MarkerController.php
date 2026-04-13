@@ -914,7 +914,7 @@ class MarkerController extends Controller
 
             return array(
                 "status" => 200,
-                "message" => "Detail Marker ".$marker->kode." berhasil di ubah <br> ".($updateMarkerPanel ? "" : "Panel Marker tidak diubah <br> (Form Marker sudah memiliki part : <b>'".$markerPartForm->implode("no_form", ", ")."'</b>)"),
+                "message" => "Detail Marker ".$marker->kode." berhasil di ubah <br> ".($updateMarkerPanel ? "" : "Panel Marker tidak diubah <br> (Form Marker sudah memiliki part : <br> <b>".$markerPartForm->implode("no_form", " <br> ")."</b>)"),
                 "redirect" => route('marker'),
                 "additional" => [],
             );

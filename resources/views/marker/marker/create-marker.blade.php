@@ -12,7 +12,7 @@
 
 @section('content')
     <div class="d-flex justify-content-between mb-3">
-        <h5 class="fw-bold text-sb"><i class="fa fa-plus fa-sm"></i> Tambah Data Marker</h5>
+        <h5 class="fw-bold text-sb"><i class="fa fa-plus fa-sm"></i> Buat Marker Baru</h5>
         <a href="{{ route('marker') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali ke Marker</a>
     </div>
     <form action="{{ route('store-marker') }}" method="post" id="store-marker" onsubmit="submitMarkerForm(this, event)">
@@ -599,7 +599,7 @@
                 $(api.column(5).footer()).html(Number(remainQtyTotal).toLocaleString('id-ID'));
                 $(api.column(8).footer()).html(0); // Total ratio
                 $(api.column(9).footer()).html(0); // Total cut qty
-            },
+            }
         });
 
         // Update Order Qty Datatable
