@@ -243,7 +243,7 @@
                         </tr>
                     </tfoot>
                 </table>
-                <button class="btn btn-sb float-end mt-3">Simpan</button>
+                <button class="btn btn-sb-secondary float-end mt-3"><i class="fa fa-save"></i> SIMPAN</button>
             </div>
         </div>
     </form>
