@@ -27,14 +27,14 @@
                 <div class="row">
                     <div class="col-6 col-md-3">
                         <div class="mb-1">
-                            <label class="form-label"><small>Tanggal</small></label>
-                            <input type="date" class="form-control" id="tgl_cutting" name="tgl_cutting" value="{{ date('Y-m-d') }}">
+                            <label class="form-label small">Tanggal</label>
+                            <input type="date" class="form-control form-control-sm" id="tgl_cutting" name="tgl_cutting" value="{{ date('Y-m-d') }}">
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="mb-1">
                             <div class="form-group">
-                                <label><small>No. WS</small></label>
+                                <label class="form-label small">No. WS</label>
                                 <select class="form-control select2bs4" id="ws_id" name="ws_id" style="width: 100%;">
                                     <option selected="selected" value="">Pilih WS</option>
                                     @foreach ($orders as $order)
@@ -49,7 +49,7 @@
                     <div class="col-6 col-md-3">
                         <div class="mb-1">
                             <div class="form-group">
-                                <label><small>Color</small></label>
+                                <label class="form-label small">Color</label>
                                 <select class="form-control select2bs4" id="color" name="color" style="width: 100%;">
                                     <option selected="selected" value="">Pilih Color</option>
                                     {{-- select 2 option --}}
@@ -60,7 +60,7 @@
                     <div class="col-6 col-md-3">
                         <div class="mb-1">
                             <div class="form-group">
-                                <label><small>Panel</small></label>
+                                <label class="form-label small">Panel</label>
                                 <select class="form-control select2bs4" id="panel_id" name="panel_id" style="width: 100%;" >
                                     <option selected="selected" value="">Pilih Panel</option>
                                     {{-- select 2 option --}}
@@ -70,70 +70,70 @@
                         </div>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row row-gap-2">
                     <div class="col-12 col-md-6">
-                        <div class="d-flex flex-column">
+                        <div class="d-flex flex-column gap-2">
                             <input type="hidden" class="form-control" id="ws" name="ws" readonly>
                             <div class="mb-1">
-                                <label class="form-label"><small>Buyer</small></label>
-                                <input type="text" class="form-control" id="buyer" name="buyer" readonly>
+                                <label class="form-label small">Buyer</label>
+                                <input type="text" class="form-control form-control-sm" id="buyer" name="buyer" readonly>
                             </div>
                             <div class="mb-1">
-                                <label class="form-label"><small>Style</small></label>
-                                <input type="text" class="form-control" id="style" name="style" readonly>
+                                <label class="form-label small">Style</label>
+                                <input type="text" class="form-control form-control-sm" id="style" name="style" readonly>
                             </div>
                             <div class="row g-3">
                                 <div class="col-md-4">
-                                    <label class="form-label"><small>Cons WS</small></label>
-                                    <div class="input-group mb-1">
+                                    <div class="mb-1">
+                                        <label class="form-label small">Qty Order</label>
+                                        <input type="text" class="form-control form-control-sm" id="order_qty" name="order_qty" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-1">
+                                        <label class="form-label small">No. Urut Marker</label>
+                                        <input type="text" class="form-control form-control-sm" id="no_urut_marker" name="no_urut_marker" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small">Cons. WS</label>
+                                    <div class="input-group input-group-sm mb-1">
                                         <input type="text" class="form-control" id="cons_ws" name="cons_ws" readonly>
                                         <input type="text" class="form-control" id="unit_cons_ws" name="unit_cons_ws" readonly>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="mb-1">
-                                        <label class="form-label"><small>Qty Order</small></label>
-                                        <input type="text" class="form-control" id="order_qty" name="order_qty" readonly>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="mb-1">
-                                        <label class="form-label"><small>No. Urut Marker</small></label>
-                                        <input type="text" class="form-control" id="no_urut_marker" name="no_urut_marker" readonly>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-12 col-md-6">
-                        <div class="row">
+                        <div class="row row-gap-2">
                             <div class="col-12 col-md-6">
-                                <label class="form-label"><small>P. Marker</small></label>
-                                <div class="input-group mb-1">
+                                <label class="form-label small">P. Marker</label>
+                                <div class="input-group input-group-sm mb-1">
                                     <input type="number" class="form-control" id="p_marker" name="p_marker" step=".001">
                                     <span class="input-group-text">METER</span>
                                 </div>
                                 <input type="hidden" class="form-control" id="p_unit" name="p_unit" value="METER">
                             </div>
                             <div class="col-12 col-md-6">
-                                <label class="form-label"><small>Comma</small></label>
-                                <div class="input-group mb-1">
+                                <label class="form-label small">Comma</label>
+                                <div class="input-group input-group-sm mb-1">
                                     <input type="number" class="form-control" id="comma_marker" name="comma_marker" step=".001">
                                     <span class="input-group-text">CM</span>
                                 </div>
                                 <input type="hidden" class="form-control" id="comma_unit" name="comma_unit" value="CM" readonly>
                             </div>
                             <div class="col-12 col-md-6">
-                                <label class="form-label"><small>L. Marker</small></label>
-                                <div class="input-group mb-1">
+                                <label class="form-label small">L. Marker</label>
+                                <div class="input-group input-group-sm mb-1">
                                     <input type="number" class="form-control" id="l_marker" name="l_marker" step=".001">
                                     <span class="input-group-text">CM</span>
                                 </div>
                                 <input type="hidden" class="form-control" id="l_unit" name="l_unit" value="CM" readonly>
                             </div>
                             <div class="col-6 col-md-6">
-                                <label class="form-label"><small>Cons Marker</small></label>
-                                <div class="input-group mb-1">
+                                <label class="form-label small">Cons Marker</label>
+                                <div class="input-group input-group-sm mb-1">
                                     <input type="number" class="form-control" id="cons_marker" name="cons_marker" step=".001">
                                     <select class="form-control" name="unit_cons_marker" id="unit_cons_marker">
                                         <option value="METER">METER</option>
@@ -142,8 +142,8 @@
                                 </div>
                             </div>
                             <div class="col-4 col-md-4">
-                                <label class="form-label"><small>Cons Piping</small></label>
-                                <div class="input-group mb-1">
+                                <label class="form-label small">Cons Piping</label>
+                                <div class="input-group input-group-sm mb-1">
                                     <input type="number" class="form-control" id="cons_piping" name="cons_piping" step=".001">
                                     <select class="form-control" name="unit_cons_piping" id="unit_cons_piping">
                                         <option value="METER">METER</option>
@@ -153,35 +153,33 @@
                             </div>
                             <div class="col-4 col-md-4">
                                 <div class="mb-1">
-                                    <label class="form-label"><small>Gramasi</small></label>
-                                    <input type="number" class="form-control" id="gramasi" name="gramasi" step=".001">
+                                    <label class="form-label small">Gramasi</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" class="form-control" id="gramasi" name="gramasi" step=".001">
+                                        <span class="input-group-text">gr/cm^2</span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-4 col-md-4">
                                 <div class="mb-1">
-                                    <label class="form-label"><small>Qty Gelar Marker</small></label>
-                                    <input type="number" class="form-control" id="gelar_marker_qty" name="gelar_marker_qty" onchange="calculateAllRatio(this)" onkeyup="calculateAllRatio(this)">
+                                    <label class="form-label small">Qty Gelar Marker</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" class="form-control" id="gelar_marker_qty" name="gelar_marker_qty" onchange="calculateAllRatio(this)" onkeyup="calculateAllRatio(this)">
+                                        <span class="input-group-text">Ply</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="mb-1">
-                            <label class="form-label"><small>PO</small></label>
-                            <input type="text" class="form-control" id="po" name="po">
+                            <label class="form-label small">PO</label>
+                            <input type="text" class="form-control form-control-sm" id="po" name="po">
                         </div>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label"><small>Lebar WS</small></label>
-                        <div class="input-group mb-1">
-                            <input type="number" class="form-control" id="lebar_ws" name="lebar_ws" step=".001">
-                            <span class="input-group-text">CM</span>
-                        </div>
-                        <input type="hidden" class="form-control" id="lebar_ws_unit" name="lebar_ws_unit" value="CM">
                     </div>
                     <div class="col-md-3">
                         <div class="mb-1">
-                            <label class="form-label"><small>Tipe Marker</small></label>
+                            <label class="form-label small">Tipe Marker</label>
                             <select class="form-select select2bs4" id="tipe_marker" name="tipe_marker" style="width: 100%;">
                                 <option selected="selected" value="regular marker">Regular Marker</option>
                                 <option value="special marker">Special Marker</option>
@@ -191,9 +189,17 @@
                         </div>
                     </div>
                     <div class="col-md-3">
+                        <label class="form-label small">Lebar WS</label>
+                        <div class="input-group input-group-sm mb-1">
+                            <input type="number" class="form-control" id="lebar_ws" name="lebar_ws" step=".001">
+                            <span class="input-group-text">CM</span>
+                        </div>
+                        <input type="hidden" class="form-control" id="lebar_ws_unit" name="lebar_ws_unit" value="CM">
+                    </div>
+                    <div class="col-md-3">
                         <div class="mb-1">
-                            <label class="form-label"><small>Catatan</small></label>
-                            <textarea class="form-control" id="notes" name="notes"></textarea>
+                            <label class="form-label small">Catatan</label>
+                            <textarea class="form-control form-control-sm" id="notes" name="notes"></textarea>
                         </div>
                     </div>
                     <input type="hidden" class="form-control" id="jumlah_so_det" name="jumlah_so_det" readonly>
@@ -207,7 +213,7 @@
                 </h5>
             </div>
             <div class="card-body table-responsive">
-                <table id="orderQtyDatatable" class="table table-bordered table-striped table w-100">
+                <table id="orderQtyDatatable" class="table table-bordered table-striped table-sm w-100">
                     <thead>
                         <tr>
                             <th>WS</th>
@@ -292,6 +298,7 @@
         // Initialize Select2BS4 Elements
         $('.select2bs4').select2({
             theme: 'bootstrap4',
+            containerCssClass: 'form-control-sm'
         })
 
         // Get & Set Total Cut Qty Based on Order WS and Order Color ( to know remaining cut qty )

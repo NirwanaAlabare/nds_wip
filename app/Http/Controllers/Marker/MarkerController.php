@@ -539,32 +539,32 @@ class MarkerController extends Controller
                 <div class='row'>
                     <div class='col-sm-6'>
                         <div class='form-group'>
-                            <label class='form-label'>Kode</label>
-                            <input type='text' class='form-control' id='txtkode_marker' name='txtkode_marker' value = '" . $datanomarker->kode_marker . "' readonly>
+                            <label class='form-label small'>Kode</label>
+                            <input type='text' class='form-control form-control-sm' id='txtkode_marker' name='txtkode_marker' value = '" . $datanomarker->kode_marker . "' readonly>
                         </div>
                     </div>
                     <div class='col-sm-6'>
                         <div class='form-group'>
-                            <label class='form-label'>Tanggal</label>
-                            <input type='text' class='form-control' id='txttgl_cutting' name='txttgl_cutting' value = '" . $datanomarker->tgl_cut_fix . "' readonly>
+                            <label class='form-label small'>Tanggal</label>
+                            <input type='text' class='form-control form-control-sm' id='txttgl_cutting' name='txttgl_cutting' value = '" . $datanomarker->tgl_cut_fix . "' readonly>
                         </div>
                     </div>
                     <div class='col-sm-4'>
                         <div class='form-group'>
-                            <label class='form-label'>No. WS</label>
-                            <input type='text' class='form-control' id='txtno_ws' name='txtno_ws'  value = '" . $datanomarker->act_costing_ws . "' readonly>
+                            <label class='form-label small'>No. WS</label>
+                            <input type='text' class='form-control form-control-sm' id='txtno_ws' name='txtno_ws'  value = '" . $datanomarker->act_costing_ws . "' readonly>
                         </div>
                     </div>
                     <div class='col-sm-4'>
                         <div class='form-group'>
-                            <label class='form-label'>Color</label>
-                            <input type='text' class='form-control' id='txtcol' name='txtcol'  value = '" . $datanomarker->color . "' readonly>
+                            <label class='form-label small'>Color</label>
+                            <input type='text' class='form-control form-control-sm' id='txtcol' name='txtcol'  value = '" . $datanomarker->color . "' readonly>
                         </div>
                     </div>
                     <div class='col-sm-4'>
                         <div class='form-group'>
-                            <label class='form-label'>Panel</label>
-                            <input type='text' class='form-control' id='txtpanel' name='txtpanel'  value = '" . $datanomarker->panel . "' readonly>
+                            <label class='form-label small'>Panel</label>
+                            <input type='text' class='form-control form-control-sm' id='txtpanel' name='txtpanel'  value = '" . $datanomarker->panel . "' readonly>
                         </div>
                     </div>
                 </div>
@@ -573,14 +573,14 @@ class MarkerController extends Controller
                 <div class='row'>
                     <div class='col-sm-6'>
                         <div class='form-group'>
-                            <label class='form-label'>Buyer</label>
-                            <input type='text' class='form-control' id='txtbuyer' name='txtbuyer' value = '" . $datanomarker->buyer . "' readonly>
+                            <label class='form-label small'>Buyer</label>
+                            <input type='text' class='form-control form-control-sm' id='txtbuyer' name='txtbuyer' value = '" . $datanomarker->buyer . "' readonly>
                         </div>
                     </div>
                     <div class='col-sm-6'>
                         <div class='form-group'>
-                            <label class='form-label'>Style</label>
-                            <input type='text' class='form-control' id='txtstyle' name='txtstyle' value = '" . $datanomarker->style . "' readonly>
+                            <label class='form-label small'>Style</label>
+                            <input type='text' class='form-control form-control-sm' id='txtstyle' name='txtstyle' value = '" . $datanomarker->style . "' readonly>
                         </div>
                     </div>
                 </div>
@@ -588,20 +588,20 @@ class MarkerController extends Controller
                 <div class='row'>
                     <div class='col-sm-3'>
                         <div class='form-group'>
-                            <label class='form-label'>Panjang Marker</label>
-                            <input type='text' class='form-control' id='txtp_marker' name='txtp_marker'  value = '" . ($datanomarker->panjang_marker_fix ?? 0) . "' readonly>
+                            <label class='form-label small'>Panjang Marker</label>
+                            <input type='text' class='form-control form-control-sm' id='txtp_marker' name='txtp_marker'  value = '" . ($datanomarker->panjang_marker_fix ?? 0) . "' readonly>
                         </div>
                     </div>
                     <div class='col-sm-3'>
                         <div class='form-group'>
-                            <label class='form-label'>Lebar Marker</label>
-                            <input type='text' class='form-control' id='txtl_marker' name='txtl_marker'  value = '" . ($datanomarker->lebar_marker_fix ?? 0) . "' readonly>
+                            <label class='form-label small'>Lebar Marker</label>
+                            <input type='text' class='form-control form-control-sm' id='txtl_marker' name='txtl_marker'  value = '" . ($datanomarker->lebar_marker_fix ?? 0) . "' readonly>
                         </div>
                     </div>
                     <div class='col-sm-6'>
                         <div class='form-group'>
-                            <label class='form-label'>Qty Order</label>
-                            <input type='text' class='form-control' id='txtqty_order' name='txtqty_order' value = '" . ($datanomarker->qty_order ?? 0) . "' readonly>
+                            <label class='form-label small'>Qty Order</label>
+                            <input type='text' class='form-control form-control-sm' id='txtqty_order' name='txtqty_order' value = '" . ($datanomarker->qty_order ?? 0) . "' readonly>
                         </div>
                     </div>
                 </div>
@@ -609,26 +609,26 @@ class MarkerController extends Controller
                 <div class='row'>
                     <div class='col-sm-3'>
                         <div class='form-group'>
-                            <label class='form-label'>Lebar WS</label>
-                            <input type='text' class='form-control' id='txtlebar_ws' name='txtlebar_ws' value = '" . ($datanomarker->lebar_ws_fix ?? 0) . "' readonly>
+                            <label class='form-label small'>Lebar WS</label>
+                            <input type='text' class='form-control form-control-sm' id='txtlebar_ws' name='txtlebar_ws' value = '" . ($datanomarker->lebar_ws_fix ?? 0) . "' readonly>
                         </div>
                     </div>
                     <div class='col-sm-3'>
                         <div class='form-group'>
-                            <label class='form-label'>Cons WS</label>
-                            <input type='text' class='form-control' id='txtcons_ws' name='txtcons_ws' value = '" . ($datanomarker->cons_ws ?? 0) . " " . ($datanomarker->unit_cons_ws ?? 0) . "' readonly>
+                            <label class='form-label small'>Cons WS</label>
+                            <input type='text' class='form-control form-control-sm' id='txtcons_ws' name='txtcons_ws' value = '" . ($datanomarker->cons_ws ?? 0) . " " . ($datanomarker->unit_cons_ws ?? 0) . "' readonly>
                         </div>
                     </div>
                     <div class='col-sm-3'>
                         <div class='form-group'>
-                            <label class='form-label'>Cons Marker</label>
-                            <input type='text' class='form-control' id='txtcons_marker' name='txtcons_marker'  value = '" . ($datanomarker->cons_marker ?? 0) . " " . ($datanomarker->unit_cons_marker ?? 0) . "' readonly>
+                            <label class='form-label small'>Cons Marker</label>
+                            <input type='text' class='form-control form-control-sm' id='txtcons_marker' name='txtcons_marker'  value = '" . ($datanomarker->cons_marker ?? 0) . " " . ($datanomarker->unit_cons_marker ?? 0) . "' readonly>
                         </div>
                     </div>
                     <div class='col-sm-3'>
                         <div class='form-group'>
-                            <label class='form-label'>Cons Piping</label>
-                            <input type='text' class='form-control' id='txtcons_piping' name='txtcons_piping' value = '" . ($datanomarker->cons_piping ?? 0) . " " . ($datanomarker->unit_cons_piping ?? 0) . "' readonly>
+                            <label class='form-label small'>Cons Piping</label>
+                            <input type='text' class='form-control form-control-sm' id='txtcons_piping' name='txtcons_piping' value = '" . ($datanomarker->cons_piping ?? 0) . " " . ($datanomarker->unit_cons_piping ?? 0) . "' readonly>
                         </div>
                     </div>
                 </div>
@@ -636,38 +636,38 @@ class MarkerController extends Controller
                 <div class='row'>
                     <div class='col-sm-3'>
                         <div class='form-group'>
-                            <label class='form-label'>PO</label>
-                            <input type='text' class='form-control' id='txtpo' name='txtpo' value = '" . $datanomarker->po_marker . "' readonly>
+                            <label class='form-label small'>PO</label>
+                            <input type='text' class='form-control form-control-sm' id='txtpo' name='txtpo' value = '" . $datanomarker->po_marker . "' readonly>
                         </div>
                     </div>
                     <div class='col-sm-3'>
                         <div class='form-group'>
-                            <label class='form-label'>Qty Gelar Marker</label>
-                            <input type='text' class='form-control' id='txtgelar' name='txtgelar'  value = '" . $datanomarker->gelar_qty . "' readonly>
+                            <label class='form-label small'>Qty Gelar Marker</label>
+                            <input type='text' class='form-control form-control-sm' id='txtgelar' name='txtgelar'  value = '" . $datanomarker->gelar_qty . "' readonly>
                         </div>
                     </div>
                     <div class='col-sm-3'>
                         <div class='form-group'>
-                            <label class='form-label'>Gramasi</label>
-                            <input type='text' class='form-control' id='txturutan' name='txturutan'  value = '" . $datanomarker->gramasi . "' readonly>
+                            <label class='form-label small'>Gramasi</label>
+                            <input type='text' class='form-control form-control-sm' id='txturutan' name='txturutan'  value = '" . $datanomarker->gramasi . "' readonly>
                         </div>
                     </div>
                     <div class='col-sm-3'>
                         <div class='form-group'>
-                            <label class='form-label'>Urutan</label>
-                            <input type='text' class='form-control' id='txturutan' name='txturutan'  value='" . $datanomarker->urutan_marker . "' readonly>
+                            <label class='form-label small'>Urutan</label>
+                            <input type='text' class='form-control form-control-sm' id='txturutan' name='txturutan'  value='" . $datanomarker->urutan_marker . "' readonly>
                         </div>
                     </div>
                     <div class='col-sm-6'>
                         <div class='form-group'>
-                            <label class='form-label'>Tipe Marker</label>
-                            <input type='text' class='form-control' id='tipemarker' name='tipemarker' value='" . strtoupper(str_replace(" marker", "", $datanomarker->tipe_marker)) . "' readonly>
+                            <label class='form-label small'>Tipe Marker</label>
+                            <input type='text' class='form-control form-control-sm' id='tipemarker' name='tipemarker' value='" . strtoupper(str_replace(" marker", "", $datanomarker->tipe_marker)) . "' readonly>
                         </div>
                     </div>
                     <div class='col-sm-6'>
                         <div class='form-group'>
-                            <label class='form-label'>Catatan</label>
-                            <textarea class='form-control' id='txtarea' name='txtarea' readonly>" . ($datanomarker->notes ? $datanomarker->notes : '-') . "</textarea>
+                            <label class='form-label small'>Catatan</label>
+                            <textarea class='form-control form-control-sm' id='txtarea' name='txtarea' readonly>" . ($datanomarker->notes ? $datanomarker->notes : '-') . "</textarea>
                         </div>
                     </div>
                 </div>
@@ -676,16 +676,16 @@ class MarkerController extends Controller
 
             <div class='row'>
                 <div class='col-sm-12'>
-                    <div class='card card-primary collapsed-card'>
-                        <div class='card-header'>
-                            <h1 class='card-title'><i class='fa-solid fa-expand fa-sm'></i> Detail Size</h1>
+                    <div class='card collapsed-card'>
+                        <div class='card-header bg-sb-secondary'>
+                            <h1 class='card-title'><i class='fa-solid fa-expand fa-sm'></i> Size</h1>
                             <div class='card-tools'>
                                 <button type='button' class='btn btn-tool' data-card-widget='collapse'><i class='fas fa-plus'></i></button>
                             </div>
                         </div>
                         <div class='card-body' style='display: none;'>
                             <div class='table-responsive'>
-                                <table class='table table-bordered table w-100' id='detail-marker-ratio'>
+                                <table class='table table-bordered table-sm w-100' id='detail-marker-ratio'>
                                     <thead>
                                         <tr>
                                             <th class='text-center'>Size</th>
@@ -705,9 +705,9 @@ class MarkerController extends Controller
 
             <div class='row'>
                 <div class='col-md-12'>
-                    <div class='card card-primary collapsed-card'>
-                        <div class='card-header'>
-                            <h1 class='card-title'><i class='fa-solid fa-copy fa-sm'></i> Status Form</h1>
+                    <div class='card collapsed-card'>
+                        <div class='card-header bg-sb-secondary'>
+                            <h1 class='card-title'><i class='fa-solid fa-copy fa-sm'></i> Form</h1>
                             <div class='card-tools'>
                                 <button type='button' class='btn btn-tool' data-card-widget='collapse'>
                                     <i class='fas fa-plus'></i>
@@ -716,7 +716,7 @@ class MarkerController extends Controller
                         </div>
                         <div class='card-body' style='display: none;'>
                             <div class='table-responsive'>
-                                <table class='table table-bordered table w-100' id='detail-marker-form'>
+                                <table class='table table-bordered w-100' id='detail-marker-form'>
                                     <thead>
                                         <tr>
                                             <th>Act</th>
