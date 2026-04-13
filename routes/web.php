@@ -316,6 +316,9 @@ Route::middleware('auth')->group(function () {
 
         // Part Item
         Route::get('/get-part-item', 'getPartItemList')->name('get-part-item');
+
+        // Item by WS, Color, Panel
+        Route::get('/get-item-by-ws-color-panel', 'getItemByWsColorPanel')->name('get-item-by-ws-color-panel');
     });
 
     // Worksheet
