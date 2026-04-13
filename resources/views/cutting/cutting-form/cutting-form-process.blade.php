@@ -27,12 +27,16 @@
                         $thisMarkerDetails = $markerDetailData->where('kode_marker', $formCutInputData->id_marker);
                     @endphp
                     <div class="row align-items-end">
+                        {{-- General Columns --}}
                         <input type="hidden" name="id" id="id" value="{{ $id }}" readonly>
                         <input type="hidden" name="act_costing_id" id="act_costing_id" value="{{ $formCutInputData->act_costing_id }}" readonly>
                         <input type="hidden" name="status" id="status" value="{{ $formCutInputData->status }}" readonly>
                         <input type="hidden" name="locked" id="locked" value="{{ $formCutInputData->locked }}" readonly>
                         <input type="hidden" name="unlocked_by" id="unlocked_by" value="{{ $formCutInputData->unlocked_by }}" readonly>
+                        <input type="hidden" name="cons_locked" id="cons_locked" value="{{ $formCutInputData->cons_locked }}" readonly>
+                        <input type="hidden" name="cons_unlocked_by" id="cons_unlocked_by" value="{{ $formCutInputData->cons_unlocked_by }}" readonly>
                         <input type="hidden" name="no_meja" id="no_meja" value="{{ $formCutInputData->no_meja }}" readonly>
+
                         <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Start</b></small></label>
@@ -1129,6 +1133,11 @@
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
+    {{-- Cutting Script --}}
+
+    {{-- Lock Form and Unlock Form --}}
+    @include('cutting.cutting-script')
+
     <script>
         // Select2 Autofocus
         $(document).on('select2:open', () => {
@@ -1691,97 +1700,6 @@
                 }
             }
 
-            async function unlockEnter(evt, isStoring = 0) {
-                if (evt.keyCode == 13) {
-                    unlockForm(isStoring);
-                }
-            }
-
-            async function lockForm() {
-                document.getElementById("loading").classList.remove('d-none');
-
-                $.ajax({
-                    url: '{{ route('form-cut-lock') }}',
-                    method: 'POST',
-                    data: {
-                        id: $("#id").val()
-                    },
-                    success: function (res) {
-                        document.getElementById("loading").classList.add('d-none');
-
-                        if (res) {
-                            iziToast.warning({
-                                title: 'Form di Kunci',
-                                message: 'Harap hubungi atasan untuk melanjutkan',
-                                position: 'topCenter'
-                            });
-                        }
-                    },
-                    error: function (jqXHR) {
-                        document.getElementById("loading").classList.add('d-none');
-
-                        console.error(jqXHR);
-                    }
-                });
-            }
-
-            async function unlockForm(isStoring = 0) {
-                document.getElementById("loading").classList.remove('d-none');
-
-                if ($("#unlock_form_username").val() && $("#unlock_form_password").val()) {
-                    $.ajax({
-                        url: '{{ route('form-cut-unlock') }}',
-                        method: 'POST',
-                        data: {
-                            id: $("#id").val(),
-                            username: $("#unlock_form_username").val(),
-                            password: $("#unlock_form_password").val()
-                        },
-                        success: function (res) {
-                            document.getElementById("loading").classList.add('d-none');
-
-                            if (res) {
-                                if (res.locked < 1) {
-                                    Swal.close();
-
-                                    iziToast.success({
-                                        title: 'Berhasil',
-                                        message: 'Form berhasil dibuka',
-                                        position: 'topCenter'
-                                    });
-
-                                    $("#locked").val(res.locked);
-                                    $("#unlocked_by").val(res.unlocked_by);
-
-                                    if (isStoring > 0) {
-                                        storeTimeRecord(1);
-                                    }
-                                } else {
-                                    iziToast.error({
-                                        title: 'Form gagal dibuka',
-                                        message: 'Password salah',
-                                        position: 'topCenter'
-                                    });
-                                }
-                            }
-                        },
-                        error: function (jqXHR) {
-                            document.getElementById("loading").classList.add('d-none');
-
-                            console.error(jqXHR);
-                        }
-                    });
-                } else {
-                    document.getElementById("loading").classList.add('d-none');
-
-                    iziToast.error({
-                        title: 'Form gagal dibuka',
-                        message: 'Harap isi kolom password',
-                        position: 'topCenter'
-                    });
-                }
-            }
-
             // -Store This Time Record Transaction-
             function storeThisTimeRecord() {
                 document.getElementById("loading").classList.remove("d-none");
@@ -1864,6 +1782,32 @@
                         let id = document.getElementById("id").value;
 
                         document.getElementById("loading").classList.remove("d-none");
+
+                        // Lock when the cons marker uprate is larger than 1%
+                        if (!($('#cons_unlocked_by').val() && $('#cons_unlocked_by').val() > 0)) {
+                            if (!isNaN($("#cons_marker_uprate").val()) && Number($("#cons_marker_uprate").val()) > 1) {
+                                document.getElementById("loading").classList.add("d-none");
+                                document.getElementById("stopLapButton").removeAttribute("disabled");
+
+                                lockForm('consmarker');
+
+                                isProcessing = false;
+
+                                return Swal.fire({
+                                    icon: 'error',
+                                    title: 'Kenaikan Cons. Marker Lebih dari 1%',
+                                    html: `
+                                        Harap laporkan kepada atasan untuk dapat melanjutkan
+                                        <input type='text' class='my-3 form-control form-control-sm' id='unlock_form_username' placeholder='Masukkan username...' onkeyup='unlockEnter(event, 0, "consmarker")'>
+                                        <input type='password' class='my-3 form-control form-control-sm' id='unlock_form_password' placeholder='Masukkan password...' onkeyup='unlockEnter(event, 0, "consmarker")'>
+                                        <button type='button' class='mb-3 btn btn-primary' id='submit_form_unlock_token' onclick='unlockForm(0, "consmarker")'>Lanjutkan Form</button>
+                                    `,
+                                    showCancelButton: false,
+                                    showConfirmButton: false,
+                                    allowOutsideClick: false,
+                                });
+                            }
+                        }
 
                         await updateToNextProcessOne();
                         await updateToNextProcessTwo();
@@ -2376,6 +2320,7 @@
 
                 let shortRollPercentage = qtyAwalVar > 0 ? (shortRoll / qtyAwalVar) * 100 : (qtyVar > 0 ? (shortRoll / qtyVar) * 100 : 0);
 
+                // When not unlocked then
                 if (!($('#unlocked_by').val() && $('#unlocked_by').val() > 0)) {
                     if (status == "PENGERJAAN FORM CUTTING SPREAD") {
                         if (!isNaN(shortRollPercentage) && shortRollPercentage < -2) {
@@ -2742,12 +2687,34 @@
 
                     Swal.fire({
                         icon: 'error',
-                        title: 'Form terkunci',
+                        title: 'Form terkunci karena Short Roll kurang dari -2%',
                         html: `
                             Harap laporkan kepada atasan untuk dapat melanjutkan
                             <input type='text' class='my-3 form-control form-control-sm' id='unlock_form_username' placeholder='Masukkan username...' onkeyup='unlockEnter(event)'>
                             <input type='password' class='my-3 form-control form-control-sm' id='unlock_form_password' placeholder='Masukkan password...' onkeyup='unlockEnter(event)'>
                             <button type='button' class='mb-3 btn btn-primary' id='submit_form_unlock_token' onclick='unlockForm()'>Lanjutkan Form</button>
+                        `,
+                        showCancelButton: false,
+                        showConfirmButton: false,
+                        allowOutsideClick: false,
+                    });
+                } else {
+                    Swal.close();
+                }
+
+                if ($("#cons_locked").val() > 0) {
+                    Swal.close();
+
+                    lockForm("consmarker");
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Form terkunci karena kenaikan Cons. Marker lebih dari 1%',
+                        html: `
+                            Harap laporkan kepada atasan untuk dapat melanjutkan
+                            <input type='text' class='my-3 form-control form-control-sm' id='unlock_form_username' placeholder='Masukkan username...' onkeyup='unlockEnter(event, 0, "consmarker")'>
+                            <input type='password' class='my-3 form-control form-control-sm' id='unlock_form_password' placeholder='Masukkan password...' onkeyup='unlockEnter(event, 0, "consmarker")'>
+                            <button type='button' class='mb-3 btn btn-primary' id='submit_form_unlock_token' onclick='unlockForm(0, "consmarker")'>Lanjutkan Form</button>
                         `,
                         showCancelButton: false,
                         showConfirmButton: false,

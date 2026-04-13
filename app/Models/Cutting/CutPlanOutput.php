@@ -4,6 +4,7 @@ namespace App\Models\Cutting;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Auth\User;
 use App\Scopes\ThisYearScope;
 
 class CutPlanOutput extends Model
