@@ -139,7 +139,7 @@
                         </div>
                     </div>
                     <table id="ratio-datatable"
-                        class="table table-striped table-bordered table w-100 text-center mt-3">
+                        class="table table-striped table-bordered table-sm w-100 text-center mt-3">
                         <thead>
                             <tr>
                                 <th class="label-fetch">Size</th>
@@ -195,22 +195,20 @@
                 </div>
                 <div class="card-body" style="display: block;">
                     <div class="row">
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>P. Marker</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->panjang_marker }}" readonly>
+                                <label class="form-label label-fetch"><small><b>Panjang Marker</b></small></label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->panjang_marker }}" readonly>
+                                    <input type="text" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Unit</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-input"><small><b>P. Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-input" name="p_act" id="p_act" value="{{ $formCutInputData->p_act }}"
+                                <label class="form-label label-input"><small><b>Panjang Actual</b></small></label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control form-control-sm border-input" name="p_act" id="p_act" value="{{ $formCutInputData->p_act }}"
                                     onkeyup="
                                         calculateConsAct();
                                         calculateConsAmpar();
@@ -229,30 +227,24 @@
                                         calculateTotalPemakaian();
                                         // calculateSisaKain();
                                     ">
+                                    <input type="text" class="form-control form-control-sm border-input" name="unit_p_act" id="unit_p_act" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-input"><small><b>Unit Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-input" name="unit_p_act" id="unit_p_act" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
+                                <label class="form-label label-fetch"><small><b>Comma Marker</b></small></label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->comma_marker }}" readonly>
+                                    <input type="text" class="form-control form-control-sm border-fetch"value="{{ strtoupper($formCutInputData->unit_comma_marker) }}" readonly>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Comma</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->comma_marker }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Unit</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch"value="{{ strtoupper($formCutInputData->unit_comma_marker) }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-input"><small><b>Comma Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-input" name="comma_act" id="comma_act" value="{{ $formCutInputData->comma_p_act }}"
+                                <label class="form-label label-input"><small><b>Comma Actual</b></small></label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control form-control-sm border-input" name="comma_act" id="comma_act" value="{{ $formCutInputData->comma_p_act }}"
                                     onkeyup="
                                         calculateConsAct();
                                         calculateConsAmpar();
@@ -271,30 +263,24 @@
                                         calculateTotalPemakaian();
                                         // calculateSisaKain();
                                     ">
+                                    <input type="text" class="form-control form-control-sm border-input" name="unit_comma_act" id="unit_comma_act" value="{{ strtoupper($formCutInputData->unit_comma_marker) }}" readonly>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-input"><small><b>Unit Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-input" name="unit_comma_act" id="unit_comma_act" value="{{ strtoupper($formCutInputData->unit_comma_marker) }}" readonly>
+                                <label class="form-label label-fetch"><small><b>Lebar Marker</b></small></label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->lebar_marker) }}" readonly>
+                                    <input type="text" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" readonly>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>L. Marker</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->lebar_marker) }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Unit</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-input"><small><b>L. Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-input" name="l_act" id="l_act" value="{{ $formCutInputData->l_act }}"
+                                <label class="form-label label-input"><small><b>Lebar Actual</b></small></label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control form-control-sm border-input" name="l_act" id="l_act" value="{{ $formCutInputData->l_act }}"
                                     onkeyup="
                                         calculateConsAmpar();
                                         calculateEstAmpar();
@@ -311,54 +297,17 @@
                                         calculateTotalPemakaian();
                                         // calculateSisaKain();
                                     ">
+                                    <input type="text" class="form-control form-control-sm border-input" name="unit_l_act" id="unit_l_act" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" readonly>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-input"><small><b>Unit Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-input" name="unit_l_act" id="unit_l_act" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Lebar WS</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-fetch" name="lebar_ws_act" id="lebar_ws_act" value="{{ strtoupper($formCutInputData->lebar_ws) }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Unit</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="unit_lebar_ws_act" id="unit_lebar_ws_act" value="{{ strtoupper($formCutInputData->unit_lebar_ws) }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Cons WS</b></small></label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws" id="cons_ws" readonly>
-                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_cons_ws" id="unit_cons_ws" readonly>
+                                    <input type="number" class="form-control form-control-sm border-fetch" name="lebar_ws_act" id="lebar_ws_act" value="{{ strtoupper($formCutInputData->lebar_ws) }}" readonly>
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_lebar_ws_act" id="unit_lebar_ws_act" value="{{ strtoupper($formCutInputData->unit_lebar_ws) }}" readonly>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Gramasi</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="gramasi" id="gramasi" value="{{ $formCutInputData->gramasi }}"
-                                    onkeyup="calculateEstAmpar(undefined, undefined, undefined, this.value);"
-                                    onchange="calculateEstAmpar(undefined, undefined, undefined, this.value);" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Cons Marker</b></small></label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control form-control-sm border-fetch" name="cons_marker" id="cons_marker" value="{{ $formCutInputData->cons_marker }}" readonly
-                                        onkeyup="calculateEstKain(this.value)"
-                                        onchange="calculateEstKain(this.value)"
-                                    >
-                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_cons_marker" id="unit_cons_marker" onchange="updateConsMarkerUnit()" readonly>
-                                </div>
-
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
@@ -372,6 +321,27 @@
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
+                                <label class="form-label label-fetch"><small><b>Cons WS</b></small></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws" id="cons_ws" readonly>
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_cons_ws" id="unit_cons_ws" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label label-fetch"><small><b>Cons Marker</b></small></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="cons_marker" id="cons_marker" value="{{ $formCutInputData->cons_marker }}" readonly
+                                        onkeyup="calculateEstKain(this.value)"
+                                        onchange="calculateEstKain(this.value)"
+                                    >
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_cons_marker" id="unit_cons_marker" onchange="updateConsMarkerUnit()" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons Piping</b></small></label>
                                 <div class="input-group">
                                     <input type="number" class="form-control form-control-sm border-fetch" step=".01" name="cons_pipping" id="cons_pipping" value="{{ $formCutInputData->cons_pipping ? $formCutInputData->cons_pipping : '0' }}" readonly
@@ -379,6 +349,17 @@
                                         onchange="calculateEstPipping(this.value)"
                                     >
                                     <input type="text" class="form-control form-control-sm border-fetch" name="unit_cons_pipping" id="unit_cons_pipping" value="{{ $formCutInputData->unit_cons_pipping ? $formCutInputData->unit_cons_pipping : $formCutInputData->unit_panjang_marker }}" onchange="updateConsPipingUnit()" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label label-fetch"><small><b>Gramasi</b></small></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="gramasi" id="gramasi" value="{{ $formCutInputData->gramasi }}"
+                                        onkeyup="calculateEstAmpar(undefined, undefined, undefined, this.value);"
+                                        onchange="calculateEstAmpar(undefined, undefined, undefined, this.value);" readonly>
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_gramasi" id="unit_gramasi" value="gr/m^2" readonly>
                                 </div>
                             </div>
                         </div>
@@ -395,15 +376,26 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label label-fetch"><small><b>ID Item yang harus digunakan</b></small></label>
+                                <div id="form_cut_items">
+                                    <div class="input-group mb-1">
+                                        <input type="text" class="form-control form-control-sm border-fetch w-25" name="form_cut_item_0" id="form_cut_item_0" value="" readonly>
+                                        <input type="text" class="form-control form-control-sm border-fetch w-75" name="form_cut_item_detail_0" id="form_cut_item_detail_0" value="" placeholder="" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-calc"><small><b>Est. Kebutuhan Kain Piping</b></small></label>
                                 <div class="row g-1">
-                                    <div class="col-6">
-                                        <input type="number" class="form-control form-control-sm border-calc" step=".01" name="est_pipping" id="est_pipping" value="{{ $formCutInputData->est_pipping ? $formCutInputData->est_pipping : '0.00' }}" readonly>
-                                    </div>
-                                    <div class="col-6">
-                                        <input type="text" class="form-control form-control-sm border-calc" name="est_pipping_unit" id="est_pipping_unit" value="{{ $formCutInputData->unit_cons_pipping ? $formCutInputData->unit_cons_pipping : $formCutInputData->unit_panjang_marker }}" readonly>
+                                    <div class="col-12">
+                                        <div class="input-group">
+                                            <input type="number" class="form-control form-control-sm border-calc" step=".01" name="est_pipping" id="est_pipping" value="{{ $formCutInputData->est_pipping ? $formCutInputData->est_pipping : '0.00' }}" readonly>
+                                            <input type="text" class="form-control form-control-sm border-calc" name="est_pipping_unit" id="est_pipping_unit" value="{{ $formCutInputData->unit_cons_pipping ? $formCutInputData->unit_cons_pipping : $formCutInputData->unit_panjang_marker }}" readonly>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -412,10 +404,8 @@
                             <div class="mb-3">
                                 <label class="form-label label-calc"><small><b>Est. Kebutuhan Kain</b></small></label>
                                 <div class="row g-1">
-                                    <div class="col-6">
+                                    <div class="input-group">
                                         <input type="number" class="form-control form-control-sm border-calc" step=".01" name="est_kain" id="est_kain" value="{{ $formCutInputData->cons_marker * $totalCutQtyPly }}" readonly>
-                                    </div>
-                                    <div class="col-6">
                                         <input type="text" class="form-control form-control-sm border-calc" name="est_kain_unit" id="est_kain_unit" value="{{ strtoupper($formCutInputData->unit_cons_marker) }}" readonly>
                                     </div>
                                 </div>
@@ -462,21 +452,18 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-6 col-md-6">
+                                <div class="col-12 col-md-12">
                                     <div class="mb-3">
-                                        <label class="form-label label-scan"><small><b>ID Item</b></small></label>
-                                        <input type="text" class="form-control form-control-sm border-scan" name="id_item" id="id_item" readonly>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label label-scan"><small><b>Detail Item</b></small></label>
-                                        <input type="text" class="form-control form-control-sm border-scan" name="detail_item" id="detail_item" readonly>
+                                        <label class="form-label label-scan"><small><b>Item</b></small></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control form-control-sm border-scan w-25" name="id_item" id="id_item" readonly>
+                                            <input type="text" class="form-control form-control-sm border-scan w-75" name="detail_item" id="detail_item" readonly>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label label-input"><small><b>Color Act</b></small></label>
+                                        <label class="form-label label-input"><small><b>Color Actual</b></small></label>
                                         <input type="text" class="form-control form-control-sm border-input" name="color_act" id="color_act">
                                     </div>
                                 </div>
