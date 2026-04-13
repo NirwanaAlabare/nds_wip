@@ -193,6 +193,9 @@
             }
         },
         "drawCallback": function(settings) {
+            // Dispose all existing tooltips
+            $('[data-bs-toggle="tooltip"]').tooltip('dispose');
+
             $('[data-bs-toggle="tooltip"]').tooltip();
         }
     });
@@ -368,6 +371,8 @@
                     link.click();
 
                     swal.close();
+
+                    $('[data-bs-toggle="tooltip"]').tooltip('dispose');
                 }
             }
         });

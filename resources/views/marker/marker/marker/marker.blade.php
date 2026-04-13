@@ -31,6 +31,9 @@
                     <a href="{{ route('create-marker') }}" class="btn btn-success btn-sm mb-3" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Buat Marker Baru">
                         <i class="fas fa-plus"></i>
                     </a>
+                    <button class="btn btn-sb-secondary btn-sm mb-3" onclick="filterTable()" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Refresh Data">
+                        <i class="fa fa-sync"></i>
+                    </button>
                     <button class="btn btn-info btn-sm mb-3 fw-bold" onclick="fixMarkerBalanceQty()" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Perbaiki Kuantitas Sisa Marker">
                         <i class="fa-solid fa-screwdriver-wrench fa-sm"></i>
                     </button>
