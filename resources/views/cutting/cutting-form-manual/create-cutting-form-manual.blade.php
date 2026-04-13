@@ -2387,30 +2387,30 @@
                     document.getElementById("loading").classList.remove("d-none");
 
                     // Lock when the cons marker uprate is larger than 1%
-                    if (!($('#cons_unlocked_by').val() && $('#cons_unlocked_by').val() > 0)) {
-                        if (!isNaN($("#cons_marker_uprate").val()) && Number($("#cons_marker_uprate").val()) > 1) {
-                            document.getElementById("loading").classList.add("d-none");
-                            document.getElementById("stopLapButton").removeAttribute("disabled");
+                    // if (!($('#cons_unlocked_by').val() && $('#cons_unlocked_by').val() > 0)) {
+                    //     if (!isNaN($("#cons_marker_uprate").val()) && Number($("#cons_marker_uprate").val()) > 1) {
+                    //         document.getElementById("loading").classList.add("d-none");
+                    //         document.getElementById("stopLapButton").removeAttribute("disabled");
 
-                            lockForm('consmarker');
+                    //         lockForm('consmarker');
 
-                            isProcessing = false;
+                    //         isProcessing = false;
 
-                            return Swal.fire({
-                                icon: 'error',
-                                title: 'Kenaikan Cons. Marker Lebih dari 1%',
-                                html: `
-                                    Harap laporkan kepada atasan untuk dapat melanjutkan
-                                    <input type='text' class='my-3 form-control form-control-sm' id='unlock_form_username' placeholder='Masukkan username...' onkeyup='unlockEnter(event, 0, "consmarker")'>
-                                    <input type='password' class='my-3 form-control form-control-sm' id='unlock_form_password' placeholder='Masukkan password...' onkeyup='unlockEnter(event, 0, "consmarker")'>
-                                    <button type='button' class='mb-3 btn btn-primary' id='submit_form_unlock_token' onclick='unlockForm(0, "consmarker")'>Lanjutkan Form</button>
-                                `,
-                                showCancelButton: false,
-                                showConfirmButton: false,
-                                allowOutsideClick: false,
-                            });
-                        }
-                    }
+                    //         return Swal.fire({
+                    //             icon: 'error',
+                    //             title: 'Kenaikan Cons. Marker Lebih dari 1%',
+                    //             html: `
+                    //                 Harap laporkan kepada atasan untuk dapat melanjutkan
+                    //                 <input type='text' class='my-3 form-control form-control-sm' id='unlock_form_username' placeholder='Masukkan username...' onkeyup='unlockEnter(event, 0, "consmarker")'>
+                    //                 <input type='password' class='my-3 form-control form-control-sm' id='unlock_form_password' placeholder='Masukkan password...' onkeyup='unlockEnter(event, 0, "consmarker")'>
+                    //                 <button type='button' class='mb-3 btn btn-primary' id='submit_form_unlock_token' onclick='unlockForm(0, "consmarker")'>Lanjutkan Form</button>
+                    //             `,
+                    //             showCancelButton: false,
+                    //             showConfirmButton: false,
+                    //             allowOutsideClick: false,
+                    //         });
+                    //     }
+                    // }
 
                     await updateToNextProcessOne();
                     await updateToNextProcessTwo();
