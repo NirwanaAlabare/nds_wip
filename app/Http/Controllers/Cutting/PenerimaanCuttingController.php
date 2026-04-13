@@ -43,12 +43,23 @@ class PenerimaanCuttingController extends Controller
                 whs_bppb_det.no_roll_buyer,
                 whs_bppb_det.id_item,
                 whs_bppb_det.item_desc AS nama_barang,
-                whs_bppb_h.style_aktual AS style,
+                buyer_ws.styleno AS style,
                 masteritem.color AS warna
             ")
             ->leftJoin('signalbit_erp.whs_bppb_det', 'signalbit_erp.whs_bppb_det.id', '=', 'penerimaan_cutting.whs_bppb_det_id')
             ->leftJoin('signalbit_erp.whs_bppb_h', 'signalbit_erp.whs_bppb_h.no_bppb', '=', 'signalbit_erp.whs_bppb_det.no_bppb')
-            ->leftJoin('signalbit_erp.masteritem', 'signalbit_erp.masteritem.id_item', '=', 'signalbit_erp.whs_bppb_det.id_item');
+            ->leftJoin('signalbit_erp.masteritem', 'signalbit_erp.masteritem.id_item', '=', 'signalbit_erp.whs_bppb_det.id_item')
+            ->leftJoinSub(
+                DB::table('signalbit_erp.act_costing as ac')
+                    ->selectRaw('jod.id_jo, ac.kpno AS no_ws, ac.styleno')
+                    ->join('signalbit_erp.so as so', 'ac.id', '=', 'so.id_cost')
+                    ->join('signalbit_erp.jo_det as jod', 'so.id', '=', 'jod.id_so')
+                    ->groupBy('jod.id_jo', 'ac.kpno', 'ac.styleno'),
+                'buyer_ws',
+                function ($join) {
+                    $join->on('buyer_ws.id_jo', '=', 'signalbit_erp.whs_bppb_det.id_jo');
+                }
+            );
 
             return DataTables::eloquent($data)->filter(function ($query) {
                     $tglAwal = request('dateFrom');
@@ -108,7 +119,7 @@ class PenerimaanCuttingController extends Controller
                     $query->whereRaw($sql, ["%{$keyword}%"]);
                 })->
                 filterColumn('style', function($query, $keyword) {
-                    $sql = "whs_bppb_h.style_aktual like ?";
+                    $sql = "buyer_ws.styleno like ?";
                     $query->whereRaw($sql, ["%{$keyword}%"]);
                 })->
                 filterColumn('warna', function($query, $keyword) {
@@ -286,11 +297,22 @@ class PenerimaanCuttingController extends Controller
                 'whs_bppb_det.no_roll_buyer',
                 'whs_bppb_det.id_item',
                 'whs_bppb_det.item_desc AS nama_barang',
-                'whs_bppb_h.style_aktual AS style',
+                'buyer_ws.styleno AS style',
                 'masteritem.color AS warna'
             )
             ->leftJoin('whs_bppb_h', 'whs_bppb_h.no_bppb', '=' ,'whs_bppb_det.no_bppb')
             ->leftJoin('masteritem', 'masteritem.id_item', 'whs_bppb_det.id_item')
+            ->leftJoinSub(
+                DB::table('signalbit_erp.act_costing as ac')
+                    ->selectRaw('jod.id_jo, ac.kpno AS no_ws, ac.styleno')
+                    ->join('signalbit_erp.so as so', 'ac.id', '=', 'so.id_cost')
+                    ->join('signalbit_erp.jo_det as jod', 'so.id', '=', 'jod.id_so')
+                    ->groupBy('jod.id_jo', 'ac.kpno', 'ac.styleno'),
+                'buyer_ws',
+                function ($join) {
+                    $join->on('buyer_ws.id_jo', '=', 'signalbit_erp.whs_bppb_det.id_jo');
+                }
+            )
             ->where('id_roll', $id)
             ->orderBy('id', 'DESC')
             ->first();
