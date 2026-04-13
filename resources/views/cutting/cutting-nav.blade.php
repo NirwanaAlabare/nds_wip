@@ -167,6 +167,12 @@
                         Mutasi WIP Cutting <i class="fa fa-list"></i>
                     </a>
                 </li>
+                <li>
+                    <a href="{{ route('report_pengeluaran_cutting') }}"
+                        class="dropdown-item {{ $routeName == 'report_pengeluaran_cutting' ? 'active' : '' }}">
+                        Pengeluaran Cutting <i class="fa fa-list"></i>
+                    </a>
+                </li>
             </ul>
         </li>
     @endstrictmeja
