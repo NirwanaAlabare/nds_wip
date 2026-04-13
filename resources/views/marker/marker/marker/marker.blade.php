@@ -16,11 +16,11 @@
             <div class="d-flex justify-content-between">
                 <div class="d-flex justify-content-start align-items-end gap-3 mb-3">
                     <div class="mb-3">
-                        <label class="form-label"><small>Dari</small></label>
+                        <label class="form-label small">Tanggal Awal</label>
                         <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}" onchange="filterTable()">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label"><small>Sampai</small></label>
+                        <label class="form-label small">Tanggal Akhir</label>
                         <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="filterTable()">
                     </div>
                     <div class="mb-3">
@@ -28,11 +28,10 @@
                     </div>
                 </div>
                 <div class="d-flex justify-content-end align-items-end gap-1 mb-3">
-                    <a href="{{ route('create-marker') }}" class="btn btn-success btn-sm mb-3">
+                    <a href="{{ route('create-marker') }}" class="btn btn-success btn-sm mb-3" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Buat Marker Baru">
                         <i class="fas fa-plus"></i>
-                        Buat
                     </a>
-                    <button class="btn btn-info btn-sm mb-3 fw-bold" onclick="fixMarkerBalanceQty()">
+                    <button class="btn btn-info btn-sm mb-3 fw-bold" onclick="fixMarkerBalanceQty()" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Perbaiki Kuantitas Sisa Marker">
                         <i class="fa-solid fa-screwdriver-wrench fa-sm"></i>
                     </button>
                 </div>
@@ -134,13 +133,13 @@
                                 </div>
                             </div>
                             <div class="col-sm-12 d-none" id="advanced-edit-section">
-                                <a href="" class="btn btn-primary btn-sm btn-block" id="advanced-edit-link"><i class="fas fa-edit"></i> Detail Edit</a>
+                                <a href="" class="btn btn-sb-secondary btn-sm btn-block" id="advanced-edit-link"><i class="fas fa-edit"></i> Ubah Detail Marker</a>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Tutup</button>
-                        <button type="submit" class="btn btn-success">Simpan</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fas fa-times"></i> Tutup</button>
+                        <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Simpan</button>
                     </div>
                 </div>
             </div>

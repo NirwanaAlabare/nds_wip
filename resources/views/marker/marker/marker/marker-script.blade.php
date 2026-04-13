@@ -105,80 +105,51 @@
             {
                 targets: [0],
                 render: (data, type, row, meta) => {
+                    let editable = true;
+                    let cancelable = true;
+                    if (row.cancel != 'Y' && row.total_form > 0 /* && row.tipe_marker != "pilot marker" */) {
+                        editable = true;
+                        cancelable = false;
+                    } else if ((row.cancel != 'Y' && row.total_form < 1) /*|| (row.cancel != 'Y' && row.gelar_qty_balance > 0  && row.tipe_marker == "pilot marker" )*/) {
+                        editable = true;
+                        cancelable = true;
+                    } else if (row.cancel == 'Y') {
+                        editable = false;
+                        cancelable = false;
+                    }
+
+                    let detailBtn = `
+                        <a class='btn btn-info btn-sm' onclick='getdetail(` + row.id + `);' data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Detail Marker">
+                            <i class='fa fa-search'></i>
+                        </a>
+                    `;
+
+                    let editBtn = `
+                        <button class='btn btn-primary btn-sm' onclick='edit(` + row.id + `);' data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Ubah Marker" ` + (editable ? '' : 'disabled') + `>
+                            <i class='fa fa-edit'></i>
+                        </button>
+                    `;
+
+                    let cancelBtn = `
+                        <button class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);' data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Hapus Marker" ` + (cancelable ? '' : 'disabled') + `>
+                            <i class='fa fa-ban'></i>
+                        </button>
+                    `;
+
                     let exportBtn = `
-                        <button type="button" class="btn btn-sm btn-success" onclick="printMarker('` + row.kode + `');">
+                        <button type="button" class="btn btn-sm btn-dark" onclick="printMarker('` + row.kode + `');" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Export Marker PDF">
                             <i class="fa fa-print"></i>
                         </button>
                     `;
 
-                    // Case when there is form
-                    if (row.cancel != 'Y' && row.total_form > 0 /* && row.tipe_marker != "pilot marker" */) {
-                        return `
-                            <div class='d-flex gap-1 justify-content-start mb-1'>
-                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
-                                    <i class='fa fa-search'></i>
-                                </a>
-                                <button class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);'>
-                                    <i class='fa fa-edit'></i>
-                                </button>
-                                ` + exportBtn + `
-                                <button class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);' disabled>
-                                    <i class='fa fa-ban'></i>
-                                </button>
-                            </div>
-                        `;
-                    }
-                    // When there ain't no form
-                    else if ((row.cancel != 'Y' && row.total_form < 1) /*|| (row.cancel != 'Y' && row.gelar_qty_balance > 0  && row.tipe_marker == "pilot marker" )*/) {
-                        return `
-                            <div class='d-flex gap-1 justify-content-start mb-1'>
-                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
-                                    <i class='fa fa-search'></i>
-                                </a>
-                                <button class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);'>
-                                    <i class='fa fa-edit'></i>
-                                </button>
-                                ` + exportBtn + `
-                                <button class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);'>
-                                    <i class='fa fa-ban'></i>
-                                </button>
-                            </div>
-                        `;
-                    }
-                    // When the form is cancelled
-                    else if (row.cancel == 'Y') {
-                        return `
-                            <div class='d-flex gap-1 justify-content-start'>
-                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
-                                    <i class='fa fa-search'></i>
-                                </a>
-                                <button class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);' disabled>
-                                    <i class='fa fa-edit'></i>
-                                </button>
-                                ` + exportBtn + `
-                                <button class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);' disabled>
-                                    <i class='fa fa-ban'></i>
-                                </button>
-                            </div>
-                        `;
-                    }
-                    // Default
-                    else {
-                        return `
-                            <div class='d-flex gap-1 justify-content-start'>
-                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
-                                    <i class='fa fa-search'></i>
-                                </a>
-                                <button class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);'>
-                                    <i class='fa fa-edit'></i>
-                                </button>
-                                ` + exportBtn + `
-                                <button class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);' disabled>
-                                    <i class='fa fa-ban'></i>
-                                </button>
-                            </div>
-                        `;
-                    }
+                    return `
+                        <div class='d-flex gap-1 justify-content-start mb-1'>
+                            ` + detailBtn + `
+                            ` + editBtn + `
+                            ` + cancelBtn + `
+                            ` + exportBtn + `
+                        </div>
+                    `;
                 }
             },
             {
@@ -220,7 +191,14 @@
                 $('td', row).css('background-color', '#c5e0fa');
                 $('td', row).css('border', '0.15px solid #d0d0d0');
             }
+        },
+        "drawCallback": function(settings) {
+            $('[data-bs-toggle="tooltip"]').tooltip();
         }
+    });
+
+    $(".btn-edit").click(function() {
+        $('#exampleModal').modal('show');
     });
 
     function filterTable() {
@@ -229,18 +207,33 @@
 
     // Get Marker Detail
     function getdetail(id_c) {
+        document.getElementById("loading").classList.remove('d-none');
+
+        $("#showMarkerModal").modal('show');
 
         // Modal content html
-        $("#showMarkerModalLabel").html('<i class="fa-solid fa-magnifying-glass fa-sm"></i> Marker Detail');
+        $("#showMarkerModalLabel").html('<i class="fa-solid fa-magnifying-glass fa-sm"></i> Detail Marker');
         let html = $.ajax({
             type: "POST",
             url: '{{ route('show-marker') }}',
             data: {
                 id_c: id_c
             },
-            async: false
-        }).responseText;
-        $("#detail").html(html);
+            success: function(response) {
+                console.log(response);
+
+                document.getElementById("loading").classList.add('d-none');
+
+                if (response) {
+                    $("#detail").html(response);
+                }
+            },
+            error: function(jqXHR) {
+                console.error(jqXHR);
+
+                document.getElementById("loading").classList.add('d-none');
+            }
+        });
 
         // Set content table to datatable
         $("#detail-marker-ratio").DataTable({
@@ -255,7 +248,9 @@
     function edit(id_c) {
         document.getElementById("loading").classList.remove('d-none');
 
-        $("#editMarkerModalLabel").html('<i class="fa fa-edit fa-sm"></i> Marker Edit');
+        $("#editMarkerModal").modal('show');
+
+        $("#editMarkerModalLabel").html('<i class="fa fa-edit fa-sm"></i> Ubah Status Marker');
 
         // Get Gramasi with Marker Type
         $.ajax({
