@@ -173,6 +173,12 @@
                         Pengeluaran Cutting <i class="fa fa-list"></i>
                     </a>
                 </li>
+                <li>
+                    <a href="{{ route('report_return_fabric_cutting') }}"
+                        class="dropdown-item {{ $routeName == 'report_return_fabric_cutting' ? 'active' : '' }}">
+                        Return Fabric Cutting <i class="fa fa-list"></i>
+                    </a>
+                </li>
             </ul>
         </li>
     @endstrictmeja

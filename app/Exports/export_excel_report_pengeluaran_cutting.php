@@ -321,11 +321,12 @@ ORDER BY ws asc, color asc, urutan asc
     ");
 
 
-        $this->rowCount = count($rawData) + 1; // 1 for header
+        $this->rowCount = count($rawData) + 3; // 1 for header
 
         return view('cutting.report.export.export_excel_report_pengeluaran_cutting', [
-
             'rawData' => $rawData,
+			'startDate' => $start_date,
+            'endDate' => $end_date
         ]);
     }
 
@@ -343,7 +344,7 @@ ORDER BY ws asc, color asc, urutan asc
                 for ($i = 1; $i <= $columnIndex; $i++) {
                     $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
 
-                    foreach ([2] as $row) {
+                    foreach ([4] as $row) {
                         $cell = $colLetter . $row;
 
                         $sheet->getStyle($cell)->applyFromArray([
@@ -363,7 +364,7 @@ ORDER BY ws asc, color asc, urutan asc
                     }
                 }
                 // ===== 3. Apply border to whole table =====
-                $range = 'A1:' . $highestColumn . $highestRow;
+                $range = 'A4:' . $highestColumn . $highestRow;
                 $sheet->getStyle($range)->applyFromArray([
                     'borders' => [
                         'allBorders' => [

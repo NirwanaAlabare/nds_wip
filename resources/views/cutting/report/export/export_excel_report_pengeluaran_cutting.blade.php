@@ -7,6 +7,9 @@
             <tr>
                 <th colspan="9"> Report Pengeluaran Cutting</th>
             </tr>
+            <tr><th colspan="9"> Periode {{ date('d-m-Y', strtotime($startDate)) }} s/d {{ date('d-m-Y', strtotime($endDate)) }}</th></tr>
+            <tr><th colspan="9"></th></tr>
+
             <tr>
                 <th class="text-center align-middle">Tanggal</th>
                 <th class="text-center align-middle">No Form</th>
