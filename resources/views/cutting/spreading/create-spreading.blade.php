@@ -12,7 +12,7 @@
 
 @section('content')
     <div class="d-flex justify-content-between mb-3">
-        <h5 class="fw-bold text-sb">Tambah Data Spreading</h5>
+        <h5 class="fw-bold text-sb"><i class="fa fa-plus fa-sm"></i> Tambah Spreading</h5>
         <a href="{{ route('spreading') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali ke Spreading</a>
     </div>
     <form action="{{ route('store-spreading') }}" method="post" id="store-spreading" name='form' onsubmit="submitSpreadingForm(this, event)">
@@ -167,6 +167,22 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <div class="d-flex justify-content-between">
+                                        <label class="form-label small">Kode Marker</label>
+                                        <a href="#" class="form-label small" id="goto_edit_marker"><u>Ubah Marker</u></a>
+                                    </div>
+                                    <div class="input-group input-group-sm">
+                                        <input type='text' class='form-control' id='txtkode_marker' name='txtkode_marker' readonly>
+                                        <button class="btn btn-sb-secondary" type="button" id="btnRefreshKodeMarker">
+                                            <i class="fas fa-sync"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
                             <div class="col-sm-6">
                                 <div class="form-group">
                                     <label class="form-label small">Panel</label>
@@ -206,7 +222,7 @@
                             </div>
                             <div class="col-sm-6">
                                 <div class="form-group">
-                                    <label class="form-label small">Comma</label>
+                                    <label class="form-label small">Comma Marker</label>
                                     <div class="input-group">
                                         <input type='text' class='form-control form-control-sm' id='txt_comma_p_marker' name='txt_comma_p_marker' readonly>
                                         <input type='text' class='form-control form-control-sm' id='txt_unit_comma_p_marker' name='txt_unit_comma_p_marker' readonly>
@@ -245,7 +261,7 @@
                             </div>
                             <div class="col-sm-6">
                                 <div class="form-group">
-                                    <label class="form-label small">WS</label>
+                                    <label class="form-label small">No. WS</label>
                                     <input type='text' class='form-control form-control-sm' id='txt_ws' name='txt_ws' readonly>
                                 </div>
                             </div>
@@ -293,13 +309,17 @@
                             </div>
                         </div>
 
-                        <div class="row d-none">
+                        <div class="row">
                             <div class="col-sm-12">
                                 <div class="form-group">
-                                    <label class="form-label small">Item</label>
-                                    <div class="input-group">
-                                        <input type='text' class='form-control form-control-sm w-25' id='txt_id_item' name='txt_id_item' readonly>
-                                        <input type='text' class='form-control form-control-sm w-75' id='txt_unit_detail_item' name='txt_unit_detail_item' readonly>
+                                    <div id="marker_items">
+                                        <label class="form-label small">Item</label>
+                                        <div class="marker_item mb-3" id="marker_items_0">
+                                            <div class="input-group">
+                                                <input type='text' class='form-control form-control-sm w-25' id='txt_id_item_0' name='txt_id_item[0]' readonly>
+                                                <input type='text' class='form-control form-control-sm w-75' id='txt_detail_item_0' name='txt_detail_item[0]' readonly>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -436,32 +456,35 @@
                 },
                 dataType: 'json',
                 success: function(response) {
-                    document.getElementById('txtpanel').value = response.panel;
-                    document.getElementById('txtcolor').value = response.color;
-                    document.getElementById('txtbuyer').value = response.buyer;
-                    document.getElementById('txtstyle').value = response.style;
-                    document.getElementById('txt_p_marker').value = response.panjang_marker;
-                    document.getElementById('txt_unit_p_marker').value = response.unit_panjang_marker;
-                    document.getElementById('txt_comma_p_marker').value = response.comma_marker;
-                    document.getElementById('txt_unit_comma_p_marker').value = response.unit_comma_marker;
-                    document.getElementById('txt_po_marker').value = response.po_marker;
-                    document.getElementById('txt_l_marker').value = response.lebar_marker;
-                    document.getElementById('txt_unit_l_marker').value = response.unit_lebar_marker;
-                    document.getElementById('txt_l_ws').value = response.lebar_ws;
-                    document.getElementById('txt_unit_l_ws').value = response.unit_lebar_ws;
+                    document.getElementById('txtkode_marker').value = response.kode ?? '-';
+                    document.getElementById('txtpanel').value = response.panel ?? '-';
+                    document.getElementById('txtcolor').value = response.color ?? '-';
+                    document.getElementById('txtbuyer').value = response.buyer ?? '-';
+                    document.getElementById('txtstyle').value = response.style ?? '-';
+                    document.getElementById('txt_p_marker').value = response.panjang_marker ?? 0;
+                    document.getElementById('txt_unit_p_marker').value = response.unit_panjang_marker ?? '-';
+                    document.getElementById('txt_comma_p_marker').value = response.comma_marker ?? 0;
+                    document.getElementById('txt_unit_comma_p_marker').value = response.unit_comma_marker ?? '-';
+                    document.getElementById('txt_po_marker').value = response.po_marker ?? '-';
+                    document.getElementById('txt_l_marker').value = response.lebar_marker ?? 0;
+                    document.getElementById('txt_unit_l_marker').value = response.unit_lebar_marker ?? '-';
+                    document.getElementById('txt_l_ws').value = response.lebar_ws ?? 0;
+                    document.getElementById('txt_unit_l_ws').value = response.unit_lebar_ws ?? '-';
                     document.getElementById('txt_qty_gelar').value = response.gelar_qty_balance ? response.gelar_qty_balance : response.gelar_qty;
                     document.getElementById('txt_ws').value = response.act_costing_ws;
-                    document.getElementById('txt_cons_ws').value = response.cons_ws;
-                    document.getElementById('txt_unit_cons_ws').value = response.unit_cons_ws+'/PCS';
-                    document.getElementById('txt_cons_marker').value = response.cons_marker;
-                    document.getElementById('txt_unit_cons_marker').value = response.unit_cons_marker+'/PCS';
-                    document.getElementById('txt_cons_piping').value = response.cons_piping;
-                    document.getElementById('txt_unit_cons_piping').value = response.unit_cons_piping+'/PCS';
-                    document.getElementById('txt_gramasi').value = response.gramasi;
+                    document.getElementById('txt_cons_ws').value = response.cons_ws ?? 0;
+                    document.getElementById('txt_unit_cons_ws').value = (response.unit_cons_ws ?? '-')+'/PCS';
+                    document.getElementById('txt_cons_marker').value = response.cons_marker ?? 0;
+                    document.getElementById('txt_unit_cons_marker').value = (response.unit_cons_marker ?? '-')+'/PCS';
+                    document.getElementById('txt_cons_piping').value = response.cons_piping ?? 0;
+                    document.getElementById('txt_unit_cons_piping').value = (response.unit_cons_piping ?? '-')+'/PCS';
+                    document.getElementById('txt_gramasi').value = response.gramasi ?? 0;
                     document.getElementById('hitungmarker').value = response.gelar_qty_balance ? response.gelar_qty_balance : response.gelar_qty;
                     document.getElementById('txtid_marker').value = response.kode;
                     document.getElementById('tipe_form').value = response.tipe_marker == "bulk marker" && response.status_marker == "active" ? "Pilot to Bulk" : capitalizeFirstLetter((response.tipe_marker).replace(' marker', ""));
                     document.getElementById('notes').value = response.notes ? response.notes : (response.tipe_marker == "bulk marker" && response.status_marker == "active" ? "Pilot to Bulk" : capitalizeFirstLetter((response.tipe_marker).replace(' marker', "")));
+
+                    getItemByWsColorPanel(response.act_costing_ws, response.color, response.panel);
                 },
                 error: function(request, status, error) {
                     alert(request.responseText);
@@ -568,7 +591,6 @@
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
-                            timer: 5000,
                             timerProgressBar: true
                         }).then((result) => {
                             location.reload();
@@ -584,5 +606,101 @@
 
             });
         }
+
+        function getItemByWsColorPanel(ws = null, color = null, panel = null) {
+            deleteAfterFirstMarkerItem();
+
+            let wsVal = ws || document.getElementById('txt_ws').value;
+            let colorVal = color || document.getElementById('txtcolor').value;
+            let panelVal = panel || document.getElementById('txtpanel').value;
+
+            $.ajax({
+                url: '{{ route('get-item-by-ws-color-panel') }}',
+                method: 'get',
+                data: {
+                    act_costing_ws: wsVal,
+                    color: colorVal,
+                    panel: panelVal
+                },
+                dataType: 'json',
+                success: function(response) {
+                    console.log(response);
+                    if (response.length > 0) {
+                        response.forEach((item, index) => {
+                            console.log(item, index);
+                            if (index == 0) {
+                                document.getElementById('txt_id_item_0').value = item.id_item;
+                                document.getElementById('txt_detail_item_0').value = item.itemdesc;
+                            } else {
+                                addMarkerItem(item.id_item, item.itemdesc);
+                            }
+                        });
+                    }
+                },
+                error: function(jqXHR) {
+                    console.error(jqXHR);
+                }
+            });
+        }
+
+        function addMarkerItem(id = "", detail = "") {
+            const container = document.getElementById('marker_items');
+            const items = container.getElementsByClassName('marker_item');
+
+            // Get last item
+            const lastItem = items[items.length - 1];
+
+            // Clone it
+            const newItem = lastItem.cloneNode(true);
+
+            // New index
+            const newIndex = items.length;
+
+            // Update IDs and names
+            newItem.id = 'marker_items_' + newIndex;
+
+            const inputs = newItem.querySelectorAll('input');
+            inputs.forEach((input) => {
+                // Update id
+                if (input.id.includes('txt_id_item')) {
+                    input.id = 'txt_id_item_' + newIndex;
+                    input.name = 'txt_id_item[' + newIndex + ']';
+                    input.value = id;
+                } else if (input.id.includes('txt_detail_item')) {
+                    input.id = 'txt_detail_item_' + newIndex;
+                    input.name = 'txt_detail_item[' + newIndex + ']';
+                    input.value = detail;
+                }
+            });
+
+            // Append to container
+            container.appendChild(newItem);
+        }
+
+        function deleteAfterFirstMarkerItem() {
+            const container = document.getElementById('marker_items');
+            const items = container.getElementsByClassName('marker_item');
+
+            // Convert HTMLCollection to array to safely remove elements
+            const itemsArray = Array.from(items);
+
+            itemsArray.forEach((item, index) => {
+                if (index > 0) {
+                    item.remove();
+                }
+            });
+        }
+
+        $('#btnRefreshKodeMarker').on('click', function() {
+            getdata_marker();
+        });
+
+        $('#goto_edit_marker').on('click', function(e) {
+            e.preventDefault();
+            let idMarker = document.getElementById('cbomarker').value;
+            if (idMarker) {
+                window.open("{{ route('edit-marker') }}/" + idMarker, '_blank');
+            }
+        });
     </script>
 @endsection

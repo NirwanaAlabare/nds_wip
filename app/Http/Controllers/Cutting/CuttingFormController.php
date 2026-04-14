@@ -99,6 +99,7 @@ class CuttingFormController extends Controller
                     b.po_marker po_marker,
                     b.urutan_marker urutan_marker,
                     b.cons_marker cons_marker,
+                    b.unit_cons_marker unit_cons_marker,
                     UPPER(b.tipe_marker) tipe_marker,
                     cutting_plan.app,
                     a.tipe_form_cut,
@@ -225,7 +226,7 @@ class CuttingFormController extends Controller
      * @param  \App\Models\FormCut  $formCut
      * @return \Illuminate\Http\Response
      */
-    public function process($id = 0)
+    public function process($id = null)
     {
         // Form Data
         $formCutInputData = FormCutInput::selectRaw("
@@ -334,7 +335,7 @@ class CuttingFormController extends Controller
         return json_encode($numberData);
     }
 
-    public function startProcess($id = 0, Request $request)
+    public function startProcess($id = null, Request $request)
     {
         $startTime = $request->startTime;
 
@@ -360,7 +361,7 @@ class CuttingFormController extends Controller
         );
     }
 
-    public function nextProcessOne($id = 0, Request $request)
+    public function nextProcessOne($id = null, Request $request)
     {
         $updateFormCutInput = FormCutInput::where("id", $id)->update([
             "status" => "PENGERJAAN FORM CUTTING DETAIL",
@@ -383,7 +384,7 @@ class CuttingFormController extends Controller
         );
     }
 
-    public function nextProcessTwo($id = 0, Request $request)
+    public function nextProcessTwo($id = null, Request $request)
     {
         $validatedRequest = $request->validate([
             "p_act" => "required",
@@ -443,7 +444,7 @@ class CuttingFormController extends Controller
         );
     }
 
-    public function getTimeRecord($id = 0, $noForm = 0)
+    public function getTimeRecord($id = null, $noForm = 0)
     {
         $timeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->whereRaw("(form_cut_input_detail.form_cut_id = '".$id."' OR form_cut_input_detail.no_form_cut_input = '".$noForm."')")->where('form_cut_input_detail.status', '!=', 'not complete')->where('form_cut_input_detail.status', '!=', 'extension')->groupBy('form_cut_input_detail.id')->orderByRaw('form_cut_input_detail.created_at asc')->get();
 
@@ -1080,7 +1081,7 @@ class CuttingFormController extends Controller
         );
     }
 
-    public function checkSpreadingForm($id = 0, $noForm = 0, $noMeja = 0)
+    public function checkSpreadingForm($id = null, $noForm = 0, $noMeja = 0)
     {
         $formCutInputDetailData = FormCutInputDetail::selectRaw('
                 form_cut_input_detail.*,
@@ -1132,7 +1133,7 @@ class CuttingFormController extends Controller
         );
     }
 
-    public function storeLostTime(Request $request, $id = 0)
+    public function storeLostTime(Request $request, $id = null)
     {
         $now = Carbon::now();
 
@@ -1147,7 +1148,7 @@ class CuttingFormController extends Controller
         );
     }
 
-    public function checkLostTime($id = 0)
+    public function checkLostTime($id = null)
     {
         $formCutInputLostTimeData = FormCutInputLostTime::where('form_cut_input_id', $id)->get();
 
@@ -1157,8 +1158,15 @@ class CuttingFormController extends Controller
         );
     }
 
-    public function checkSambungan($id = 0)
+    public function checkSambungan($id = null)
     {
+        if ($id === null) {
+            return array(
+                "count" => null,
+                "data" => null,
+            );
+        }
+
         $sambungan = FormCutInputDetailSambungan::where('form_cut_input_detail_id', $id)->get();
 
         return array(
@@ -1167,7 +1175,7 @@ class CuttingFormController extends Controller
         );
     }
 
-    public function finishProcess($id = 0, Request $request)
+    public function finishProcess($id = null, Request $request)
     {
         $formCutInputData = FormCutInput::where("id", $id)->first();
 
