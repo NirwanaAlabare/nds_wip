@@ -36,7 +36,7 @@ class export_excel_report_return_fabric_cutting implements FromView, ShouldAutoS
 
         $rawData = DB::connection('mysql_sb')->select("
                     SELECT 
-                        DATE_FORMAT(whs_lokasi_inmaterial.created_at, '%d-%m-%Y') AS tanggal_keluar,
+                        DATE_FORMAT(whs_inmaterial_fabric.tgl_dok, '%d-%m-%Y') AS tanggal_keluar,
                         whs_lokasi_inmaterial.no_barcode,
                         whs_lokasi_inmaterial.qty_aktual,
                         whs_lokasi_inmaterial.satuan,
@@ -99,7 +99,7 @@ class export_excel_report_return_fabric_cutting implements FromView, ShouldAutoS
                         ON ws.bppbno = whs_inmaterial_fabric.no_invoice
                     WHERE 
                         whs_lokasi_inmaterial.no_dok LIKE 'GK/RI%'
-                        AND DATE(whs_lokasi_inmaterial.created_at) 
+                        AND DATE(whs_inmaterial_fabric.tgl_dok) 
                             BETWEEN ? AND ?
                     ORDER BY whs_lokasi_inmaterial.created_at ASC
 
