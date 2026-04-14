@@ -87,6 +87,7 @@
                             <th class="text-center align-middle">Color</th>
                             <th class="text-center align-middle">Size</th>
                             <th class="text-center align-middle">Panel</th>
+                            <th class="text-center align-middle">Qty</th>
                         </tr>
                     </thead>
                 </table>
@@ -215,7 +216,9 @@
                     {
                         data: 'panel'
                     },
-
+                    {
+                        data: 'qty_dc'
+                    },
                 ],
 
                 initComplete: function() {

@@ -20,6 +20,7 @@
                 <th class="text-center align-middle">Color</th>
                 <th class="text-center align-middle">Size</th>
                 <th class="text-center align-middle">Panel</th>
+                <th class="text-center align-middle">Qty</th>
             </tr>
         </thead>
         <tbody>
@@ -34,6 +35,7 @@
                     <td>{{ $row->color }}</td>
                     <td>{{ $row->size }}</td>
                     <td>{{ $row->panel }}</td>
+                    <td class="text-end">{{ $row->qty_dc }}</td>
                 </tr>
             @endforeach
         </tbody>
