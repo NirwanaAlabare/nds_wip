@@ -21,15 +21,11 @@
     <style>
         #datatable {
             width: 100% !important;
-            table-layout: fixed;
-            /* KUNCI layout */
         }
 
         #datatable th,
         #datatable td {
-            white-space: normal !important;
-            word-break: break-word;
-            vertical-align: middle;
+            white-space: nowrap;
         }
     </style>
 @endsection
@@ -37,7 +33,7 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Report Pengeluaran Cutting</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Report Return Fabric Cutting</h5>
         </div>
 
         <div class="card-body">
@@ -78,16 +74,26 @@
                 <table id="datatable" class="table table-bordered table-striped table-hover w-100">
                     <thead class="bg-sb">
                         <tr>
-                            <th class="text-center align-middle">Tanggal</th>
-                            <th class="text-center align-middle">No Form</th>
-                            <th class="text-center align-middle">No Cut</th>
-                            <th class="text-center align-middle">Worksheet</th>
-                            <th class="text-center align-middle">Buyer</th>
+                            <th class="text-center align-middle">Tanggal Keluar</th>
+                            <th class="text-center align-middle">No Barcode</th>
+                            <th class="text-center align-middle">Qty BPB</th>
+                            <th class="text-center align-middle">Unit</th>
+                            <th class="text-center align-middle">Qty Konv</th>
+                            <th class="text-center align-middle">Unit Konv</th>
+                            <th class="text-center align-middle">Rak</th>
+                            <th class="text-center align-middle">No BPB</th>
+                            <th class="text-center align-middle">No SJ</th>
+                            <th class="text-center align-middle">Supplier</th>
+                            <th class="text-center align-middle">No WS</th>
+                            <th class="text-center align-middle">No WS Aktual</th>
+                            <th class="text-center align-middle">ID Item</th>
                             <th class="text-center align-middle">Style</th>
-                            <th class="text-center align-middle">Color</th>
-                            <th class="text-center align-middle">Size</th>
-                            <th class="text-center align-middle">Panel</th>
-                            <th class="text-center align-middle">Qty</th>
+                            <th class="text-center align-middle">Warna</th>
+                            <th class="text-center align-middle">No Lot</th>
+                            <th class="text-center align-middle">No Roll</th>
+                            <th class="text-center align-middle">No Roll Buyer</th>
+                            <th class="text-center align-middle">Created By</th>
+                            <th class="text-center align-middle">Created At</th>
                         </tr>
                     </thead>
                 </table>
@@ -174,7 +180,7 @@
                 processing: false,
 
                 ajax: {
-                    url: '{{ route('report_pengeluaran_cutting') }}',
+                    url: '{{ route('report_return_fabric_cutting') }}',
                     data(d) {
                         d.start_date = start_date;
                         d.end_date = end_date;
@@ -190,35 +196,66 @@
 
                 columns: [
                     {
-                        data: 'created_at'
+                        data: 'tanggal_keluar'
                     },
                     {
-                        data: 'no_form'
+                        data: 'no_barcode'
                     },
                     {
-                        data: 'no_cut'
+                        data: 'qty_aktual'
                     },
                     {
-                        data: 'ws'
+                        data: 'satuan'
                     },
                     {
-                        data: 'buyer'
+                        data: 'qty_konv'
+                    },
+                    {
+                        data: 'satuan_konv'
+                    },
+                    {
+                        data: 'rak'
+                    },
+                    {
+                        data: 'no_dok',
+                    },
+                    {
+                        data: 'no_invoice'
+                    },
+                    {
+                        data: 'supplier'
+                    },
+                    {
+                        data: 'no_ws'
+                    },
+                    {
+                        data: 'ws_aktual'
+                    },
+                    {
+                        data: 'id_item'
                     },
                     {
                         data: 'styleno'
                     },
                     {
-                        data: 'color'
+                        data: 'warna'
                     },
                     {
-                        data: 'size',
+                        data: 'no_lot'
                     },
                     {
-                        data: 'panel'
+                        data: 'no_roll'
                     },
                     {
-                        data: 'qty_dc'
+                        data: 'no_roll_buyer'
                     },
+                    {
+                        data: 'created_by'
+                    },
+                    {
+                        data: 'created_at'
+                    },
+
                 ],
 
                 initComplete: function() {
@@ -250,7 +287,7 @@
 
             $.ajax({
                 type: "get",
-                url: '{{ route('export_excel_report_pengeluaran_cutting') }}',
+                url: '{{ route('export_excel_report_return_fabric_cutting') }}',
                 data: {
                     start_date: start_date,
                     end_date: end_date
@@ -270,7 +307,7 @@
                     var blob = new Blob([response]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Laporan Pengeluaran Cutting " + start_date + " _ " + end_date + ".xlsx";
+                    link.download = "Laporan Return Fabric Cutting " + start_date + " _ " + end_date + ".xlsx";
                     link.click();
                 },
                 error: function(xhr, status, error) {

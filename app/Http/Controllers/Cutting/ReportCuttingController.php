@@ -17,6 +17,7 @@ use App\Exports\export_excel_report_gr_panel;
 use App\Exports\Cutting\CuttingOrderOutputExport;
 use App\Exports\export_excel_report_mut_wip_cutting;
 use App\Exports\export_excel_report_pengeluaran_cutting;
+use App\Exports\export_excel_report_return_fabric_cutting;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
@@ -3265,5 +3266,109 @@ ORDER BY ws asc, color asc, urutan asc
     public function export_excel_report_pengeluaran_cutting(Request $request)
     {
         return Excel::download(new export_excel_report_pengeluaran_cutting($request->start_date, $request->end_date), 'Laporan Pengeluaran Cutting.xlsx');
+    }
+
+    public function report_return_fabric_cutting(Request $request)
+    {
+
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date'); 
+
+        if ($request->ajax()) {
+            if ($start_date === null || $end_date === null) {
+                return response()->json(['data' => []]);
+            } else {
+                $rawData = DB::connection('mysql_sb')->select("
+                    SELECT 
+                        DATE_FORMAT(whs_inmaterial_fabric.tgl_dok, '%d-%m-%Y') AS tanggal_keluar,
+                        whs_lokasi_inmaterial.no_barcode,
+                        whs_lokasi_inmaterial.qty_aktual,
+                        whs_lokasi_inmaterial.satuan,
+                        CASE 
+                            WHEN whs_lokasi_inmaterial.satuan IN ('YRD', 'YARD') 
+                                    THEN ROUND(whs_lokasi_inmaterial.qty_aktual * 0.9144, 2)
+                            ELSE whs_lokasi_inmaterial.qty_aktual
+                        END AS qty_konv,
+                        CASE 
+                            WHEN whs_lokasi_inmaterial.satuan IN ('YRD', 'YARD') 
+                                    THEN 'METER'
+                            ELSE whs_lokasi_inmaterial.satuan
+                        END AS satuan_konv,
+                        CONCAT(whs_lokasi_inmaterial.kode_lok, ' FABRIC WAREHOUSE RACK') AS rak,
+                        whs_lokasi_inmaterial.no_dok,
+                        whs_inmaterial_fabric.no_invoice,
+                        whs_inmaterial_fabric.supplier,
+                        whs_lokasi_inmaterial.no_ws,
+                        IFNULL(ws.idws_act, '-') AS ws_aktual,
+                        whs_lokasi_inmaterial.id_item,
+                        buyer_ws.styleno,
+                        masteritem.color AS warna,
+                        whs_lokasi_inmaterial.no_lot,
+                        whs_lokasi_inmaterial.no_roll,
+                        whs_lokasi_inmaterial.no_roll_buyer,
+                        whs_lokasi_inmaterial.created_by,
+                        whs_lokasi_inmaterial.created_at
+                    FROM 
+                        whs_lokasi_inmaterial 
+                    LEFT JOIN whs_inmaterial_fabric 
+                        ON whs_inmaterial_fabric.no_dok = whs_lokasi_inmaterial.no_dok
+                    LEFT JOIN masteritem 
+                        ON masteritem.id_item = whs_lokasi_inmaterial.id_item
+                    LEFT JOIN (
+                        SELECT
+                            jod.id_jo,
+                            ac.kpno AS no_ws,
+                            ac.styleno,
+                            ms.supplier AS buyer
+                        FROM act_costing ac
+                        INNER JOIN mastersupplier ms 
+                            ON ms.id_supplier = ac.id_buyer
+                        INNER JOIN so 
+                            ON ac.id = so.id_cost
+                        INNER JOIN jo_det jod 
+                            ON so.id = jod.id_so
+                        GROUP BY jod.id_jo, ac.kpno, ac.styleno, ms.supplier
+                    ) buyer_ws
+                        ON buyer_ws.id_jo = whs_lokasi_inmaterial.id_jo
+                    LEFT JOIN (
+                        SELECT 
+                            bppbno, 
+                            idws_act 
+                        FROM bppb_req 
+                        WHERE 
+                        bppbno LIKE '%RQ-F%'
+                            AND idws_act IS NOT NULL
+                        GROUP BY bppbno
+                    ) ws 
+                        ON ws.bppbno = whs_inmaterial_fabric.no_invoice
+                    WHERE 
+                        whs_lokasi_inmaterial.no_dok LIKE 'GK/RI%'
+                        AND DATE(whs_inmaterial_fabric.tgl_dok) 
+                            BETWEEN ? AND ?
+                    ORDER BY whs_lokasi_inmaterial.created_at ASC
+
+                ", [$start_date, $end_date]);
+
+                return response()->json([
+                    'data' => $rawData
+                ]);
+            }
+        }
+
+
+        return view(
+            'cutting.report.report_return_fabric_cutting',
+            [
+                'page' => 'dashboard-cutting',
+                "subPageGroup" => "cutting-report",
+                "subPage" => "report_return_fabric_cutting",
+                'containerFluid' => true
+            ]
+        );
+    }
+
+    public function export_excel_report_return_fabric_cutting(Request $request)
+    {
+        return Excel::download(new export_excel_report_return_fabric_cutting($request->start_date, $request->end_date), 'Laporan Return Fabric Cutting.xlsx');
     }
 }

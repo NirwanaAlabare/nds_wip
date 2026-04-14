@@ -7,6 +7,9 @@
             <tr>
                 <th colspan="9"> Report Pengeluaran Cutting</th>
             </tr>
+            <tr><th colspan="9"> Periode {{ date('d-m-Y', strtotime($startDate)) }} s/d {{ date('d-m-Y', strtotime($endDate)) }}</th></tr>
+            <tr><th colspan="9"></th></tr>
+
             <tr>
                 <th class="text-center align-middle">Tanggal</th>
                 <th class="text-center align-middle">No Form</th>
@@ -17,6 +20,7 @@
                 <th class="text-center align-middle">Color</th>
                 <th class="text-center align-middle">Size</th>
                 <th class="text-center align-middle">Panel</th>
+                <th class="text-center align-middle">Qty</th>
             </tr>
         </thead>
         <tbody>
@@ -31,6 +35,7 @@
                     <td>{{ $row->color }}</td>
                     <td>{{ $row->size }}</td>
                     <td>{{ $row->panel }}</td>
+                    <td class="text-end">{{ $row->qty_dc }}</td>
                 </tr>
             @endforeach
         </tbody>
