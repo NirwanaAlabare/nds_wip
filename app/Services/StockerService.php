@@ -65,9 +65,13 @@ class StockerService
                     stocker_input.notes,
                     form_cut_input.no_cut,
                     CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL AND part_detail.part_status != 'regular' THEN CONCAT(' - ', UPPER(part_detail.part_status)) ELSE '' END)) part,
-                    master_sb_ws.dest
+                    master_sb_ws.dest,
+                    COALESCE(GROUP_CONCAT(DISTINCT master_secondary.proses), single_master_secondary.proses) as proses
                 ")->
                 leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+                leftJoin("part_detail_secondary", "part_detail_secondary.part_detail_id", "=", "part_detail.id")->
+                leftJoin("master_secondary", "master_secondary.id", "=", "part_detail_secondary.master_secondary_id")->
+                leftJoin("master_secondary as single_master_secondary", "single_master_secondary.id", "=", "part_detail.master_secondary_id")->
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                 leftJoin("part", "part.id", "=", "part_detail.part_id")->
                 leftJoin("part_form", "part_form.part_id", "=", "part.id")->

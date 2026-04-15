@@ -27,7 +27,7 @@
                                 <div class="mb-3">
                                     <label class="form-label label-input">Scan QR OUT Stocker</label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control form-control-sm border-input" name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go" onkeyup="if (event.keyCode == 13) document.getElementById('scanqr').click()" autofocus>
+                                        <input type="text" class="form-control form-control-sm border-input" name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go" autofocus>
                                         {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
                                         {{-- style="display: none;" --}}
                                         <button class="btn btn-sm btn-success" type="button" id="getqr" onclick="scan_qr()">Get</button>
@@ -194,7 +194,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                        <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Simpan </button>
+                        <button type="submit" class="btn btn-success" id="button-submit"><i class="fas fa-check"></i> Simpan </button>
                     </div>
                 </div>
             </div>
@@ -1002,6 +1002,34 @@
             // initScan();
         }
 
+        document.getElementById("txtqrstocker").addEventListener("keydown", function(event) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                scan_qr();
+            }
+        });
+
+        document.getElementById("txtqtyreject").addEventListener("keydown", function(event) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                document.getElementById("txtqtyreplace").focus();
+            }
+        });
+
+        document.getElementById("txtqtyreplace").addEventListener("keydown", function(event) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                document.getElementById("txtket").focus();
+            }
+        });
+
+        document.getElementById("txtket").addEventListener("keydown", function(event) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                document.getElementById("button-submit").focus();
+            }
+        });
+
         function scan_qr() {
             let txtqrstocker = document.form.txtqrstocker.value;
             let html = $.ajax({
@@ -1066,6 +1094,8 @@
                     //         initScan1();
                     //     }
                     // });
+
+                    $('#txtqtyreject').focus();
                 },
                 error: function(jqXHR) {
                     reset();
@@ -1083,10 +1113,25 @@
         };
 
         function sum() {
+            document.getElementById('txtqtyreject').value = document.getElementById('txtqtyreject').value.replace(/\D/g, '');
+            document.getElementById('txtqtyreplace').value = document.getElementById('txtqtyreplace').value.replace(/\D/g, '');
+
+            // reject min 0
+            if (Number(document.getElementById('txtqtyreject').value).length > 0 && document.getElementById('txtqtyreject').value < 0) {
+                document.getElementById('txtqtyreject').value = 0;
+            }
+
+            // replace min 0
+            if (Number(document.getElementById('txtqtyreplace').value).length > 0 && document.getElementById('txtqtyreplace').value < 0) {
+                document.getElementById('txtqtyreplace').value = 0;
+            }
+
             let txtqty = document.getElementById('txtqtyawal').value;
             let txtqtyreject = document.getElementById('txtqtyreject').value;
             let txtqtyreplace = document.getElementById('txtqtyreplace').value;
+
             document.getElementById("txtqtyin").value = +txtqty;
+
             let result = parseFloat(txtqty) - parseFloat(txtqtyreject) + parseFloat(txtqtyreplace);
             let result_fix = Math.ceil(result)
             if (!isNaN(result_fix)) {
