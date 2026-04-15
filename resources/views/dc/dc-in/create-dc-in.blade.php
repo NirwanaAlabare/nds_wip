@@ -697,7 +697,13 @@
                             return '<span style="font-weight: 600; color:' + color + '">' + data + '</span>';
                         }
                     }
-                ]
+                ],
+                rowCallback: function( row, data, index ) {
+                    if (data['dc'] > 0) {
+                        $('td', row).css('background-color', '#ffcbd1');
+                        $('td', row).css('border', '0.15px solid #d0d0d0');
+                    }
+                },
             });
         };
 

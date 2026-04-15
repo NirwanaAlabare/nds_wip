@@ -839,7 +839,8 @@ class DCInController extends Controller
                 ms.color,
                 ms.panel,
                 concat( ms.range_awal, '-', ms.range_akhir ) rangeAwalAkhir,
-                ifnull( tmp.id_qr_stocker, 'x' ) cek_stat
+                ifnull( tmp.id_qr_stocker, 'x' ) cek_stat,
+                dc_in_input.id as dc
             FROM
                 tmp_dc_in_input_new x
                 left JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
@@ -852,6 +853,7 @@ class DCInController extends Controller
                 left join part p_com on p_com.id = pd_com.part_id
                 left JOIN master_part mp ON pd.master_part_id = mp.id
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
+                LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = x.id_qr_stocker
             WHERE
                 x.`user` = '".$user."' and
                 (y.cancel != 'y' or y.cancel IS NULL)
@@ -878,7 +880,8 @@ class DCInController extends Controller
                 ms.color,
                 ms.panel,
                 concat( ms.range_awal, '-', ms.range_akhir ) rangeAwalAkhir,
-                ifnull( tmp.id_qr_stocker, 'x' ) cek_stat
+                ifnull( tmp.id_qr_stocker, 'x' ) cek_stat,
+                dc_in_input.id as dc
             FROM
                 tmp_dc_in_input_new x
                 left JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
@@ -891,6 +894,7 @@ class DCInController extends Controller
                 left join part p_com on p_com.id = pd_com.part_id
                 left JOIN master_part mp ON pd.master_part_id = mp.id
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
+                LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = x.id_qr_stocker
             WHERE
                 x.`user` = '".$user."' and
                 (y.cancel != 'y' or y.cancel IS NULL)
@@ -917,7 +921,8 @@ class DCInController extends Controller
                 ms.color,
                 ms.panel,
                 concat( ms.range_awal, '-', ms.range_akhir ) rangeAwalAkhir,
-                ifnull( tmp.id_qr_stocker, 'x' ) cek_stat
+                ifnull( tmp.id_qr_stocker, 'x' ) cek_stat,
+                dc_in_input.id as dc
             FROM
                 tmp_dc_in_input_new x
                 left JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
@@ -930,6 +935,7 @@ class DCInController extends Controller
                 left join part p_com on p_com.id = pd_com.part_id
                 left JOIN master_part mp ON pd.master_part_id = mp.id
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
+                LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = x.id_qr_stocker
             WHERE
                 x.`user` = '".$user."' and
                 (y.cancel != 'y' or y.cancel IS NULL)
