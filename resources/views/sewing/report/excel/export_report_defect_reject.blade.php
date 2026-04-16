@@ -56,7 +56,7 @@
                     <td>{{ $row->dept }}</td>
                     <td>{{ $row->defect_type }}</td>
                     <td>{{ $row->defect_area }}</td>
-                    <td>{{ $row->status }}</td>
+                    <td>{{ ucwords(strtolower($row->status)) }}</td>
                     <td>{{ $row->tgl_defect }}</td>
                     <td>{{ $row->tgl_rework }}</td>
                     <td>{{ $row->proses_type }}</td>

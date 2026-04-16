@@ -264,7 +264,13 @@
                         data: 'defect_area'
                     },
                     {
-                        data: 'status'
+                        data: 'status',
+                        render: function(data) {
+                            if (!data) return '';
+                            return data.replace(/\b\w/g, function(char) {
+                                return char.toUpperCase();
+                            });
+                        }
                     },
                     {
                         data: 'tgl_defect'
