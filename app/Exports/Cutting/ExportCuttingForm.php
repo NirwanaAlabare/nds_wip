@@ -128,6 +128,58 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 form_cut_piece.id,
                 form_cut_piece_detail.group_stocker,
                 form_cut_piece_detail_size.id
+            UNION ALL
+            SELECT
+                DATE(form_cut_input.tgl_form_cut) AS tanggal,
+                form_cut_input.no_meja,
+                stocker_ws_additional.act_costing_ws AS worksheet,
+                stocker_ws_additional.buyer,
+                stocker_ws_additional.style,
+                stocker_ws_additional.color,
+                stocker_ws_additional_detail.so_det_id AS id_so_det,
+                stocker_ws_additional_detail.size,
+                form_cut_input_detail.group_roll,
+                form_cut_input_detail.lot,
+                form_cut_input.no_cut,
+                form_cut_input.no_form,
+                marker_input.kode AS no_marker,
+                stocker_ws_additional.panel,
+                similar.max_group,
+                form_cut_input_detail.group_stocker,
+                COALESCE(modify_size_qty.difference_qty, 0) AS difference_qty,
+                COALESCE(modify_size_qty.modified_qty, 0) AS modified_qty,
+                (
+                    (COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input.total_lembar, 0))
+                    + COALESCE(modify_size_qty.difference_qty, 0)
+                ) AS qty
+            FROM laravel_nds.form_cut_input
+            LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
+            LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
+            LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
+            LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
+                AND modify_size_qty.form_cut_id = form_cut_input.id
+            LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
+            LEFT JOIN laravel_nds.form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
+            LEFT JOIN (
+                SELECT
+                    form_cut_id,
+                    MAX(group_stocker) AS max_group
+                FROM laravel_nds.form_cut_input_detail
+                WHERE status NOT IN ('not complete', 'extension')
+                GROUP BY form_cut_id
+            ) AS similar
+                ON similar.form_cut_id = form_cut_input_detail.form_cut_id
+            WHERE
+                DATE(form_cut_input.tgl_form_cut) between '".$this->dateFrom."' and '".$this->dateTo."'
+                AND form_cut_input.status = 'SELESAI PENGERJAAN'
+                AND (
+                    stocker_ws_additional_detail.ratio > 0
+                    OR modify_size_qty.difference_qty != 0
+                )
+            GROUP BY
+                form_cut_input.id,
+                stocker_ws_additional.panel,
+                stocker_ws_additional_detail.id
             ORDER BY
                 tanggal desc,
                 meja,
