@@ -722,14 +722,15 @@ class SecondaryInhouseInController extends Controller
             // Check Secondary Inhouse
             $checkSecInhouseIn = SecondaryInhouseIn::where("id_qr_stocker", $request->txtqrstocker)->where("urutan", $cekdata[0]->urutan)->first();
             if ($checkSecInhouseIn) {
+
                 return array(
                     "status" => 400,
-                    "message" => "Stocker sudah discan di transaksi IN Secondary Dalam."
+                    "message" => "Stocker sudah discan di transaksi IN Secondary Dalam.".($checkSecInhouseIn->tgl_trans ? " Pada tanggal ".$checkSecInhouseIn->tgl_trans : "")
                 );
             }
 
-            // Check Secondary Inhouse Temp
-            $checkSecInhouseInTemp = SecondaryInhouseInTemp::where("id_qr_stocker", $request->txtqrstocker)->first();
+            // Check Secondary Inhouse Personal Temporary
+            $checkSecInhouseInTemp = SecondaryInhouseInTemp::where("id_qr_stocker", $request->txtqrstocker)->where("urutan", $cekdata[0]->urutan)->where("created_by", Auth::user()->id)->first();
             if ($checkSecInhouseInTemp) {
                 return array(
                     "status" => 400,
