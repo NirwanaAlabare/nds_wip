@@ -994,7 +994,7 @@
                     if (response) {
                         Swal.fire({
                             icon: (response.status == 200 ? 'success' : 'error'),
-                            title: 'Berhasil',
+                            title: (response.status == 200 ? 'Berhasil' : 'Gagal'),
                             html: response.message,
                         });
                     }
