@@ -33,10 +33,10 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Report Finishing Proses</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Report Defect & Reject</h5>
         </div>
 
-        <div class="card-body" id="report-finishing-proses">
+        <div class="card-body" id="report-defect-reject">
             <div class="row align-items-end g-3 mb-3">
                 <!-- Start Date -->
                 <div class="col-md-2">
@@ -44,7 +44,7 @@
                         <small><b>Start Date</b></small>
                     </label>
                     <input type="date" class="form-control form-control-sm" id="start_date" name="start_date"
-                        value="">
+                        value="{{ date('Y-m-d') }}">
                 </div>
                 <!-- End Date -->
                 <div class="col-md-2">
@@ -52,7 +52,7 @@
                         <small><b>End Date</b></small>
                     </label>
                     <input type="date" class="form-control form-control-sm" id="end_date" name="end_date"
-                        value="">
+                        value="{{ date('Y-m-d') }}">
                 </div>
                 
                 <div class="col-md-2">
@@ -60,7 +60,8 @@
                         <small><b>Department</b></small>
                     </label>
                     <select class="form-select form-control-sm" name="department" id="department">
-                        <option value="" selected>END-LINE</option>
+                        <option value="" selected>All</option>
+                        <option value="_end">END-LINE</option>
                         <option value="_packing">FINISHING-LINE</option>
                     </select>
                 </div>
@@ -70,7 +71,7 @@
                         <small><b>No. WS</b></small>
                     </label>
                     <select class="form-select form-control-sm select2bs4base" name="ws" id="ws">
-                        <option value="">SEMUA</option>
+                        <option value="">All</option>
                         @foreach ($orders as $order)
                             <option value="{{ $order }}">{{ $order }}</option>
                         @endforeach
@@ -102,8 +103,26 @@
                             <th class="text-center align-middle">Style</th>
                             <th class="text-center align-middle">Color</th>
                             <th class="text-center align-middle">Size</th>
+                            <th class="text-center align-middle">Dest</th>
+                            <th class="text-center align-middle">Sewing Line</th>
+                            <th class="text-center align-middle">Dept</th>
+                            <th class="text-center align-middle">Defect Type</th>
+                            <th class="text-center align-middle">Defect Area</th>
+                            <th class="text-center align-middle">Status</th>
+                            <th class="text-center align-middle">Tgl Defect</th>
+                            <th class="text-center align-middle">Tgl Rework</th>
+                            <th class="text-center align-middle">Proses Type</th>
+                            <th class="text-center align-middle">Proses Status</th>
+                            <th class="text-center align-middle">Tgl Proses In</th>
+                            <th class="text-center align-middle">Tgl Proses Out</th>
                         </tr>
                     </thead>
+                    <tfoot>
+                        <tr>
+                            <th colspan="9" class="text-center">TOTAL</th>
+                            <th colspan="9" id="totalRows" class="text-end"></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
 
@@ -141,7 +160,7 @@
 
          $('.select2bs4base').select2({
             theme: 'bootstrap4',
-            dropdownParent: $("#report-finishing-proses")
+            dropdownParent: $("#report-defect-reject")
         });
 
         // Now set height and font-size on the Select2 container after init
@@ -158,8 +177,8 @@
 
     <script>
         $(document).ready(function() {
-            $('#start_date').val('').trigger('change');
-            $('#end_date').val('').trigger('change');
+            // $('#start_date').val('').trigger('change');
+            // $('#end_date').val('').trigger('change');
             dataTableReload()
         });
 
@@ -194,7 +213,7 @@
                 processing: false,
 
                 ajax: {
-                    url: '{{ route('reportFinishingProses') }}',
+                    url: '{{ route('reportDefectReject') }}',
                     data(d) {
                         d.start_date = start_date;
                         d.end_date = end_date;
@@ -229,7 +248,51 @@
                     {
                         data: 'size'
                     },
+                    {
+                        data: 'dest'
+                    },
+                    {
+                        data: 'sewing_line'
+                    },
+                    {
+                        data: 'dept'
+                    },
+                    {
+                        data: 'defect_type'
+                    },
+                    {
+                        data: 'defect_area'
+                    },
+                    {
+                        data: 'status'
+                    },
+                    {
+                        data: 'tgl_defect'
+                    },
+                    {
+                        data: 'tgl_rework'
+                    },
+                    {
+                        data: 'proses_type'
+                    },
+                    {
+                        data: 'proses_status'
+                    },
+                    {
+                        data: 'tgl_proses_in'
+                    },
+                    {
+                        data: 'tgl_proses_out'
+                    },
                 ],
+
+                footerCallback: function (row, data, start, end, display) {
+                    const api = this.api();
+
+                    const totalRows = api.rows({ search: 'applied' }).count();
+
+                    $('#totalRows').html(totalRows);
+                },
 
                 initComplete: function() {
                     // 🔥 PAKSA RECALC SETELAH LOAD
@@ -263,7 +326,7 @@
 
             $.ajax({
                 type: "get",
-                url: '{{ route('export_excel_report_finishing_proses') }}',
+                url: '{{ route('export_excel_report_defect_reject') }}',
                 data: {
                     start_date: start_date,
                     end_date: end_date,
@@ -285,7 +348,7 @@
                     var blob = new Blob([response]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Laporan Finishing Proses " + start_date + " _ " + end_date + ".xlsx";
+                    link.download = "Laporan Defect & Reject " + start_date + " _ " + end_date + ".xlsx";
                     link.click();
                 },
                 error: function(xhr, status, error) {

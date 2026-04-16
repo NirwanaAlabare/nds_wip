@@ -51,7 +51,7 @@ class PartController extends Controller
                     part.buyer,
                     part.act_costing_ws,
                     REPLACE(part.style, '\"', ' ') style,
-                    COALESCE(GROUP_CONCAT(DISTINCT marker_input.color), part.color) color,
+                    COALESCE(GROUP_CONCAT(DISTINCT COALESCE(marker_input.color, form_cut_piece.color)), part.color) color,
                     part.panel,
                     UPPER(COALESCE(part.panel_status, '')) panel_status,
                     COUNT(DISTINCT form_cut_input.id) total_form,
@@ -61,6 +61,7 @@ class PartController extends Controller
                 ->leftJoin("master_part", "master_part.id", "part_detail.master_part_id")
                 ->leftJoin("part_form", "part_form.part_id", "part.id")
                 ->leftJoin("form_cut_input", "form_cut_input.id", "part_form.form_id")
+                ->leftJoin("form_cut_piece", "form_cut_piece.id", "part_form.form_pcs_id")
                 ->leftJoin("marker_input", "marker_input.id", "form_cut_input.marker_id")
                 ->leftJoin(
                     DB::raw("
