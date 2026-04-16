@@ -2270,38 +2270,39 @@ Route::middleware('auth')->group(function () {
         // Route::get('/export_excel_tracking', 'export_excel_tracking')->name('export_excel_tracking');
     });
 
-    // GA
-    // Pengajuan
-    Route::controller(GAPengajuanBahanBakarController::class)->prefix("ga-pengajuan-bahan-bakar")->middleware('ga')->group(function () {
-        Route::get('/', 'index')->name('pengajuan-bahan-bakar');
-        Route::post('/store_ga_master_bahan_bakar', 'store_ga_master_bahan_bakar')->name('store-ga-master-bahan-bakar');
-        Route::get('/show_master_bahan_bakar', 'show_master_bahan_bakar')->name('show-master-bahan-bakar');
-        Route::post('/store_ga_master_kendaraan', 'store_ga_master_kendaraan')->name('store-ga-master-kendaraan');
-        Route::get('/show_master_kendaraan', 'show_master_kendaraan')->name('show-master-kendaraan');
-        Route::get('/show_getnip', 'show_getnip')->name('show-ga-get-nip');
-        Route::get('/show_getjns', 'show_getjns')->name('show-ga-get-jns');
-        Route::get('/show_getbhn_bakar', 'show_getbhn_bakar')->name('show-ga-get-bhn-bakar');
-        Route::get('/show_getharga', 'show_getharga')->name('show-ga-get-harga');
-        Route::post('/store_ga_trans', 'store_ga_trans')->name('store-ga-trans');
-        Route::get('/export_pdf_pengajuan_bhn_bakar', 'export_pdf_pengajuan_bhn_bakar')->name('export_pdf_pengajuan_bhn_bakar');
-        Route::get('/show_data_bahan_bakar', 'show_data_bahan_bakar')->name('show_data_bahan_bakar');
-        Route::post('/update_ga_master_bahan_bakar', 'update_ga_master_bahan_bakar')->name('update-ga-master-bahan-bakar');
-        Route::get('/show_data_transaksi_edit', 'show_data_transaksi_edit')->name('show_data_transaksi_edit');
-        Route::get('/show_data_transaksi', 'show_data_transaksi')->name('show_data_transaksi');
-        Route::get('/show_ga_get_jns_edit', 'show_ga_get_jns_edit')->name('show_ga_get_jns_edit');
-        Route::get('/show_ga_get_bhn_bakar_edit', 'show_ga_get_bhn_bakar_edit')->name('show_ga_get_bhn_bakar_edit');
-        Route::post('/update_ga_trans', 'update_ga_trans')->name('update_ga_trans');
-        Route::post('/update_ga_realisasi', 'update_ga_realisasi')->name('update_ga_realisasi');
-        Route::get('/export_excel_data_bahan_bakar', 'export_excel_data_bahan_bakar')->name('export_excel_data_bahan_bakar');
+    // Deprecated :
+        // GA
+            // Pengajuan
+                // Route::controller(GAPengajuanBahanBakarController::class)->prefix("ga-pengajuan-bahan-bakar")->middleware('ga')->group(function () {
+                //     Route::get('/', 'index')->name('pengajuan-bahan-bakar');
+                //     Route::post('/store_ga_master_bahan_bakar', 'store_ga_master_bahan_bakar')->name('store-ga-master-bahan-bakar');
+                //     Route::get('/show_master_bahan_bakar', 'show_master_bahan_bakar')->name('show-master-bahan-bakar');
+                //     Route::post('/store_ga_master_kendaraan', 'store_ga_master_kendaraan')->name('store-ga-master-kendaraan');
+                //     Route::get('/show_master_kendaraan', 'show_master_kendaraan')->name('show-master-kendaraan');
+                //     Route::get('/show_getnip', 'show_getnip')->name('show-ga-get-nip');
+                //     Route::get('/show_getjns', 'show_getjns')->name('show-ga-get-jns');
+                //     Route::get('/show_getbhn_bakar', 'show_getbhn_bakar')->name('show-ga-get-bhn-bakar');
+                //     Route::get('/show_getharga', 'show_getharga')->name('show-ga-get-harga');
+                //     Route::post('/store_ga_trans', 'store_ga_trans')->name('store-ga-trans');
+                //     Route::get('/export_pdf_pengajuan_bhn_bakar', 'export_pdf_pengajuan_bhn_bakar')->name('export_pdf_pengajuan_bhn_bakar');
+                //     Route::get('/show_data_bahan_bakar', 'show_data_bahan_bakar')->name('show_data_bahan_bakar');
+                //     Route::post('/update_ga_master_bahan_bakar', 'update_ga_master_bahan_bakar')->name('update-ga-master-bahan-bakar');
+                //     Route::get('/show_data_transaksi_edit', 'show_data_transaksi_edit')->name('show_data_transaksi_edit');
+                //     Route::get('/show_data_transaksi', 'show_data_transaksi')->name('show_data_transaksi');
+                //     Route::get('/show_ga_get_jns_edit', 'show_ga_get_jns_edit')->name('show_ga_get_jns_edit');
+                //     Route::get('/show_ga_get_bhn_bakar_edit', 'show_ga_get_bhn_bakar_edit')->name('show_ga_get_bhn_bakar_edit');
+                //     Route::post('/update_ga_trans', 'update_ga_trans')->name('update_ga_trans');
+                //     Route::post('/update_ga_realisasi', 'update_ga_realisasi')->name('update_ga_realisasi');
+                //     Route::get('/export_excel_data_bahan_bakar', 'export_excel_data_bahan_bakar')->name('export_excel_data_bahan_bakar');
 
-        // Route::post('/store', 'store')->name('store-packing-packing-in');
-    });
+                //     // Route::post('/store', 'store')->name('store-packing-packing-in');
+                // });
 
-    // Approval
-    Route::controller(GAApprovalBahanBakarController::class)->prefix("ga-approval-bahan-bakar")->middleware('ga')->group(function () {
-        Route::get('/', 'index')->name('approval-bahan-bakar');
-        Route::post('/store', 'store')->name('store-approval-bahan-bakar');
-    });
+            // Approval
+                // Route::controller(GAApprovalBahanBakarController::class)->prefix("ga-approval-bahan-bakar")->middleware('ga')->group(function () {
+                //     Route::get('/', 'index')->name('approval-bahan-bakar');
+                //     Route::post('/store', 'store')->name('store-approval-bahan-bakar');
+                // });
 
     Route::controller(DashboardController::class)->prefix("dashboard-chart")->middleware('role:cutting')->group(function () {
         Route::get('/', 'cuttingMeja')->name('dashboard-chart');
