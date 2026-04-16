@@ -37,8 +37,8 @@ class ExportReportDefectReject implements FromView, ShouldAutoSize, WithEvents
         $department = $this->department;
         $ws = $this->ws;
 
-        $start = $start_date . ' 00:00:00';
-        $end   = $end_date . ' 23:59:59';
+        $start = $this->start_date . ' 00:00:00';
+        $end   = $this->end_date . ' 23:59:59';
 
         if ($department == "_packing") {
             $rawData = DB::connection('mysql_sb')->select("
@@ -399,8 +399,6 @@ class ExportReportDefectReject implements FromView, ShouldAutoSize, WithEvents
                 $start, $end, $ws, $ws, $ws
             ]);
         }
-
-        // dd($rawData);
 
         $this->rowCount = count($rawData) + 5; // 1 for header
 

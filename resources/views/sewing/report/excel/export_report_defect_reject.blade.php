@@ -5,7 +5,7 @@
     <table>
         <thead>
             <tr>
-                <th colspan="18"> Report Defect & Reject</th>
+                <th colspan="18"> Report Defect &amp; Reject</th>
             </tr>
             <tr><th colspan="18"> Periode : {{ date('d-m-Y', strtotime($startDate)) }} s/d {{ date('d-m-Y', strtotime($endDate)) }}</th></tr>
             <tr>
