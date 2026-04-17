@@ -146,15 +146,15 @@ class RollController extends Controller
         $additionalQuery2 = "";
 
         if ($request->dateFrom) {
-            $additionalQuery .= " and b.created_at >= '" . $request->dateFrom . " 00:00:00'";
-            $additionalQuery1 .= " and form_cut_piping.created_at >= '" . $request->dateFrom . " 00:00:00'";
-            $additionalQuery2 .= " and form_cut_piece_detail.created_at >= '" . $request->dateFrom . " 00:00:00'";
+            $additionalQuery .= " and a.waktu_selesai >= '" . $request->dateFrom . " 00:00:00'";
+            $additionalQuery1 .= " and form_cut_piping.updated_at >= '" . $request->dateFrom . " 00:00:00'";
+            $additionalQuery2 .= " and form_cut_piece.updated_at >= '" . $request->dateFrom . " 00:00:00'";
         }
 
         if ($request->dateTo) {
-            $additionalQuery .= " and b.created_at <= '" . $request->dateTo . " 23:59:59'";
-            $additionalQuery1 .= " and form_cut_piping.created_at <= '" . $request->dateTo . " 23:59:59'";
-            $additionalQuery2 .= " and form_cut_piece_detail.created_at <= '" . $request->dateTo . " 23:59:59'";
+            $additionalQuery .= " and a.waktu_selesai <= '" . $request->dateTo . " 23:59:59'";
+            $additionalQuery1 .= " and form_cut_piping.updated_at <= '" . $request->dateTo . " 23:59:59'";
+            $additionalQuery2 .= " and form_cut_piece.updated_at <= '" . $request->dateTo . " 23:59:59'";
         }
 
         if ($request->supplier) {
@@ -202,8 +202,10 @@ class RollController extends Controller
                     a.waktu_mulai,
                     a.waktu_selesai,
                     b.id,
-                    DATE_FORMAT(b.created_at, '%M') bulan,
-                    DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
+                    -- DATE_FORMAT(b.created_at, '%M') bulan,
+                    -- DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
+                    DATE_FORMAT(a.waktu_selesai, '%M') bulan,
+                    DATE_FORMAT(a.waktu_selesai, '%d-%m-%Y') tgl_input,
                     b.no_form_cut_input,
                     UPPER(meja.name) nama_meja,
                     mrk.act_costing_ws,
@@ -562,15 +564,15 @@ class RollController extends Controller
         $additionalQuery2 = "";
 
         if ($request->dateFrom) {
-            $additionalQuery .= " and b.created_at >= '" . $request->dateFrom . " 00:00:00'";
-            $additionalQuery1 .= " and form_cut_piping.created_at >= '" . $request->dateFrom . " 00:00:00'";
-            $additionalQuery2 .= " and form_cut_piece_detail.created_at >= '" . $request->dateFrom . " 00:00:00'";
+            $additionalQuery .= " and a.waktu_selesai >= '" . $request->dateFrom . " 00:00:00'";
+            $additionalQuery1 .= " and form_cut_piping.updated_at >= '" . $request->dateFrom . " 00:00:00'";
+            $additionalQuery2 .= " and form_cut_piece.updated_at >= '" . $request->dateFrom . " 00:00:00'";
         }
 
         if ($request->dateTo) {
-            $additionalQuery .= " and b.created_at <= '" . $request->dateTo . " 23:59:59'";
-            $additionalQuery1 .= " and form_cut_piping.created_at <= '" . $request->dateTo . " 23:59:59'";
-            $additionalQuery2 .= " and form_cut_piece_detail.created_at <= '" . $request->dateTo . " 23:59:59'";
+            $additionalQuery .= " and a.waktu_selesai <= '" . $request->dateTo . " 23:59:59'";
+            $additionalQuery1 .= " and form_cut_piping.updated_at <= '" . $request->dateTo . " 23:59:59'";
+            $additionalQuery2 .= " and form_cut_piece.updated_at <= '" . $request->dateTo . " 23:59:59'";
         }
 
         if ($request->supplier) {
@@ -592,8 +594,10 @@ class RollController extends Controller
                     a.waktu_mulai,
                     a.waktu_selesai,
                     b.id,
-                    DATE_FORMAT(b.created_at, '%M') bulan,
-                    DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
+                    -- DATE_FORMAT(b.created_at, '%M') bulan,
+                    -- DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
+                    DATE_FORMAT(a.waktu_selesai, '%M') bulan,
+                    DATE_FORMAT(a.waktu_selesai, '%d-%m-%Y') tgl_input,
                     b.no_form_cut_input,
                     UPPER(meja.name) nama_meja,
                     mrk.act_costing_ws,
