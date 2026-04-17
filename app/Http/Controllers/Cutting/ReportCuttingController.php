@@ -267,9 +267,9 @@ class ReportCuttingController extends Controller
         }
 
         if ($request->size) {
-            $additionalQuery1 .= " and marker_input_detail.buyer LIKE '%" . $request->size . "%'";
-            $additionalQueryPcs1 .= " and form_cut_piece.buyer LIKE '%" . $request->size . "%'";
-            $additionalQueryStokerWs1 .= " and stocker_ws_additional.buyer LIKE '%" . $request->size . "%'";
+            $additionalQuery1 .= " and marker_input_detail.size LIKE '%" . $request->size . "%'";
+            $additionalQueryPcs1 .= " and form_cut_piece_detail_size.size LIKE '%" . $request->size . "%'";
+            $additionalQueryStokerWs1 .= " and stocker_ws_additional_detail.size LIKE '%" . $request->size . "%'";
         }
 
         if ($request->notes) {
