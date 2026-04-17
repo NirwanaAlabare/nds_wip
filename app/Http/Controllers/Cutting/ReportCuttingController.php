@@ -162,7 +162,7 @@ class ReportCuttingController extends Controller
                     form_cut_piece.id,
                     form_cut_piece_detail_size.so_det_id,
                     form_cut_piece.tanggal
-                UNION 
+                UNION
                 SELECT
                     marker_input.kode,
                     stocker_ws_additional.no_form,
@@ -384,7 +384,7 @@ class ReportCuttingController extends Controller
                         form_cut_piece.id,
                         form_cut_piece_detail_size.so_det_id,
                         form_cut_piece.tanggal
-                    UNION 
+                    UNION
                     SELECT
                         marker_input.kode,
                         stocker_ws_additional.no_form,
@@ -1343,7 +1343,7 @@ class ReportCuttingController extends Controller
                             AND (
                                 stocker_ws_additional_detail.ratio > 0
                                 OR modify_size_qty.difference_qty != 0
-                            ) 
+                            )
                             " . $additionalQuery2 . "
                             " . $tanggalFilter2 . "
                             " . $noMejaFilter2 . "
@@ -2731,6 +2731,70 @@ SELECT
                 form_cut_piece.id,
                 form_cut_piece_detail.group_stocker,
                 form_cut_piece_detail_size.id
+        UNION ALL
+            SELECT
+                COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tanggal,
+                UPPER(meja.`name`) meja,
+                stocker_ws_additional.act_costing_ws worksheet,
+                stocker_ws_additional.buyer,
+                stocker_ws_additional.style,
+                stocker_ws_additional.color,
+                master_sb_ws.id_so_det,
+                (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE stocker_ws_additional_detail.size END) size,
+                form_cut_input_detail.group_roll,
+                form_cut_input_detail.lot,
+                form_cut_input.no_cut,
+                form_cut_input.no_form,
+                '-' no_marker,
+                stocker_ws_additional.panel,
+                similar.max_group,
+                form_cut_input_detail.group_stocker,
+                COALESCE(modify_size_qty.difference_qty, 0),
+                COALESCE(modify_size_qty.modified_qty, 0),
+                ((COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (COALESCE(modify_size_qty.difference_qty, 0))) qty
+            FROM
+                laravel_nds.form_cut_input
+                LEFT JOIN (
+                        SELECT
+                                form_cut_id,
+                                no_form_cut_input,
+                                group_roll,
+                                group_stocker,
+                                lot,
+                                SUM( lembar_gelaran ) total_lembar
+                        FROM
+                                form_cut_input_detail
+                        WHERE
+                                (status != 'not complete' and status != 'extension')
+                        GROUP BY
+                                form_cut_id,
+                                group_stocker
+            ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
+            LEFT JOIN (
+                    SELECT
+                            form_cut_id,
+                            MAX(group_stocker) max_group
+                    FROM
+                            form_cut_input_detail
+                    WHERE
+                            (status != 'not complete' and status != 'extension')
+                    GROUP BY
+                            form_cut_id
+            ) similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
+            LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
+            LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
+            LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
+            LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
+            LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
+            WHERE
+                form_cut_input.status = 'SELESAI PENGERJAAN'
+                AND (stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
+                and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '$tgl_saldo'
+                and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) < '$start_date'
+            GROUP BY
+                form_cut_input.id,
+                form_cut_input_detail.group_stocker,
+                stocker_ws_additional_detail.id
             ORDER BY
                 tanggal desc,
                 meja,
@@ -2841,6 +2905,70 @@ cutt_in as
                 form_cut_piece.id,
                 form_cut_piece_detail.group_stocker,
                 form_cut_piece_detail_size.id
+        UNION ALL
+            SELECT
+                COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tanggal,
+                UPPER(meja.`name`) meja,
+                stocker_ws_additional.act_costing_ws worksheet,
+                stocker_ws_additional.buyer,
+                stocker_ws_additional.style,
+                stocker_ws_additional.color,
+                master_sb_ws.id_so_det,
+                (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE stocker_ws_additional_detail.size END) size,
+                form_cut_input_detail.group_roll,
+                form_cut_input_detail.lot,
+                form_cut_input.no_cut,
+                form_cut_input.no_form,
+                '-' no_marker,
+                stocker_ws_additional.panel,
+                similar.max_group,
+                form_cut_input_detail.group_stocker,
+                COALESCE(modify_size_qty.difference_qty, 0),
+                COALESCE(modify_size_qty.modified_qty, 0),
+                ((COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (COALESCE(modify_size_qty.difference_qty, 0))) qty
+            FROM
+                laravel_nds.form_cut_input
+                LEFT JOIN (
+                        SELECT
+                                form_cut_id,
+                                no_form_cut_input,
+                                group_roll,
+                                group_stocker,
+                                lot,
+                                SUM( lembar_gelaran ) total_lembar
+                        FROM
+                                form_cut_input_detail
+                        WHERE
+                                (status != 'not complete' and status != 'extension')
+                        GROUP BY
+                                form_cut_id,
+                                group_stocker
+            ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
+            LEFT JOIN (
+                    SELECT
+                            form_cut_id,
+                            MAX(group_stocker) max_group
+                    FROM
+                            form_cut_input_detail
+                    WHERE
+                            (status != 'not complete' and status != 'extension')
+                    GROUP BY
+                            form_cut_id
+            ) similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
+            LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
+            LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
+            LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
+            LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
+            LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
+            WHERE
+                form_cut_input.status = 'SELESAI PENGERJAAN'
+                AND (stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
+                and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '$start_date'
+                and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) <= '$end_date'
+            GROUP BY
+                form_cut_input.id,
+                form_cut_input_detail.group_stocker,
+                stocker_ws_additional_detail.id
             ORDER BY
                 tanggal desc,
                 meja,
@@ -3483,25 +3611,25 @@ ORDER BY ws asc, color asc, urutan asc
     {
 
         $start_date = $request->input('start_date');
-        $end_date = $request->input('end_date'); 
+        $end_date = $request->input('end_date');
 
         if ($request->ajax()) {
             if ($start_date === null || $end_date === null) {
                 return response()->json(['data' => []]);
             } else {
                 $rawData = DB::connection('mysql_sb')->select("
-                    SELECT 
+                    SELECT
                         DATE_FORMAT(whs_inmaterial_fabric.tgl_dok, '%d-%m-%Y') AS tanggal_keluar,
                         whs_lokasi_inmaterial.no_barcode,
                         whs_lokasi_inmaterial.qty_aktual,
                         whs_lokasi_inmaterial.satuan,
-                        CASE 
-                            WHEN whs_lokasi_inmaterial.satuan IN ('YRD', 'YARD') 
+                        CASE
+                            WHEN whs_lokasi_inmaterial.satuan IN ('YRD', 'YARD')
                                     THEN ROUND(whs_lokasi_inmaterial.qty_aktual * 0.9144, 2)
                             ELSE whs_lokasi_inmaterial.qty_aktual
                         END AS qty_konv,
-                        CASE 
-                            WHEN whs_lokasi_inmaterial.satuan IN ('YRD', 'YARD') 
+                        CASE
+                            WHEN whs_lokasi_inmaterial.satuan IN ('YRD', 'YARD')
                                     THEN 'METER'
                             ELSE whs_lokasi_inmaterial.satuan
                         END AS satuan_konv,
@@ -3519,11 +3647,11 @@ ORDER BY ws asc, color asc, urutan asc
                         whs_lokasi_inmaterial.no_roll_buyer,
                         whs_lokasi_inmaterial.created_by,
                         whs_lokasi_inmaterial.created_at
-                    FROM 
-                        whs_lokasi_inmaterial 
-                    LEFT JOIN whs_inmaterial_fabric 
+                    FROM
+                        whs_lokasi_inmaterial
+                    LEFT JOIN whs_inmaterial_fabric
                         ON whs_inmaterial_fabric.no_dok = whs_lokasi_inmaterial.no_dok
-                    LEFT JOIN masteritem 
+                    LEFT JOIN masteritem
                         ON masteritem.id_item = whs_lokasi_inmaterial.id_item
                     LEFT JOIN (
                         SELECT
@@ -3532,29 +3660,29 @@ ORDER BY ws asc, color asc, urutan asc
                             ac.styleno,
                             ms.supplier AS buyer
                         FROM act_costing ac
-                        INNER JOIN mastersupplier ms 
+                        INNER JOIN mastersupplier ms
                             ON ms.id_supplier = ac.id_buyer
-                        INNER JOIN so 
+                        INNER JOIN so
                             ON ac.id = so.id_cost
-                        INNER JOIN jo_det jod 
+                        INNER JOIN jo_det jod
                             ON so.id = jod.id_so
                         GROUP BY jod.id_jo, ac.kpno, ac.styleno, ms.supplier
                     ) buyer_ws
                         ON buyer_ws.id_jo = whs_lokasi_inmaterial.id_jo
                     LEFT JOIN (
-                        SELECT 
-                            bppbno, 
-                            idws_act 
-                        FROM bppb_req 
-                        WHERE 
+                        SELECT
+                            bppbno,
+                            idws_act
+                        FROM bppb_req
+                        WHERE
                         bppbno LIKE '%RQ-F%'
                             AND idws_act IS NOT NULL
                         GROUP BY bppbno
-                    ) ws 
+                    ) ws
                         ON ws.bppbno = whs_inmaterial_fabric.no_invoice
-                    WHERE 
+                    WHERE
                         whs_lokasi_inmaterial.no_dok LIKE 'GK/RI%'
-                        AND DATE(whs_inmaterial_fabric.tgl_dok) 
+                        AND DATE(whs_inmaterial_fabric.tgl_dok)
                             BETWEEN ? AND ?
                     ORDER BY whs_lokasi_inmaterial.created_at ASC
 
