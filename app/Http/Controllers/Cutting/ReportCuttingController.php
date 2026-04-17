@@ -198,9 +198,9 @@ class ReportCuttingController extends Controller
                         OR modify_size_qty.difference_qty != 0
                     ) " . $additionalQuery2 . "
                 GROUP BY
-                    marker_input.id,
-                    stocker_ws_additional_detail.so_det_id,
-                    form_cut_input.tgl_form_cut
+                    form_cut_input.id,
+                    stocker_ws_additional.panel,
+                    stocker_ws_additional_detail.id
             ");
 
             return DataTables::of($reportCutting)->toJson();
@@ -422,9 +422,9 @@ class ReportCuttingController extends Controller
                         " . $additionalQueryStokerWs . "
                         " . $additionalQueryStokerWs1 . "
                     GROUP BY
-                        marker_input.id,
-                        stocker_ws_additional_detail.so_det_id,
-                        form_cut_input.tgl_form_cut
+                        form_cut_input.id,
+                        stocker_ws_additional.panel,
+                        stocker_ws_additional_detail.id
                 ) marker_cutting
             ");
 
@@ -876,13 +876,13 @@ class ReportCuttingController extends Controller
             if ($request->dateFrom) {
                 $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '" . $request->dateFrom . "'";
                 $additionalQuery1 .= " and form_cut_piece.tanggal >= '" . $request->dateFrom . "'";
-                $additionalQuery2 .= " and form_cut_input.tgl_form_cut >= '" . $request->dateFrom . "'";
+                $additionalQuery2 .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) >= '" . $request->dateFrom . "'";
             }
 
             if ($request->dateTo) {
                 $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) <= '" . $request->dateTo . "'";
                 $additionalQuery1 .= " and form_cut_piece.tanggal <= '" . $request->dateTo . "'";
-                $additionalQuery2 .= " and form_cut_input.tgl_form_cut <= '" . $request->dateTo . "'";
+                $additionalQuery2 .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) <= '" . $request->dateTo . "'";
             }
 
             $keywordQuery = "";
@@ -1020,6 +1020,49 @@ class ReportCuttingController extends Controller
                             form_cut_piece.tanggal,
                             form_cut_piece.employee_name,
                             form_cut_piece.id
+                        UNION
+                        SELECT
+                            marker_input.kode,
+                            stocker_ws_additional.no_form AS no_form_meja,
+                            form_cut_input.id form_cut_id,
+                            stocker_ws_additional.no_form,
+                            form_cut_input.no_meja AS id_meja,
+                            UPPER(meja.`name`) meja,
+                            COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) tgl_form_cut,
+                            stocker_ws_additional.buyer,
+                            stocker_ws_additional.act_costing_id,
+                            stocker_ws_additional.act_costing_ws,
+                            stocker_ws_additional.style,
+                            stocker_ws_additional.color,
+                            stocker_ws_additional.panel,
+                            marker_input.cons_ws,
+                            marker_input.unit_panjang_marker AS unit,
+                            stocker_ws_additional_detail.so_det_id,
+                            stocker_ws_additional_detail.size,
+                            stocker_ws_additional_detail.ratio,
+                            COALESCE(marker_input.notes, form_cut_input.notes) notes,
+                            marker_input.gelar_qty AS marker_gelar,
+                            SUM(form_cut_input.qty_ply) AS spreading_gelar,
+                            SUM(COALESCE(form_cut_input_detail.lembar_gelaran, form_cut_input.total_lembar)) form_gelar,
+                            SUM(modify_size_qty.difference_qty) AS diff
+                        FROM laravel_nds.form_cut_input
+                        INNER JOIN laravel_nds.form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
+                        LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
+                        LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
+                        LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
+                        LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
+                                        AND modify_size_qty.form_cut_id = form_cut_input.id
+                        LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
+                        WHERE
+                            form_cut_input.status = 'SELESAI PENGERJAAN'
+                            AND (
+                                stocker_ws_additional_detail.ratio > 0
+                                OR modify_size_qty.difference_qty != 0
+                            ) " . $additionalQuery2 . "
+                        GROUP BY
+                            form_cut_input.id,
+                            stocker_ws_additional.panel,
+                            stocker_ws_additional_detail.id
                     ) marker_cutting
                 GROUP BY
                     marker_cutting.id_meja,
@@ -1047,64 +1090,83 @@ class ReportCuttingController extends Controller
     {
         $additionalQuery = "";
         $additionalQuery1 = "";
+        $additionalQuery2 = "";
 
         if ($request->dateFrom) {
             $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '" . $request->dateFrom . "'";
             $additionalQuery1 .= " and form_cut_piece.tanggal >= '" . $request->dateFrom . "'";
+            $additionalQuery2 .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) >= '" . $request->dateFrom . "'";
         }
 
         if ($request->dateTo) {
             $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) <= '" . $request->dateTo . "'";
             $additionalQuery1 .= " and form_cut_piece.tanggal <= '" . $request->dateTo . "'";
+            $additionalQuery2 .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) <= '" . $request->dateTo . "'";
         }
 
         $tanggalFilter = "";
         $tanggalFilter1 = "";
+        $tanggalFilter2 = "";
         if ($request->tanggal) {
             $tanggalFilter = " and form_cut.tgl_form_cut LIKE '%" . $request->tanggal . "%'";
             $tanggalFilter1 = " and form_cut_piece.tgl_form_cut LIKE '%" . $request->tanggal . "%'";
+            $tanggalFilter2 = " and form_cut_input.tgl_form_cut LIKE '%" . $request->tanggal . "%'";
         }
         $noMejaFilter = "";
         $noMejaFilter1 = "";
+        $noMejaFilter2 = "";
         if ($request->noMeja) {
             $noMejaFilter = " and form_cut.meja LIKE '%" . $request->noMeja . "%'";
             $noMejaFilter1 = " and form_cut_piece.employee_name LIKE '%" . $request->noMeja . "%'";
+            $noMejaFilter2 = " and meja.name LIKE '%" . $request->noMeja . "%'";
         }
         $buyerFilter = "";
         $buyerFilter1 = "";
+        $buyerFilter2 = "";
         if ($request->buyer) {
             $buyerFilter = " and marker_input.buyer LIKE '%" . $request->buyer . "%'";
             $buyerFilter1 = " and form_cut_piece.buyer LIKE '%" . $request->buyer . "%'";
+            $buyerFilter2 = " and stocker_ws_additional.buyer LIKE '%" . $request->buyer . "%'";
         }
         $noFormFilter = "";
         $noFormFilter1 = "";
+        $noFormFilter2 = "";
         if ($request->noForm) {
             $noFormFilter = " and form_cut.no_form LIKE '%" . $request->noForm . "%'";
             $noFormFilter1 = " and form_cut_piece.no_form LIKE '%" . $request->noForm . "%'";
+            $noFormFilter2 = " and stocker_ws_additional.no_form LIKE '%" . $request->noForm . "%'";
         }
         $wsFilter = "";
         $wsFilter1 = "";
+        $wsFilter2 = "";
         if ($request->ws) {
             $wsFilter = " and marker_input.act_costing_ws LIKE '%" . $request->ws . "%'";
             $wsFilter1 = " and form_cut_piece.act_costing_ws LIKE '%" . $request->ws . "%'";
+            $wsFilter2 = " and stocker_ws_additional.act_costing_ws LIKE '%" . $request->ws . "%'";
         }
         $styleFilter = "";
         $styleFilter1 = "";
+        $styleFilter2 = "";
         if ($request->style) {
             $styleFilter = " and marker_input.style LIKE '%" . $request->style . "%'";
             $styleFilter1 = " and form_cut_piece.style LIKE '%" . $request->style . "%'";
+            $styleFilter2 = " and stocker_ws_additional.style LIKE '%" . $request->style . "%'";
         }
         $colorFilter = "";
         $colorFilter1 = "";
+        $colorFilter2 = "";
         if ($request->color) {
             $colorFilter = " and marker_input.color LIKE '%" . $request->color . "%'";
             $colorFilter1 = " and form_cut_piece.color LIKE '%" . $request->color . "%'";
+            $colorFilter2 = " and stocker_ws_additional.color LIKE '%" . $request->color . "%'";
         }
         $panelFilter = "";
         $panelFilter1 = "";
+        $panelFilter2 = "";
         if ($request->panel) {
             $panelFilter = " and marker_input.panel LIKE '%" . $request->panel . "%'";
             $panelFilter1 = " and form_cut_piece.panel LIKE '%" . $request->panel . "%'";
+            $panelFilter2 = " and stocker_ws_additional.panel LIKE '%" . $request->panel . "%'";
         }
 
         $reportCutting = collect(
@@ -1248,10 +1310,10 @@ class ReportCuttingController extends Controller
                             marker_input.kode,
                             stocker_ws_additional.no_form AS no_form_meja,
                             form_cut_input.id form_cut_id,
-                            form_cut_input.no_form,
+                            stocker_ws_additional.no_form,
                             form_cut_input.no_meja AS id_meja,
                             UPPER(meja.`name`) meja,
-                            form_cut_input.tgl_form_cut,
+                            COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) tgl_form_cut,
                             stocker_ws_additional.buyer,
                             stocker_ws_additional.act_costing_id,
                             stocker_ws_additional.act_costing_ws,
@@ -1263,28 +1325,37 @@ class ReportCuttingController extends Controller
                             stocker_ws_additional_detail.so_det_id,
                             stocker_ws_additional_detail.size,
                             stocker_ws_additional_detail.ratio,
-                            form_cut_input.notes,
+                            COALESCE(marker_input.notes, form_cut_input.notes) notes,
                             marker_input.gelar_qty AS marker_gelar,
                             SUM(form_cut_input.qty_ply) AS spreading_gelar,
-                            SUM(form_cut_input.total_lembar) AS form_gelar,
+                            SUM(COALESCE(form_cut_input_detail.lembar_gelaran, form_cut_input.total_lembar)) form_gelar,
                             SUM(modify_size_qty.difference_qty) AS diff
                         FROM laravel_nds.form_cut_input
+                        INNER JOIN laravel_nds.form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
                         LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                         LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                         LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
                         LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
-                                AND modify_size_qty.form_cut_id = form_cut_input.id
+                                        AND modify_size_qty.form_cut_id = form_cut_input.id
                         LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                         WHERE
-                                form_cut_input.status = 'SELESAI PENGERJAAN'
-                                AND (
-                                        stocker_ws_additional_detail.ratio > 0
-                                        OR modify_size_qty.difference_qty != 0
-                                ) " . $additionalQuery2 . "
+                            form_cut_input.status = 'SELESAI PENGERJAAN'
+                            AND (
+                                stocker_ws_additional_detail.ratio > 0
+                                OR modify_size_qty.difference_qty != 0
+                            ) 
+                            " . $additionalQuery2 . "
+                            " . $tanggalFilter2 . "
+                            " . $noMejaFilter2 . "
+                            " . $buyerFilter2 . "
+                            " . $wsFilter2 . "
+                            " . $styleFilter2 . "
+                            " . $colorFilter2 . "
+                            " . $panelFilter2 . "
                         GROUP BY
-                                form_cut_input.id,
-                                stocker_ws_additional.panel,
-                                stocker_ws_additional_detail.id
+                            form_cut_input.id,
+                            stocker_ws_additional.panel,
+                            stocker_ws_additional_detail.id
                     ) marker_cutting
                 GROUP BY
                     marker_cutting.id_meja,
