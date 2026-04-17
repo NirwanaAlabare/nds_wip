@@ -191,7 +191,7 @@
                             </div>
                             <div class="col-4 col-md-4">
                                 <div class="mb-3">
-                                    <label class="form-label small">QTY Gelar Marker</label>
+                                    <label class="form-label small">QTY Cut Ply</label>
                                     <div class="input-group input-group-sm">
                                         <input type="text" class="form-control form-control-sm" name="qty_ply" id="qty_ply" onchange="calculateAllRatio(this)" onkeyup="calculateAllRatio(this)" {{ $formCutInputData->qty_ply ? "value=".$formCutInputData->qty_ply." readonly" : '' }}>
                                         <span class="input-group-text">Ply</span>
