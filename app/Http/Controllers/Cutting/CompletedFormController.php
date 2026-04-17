@@ -167,7 +167,23 @@ class CompletedFormController extends Controller
     public function detailCutting($id) {
         $stockerData = Stocker::where("form_cut_id", $id)->first();
 
-        $formCutInputData = FormCutInput::leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->where('form_cut_input.id', $id)->first();
+        $formCutInputData = FormCutInput::leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->where('form_cut_input.id', $id)->
+            leftJoin(DB::raw("(
+                    SELECT
+                        *
+                    FROM (
+                        select
+                            ROW_NUMBER() OVER (PARTITION BY marker_id ORDER BY created_at, SUBSTRING_INDEX(no_form,'-',-1)) AS nomor,
+                            id,
+                            no_form,
+                            created_at
+                        from
+                            form_cut_input
+                    ) form
+                    WHERE
+                        form.id = '".$id."'
+                ) form"), "form.id", "=", "form_cut_input.id")->
+            first();
 
         $actCostingData = DB::connection("mysql_sb")->table('act_costing')->selectRaw('act_costing.id id, act_costing.styleno style, mastersupplier.Supplier buyer')->leftJoin('mastersupplier', 'mastersupplier.Id_Supplier', 'act_costing.id_buyer')->groupBy('act_costing.id')->where('act_costing.id', $formCutInputData->act_costing_id)->get();
 

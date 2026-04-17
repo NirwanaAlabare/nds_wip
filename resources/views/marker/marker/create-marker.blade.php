@@ -156,7 +156,7 @@
                                     <label class="form-label small">Gramasi</label>
                                     <div class="input-group input-group-sm">
                                         <input type="number" class="form-control" id="gramasi" name="gramasi" step=".001">
-                                        <span class="input-group-text">gr/cm^2</span>
+                                        <span class="input-group-text">gr/cm²</span>
                                     </div>
                                 </div>
                             </div>
@@ -676,7 +676,7 @@
                                 break;
                         }
 
-                        document.getElementById('cons_ws').value = cons;
+                        document.getElementById('cons_ws').value = cons.round(3);
                         document.getElementById('unit_cons_ws').value = consUnit;
                         $("#unit_cons_marker").val(consUnit).trigger("change");
                     }

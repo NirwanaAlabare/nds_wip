@@ -86,9 +86,9 @@
                             <div class="row g-3">
                                 <div class="col-md-4">
                                     <div class="mb-1">
-                                        <label class="form-label small">Cons WS</label>
+                                        <label class="form-label small">Cons. WS</label>
                                         <div class="input-group input-group-sm">
-                                            <input type="text" class="form-control" id="cons_ws" name="cons_ws" value="{{ $marker->cons_ws ? $marker->cons_ws : 0 }}" readonly>
+                                            <input type="text" class="form-control" id="cons_ws" name="cons_ws" value="{{ $marker->cons_ws ? round($marker->cons_ws, 3) : 0 }}" readonly>
                                             <input type="text" class="form-control" id="unit_cons_ws" name="unit_cons_ws" value="{{ $marker->unit_cons_ws ? $marker->unit_cons_ws : 'METER' }}" readonly>
                                         </div>
                                     </div>
@@ -157,7 +157,7 @@
                                     <label class="form-label small">Gramasi</label>
                                     <div class="input-group input-group-sm">
                                         <input type="number" class="form-control" id="gramasi" name="gramasi" step=".001" value="{{ $marker->gramasi ? $marker->gramasi : 0 }}" {{-- $totalForm > 0 ? "readonly" : "" --}}>
-                                        <input type="text" class="form-control" id="unit_gramasi" name="unit_gramasi" step=".001" value="gr/m2" readonly>
+                                        <input type="text" class="form-control" id="unit_gramasi" name="unit_gramasi" step=".001" value="gr/cm²" readonly>
                                     </div>
                                 </div>
                             </div>
