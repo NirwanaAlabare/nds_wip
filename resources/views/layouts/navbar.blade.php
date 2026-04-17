@@ -18,6 +18,22 @@
 @endif
 {{-- Nav Configuration --}}
 
+<style>
+    .dropdown-submenu {
+        position: relative;
+    }
+
+    .dropdown-submenu .dropdown-menu {
+        top: 0;
+        left: 100%;
+        margin-top: -1px;
+    }
+
+    .dropdown-submenu:hover .dropdown-menu {
+        display: block;
+    }
+</style>
+
 <nav class="main-header navbar navbar-expand-md navbar-light navbar-white sticky-top">
     <div class="container">
         <!-- LEFT SECTION -->
@@ -509,7 +525,7 @@
                             <li>
                                 <a href="{{ route('packing_rep_packing_mutasi_wip') }}"
                                     class="dropdown-item {{ $subPage == 'packing_rep_packing_mutasi_wip' ? 'active' : '' }}">
-                                    <i class="fas fa-file-upload fa-sm"></i> Mutasi Packing (WIP)
+                                    <i class="fas fa-file-upload fa-sm"></i> Report Mutasi Packing (WIP)
                                 </a>
                             </li>
 
@@ -921,7 +937,7 @@
                                     Costing <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>
-                             <li>
+                            <li>
                                 <a href="{{ route('master-bom') }}"
                                     class="dropdown-item {{ $subPage == 'marketing-master-bom' ? 'active' : '' }}">
                                     BOM <i class="fa-solid fa-list-ul fa-sm"></i>
@@ -975,6 +991,64 @@
                                     Data BC Signalbit
                                 </a>
                             </li>
+                            <!-- MENU BARU YANG ADA SUBMENU -->
+                            <li class="dropdown-submenu">
+                                <a href="#" class="dropdown-item dropdown-toggle">
+                                    List Mutasi WIP
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a href="{{ route('report_cutting_mutasi_fabric') }}" target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="dropdown-item {{ $routeName == 'report_cutting_mutasi_fabric' ? 'active' : '' }}">
+                                            Cutting - Mutasi Fabric
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('report_cutting_mutasi_fabric_proporsional') }}"
+                                            target="_blank" rel="noopener noreferrer"
+                                            class="dropdown-item {{ $routeName == 'report_cutting_mutasi_fabric_proporsional' ? 'active' : '' }}">
+                                            Cutting - Mutasi Fabric Proporsional
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('report_mutasi_wip_cutting') }}" target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="dropdown-item {{ $routeName == 'report_mutasi_wip_cutting' ? 'active' : '' }}">
+                                            Cutting - Mutasi WIP Cutting
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('dc-report') }}" target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="dropdown-item {{ $routeName == 'dc-report' ? 'active' : '' }}">
+                                            DC - Report WIP DC
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('report_mut_output') }}" target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="dropdown-item {{ $subPage == 'report_mut_output' ? 'active' : '' }}">
+                                            Sewing - Report Mutasi Output
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('report-sewing-mutasi-subcont') }}" target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="dropdown-item {{ $subPage == 'report-sewing-mutasi-subcont' ? 'active' : '' }}">
+                                            Sewing - Mutasi Sewing Subcont
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('packing_rep_packing_mutasi_wip') }}" target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="dropdown-item {{ $subPage == 'packing_rep_packing_mutasi_wip' ? 'active' : '' }}">
+                                            Packing - Mutasi Packing (WIP)
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+
                         </ul>
                     </li>
                 @endif

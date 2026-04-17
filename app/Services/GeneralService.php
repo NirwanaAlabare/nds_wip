@@ -101,4 +101,27 @@ class GeneralService
             "updated" => 0,
         );
     }
+
+    public function getItemByWsColorPanel($ws = null, $color = null, $panel = null) {
+        $item = DB::connection("mysql_sb")->select("
+                select
+                    DISTINCT
+                    mi.id_item,
+                    mi.itemdesc
+                from
+                    act_costing ac
+                    inner join so on ac.id = so.id_cost
+                    inner join jo_det jod on so.id = jod.id_so
+                    inner join bom_jo_item bji on bji.id_jo = jod.id_jo
+                    inner join masterpanel mp on bji.id_panel = mp.id
+                    inner join masteritem mi on mi.id_gen = bji.id_item
+                where
+                    kpno = '".$ws."' AND
+                    mi.color = '".$color."' AND
+                    matclass = 'FABRIC' and
+                    nama_panel like '%".$panel."%'
+            ");
+
+        return $item;
+    }
 }

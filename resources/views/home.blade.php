@@ -254,8 +254,6 @@
                             </div>
                         @endadmin
 
-                        {{-- Deprecated --}}
-                        {{--
                         @ga
                             <div class="col-lg-2 col-md-3 col-sm-6">
                                 <a href="{{ route('dashboard-ga') }}" class="home-item">
@@ -270,7 +268,6 @@
                                 </a>
                             </div>
                         @endga
-                    --}}
 
                         {{-- Marketing --}}
                         @role('admin')

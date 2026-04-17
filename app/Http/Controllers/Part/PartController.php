@@ -51,7 +51,7 @@ class PartController extends Controller
                     part.buyer,
                     part.act_costing_ws,
                     REPLACE(part.style, '\"', ' ') style,
-                    COALESCE(GROUP_CONCAT(DISTINCT marker_input.color), part.color) color,
+                    COALESCE(GROUP_CONCAT(DISTINCT COALESCE(marker_input.color, form_cut_piece.color)), part.color) color,
                     part.panel,
                     UPPER(COALESCE(part.panel_status, '')) panel_status,
                     COUNT(DISTINCT form_cut_input.id) total_form,
@@ -61,6 +61,7 @@ class PartController extends Controller
                 ->leftJoin("master_part", "master_part.id", "part_detail.master_part_id")
                 ->leftJoin("part_form", "part_form.part_id", "part.id")
                 ->leftJoin("form_cut_input", "form_cut_input.id", "part_form.form_id")
+                ->leftJoin("form_cut_piece", "form_cut_piece.id", "part_form.form_pcs_id")
                 ->leftJoin("marker_input", "marker_input.id", "form_cut_input.marker_id")
                 ->leftJoin(
                     DB::raw("
@@ -1099,7 +1100,27 @@ class PartController extends Controller
                         PartDetail::where("id", $validatedRequest['edit_com_id'])->update([
                             "master_part_id" => $validatedRequest['edit_com_master_part_id'],
                             "from_part_detail" => $validatedRequest['edit_com_from_part_id'],
+                            "from_part_detail" => $validatedRequest['edit_com_from_part_id'],
                         ]);
+
+                        // Phase 7 (Update Part Item)
+                        if ($request->edit_com_item && count($request->edit_com_item) > 0) {
+                            // Delete Current Part Detail Item
+                            PartDetailItem::where("part_detail_id", $validatedRequest['edit_com_id'])->delete();
+
+                            // Repopulate Part Detail Item
+                            $partItemData = [];
+                            for ($i = 0; $i < count($request->edit_com_item); $i++) {
+                                array_push($partItemData, [
+                                    "part_detail_id" => $validatedRequest['edit_com_id'],
+                                    "bom_jo_item_id" => $request->edit_com_item[$i],
+                                    "created_at" => $timestamp,
+                                    "updated_at" => $timestamp,
+                                ]);
+                            }
+
+                            PartDetailItem::upsert($partItemData, ['part_detail_id', 'bom_jo_item_id'], ["updated_at"]);
+                        }
 
                         $status = "200";
                         $message = 'Data Part Secondary "' . $validatedRequest["edit_com_id"] . '" berhasil disimpan.';
@@ -1428,7 +1449,8 @@ class PartController extends Controller
                 UPPER(pd.unit) unit,
                 COALESCE(pd.part_status, '-') part_status,
                 stocker.total total_stocker,
-                GROUP_CONCAT(DISTINCT masteritem.itemdesc) item
+                GROUP_CONCAT(DISTINCT masteritem.itemdesc) item,
+                pd.status
             FROM
                 `part_detail` pd
                 inner join master_part mp on pd.master_part_id = mp.id
@@ -1460,7 +1482,7 @@ class PartController extends Controller
                 left join signalbit_erp.masteritem mi on mi.id_item = bji.id_item
             where
                 part_id = '" . $request->id . "' and
-                (part_status != 'complement')
+                (part_status IS NULL OR part_status != 'complement')
             GROUP BY
                 pd.id
             order by
@@ -1487,7 +1509,8 @@ class PartController extends Controller
                 UPPER(pd.unit) com_unit,
                 COALESCE(pd.part_status, '-') com_part_status,
                 stocker.total com_total_stocker,
-                GROUP_CONCAT(DISTINCT masteritem.itemdesc) com_item
+                GROUP_CONCAT(DISTINCT masteritem.itemdesc) com_item,
+                pd.status
             FROM
                 `part_detail` pd
                 inner join master_part mp on pd.master_part_id = mp.id
@@ -1527,6 +1550,68 @@ class PartController extends Controller
         );
 
         return DataTables::of($list_part)->toJson();
+    }
+
+    public function cancelPartDetail($id=0) {
+        $partDetail = PartDetail::with('masterPart')->find($id);
+
+        if ($partDetail) {
+            // Update Part Detail Status to Inactive
+            $partDetailUpdate = $partDetail->update([
+               "status" => "inactive",
+               "updated_by" => Auth::user() ? Auth::user()->id : null,
+               "updated_by_username" => Auth::user() ? Auth::user()->username : null,
+            ]);
+
+            if ($partDetailUpdate) {
+                return array(
+                    'status' => 200,
+                    'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> berhasil diupdate menjadi Inactive. <br> "'.$partDetail->id.'"',
+                    'redirect' => '',
+                    'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
+                    'additional' => [],
+                );
+            }
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> gagal diupdate menjadi Inactive. <br> "'.$partDetail->id.'"',
+            'redirect' => '',
+            'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
+            'additional' => [],
+        );
+    }
+
+    public function uncancelPartDetail($id=0) {
+        $partDetail = PartDetail::with('masterPart')->find($id);
+
+        if ($partDetail) {
+            // Update Part Detail Status to Inactive
+            $partDetailUpdate = $partDetail->update([
+               "status" => "active",
+               "updated_by" => Auth::user() ? Auth::user()->id : null,
+               "updated_by_username" => Auth::user() ? Auth::user()->username : null,
+            ]);
+
+            if ($partDetailUpdate) {
+                return array(
+                    'status' => 200,
+                    'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> berhasil diupdate menjadi Active. <br> "'.$partDetail->id.'"',
+                    'redirect' => '',
+                    'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
+                    'additional' => [],
+                );
+            }
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> gagal diupdate menjadi Active. <br> "'.$partDetail->id.'"',
+            'redirect' => '',
+            'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
+            'additional' => [],
+        );
     }
 
     public function destroyPartDetail($id=0) {

@@ -308,6 +308,8 @@ function submitForm(e, evt) {
             }
 
             $("input[type=submit][clicked=true]").removeAttr('disabled');
+
+            // Swal with reload
             if (res.status == 200 || res.status == 999) {
                 $('.modal').modal('hide');
 
@@ -341,7 +343,10 @@ function submitForm(e, evt) {
                 if (res.callback != '') {
                     eval(res.callback);
                 }
-            } else if (res.status == 300) {
+            }
+
+            // Izitoast without reload
+            else if (res.status == 300) {
                 $('.modal').modal('hide');
 
                 iziToast.success({
@@ -355,7 +360,10 @@ function submitForm(e, evt) {
                     $(".select2").val('').trigger('change');
                     $(".select2bs4").val('').trigger('change');
                 }
-            } else if (res.status == 900) {
+            }
+
+            // Swal with reload
+            else if (res.status == 900) {
                 Swal.fire({
                     icon: 'success',
                     title: "Berhasil",
@@ -384,7 +392,10 @@ function submitForm(e, evt) {
                 if (res.callback != '') {
                     eval(res.callback);
                 }
-            } else if (res.status == 201) {
+            }
+
+            // Swal with conditional reload
+            else if (res.status == 201) {
                 // $('.modal').modal('hide');
 
                 Swal.fire({
@@ -417,7 +428,10 @@ function submitForm(e, evt) {
                 if (res.callback != '') {
                     eval(res.callback);
                 }
-            } else if (res.status == 202) {
+            }
+
+            // Swal with conditional reload
+            else if (res.status == 202) {
                 // $('.modal').modal('hide');
 
                 Swal.fire({
@@ -451,7 +465,10 @@ function submitForm(e, evt) {
                 if (res.callback != '') {
                     eval(res.callback);
                 }
-            } else if (res.status == 203) {
+            }
+
+            // Swal with multi condition message with reload
+            else if (res.status == 203) {
                 // $('.modal').modal('hide');
 
                 let successMessage = "";
@@ -496,7 +513,10 @@ function submitForm(e, evt) {
                 if (res.callback != '') {
                     eval(res.callback);
                 }
-            } else {
+            }
+
+            // When Error
+            else {
                 for (let i = 0; i < res.errors; i++) {
                     document.getElementById(res.errors[i]).classList.add('is-invalid');
                     modified.push([res.errors[i], 'classList', 'remove(', "'is-invalid')"])
@@ -515,10 +535,12 @@ function submitForm(e, evt) {
                 });
             }
 
+            // Table Reload
             if (res.table != '') {
                 $('#' + res.table).DataTable().ajax.reload();
             }
 
+            // Invalid Form Handling
             if (res.additional && typeof res.additional === "object" && res.additional !== null) {
                 if (Object.keys(res.additional).length > 0) {
                     for (let key in res.additional) {
@@ -622,7 +644,7 @@ async function editData(e, modal, addons = []) {
 }
 
 // Delete data confirmation
-function deleteData(e) {
+function deleteData(e, type = null) {
     console.log(e, e.getAttribute('data'));
 
     let data = JSON.parse(e.getAttribute('data'));
@@ -630,10 +652,10 @@ function deleteData(e) {
     if (data.hasOwnProperty('id')) {
         Swal.fire({
             icon: 'error',
-            title: 'Hapus data?',
+            title: type === 'cancel' ? 'Batalkan data?' : 'Hapus data?',
             showCancelButton: true,
             showConfirmButton: true,
-            confirmButtonText: 'Hapus',
+            confirmButtonText: type === 'cancel' ? 'Batalkan' : 'Hapus',
             cancelButtonText: 'Batal',
             confirmButtonColor: '#fa4456',
         }).then((result) => {
@@ -647,6 +669,85 @@ function deleteData(e) {
                     type: 'POST',
                     data: {
                         _method: 'DELETE'
+                    },
+                    success: function (res) {
+                        if (document.getElementById("loading")) {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+
+                        if (res.status == 200) {
+                            iziToast.success({
+                                title: 'Success',
+                                message: res.message,
+                                position: 'topCenter'
+                            });
+
+                            // $('.modal').modal('hide');
+                        } else {
+                            iziToast.error({
+                                title: 'Error',
+                                message: res.message,
+                                position: 'topCenter'
+                            });
+                        }
+
+                        if (res.table) {
+                            $('#' + res.table).DataTable().ajax.reload();
+                        }
+
+                        if (res.callback != '') {
+                            eval(res.callback);
+                        }
+                    }, error: function (jqXHR) {
+                        if (document.getElementById("loading")) {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+
+                        let res = jqXHR.responseJSON;
+                        let message = '';
+
+                        for (let key in res.errors) {
+                            message = res.errors[key];
+                        }
+
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Terjadi kesalahan. ' + message,
+                            position: 'topCenter'
+                        });
+                    }
+                })
+            }
+        })
+    }
+}
+
+// Restore data confirmation
+function restoreData(e, type = null) {
+    console.log(e, e.getAttribute('data'));
+
+    let data = JSON.parse(e.getAttribute('data'));
+
+    if (data.hasOwnProperty('id')) {
+        Swal.fire({
+            icon: 'info',
+            title: type === 'cancel' ? 'Aktifkan data?' : 'Pulihkan data?',
+            showCancelButton: true,
+            showConfirmButton: true,
+            confirmButtonText: type === 'cancel' ? 'Aktifkan' : 'Pulihkan',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#449ffa',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if (document.getElementById("loading")) {
+                    document.getElementById("loading").classList.remove("d-none");
+                }
+
+                $.ajax({
+                    url: e.getAttribute('data-url'),
+                    type: 'POST',
+                    data: {
+                        _method: 'PUT'
                     },
                     success: function (res) {
                         if (document.getElementById("loading")) {

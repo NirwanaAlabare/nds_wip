@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
-use App\Models\Cutting\ScannedItem;
 use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\ScannedItem;
+use App\Services\CuttingService;
 use App\Exports\ExportLaporanRoll;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Redirect;
@@ -145,15 +146,15 @@ class RollController extends Controller
         $additionalQuery2 = "";
 
         if ($request->dateFrom) {
-            $additionalQuery .= " and b.created_at >= '" . $request->dateFrom . " 00:00:00'";
-            $additionalQuery1 .= " and form_cut_piping.created_at >= '" . $request->dateFrom . " 00:00:00'";
-            $additionalQuery2 .= " and form_cut_piece_detail.created_at >= '" . $request->dateFrom . " 00:00:00'";
+            $additionalQuery .= " and a.waktu_selesai >= '" . $request->dateFrom . " 00:00:00'";
+            $additionalQuery1 .= " and form_cut_piping.updated_at >= '" . $request->dateFrom . " 00:00:00'";
+            $additionalQuery2 .= " and form_cut_piece.updated_at >= '" . $request->dateFrom . " 00:00:00'";
         }
 
         if ($request->dateTo) {
-            $additionalQuery .= " and b.created_at <= '" . $request->dateTo . " 23:59:59'";
-            $additionalQuery1 .= " and form_cut_piping.created_at <= '" . $request->dateTo . " 23:59:59'";
-            $additionalQuery2 .= " and form_cut_piece_detail.created_at <= '" . $request->dateTo . " 23:59:59'";
+            $additionalQuery .= " and a.waktu_selesai <= '" . $request->dateTo . " 23:59:59'";
+            $additionalQuery1 .= " and form_cut_piping.updated_at <= '" . $request->dateTo . " 23:59:59'";
+            $additionalQuery2 .= " and form_cut_piece.updated_at <= '" . $request->dateTo . " 23:59:59'";
         }
 
         if ($request->supplier) {
@@ -188,7 +189,7 @@ class RollController extends Controller
 
             $keywordQuery2 = "
                 and (
-                    act_costing_ws like '%" . $request->search["value"] . "%' OR
+                    mrk.act_costing_ws like '%" . $request->search["value"] . "%' OR
                     DATE_FORMAT(form_cut_piece_detail.created_at, '%d-%m-%Y') like '%" . $request->search["value"] . "%'
                 )
             ";
@@ -201,8 +202,10 @@ class RollController extends Controller
                     a.waktu_mulai,
                     a.waktu_selesai,
                     b.id,
-                    DATE_FORMAT(b.created_at, '%M') bulan,
-                    DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
+                    -- DATE_FORMAT(b.created_at, '%M') bulan,
+                    -- DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
+                    DATE_FORMAT(a.waktu_selesai, '%M') bulan,
+                    DATE_FORMAT(a.waktu_selesai, '%d-%m-%Y') tgl_input,
                     b.no_form_cut_input,
                     UPPER(meja.name) nama_meja,
                     mrk.act_costing_ws,
@@ -561,15 +564,15 @@ class RollController extends Controller
         $additionalQuery2 = "";
 
         if ($request->dateFrom) {
-            $additionalQuery .= " and b.created_at >= '" . $request->dateFrom . " 00:00:00'";
-            $additionalQuery1 .= " and form_cut_piping.created_at >= '" . $request->dateFrom . " 00:00:00'";
-            $additionalQuery2 .= " and form_cut_piece_detail.created_at >= '" . $request->dateFrom . " 00:00:00'";
+            $additionalQuery .= " and a.waktu_selesai >= '" . $request->dateFrom . " 00:00:00'";
+            $additionalQuery1 .= " and form_cut_piping.updated_at >= '" . $request->dateFrom . " 00:00:00'";
+            $additionalQuery2 .= " and form_cut_piece.updated_at >= '" . $request->dateFrom . " 00:00:00'";
         }
 
         if ($request->dateTo) {
-            $additionalQuery .= " and b.created_at <= '" . $request->dateTo . " 23:59:59'";
-            $additionalQuery1 .= " and form_cut_piping.created_at <= '" . $request->dateTo . " 23:59:59'";
-            $additionalQuery2 .= " and form_cut_piece_detail.created_at <= '" . $request->dateTo . " 23:59:59'";
+            $additionalQuery .= " and a.waktu_selesai <= '" . $request->dateTo . " 23:59:59'";
+            $additionalQuery1 .= " and form_cut_piping.updated_at <= '" . $request->dateTo . " 23:59:59'";
+            $additionalQuery2 .= " and form_cut_piece.updated_at <= '" . $request->dateTo . " 23:59:59'";
         }
 
         if ($request->supplier) {
@@ -591,8 +594,10 @@ class RollController extends Controller
                     a.waktu_mulai,
                     a.waktu_selesai,
                     b.id,
-                    DATE_FORMAT(b.created_at, '%M') bulan,
-                    DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
+                    -- DATE_FORMAT(b.created_at, '%M') bulan,
+                    -- DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
+                    DATE_FORMAT(a.waktu_selesai, '%M') bulan,
+                    DATE_FORMAT(a.waktu_selesai, '%d-%m-%Y') tgl_input,
                     b.no_form_cut_input,
                     UPPER(meja.name) nama_meja,
                     mrk.act_costing_ws,
@@ -1147,8 +1152,11 @@ class RollController extends Controller
         return view("cutting.roll.sisa-kain-roll", ['page' => 'dashboard-cutting', "subPageGroup" => "laporan-cutting", "subPage" => "sisa-kain-roll"]);
     }
 
-    public function getScannedItem($id)
+    public function getScannedItem($id, CuttingService $cuttingService)
     {
+        // Fix Roll Qty right before the roll is used
+        $fixRollQty = $cuttingService->fixRollQty($id);
+
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
                 buyer,
@@ -1206,7 +1214,7 @@ class RollController extends Controller
                 GROUP BY
                     whs_bppb_det.id
             ) item
-            LEFT JOIN (select a.no_barcode, (CASE WHEN supplier_in.no_barcode IS NULL THEN 0 ELSE sum(qty_aktual) END) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok LEFT JOIN (select b.no_barcode from whs_inmaterial_fabric a left join whs_lokasi_inmaterial b on b.no_dok = a.no_dok where b.no_barcode = '".$id."' and supplier != 'Production - Cutting' and b.status = 'Y' GROUP BY no_barcode) supplier_in on supplier_in.no_barcode = a.no_barcode where a.no_barcode = '".$id."' and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = item.id_roll
+            LEFT JOIN (select a.no_barcode, (CASE WHEN supplier_in.no_barcode IS NULL THEN 0 ELSE sum(qty_aktual) END) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok LEFT JOIN (select b.no_barcode from whs_inmaterial_fabric a left join whs_lokasi_inmaterial b on b.no_dok = a.no_dok where b.no_barcode = '" . $id . "' and supplier != 'Production - Cutting' and b.status = 'Y' GROUP BY no_barcode) supplier_in on supplier_in.no_barcode = a.no_barcode where a.no_barcode = '" . $id . "' and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = item.id_roll
             GROUP BY
                     id_roll
             LIMIT 1
@@ -1318,7 +1326,7 @@ class RollController extends Controller
         $forms = DB::select("
             SELECT
                 form_cut_input.id id_form,
-                no_form_cut_input,
+                form_cut_input.no_form as no_form_cut_input,
                 form_cut_input.no_cut,
                 id_roll,
                 MAX( qty ) qty,
@@ -1656,7 +1664,7 @@ from signalbit_erp.jo_det jd
         $data_ws = DB::connection('mysql_sb')->select("SELECT ac.kpno as isi, ac.kpno tampil from jo_det jd
          inner join so on jd.id_so = so.id
          inner join act_costing ac on so.id_cost = ac.id
-         where jd.cancel = 'N' and ac.cost_date >= '2025-01-01'
+         where jd.cancel = 'N' and ac.cost_date >= '2025-01-01' and ac.type_ws = 'STD'
          group by id_cost order by ac.kpno asc");
 
         return view(

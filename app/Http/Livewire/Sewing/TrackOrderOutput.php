@@ -72,36 +72,38 @@ class TrackOrderOutput extends Component
 
     public function updatedSelectedOrder()
     {
-        $firstPlan = MasterPlan::selectRaw("tgl_plan")->where("id_ws", $this->selectedOrder)->orderBy("tgl_plan", "asc")->first();
+        if ($this->selectedOrder) {
+            $firstPlan = MasterPlan::selectRaw("tgl_plan")->where("id_ws", $this->selectedOrder)->orderBy("tgl_plan", "asc")->first();
 
-        $lastPlan = collect(DB::connection("mysql_sb")->select("
-            SELECT
-                MAX(tgl_plan) as tgl_plan
-            FROM
-                (
-                    SELECT DATE(MAX(output_rfts_packing_po.updated_at)) as tgl_plan FROM output_rfts_packing_po LEFT JOIN master_plan ON master_plan.id = output_rfts_packing_po.master_plan_id WHERE master_plan.id_ws = '".$this->selectedOrder."'
-                        UNION ALL
-                    SELECT DATE(MAX(output_rfts_packing.updated_at)) as tgl_plan FROM output_rfts_packing LEFT JOIN master_plan ON master_plan.id = output_rfts_packing.master_plan_id WHERE master_plan.id_ws = '".$this->selectedOrder."'
-                        UNION ALL
-                    SELECT DATE(MAX(output_rfts.updated_at)) as tgl_plan FROM output_rfts LEFT JOIN master_plan ON master_plan.id = output_rfts.master_plan_id WHERE master_plan.id_ws = '".$this->selectedOrder."'
-                ) as output
-        "))->first();
+            $lastPlan = collect(DB::connection("mysql_sb")->select("
+                SELECT
+                    MAX(tgl_plan) as tgl_plan
+                FROM
+                    (
+                        SELECT DATE(MAX(output_rfts_packing_po.updated_at)) as tgl_plan FROM output_rfts_packing_po LEFT JOIN master_plan ON master_plan.id = output_rfts_packing_po.master_plan_id WHERE master_plan.id_ws = '".$this->selectedOrder."'
+                            UNION ALL
+                        SELECT DATE(MAX(output_rfts_packing.updated_at)) as tgl_plan FROM output_rfts_packing LEFT JOIN master_plan ON master_plan.id = output_rfts_packing.master_plan_id WHERE master_plan.id_ws = '".$this->selectedOrder."'
+                            UNION ALL
+                        SELECT DATE(MAX(output_rfts.updated_at)) as tgl_plan FROM output_rfts LEFT JOIN master_plan ON master_plan.id = output_rfts.master_plan_id WHERE master_plan.id_ws = '".$this->selectedOrder."'
+                    ) as output
+            "))->first();
 
-        if ($firstPlan) {
-            $this->dateFromFilter = $firstPlan->tgl_plan;
+            if ($firstPlan) {
+                $this->dateFromFilter = $firstPlan->tgl_plan;
+            }
+            else {
+                $this->dateFromFilter = date("Y-m-d");
+            }
+
+            if ($lastPlan) {
+                $this->dateToFilter = $lastPlan->tgl_plan;
+            }
+            else {
+                $this->dateToFilter = date("Y-m-d");
+            }
+
+            // $this->search = true;
         }
-        // else {
-        //     $this->dateFromFilter = date("Y-m-d");
-        // }
-
-        if ($lastPlan) {
-            $this->dateToFilter = $lastPlan->tgl_plan;
-        }
-        // else {
-        //     $this->dateToFilter = date("Y-m-d");
-        // }
-
-        // $this->search = true;
     }
 
     public function setSearch() {
@@ -111,6 +113,7 @@ class TrackOrderOutput extends Component
     public function render()
     {
         ini_set("max_execution_time", 3600);
+        ini_set("memory_limit", "2048M");
 
         if (!$this->dateFromFilter) {
             $this->dateFromFilter = date("Y-m-d");

@@ -536,9 +536,8 @@ UNION
 SELECT id_so_det FROM saldo_sew
 UNION
 SELECT so_det_id FROM saldo_awal_upload
-)
-
-
+),
+mut as (
 SELECT
 m.id_so_det,
 buyer,
@@ -615,7 +614,7 @@ COALESCE(su.finishing, 0)
 - COALESCE(qty_fin_reject_awal, 0)
 - COALESCE(qty_finishing_awal, 0)
 )
-+ COALESCE(ss.input_rework_sewing_f, 0) + COALESCE(ss.input_rework_spotcleaning_f, 0) + COALESCE(ss.input_rework_mending_f, 0)
++ COALESCE(qty_sewing, 0) + COALESCE(ss.input_rework_sewing_f, 0) + COALESCE(ss.input_rework_spotcleaning_f, 0) + COALESCE(ss.input_rework_mending_f, 0)
 - COALESCE(ss.defect_sewing_f, 0) - COALESCE(ss.defect_spotcleaning_f, 0) - COALESCE(ss.defect_mending_f, 0)
 - COALESCE(ss.qty_fin_reject, 0) - COALESCE(ss.qty_finishing, 0)
 AS saldo_akhir_finishing,
@@ -715,28 +714,26 @@ COALESCE(su.qty_reject, 0)
 + COALESCE(ss.qty_reject_in, 0)
 - COALESCE(ss.qty_rejected, 0)
 - COALESCE(ss.qty_reworked, 0) AS saldo_akhir_qc_reject
-
 FROM m
 LEFT JOIN saldo_awal sa on m.id_so_det = sa.id_so_det
 LEFT JOIN saldo_sew ss on m.id_so_det = ss.id_so_det
 LEFT JOIN saldo_awal_upload su on m.id_so_det = su.so_det_id
 LEFT JOIN (
 SELECT
-				sd.id as id_so_det,
-				ac.kpno as ws,
-                supplier as buyer,
-                styleno,
-				color,
-				size,
-                dest
-				FROM signalbit_erp.so_det sd
-				INNER JOIN signalbit_erp.so ON sd.id_so = so.id
-				INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
-				INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-                INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-				WHERE jd.cancel = 'N'
+sd.id as id_so_det,
+ac.kpno as ws,
+supplier as buyer,
+styleno,
+color,
+size,
+dest
+FROM signalbit_erp.so_det sd
+INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
+INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+WHERE jd.cancel = 'N'
 ) mb on m.id_so_det = mb.id_so_det
-LEFT JOIN signalbit_erp.master_size_new msn on mb.size = msn.size
 $filter
 HAVING NOT (
 saldo_awal_sewing = 0 AND
@@ -750,7 +747,6 @@ defect_mending = 0 AND
 qty_sew_reject = 0 AND
 qty_sewing = 0 AND
 saldo_akhir_sewing = 0 AND
-
 saldo_awal_finishing = 0 AND
 input_rework_sewing_f = 0 AND
 input_rework_spotcleaning_f = 0 AND
@@ -761,7 +757,6 @@ defect_mending_f = 0 AND
 qty_fin_reject = 0 AND
 qty_finishing = 0 AND
 saldo_akhir_finishing = 0 AND
-
 saldo_awal_secondary_proses = 0 AND
 total_in_sp = 0 AND
 rework_sp = 0 AND
@@ -769,17 +764,14 @@ defect_sp = 0 AND
 reject_sp = 0 AND
 rft_sp = 0 AND
 saldo_akhir_secondary_proses = 0 AND
-
 saldo_awal_defect_sewing = 0 AND
 total_defect_sewing = 0 AND
 total_input_rework_sewing = 0 AND
 saldo_akhir_defect_sewing = 0 AND
-
 saldo_awal_defect_spotcleaning = 0 AND
 total_defect_spotcleaning = 0 AND
 total_input_rework_spotcleaning = 0 AND
 saldo_akhir_defect_spotcleaning = 0 AND
-
 saldo_awal_defect_mending = 0 AND
 total_defect_mending = 0 AND
 total_input_rework_mending = 0 AND
@@ -788,9 +780,64 @@ saldo_awal_reject = 0 AND
 qty_reject_in = 0 AND
 qty_rejected = 0 AND
 qty_reworked = 0 AND
-saldo_akhir_qc_reject = 0
-
+saldo_akhir_qc_reject = 0 )
 )
+
+select
+buyer,
+ws,
+styleno,
+color,
+mut.size,
+SUM(saldo_awal_sewing) AS saldo_awal_sewing,
+SUM(qty_loading) AS qty_loading,
+SUM(input_rework_sewing) AS input_rework_sewing,
+SUM(input_rework_spotcleaning) AS input_rework_spotcleaning,
+SUM(input_rework_mending) AS input_rework_mending,
+SUM(defect_sewing) AS defect_sewing,
+SUM(defect_spotcleaning) AS defect_spotcleaning,
+SUM(defect_mending) AS defect_mending,
+SUM(qty_sew_reject) AS qty_sew_reject,
+SUM(qty_sewing) AS qty_sewing,
+SUM(saldo_akhir_sewing) AS saldo_akhir_sewing,
+SUM(saldo_awal_finishing) AS saldo_awal_finishing,
+SUM(input_rework_sewing_f) AS input_rework_sewing_f,
+SUM(input_rework_spotcleaning_f) AS input_rework_spotcleaning_f,
+SUM(input_rework_mending_f) AS input_rework_mending_f,
+SUM(defect_sewing_f) AS defect_sewing_f,
+SUM(defect_spotcleaning_f) AS defect_spotcleaning_f,
+SUM(defect_mending_f) AS defect_mending_f,
+SUM(qty_fin_reject) AS qty_fin_reject,
+SUM(qty_finishing) AS qty_finishing,
+SUM(saldo_akhir_finishing) AS saldo_akhir_finishing,
+SUM(saldo_awal_secondary_proses) AS saldo_awal_secondary_proses,
+SUM(total_in_sp) AS total_in_sp,
+SUM(rework_sp) AS rework_sp,
+SUM(defect_sp) AS defect_sp,
+SUM(reject_sp) AS reject_sp,
+SUM(rft_sp) AS rft_sp,
+SUM(saldo_akhir_secondary_proses) AS saldo_akhir_secondary_proses,
+SUM(saldo_awal_defect_sewing) AS saldo_awal_defect_sewing,
+SUM(total_defect_sewing) AS total_defect_sewing,
+SUM(total_input_rework_sewing) AS total_input_rework_sewing,
+SUM(saldo_akhir_defect_sewing) AS saldo_akhir_defect_sewing,
+SUM(saldo_awal_defect_spotcleaning) AS saldo_awal_defect_spotcleaning,
+SUM(total_defect_spotcleaning) AS total_defect_spotcleaning,
+SUM(total_input_rework_spotcleaning) AS total_input_rework_spotcleaning,
+SUM(saldo_akhir_defect_spotcleaning) AS saldo_akhir_defect_spotcleaning,
+SUM(saldo_awal_defect_mending) AS saldo_awal_defect_mending,
+SUM(total_defect_mending) AS total_defect_mending,
+SUM(total_input_rework_mending) AS total_input_rework_mending,
+SUM(saldo_akhir_mending) AS saldo_akhir_mending,
+SUM(saldo_awal_reject) AS saldo_awal_reject,
+SUM(qty_reject_in) AS qty_reject_in,
+SUM(qty_rejected) AS qty_rejected,
+SUM(qty_reworked) AS qty_reworked,
+SUM(saldo_akhir_qc_reject) AS saldo_akhir_qc_reject
+FROM mut
+LEFT JOIN signalbit_erp.master_size_new msn on mut.size = msn.size
+GROUP BY
+buyer, ws, styleno, color, size
 ORDER BY buyer asc, ws asc, color asc, urutan asc
 ");
 

@@ -18,7 +18,7 @@
         </div>
 
         {{-- Header Data PROCESS 1 --}}
-        <div class="col-md-6">
+        <div class="col-md-8">
             <div class="card card-sb h-100" id="header-data-card">
                 <div class="card-header">
                     <h3 class="card-title">Header Data</h3>
@@ -29,7 +29,7 @@
                 <div class="card-body" style="display: block;">
                     @php
                         $thisActCosting = $actCostingData->where('id', $formCutInputData->act_costing_id)->first();
-                        $thisMarkerDetails = $markerDetailData->where('kode_marker', $formCutInputData->id_marker);
+                        $thisMarkerDetails = $markerDetailData->where('kode_marker', $formCutInputData->id_marker)->where("ratio", ">", 0);
                     @endphp
                     <div class="row align-items-end">
                         <input type="hidden" name="id" id="id" value="{{ $id }}" readonly>
@@ -37,7 +37,7 @@
                         <input type="hidden" name="status" id="status" value="{{ $formCutInputData->status }}" readonly>
                         <div class="col-12 col-md-12">
                             <div class="mb-3">
-                            <label class="form-label"><small><b>Meja</b></small></label>
+                            <label class="form-label small">Meja</label>
                                 <select class="form-control select2bs4" id="no_meja" name="no_meja" style="width: 100%;">
                                     <option value="">Pilih Meja</option>
                                         @foreach ($meja as $m)
@@ -49,92 +49,110 @@
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="mb-3">
-                                <label class="form-label"><small><b>Start</b></small></label>
+                                <label class="form-label small">Start</label>
                                 <input type="datetime" class="form-control form-control-sm" name="start" id="start-time" value="{{ ($formCutInputData->waktu_mulai ? $formCutInputData->waktu_mulai : $formCutInputData->waktu_selesai) }}">
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="mb-3">
-                                <label class="form-label"><small><b>Finish</b></small></label>
+                                <label class="form-label small">Finish</label>
                                 <input type="datetime" class="form-control form-control-sm" name="finish" id="finish-time" value="{{ $formCutInputData->waktu_selesai ? $formCutInputData->waktu_selesai : $formCutInputData->waktu_mulai }}">
                             </div>
                         </div>
-                        <div class="col-6 col-md-4">
+                        <div class="col-6 col-md-4 d-none">
                             <div class="mb-3">
-                                <label class="form-label"><small><b>Shell</b></small></label>
+                                <label class="form-label small">Shell</label>
                                 <input type="text" class="form-control form-control-sm" name="shell" id="shell" value="{{ $formCutInputData->shell ? strtoupper($formCutInputData->shell) : "-" }}" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-6">
+                        <div class="col-12 col-md-4">
                             <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>No. Form</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="no_form" id="no_form" value="{{ $formCutInputData->no_form }}" readonly>
+                                <label class="form-label small label-fetch">No. WS</label>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="no_ws" id="no_ws" value="{{ $formCutInputData->act_costing_ws }}" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-6">
+                        <div class="col-4 col-md-4">
                             <div class="mb-3">
-                                <label class="form-label"><small><b>Tanggal</b></small></label>
+                                <label class="form-label label-fetch">No. Form</label>
+                                <input type="text" class="form-control form-control-lg border-fetch" name="no_form" id="no_form" value="{{ $formCutInputData->no_form }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-4 col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label label-fetch">Panel</label>
+                                <input type="text" class="form-control form-control-lg border-fetch" name="panel" id="panel" value="{{ $formCutInputData->panel }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-4 col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label label-fetch">Color</label>
+                                <input type="text" class="form-control form-control-lg border-fetch" name="color" id="color" value="{{ $formCutInputData->color }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6 d-none">
+                            <div class="mb-3">
+                                <label class="form-label small">Tanggal</label>
                                 <input type="date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-6">
+                        <div class="col-4 col-md-4">
                             <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Kode Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->id_marker }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>No. WS</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="no_ws" value="{{ $formCutInputData->act_costing_ws }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Buyer</b></small></label>
+                                <label class="form-label small label-fetch">Buyer</label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="buyer" value="{{ $thisActCosting ? $thisActCosting->buyer : '-' }}" readonly>
                             </div>
                         </div>
-                        <div class="col-12 col-md-6">
+                        <div class="col-4 col-md-4">
                             <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Style</b></small></label>
+                                <label class="form-label small label-fetch">Style</label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="style" value="{{ $thisActCosting ? $thisActCosting->style : '-' }}" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-4">
                             <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Color</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="color" id="color" value="{{ $formCutInputData->color }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-4 col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Panel</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="panel" id="panel" value="{{ $formCutInputData->panel }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-4 col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Tipe Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="tipe_marker" id="tipe_marker" value="{{ $formCutInputData->tipe_marker ? strtoupper($formCutInputData->tipe_marker) : '-' }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-4 col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>PO</b></small></label>
+                                <label class="form-label small label-fetch">PO</label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="po" value="{{ $formCutInputData->po_marker }}" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-4">
                             <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>QTY Gelar Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="gelar_qty" value="{{ $formCutInputData->gelar_qty }}" readonly>
+                                <label class="form-label small label-fetch">Tipe Marker</label>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="tipe_marker" id="tipe_marker" value="{{ $formCutInputData->tipe_marker ? strtoupper($formCutInputData->tipe_marker) : '-' }}" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-4">
                             <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>QTY Cut Ply</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" id="qty_ply" name="qty_ply" value="{{ $formCutInputData->qty_ply }}">
+                                <label class="form-label small label-fetch">Kode Marker</label>
+                                <input type="text" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->id_marker }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-4 col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label small label-fetch">Kode Marker</label>
+                                <input type="text" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->urutan_marker." / ".$formCutInputData->nomor }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-4 col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label small label-fetch">QTY Gelar Marker</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="gelar_qty" value="{{ $formCutInputData->gelar_qty }}" readonly>
+                                    <span class="input-group-text border-fetch">Ply</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label small label-fetch">QTY Cut Ply</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm border-fetch" id="qty_ply" name="qty_ply" value="{{ $formCutInputData->qty_ply }}">
+                                    <span class="input-group-text border-fetch">Ply</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label small label-fetch">Color Fabric</label>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="color_fabric" id="color_fabric" value="{{ $formCutInputData->color }}" readonly>
                             </div>
                         </div>
                     </div>
@@ -188,7 +206,7 @@
         </div>
 
         {{-- Detail Data PROCESS 2 --}}
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card card-sb h-100" id="detail-data-card">
                 <div class="card-header">
                     <h3 class="card-title">Detail Data</h3>
@@ -198,153 +216,108 @@
                 </div>
                 <div class="card-body" style="display: block;">
                     <div class="row">
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>P. Marker</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->panjang_marker }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Unit</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-input"><small><b>P. Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-input" name="p_act" id="p_act" value="{{ $formCutInputData->p_act }}"
-                                    onkeyup="
-                                        calculateSambungan();
-                                        calculateShortRoll();
-                                        calculatePemakaianLembar();
-                                        calculateTotalPemakaian();
-                                        calculateEstAmpar();
-                                        // calculateSisaKain();
-                                    "
-
-                                    onchange="
-                                        calculateSambungan();
-                                        calculateShortRoll();
-                                        calculatePemakaianLembar();
-                                        calculateTotalPemakaian();
-                                        calculateEstAmpar();
-                                        // calculateSisaKain();
-                                    "
-                                >
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-input"><small><b>Unit Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-input" name="unit_p_act" id="unit_p_act" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Comma</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->comma_marker }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Unit</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->unit_comma_marker) }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-input"><small><b>Comma Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-input" name="comma_act" id="comma_act" value="{{ $formCutInputData->comma_p_act }}"
-                                    onkeyup="
-                                        calculateSambungan();
-                                        calculateShortRoll();
-                                        calculatePemakaianLembar();
-                                        calculateTotalPemakaian();
-                                        calculateEstAmpar();
-                                        // calculateSisaKain();
-                                    "
-
-                                    onchange="
-                                        calculateSambungan();
-                                        calculateShortRoll();
-                                        calculatePemakaianLembar();
-                                        calculateTotalPemakaian();
-                                        calculateEstAmpar();
-                                        // calculateSisaKain();
-                                    "
-                                >
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-input"><small><b>Unit Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-input" name="unit_comma_act" id="unit_comma_act" value="{{ strtoupper($formCutInputData->unit_comma_marker) }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>L. Marker</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->lebar_marker) }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Unit</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-input"><small><b>L. Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-input" name="l_act" id="l_act" value="{{ $formCutInputData->l_act }}">
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-input"><small><b>Unit Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-input" name="unit_l_act" id="unit_l_act" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" readonly>
-                            </div>
-                        </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Lebar WS</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-fetch" name="lebar_ws" id="lebar_ws" value="{{ $formCutInputData->lebar_ws }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Unit WS</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="unit_lebar_ws" id="unit_lebar_ws" value="{{ strtoupper($formCutInputData->unit_lebar_ws) }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Gramasi</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="gramasi" id="gramasi" value="{{ $formCutInputData->gramasi }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Cons WS</b></small></label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws" id="cons_ws" readonly>
-                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_cons_ws" id="unit_cons_ws" readonly>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Cons Marker</b></small></label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control form-control-sm border-fetch" name="cons_marker" id="cons_marker" value="{{ $formCutInputData->cons_marker }}" readonly>
-                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_cons_marker" id="unit_cons_marker" value="{{ $formCutInputData->unit_cons_marker }}" readonly>
+                                <label class="form-label small label-fetch">Panjang Marker</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->panjang_marker }}" readonly>
+                                    <input type="text" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
                                 </div>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-calc"><small><b>Cons Ampar</b></small></label>
+                                <label class="form-label small label-input">Panjang Actual</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control form-control-sm border-input" name="p_act" id="p_act" value="{{ $formCutInputData->p_act }}"
+                                        onkeyup="
+                                            calculateSambungan();
+                                            calculateShortRoll();
+                                            calculatePemakaianLembar();
+                                            calculateTotalPemakaian();
+                                            calculateEstAmpar();
+                                            // calculateSisaKain();
+                                        "
+
+                                        onchange="
+                                            calculateSambungan();
+                                            calculateShortRoll();
+                                            calculatePemakaianLembar();
+                                            calculateTotalPemakaian();
+                                            calculateEstAmpar();
+                                            // calculateSisaKain();
+                                        "
+                                    >
+                                    <input type="text" class="form-control form-control-sm border-input" name="unit_p_act" id="unit_p_act" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label small label-fetch">Comma Marker</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->comma_marker }}" readonly>
+                                    <input type="text" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->unit_comma_marker) }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label small label-input">Comma Actual</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control form-control-sm border-input" name="comma_act" id="comma_act" value="{{ $formCutInputData->comma_p_act }}"
+                                        onkeyup="
+                                            calculateSambungan();
+                                            calculateShortRoll();
+                                            calculatePemakaianLembar();
+                                            calculateTotalPemakaian();
+                                            calculateEstAmpar();
+                                            // calculateSisaKain();
+                                        "
+
+                                        onchange="
+                                            calculateSambungan();
+                                            calculateShortRoll();
+                                            calculatePemakaianLembar();
+                                            calculateTotalPemakaian();
+                                            calculateEstAmpar();
+                                            // calculateSisaKain();
+                                        "
+                                    >
+                                    <input type="text" class="form-control form-control-sm border-input" name="unit_comma_act" id="unit_comma_act" value="{{ strtoupper($formCutInputData->unit_comma_marker) }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label small label-fetch">Lebar Marker</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->lebar_marker) }}" readonly>
+                                    <input type="text" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label small label-input">Lebar Actual</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control form-control-sm border-input" name="l_act" id="l_act" value="{{ $formCutInputData->l_act }}">
+                                    <input type="text" class="form-control form-control-sm border-input" name="unit_l_act" id="unit_l_act" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label small label-fetch">Lebar WS</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control form-control-sm border-fetch" name="lebar_ws" id="lebar_ws" value="{{ $formCutInputData->lebar_ws }}" readonly>
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_lebar_ws" id="unit_lebar_ws" value="{{ strtoupper($formCutInputData->unit_lebar_ws) }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label small label-calc">Cons Ampar</label>
                                 <div class="input-group">
                                     <input type="number" class="form-control form-control-sm border-calc" name="cons_act" id="cons_act" value="{{ round($formCutInputData->cons_ampar, 2) > 0 ? $formCutInputData->cons_ampar : 0 }}" step=".01" readonly>
                                     <input type="text" class="form-control form-control-sm border-calc" name="unit_cons_ampar" id="unit_cons_ampar" value="{{ $formCutInputData->unit_cons_marker }}" readonly>
@@ -353,16 +326,56 @@
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Cons Piping</b></small></label>
+                                <label class="form-label small label-fetch">Cons WS</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws" id="cons_ws" readonly>
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_cons_ws" id="unit_cons_ws" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label small label-fetch">Cons Marker</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="cons_marker" id="cons_marker" value="{{ $formCutInputData->cons_marker }}" readonly>
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="unit_cons_marker" id="unit_cons_marker" value="{{ $formCutInputData->unit_cons_marker }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label small label-fetch">Cons Piping</label>
                                 <div class="input-group">
                                     <input type="number" class="form-control form-control-sm border-fetch" step=".01" name="cons_pipping" id="cons_pipping" value="{{ $formCutInputData->cons_piping ? $formCutInputData->cons_piping : 0 }}" readonly>
                                     <input type="text" class="form-control form-control-sm border-fetch" name="unit_cons_pipping" id="unit_cons_pipping" value="{{ $formCutInputData->unit_cons_piping }}" readonly>
                                 </div>
                             </div>
                         </div>
+                        <div class="col-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label small label-fetch">Gramasi</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm border-fetch" name="gramasi" id="gramasi" value="{{ $formCutInputData->gramasi }}" readonly>
+                                    <span class="input-group-text border-fetch">gr/cm²</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <div id="marker_items">
+                                    <label class="form-label small label-fetch">ID Item yang harus digunakan</label>
+                                    <div class="marker_item mb-3" id="marker_items_0">
+                                        <div class="input-group">
+                                            <input type='text' class='form-control form-control-sm border-fetch w-25' id='txt_id_item_0' name='txt_id_item[0]' readonly>
+                                            <input type='text' class='form-control form-control-sm border-fetch w-75' id='txt_detail_item_0' name='txt_detail_item[0]' readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="col-6 col-md-6 d-none">
                             <div class="mb-3">
-                                <label class="form-label label-calc"><small><b>Cons 1 Ampar</b></small></label>
+                                <label class="form-label small label-calc">Cons 1 Ampar</label>
                                 <div class="row">
                                     <div class="col-8">
                                         <input type="number" class="form-control form-control-sm border-calc" step=".01" name="cons_ampar" id="cons_ampar" value="{{ $formCutInputData->cons_ampar }}" readonly>
@@ -375,27 +388,19 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-calc"><small><b>Est. Kebutuhan Kain Piping</b></small></label>
-                                <div class="row g-1">
-                                    <div class="col-6">
-                                        <input type="number" class="form-control form-control-sm border-calc" step=".01" name="est_pipping" id="est_pipping" value="{{ $formCutInputData->est_pipping ? $formCutInputData->est_pipping : "0.00" }}" readonly>
-                                    </div>
-                                    <div class="col-6">
-                                        <input type="text" class="form-control form-control-sm border-calc" name="est_pipping_unit" id="est_pipping_unit" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
-                                    </div>
+                                <label class="form-label small label-calc">Est. Kebutuhan Kain Piping</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control form-control-sm border-calc" step=".01" name="est_pipping" id="est_pipping" value="{{ $formCutInputData->est_pipping ? $formCutInputData->est_pipping : "0.00" }}" readonly>
+                                    <input type="text" class="form-control form-control-sm border-calc" name="est_pipping_unit" id="est_pipping_unit" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-calc"><small><b>Est. Kebutuhan Kain</b></small></label>
-                                <div class="row g-1">
-                                    <div class="col-6">
-                                        <input type="number" class="form-control form-control-sm border-calc" step=".01" name="est_kain" id="est_kain" value="{{ $formCutInputData->cons_marker * $totalCutQtyPly }}" readonly>
-                                    </div>
-                                    <div class="col-6">
-                                        <input type="text" class="form-control form-control-sm border-calc" name="est_kain_unit" id="est_kain_unit" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
-                                    </div>
+                                <label class="form-label small label-calc">Est. Kebutuhan Kain</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control form-control-sm border-calc" step=".01" name="est_kain" id="est_kain" value="{{ $formCutInputData->cons_marker * $totalCutQtyPly }}" readonly>
+                                    <input type="text" class="form-control form-control-sm border-calc" name="est_kain_unit" id="est_kain_unit" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
                                 </div>
                             </div>
                         </div>
@@ -528,13 +533,13 @@
                             <div class="row align-items-end">
                                 <div class="col-md-3">
                                     <div class="mb-3">
-                                        <label class="form-labe label-calc"><small><b>Cons. Actual</b></small></label>
+                                        <label class="form-label small label-calc">Cons. Actual</label>
                                         <input type="text" class="form-control form-control-sm border-calc" name="cons_actual_gelaran" id="cons_actual_gelaran" readonly>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="mb-3">
-                                        <label class="form-label label-calc"><small><b>Unit</b></small></label>
+                                        <label class="form-label small label-calc">Unit</label>
                                         <select class="form-select form-select-sm border-calc"
                                             name="unit_cons_actual_gelaran" id="unit_cons_actual_gelaran" disabled>
                                             <option value="meter">METER</option>
@@ -545,7 +550,7 @@
                                 </div>
                                 <div class="col-md-3">
                                     <div class="mb-3">
-                                        <label class="form-labe label-calc"><small><b>Kenaikan Cons. WS</b></small></label>
+                                        <label class="form-label small label-calc">Kenaikan Cons. WS</label>
                                         <div class="input-group input-group-sm mb-3">
                                             <input type="text" class="form-control border-calc" name="cons_ws_uprate" id="cons_ws_uprate" readonly>
                                             <span class="input-group-text border-calc">%</span>
@@ -554,7 +559,7 @@
                                 </div>
                                 <div class="col-md-3">
                                     <div class="mb-3">
-                                        <label class="form-labe label-calc"><small><b>Kenaikan Cons. Marker</b></small></label>
+                                        <label class="form-label small label-calc">Kenaikan Cons. Marker</label>
                                         <div class="input-group input-group-sm mb-3">
                                             <input type="text" class="form-control border-calc" name="cons_marker_uprate" id="cons_marker_uprate" readonly>
                                             <span class="input-group-text border-calc">%</span>
@@ -563,13 +568,13 @@
                                 </div>
                                 <div class="col-md-3 d-none">
                                     <div class="mb-3">
-                                        <label class="form-labe label-calc"><small><b>Cons. Actual Tanpa Short Roll</b></small></label>
+                                        <label class="form-label small label-calc">Cons. Actual Tanpa Short Roll</label>
                                         <input type="text" class="form-control form-control-sm border-calc" name="cons_actual_gelaran_short_rolless" id="cons_actual_gelaran_short_rolless" readonly>
                                     </div>
                                 </div>
                                 <div class="col-md-3 d-none">
                                     <div class="mb-3">
-                                        <label class="form-label label-calc"><small><b>Unit</b></small></label>
+                                        <label class="form-label small label-calc">Unit</label>
                                         <select class="form-select form-select-sm border-calc"
                                             name="unit_cons_actual_gelaran_short_rolless" id="unit_cons_actual_gelaran_short_rolless" disabled>
                                             <option value="meter">METER</option>
@@ -580,7 +585,7 @@
                                 </div>
                                 <div class="col-md-3 d-none">
                                     <div class="mb-3">
-                                        <label class="form-labe label-calc"><small><b>Kenaikan Cons. WS</b></small></label>
+                                        <label class="form-label small label-calc">Kenaikan Cons. WS</label>
                                         <div class="input-group input-group-sm mb-3">
                                             <input type="text" class="form-control border-calc" name="cons_ws_uprate_nosr" id="cons_ws_uprate_nosr" readonly>
                                             <span class="input-group-text border-calc">%</span>
@@ -589,7 +594,7 @@
                                 </div>
                                 <div class="col-md-3 d-none">
                                     <div class="mb-3">
-                                        <label class="form-labe label-calc"><small><b>Kenaikan Cons. Marker</b></small></label>
+                                        <label class="form-label small label-calc">Kenaikan Cons. Marker</label>
                                         <div class="input-group input-group-sm mb-3">
                                             <input type="text" class="form-control border-calc" name="cons_marker_uprate_nosr" id="cons_marker_uprate_nosr" readonly>
                                             <span class="input-group-text border-calc">%</span>
@@ -598,7 +603,7 @@
                                 </div>
                                 <div class="col-md-12">
                                     <div class="mb-3">
-                                        <label class="form-label label-input"><small><b>Operator</b></small></label>
+                                        <label class="form-label small label-input">Operator</label>
                                         <input type="text" class="form-control form-control-sm border-input"
                                             name="operator" id="operator" value="{{ $formCutInputData->operator }}">
                                     </div>
@@ -625,7 +630,7 @@
                             <input type="hidden" class="form-control" id="current_id" name="current_id">
                             <div class="col-3">
                                 <div class="mb-3">
-                                    <label class="form-label" id="current_id_roll_label"><small><b>Id Roll</b></small></label>
+                                    <label class="form-label small" id="current_id_roll_label">Id Roll</label>
                                     <div class="input-group input-group-sm">
                                         <input type="hidden" class="form-control" id="current_id_roll_ori" name="current_id_roll_ori">
                                         <input type="text" class="form-control" id="current_id_roll" name="current_id_roll" onchange="fetchScan()">
@@ -635,31 +640,31 @@
                             </div>
                             <div class="col-3">
                                 <div class="mb-3">
-                                    <label class="form-label" id="current_id_item_label"><small><b>Id Item</b></small></label>
+                                    <label class="form-label small" id="current_id_item_label">Id Item</label>
                                     <input type="text" class="form-control form-control-sm" id="current_id_item" name="current_id_item">
                                 </div>
                             </div>
                             <div class="col-3 d-none">
                                 <div class="mb-3">
-                                    <label class="form-label" id="current_detail_item_label"><small><b>Detail Item</b></small></label>
+                                    <label class="form-label small" id="current_detail_item_label">Detail Item</label>
                                     <input type="hidden" class="form-control form-control-sm" id="current_detail_item" name="current_detail_item" readonly>
                                 </div>
                             </div>
                             <div class="col-3">
                                 <div class="mb-3">
-                                    <label class="form-label" id="current_lot_label"><small><b>Lot</b></small></label>
+                                    <label class="form-label small" id="current_lot_label">Lot</label>
                                     <input type="text" class="form-control form-control-sm" id="current_lot" name="current_lot">
                                 </div>
                             </div>
                             <div class="col-3 d-none">
                                 <div class="mb-3">
-                                    <label class="form-label" id="current_roll_label"><small><b>Roll</b></small></label>
+                                    <label class="form-label small" id="current_roll_label">Roll</label>
                                     <input type="text" class="form-control form-control-sm" id="current_roll" name="current_roll">
                                 </div>
                             </div>
                             <div class="col-3">
                                 <div class="mb-3">
-                                    <label class="form-label" id="current_roll_buyer_label"><small><b>Roll Buyer</b></small></label>
+                                    <label class="form-label small" id="current_roll_buyer_label">Roll Buyer</label>
                                     <input type="text" class="form-control form-control-sm" id="current_roll_buyer" name="current_roll_buyer">
                                 </div>
                             </div>
@@ -672,7 +677,7 @@
                                         $disableQty = false;
                                     @endphp
                                 @endrole
-                                <label class="form-label" id="current_qty_real_label" {{ $disableQty ? 'readonly' : '' }}><small><b>Qty</b></small></label>
+                                <label class="form-label small" id="current_qty_real_label" {{ $disableQty ? 'readonly' : '' }}>Qty</label>
                                 <input type="hidden" id="current_qty_ori" name="current_qty_ori">
                                 <input type="hidden" id="current_unit_ori" name="current_unit_ori">
                                 <div class="d-flex mb-3">
@@ -686,7 +691,7 @@
                             </div>
                             <div class="col-6">
                                 <div class="mb-3">
-                                    <label class="form-label label-calc" id="current_qty_label"><small><b>Qty Konversi</b></small></label>
+                                    <label class="form-label small label-calc" id="current_qty_label">Qty Konversi</label>
                                     <div class="d-flex mb-3">
                                         <div style="width: 60%">
                                             <input type="number" class="form-control form-control-sm border-calc" style="border-radius: 3px 0 0 3px" id="current_qty" name="current_qty" readonly>
@@ -699,7 +704,7 @@
                             </div>
                             <div class="col-6">
                                 <div class="mb-3">
-                                    <label class="form-label label-input"><small><b>Sisa Gelaran</b></small></label>
+                                    <label class="form-label small label-input">Sisa Gelaran</label>
                                     <div class="d-flex mb-3">
                                         <div style="width: 60%;">
                                             <input type="number" class="form-control form-control-sm border-input" style="border-radius: 3px 0 0 3px" id="current_sisa_gelaran" name="current_sisa_gelaran" step=".01" readonly
@@ -724,7 +729,7 @@
                             </div>
                             <div class="col-6">
                                 <div class="mb-3">
-                                    <label class="form-label label-input"><small><b>Sambungan</b></small></label>
+                                    <label class="form-label small label-input">Sambungan</label>
                                     <div class="d-flex">
                                         <div style="width: 60%">
                                             <input type="number" class="form-control form-control-sm border-input" style="border-radius: 3px 0 0 3px" id="current_sambungan" name="current_sambungan" step=".01" readonly
@@ -751,7 +756,7 @@
                                 <div class="row">
                                     <div class="col d-none" id="berat_amparan">
                                         <div class="mb-3">
-                                            <label class="form-label label-input"><small><b>Berat Amparan</b></small></label>
+                                            <label class="form-label small label-input">Berat Amparan</label>
                                             <div class="input-group input-group-sm mb-3">
                                                 <input type="number" class="form-control form-control-sm " id="current_berat_amparan" name="current_berat_amparan" step=".01"
                                                     onkeyup="
@@ -778,26 +783,26 @@
                                     </div>
                                     <div class="col">
                                         <div class="mb-3">
-                                            <label class="form-label label-input"><small><b>Group</b></small></label>
+                                            <label class="form-label small label-input">Group</label>
                                             <input type="text" class="form-control form-control-sm border-input" id="current_group" name="current_group">
                                         </div>
                                     </div>
                                     <div class="col d-none">
                                         <div class="mb-3">
-                                            <label class="form-label label-input"><small><b>Group Number</b></small></label>
+                                            <label class="form-label small label-input">Group Number</label>
                                             <input type="text" class="form-control form-control-sm border-input" id="current_group_stocker" name="current_group_stocker">
                                         </div>
                                     </div>
                                     <div class="col">
                                         <div class="mb-3">
-                                            <label class="form-label label-calc"><small><b>Estimasi Amparan</b></small></label>
+                                            <label class="form-label small label-calc">Estimasi Amparan</label>
                                             <input type="number" class="form-control form-control-sm border-calc"
                                                 id="current_est_amparan" name="current_est_amparan" step=".01" readonly>
                                         </div>
                                     </div>
                                     <div class="col">
                                         <div class="mb-3">
-                                            <label class="form-label label-sb"><small><b>Lembar Gelaran</b></small></label>
+                                            <label class="form-label small label-sb">Lembar Gelaran</label>
                                             <input type="hidden" id="lembar_gelaran" name="lembar_gelaran">
                                             <input type="number" class="form-control form-control-sm border-sb" id="current_lembar_gelaran" name="current_lembar_gelaran" {{ $stockerData ? 'readonly' : '' }}
                                                 onkeyup="
@@ -821,7 +826,7 @@
                             </div>
                             <div class="col-12">
                                 <div class="mb-3">
-                                    <label class="form-label label-sb"><small><b>Ply Progress</b></small></label>
+                                    <label class="form-label small label-sb">Ply Progress</label>
                                     <div class="progress border border-sb" style="height: 31px">
                                         <p class="position-absolute" style="top: 59%;left: 50%;transform: translate(-50%, -50%);" id="current_ply_progress_txt"></p>
                                         <div class="progress-bar" style="background-color: #75baeb;" role="progressbar" id="current_ply_progress"></div>
@@ -830,7 +835,7 @@
                             </div>
                             <div class="col-3">
                                 <div class="mb-3">
-                                    <label class="form-label label-input"><small><b>Kepala Kain</b></small></label>
+                                    <label class="form-label small label-input">Kepala Kain</label>
                                     <div class="input-group input-group-sm mb-3">
                                         <input type="number" class="form-control border-input" id="current_kepala_kain" name="current_kepala_kain" step=".01"
                                             onkeyup="
@@ -851,7 +856,7 @@
                             </div>
                             <div class="col-3">
                                 <div class="mb-3">
-                                    <label class="form-label label-input"><small><b>Sisa Tidak Bisa</b></small></label>
+                                    <label class="form-label small label-input">Sisa Tidak Bisa</label>
                                     <div class="input-group input-group-sm mb-3">
                                         <input type="number" class="form-control border-input" id="current_sisa_tidak_bisa" name="current_sisa_tidak_bisa" step=".01"
                                             onkeyup="
@@ -872,7 +877,7 @@
                             </div>
                             <div class="col-3">
                                 <div class="mb-3">
-                                    <label class="form-label label-input"><small><b>Reject</b></small></label>
+                                    <label class="form-label small label-input">Reject</label>
                                     <div class="input-group input-group-sm mb-3">
                                         <input type="number" class="form-control form-control-sm border-input" id="current_reject" name="current_reject" step=".01"
                                             onkeyup="
@@ -893,7 +898,7 @@
                             </div>
                             <div class="col-3">
                                 <div class="mb-3">
-                                    <label class="form-label label-input"><small><b>Piping</b></small></label>
+                                    <label class="form-label small label-input">Piping</label>
                                     <div class="input-group input-group-sm mb-3">
                                         <input type="number" class="form-control form-control-sm border-input" id="current_piping" name="current_piping" step=".01"
                                             onkeyup="
@@ -913,7 +918,7 @@
                                 </div>
                             </div>
                             <div class="col-4" id="total-sambungan-section">
-                                <label class="form-label label-input"><small><b>Sambungan Roll</b></small></label>
+                                <label class="form-label small label-input">Sambungan Roll</label>
                                 <div class="input-group input-group-sm mb-3">
                                     <input type="number" class="form-control form-control-sm" id="current_total_sambungan_roll" name="current_total_sambungan_roll" onkeyup="calculatePemakaianLembar();calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll();" onchange="calculatePemakaianLembar();calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll();">
                                     <span class="input-group-text input-group-unit"></span>
@@ -921,7 +926,7 @@
                             </div>
                             <div class="col-4">
                                 <div class="mb-3">
-                                    <label class="form-label label-input"><small><b>Sisa Kain</b></small></label>
+                                    <label class="form-label small label-input">Sisa Kain</label>
                                     <div class="input-group input-group-sm mb-3">
                                         <input type="hidden" id="current_sisa_kain_ori" name="current_sisa_kain_ori">
                                         <input type="number" class="form-control form-control-sm border-input" id="current_sisa_kain" name="current_sisa_kain" step=".01"
@@ -939,7 +944,7 @@
                                 <div class="row align-items-end">
                                     <div class="col-8">
                                         <div class="mb-3">
-                                            <label class="form-label label-calc"><small><b>Short Roll +/-</b></small></label>
+                                            <label class="form-label small label-calc">Short Roll +/-</label>
                                             <div class="input-group input-group-sm mb-3">
                                                 <input type="number" class="form-control form-control-sm border-calc" id="current_short_roll" name="current_short_roll" step=".01" readonly>
                                                 <span class="input-group-text input-group-unit"></span>
@@ -948,7 +953,7 @@
                                     </div>
                                     <div class="col-4">
                                         <div class="mb-3">
-                                            <label class="form-label label-calc"><small><b>(%)</b></small></label>
+                                            <label class="form-label small label-calc">(%)</label>
                                             <input type="number" class="form-control form-control-sm border-calc" id="current_short_roll_percentage" name="current_short_roll_percentage" step=".01" readonly>
                                         </div>
                                     </div>
@@ -956,7 +961,7 @@
                             </div>
                             <div class="col-6">
                                 <div class="mb-3">
-                                    <label class="form-label label-calc"><small><b>Pemakaian Lembar</b></small></label>
+                                    <label class="form-label small label-calc">Pemakaian Lembar</label>
                                     <div class="input-group input-group-sm mb-3">
                                         <input type="number" class="form-control form-control-sm border-calc" id="current_pemakaian_lembar" name="current_pemakaian_lembar" step=".01" readonly>
                                         <span class="input-group-text input-group-unit"></span>
@@ -965,7 +970,7 @@
                             </div>
                             <div class="col-6">
                                 <div class="mb-3">
-                                    <label class="form-label label-calc"><small><b>Tot. Pemakaian Roll</b></small></label>
+                                    <label class="form-label small label-calc">Tot. Pemakaian Roll</label>
                                     <div class="input-group input-group-sm mb-3">
                                         <input type="number" class="form-control form-control-sm border-calc" id="current_total_pemakaian_roll" name="current_total_pemakaian_roll" step=".01" readonly>
                                         <span class="input-group-text input-group-unit"></span>
@@ -1011,7 +1016,7 @@
         <div class="card">
             <div class="card-body">
                 <div class="mb-3">
-                    <label class="form-label">UBAH STATUS</label>
+                    <label class="form-label small">UBAH STATUS</label>
                     <div class="d-flex gap-1 mb-3">
                         <select class="form-control select2bs4" name="edit_status" id="edit_status">
                             <option value="SPREADING">SPREADING</option>
@@ -2127,7 +2132,93 @@
                         // $("#unit_cons_ws_marker").val(consUnit).trigger("change");
                         // $('#cons_marker').val(cons).trigger("change");
                         // $("#unit_cons_marker").val(consUnit).trigger("change");
+
+                        getItemByWsColorPanel();
                     }
+                }
+            });
+        }
+
+        function getItemByWsColorPanel(ws = null, color = null, panel = null) {
+            deleteAfterFirstMarkerItem();
+
+            let wsVal = ws || document.getElementById('no_ws').value;
+            let colorVal = color || document.getElementById('color').value;
+            let panelVal = panel || document.getElementById('panel').value;
+
+            $.ajax({
+                url: '{{ route('get-item-by-ws-color-panel') }}',
+                method: 'get',
+                data: {
+                    act_costing_ws: wsVal,
+                    color: colorVal,
+                    panel: panelVal
+                },
+                dataType: 'json',
+                success: function(response) {
+                    console.log(response);
+                    if (response.length > 0) {
+                        response.forEach((item, index) => {
+                            console.log(item, index);
+                            if (index == 0) {
+                                document.getElementById('txt_id_item_0').value = item.id_item;
+                                document.getElementById('txt_detail_item_0').value = item.itemdesc;
+                            } else {
+                                addMarkerItem(item.id_item, item.itemdesc);
+                            }
+                        });
+                    }
+                },
+                error: function(jqXHR) {
+                    console.error(jqXHR);
+                }
+            });
+        }
+
+        function addMarkerItem(id = "", detail = "") {
+            const container = document.getElementById('marker_items');
+            const items = container.getElementsByClassName('marker_item');
+
+            // Get last item
+            const lastItem = items[items.length - 1];
+
+            // Clone it
+            const newItem = lastItem.cloneNode(true);
+
+            // New index
+            const newIndex = items.length;
+
+            // Update IDs and names
+            newItem.id = 'marker_items_' + newIndex;
+
+            const inputs = newItem.querySelectorAll('input');
+            inputs.forEach((input) => {
+                // Update id
+                if (input.id.includes('txt_id_item')) {
+                    input.id = 'txt_id_item_' + newIndex;
+                    input.name = 'txt_id_item[' + newIndex + ']';
+                    input.value = id;
+                } else if (input.id.includes('txt_detail_item')) {
+                    input.id = 'txt_detail_item_' + newIndex;
+                    input.name = 'txt_detail_item[' + newIndex + ']';
+                    input.value = detail;
+                }
+            });
+
+            // Append to container
+            container.appendChild(newItem);
+        }
+
+        function deleteAfterFirstMarkerItem() {
+            const container = document.getElementById('marker_items');
+            const items = container.getElementsByClassName('marker_item');
+
+            // Convert HTMLCollection to array to safely remove elements
+            const itemsArray = Array.from(items);
+
+            itemsArray.forEach((item, index) => {
+                if (index > 0) {
+                    item.remove();
                 }
             });
         }
@@ -2791,7 +2882,7 @@
             //         divCol1.setAttribute('class', 'col-12 mb-1');
 
             //         divCol1.innerHTML=`
-            //             `+(index == 0 ? `<label class="form-label"><small><b>Sambungan Roll</b></small></label>`: `` )+`
+            //             `+(index == 0 ? `<label class="form-label small">Sambungan Roll</label>`: `` )+`
             //             <div class="input-group input-group-sm">
             //                 <input type="number" class="form-control form-control-sm border-input sambungan_roll" id="sambungan_roll_`+index+`" name="sambungan_roll[`+index+`]" step=".0001" onkeyup="sumNewSambungan()" onchange="sumNewSambungan()" value="`+element.sambungan_roll+`">
             //             </div>
@@ -2835,7 +2926,7 @@
             //     divCol1.setAttribute('class', 'col-12 mb-1');
 
             //     divCol1.innerHTML=`
-            //         <label class="form-label"><small><b>Sambungan Roll</b></small></label>
+            //         <label class="form-label small">Sambungan Roll</label>
             //         <div class="input-group input-group-sm">
             //             <input type="number" class="form-control form-control-sm border-input sambungan_roll" id="sambungan_roll_0" name="sambungan_roll[0]" step=".0001" onkeyup="sumNewSambungan()" onchange="sumNewSambungan()">
             //             <span class="input-group-text input-group-unit"></span>

@@ -99,6 +99,7 @@ class CuttingFormController extends Controller
                     b.po_marker po_marker,
                     b.urutan_marker urutan_marker,
                     b.cons_marker cons_marker,
+                    b.unit_cons_marker unit_cons_marker,
                     UPPER(b.tipe_marker) tipe_marker,
                     cutting_plan.app,
                     a.tipe_form_cut,
@@ -225,7 +226,7 @@ class CuttingFormController extends Controller
      * @param  \App\Models\FormCut  $formCut
      * @return \Illuminate\Http\Response
      */
-    public function process($id = 0)
+    public function process($id = null)
     {
         // Form Data
         $formCutInputData = FormCutInput::selectRaw("
@@ -260,10 +261,26 @@ class CuttingFormController extends Controller
                 marker_input.cons_marker,
                 marker_input.unit_cons_marker,
                 marker_input.gramasi,
-                users.name
+                users.name,
+                form.nomor
             ")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+            leftJoin(DB::raw("(
+                SELECT
+                    *
+                FROM (
+                    select
+                        ROW_NUMBER() OVER (PARTITION BY marker_id ORDER BY created_at, SUBSTRING_INDEX(no_form,'-',-1)) AS nomor,
+                        id,
+                        no_form,
+                        created_at
+                    from
+                        form_cut_input
+                ) form
+                WHERE
+                    form.id = '".$id."'
+            ) form"), "form.id", "=", "form_cut_input.id")->
             where('form_cut_input.id', $id)->
             first();
 
@@ -334,7 +351,7 @@ class CuttingFormController extends Controller
         return json_encode($numberData);
     }
 
-    public function startProcess($id = 0, Request $request)
+    public function startProcess($id = null, Request $request)
     {
         $startTime = $request->startTime;
 
@@ -360,7 +377,7 @@ class CuttingFormController extends Controller
         );
     }
 
-    public function nextProcessOne($id = 0, Request $request)
+    public function nextProcessOne($id = null, Request $request)
     {
         $updateFormCutInput = FormCutInput::where("id", $id)->update([
             "status" => "PENGERJAAN FORM CUTTING DETAIL",
@@ -383,7 +400,7 @@ class CuttingFormController extends Controller
         );
     }
 
-    public function nextProcessTwo($id = 0, Request $request)
+    public function nextProcessTwo($id = null, Request $request)
     {
         $validatedRequest = $request->validate([
             "p_act" => "required",
@@ -443,9 +460,9 @@ class CuttingFormController extends Controller
         );
     }
 
-    public function getTimeRecord($id = 0, $noForm = 0)
+    public function getTimeRecord($id = null, $noForm = 0)
     {
-        $timeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where("form_cut_input_detail.form_cut_id", $id)->where("form_cut_input_detail.no_form_cut_input", $noForm)->where('form_cut_input_detail.status', '!=', 'not complete')->where('form_cut_input_detail.status', '!=', 'extension')->groupBy('form_cut_input_detail.id')->orderByRaw('form_cut_input_detail.created_at asc')->get();
+        $timeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->whereRaw("(form_cut_input_detail.form_cut_id = '".$id."' OR form_cut_input_detail.no_form_cut_input = '".$noForm."')")->where('form_cut_input_detail.status', '!=', 'not complete')->where('form_cut_input_detail.status', '!=', 'extension')->groupBy('form_cut_input_detail.id')->orderByRaw('form_cut_input_detail.created_at asc')->get();
 
         return json_encode($timeRecordSummary);
     }
@@ -1080,7 +1097,7 @@ class CuttingFormController extends Controller
         );
     }
 
-    public function checkSpreadingForm($id = 0, $noForm = 0, $noMeja = 0)
+    public function checkSpreadingForm($id = null, $noForm = 0, $noMeja = 0)
     {
         $formCutInputDetailData = FormCutInputDetail::selectRaw('
                 form_cut_input_detail.*,
@@ -1132,7 +1149,7 @@ class CuttingFormController extends Controller
         );
     }
 
-    public function storeLostTime(Request $request, $id = 0)
+    public function storeLostTime(Request $request, $id = null)
     {
         $now = Carbon::now();
 
@@ -1147,7 +1164,7 @@ class CuttingFormController extends Controller
         );
     }
 
-    public function checkLostTime($id = 0)
+    public function checkLostTime($id = null)
     {
         $formCutInputLostTimeData = FormCutInputLostTime::where('form_cut_input_id', $id)->get();
 
@@ -1157,8 +1174,15 @@ class CuttingFormController extends Controller
         );
     }
 
-    public function checkSambungan($id = 0)
+    public function checkSambungan($id = null)
     {
+        if ($id === null) {
+            return array(
+                "count" => null,
+                "data" => null,
+            );
+        }
+
         $sambungan = FormCutInputDetailSambungan::where('form_cut_input_detail_id', $id)->get();
 
         return array(
@@ -1167,7 +1191,7 @@ class CuttingFormController extends Controller
         );
     }
 
-    public function finishProcess($id = 0, Request $request)
+    public function finishProcess($id = null, Request $request)
     {
         $formCutInputData = FormCutInput::where("id", $id)->first();
 
@@ -1347,12 +1371,42 @@ class CuttingFormController extends Controller
             "id" => "required",
         ]);
 
-        $formCut = FormCutInput::where("id", $validatedRequest['id'])->update([
-            "locked" => 1,
-            "unlocked_by" => null,
-        ]);
+        // Set Locktype
+        $lockType = $request->locktype ? $request->locktype : "shortroll";
 
-        return $formCut;
+        // Determine the column to update based on lock type
+        $updateColumn = [];
+        switch ($lockType) {
+            case "shortroll":
+                $updateColumn = [
+                    "locked" => 1,
+                    "unlocked_by" => null,
+                ];
+
+                break;
+            case "consmarker":
+                $updateColumn = [
+                    "cons_locked" => 1,
+                    "cons_unlocked_by" => null,
+                ];
+
+                break;
+            default:
+                return response()->json(['message' => 'Invalid lock type'], 400);
+        }
+
+        // At least one column
+        if (count($updateColumn) > 0) {
+            $formCut = FormCutInput::where("id", $validatedRequest['id'])->update($updateColumn);
+
+            return $formCut;
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Terjadi kesalahan",
+            "additional" => [],
+        );
     }
 
     public function formCutUnlock(Request $request) {
@@ -1366,15 +1420,47 @@ class CuttingFormController extends Controller
             $unlocker = User::where("username", $validatedRequest['username'])->whereIn("type", ["admin", "superadmin"])->where("cutting_unlocker", 1)->first();
 
             if ($unlocker) {
-                FormCutInput::where("id", $validatedRequest['id'])->update([
-                    "locked" => 0,
-                    "unlocked_by" => $unlocker->id,
-                ]);
+                // Set Locktype
+                $lockType = $request->locktype ? $request->locktype : "shortroll";
 
-                $formCut = FormCutInput::where("id", $validatedRequest['id'])->first();
+                // Determine the column to update based on lock type
+                $updateColumn = [];
+                switch ($lockType) {
+                    case "shortroll":
+                        $updateColumn = [
+                            "locked" => 0,
+                            "unlocked_by" => $unlocker->id,
+                        ];
 
-                if ($formCut) {
-                    return $formCut;
+                        break;
+                    case "consmarker":
+                        $updateColumn = [
+                            "cons_locked" => 0,
+                            "cons_unlocked_by" => $unlocker->id,
+                        ];
+
+                        break;
+                    default:
+                        return response()->json(['message' => 'Invalid lock type'], 400);
+                }
+
+                // At least one column
+                if (count($updateColumn) > 0) {
+                    $formCut = FormCutInput::where("id", $validatedRequest['id'])->update($updateColumn);
+                }
+
+                $formCutFetch = FormCutInput::where("id", $validatedRequest['id'])->first();
+
+                if ($formCutFetch) {
+
+                    return $formCutFetch;
+
+                } else {
+                    return array(
+                        "status" => 400,
+                        "message" => "Terjadi kesalahan saat membuka kunci",
+                        "additional" => [],
+                    );
                 }
 
                 // $unlocker->unlock_token = ($unlocker->unlock_token ? $unlocker->id."".Carbon::now()->format('ymd')."".substr($unlocker->unlock_token, -1)+1 : $unlocker->id."".Carbon::now()->format('Ymd')."1");

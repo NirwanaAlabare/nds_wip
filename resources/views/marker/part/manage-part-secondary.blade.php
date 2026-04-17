@@ -214,6 +214,7 @@
                                     <th>Proses</th>
                                     <th>Status</th>
                                     <th>Item</th>
+                                    <th>Active</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -329,6 +330,7 @@
                                     <th>Status</th>
                                     <th>From</th>
                                     <th>Item</th>
+                                    <th>Active</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -794,6 +796,9 @@
                     {
                         data: 'item',
                     },
+                    {
+                        data: 'status',
+                    },
                 ],
                 columnDefs: [
                     {
@@ -808,6 +813,20 @@
                                 <button class='btn btn-danger btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
                                     <i class='fa fa-trash'></i>
                                 </button>
+                                `+ (
+                                    row['status'] == 'inactive' ?
+                                    `
+                                        <button class='btn btn-info btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('uncancel-part-detail') }}/`+row['id']+`' onclick='restoreData(this, "cancel")' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
+                                            <i class='fa fa-check'></i>
+                                        </button>
+                                    `
+                                    :
+                                    `
+                                        <button class='btn btn-warning btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('cancel-part-detail') }}/`+row['id']+`' onclick='deleteData(this, "cancel")' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
+                                            <i class='fa fa-ban'></i>
+                                        </button>
+                                    `
+                                ) +`
                             `;
                         }
                     },
@@ -1018,6 +1037,9 @@
                     },
                     {
                         data: 'com_item',
+                    },
+                    {
+                        data: 'status',
                     },
                 ],
                 columnDefs: [

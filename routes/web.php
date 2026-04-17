@@ -1,225 +1,176 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
-// User
-use App\Http\Controllers\User\UserController;
-use App\Http\Controllers\User\ManageUserController;
-use App\Http\Controllers\User\ManageRoleController;
-use App\Http\Controllers\User\ManageAccessController;
-use App\Http\Controllers\User\ManageUserLineController;
-
-// Dashboard WIP Line
-use App\Http\Controllers\DashboardWipLineController;
-
-// General
-use App\Http\Controllers\General\GeneralController;
-use App\Http\Controllers\General\DashboardController;
-
-// Track
-use App\Http\Controllers\General\TrackController;
-
-// Worksheet
-use App\Http\Controllers\General\WorksheetController;
 use App\Events\TestEvent;
-
-// Part
-use App\Http\Controllers\Part\MasterPartController;
-use App\Http\Controllers\Part\MasterSecondaryController;
-use App\Http\Controllers\Part\PartController;
-
-// Marker
-use App\Http\Controllers\Marker\MarkerController;
-
-// Cutting
-use App\Http\Controllers\Cutting\SpreadingController;
+use App\Http\Controllers\AccountingController;
+use App\Http\Controllers\BarcodePackingController;
+use App\Http\Controllers\Cutting\CompletedFormController;
 use App\Http\Controllers\Cutting\CuttingFormController;
 use App\Http\Controllers\Cutting\CuttingFormManualController;
+use App\Http\Controllers\Cutting\CuttingFormPieceController;
 use App\Http\Controllers\Cutting\CuttingFormPilotController;
 use App\Http\Controllers\Cutting\CuttingFormRejectController;
-use App\Http\Controllers\Cutting\CuttingFormPieceController;
-use App\Http\Controllers\Cutting\PipingController;
 use App\Http\Controllers\Cutting\CuttingPlanController;
-use App\Http\Controllers\Cutting\ReportCuttingController;
-use App\Http\Controllers\Cutting\CompletedFormController;
-use App\Http\Controllers\Cutting\RollController;
-use App\Http\Controllers\Cutting\GantiRejectController;
-// Piping Process
-use App\Http\Controllers\Cutting\MasterPipingController;
-use App\Http\Controllers\Cutting\PipingProcessController;
-use App\Http\Controllers\Cutting\PipingLoadingController;
-use App\Http\Controllers\Cutting\PipingStockController;
-// Cutting Tools
 use App\Http\Controllers\Cutting\CuttingToolsController;
-
-// Stocker
-use App\Http\Controllers\Stocker\StockerController;
-use App\Http\Controllers\Stocker\YearSequenceController;
-use App\Http\Controllers\Stocker\StockerToolsController;
-use App\Http\Controllers\Stocker\StockerRejectController;
-
-// DC
+use App\Http\Controllers\Cutting\GantiRejectController;
+use App\Http\Controllers\Cutting\MasterPipingController;
+use App\Http\Controllers\Cutting\PenerimaanCuttingController;
+use App\Http\Controllers\Cutting\PipingController;
+use App\Http\Controllers\Cutting\PipingLoadingController;
+use App\Http\Controllers\Cutting\PipingProcessController;
+use App\Http\Controllers\Cutting\PipingStockController;
+use App\Http\Controllers\Cutting\ReportCuttingController;
+use App\Http\Controllers\Cutting\RollController;
+use App\Http\Controllers\Cutting\SpreadingController;
+use App\Http\Controllers\DashboardFabricController;
+use App\Http\Controllers\DashboardWipLineController;
+use App\Http\Controllers\DC\BonLoadingController;
 use App\Http\Controllers\DC\DCInController;
+use App\Http\Controllers\DC\DcReportController;
+use App\Http\Controllers\DC\DcToolsController;
+use App\Http\Controllers\DC\LoadingLineController;
+use App\Http\Controllers\DC\LoadingOutController;
+use App\Http\Controllers\DC\RackController;
+use App\Http\Controllers\DC\RackStockerController;
 use App\Http\Controllers\DC\SecondaryInController;
 use App\Http\Controllers\DC\SecondaryInhouseInController;
 use App\Http\Controllers\DC\SecondaryInhouseOutController;
 use App\Http\Controllers\DC\StockDcCompleteController;
 use App\Http\Controllers\DC\StockDcIncompleteController;
 use App\Http\Controllers\DC\StockDcWipController;
-use App\Http\Controllers\DC\RackController;
-use App\Http\Controllers\DC\RackStockerController;
 use App\Http\Controllers\DC\TrolleyController;
 use App\Http\Controllers\DC\TrolleyStockerController;
-use App\Http\Controllers\DC\LoadingLineController;
-use App\Http\Controllers\DC\LoadingOutController;
-use App\Http\Controllers\DC\BonLoadingController;
-use App\Http\Controllers\DC\DcToolsController;
-use App\Http\Controllers\DC\DcReportController;
-
-// Sewing
-use App\Http\Controllers\Sewing\MasterLineController;
-use App\Http\Controllers\Sewing\MasterPlanController;
-use App\Http\Controllers\Sewing\MasterDefectController;
-use App\Http\Controllers\Sewing\ReportController;
-use App\Http\Controllers\Sewing\OrderDefectController;
-use App\Http\Controllers\Sewing\TrackOrderOutputController;
-use App\Http\Controllers\Sewing\TransferOutputController;
-use App\Http\Controllers\Sewing\LineDashboardController;
-use App\Http\Controllers\Sewing\LineWipController;
-use App\Http\Controllers\Sewing\UndoOutputController;
-use App\Http\Controllers\Sewing\ReportDefectController;
-use App\Http\Controllers\Sewing\ReportRejectController;
-use App\Http\Controllers\Sewing\SewingToolsController;
-use App\Http\Controllers\Sewing\SewingSecondaryMasterController;
-
-// Production
-use App\Http\Controllers\Sewing\MasterKursBiController;
-use App\Http\Controllers\Sewing\MasterBuyerController;
-use App\Http\Controllers\Sewing\MasterJabatanController;
-use App\Http\Controllers\Sewing\MasterKaryawanController;
-use App\Http\Controllers\Sewing\DataProduksiController;
-use App\Http\Controllers\Sewing\DataDetailProduksiController;
-use App\Http\Controllers\Sewing\DataDetailProduksiDayController;
-use App\Http\Controllers\Sewing\ReportOutputController;
-use App\Http\Controllers\Sewing\ReportProductionController;
-use App\Http\Controllers\Sewing\ReportEfficiencyController;
-use App\Http\Controllers\Sewing\ReportEfficiencyNewController;
-use App\Http\Controllers\Sewing\ReportDetailOutputController;
-use App\Http\Controllers\Sewing\ReportMutasiOutputController;
-
-use App\Http\Controllers\WarehouseController;
-use App\Http\Controllers\MasterLokasiController;
-use App\Http\Controllers\InMaterialController;
-use App\Http\Controllers\OutMaterialController;
-use App\Http\Controllers\MutLokasiController;
-use App\Http\Controllers\QcPassController;
 use App\Http\Controllers\EmployeeController;
-use App\Http\Controllers\MutasiMesinController;
-use App\Http\Controllers\MutasiMesinStockOpnameController;
-use App\Http\Controllers\MutasiMesinMasterController;
-use App\Http\Controllers\MutasiMesinLaporanController;
-use App\Http\Controllers\ReqMaterialController;
-use App\Http\Controllers\ReturMaterialController;
-use App\Http\Controllers\ReturInMaterialController;
-use App\Http\Controllers\LapDetPemasukanController;
-use App\Http\Controllers\LapDetPengeluaranController;
-use App\Http\Controllers\LapMutasiGlobalController;
-use App\Http\Controllers\LapDetPengeluaranRollController;
-use App\Http\Controllers\LapDetPemasukanRollController;
-use App\Http\Controllers\LapMutasiDetailController;
-use App\Http\Controllers\DashboardFabricController;
-use App\Http\Controllers\FGStokMasterController;
 use App\Http\Controllers\FGStokBPBController;
 use App\Http\Controllers\FGStokBPPBController;
 use App\Http\Controllers\FGStokLaporanController;
+use App\Http\Controllers\FGStokMasterController;
 use App\Http\Controllers\FGStokMutasiController;
-use App\Http\Controllers\KonfPemasukanController;
-use App\Http\Controllers\KonfPengeluaranController;
-use App\Http\Controllers\TransferBpbController;
-use App\Http\Controllers\LapMutasiBarcodeController;
-
-use App\Http\Controllers\PPICDashboardController;
-
-//  PPIC
-use App\Http\Controllers\PPIC_MasterSOController;
-use App\Http\Controllers\PPIC_LaporanTrackingController;
-use App\Http\Controllers\PPIC_MonitoringMaterialController;
-use App\Http\Controllers\PPIC_MonitoringMaterialDetController;
-use App\Http\Controllers\PPIC_MonitoringMaterialSumController;
-use App\Http\Controllers\ReportHourlyController;
-use App\Http\Controllers\BarcodePackingController;
-use App\Http\Controllers\PPIC_tools_adjustmentController;
-// PACKING
-use App\Http\Controllers\PackingDashboardController;
-use App\Http\Controllers\PackingTransferGarmentController;
-use App\Http\Controllers\PackingPackingInController;
-use App\Http\Controllers\PackingPackingOutController;
-use App\Http\Controllers\PackingNeedleCheckController;
-use App\Http\Controllers\PackingMasterKartonController;
-use App\Http\Controllers\PackingPackingListController;
-use App\Http\Controllers\PackingReportController;
-use App\Http\Controllers\PackingLineController;
-
-// FINISH GOOD
+use App\Http\Controllers\FinishGoodAlokasiKartonController;
 use App\Http\Controllers\FinishGoodDashboardController;
 use App\Http\Controllers\FinishGoodMasterLokasiController;
 use App\Http\Controllers\FinishGoodPenerimaanController;
 use App\Http\Controllers\FinishGoodPengeluaranController;
 use App\Http\Controllers\FinishGoodReturController;
-use App\Http\Controllers\FinishGoodAlokasiKartonController;
-
-// REPORT DOC
-use App\Http\Controllers\ReportDocController;
-
-// GA GAIS
-use App\Http\Controllers\GAPengajuanBahanBakarController;
 use App\Http\Controllers\GAApprovalBahanBakarController;
-use App\Http\Controllers\StockOpnameController;
-
-use App\Http\Controllers\ProcurementController;
-use App\Http\Controllers\AccountingController;
-
-// Marketing
-use App\Http\Controllers\MarketingDashboardController;
-use App\Http\Controllers\Marketing_CostingController;
-use App\Http\Controllers\Marketing_BomController;
-use App\Http\Controllers\Marketing_AdditionalBomController;
-use App\Http\Controllers\Marketing_SOController;
-
-// QC Inspect Kain
-use App\Http\Controllers\QCInspectDashboardController;
-use App\Http\Controllers\QCInspectMasterController;
-use App\Http\Controllers\QCInspectProsesPackingListController;
-use App\Http\Controllers\QCInspectProsesFormInspectController;
-use App\Http\Controllers\QCInspectProsesFabricRelaxationController;
-use App\Http\Controllers\QCInspectLaporanController;
-use App\Http\Controllers\QCInspectPrintBintexShadeBandController;
-use App\Http\Controllers\QCInspectShadeBandController;
-
-// Management Report
-use App\Http\Controllers\MgtReportDashboardController;
-use App\Http\Controllers\MgtReportProsesController;
-use App\Http\Controllers\MgtReportSumProdEarnController;
-use App\Http\Controllers\MgtReportSumFullEarnController;
-use App\Http\Controllers\MgtReportDailyCostController;
-use App\Http\Controllers\MgtReportEarningController;
-use App\Http\Controllers\MgtReportSumBuyerController;
-use App\Http\Controllers\MgtReportDailyEarnBuyerController;
-use App\Http\Controllers\MgtReportProfitLineController;
-
-// Industrial Engineering
-use App\Http\Controllers\IEDashboardController;
-use App\Http\Controllers\IEMasterProcessController;
-use App\Http\Controllers\IEMasterPartProcessController;
-use App\Http\Controllers\IE_Proses_OB_Controller;
+use App\Http\Controllers\GAPengajuanBahanBakarController;
+use App\Http\Controllers\General\DashboardController;
+use App\Http\Controllers\General\GeneralController;
+use App\Http\Controllers\General\TrackController;
+use App\Http\Controllers\General\WorksheetController;
 use App\Http\Controllers\IE_Laporan_Controller;
-
-
-//maintain-bpb
+use App\Http\Controllers\IE_Proses_OB_Controller;
+use App\Http\Controllers\IEDashboardController;
+use App\Http\Controllers\IEMasterPartProcessController;
+use App\Http\Controllers\IEMasterProcessController;
+use App\Http\Controllers\InMaterialController;
+use App\Http\Controllers\KonfPemasukanController;
+use App\Http\Controllers\KonfPengeluaranController;
+use App\Http\Controllers\LapDetPemasukanController;
+use App\Http\Controllers\LapDetPemasukanRollController;
+use App\Http\Controllers\LapDetPengeluaranController;
+use App\Http\Controllers\LapDetPengeluaranRollController;
+use App\Http\Controllers\LapMutasiBarcodeController;
+use App\Http\Controllers\LapMutasiDetailController;
+use App\Http\Controllers\LapMutasiGlobalController;
 use App\Http\Controllers\MaintainBpbController;
-
-//packing subcont
+use App\Http\Controllers\Marker\MarkerController;
+use App\Http\Controllers\Marketing_AdditionalBomController;
+use App\Http\Controllers\Marketing_BomController;
+use App\Http\Controllers\Marketing_CostingController;
+use App\Http\Controllers\Marketing_SOController;
+use App\Http\Controllers\MarketingDashboardController;
+use App\Http\Controllers\MasterLokasiController;
+use App\Http\Controllers\MgtReportDailyCostController;
+use App\Http\Controllers\MgtReportDailyEarnBuyerController;
+use App\Http\Controllers\MgtReportDashboardController;
+use App\Http\Controllers\MgtReportEarningController;
+use App\Http\Controllers\MgtReportProfitLineController;
+use App\Http\Controllers\MgtReportProsesController;
+use App\Http\Controllers\MgtReportSumBuyerController;
+use App\Http\Controllers\MgtReportSumFullEarnController;
+use App\Http\Controllers\MgtReportSumProdEarnController;
+use App\Http\Controllers\MutasiMesinController;
+use App\Http\Controllers\MutasiMesinLaporanController;
+use App\Http\Controllers\MutasiMesinMasterController;
+use App\Http\Controllers\MutasiMesinStockOpnameController;
+use App\Http\Controllers\MutLokasiController;
+use App\Http\Controllers\OutMaterialController;
+use App\Http\Controllers\PackingDashboardController;
+use App\Http\Controllers\PackingLineController;
+use App\Http\Controllers\PackingMasterKartonController;
+use App\Http\Controllers\PackingNeedleCheckController;
+use App\Http\Controllers\PackingPackingInController;
+use App\Http\Controllers\PackingPackingListController;
+use App\Http\Controllers\PackingPackingOutController;
+use App\Http\Controllers\PackingReportController;
 use App\Http\Controllers\PackingSubcontController;
+use App\Http\Controllers\PackingTransferGarmentController;
+use App\Http\Controllers\Part\MasterPartController;
+use App\Http\Controllers\Part\MasterSecondaryController;
+use App\Http\Controllers\Part\PartController;
+use App\Http\Controllers\PPIC_LaporanTrackingController;
+use App\Http\Controllers\PPIC_MasterSOController;
+use App\Http\Controllers\PPIC_MonitoringMaterialController;
+use App\Http\Controllers\PPIC_MonitoringMaterialDetController;
+use App\Http\Controllers\PPIC_MonitoringMaterialSumController;
+use App\Http\Controllers\PPIC_tools_adjustmentController;
+use App\Http\Controllers\PPICDashboardController;
+use App\Http\Controllers\ProcurementController;
+use App\Http\Controllers\QCInspectDashboardController;
+use App\Http\Controllers\QCInspectLaporanController;
+use App\Http\Controllers\QCInspectMasterController;
+use App\Http\Controllers\QCInspectPrintBintexShadeBandController;
+use App\Http\Controllers\QCInspectProsesFabricRelaxationController;
+use App\Http\Controllers\QCInspectProsesFormInspectController;
+use App\Http\Controllers\QCInspectProsesPackingListController;
+use App\Http\Controllers\QCInspectShadeBandController;
+use App\Http\Controllers\QcPassController;
+use App\Http\Controllers\ReportDocController;
+use App\Http\Controllers\ReportHourlyController;
+use App\Http\Controllers\ReqMaterialController;
+use App\Http\Controllers\ReturInMaterialController;
+use App\Http\Controllers\ReturMaterialController;
+use App\Http\Controllers\Sewing\DataDetailProduksiController;
+use App\Http\Controllers\Sewing\DataDetailProduksiDayController;
+use App\Http\Controllers\Sewing\DataProduksiController;
+use App\Http\Controllers\Sewing\LineDashboardController;
+use App\Http\Controllers\Sewing\LineWipController;
+use App\Http\Controllers\Sewing\MasterBuyerController;
+use App\Http\Controllers\Sewing\MasterDefectController;
+use App\Http\Controllers\Sewing\MasterJabatanController;
+use App\Http\Controllers\Sewing\MasterKaryawanController;
+use App\Http\Controllers\Sewing\MasterKursBiController;
+use App\Http\Controllers\Sewing\MasterLineController;
+use App\Http\Controllers\Sewing\MasterPlanController;
+use App\Http\Controllers\Sewing\OrderDefectController;
+use App\Http\Controllers\Sewing\ReportController;
+use App\Http\Controllers\Sewing\ReportDefectController;
+use App\Http\Controllers\Sewing\ReportDefectRejectController;
+use App\Http\Controllers\Sewing\ReportDetailOutputController;
+use App\Http\Controllers\Sewing\ReportEfficiencyController;
+use App\Http\Controllers\Sewing\ReportEfficiencyNewController;
+use App\Http\Controllers\Sewing\ReportMutasiOutputController;
+use App\Http\Controllers\Sewing\ReportOutputController;
+use App\Http\Controllers\Sewing\ReportProductionController;
+use App\Http\Controllers\Sewing\ReportRejectController;
+use App\Http\Controllers\Sewing\SewingSecondaryMasterController;
+use App\Http\Controllers\Sewing\SewingToolsController;
+use App\Http\Controllers\Sewing\TrackOrderOutputController;
+use App\Http\Controllers\Sewing\TransferOutputController;
+use App\Http\Controllers\Sewing\UndoOutputController;
+use App\Http\Controllers\Stocker\StockerController;
+use App\Http\Controllers\Stocker\StockerRejectController;
+use App\Http\Controllers\Stocker\StockerToolsController;
+use App\Http\Controllers\Stocker\YearSequenceController;
+use App\Http\Controllers\StockOpnameController;
+use App\Http\Controllers\TransferBpbController;
+use App\Http\Controllers\User\ManageAccessController;
+use App\Http\Controllers\User\ManageRoleController;
+use App\Http\Controllers\User\ManageUserController;
+use App\Http\Controllers\User\ManageUserLineController;
+use App\Http\Controllers\User\UserController;
+use App\Http\Controllers\WarehouseController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -314,6 +265,9 @@ Route::middleware('auth')->group(function () {
 
         // Part Item
         Route::get('/get-part-item', 'getPartItemList')->name('get-part-item');
+
+        // Item by WS, Color, Panel
+        Route::get('/get-item-by-ws-color-panel', 'getItemByWsColorPanel')->name('get-item-by-ws-color-panel');
     });
 
     // Worksheet
@@ -368,6 +322,8 @@ Route::middleware('auth')->group(function () {
 
         // part detail
         Route::delete('/destroy-part-detail/{id?}', 'destroyPartDetail')->name('destroy-part-detail');
+        Route::delete('/cancel-part-detail/{id?}', 'cancelPartDetail')->name('cancel-part-detail');
+        Route::put('/uncancel-part-detail/{id?}', 'uncancelPartDetail')->name('uncancel-part-detail');
 
         // get order
         Route::get('/get-order', 'getOrderInfo')->name('get-part-order');
@@ -445,6 +401,18 @@ Route::middleware('auth')->group(function () {
     Route::controller(SpreadingController::class)->prefix("spreading")->middleware('role:superadmin')->group(function () {
         Route::put('/update-status', 'updateStatus')->name('update-status');
         Route::put('/update-status-redirect', 'updateStatusRedirect')->name('update-status-redirect');
+    });
+
+    // Penerimaan Cutting
+    Route::controller(PenerimaanCuttingController::class)->prefix("penerimaan-cutting")->middleware("role:cutting")->group(function () {
+        Route::get('/', 'index')->name('penerimaan-cutting');
+        Route::get('/create', 'create')->name('create-penerimaan-cutting');
+        Route::post('/store', 'store')->name('store-penerimaan-cutting');
+        Route::get('/edit/{id?}', 'edit')->name('edit-penerimaan-cutting');
+        Route::post('/update', 'update')->name('update-penerimaan-cutting');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-penerimaan-cutting');
+        Route::post('/export', 'exportPenerimaanCutting')->name('export-penerimaan-cutting');
+        Route::get('/get-scanned-item/{id?}', 'getBarcodeFabric')->name('get-scanned-penerimaan-cutting');
     });
 
     // Form Cut Input
@@ -743,6 +711,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/report_gr_set', 'report_gr_set')->name('report_gr_set');
         Route::get('/report_gr_panel', 'report_gr_panel')->name('report_gr_panel');
         Route::get('/report_mutasi_wip_cutting', 'report_mutasi_wip_cutting')->name('report_mutasi_wip_cutting');
+        Route::get('/report_pengeluaran_cutting', 'report_pengeluaran_cutting')->name('report_pengeluaran_cutting');
+        Route::get('/report_return_fabric_cutting', 'report_return_fabric_cutting')->name('report_return_fabric_cutting');
 
         // export excel
         Route::post('/cutting/export', 'export')->name('report-cutting-export');
@@ -754,6 +724,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_report_gr_set', 'export_excel_report_gr_set')->name('export_excel_report_gr_set');
         Route::get('/export_excel_report_gr_panel', 'export_excel_report_gr_panel')->name('export_excel_report_gr_panel');
         Route::get('/export_excel_report_mut_wip_cutting', 'export_excel_report_mut_wip_cutting')->name('export_excel_report_mut_wip_cutting');
+        Route::get('/export_excel_report_pengeluaran_cutting', 'export_excel_report_pengeluaran_cutting')->name('export_excel_report_pengeluaran_cutting');
+        Route::get('/export_excel_report_return_fabric_cutting', 'export_excel_report_return_fabric_cutting')->name('export_excel_report_return_fabric_cutting');
     });
 
     // Roll
@@ -1405,6 +1377,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_rep_eff_new', 'export_excel_rep_eff_new')->name('export_excel_rep_eff_new');
     });
 
+    // Report Defect Reject
+    Route::controller(ReportDefectRejectController::class)->prefix("report-defect-reject")->middleware('role:sewing')->group(function () {
+        Route::get('/', 'index')->name('reportDefectReject');
+        Route::get('/export_excel_report_defect_reject', 'export_excel_report_defect_reject')->name('export_excel_report_defect_reject');
+    });
+
 
     // Report Mutasi Output
     Route::controller(ReportMutasiOutputController::class)->prefix("report-mut-output")->middleware('role:sewing')->group(function () {
@@ -1504,6 +1482,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/get-output-secondary', 'getOutputSecondary')->name('get-output-secondary');
         Route::put('/update-secondary', 'updateSecondary')->name('update-secondary');
         Route::post('/undo-secondary', 'undoSecondary')->name('undo-secondary');
+
+        // Modify Packing PO
+        Route::get('/get-po', 'getPo')->name('get-po-qr');
+        Route::post('/get-packing-po', 'getPackingPo')->name('get-packing-po');
+        Route::get('/modify-packing-po', 'modifyPackingPo')->name('modify-packing-po');
+        Route::put('/modify-packing-po/update', 'modifyPackingPoUpdate')->name('modify-packing-po-update');
+        Route::post('/modify-packing-po/delete', 'modifyPackingPoDelete')->name('modify-packing-po-delete');
     });
 
     // Mutasi Mesin
@@ -2286,37 +2271,37 @@ Route::middleware('auth')->group(function () {
     });
 
     // GA
-    // Pengajuan
-    Route::controller(GAPengajuanBahanBakarController::class)->prefix("ga-pengajuan-bahan-bakar")->middleware('ga')->group(function () {
-        Route::get('/', 'index')->name('pengajuan-bahan-bakar');
-        Route::post('/store_ga_master_bahan_bakar', 'store_ga_master_bahan_bakar')->name('store-ga-master-bahan-bakar');
-        Route::get('/show_master_bahan_bakar', 'show_master_bahan_bakar')->name('show-master-bahan-bakar');
-        Route::post('/store_ga_master_kendaraan', 'store_ga_master_kendaraan')->name('store-ga-master-kendaraan');
-        Route::get('/show_master_kendaraan', 'show_master_kendaraan')->name('show-master-kendaraan');
-        Route::get('/show_getnip', 'show_getnip')->name('show-ga-get-nip');
-        Route::get('/show_getjns', 'show_getjns')->name('show-ga-get-jns');
-        Route::get('/show_getbhn_bakar', 'show_getbhn_bakar')->name('show-ga-get-bhn-bakar');
-        Route::get('/show_getharga', 'show_getharga')->name('show-ga-get-harga');
-        Route::post('/store_ga_trans', 'store_ga_trans')->name('store-ga-trans');
-        Route::get('/export_pdf_pengajuan_bhn_bakar', 'export_pdf_pengajuan_bhn_bakar')->name('export_pdf_pengajuan_bhn_bakar');
-        Route::get('/show_data_bahan_bakar', 'show_data_bahan_bakar')->name('show_data_bahan_bakar');
-        Route::post('/update_ga_master_bahan_bakar', 'update_ga_master_bahan_bakar')->name('update-ga-master-bahan-bakar');
-        Route::get('/show_data_transaksi_edit', 'show_data_transaksi_edit')->name('show_data_transaksi_edit');
-        Route::get('/show_data_transaksi', 'show_data_transaksi')->name('show_data_transaksi');
-        Route::get('/show_ga_get_jns_edit', 'show_ga_get_jns_edit')->name('show_ga_get_jns_edit');
-        Route::get('/show_ga_get_bhn_bakar_edit', 'show_ga_get_bhn_bakar_edit')->name('show_ga_get_bhn_bakar_edit');
-        Route::post('/update_ga_trans', 'update_ga_trans')->name('update_ga_trans');
-        Route::post('/update_ga_realisasi', 'update_ga_realisasi')->name('update_ga_realisasi');
-        Route::get('/export_excel_data_bahan_bakar', 'export_excel_data_bahan_bakar')->name('export_excel_data_bahan_bakar');
+        // Pengajuan
+            Route::controller(GAPengajuanBahanBakarController::class)->prefix("ga-pengajuan-bahan-bakar")->middleware('ga')->group(function () {
+                Route::get('/', 'index')->name('pengajuan-bahan-bakar');
+                Route::post('/store_ga_master_bahan_bakar', 'store_ga_master_bahan_bakar')->name('store-ga-master-bahan-bakar');
+                Route::get('/show_master_bahan_bakar', 'show_master_bahan_bakar')->name('show-master-bahan-bakar');
+                Route::post('/store_ga_master_kendaraan', 'store_ga_master_kendaraan')->name('store-ga-master-kendaraan');
+                Route::get('/show_master_kendaraan', 'show_master_kendaraan')->name('show-master-kendaraan');
+                Route::get('/show_getnip', 'show_getnip')->name('show-ga-get-nip');
+                Route::get('/show_getjns', 'show_getjns')->name('show-ga-get-jns');
+                Route::get('/show_getbhn_bakar', 'show_getbhn_bakar')->name('show-ga-get-bhn-bakar');
+                Route::get('/show_getharga', 'show_getharga')->name('show-ga-get-harga');
+                Route::post('/store_ga_trans', 'store_ga_trans')->name('store-ga-trans');
+                Route::get('/export_pdf_pengajuan_bhn_bakar', 'export_pdf_pengajuan_bhn_bakar')->name('export_pdf_pengajuan_bhn_bakar');
+                Route::get('/show_data_bahan_bakar', 'show_data_bahan_bakar')->name('show_data_bahan_bakar');
+                Route::post('/update_ga_master_bahan_bakar', 'update_ga_master_bahan_bakar')->name('update-ga-master-bahan-bakar');
+                Route::get('/show_data_transaksi_edit', 'show_data_transaksi_edit')->name('show_data_transaksi_edit');
+                Route::get('/show_data_transaksi', 'show_data_transaksi')->name('show_data_transaksi');
+                Route::get('/show_ga_get_jns_edit', 'show_ga_get_jns_edit')->name('show_ga_get_jns_edit');
+                Route::get('/show_ga_get_bhn_bakar_edit', 'show_ga_get_bhn_bakar_edit')->name('show_ga_get_bhn_bakar_edit');
+                Route::post('/update_ga_trans', 'update_ga_trans')->name('update_ga_trans');
+                Route::post('/update_ga_realisasi', 'update_ga_realisasi')->name('update_ga_realisasi');
+                Route::get('/export_excel_data_bahan_bakar', 'export_excel_data_bahan_bakar')->name('export_excel_data_bahan_bakar');
 
-        // Route::post('/store', 'store')->name('store-packing-packing-in');
-    });
+                // Route::post('/store', 'store')->name('store-packing-packing-in');
+            });
 
-    // Approval
-    Route::controller(GAApprovalBahanBakarController::class)->prefix("ga-approval-bahan-bakar")->middleware('ga')->group(function () {
-        Route::get('/', 'index')->name('approval-bahan-bakar');
-        Route::post('/store', 'store')->name('store-approval-bahan-bakar');
-    });
+        // Approval
+            Route::controller(GAApprovalBahanBakarController::class)->prefix("ga-approval-bahan-bakar")->middleware('ga')->group(function () {
+                Route::get('/', 'index')->name('approval-bahan-bakar');
+                Route::post('/store', 'store')->name('store-approval-bahan-bakar');
+            });
 
     Route::controller(DashboardController::class)->prefix("dashboard-chart")->middleware('role:cutting')->group(function () {
         Route::get('/', 'cuttingMeja')->name('dashboard-chart');

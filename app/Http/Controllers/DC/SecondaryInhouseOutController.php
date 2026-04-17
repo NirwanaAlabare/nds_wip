@@ -1104,9 +1104,17 @@ class SecondaryInhouseOutController extends Controller
                             $message = "";
                             if ($currentPartDetailSecondary && $currentPartDetailSecondary->secondary) {
                                 $message = "Proses saat ini : ".$currentPartDetailSecondary->secondary->proses." - ".$currentPartDetailSecondary->secondary->tujuan;
+                            } else {
+                                $message = "Tidak ditemukan proses Secondary Inhouse OUT";
                             }
 
-                            return "Part Detail Secondary tidak sesuai.".$message;
+                            // Check Secondary Inhouse OUT
+                            $secondaryInhouseOut = $secondaryInhouseService->checkSecondaryInhouseOut($request->txtqrstocker);
+                            if ($secondaryInhouseOut) {
+                                $message .= "<br><br> Stocker ".$secondaryInhouseOut->id_qr_stocker." sudah discan di Secondary Inhouse OUT pada tanggal ".$secondaryInhouseOut->tgl_trans."";
+                            }
+
+                            return "Part Detail Secondary tidak sesuai. <br>".$message;
                         }
                     }
                 }
@@ -1196,7 +1204,8 @@ class SecondaryInhouseOutController extends Controller
         $timestamp = Carbon::now();
 
         $validatedRequest = $request->validate([
-            "txtqtyreject" => "required"
+            "txtqtyreject" => "required",
+            "txtqtyreplace" => "required"
         ]);
 
         $saveinhouse = SecondaryInhouse::create([

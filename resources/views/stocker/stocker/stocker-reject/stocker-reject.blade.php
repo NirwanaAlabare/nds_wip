@@ -15,7 +15,7 @@
     <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title">
-                <i class='fa fa-ticket'></i> Stocker Reject
+                <i class='fa fa-ticket'></i> Stocker Ganti Reject
             </h5>
         </div>
         <div class="card-body">

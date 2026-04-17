@@ -136,6 +136,8 @@
                     targets: [0],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
+                        let isAdmin = "{{ auth()->user()->roles->whereIn("nama_role", ["superadmin"])->count() }}";
+                        console.log(isAdmin);
                         let editRoute = "";
                         if (row.process == 3) {
                             editRoute = "{{ route('edit-cutting-piece') }}";
@@ -147,7 +149,7 @@
                         let buttonDetail = "";
                         let buttonDelete = `<a href='javascript:void(0);' class='btn btn-danger btn-sm mx-1' data='`+JSON.stringify(row)+`' data-url='`+'{{ route('destroy-cutting-piece') }}'+`/`+data+`' onclick='deleteData(this);'><i class='fa fa-trash'></i></a>`;
 
-                        return buttonEdit+buttonDetail+buttonDelete;
+                        return buttonEdit+buttonDetail+(isAdmin > 0 ? buttonDelete : '');
                     }
                 },
                 {

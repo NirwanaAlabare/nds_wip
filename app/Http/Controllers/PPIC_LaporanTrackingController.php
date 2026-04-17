@@ -660,6 +660,69 @@ FROM (
 		GROUP BY
 		marker_cutting.panel,
 		marker_cutting.so_det_id
+
+        UNION ALL
+
+        -- STOCKER ADDITIONAL
+        select
+            tgl_form_cut as tanggal,
+            panel,
+            id_so_det so_det_id,
+            SUM(qty_cut) qty
+        FROM (
+            SELECT
+                form_cut_input.tgl_form_cut,
+                stocker_ws_additional_detail.so_det_id AS id_so_det,
+                stocker_ws_additional.panel,
+                stocker_ws_additional_detail.ratio,
+                form_cut_input.total_lembar,
+                modify_size_qty.difference_qty,
+                CASE WHEN modify_size_qty.difference_qty != 0 THEN modify_size_qty.modified_qty ELSE SUM(stocker_ws_additional_detail.ratio * form_cut.detail) END AS qty_cut
+            FROM
+                laravel_nds.form_cut_input
+            INNER JOIN
+                (
+                    SELECT
+                        form_cut_input.no_meja id_meja,
+                        meja.`name` meja,
+                        COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai ),
+                        DATE ( form_cut_input.tgl_input )) tgl_form_cut,
+                        form_cut_input.id_marker,
+                        form_cut_input.id,
+                        form_cut_input.no_form,
+                        form_cut_input.qty_ply,
+                        form_cut_input.total_lembar,
+                        form_cut_input.notes,
+                        SUM( form_cut_input_detail.lembar_gelaran ) detail
+                    FROM
+                        laravel_nds.form_cut_input
+                        LEFT JOIN laravel_nds.users meja ON meja.id = form_cut_input.no_meja
+                        INNER JOIN laravel_nds.form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
+                    WHERE
+                        form_cut_input.`status` = 'SELESAI PENGERJAAN'
+                        AND form_cut_input.waktu_mulai IS NOT NULL
+                        AND COALESCE ( DATE ( waktu_selesai ), DATE ( waktu_mulai ), tgl_form_cut ) >= '2025-01-01'
+                    GROUP BY
+                        form_cut_input.id
+                ) form_cut ON form_cut.id = form_cut_input.id
+            LEFT JOIN
+                laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
+            LEFT JOIN
+                laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
+            LEFT JOIN
+                laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
+            LEFT JOIN
+                laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
+            WHERE
+                form_cut_input.status = 'SELESAI PENGERJAAN'
+                AND (stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
+            GROUP BY
+                form_cut_input.id,
+                stocker_ws_additional.panel,
+                stocker_ws_additional_detail.id
+        ) cutting_stocker_additional
+        group by
+            panel, id_so_det
 	) cutting
 	left join laravel_nds.master_sb_ws on master_sb_ws.id_so_det = cutting.so_det_id
 	group by
@@ -2015,6 +2078,69 @@ FROM (
 		GROUP BY
 		marker_cutting.panel,
 		marker_cutting.so_det_id
+
+        UNION ALL
+
+        -- STOCKER ADDITIONAL
+        select
+            tgl_form_cut as tanggal,
+            panel,
+            id_so_det so_det_id,
+            SUM(qty_cut) qty
+        FROM (
+            SELECT
+                form_cut_input.tgl_form_cut,
+                stocker_ws_additional_detail.so_det_id AS id_so_det,
+                stocker_ws_additional.panel,
+                stocker_ws_additional_detail.ratio,
+                form_cut_input.total_lembar,
+                modify_size_qty.difference_qty,
+                CASE WHEN modify_size_qty.difference_qty != 0 THEN modify_size_qty.modified_qty ELSE SUM(stocker_ws_additional_detail.ratio * form_cut.detail) END AS qty_cut
+            FROM
+                laravel_nds.form_cut_input
+            INNER JOIN
+                (
+                    SELECT
+                        form_cut_input.no_meja id_meja,
+                        meja.`name` meja,
+                        COALESCE ( DATE ( form_cut_input.waktu_selesai ), DATE ( form_cut_input.waktu_mulai ),
+                        DATE ( form_cut_input.tgl_input )) tgl_form_cut,
+                        form_cut_input.id_marker,
+                        form_cut_input.id,
+                        form_cut_input.no_form,
+                        form_cut_input.qty_ply,
+                        form_cut_input.total_lembar,
+                        form_cut_input.notes,
+                        SUM( form_cut_input_detail.lembar_gelaran ) detail
+                    FROM
+                        laravel_nds.form_cut_input
+                        LEFT JOIN laravel_nds.users meja ON meja.id = form_cut_input.no_meja
+                        INNER JOIN laravel_nds.form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
+                    WHERE
+                        form_cut_input.`status` = 'SELESAI PENGERJAAN'
+                        AND form_cut_input.waktu_mulai IS NOT NULL
+                        AND COALESCE ( DATE ( waktu_selesai ), DATE ( waktu_mulai ), tgl_form_cut ) >= '2025-01-01'
+                    GROUP BY
+                        form_cut_input.id
+                ) form_cut ON form_cut.id = form_cut_input.id
+            LEFT JOIN
+                laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
+            LEFT JOIN
+                laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
+            LEFT JOIN
+                laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
+            LEFT JOIN
+                laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
+            WHERE
+                form_cut_input.status = 'SELESAI PENGERJAAN'
+                AND (stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
+            GROUP BY
+                form_cut_input.id,
+                stocker_ws_additional.panel,
+                stocker_ws_additional_detail.id
+        ) cutting_stocker_additional
+        group by
+            panel, id_so_det
 	) cutting
 	left join laravel_nds.master_sb_ws on master_sb_ws.id_so_det = cutting.so_det_id
 	group by

@@ -4,10 +4,11 @@ namespace App\Models\SignalBit;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class OutputPackingPo extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $connection = 'mysql_sb';
 
@@ -28,6 +29,11 @@ class OutputPackingPo extends Model
         'created_at',
         'updated_at',
     ];
+
+    // only the `updated and deleted` event will get logged automatically
+    protected static $recordEvents = ['updated', 'deleted'];
+
+    protected static $logAttributes = ['*'];
 
     public function masterPlan()
     {

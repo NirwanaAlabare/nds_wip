@@ -343,6 +343,7 @@ class TrolleyStockerController extends Controller
             where("group_stocker", $stockerData->group_stocker)->
             where("ratio", $stockerData->ratio)->
             where("stocker_reject", $stockerData->stocker_reject)->
+            whereRaw("(part_detail.status IS NULL OR part_detail.status = 'active')")->
             get();
 
         // Check Incomplete Loading
@@ -500,6 +501,7 @@ class TrolleyStockerController extends Controller
             where("group_stocker", $stockerData->group_stocker)->
             where("ratio", $stockerData->ratio)->
             where("stocker_reject", $stockerData->stocker_reject)->
+            whereRaw("(part_detail.status IS NULL OR part_detail.status = 'active')")->
             get();
 
         // Check Incomplete Loading
@@ -801,6 +803,7 @@ class TrolleyStockerController extends Controller
                     AND `trolley_stocker`.`status` = 'active'
                     AND `stocker_input`.`status` != 'line'
                     AND part_detail.part_status = 'main'
+                    AND (part_detail.status = 'active' OR part_detail.status IS NULL)
                 GROUP BY
                     stocker_input.id_qr_stocker
                 UNION ALL
@@ -864,6 +867,7 @@ class TrolleyStockerController extends Controller
                     AND `trolley_stocker`.`status` = 'active'
                     AND `stocker_input`.`status` != 'line'
                     AND (part_detail.part_status != 'main' OR part_detail.part_status IS NULL)
+                    AND (part_detail.status = 'active' OR part_detail.status IS NULL)
                 GROUP BY
                     stocker_input.id_qr_stocker
             ) a
@@ -963,6 +967,8 @@ class TrolleyStockerController extends Controller
                         ) as multi_secondary
                     "), "multi_secondary.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
                     whereIn("stocker_input.id", $stockerIds)->
+                    whereRaw("(part_detail.status IS NULL OR part_detail.status = 'active')")->
+                    groupBy("stocker_input.id")->
                     get();
 
                 // Check Stocker Processes

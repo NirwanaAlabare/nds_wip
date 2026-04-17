@@ -907,12 +907,21 @@
                             message: response.message,
                             position: 'topCenter',
                         });
+
                     } else {
                         iziToast.error({
                             title: 'Gagal',
                             message: response.message,
                             position: 'topCenter',
                         });
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            html: response.message,
+                        }).then(() => {
+                            document.getElementById("txtqrstocker").focus();
+                        })
                     }
 
                     document.getElementById('txtqrstocker').value = "";

@@ -70,6 +70,9 @@
         </div>
         <div class="card-body">
             <div class="row">
+                <div class="col-md-12">
+                    <h5 class="text-sb-secondary fw-bold mt-3">Reset Stocker</h5>
+                </div>
                 <div class="col-md-4">
                     <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#resetStockerModal">
                         <div class="card">
@@ -83,7 +86,7 @@
                     <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#resetStockerIdModal">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Reset Stocker ID</h5>
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Reset Stocker by ID</h5>
                             </div>
                         </div>
                     </a>
@@ -98,6 +101,30 @@
                     </a>
                 </div>
                 <div class="col-md-4">
+                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#undoStockerAdditionalModal">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Reset Stocker Additional</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-12">
+                    <h5 class="text-sb-secondary fw-bold mt-3">Restore Data</h5>
+                </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#restoreStockerLogModal">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Restore Stocker Log</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-12">
+                    <h5 class="text-sb-secondary fw-bold mt-3">Populate Data</h5>
+                </div>
+                <div class="col-md-4">
                     <a type="button" class="home-item" onclick="openImportStockerManual()">
                         <div class="card">
                             <div class="card-body">
@@ -105,6 +132,9 @@
                             </div>
                         </div>
                     </a>
+                </div>
+                <div class="col-md-12">
+                    <h5 class="text-sb-secondary fw-bold mt-3">Synchronize Data</h5>
                 </div>
                 <div class="col-md-4">
                     <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#rearrangeGroup">
@@ -120,24 +150,6 @@
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Recalculate Stocker</h5>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#restoreStockerLogModal">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Restore Stocker Log</h5>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#undoStockerAdditionalModal">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Undo Stocker Additional</h5>
                             </div>
                         </div>
                     </a>
@@ -448,7 +460,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
-                    <button type="button" class="btn btn-sb" onclick="modifyStocker()"><i class="fa fa-rotate-left"></i> Undo</button>
+                    <button type="button" class="btn btn-sb" onclick="modifyStocker()"><i class="fa fa-save"></i> Update</button>
                 </div>
             </div>
         </div>
@@ -982,7 +994,7 @@
                     if (response) {
                         Swal.fire({
                             icon: (response.status == 200 ? 'success' : 'error'),
-                            title: 'Berhasil',
+                            title: (response.status == 200 ? 'Berhasil' : 'Gagal'),
                             html: response.message,
                         });
                     }
