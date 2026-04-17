@@ -1482,7 +1482,7 @@ class PartController extends Controller
                 left join signalbit_erp.masteritem mi on mi.id_item = bji.id_item
             where
                 part_id = '" . $request->id . "' and
-                (part_status != 'complement')
+                (part_status IS NULL OR part_status != 'complement')
             GROUP BY
                 pd.id
             order by
