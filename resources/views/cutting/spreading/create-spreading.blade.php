@@ -472,13 +472,13 @@
                     document.getElementById('txt_unit_l_ws').value = response.unit_lebar_ws ?? '-';
                     document.getElementById('txt_qty_gelar').value = response.gelar_qty_balance ? response.gelar_qty_balance : response.gelar_qty;
                     document.getElementById('txt_ws').value = response.act_costing_ws;
-                    document.getElementById('txt_cons_ws').value = response.cons_ws.round(3) ?? 0;
+                    document.getElementById('txt_cons_ws').value = response.cons_ws ? Number(response.cons_ws).round(3) : 0;
                     document.getElementById('txt_unit_cons_ws').value = (response.unit_cons_ws ?? '-')+'/PCS';
-                    document.getElementById('txt_cons_marker').value = response.cons_marker.round(3) ?? 0;
+                    document.getElementById('txt_cons_marker').value = response.cons_marker ? Number(response.cons_marker).round(3) : 0;
                     document.getElementById('txt_unit_cons_marker').value = (response.unit_cons_marker ?? '-')+'/PCS';
-                    document.getElementById('txt_cons_piping').value = response.cons_piping.round(3) ?? 0;
+                    document.getElementById('txt_cons_piping').value = response.cons_piping ? Number(response.cons_piping).round(3) : 0;
                     document.getElementById('txt_unit_cons_piping').value = (response.unit_cons_piping ?? '-')+'/PCS';
-                    document.getElementById('txt_gramasi').value = response.gramasi.round(3) ?? 0;
+                    document.getElementById('txt_gramasi').value = response.gramasi ? response.gramasi : 0;
                     document.getElementById('hitungmarker').value = response.gelar_qty_balance ? response.gelar_qty_balance : response.gelar_qty;
                     document.getElementById('txtid_marker').value = response.kode;
                     document.getElementById('tipe_form').value = response.tipe_marker == "bulk marker" && response.status_marker == "active" ? "Pilot to Bulk" : capitalizeFirstLetter((response.tipe_marker).replace(' marker', ""));
