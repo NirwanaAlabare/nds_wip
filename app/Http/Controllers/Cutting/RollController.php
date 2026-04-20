@@ -1154,6 +1154,8 @@ class RollController extends Controller
 
     public function getScannedItem($id, CuttingService $cuttingService)
     {
+        $id = trim($id);
+
         // Fix Roll Qty right before the roll is used
         $fixRollQty = $cuttingService->fixRollQty($id);
 
@@ -1362,10 +1364,10 @@ class RollController extends Controller
                 qty_unit as unit,
                 SUM( qty_pemakaian ) total_pemakaian_roll,
                 SUM( qty - (qty_pemakaian + qty_sisa) ) short_roll,
-                qty_sisa sisa_kain,
+                MIN(qty_sisa) sisa_kain,
                 form_cut_piece.status status_form,
                 form_cut_piece_detail.status,
-                COALESCE ( form_cut_piece_detail.updated_at, form_cut_piece_detail.created_at ) updated_at,
+                COALESCE ( form_cut_piece_detail.created_at, form_cut_piece_detail.updated_at ) updated_at,
                 '-' edited_by_username,
                 '-' edited_at,
                 'PIECE' as tipe
@@ -1394,7 +1396,7 @@ class RollController extends Controller
                 qty_sisa sisa_kain,
                 '-' status_form,
                 '-' status,
-                COALESCE ( form_cut_piping.updated_at, form_cut_piping.created_at ) updated_at,
+                COALESCE ( form_cut_piping.created_at, form_cut_piping.updated_at ) updated_at,
                 '-' edited_by_username,
                 '-' edited_at,
                 'PIPING' as tipe
@@ -1407,6 +1409,7 @@ class RollController extends Controller
             GROUP BY
                 `form_cut_piping`.`id`
             ORDER BY
+                updated_at asc,
                 qty desc
         ");
 
