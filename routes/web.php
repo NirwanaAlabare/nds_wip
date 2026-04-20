@@ -632,6 +632,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-cutting-piece');
         Route::get('/edit/{id?}', 'edit')->name('edit-cutting-piece');
         Route::put('/update', 'update')->name('update-cutting-piece');
+        Route::put('/update/detail', 'updateDetail')->name('update-cutting-piece-detail');
         Route::delete('/destroy/{id?}', 'destroy')->name('destroy-cutting-piece');
 
         // add-on
