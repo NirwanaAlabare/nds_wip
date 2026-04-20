@@ -149,6 +149,7 @@ use App\Http\Controllers\Sewing\ReportDefectRejectController;
 use App\Http\Controllers\Sewing\ReportDetailOutputController;
 use App\Http\Controllers\Sewing\ReportEfficiencyController;
 use App\Http\Controllers\Sewing\ReportEfficiencyNewController;
+use App\Http\Controllers\Sewing\ReportFinishingProsesController;
 use App\Http\Controllers\Sewing\ReportMutasiOutputController;
 use App\Http\Controllers\Sewing\ReportOutputController;
 use App\Http\Controllers\Sewing\ReportProductionController;
@@ -1387,6 +1388,12 @@ Route::middleware('auth')->group(function () {
     Route::controller(ReportDefectRejectController::class)->prefix("report-defect-reject")->middleware('role:sewing')->group(function () {
         Route::get('/', 'index')->name('reportDefectReject');
         Route::get('/export_excel_report_defect_reject', 'export_excel_report_defect_reject')->name('export_excel_report_defect_reject');
+    });
+
+    // Report Finishing Proses
+    Route::controller(ReportFinishingProsesController::class)->prefix("report-finishing-proses")->middleware('role:sewing')->group(function () {
+        Route::get('/', 'index')->name('report-finishing-proses');
+        Route::get('/export_excel_report_finishing_proses', 'export_excel_report_finishing_proses')->name('export_excel_report_finishing_proses');
     });
 
 
