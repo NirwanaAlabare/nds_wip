@@ -1620,8 +1620,8 @@ class DCInController extends Controller
                 secondary_inhouse_in_input.created_at sec_inhouse_in,
                 secondary_inhouse_input.created_at sec_inhouse_out,
                 secondary_in_input.created_at sec_in,
-                CONCAT(trolley.nama_trolley, ' (', trolley_stocker.created_at, ')') trolley,
-                CONCAT(loading_line.nama_line, ' (', loading_line.created_at, ')') line,
+                CONCAT(COALESCE(trolley.nama_trolley,'-'), ' (', COALESCE(trolley_stocker.created_at, '-'), ')') trolley,
+                CONCAT(COALESCE(loading_line.nama_line,'-'), ' (', COALESCE(loading_line.created_at, '-'), ')') line,
                 dc_in_input.created_at,
                 dc_in_input.updated_at
             ")->
