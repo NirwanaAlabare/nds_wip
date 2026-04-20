@@ -189,9 +189,12 @@ class PipingController extends Controller
         if ($piping) {
             $qty = $validatedRequest['edit_qty_sisa'];
 
+            // Check After Piping Form Cut Detail
             $formCutDetail = FormCutInputDetail::where("id_roll", $validatedRequest["edit_id_roll"])->where("created_at", ">=", $piping->created_at)->orderBy("form_cut_input_detail.created_at", "asc")->first();
 
             if ($formCutDetail) {
+
+                // Update After Piping Form Cut Detail
                 $formCut = $formCutDetail->formCutInput;
                 $pAct = $formCut->p_act + ($formCut->comma_p_act/100);
                 $sambunganRoll = $formCutDetail->formCutInputDetailSambungan ? $formCutDetail->formCutInputDetailSambungan->sum("sambungan_roll") : 0;
@@ -200,11 +203,14 @@ class PipingController extends Controller
                 $formCutDetail->shortRoll = $shortRoll;
                 $formCutDetail->save();
             } else {
+
+                // Update Scanned Item Qty
                 $updateScannedItem = ScannedItem::where("id_roll", $validatedRequest["edit_id_roll"])->update([
                     "qty" => $qty
                 ]);
             }
 
+            // Update Piping
             $piping->id_roll = $validatedRequest["edit_id_roll"];
             $piping->act_costing_id = $validatedRequest["edit_ws_id"];
             $piping->act_costing_ws = $validatedRequest["edit_ws"];
@@ -242,9 +248,12 @@ class PipingController extends Controller
             if ($piping) {
                 $qty = $piping->qty;
 
+                // Check After Piping Form Cut Detail
                 $formCutDetail = FormCutInputDetail::where("id_roll", $piping->id_roll)->where("created_at", ">=", $piping->created_at)->orderBy("form_cut_input_detail.created_at", "asc")->first();
 
                 if ($formCutDetail) {
+
+                    // Update After Piping Form Cut Detail
                     $formCut = $formCutDetail->formCutInput;
                     $pAct = $formCut->p_act + ($formCut->comma_p_act/100);
                     $sambunganRoll = $formCutDetail->formCutInputDetailSambungan ? $formCutDetail->formCutInputDetailSambungan->sum("sambungan_roll") : 0;
@@ -254,11 +263,14 @@ class PipingController extends Controller
                     $formCutDetail->shortRoll = $shortRoll;
                     $formCutDetail->save();
                 } else {
+
+                    // Update Scanned Item Qty
                     $updateScannedItem = ScannedItem::where("id_roll", $piping->id_roll)->update([
                         "qty" => $qty
                     ]);
                 }
 
+                // Delete Piping
                 $piping->delete();
 
                 return array(

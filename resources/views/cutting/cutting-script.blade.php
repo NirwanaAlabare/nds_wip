@@ -1,7 +1,7 @@
 <script>
-    async function unlockEnter(evt, isStoring = 0, ) {
+    async function unlockEnter(evt, isStoring = 0, locktype = 'shortroll') {
         if (evt.keyCode == 13) {
-            unlockForm(isStoring);
+            unlockForm(isStoring, locktype);
         }
     }
 

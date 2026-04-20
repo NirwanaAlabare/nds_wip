@@ -801,6 +801,7 @@ class CuttingFormManualController extends Controller
             "panel_select" => "required",
             "panel" => "required",
             "gelar_qty" => "required|numeric|gt:0",
+            "qty_ply" => "required|numeric|gt:0",
             "urutan_marker" => "nullable",
             "tipe_marker" => "required"
         ]);
@@ -923,7 +924,7 @@ class CuttingFormManualController extends Controller
                 "status" => "PENGERJAAN FORM CUTTING DETAIL",
                 "shell" => $request->shell,
                 "notes" => $request->form_notes,
-                "qty_ply" => $validatedRequest['gelar_qty']
+                "qty_ply" => $validatedRequest['qty_ply']
             ]);
 
             if ($updateFormCutInput) {

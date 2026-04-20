@@ -401,10 +401,26 @@ class CuttingFormPilotController extends Controller
             marker_input.unit_cons_marker,
             marker_input.gramasi,
             users.name,
-            form_cut_input.id as form_id
+            form_cut_input.id as form_id,
+            form.nomor
         ")->
         leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
         leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+        leftJoin(DB::raw("(
+            SELECT
+                *
+            FROM (
+                select
+                    ROW_NUMBER() OVER (PARTITION BY marker_id ORDER BY created_at, SUBSTRING_INDEX(no_form,'-',-1)) AS nomor,
+                    id,
+                    no_form,
+                    created_at
+                from
+                    form_cut_input
+            ) form
+            WHERE
+                form.id = '".$id."'
+        ) form"), "form.id", "=", "form_cut_input.id")->
         where('form_cut_input.id', $id)->first();
 
         if (!$formCutInputData) {
