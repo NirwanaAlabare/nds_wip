@@ -326,4 +326,55 @@ class DcToolsController extends Controller
             "message" => "Data tidak valid"
         );
     }
+
+    public function updateDcIn(Request $request) {
+        $idQrStockers = explode("\n", $request->stocker_ids);
+
+        if ($idQrStockers && $request->tanggal) {
+            // Get DC IN
+            $dcInList = DCIn::whereIn("id_qr_stocker", $idQrStockers)->get();
+
+            $message = "";
+            foreach ($dcInList as $dcIn) {
+                $dcIn->tgl_trans = $request->tanggal;
+                $dcIn->save();
+                $message .= "<br>".$dcIn->id_qr_stocker." diubah ke tanggal ".$request->tanggal;
+            }
+
+            return array(
+                "status" => 200,
+                "message" => $message
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Request tidak sesuai"
+        );
+    }
+
+    public function deleteDcIn(Request $request) {
+        $idQrStockers = explode("\n", $request->stocker_ids);
+
+        if ($idQrStockers) {
+            // Get DC IN
+            $dcInList = DCIn::whereIn("id_qr_stocker", $idQrStockers)->get();
+
+            $message = "";
+            foreach ($dcInList as $dcIn) {
+                $dcIn->delete();
+                $message .= "<br>".$dcIn->id_qr_stocker." berhasil dihapus.";
+            }
+
+            return array(
+                "status" => 200,
+                "message" => $message
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Request tidak sesuai"
+        );
+    }
 }
