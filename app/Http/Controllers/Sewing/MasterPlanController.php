@@ -165,8 +165,8 @@ class MasterPlanController extends Controller
                 CONCAT('http://10.10.5.62:8080/erp/pages/prod_new/upload_files/', master_plan.gambar) gambar
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
-            join("so", "so.id_cost", "=", "act_costing.id")->
-            join(DB::raw("(select so_det.id, so_det.id_so, so_det.color, so_det.styleno_prod from so_det where so_det.cancel = 'N' group by id_so, color) so_det"), function ($join) {
+            leftJoin("so", "so.id_cost", "=", "act_costing.id")->
+            leftJoin(DB::raw("(select so_det.id, so_det.id_so, so_det.color, so_det.styleno_prod from so_det where so_det.cancel = 'N' group by id_so, color) so_det"), function ($join) {
                 $join->on("so_det.id_so", "=", "so.id");
                 $join->on("so_det.color", "=", "master_plan.color");
             })->
