@@ -795,6 +795,15 @@ Route::middleware('auth')->group(function () {
 
         // Import Cutting Manual
         Route::post('/import-cutting-manual', 'importCuttingManual')->name('import-cutting-manual');
+
+        // Import Saldo Awal Cutting Manual
+        Route::post('/import-saldo-awal-cutting', 'importSaldoAwalCutting')->name('import-saldo-awal-cutting');
+
+        // Get Saldo Awal Cutting Tempoprary
+        Route::get('/get-saldo-awal-cutting-tmp', 'getSaldoAwalCuttingTmp')->name('get-saldo-awal-cutting-tmp');
+
+        // Save Saldo Awal Cutting
+        Route::post('/save-saldo-awal-cutting', 'saveSaldoAwalCutting')->name('save-saldo-awal-cutting');
     });
 
     // Stocker :
