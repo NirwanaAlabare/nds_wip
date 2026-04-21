@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Cutting\FormCutPiece;
 use App\Models\Cutting\FormCutPieceDetail;
 use App\Models\Cutting\FormCutPieceDetailSize;
+use App\Services\CuttingServicePiece;
 use App\Models\Part\PartDetail;
 use App\Models\Cutting\ScannedItem;
 use App\Models\Part\Part;
@@ -781,6 +782,94 @@ class CuttingFormPieceController extends Controller
                 );
         }
     }
+
+    public function updateDetail(Request $request, CuttingServicePiece $cuttingServicePiece)
+    {
+        try {
+            $result = $cuttingServicePiece->updateFormCutPiece($request);
+
+            return [
+                "status" => 200,
+                "message" => $result
+            ];
+
+        } catch (\Exception $e) {
+            return [
+                "status" => 400,
+                "message" => $e->getMessage()
+            ];
+        }
+    }
+
+    // public function updateDetail(Request $request, CuttingServicePiece $cuttingServicePiece)
+    // {
+    //     $form = FormCutPiece::where("id", $request->id)->first();
+
+    //     if ($form) {
+    //         // Check Stocker
+    //         $checkStockerForm = $cuttingServicePiece->checkStockerForm($form->id);
+    //         if (!$checkStockerForm) {
+    //             return array(
+    //                 "status" => 400,
+    //                 "message" => "Stocker sudah diprint"
+    //             );
+    //         }
+
+    //         $formDetail = FormCutPieceDetail::where("form_id", $form->id)->where("id", $request->id_detail)->first();
+
+    //         if ($formDetail) {
+    //             $updateMessage = "";
+
+    //             $qtyUsage = 0;
+    //             for ($i = 0; $i < count($request->so_det_id); $i++) {
+    //                 // Update Form Detail Size
+    //                 $formDetailSize = FormCutPieceDetailSize::where("form_detail_id", $formDetail->id)->where("so_det_id", $request->so_det_id[$i])->first();
+    //                 $qtyBefore = $formDetailSize->qty;
+    //                 $formDetailSize->qty = $request->qty_detail[$i];
+    //                 $formDetailSize->edited_by = Auth::user()->id;
+    //                 $formDetailSize->edited_by_username = Auth::user()->username;
+    //                 $formDetailSize->edited_at = Carbon::now();
+    //                 $formDetailSize->edited_notes = "Update Form Cut Piece Detail Size Qty From ".$qtyBefore." to ".$formDetailSize->qty;
+    //                 $updateMessage .= "<br>".$formDetailSize->edited_notes;
+    //                 $formDetailSize->save();
+
+    //                 $qtyUsage += $request->qty_detail[$i];
+    //             }
+
+    //             // Update Form Detail
+    //             $qtyUsageBefore = $formDetail->qty_pemakaian;
+    //             $formDetail->qty_pemakaian = $qtyUsage;
+    //             $formDetail->qty_sisa = $formDetail->qty - $qtyUsage;
+    //             $formDetail->edited_by = Auth::user()->id;
+    //             $formDetail->edited_by_username = Auth::user()->username;
+    //             $formDetail->edited_at = Carbon::now();
+    //             $formDetail->edited_notes = "Update Form Cut Piece Detail Qty Usage From ".$qtyUsageBefore." to ".$formDetail->qty_pemakaian;
+    //             $updateMessage .= "<br>".$formDetail->edited_notes;
+    //             $formDetail->save();
+
+    //             // Update Chained Roll Qty
+    //             $diffQty = ($qtyUsageBefore-$formDetail->qty_pemakaian);
+    //             $cuttingServicePiece->fixChainedQty($formDetail->id, $diffQty);
+
+    //             // Get Scanned Item
+    //             $scannedItem = ScannedItem::where("id_roll", $formDetail->id_roll)->first();
+
+    //             if ($scannedItem->qty + $diffQty < 0) {
+    //                 // Cancel transaction
+    //             }
+
+    //             return array(
+    //                 "status" => 200,
+    //                 "message" => "Form ".$form->no_form." berhasil diubah <br>".$updateMessage,
+    //             );
+    //         }
+    //     }
+
+    //     return array(
+    //         "status" => 400,
+    //         "message" => "Terjadi kesalahan",
+    //     );
+    // }
 
     /**
      * Remove the specified resource from storage.

@@ -51,7 +51,7 @@ class PartController extends Controller
                     part.buyer,
                     part.act_costing_ws,
                     REPLACE(part.style, '\"', ' ') style,
-                    COALESCE(GROUP_CONCAT(DISTINCT marker_input.color), part.color) color,
+                    COALESCE(GROUP_CONCAT(DISTINCT COALESCE(marker_input.color, form_cut_piece.color)), part.color) color,
                     part.panel,
                     UPPER(COALESCE(part.panel_status, '')) panel_status,
                     COUNT(DISTINCT form_cut_input.id) total_form,
@@ -61,6 +61,7 @@ class PartController extends Controller
                 ->leftJoin("master_part", "master_part.id", "part_detail.master_part_id")
                 ->leftJoin("part_form", "part_form.part_id", "part.id")
                 ->leftJoin("form_cut_input", "form_cut_input.id", "part_form.form_id")
+                ->leftJoin("form_cut_piece", "form_cut_piece.id", "part_form.form_pcs_id")
                 ->leftJoin("marker_input", "marker_input.id", "form_cut_input.marker_id")
                 ->leftJoin(
                     DB::raw("
@@ -1481,7 +1482,7 @@ class PartController extends Controller
                 left join signalbit_erp.masteritem mi on mi.id_item = bji.id_item
             where
                 part_id = '" . $request->id . "' and
-                (part_status != 'complement')
+                (part_status IS NULL OR part_status != 'complement')
             GROUP BY
                 pd.id
             order by
@@ -1497,6 +1498,7 @@ class PartController extends Controller
         $list_part = DB::select(
             "
             SELECT
+                pd.id,
                 pd.id com_id,
                 CONCAT(mp.nama_part, ' - ', mp.bag) com_nama_part,
                 CONCAT(from_master_part.nama_part, ' - ', from_master_part.bag) as com_from_part,

@@ -270,7 +270,7 @@
                         <div class="row">
                             <div class="col-sm-6">
                                 <div class="form-group">
-                                    <label class="form-label small">Cons WS</label>
+                                    <label class="form-label small">Cons. WS</label>
                                     <div class="input-group">
                                         <input type='text' class='form-control form-control-sm' id='txt_cons_ws' name='txt_cons_ws' readonly>
                                         <input type='text' class='form-control form-control-sm' id='txt_unit_cons_ws' name='txt_unit_cons_ws' readonly>
@@ -279,7 +279,7 @@
                             </div>
                             <div class="col-sm-6">
                                 <div class="form-group">
-                                    <label class="form-label small">Cons Marker</label>
+                                    <label class="form-label small">Cons. Marker</label>
                                     <div class="input-group">
                                         <input type='text' class='form-control form-control-sm' id='txt_cons_marker' name='txt_cons_marker' readonly>
                                         <input type='text' class='form-control form-control-sm' id='txt_unit_cons_marker' name='txt_unit_cons_marker' readonly>
@@ -303,7 +303,7 @@
                                     <label class="form-label small">Gramasi</label>
                                     <div class="input-group">
                                         <input type='number' class='form-control form-control-sm' id='txt_gramasi' name='txt_gramasi' value="0" step=".001" readonly>
-                                        <input type='text' class='form-control form-control-sm' id='txt_unit_gramasi' name='txt_unit_gramasi' value="gr/cm^2" readonly>
+                                        <input type='text' class='form-control form-control-sm' id='txt_unit_gramasi' name='txt_unit_gramasi' value="gr/cm²" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -472,13 +472,13 @@
                     document.getElementById('txt_unit_l_ws').value = response.unit_lebar_ws ?? '-';
                     document.getElementById('txt_qty_gelar').value = response.gelar_qty_balance ? response.gelar_qty_balance : response.gelar_qty;
                     document.getElementById('txt_ws').value = response.act_costing_ws;
-                    document.getElementById('txt_cons_ws').value = response.cons_ws ?? 0;
+                    document.getElementById('txt_cons_ws').value = response.cons_ws ? Number(response.cons_ws).round(3) : 0;
                     document.getElementById('txt_unit_cons_ws').value = (response.unit_cons_ws ?? '-')+'/PCS';
-                    document.getElementById('txt_cons_marker').value = response.cons_marker ?? 0;
+                    document.getElementById('txt_cons_marker').value = response.cons_marker ? Number(response.cons_marker).round(3) : 0;
                     document.getElementById('txt_unit_cons_marker').value = (response.unit_cons_marker ?? '-')+'/PCS';
-                    document.getElementById('txt_cons_piping').value = response.cons_piping ?? 0;
+                    document.getElementById('txt_cons_piping').value = response.cons_piping ? Number(response.cons_piping).round(3) : 0;
                     document.getElementById('txt_unit_cons_piping').value = (response.unit_cons_piping ?? '-')+'/PCS';
-                    document.getElementById('txt_gramasi').value = response.gramasi ?? 0;
+                    document.getElementById('txt_gramasi').value = response.gramasi ? response.gramasi : 0;
                     document.getElementById('hitungmarker').value = response.gelar_qty_balance ? response.gelar_qty_balance : response.gelar_qty;
                     document.getElementById('txtid_marker').value = response.kode;
                     document.getElementById('tipe_form').value = response.tipe_marker == "bulk marker" && response.status_marker == "active" ? "Pilot to Bulk" : capitalizeFirstLetter((response.tipe_marker).replace(' marker', ""));

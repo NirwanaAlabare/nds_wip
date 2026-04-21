@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+use App\Models\Dc\DCIn;
 use App\Models\Dc\SecondaryInhouse;
 use App\Models\Stocker\Stocker;
 use App\Models\Dc\Trolley;
@@ -839,7 +840,8 @@ class DCInController extends Controller
                 ms.color,
                 ms.panel,
                 concat( ms.range_awal, '-', ms.range_akhir ) rangeAwalAkhir,
-                ifnull( tmp.id_qr_stocker, 'x' ) cek_stat
+                ifnull( tmp.id_qr_stocker, 'x' ) cek_stat,
+                dc_in_input.id as dc
             FROM
                 tmp_dc_in_input_new x
                 left JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
@@ -852,6 +854,7 @@ class DCInController extends Controller
                 left join part p_com on p_com.id = pd_com.part_id
                 left JOIN master_part mp ON pd.master_part_id = mp.id
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
+                LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = x.id_qr_stocker
             WHERE
                 x.`user` = '".$user."' and
                 (y.cancel != 'y' or y.cancel IS NULL)
@@ -878,7 +881,8 @@ class DCInController extends Controller
                 ms.color,
                 ms.panel,
                 concat( ms.range_awal, '-', ms.range_akhir ) rangeAwalAkhir,
-                ifnull( tmp.id_qr_stocker, 'x' ) cek_stat
+                ifnull( tmp.id_qr_stocker, 'x' ) cek_stat,
+                dc_in_input.id as dc
             FROM
                 tmp_dc_in_input_new x
                 left JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
@@ -891,6 +895,7 @@ class DCInController extends Controller
                 left join part p_com on p_com.id = pd_com.part_id
                 left JOIN master_part mp ON pd.master_part_id = mp.id
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
+                LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = x.id_qr_stocker
             WHERE
                 x.`user` = '".$user."' and
                 (y.cancel != 'y' or y.cancel IS NULL)
@@ -917,7 +922,8 @@ class DCInController extends Controller
                 ms.color,
                 ms.panel,
                 concat( ms.range_awal, '-', ms.range_akhir ) rangeAwalAkhir,
-                ifnull( tmp.id_qr_stocker, 'x' ) cek_stat
+                ifnull( tmp.id_qr_stocker, 'x' ) cek_stat,
+                dc_in_input.id as dc
             FROM
                 tmp_dc_in_input_new x
                 left JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
@@ -930,6 +936,7 @@ class DCInController extends Controller
                 left join part p_com on p_com.id = pd_com.part_id
                 left JOIN master_part mp ON pd.master_part_id = mp.id
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
+                LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = x.id_qr_stocker
             WHERE
                 x.`user` = '".$user."' and
                 (y.cancel != 'y' or y.cancel IS NULL)
@@ -1591,6 +1598,45 @@ class DCInController extends Controller
         DB::delete(
             "DELETE FROM tmp_dc_in_input_new where tujuan > '' and lokasi > '' and tempat > '' and user = '$user'"
         );
+    }
+
+    public function dcInList(Request $request)
+    {
+        $idQrStockers = explode("\n", $request->stocker_ids);
+
+        $dcInList = DCIn::selectRaw("
+                dc_in_input.tgl_trans,
+                dc_in_input.id_qr_stocker,
+                master_sb_ws.ws,
+                master_sb_ws.styleno,
+                master_sb_ws.color,
+                master_sb_ws.size,
+                dc_in_input.qty_awal,
+                dc_in_input.qty_reject,
+                dc_in_input.qty_replace,
+                (dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace) qty_in,
+                dc_in_input.tujuan,
+                dc_in_input.lokasi,
+                secondary_inhouse_in_input.created_at sec_inhouse_in,
+                secondary_inhouse_input.created_at sec_inhouse_out,
+                secondary_in_input.created_at sec_in,
+                CONCAT(COALESCE(trolley.nama_trolley,'-'), ' (', COALESCE(trolley_stocker.created_at, '-'), ')') trolley,
+                CONCAT(COALESCE(loading_line.nama_line,'-'), ' (', COALESCE(loading_line.created_at, '-'), ')') line,
+                dc_in_input.created_at,
+                dc_in_input.updated_at
+            ")->
+            leftJoin("stocker_input", "stocker_input.id_qr_stocker", "=", "dc_in_input.id_qr_stocker")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
+            leftJoin("secondary_inhouse_in_input", "secondary_inhouse_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+            leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+            leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+            leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
+            leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
+            leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
+            whereIn("dc_in_input.id_qr_stocker", $idQrStockers)->
+            get();
+
+        return DataTables::of($dcInList)->toJson();
     }
 
     // public function export_excel_mut_karyawan(Request $request)

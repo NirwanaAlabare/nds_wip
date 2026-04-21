@@ -158,6 +158,18 @@
                     Mutasi Sewing Subcont <i class="fas fa-file-excel"></i>
                 </a>
             </li>
+            <li>
+                <a href="{{ route('reportDefectReject') }}"
+                    class="dropdown-item {{ $subPage == 'reportDefectReject' ? 'active' : '' }}">
+                    Defect & Reject <i class="fas fa-file-excel"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('report-finishing-proses') }}"
+                    class="dropdown-item {{ $subPage == 'report-finishing-proses' ? 'active' : '' }}">
+                    Finishing Proses <i class="fas fa-file-excel"></i>
+                </a>
+            </li>
             {{-- Deprecated --}}
             {{--
                     <li>

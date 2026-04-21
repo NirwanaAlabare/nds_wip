@@ -1052,7 +1052,7 @@
                                 <button class='btn btn-primary btn-sm mb-1' onclick='editData(`+JSON.stringify(row)+`, "editPartSecondaryComplementModal")'>
                                     <i class='fa fa-edit'></i>
                                 </button>
-                                <button class='btn btn-danger btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
+                                <button class='btn btn-danger btn-sm mb-1' id="delete-complement" data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['com_id']+`' onclick='deleteData(this)' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
                                     <i class='fa fa-trash'></i>
                                 </button>
                             `;

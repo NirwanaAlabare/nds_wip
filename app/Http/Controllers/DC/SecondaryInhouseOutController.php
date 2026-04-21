@@ -1204,7 +1204,8 @@ class SecondaryInhouseOutController extends Controller
         $timestamp = Carbon::now();
 
         $validatedRequest = $request->validate([
-            "txtqtyreject" => "required"
+            "txtqtyreject" => "required",
+            "txtqtyreplace" => "required"
         ]);
 
         $saveinhouse = SecondaryInhouse::create([

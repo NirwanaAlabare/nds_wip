@@ -96,6 +96,20 @@ class TrackCuttingOutput extends Component
             ->orderByRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) DESC")
             ->value("tanggal");
 
+        $formCutAdditionalFirstDate = DB::table("form_cut_input")
+            ->selectRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) AS tanggal")
+            ->leftJoin("stocker_ws_additional", "stocker_ws_additional.form_cut_id", "=", "form_cut_input.id")
+            ->where("stocker_ws_additional.act_costing_id", $this->selectedOrder)
+            ->orderByRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut)")
+            ->value("tanggal");
+
+        $formCutAdditionalLastDate = DB::table("form_cut_input")
+            ->selectRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) AS tanggal")
+            ->leftJoin("stocker_ws_additional", "stocker_ws_additional.form_cut_id", "=", "form_cut_input.id")
+            ->where("stocker_ws_additional.act_costing_id", $this->selectedOrder)
+            ->orderByRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) DESC")
+            ->value("tanggal");
+
         $formRejectFirstDate = DB::table("form_cut_reject")
             ->selectRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) AS tanggal")
             ->where("form_cut_reject.act_costing_id", $this->selectedOrder)
@@ -123,6 +137,8 @@ class TrackCuttingOutput extends Component
         $dates = collect([
             $formCutFirstDate,
             $formCutLastDate,
+            $formCutAdditionalFirstDate,
+            $formCutAdditionalLastDate,
             $formRejectFirstDate,
             $formRejectLastDate,
             $formPcsFirstDate,
@@ -155,6 +171,20 @@ class TrackCuttingOutput extends Component
                 ->orderByRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) DESC")
                 ->value("tanggal");
 
+            $formCutAdditionalFirstDate = DB::table("form_cut_input")
+                ->selectRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) AS tanggal")
+                ->leftJoin("stocker_ws_additional", "stocker_ws_additional.form_cut_id", "=", "form_cut_input.id")
+                ->where("stocker_ws_additional.act_costing_id", $this->selectedOrder)
+                ->orderByRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut)")
+                ->value("tanggal");
+
+            $formCutAdditionalLastDate = DB::table("form_cut_input")
+                ->selectRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) AS tanggal")
+                ->leftJoin("stocker_ws_additional", "stocker_ws_additional.form_cut_id", "=", "form_cut_input.id")
+                ->where("stocker_ws_additional.act_costing_id", $this->selectedOrder)
+                ->orderByRaw("COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) DESC")
+                ->value("tanggal");
+
             $formRejectFirstDate = DB::table("form_cut_reject")
                 ->selectRaw("COALESCE(DATE(updated_at), DATE(created_at), tanggal) AS tanggal")
                 ->where("form_cut_reject.act_costing_id", $this->selectedOrder)
@@ -182,6 +212,8 @@ class TrackCuttingOutput extends Component
             $dates = collect([
                 $formCutFirstDate,
                 $formCutLastDate,
+                $formCutAdditionalFirstDate,
+                $formCutAdditionalLastDate,
                 $formRejectFirstDate,
                 $formRejectLastDate,
                 $formPcsFirstDate,
@@ -349,14 +381,74 @@ class TrackCuttingOutput extends Component
                 form_cut_piece.color,
                 form_cut_piece.panel,
                 form_cut_piece_detail_size.so_det_id
-            ORDER BY
-                `act_costing_id` ASC,
-                `style` ASC,
-                `color` ASC,
-                `panel` ASC,
-                `id_meja` ASC,
-                `so_det_id` ASC,
-                `size` ASC
+        UNION
+            SELECT
+                form_cut.id_meja,
+                form_cut.meja meja,
+                COALESCE ( DATE ( waktu_selesai ), DATE ( waktu_mulai ), tgl_form_cut ) tanggal,
+                stocker_ws_additional.act_costing_id,
+                stocker_ws_additional.act_costing_ws ws,
+                stocker_ws_additional.style,
+                stocker_ws_additional.color,
+                stocker_ws_additional.panel,
+                stocker_ws_additional_detail.so_det_id,
+                stocker_ws_additional_detail.size
+            FROM
+                laravel_nds.form_cut_input
+            LEFT JOIN
+                marker_input on marker_input.id = form_cut_input.marker_id
+            LEFT JOIN (
+                    SELECT
+                        meja.id id_meja,
+                        meja.`name` meja,
+                        COALESCE ( DATE ( waktu_selesai ), DATE ( waktu_mulai ), tgl_form_cut ) tgl_form,
+                        form_cut_input.id_marker,
+                        form_cut_input.id,
+                        form_cut_input.no_form,
+                        form_cut_input.qty_ply,
+                        form_cut_input.total_lembar,
+                        form_cut_input.notes,
+                        SUM( form_cut_input_detail.lembar_gelaran ) detail
+                    FROM
+                        form_cut_input
+                        LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
+                        INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
+                    WHERE
+                        form_cut_input.`status` = 'SELESAI PENGERJAAN'
+                        AND form_cut_input.id_marker IS NOT NULL
+                        ".$dateFilter."
+                    GROUP BY
+                        form_cut_input.id
+                ) form_cut ON `form_cut`.`id` = `form_cut_input`.`id`
+            LEFT JOIN
+                laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
+            LEFT JOIN
+                laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
+            LEFT JOIN
+                laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
+            LEFT JOIN
+                master_sb_ws on master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
+            LEFT JOIN
+                laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
+            WHERE
+                form_cut_input.status = 'SELESAI PENGERJAAN'
+                AND (stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
+                AND COALESCE ( DATE ( form_cut_input.updated_at ), DATE ( form_cut_input.created_at ), form_cut_input.tgl_form_cut ) >= '".$this->dateFromFilter."'
+                AND COALESCE ( DATE ( form_cut_input.updated_at ), DATE ( form_cut_input.created_at ), form_cut_input.tgl_form_cut ) <= '".$this->dateToFilter."'
+            GROUP BY
+                stocker_ws_additional.act_costing_id,
+                stocker_ws_additional.style,
+                stocker_ws_additional.color,
+                stocker_ws_additional.panel,
+                stocker_ws_additional_detail.so_det_id
+        ORDER BY
+            `act_costing_id` ASC,
+            `style` ASC,
+            `color` ASC,
+            `panel` ASC,
+            `id_meja` ASC,
+            `so_det_id` ASC,
+            `size` ASC
         ");
         $this->orderFilter = collect($orderFilterSql);
 
@@ -432,7 +524,7 @@ class TrackCuttingOutput extends Component
                                 modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                         where
                             (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
-                            AND marker_input_detail.ratio > 0
+                            AND (marker_input_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
                             ".($this->colorFilter ? "AND marker_input.color = '".$this->colorFilter."'" :  "")."
                             ".($this->panelFilter ? "AND marker_input.panel = '".$this->panelFilter."'" :  "")."
                             ".($this->groupBy == "size" && $this->sizeFilter ? "AND master_sb_ws.size = '".$this->sizeFilter."'" : "")."
@@ -441,7 +533,7 @@ class TrackCuttingOutput extends Component
                             marker_input.id,
                             marker_input_detail.so_det_id,
                             form_cut.id
-                    union
+                    union ALL
                         SELECT
                             '-' as kode,
                             form_cut_reject.no_form,
@@ -480,7 +572,7 @@ class TrackCuttingOutput extends Component
                         GROUP BY
                             form_cut_reject.id,
                             form_cut_reject_detail.so_det_id
-                    union
+                    union ALL
                         SELECT
                             '-' as kode,
                             form_cut_piece.no_form,
@@ -521,6 +613,79 @@ class TrackCuttingOutput extends Component
                         GROUP BY
                             form_cut_piece.id,
                             form_cut_piece_detail_size.so_det_id
+                    UNION ALL
+                        SELECT
+                            '-' kode,
+                            form_cut.no_form,
+                            form_cut.id_meja,
+                            form_cut.meja,
+                            form_cut.tgl_form,
+                            stocker_ws_additional.buyer,
+                            stocker_ws_additional.act_costing_id,
+                            stocker_ws_additional.act_costing_ws,
+                            stocker_ws_additional.style,
+                            stocker_ws_additional.color,
+                            stocker_ws_additional.panel,
+                            marker_input.cons_ws cons_ws,
+                            marker_input.unit_cons_ws unit,
+                            stocker_ws_additional_detail.so_det_id,
+                            CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
+                            stocker_ws_additional_detail.ratio,
+                            COALESCE(form_cut.notes) notes,
+                            SUM(marker_input.gelar_qty) marker_gelar,
+                            SUM(form_cut.qty_ply) spreading_gelar,
+                            SUM(COALESCE(form_cut.detail, form_cut.total_lembar)) form_gelar,
+                            SUM(modify_size_qty.difference_qty) diff
+                        FROM
+                            laravel_nds.form_cut_input
+                        LEFT JOIN
+                            marker_input on marker_input.id = form_cut_input.marker_id
+                        LEFT JOIN (
+                                SELECT
+                                    meja.id id_meja,
+                                    meja.`name` meja,
+                                    COALESCE ( DATE ( waktu_selesai ), DATE ( waktu_mulai ), tgl_form_cut ) tgl_form,
+                                    form_cut_input.id_marker,
+                                    form_cut_input.id,
+                                    form_cut_input.no_form,
+                                    form_cut_input.qty_ply,
+                                    form_cut_input.total_lembar,
+                                    form_cut_input.notes,
+                                    SUM( form_cut_input_detail.lembar_gelaran ) detail
+                                FROM
+                                    form_cut_input
+                                    LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
+                                    INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
+                                WHERE
+                                    form_cut_input.`status` = 'SELESAI PENGERJAAN'
+                                    AND form_cut_input.id_marker IS NOT NULL
+                                    ".$dateFilter."
+                                    ".($this->mejaFilter ? "AND form_cut_input.no_meja = '".$this->mejaFilter."'" :  "")."
+                                GROUP BY
+                                    form_cut_input.id
+                            ) form_cut ON `form_cut`.`id` = `form_cut_input`.`id`
+                        LEFT JOIN
+                            laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
+                        LEFT JOIN
+                            laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
+                        LEFT JOIN
+                            laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
+                        LEFT JOIN
+                            master_sb_ws on master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
+                        LEFT JOIN
+                            laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
+                        WHERE
+                            form_cut_input.status = 'SELESAI PENGERJAAN'
+                            AND (stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
+                            AND COALESCE ( DATE ( form_cut_input.updated_at ), DATE ( form_cut_input.created_at ), form_cut_input.tgl_form_cut ) >= '".$this->dateFromFilter."'
+                            AND COALESCE ( DATE ( form_cut_input.updated_at ), DATE ( form_cut_input.created_at ), form_cut_input.tgl_form_cut ) <= '".$this->dateToFilter."'
+                            ".($this->colorFilter ? "AND stocker_ws_additional.color = '".$this->colorFilter."'" :  "")."
+                            ".($this->panelFilter ? "AND stocker_ws_additional.panel = '".$this->panelFilter."'" :  "")."
+                            ".($this->groupBy == "size" && $this->sizeFilter ? "AND master_sb_ws.size = '".$this->sizeFilter."'" : "")."
+                            ".($this->selectedOrder ? "AND stocker_ws_additional.act_costing_id = '".$this->selectedOrder."'" : "")."
+                        GROUP BY
+                            stocker_ws_additional.id,
+                            stocker_ws_additional_detail.so_det_id
                     ) marker_cutting
                 GROUP BY
                     marker_cutting.act_costing_id,

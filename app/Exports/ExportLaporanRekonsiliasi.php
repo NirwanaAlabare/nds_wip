@@ -202,7 +202,7 @@ class ExportLaporanRekonsiliasi implements FromView, WithEvents, ShouldAutoSize
 $this->rowCount = count($data) + 3;
 
 
-return view('accounting.export', [
+return view('export-import.rekonsiliasi-cesia.export', [
     'data' => $data,
     'from' => $this->from,
     'to' => $this->to,
