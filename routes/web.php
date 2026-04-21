@@ -172,6 +172,7 @@ use App\Http\Controllers\User\ManageUserLineController;
 use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\WarehouseController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Exim\ExportImportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -2655,6 +2656,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/IE_lap_recap_smv', 'IE_lap_recap_smv')->name('IE_lap_recap_smv');
         Route::get('/IE_lap_recap_cm_price', 'IE_lap_recap_cm_price')->name('IE_lap_recap_cm_price');
     });
+
+    // Export Import (EXIM)
+    Route::controller(ExportImportController::class)->prefix("export-import")->middleware('role:export-import')->group(function () {
+        Route::get('/', 'index')->name('export-import');
+        Route::get('/report-rekonsiliasi-ceisa', 'ReportRekonsiliasi')->name('report-rekonsiliasi-ceisa');
+        Route::get('/export-rekonsiliasi-ceisa', 'ExportReportRekonsiliasi')->name('export-rekonsiliasi-ceisa');
+        Route::get('/report-ceisa-detail', 'ReportCeisaDetail')->name('report-ceisa-detail');
+        Route::get('/export-ceisa-detail', 'ExportReportCeisaDetail')->name('export-ceisa-detail');
+        Route::get('/report-signalbit-bc', 'ReportSignalbitBC')->name('report-signalbit-bc');
+        Route::get('/export-excel-report-signalbit-bc', 'ExportReportSignalbitBC')->name('export-excel-report-signalbit-bc');
+    });
 });
 
 // Dashboard
@@ -2719,6 +2731,7 @@ Route::get('/dashboard-sewing-eff', [DashboardController::class, 'sewingEff'])->
 Route::get('/sewing-summary', [DashboardController::class, 'sewingSummary'])->middleware('auth')->name('dashboard-sewing-sum');
 Route::get('/sewing-output-data', [DashboardController::class, 'sewingOutputData'])->middleware('auth')->name('dashboard-sewing-output');
 Route::get('/dashboard-manage-user', [DashboardController::class, 'manageUser'])->middleware('auth')->name('dashboard-manage-user');
+Route::get('/dashboard-export-importr', [DashboardController::class, 'exportImport'])->middleware('auth')->name('dashboard-export-import');
 
 // Accounting
 Route::controller(AccountingController::class)->prefix("accounting")->middleware('role:accounting')->group(function () {
@@ -2730,13 +2743,13 @@ Route::controller(AccountingController::class)->prefix("accounting")->middleware
     Route::post('/store', 'store')->name('store-update-ceisa');
     Route::get('/cancel-keterangan-ceisa', 'CancelDataCeisa')->name('cancel-keterangan-ceisa');
     Route::get('/edit-keterangan-ceisa', 'EditDataCeisa')->name('edit-keterangan-ceisa');
-    Route::get('/report-rekonsiliasi-ceisa', 'ReportRekonsiliasi')->name('report-rekonsiliasi-ceisa');
-    Route::get('/export-rekonsiliasi-ceisa', 'ExportReportRekonsiliasi')->name('export-rekonsiliasi-ceisa');
-    Route::get('/report-ceisa-detail', 'ReportCeisaDetail')->name('report-ceisa-detail');
-    Route::get('/export-ceisa-detail', 'ExportReportCeisaDetail')->name('export-ceisa-detail');
+    // Route::get('/report-rekonsiliasi-ceisa', 'ReportRekonsiliasi')->name('report-rekonsiliasi-ceisa');
+    // Route::get('/export-rekonsiliasi-ceisa', 'ExportReportRekonsiliasi')->name('export-rekonsiliasi-ceisa');
+    // Route::get('/report-ceisa-detail', 'ReportCeisaDetail')->name('report-ceisa-detail');
+    // Route::get('/export-ceisa-detail', 'ExportReportCeisaDetail')->name('export-ceisa-detail');
 
-    Route::get('/report-signalbit-bc', 'ReportSignalbitBC')->name('report-signalbit-bc');
-    Route::get('/export-excel-report-signalbit-bc', 'ExportReportSignalbitBC')->name('export-excel-report-signalbit-bc');
+    // Route::get('/report-signalbit-bc', 'ReportSignalbitBC')->name('report-signalbit-bc');
+    // Route::get('/export-excel-report-signalbit-bc', 'ExportReportSignalbitBC')->name('export-excel-report-signalbit-bc');
 });
 
 // Route::get('/dashboard-chart', function () {

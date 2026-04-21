@@ -303,6 +303,22 @@
                             </div>
                         @endrole
 
+                        @role('export_import')
+                            <div class="col-lg-2 col-md-3 col-sm-6">
+                                <a href="{{ route('export-import') }}" class="home-item">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex h-100 flex-column justify-content-between">
+                                                <img src="{{ asset('dist/img/exim_img.jpeg') }}" class="img-fluid p-3"
+                                                    alt="qr code image">
+                                                <p class="text-center fw-bold text-uppercase text-dark">Export Import</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        @endrole
+
                         @role('management')
                             <div class="col-lg-2 col-md-3 col-sm-6">
                                 <a href="{{ route('dashboard-mgt-report') }}" class="home-item">
