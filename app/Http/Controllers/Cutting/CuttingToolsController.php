@@ -15,6 +15,8 @@ use App\Models\Stocker\Stocker;
 use App\Models\SignalBit\ActCosting;
 use App\Services\StockerService;
 use App\Services\CuttingService;
+use App\Imports\ImportCuttingManual;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -870,5 +872,35 @@ class CuttingToolsController extends Controller
             "status" => 400,
             "message" => "Gagal"
         ]);
+    }
+
+    public function importCuttingManual(Request $request)
+    {
+        // validasi
+        $this->validate($request, [
+            'file' => 'required|mimes:csv,xls,xlsx'
+        ]);
+
+        $file = $request->file('file');
+
+        $nama_file = rand().$file->getClientOriginalName();
+
+        $file->move('file_upload',$nama_file);
+
+        $import = Excel::import(new importCuttingManual, public_path('/file_upload/'.$nama_file));
+
+        if ($import) {
+            return array(
+                "status" => 200,
+                "message" => 'Data Berhasil Di Upload',
+                "additional" => [],
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => 'Terjadi Kesalahan',
+            "additional" => [],
+        );
     }
 }

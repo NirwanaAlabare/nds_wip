@@ -791,6 +791,9 @@ Route::middleware('auth')->group(function () {
 
         // Delete redundant roll
         Route::post('/delete-redundant-roll', 'deleteRedundantRoll')->name('delete-redundant-roll');
+
+        // Import Cutting Manual
+        Route::post('/import-cutting-manual', 'importCuttingManual')->name('import-cutting-manual');
     });
 
     // Stocker :
