@@ -2666,7 +2666,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Export Import (EXIM)
-    Route::controller(ExportImportController::class)->prefix("export-import")->middleware('role:export-import')->group(function () {
+    Route::controller(ExportImportController::class)->prefix("export-import")->middleware('role:export_import')->group(function () {
         Route::get('/', 'index')->name('export-import');
         Route::get('/report-rekonsiliasi-ceisa', 'ReportRekonsiliasi')->name('report-rekonsiliasi-ceisa');
         Route::get('/export-rekonsiliasi-ceisa', 'ExportReportRekonsiliasi')->name('export-rekonsiliasi-ceisa');
