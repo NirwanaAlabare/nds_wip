@@ -92,7 +92,7 @@
         </tr>
         <tr>
             <td>No PO</td>
-            <td> : {{ $dheader->no_po }}</td>
+            <td> : {{ $dheader->no_po_subkon }}</td>
             <td>Tgl. BPB</td>
             <td> : {{ $dheader->tgl_bppb }}</td>    
         </tr>
@@ -185,7 +185,7 @@
     <tr>  
       <td style="text-align:center;font-size:10px"></td>
       <td style="text-align:center;font-size:10px">Kabag </td>
-      <td style="text-align:center;font-size:10px">Direktur </td>
+      <td style="text-align:center;font-size:10px"> </td>
       <td style="text-align:center;font-size:10px"></td>
   
   

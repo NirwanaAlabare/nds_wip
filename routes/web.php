@@ -174,6 +174,9 @@ use App\Http\Controllers\WarehouseController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Exim\ExportImportController;
 
+//transfer memo
+use App\Http\Controllers\TransferMemoController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -1851,6 +1854,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('konfirmasi-pengeluaran');
         Route::get('/approve-pengeluaran-all', 'approvepengeluaranall')->name('approve-pengeluaran-all');
         Route::get('/get-data-pengeluaran', 'getdatapengeluaran')->name('get-data-pengeluaran');
+    });
+
+    //transfer memo
+    Route::controller(TransferMemoController::class)->prefix("transfer-memo")->middleware('marketing')->group(function () {
+        Route::get('/approve-transfer-memo', 'ApproveTransferMemo')->name('approve-transfer-memo');
+        Route::get('/get-detail-transfer-memo/{id?}', 'DetailTransferMemo')->name('get-detail-transfer-memo');
+        Route::post('/update-transfer-memo-approve', 'UpdateTransferMemoApprove')->name('update-transfer-memo-approve');
+        Route::post('/update-transfer-memo-cancel', 'UpdateTransferMemoCancel')->name('update-transfer-memo-cancel');
+        Route::get('/', 'index')->name('transfer-memo-to-exim');
+        Route::get('/create', 'create')->name('create-transfer-memo');
+        Route::post('/store', 'store')->name('save-transfer-memo');
+        Route::get('/cancel-transfer-memo', 'canceltransfer')->name('cancel-transfer-memo');
     });
 
     //transfer bpb
