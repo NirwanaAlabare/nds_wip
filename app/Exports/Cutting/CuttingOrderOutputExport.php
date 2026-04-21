@@ -356,7 +356,7 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
 
         $this->rowCount = $dailyOrderGroup->count() + 4;
         $alphabets = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
-        $colCount = $dates->count() + ($this->groupBy == "size" ? 5 : 4);
+        $colCount = $dates->count() + ($this->groupBy == "size" ? 6 : 5);
         if ($colCount > (count($alphabets)-1)) {
             $colStack = floor($colCount/(count($alphabets)-1));
             $colStackModulo = $colCount%(count($alphabets)-1);
