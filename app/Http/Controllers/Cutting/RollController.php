@@ -1368,8 +1368,8 @@ class RollController extends Controller
                 form_cut_piece.status status_form,
                 form_cut_piece_detail.status,
                 COALESCE ( form_cut_piece_detail.created_at, form_cut_piece_detail.updated_at ) updated_at,
-                '-' edited_by_username,
-                '-' edited_at,
+                COALESCE ( form_cut_piece_detail.edited_by_username, '-' ) edited_by_username,
+                COALESCE ( form_cut_piece_detail.edited_at, '-' ) edited_at,
                 'PIECE' as tipe
             FROM
                 `form_cut_piece_detail`

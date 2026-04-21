@@ -9,6 +9,7 @@ use App\Models\Dc\SecondaryInhouse;
 use App\Models\Dc\SecondaryIn;
 use App\Models\Dc\LoadingLine;
 use App\Models\Dc\LoadingLinePlan;
+use App\Models\Dc\TrolleyStocker;
 use App\Models\Stocker\YearSequence;
 use App\Models\SignalBit\UserLine;
 use Illuminate\Http\Request;
@@ -324,6 +325,151 @@ class DcToolsController extends Controller
         return array(
             "status" => 400,
             "message" => "Data tidak valid"
+        );
+    }
+
+    public function updateDcIn(Request $request) {
+        $idQrStockers = explode("\n", $request->stocker_ids);
+        $idQrStockers = array_filter(array_map('trim', $idQrStockers));
+
+        if ($idQrStockers && $request->tanggal) {
+            $errors = [];
+            $validStockers = [];
+
+            foreach ($idQrStockers as $idQrStocker) {
+                // Get Stocker
+                $stocker = Stocker::where("id_qr_stocker", $idQrStocker)->first();
+
+                if (!$stocker) {
+                    $errors[] = $idQrStocker . " - Stocker tidak ditemukan";
+                    continue;
+                }
+
+                // Check SecondaryInhouse
+                if (SecondaryInhouse::where("id_qr_stocker", $idQrStocker)->exists()) {
+                    $errors[] = $idQrStocker . " - Secondary Inhouse sudah ada";
+                    continue;
+                }
+
+                // Check SecondaryIn
+                if (SecondaryIn::where("id_qr_stocker", $idQrStocker)->exists()) {
+                    $errors[] = $idQrStocker . " - Secondary In sudah ada";
+                    continue;
+                }
+
+                // Check TrolleyStocker
+                if (TrolleyStocker::where("stocker_id", $stocker->id)->exists()) {
+                    $errors[] = $idQrStocker . " - Trolley Stocker sudah ada";
+                    continue;
+                }
+
+                // Check LoadingLine
+                if (LoadingLine::where("stocker_id", $stocker->id)->exists()) {
+                    $errors[] = $idQrStocker . " - Loading Line sudah ada";
+                    continue;
+                }
+
+                $validStockers[] = $idQrStocker;
+            }
+
+            if (count($errors) > 0) {
+                return array(
+                    "status" => 400,
+                    "message" => implode("<br>", $errors)
+                );
+            }
+
+            // Get DC IN
+            $dcInList = DCIn::whereIn("id_qr_stocker", $validStockers)->get();
+
+            $message = "";
+            foreach ($dcInList as $dcIn) {
+                $dcIn->tgl_trans = $request->tanggal;
+                $dcIn->save();
+                $message .= "<br>".$dcIn->id_qr_stocker." diubah ke tanggal ".$request->tanggal;
+            }
+
+            return array(
+                "status" => 200,
+                "message" => $message
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Request tidak sesuai"
+        );
+    }
+
+    public function deleteDcIn(Request $request) {
+        $idQrStockers = explode("\n", $request->stocker_ids);
+        $idQrStockers = array_filter(array_map('trim', $idQrStockers));
+
+        if ($idQrStockers) {
+            $errors = [];
+            $validStockers = [];
+
+            foreach ($idQrStockers as $idQrStocker) {
+                // Get Stocker
+                $stocker = Stocker::where("id_qr_stocker", $idQrStocker)->first();
+
+                if (!$stocker) {
+                    $errors[] = $idQrStocker . " - Stocker tidak ditemukan";
+                    continue;
+                }
+
+                // Check SecondaryInhouse
+                if (SecondaryInhouse::where("id_qr_stocker", $idQrStocker)->exists()) {
+                    $errors[] = $idQrStocker . " - Secondary Inhouse sudah ada";
+                    continue;
+                }
+
+                // Check SecondaryIn
+                if (SecondaryIn::where("id_qr_stocker", $idQrStocker)->exists()) {
+                    $errors[] = $idQrStocker . " - Secondary In sudah ada";
+                    continue;
+                }
+
+                // Check TrolleyStocker
+                if (TrolleyStocker::where("stocker_id", $stocker->id)->exists()) {
+                    $errors[] = $idQrStocker . " - Trolley Stocker sudah ada";
+                    continue;
+                }
+
+                // Check LoadingLine
+                if (LoadingLine::where("stocker_id", $stocker->id)->exists()) {
+                    $errors[] = $idQrStocker . " - Loading Line sudah ada";
+                    continue;
+                }
+
+                $validStockers[] = $idQrStocker;
+            }
+
+            if (count($errors) > 0) {
+                return array(
+                    "status" => 400,
+                    "message" => implode("<br>", $errors)
+                );
+            }
+
+            // Get DC IN
+            $dcInList = DCIn::whereIn("id_qr_stocker", $validStockers)->get();
+
+            $message = "";
+            foreach ($dcInList as $dcIn) {
+                $dcIn->delete();
+                $message .= "<br>".$dcIn->id_qr_stocker." berhasil dihapus.";
+            }
+
+            return array(
+                "status" => 200,
+                "message" => $message
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Request tidak sesuai"
         );
     }
 }

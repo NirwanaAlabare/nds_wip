@@ -1498,6 +1498,7 @@ class PartController extends Controller
         $list_part = DB::select(
             "
             SELECT
+                pd.id,
                 pd.id com_id,
                 CONCAT(mp.nama_part, ' - ', mp.bag) com_nama_part,
                 CONCAT(from_master_part.nama_part, ' - ', from_master_part.bag) as com_from_part,

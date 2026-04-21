@@ -964,6 +964,8 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/export-excel', 'exportExcel')->name('dc-in-export-excel');
         Route::get('/export-excel-detail', 'exportExcelDetail')->name('dc-in-detail-export-excel');
+
+        Route::get('/dc-in-list', 'dcInList')->name('dc-in-list');
     });
 
     // Secondary INHOUSE IN
@@ -1168,6 +1170,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/modify-dc-qty', 'modifyDcQty')->middleware('role:superadmin')->name('modify-dc-qty');
         Route::get('/get-dc-qty', 'getDcQty')->middleware('role:superadmin')->name('get-dc-qty');
         Route::post('/update-dc-qty', 'updateDcQty')->middleware('role:superadmin')->name('update-dc-qty');
+
+        Route::put('/update-dc-in', 'updateDcIn')->name('update-dc-in');
+        Route::delete('/delete-dc-in', 'deleteDcIn')->name('delete-dc-in');
     });
 
     // DC report
