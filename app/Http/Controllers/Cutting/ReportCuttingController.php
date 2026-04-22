@@ -1569,8 +1569,8 @@ FROM (
 		a.waktu_mulai,
 		a.waktu_selesai,
 		b.id,
-		DATE_FORMAT(b.created_at, '%M') bulan,
-		DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
+		DATE_FORMAT(a.waktu_selesai, '%M') bulan,
+		DATE_FORMAT(a.waktu_selesai, '%d-%m-%Y') tgl_input,
 		b.no_form_cut_input,
 		UPPER(meja.name) nama_meja,
 		mrk.act_costing_ws,
@@ -1656,7 +1656,7 @@ FROM (
 		AND a.status = 'SELESAI PENGERJAAN'
 		and b.status != 'not complete'
 		and b.id_item is not null
-		and b.created_at >= '$tgl_saldo 00:00:00' and b.created_at < '$start_date 00:00:00'
+		and a.waktu_selesai >= '$tgl_saldo 00:00:00' and a.waktu_selesai < '$start_date 00:00:00'
 	group by
 		b.id
 	UNION ALL
@@ -1665,8 +1665,8 @@ FROM (
 		form_cut_piping.created_at waktu_mulai,
 		form_cut_piping.updated_at waktu_selesai,
 		form_cut_piping.id,
-		DATE_FORMAT(form_cut_piping.created_at, '%M') bulan,
-		DATE_FORMAT(form_cut_piping.created_at, '%d-%m-%Y') tgl_input,
+		DATE_FORMAT(form_cut_piping.updated_at, '%M') bulan,
+		DATE_FORMAT(form_cut_piping.updated_at, '%d-%m-%Y') tgl_input,
 		'PIPING' no_form_cut_input,
 		'-' nama_meja,
 		form_cut_piping.act_costing_ws,
@@ -1737,7 +1737,7 @@ FROM (
 		left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
 	where
 		scanned_item.id_item is not null
-		and form_cut_piping.created_at >= '$tgl_saldo 00:00:00' and form_cut_piping.created_at < '$start_date 00:00:00'
+		and form_cut_piping.updated_at >= '$tgl_saldo 00:00:00' and form_cut_piping.updated_at < '$start_date 00:00:00'
 	group by
 		form_cut_piping.id
 	UNION ALL
@@ -1746,8 +1746,8 @@ FROM (
 		form_cut_piece.created_at waktu_mulai,
 		form_cut_piece.updated_at waktu_selesai,
 		form_cut_piece.id,
-		DATE_FORMAT( form_cut_piece.created_at, '%M' ) bulan,
-		DATE_FORMAT( form_cut_piece.created_at, '%d-%m-%Y' ) tgl_input,
+		DATE_FORMAT( form_cut_piece.updated_at, '%M' ) bulan,
+		DATE_FORMAT( form_cut_piece.updated_at, '%d-%m-%Y' ) tgl_input,
 		form_cut_piece.no_form no_form_cut_input,
 		'-' nama_meja,
 		form_cut_piece.act_costing_ws,
@@ -1818,7 +1818,7 @@ FROM (
 	WHERE
 		scanned_item.id_item IS NOT NULL
 		AND form_cut_piece_detail.STATUS = 'complete'
-		and form_cut_piece_detail.created_at >= '$tgl_saldo 00:00:00' and form_cut_piece_detail.created_at < '$start_date 00:00:00'
+		and form_cut_piece_detail.updated_at >= '$tgl_saldo 00:00:00' and form_cut_piece_detail.updated_at < '$start_date 00:00:00'
 	GROUP BY
 		form_cut_piece_detail.id
 ) cutting
@@ -1935,8 +1935,8 @@ FROM (
 		a.waktu_mulai,
 		a.waktu_selesai,
 		b.id,
-		DATE_FORMAT(b.created_at, '%M') bulan,
-		DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
+		DATE_FORMAT(a.waktu_selesai, '%M') bulan,
+		DATE_FORMAT(a.waktu_selesai, '%d-%m-%Y') tgl_input,
 		b.no_form_cut_input,
 		UPPER(meja.name) nama_meja,
 		mrk.act_costing_ws,
@@ -2021,7 +2021,7 @@ FROM (
 		AND a.status = 'SELESAI PENGERJAAN'
 		and b.status != 'not complete'
 		and b.id_item is not null
-		and b.created_at >= '$start_date 00:00:00' and b.created_at <= '$end_date 23:59:59'
+		and a.waktu_selesai >= '$start_date 00:00:00' and a.waktu_selesai <= '$end_date 23:59:59'
 	group by
 		b.id
 	UNION ALL
@@ -2030,8 +2030,8 @@ FROM (
 		form_cut_piping.created_at waktu_mulai,
 		form_cut_piping.updated_at waktu_selesai,
 		form_cut_piping.id,
-		DATE_FORMAT(form_cut_piping.created_at, '%M') bulan,
-		DATE_FORMAT(form_cut_piping.created_at, '%d-%m-%Y') tgl_input,
+		DATE_FORMAT(form_cut_piping.updated_at, '%M') bulan,
+		DATE_FORMAT(form_cut_piping.updated_at, '%d-%m-%Y') tgl_input,
 		'PIPING' no_form_cut_input,
 		'-' nama_meja,
 		form_cut_piping.act_costing_ws,
@@ -2100,7 +2100,7 @@ FROM (
 		left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
 	where
 		scanned_item.id_item is not null
-		and form_cut_piping.created_at >= '$start_date 00:00:00' and form_cut_piping.created_at <= '$end_date 23:59:59'
+		and form_cut_piping.updated_at >= '$start_date 00:00:00' and form_cut_piping.updated_at <= '$end_date 23:59:59'
 	group by
 		form_cut_piping.id
 	UNION ALL
@@ -2109,8 +2109,8 @@ FROM (
 		form_cut_piece.created_at waktu_mulai,
 		form_cut_piece.updated_at waktu_selesai,
 		form_cut_piece.id,
-		DATE_FORMAT( form_cut_piece.created_at, '%M' ) bulan,
-		DATE_FORMAT( form_cut_piece.created_at, '%d-%m-%Y' ) tgl_input,
+		DATE_FORMAT( form_cut_piece.updated_at, '%M' ) bulan,
+		DATE_FORMAT( form_cut_piece.updated_at, '%d-%m-%Y' ) tgl_input,
 		form_cut_piece.no_form no_form_cut_input,
 		'-' nama_meja,
 		form_cut_piece.act_costing_ws,
@@ -2181,7 +2181,7 @@ FROM (
 	WHERE
 		scanned_item.id_item IS NOT NULL
 		AND form_cut_piece_detail.STATUS = 'complete'
-		and form_cut_piece_detail.created_at >= '$start_date 00:00:00' and form_cut_piece_detail.created_at <= '$end_date 23:59:59'
+		and form_cut_piece_detail.updated_at >= '$start_date 00:00:00' and form_cut_piece_detail.updated_at <= '$end_date 23:59:59'
 	GROUP BY
 		form_cut_piece_detail.id
 ) cutting
