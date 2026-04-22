@@ -540,9 +540,6 @@
                     $('td', row).css('border', '0.15px solid #d0d0d0');
                 }
             },
-            "drawCallback": function(settings) {
-                $('[data-bs-toggle="tooltip"]').tooltip();
-            }
         });
 
         let datatableRatio = $("#datatable-ratio").DataTable({
