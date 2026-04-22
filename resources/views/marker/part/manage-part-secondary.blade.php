@@ -94,7 +94,7 @@
             </div>
             <div class="card-footer border-1">
                 <div class="d-flex justify-content-end">
-                    <button class="btn btn-success fw-bold" type="submit"><i class="fa fa-save"></i> SIMPAN</button>
+                    <button class="btn btn-success btn-sm fw-bold" type="submit"><i class="fa fa-save"></i> SIMPAN</button>
                 </div>
             </div>
         </div>
@@ -1645,6 +1645,17 @@
             const order = document.getElementById(`${prefix}urutan`);
 
             if (orderShow && order) {
+
+                // Take list-group-items
+                let listGroupItems = orderShow.getElementsByClassName("list-group-item");
+
+                // Remove list-group-items with empty content
+                Array.from(listGroupItems).forEach(item => {
+                    if (!item.innerHTML.trim()) {
+                        item.remove();
+                    }
+                });
+
                 // remove the default placeholder if it exists
                 const placeholder = orderShow.querySelector('li');
                 if (placeholder && placeholder.textContent.trim() === '-') {
