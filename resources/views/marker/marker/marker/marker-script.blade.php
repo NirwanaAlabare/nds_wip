@@ -192,12 +192,6 @@
                 $('td', row).css('border', '0.15px solid #d0d0d0');
             }
         },
-        "drawCallback": function(settings) {
-            // Dispose all existing tooltips
-            $('[data-bs-toggle="tooltip"]').tooltip('dispose');
-
-            $('[data-bs-toggle="tooltip"]').tooltip();
-        }
     });
 
     $(".btn-edit").click(function() {
