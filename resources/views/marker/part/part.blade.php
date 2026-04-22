@@ -219,16 +219,16 @@
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <buton type="button" onclick='showPartForm(` + JSON.stringify(row) + `)' class='btn btn-primary btn-sm'>
+                                <buton type="button" data-bs-toggle='tooltip' data-bs-title='Detail Part' onclick='showPartForm(` + JSON.stringify(row) + `)' class='btn btn-primary btn-sm'>
                                     <i class='fa fa-search'></i>
                                 </buton>
-                                <a href='{{ route('manage-part-secondary') }}/` + row['id'] + `' class='btn btn-info btn-sm'>
+                                <a data-bs-toggle='tooltip' data-bs-title='Atur Proses Part' href='{{ route('manage-part-secondary') }}/` + row['id'] + `' class='btn btn-info btn-sm'>
                                     <i class='fa fa-plus-circle'></i>
                                 </a>
-                                <a href='{{ route('manage-part-form') }}/` + row['id'] + `' class='btn btn-success btn-sm'>
+                                <a data-bs-toggle='tooltip' data-bs-title='Atur Form Part' href='{{ route('manage-part-form') }}/` + row['id'] + `' class='btn btn-success btn-sm'>
                                     <i class="fa-solid fa-file-circle-plus"></i>
                                 </a>
-                                <a class='btn btn-danger btn-sm' data='` + JSON.stringify(row) + `' data-url='{{ route('destroy-part') }}/` + row['id'] + `' onclick='deleteData(this)'>
+                                <a data-bs-toggle='tooltip' data-bs-title='Hapus Part' class='btn btn-danger btn-sm' data='` + JSON.stringify(row) + `' data-url='{{ route('destroy-part') }}/` + row['id'] + `' onclick='deleteData(this)'>
                                     <i class='fa fa-trash'></i>
                                 </a>
                             </div>

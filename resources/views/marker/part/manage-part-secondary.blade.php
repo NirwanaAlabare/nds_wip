@@ -11,19 +11,20 @@
 @endsection
 
 @section('content')
-    <div class="card card-sb">
-        <div class="card-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="card-title fw-bold">
-                    <i class="fa fa-circle-plus fa-sm"></i> Atur Part Detail
-                </h5>
-                <a href="{{ route('part') }}" class="btn btn-sm btn-primary">
-                    <i class="fa fa-reply"></i> Kembali ke Part
-                </a>
+    <form action="{{ route('update-part') }}/{{ $part->id }}" method="post" onsubmit="submitForm(this, event)" id="form-part">
+        @method("PUT")
+        <div class="card card-sb">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title fw-bold">
+                        <i class="fa fa-circle-plus fa-sm"></i> Atur Part Detail
+                    </h5>
+                    <a href="{{ route('part') }}" class="btn btn-sm btn-primary">
+                        <i class="fa fa-reply"></i> Kembali ke Part
+                    </a>
+                </div>
             </div>
-        </div>
-        <div class="card-body">
-            <form action="#" method="post">
+            <div class="card-body">
                 <div class="row">
                     <input type="hidden" class="form-control form-control-sm" name="id" id="id" value="{{ $part->id }}" readonly>
                     <div class="col-md-3">
@@ -65,7 +66,12 @@
                     <div class="col-md-3">
                         <div class="mb-3">
                             <label><small><b>Panel Status</b></small></label>
-                            <input type="text" class="form-control form-control-sm" name="panel_status" id="panel_status" value="{{ strtoupper($part->panel_status) }}" readonly>
+                            {{-- <input type="text" class="form-control form-control-sm" name="panel_status" id="panel_status" value="{{ strtoupper($part->panel_status) }}" readonly> --}}
+                            <select class="form-select select2bs4sm" name="panel_status" id="panel_status">
+                                <option value=""></option>
+                                <option value="main" {{ $part->panel_status == "main" ? "selected" : "" }}>MAIN</option>
+                                <option value="complement" {{ $part->panel_status == "complement" ? "selected" : "" }}>COMPLEMENT</option>
+                            </select>
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -85,9 +91,14 @@
                         </div>
                     </div>
                 </div>
-            </form>
+            </div>
+            <div class="card-footer border-1">
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-success fw-bold" type="submit"><i class="fa fa-save"></i> SIMPAN</button>
+                </div>
+            </div>
         </div>
-    </div>
+    </form>
 
     {{-- SECONDARY --}}
     <div class="row mb-3">
@@ -707,6 +718,11 @@
         //Initialize Select2 Elements
         $('.select2bs4').select2({
             theme: 'bootstrap4'
+        })
+
+        $('.select2bs4sm').select2({
+            theme: 'bootstrap4',
+            containerCssClass: 'form-control-sm'
         })
 
         //Initialize Select2 Edit Elements
