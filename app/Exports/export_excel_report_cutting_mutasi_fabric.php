@@ -404,7 +404,7 @@ FROM (
 	WHERE
 		scanned_item.id_item IS NOT NULL
 		AND form_cut_piece_detail.STATUS = 'complete'
-		and form_cut_piece_detail.updated_at >= '$tgl_saldo 00:00:00' and form_cut_piece_detail.updated_at < '$start_date 00:00:00'
+		and form_cut_piece.updated_at >= '$tgl_saldo 00:00:00' and form_cut_piece.updated_at < '$start_date 00:00:00'
 	GROUP BY
 		form_cut_piece_detail.id
 ) cutting
@@ -767,7 +767,7 @@ FROM (
 	WHERE
 		scanned_item.id_item IS NOT NULL
 		AND form_cut_piece_detail.STATUS = 'complete'
-		and form_cut_piece_detail.updated_at >= '$start_date 00:00:00' and form_cut_piece_detail.updated_at <= '$end_date 23:59:59'
+		and form_cut_piece.updated_at >= '$start_date 00:00:00' and form_cut_piece.updated_at <= '$end_date 23:59:59'
 	GROUP BY
 		form_cut_piece_detail.id
 ) cutting
