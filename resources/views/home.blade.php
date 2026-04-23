@@ -305,7 +305,7 @@
 
                         @role('export_import')
                             <div class="col-lg-2 col-md-3 col-sm-6">
-                                <a href="{{ route('export-import') }}" class="home-item">
+                                <a href="{{ route('dashboard-export-import') }}" class="home-item">
                                     <div class="card h-100">
                                         <div class="card-body">
                                             <div class="d-flex h-100 flex-column justify-content-between">

@@ -2663,7 +2663,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Export Import (EXIM)
-    Route::controller(ExportImportController::class)->prefix("export-import")->middleware('role:export-import')->group(function () {
+    Route::controller(ExportImportController::class)->prefix("export-import")->middleware('role:export_import')->group(function () {
         Route::get('/', 'index')->name('export-import');
         Route::get('/report-rekonsiliasi-ceisa', 'ReportRekonsiliasi')->name('report-rekonsiliasi-ceisa');
         Route::get('/export-rekonsiliasi-ceisa', 'ExportReportRekonsiliasi')->name('export-rekonsiliasi-ceisa');
@@ -2736,7 +2736,7 @@ Route::get('/dashboard-sewing-eff', [DashboardController::class, 'sewingEff'])->
 Route::get('/sewing-summary', [DashboardController::class, 'sewingSummary'])->middleware('auth')->name('dashboard-sewing-sum');
 Route::get('/sewing-output-data', [DashboardController::class, 'sewingOutputData'])->middleware('auth')->name('dashboard-sewing-output');
 Route::get('/dashboard-manage-user', [DashboardController::class, 'manageUser'])->middleware('auth')->name('dashboard-manage-user');
-Route::get('/dashboard-export-importr', [DashboardController::class, 'exportImport'])->middleware('auth')->name('dashboard-export-import');
+Route::get('/dashboard-export-import', [DashboardController::class, 'exportImport'])->middleware('auth')->name('dashboard-export-import');
 
 // Accounting
 Route::controller(AccountingController::class)->prefix("accounting")->middleware('role:accounting')->group(function () {
