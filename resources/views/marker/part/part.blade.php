@@ -11,24 +11,26 @@
     {{-- Part Data --}}
     <div class="card">
         <div class="card-header bg-sb text-light">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-th fa-sm"></i> Part</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-th fa-sm"></i> Part Group</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-part') }}" class="btn btn-success btn-sm mb-3">
-                <i class="fas fa-plus"></i>
-                Baru
-            </a>
-            <div class="d-flex align-items-end gap-3 mb-3">
-                <div>
-                    <label class="form-label"><small>Tanggal Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="datatablePartReload()">
-                </div>
-                <div>
-                    <label class="form-label"><small>Tanggal Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatablePartReload()">
-                </div>
-                <div>
+            <div class="d-flex justify-content-between align-items-end mb-3 gap-3">
+                <div class="d-flex align-items-end gap-3 ">
+                    <div>
+                        <label class="form-label small">Tanggal Awal</label>
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="datatablePartReload()">
+                    </div>
+                    <div>
+                        <label class="form-label small">Tanggal Akhir</label>
+                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatablePartReload()">
+                    </div>
                     <button class="btn btn-primary btn-sm" onclick="datatablePartReload()"><i class="fa fa-search"></i></button>
+                </div>
+                <div class="d-flex align-items-end gap-1">
+                    <a href="{{ route('create-part') }}" data-bs-toggle="tooltip" data-bs-title="Buat Part Group Baru" class="btn btn-success btn-sm">
+                        <i class="fas fa-plus"></i>
+                    </a>
+                    <button class="btn btn-sb-secondary btn-sm" data-bs-toggle="tooltip" data-bs-title="Refresh Data" onclick="datatablePartReload()"><i class="fa fa-rotate"></i></button>
                 </div>
             </div>
             <div class="table-responsive">
@@ -219,16 +221,16 @@
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <buton type="button" onclick='showPartForm(` + JSON.stringify(row) + `)' class='btn btn-primary btn-sm'>
+                                <buton type="button" data-bs-toggle='tooltip' data-bs-title='Detail Part' onclick='showPartForm(` + JSON.stringify(row) + `)' class='btn btn-primary btn-sm'>
                                     <i class='fa fa-search'></i>
                                 </buton>
-                                <a href='{{ route('manage-part-secondary') }}/` + row['id'] + `' class='btn btn-info btn-sm'>
+                                <a data-bs-toggle='tooltip' data-bs-title='Atur Proses Part' href='{{ route('manage-part-secondary') }}/` + row['id'] + `' class='btn btn-info btn-sm'>
                                     <i class='fa fa-plus-circle'></i>
                                 </a>
-                                <a href='{{ route('manage-part-form') }}/` + row['id'] + `' class='btn btn-success btn-sm'>
+                                <a data-bs-toggle='tooltip' data-bs-title='Atur Form Part' href='{{ route('manage-part-form') }}/` + row['id'] + `' class='btn btn-success btn-sm'>
                                     <i class="fa-solid fa-file-circle-plus"></i>
                                 </a>
-                                <a class='btn btn-danger btn-sm' data='` + JSON.stringify(row) + `' data-url='{{ route('destroy-part') }}/` + row['id'] + `' onclick='deleteData(this)'>
+                                <a data-bs-toggle='tooltip' data-bs-title='Hapus Part' class='btn btn-danger btn-sm' data='` + JSON.stringify(row) + `' data-url='{{ route('destroy-part') }}/` + row['id'] + `' onclick='deleteData(this)'>
                                     <i class='fa fa-trash'></i>
                                 </a>
                             </div>

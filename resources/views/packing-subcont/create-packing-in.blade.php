@@ -842,14 +842,22 @@ function submitFormScan(e, evt) {
 
         let qty_all = qty_in + qty_reject;
 
-        if (qty_all > qty_balance) {
+        if (qty_in > qty_balance) {
 
             $("#det_qty"+i).val(qty_balance);
-            $("#det_qty_reject"+i).val('');
 
             qty_in = qty_balance;
-            qty_reject = 0;
         }
+
+
+        // if (qty_all > qty_balance) {
+
+        //     $("#det_qty"+i).val(qty_balance);
+        //     $("#det_qty_reject"+i).val('');
+
+        //     qty_in = qty_balance;
+        //     qty_reject = 0;
+        // }
 
         sum_in += qty_in;
         sum_in_reject += qty_reject;
@@ -893,13 +901,11 @@ function sum_qty_item_reject(val){
 
         let qty_all = qty_in + qty_reject;
 
-        if (qty_all > qty_balance) {
+        if (qty_reject > qty_balance) {
 
-            $("#det_qty"+i).val(qty_balance);
-            $("#det_qty_reject"+i).val('');
+            $("#det_qty_reject"+i).val(qty_balance);
 
-            qty_in = qty_balance;
-            qty_reject = 0;
+            qty_reject = qty_balance;
         }
 
         sum_in += qty_in;

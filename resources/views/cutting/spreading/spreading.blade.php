@@ -21,11 +21,11 @@
                 <div class="col-md-6">
                     <div class="d-flex align-items-end gap-3 mb-3">
                         <div>
-                            <label class="form-label"><small>Tanggal Awal</small></label>
+                            <label class="form-label small">Tanggal Awal</label>
                             <input type="date" class="form-control form-control-sm" onchange="dataTableReload()" id="tgl-awal" name="tgl_awal">
                         </div>
                         <div>
-                            <label class="form-label"><small>Tanggal Akhir</small></label>
+                            <label class="form-label small">Tanggal Akhir</label>
                             <input type="date" class="form-control form-control-sm" onchange="dataTableReload()" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
                         </div>
                         <div>
@@ -148,34 +148,28 @@
                                     <h6 class="fw-semibold">Measurement Details</h6>
                                     </div>
 
-                                    <div class="col-md-2">
-                                    <label class="form-label small">Panjang</label>
-                                    <input type="text" class="form-control form-control-sm" id="edit_panjang_marker" readonly>
+                                    <div class="col-md-4">
+                                    <label class="form-label small">Panjang Marker</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control form-control-sm" id="edit_panjang_marker" readonly>
+                                        <input type="text" class="form-control form-control-sm" id="edit_unit_panjang_marker" readonly>
+                                    </div>
                                     </div>
 
-                                    <div class="col-md-2">
-                                    <label class="form-label small">Unit</label>
-                                    <input type="text" class="form-control form-control-sm" id="edit_unit_panjang_marker" readonly>
+                                    <div class="col-md-4">
+                                    <label class="form-label small">Comma Marker</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control form-control-sm" id="edit_comma_marker" readonly>
+                                        <input type="text" class="form-control form-control-sm" id="edit_unit_comma_marker" readonly>
+                                    </div>
                                     </div>
 
-                                    <div class="col-md-2">
-                                    <label class="form-label small">Comma</label>
-                                    <input type="text" class="form-control form-control-sm" id="edit_comma_marker" readonly>
+                                    <div class="col-md-4">
+                                    <label class="form-label small">Lebar Marker</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control form-control-sm" id="edit_lebar_marker" readonly>
+                                        <input type="text" class="form-control form-control-sm" id="edit_unit_lebar_marker" readonly>
                                     </div>
-
-                                    <div class="col-md-2">
-                                    <label class="form-label small">Unit</label>
-                                    <input type="text" class="form-control form-control-sm" id="edit_unit_comma_marker" readonly>
-                                    </div>
-
-                                    <div class="col-md-2">
-                                    <label class="form-label small">Lebar</label>
-                                    <input type="text" class="form-control form-control-sm" id="edit_lebar_marker" readonly>
-                                    </div>
-
-                                    <div class="col-md-2">
-                                    <label class="form-label small">Unit</label>
-                                    <input type="text" class="form-control form-control-sm" id="edit_unit_lebar_marker" readonly>
                                     </div>
 
                                     <!-- Quantity Section -->
@@ -185,12 +179,18 @@
 
                                     <div class="col-md-3">
                                     <label class="form-label small">Gelar QTY</label>
-                                    <input type="text" class="form-control form-control-sm" id="edit_gelar_qty" readonly>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control form-control-sm" id="edit_gelar_qty" readonly>
+                                        <span class="input-group-text">Ply</span>
+                                    </div>
                                     </div>
 
                                     <div class="col-md-3">
                                     <label class="form-label small">Ply QTY</label>
-                                    <input type="text" class="form-control form-control-sm" id="edit_qty_ply" readonly>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control form-control-sm" id="edit_qty_ply" readonly>
+                                        <span class="input-group-text">Ply</span>
+                                    </div>
                                     </div>
 
                                     <div class="col-md-3">
@@ -200,7 +200,10 @@
 
                                     <div class="col-md-3">
                                     <label class="form-label small">Cons. Marker</label>
-                                    <input type="text" class="form-control form-control-sm" id="edit_cons_marker" readonly>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control form-control-sm" id="edit_cons_marker" readonly>
+                                        <input type="text" class="form-control form-control-sm" id="edit_unit_cons_marker" readonly>
+                                    </div>
                                     </div>
 
                                     <!-- Action Section -->
@@ -261,8 +264,8 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Tutup</button>
-                            <button type="submit" class="btn btn-success">Simpan</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
+                            <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Simpan</button>
                         </div>
                     </div>
                 </div>
@@ -423,7 +426,7 @@
                         // Buttons
                         let btnEditMeja = row.status == 'SPREADING' ? "<a href='javascript:void(0);' data-bs-toggle='tooltip' data-bs-title='Ubah Alokasi Form' class='btn btn-info btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-edit'></i></a>" : "<button class='btn btn-info btn-sm' data-bs-toggle='tooltip' data-bs-title='Ubah Alokasi Form' onclick='editData(" + JSON.stringify(row) + ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);' disabled><i class='fa fa-edit'></i></button>";
                         let btnEditStatus = row.status != 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' data-bs-toggle='tooltip' data-bs-title='Ubah Status Form' onclick='editData(" + JSON.stringify({'id_status' : row.id, 'status' : row.status}) + ", \"editStatusModal\", [{\"function\" : \"dataTableRatio1Reload()\"}]);'><i class='fa fa-cog'></i></a>" : "<button class='btn btn-primary btn-sm' data-bs-toggle='tooltip' data-bs-title='Ubah Status Form' onclick='editData(" + JSON.stringify({'id_status' : row.id, 'status' : row.status}) + ", \"editStatusModal\", [{\"function\" : \"dataTableRatio1Reload()\"}]);' disabled><i class='fa fa-cog'></i></button>";
-                        let btnDelete = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-danger btn-sm' data-bs-toggle='tooltip' data-bs-title='Hapus Form' onclick='deleteData(this);'><i class='fa fa-trash'></i></a>" : "<button class='btn btn-danger btn-sm' data-bs-toggle='tooltip' data-bs-title='Hapus Form' onclick='deleteData(this);' disabled><i class='fa fa-trash'></i></button>";
+                        let btnDelete = row.status == 'SPREADING' ? "<a href='javascript:void(0);' data='"+JSON.stringify(row)+"' data-url='{{ route('destroy-spreading') }}/"+row['id']+"' class='btn btn-danger btn-sm' data-bs-toggle='tooltip' data-bs-title='Hapus Form' onclick='deleteData(this);'><i class='fa fa-trash'></i></a>" : "<button class='btn btn-danger btn-sm' data-bs-toggle='tooltip' data-bs-title='Hapus Form' onclick='deleteData(this);' disabled><i class='fa fa-trash'></i></button>";
                         let btnPDF = "<a href='javascript:void(0);' class='btn btn-dark btn-sm' data='"+JSON.stringify(row)+"' data-bs-toggle='tooltip' data-bs-title='Cetak Form' onclick='printForm(this);'><i class='fa fa-file-pdf'></i></a>";
 
                         // Set Form Process based on form type
@@ -540,9 +543,6 @@
                     $('td', row).css('border', '0.15px solid #d0d0d0');
                 }
             },
-            "drawCallback": function(settings) {
-                $('[data-bs-toggle="tooltip"]').tooltip();
-            }
         });
 
         let datatableRatio = $("#datatable-ratio").DataTable({

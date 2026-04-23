@@ -73,7 +73,6 @@
                 </div>
             </div>
 
-
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-striped table-hover w-100">
                     <thead class="bg-sb">
@@ -93,8 +92,6 @@
                     </thead>
                 </table>
             </div>
-
-
         </div>
     </div>
 @endsection

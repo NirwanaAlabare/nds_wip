@@ -191,6 +191,13 @@ return [
             'days' => 30,
         ],
 
+         'importCuttingManual' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/importCuttingManual/importCuttingManual.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
+        ],
+
         'importStockerManual' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/importStockerManual/importStockerManual.log'),

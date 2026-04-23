@@ -92,6 +92,7 @@ class SpreadingController extends Controller
                     b.po_marker,
                     b.urutan_marker,
                     b.cons_marker,
+                    b.unit_cons_marker,
                     UPPER(b.tipe_marker) tipe_marker,
                     a.tipe_form_cut,
                     REPLACE(COALESCE(b.notes, '-'), '\"', '') notes,

@@ -11,19 +11,20 @@
 @endsection
 
 @section('content')
-    <div class="card card-sb">
-        <div class="card-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="card-title fw-bold">
-                    <i class="fa fa-circle-plus fa-sm"></i> Atur Part Detail
-                </h5>
-                <a href="{{ route('part') }}" class="btn btn-sm btn-primary">
-                    <i class="fa fa-reply"></i> Kembali ke Part
-                </a>
+    <form action="{{ route('update-part') }}/{{ $part->id }}" method="post" onsubmit="submitForm(this, event)" id="form-part">
+        @method("PUT")
+        <div class="card card-sb">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title fw-bold">
+                        <i class="fa fa-circle-plus fa-sm"></i> Atur Part Detail
+                    </h5>
+                    <a href="{{ route('part') }}" class="btn btn-sm btn-primary">
+                        <i class="fa fa-reply"></i> Kembali ke Part
+                    </a>
+                </div>
             </div>
-        </div>
-        <div class="card-body">
-            <form action="#" method="post">
+            <div class="card-body">
                 <div class="row">
                     <input type="hidden" class="form-control form-control-sm" name="id" id="id" value="{{ $part->id }}" readonly>
                     <div class="col-md-3">
@@ -65,7 +66,12 @@
                     <div class="col-md-3">
                         <div class="mb-3">
                             <label><small><b>Panel Status</b></small></label>
-                            <input type="text" class="form-control form-control-sm" name="panel_status" id="panel_status" value="{{ strtoupper($part->panel_status) }}" readonly>
+                            {{-- <input type="text" class="form-control form-control-sm" name="panel_status" id="panel_status" value="{{ strtoupper($part->panel_status) }}" readonly> --}}
+                            <select class="form-select select2bs4sm" name="panel_status" id="panel_status">
+                                <option value=""></option>
+                                <option value="main" {{ $part->panel_status == "main" ? "selected" : "" }}>MAIN</option>
+                                <option value="complement" {{ $part->panel_status == "complement" ? "selected" : "" }}>COMPLEMENT</option>
+                            </select>
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -85,9 +91,14 @@
                         </div>
                     </div>
                 </div>
-            </form>
+            </div>
+            <div class="card-footer border-1">
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-success btn-sm fw-bold" type="submit"><i class="fa fa-save"></i> SIMPAN</button>
+                </div>
+            </div>
         </div>
-    </div>
+    </form>
 
     {{-- SECONDARY --}}
     <div class="row mb-3">
@@ -709,6 +720,11 @@
             theme: 'bootstrap4'
         })
 
+        $('.select2bs4sm').select2({
+            theme: 'bootstrap4',
+            containerCssClass: 'form-control-sm'
+        })
+
         //Initialize Select2 Edit Elements
         $('.select2bs4edit').select2({
             theme: 'bootstrap4',
@@ -1052,7 +1068,7 @@
                                 <button class='btn btn-primary btn-sm mb-1' onclick='editData(`+JSON.stringify(row)+`, "editPartSecondaryComplementModal")'>
                                     <i class='fa fa-edit'></i>
                                 </button>
-                                <button class='btn btn-danger btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
+                                <button class='btn btn-danger btn-sm mb-1' id="delete-complement" data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['com_id']+`' onclick='deleteData(this)' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
                                     <i class='fa fa-trash'></i>
                                 </button>
                             `;
@@ -1629,6 +1645,17 @@
             const order = document.getElementById(`${prefix}urutan`);
 
             if (orderShow && order) {
+
+                // Take list-group-items
+                let listGroupItems = orderShow.getElementsByClassName("list-group-item");
+
+                // Remove list-group-items with empty content
+                Array.from(listGroupItems).forEach(item => {
+                    if (!item.innerHTML.trim()) {
+                        item.remove();
+                    }
+                });
+
                 // remove the default placeholder if it exists
                 const placeholder = orderShow.querySelector('li');
                 if (placeholder && placeholder.textContent.trim() === '-') {

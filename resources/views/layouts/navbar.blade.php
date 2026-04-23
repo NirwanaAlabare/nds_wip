@@ -963,6 +963,27 @@
                     </li>
                 @endif
 
+                @if ($page == 'dashboard-marketing')
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                            class="nav-link dropdown-toggle">Document Handover</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('approve-transfer-memo') }}" class="dropdown-item">
+                                    Approve Transfer MEMO <i class="fa-solid fa-check-double"></i>
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="{{ route('transfer-memo-to-exim') }}" class="dropdown-item">
+                                    Transfer MEMO <i class="fas fa-paper-plane"></i>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li>
+                @endif
+
                 @if ($page == 'accounting')
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"

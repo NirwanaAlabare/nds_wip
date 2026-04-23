@@ -143,7 +143,7 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                                 modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                         where
                             (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
-                            AND marker_input_detail.ratio > 0
+                            AND (marker_input_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
                             ".($this->order ? "AND marker_input.act_costing_id = '".$this->order."'" : "")."
                         group by
                             marker_input.id,
@@ -356,7 +356,7 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
 
         $this->rowCount = $dailyOrderGroup->count() + 4;
         $alphabets = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
-        $colCount = $dates->count() + ($this->groupBy == "size" ? 5 : 4);
+        $colCount = $dates->count() + ($this->groupBy == "size" ? 6 : 5);
         if ($colCount > (count($alphabets)-1)) {
             $colStack = floor($colCount/(count($alphabets)-1));
             $colStackModulo = $colCount%(count($alphabets)-1);

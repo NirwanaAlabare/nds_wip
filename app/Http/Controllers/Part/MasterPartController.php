@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Part;
 
 use App\Http\Controllers\Controller;
 use App\Models\Part\MasterPart;
+use App\Models\Part\PartDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

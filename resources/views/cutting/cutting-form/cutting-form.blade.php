@@ -31,9 +31,10 @@
                         <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
                     </div>
                 </div>
-                <div class="d-flex align-items-end gap-3 mb-3">
+                <div class="d-flex align-items-end gap-1 mb-3">
+                    <button class="btn btn-sb-secondary btn-sm" data-bs-toggle="tooltip" data-bs-title="Refresh Data" onclick="dataTableReload()"><i class="fa fa-rotate"></i></button>
                     @if (Auth::user()->type != 'meja')
-                        <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb"><i class="fas fa-clipboard-list"></i> Manual</a>
+                        <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb" data-bs-toggle="tooltip" data-bs-title="Buat Form Manual"><i class="fas fa-clipboard-list"></i> Manual</a>
                     @endif
                 </div>
             </div>
@@ -344,17 +345,15 @@
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
-                        let btnEdit = "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>";
+                        let btnEdit = "<a href='javascript:void(0);' data-bs-toggle='tooltip' data-bs-title='Detail Form' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>";
 
-                        let btnProcess = "";
-
+                        let linkProcess = "{{ route('process-form-cut-input') }}/" + row.id;
                         if (row.tipe_form_cut == 'MANUAL') {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-manual-form-cut') }}/` +row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></a>` : `<button class='btn btn-success btn-sm' data-bs-toggle='tooltip' target='_blank' disabled><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></button>`;
+                            linkProcess = "{{ route('process-manual-form-cut') }}/" +row.id;
                         } else if (row.tipe_form_cut == 'PILOT') {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-pilot-form-cut') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` : `<button class='btn btn-success btn-sm' data-bs-toggle='tooltip' target='_blank' disabled><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></button>`;
-                        } else {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) + `'></i></a>` : `<button class='btn btn-success btn-sm' data-bs-toggle='tooltip' target='_blank' disabled><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) + `'></i></button>`;
+                            linkProcess = "{{ route('process-pilot-form-cut') }}/" + row.id;
                         }
+                        btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='`+linkProcess+`' data-bs-toggle='tooltip' data-bs-title='Proses Form' target='_blank'><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></a>` : `<button class='btn btn-success btn-sm' data-bs-toggle='tooltip' target='_blank' disabled><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></button>`;
 
                         return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess + `</div>`;
                     }
