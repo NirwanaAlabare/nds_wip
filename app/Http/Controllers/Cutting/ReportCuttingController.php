@@ -2725,7 +2725,7 @@ SELECT
                 LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
             WHERE
-                DATE(form_cut_piece_detail.created_at) >= '$tgl_saldo' and DATE(form_cut_piece_detail.created_at) < '$start_date'
+                DATE(form_cut_piece.updated_at) >= '$tgl_saldo' and DATE(form_cut_piece.updated_at) < '$start_date'
 								and form_cut_piece_detail.status = 'complete'
             GROUP BY
                 form_cut_piece.id,
@@ -2899,7 +2899,7 @@ cutt_in as
                 LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
             WHERE
-                DATE(form_cut_piece_detail.created_at) >= '$start_date' and DATE(form_cut_piece_detail.created_at) <= '$end_date'
+                DATE(form_cut_piece.updated_at) >= '$start_date' and DATE(form_cut_piece.updated_at) <= '$end_date'
 								and form_cut_piece_detail.status = 'complete'
             GROUP BY
                 form_cut_piece.id,
