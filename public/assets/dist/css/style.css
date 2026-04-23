@@ -694,3 +694,7 @@ table.sticky-table .fixed-column {
         border-radius: 3px;
     }
 }
+
+.dt-search {
+    margin-bottom: 10px !important;
+}

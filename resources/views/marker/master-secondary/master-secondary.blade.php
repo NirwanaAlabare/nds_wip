@@ -13,10 +13,12 @@
             <h5 class="card-title fw-bold mb-0"><i class="fa-regular fa-square-plus"></i> Master Secondary</h5>
         </div>
         <div class="card-body">
-            <button type="button" class="btn btn-success btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#createMasterSecondaryModal">
-                <i class="fas fa-plus"></i>
-                Baru
-            </button>
+            <div class="d-flex justify-content-end">
+                <button type="button" class="btn btn-success btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#createMasterSecondaryModal">
+                    <i class="fas fa-plus"></i>
+                    Buat Master Secondary Baru
+                </button>
+            </div>
             <div class="table-responsive">
                 <table id="datatable-master-secondary" class="table table-bordered table w-100">
                     <thead>
