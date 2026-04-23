@@ -21,11 +21,11 @@
                 <div class="col-md-6">
                     <div class="d-flex align-items-end gap-3 mb-3">
                         <div>
-                            <label class="form-label"><small>Tanggal Awal</small></label>
+                            <label class="form-label small">Tanggal Awal</label>
                             <input type="date" class="form-control form-control-sm" onchange="dataTableReload()" id="tgl-awal" name="tgl_awal">
                         </div>
                         <div>
-                            <label class="form-label"><small>Tanggal Akhir</small></label>
+                            <label class="form-label small">Tanggal Akhir</label>
                             <input type="date" class="form-control form-control-sm" onchange="dataTableReload()" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
                         </div>
                         <div>
@@ -148,34 +148,28 @@
                                     <h6 class="fw-semibold">Measurement Details</h6>
                                     </div>
 
-                                    <div class="col-md-2">
-                                    <label class="form-label small">Panjang</label>
-                                    <input type="text" class="form-control form-control-sm" id="edit_panjang_marker" readonly>
+                                    <div class="col-md-4">
+                                    <label class="form-label small">Panjang Marker</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control form-control-sm" id="edit_panjang_marker" readonly>
+                                        <input type="text" class="form-control form-control-sm" id="edit_unit_panjang_marker" readonly>
+                                    </div>
                                     </div>
 
-                                    <div class="col-md-2">
-                                    <label class="form-label small">Unit</label>
-                                    <input type="text" class="form-control form-control-sm" id="edit_unit_panjang_marker" readonly>
+                                    <div class="col-md-4">
+                                    <label class="form-label small">Comma Marker</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control form-control-sm" id="edit_comma_marker" readonly>
+                                        <input type="text" class="form-control form-control-sm" id="edit_unit_comma_marker" readonly>
+                                    </div>
                                     </div>
 
-                                    <div class="col-md-2">
-                                    <label class="form-label small">Comma</label>
-                                    <input type="text" class="form-control form-control-sm" id="edit_comma_marker" readonly>
+                                    <div class="col-md-4">
+                                    <label class="form-label small">Lebar Marker</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control form-control-sm" id="edit_lebar_marker" readonly>
+                                        <input type="text" class="form-control form-control-sm" id="edit_unit_lebar_marker" readonly>
                                     </div>
-
-                                    <div class="col-md-2">
-                                    <label class="form-label small">Unit</label>
-                                    <input type="text" class="form-control form-control-sm" id="edit_unit_comma_marker" readonly>
-                                    </div>
-
-                                    <div class="col-md-2">
-                                    <label class="form-label small">Lebar</label>
-                                    <input type="text" class="form-control form-control-sm" id="edit_lebar_marker" readonly>
-                                    </div>
-
-                                    <div class="col-md-2">
-                                    <label class="form-label small">Unit</label>
-                                    <input type="text" class="form-control form-control-sm" id="edit_unit_lebar_marker" readonly>
                                     </div>
 
                                     <!-- Quantity Section -->
@@ -185,12 +179,18 @@
 
                                     <div class="col-md-3">
                                     <label class="form-label small">Gelar QTY</label>
-                                    <input type="text" class="form-control form-control-sm" id="edit_gelar_qty" readonly>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control form-control-sm" id="edit_gelar_qty" readonly>
+                                        <span class="input-group-text">Ply</span>
+                                    </div>
                                     </div>
 
                                     <div class="col-md-3">
                                     <label class="form-label small">Ply QTY</label>
-                                    <input type="text" class="form-control form-control-sm" id="edit_qty_ply" readonly>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control form-control-sm" id="edit_qty_ply" readonly>
+                                        <span class="input-group-text">Ply</span>
+                                    </div>
                                     </div>
 
                                     <div class="col-md-3">
@@ -200,7 +200,10 @@
 
                                     <div class="col-md-3">
                                     <label class="form-label small">Cons. Marker</label>
-                                    <input type="text" class="form-control form-control-sm" id="edit_cons_marker" readonly>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control form-control-sm" id="edit_cons_marker" readonly>
+                                        <input type="text" class="form-control form-control-sm" id="edit_unit_cons_marker" readonly>
+                                    </div>
                                     </div>
 
                                     <!-- Action Section -->
@@ -261,8 +264,8 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Tutup</button>
-                            <button type="submit" class="btn btn-success">Simpan</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
+                            <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Simpan</button>
                         </div>
                     </div>
                 </div>
