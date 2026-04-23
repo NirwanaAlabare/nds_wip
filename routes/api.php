@@ -27,6 +27,11 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::get('user/get-api', [UserController::class, 'getApi']);
 Route::post('user/store-api', [UserController::class, 'storeApi']);
 
+// DASHBOARD WIP LINE
+Route::controller(DashboardWipLineController::class)->prefix("trigger-wip-line")->group(function () {
+    Route::post('dashboard-line/wip-line-sign', 'trigger_wip_line');
+});
+
 // Mgt Report
 Route::controller(MgtReportProsesController::class)->prefix("mgt-report-proses")->group(function () {
     Route::get('/', 'index');
@@ -40,11 +45,6 @@ Route::controller(FGStokLaporanController::class)->prefix("laporan-fg-stock")->g
     Route::get('/export_excel_mutasi_fg_stok', 'export_excel_mutasi_fg_stok');
     Route::get('/export_excel_mutasi_fg_stok_new', 'exportExcelMutasiFgStok');
     Route::get('/export_excel_mutasi_fg_stok_sb', 'exportExcelMutasiFgStokSb');
-});
-
-// DASHBOARD WIP LINE
-Route::controller(DashboardWipLineController::class)->prefix("trigger-wip-line")->group(function () {
-    Route::post('dashboard-line/wip-line-sign', 'trigger_wip_line');
 });
 
 //In Barcode Fabric

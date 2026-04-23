@@ -12,10 +12,10 @@ use App\Http\Controllers\Qc\QcInspectDetailController;
 Route::middleware('auth')->group(function () {
     // Main page route
     Route::get('/qc-inspect-master-satuan', [Satuan::class, 'render'])->name('qc-inspect-master-satuan');
-    
+
     // DataTable route
     Route::get('/qc-inspect-satuan/data', [Satuan::class, 'getDatatables'])->name('qc-inspect-satuan.data');
-    
+
     // CRUD operation routes
     Route::post('/qc-inspect-satuan/create', [Satuan::class, 'create'])->name('qc-inspect-satuan.create');
     Route::put('/qc-inspect-satuan/update/{id}', [Satuan::class, 'update'])->name('qc-inspect-satuan.update');
@@ -49,13 +49,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [Lenght::class, 'render'])->name('qc-inspect-master-lenght');
         Route::post('/create', [Lenght::class, 'create'])
             ->name('qc-inspect-lenght.create');
-        
+
         Route::post('/update', [Lenght::class, 'update'])
             ->name('qc-inspect-lenght.update');
-        
+
         Route::delete('/delete/{id}', [Lenght::class, 'delete'])
             ->name('qc-inspect-lenght.delete');
-        
+
         Route::get('/data', [Lenght::class, 'getDatatables'])
             ->name('qc-inspect-lenght.data');
     });
@@ -71,16 +71,16 @@ Route::middleware('auth')->group(function () {
         // Master Result Routes
     Route::prefix('qc-inspect-master-result')->group(function () {
         Route::get('/', [Result::class, 'render'])->name('qc-inspect-master-result');
-        
+
         Route::post('/create', [Result::class, 'create'])
             ->name('qc-inspect-result.create');
-        
+
         Route::post('/update', [Result::class, 'update'])
             ->name('qc-inspect-result.update');
-        
+
         Route::delete('/delete/{id}', [Result::class, 'delete'])
             ->name('qc-inspect-result.delete');
-        
+
         Route::get('/data', [Result::class, 'getDatatables'])
             ->name('qc-inspect-result.data');
     });
@@ -92,16 +92,15 @@ Route::middleware('auth')->group(function () {
 
 
     Route::prefix('qc-inspect-inmaterial-header')->group(function() {
-        Route::post('/store', [QcInspectHeaderController::class, 'store'])->name('qc-inspect-inmaterial-header.store');    
+        Route::post('/store', [QcInspectHeaderController::class, 'store'])->name('qc-inspect-inmaterial-header.store');
         Route::get('/', [QcInspectHeaderController::class, 'index'])->name('qc-inspect-inmaterial-header');
         Route::get('-generateRoll', [QcInspectHeaderController::class, 'generateRoll'])->name('qc-inspect-inmaterial-generateRoll');
         Route::get('-getDataRolltables', [QcInspectHeaderController::class, 'getDataRolltables'])->name('qc-inspect-inmaterial-getDataRolltables');
     });
 
     Route::prefix('qc-inspect-inmaterial-detail')->group(function() {
-        Route::post('/store', [QcInspectDetailController::class, 'store'])->name('qc-inspect-inmaterial-detail.store');    
+        Route::post('/store', [QcInspectDetailController::class, 'store'])->name('qc-inspect-inmaterial-detail.store');
     });
 
     Route::post('qc-inspect-inmaterial-header_data', [QcInspectHeaderController::class, 'getDatatables'])->name('qc-inspect-inmaterial-header.data');
-
-    });
+});
