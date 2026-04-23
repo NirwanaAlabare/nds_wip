@@ -612,7 +612,7 @@ class SecondaryInhouseInController extends Controller
                                             mp.nama_part,
                                             ms.tujuan,
                                             ms.proses lokasi,
-                                            '".($multiSecondaryBeforeSecondary->qty_in)."' qty_awal,
+                                            '".($multiSecondaryBeforeSecondary ? $multiSecondaryBeforeSecondary->qty_in : ($stocker->dcIn ? ($stocker->dcIn->qty_awal-$stocker->dcIn->qty_reject+$stocker->dcIn->qty_replace) : $stocker->qty_ply))."' qty_awal,
                                             ifnull(si.id_qr_stocker,'x'),
                                             (pds.urutan) as urutan
                                         from
