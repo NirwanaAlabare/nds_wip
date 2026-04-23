@@ -994,6 +994,20 @@
                                     Cutting - Ganti Reject Panel
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('report-cutting') }}"
+                                    target="_blank" rel="noopener noreferrer"
+                                    class="dropdown-item {{ $routeName == 'report-cutting' ? 'active' : '' }}">
+                                    Cutting - Output Cutting
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('dc-in') }}"
+                                    target="_blank" rel="noopener noreferrer"
+                                    class="dropdown-item {{ $routeName == 'dc-in' ? 'active' : '' }}">
+                                    DC - DC IN
+                                </a>
+                            </li>
                         </ul>
                     </li>
 
