@@ -14,28 +14,27 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-cut"></i> Penerimaan Fabric Cutting</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-tape"></i> Penerimaan Fabric Cutting</h5>
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
-                        <label class="form-label"><small>Tanggal Awal</small></label>
+                        <label class="form-label small">Tanggal Awal</label>
                         <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="dataTableReload()">
                     </div>
                     <div>
-                        <label class="form-label"><small>Tanggal Akhir</small></label>
+                        <label class="form-label small">Tanggal Akhir</label>
                         <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="dataTableReload()">
                     </div>
                     <div>
                         <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
                     </div>
                 </div>
-                <div class="d-flex align-items-end gap-3 mb-3">
-                    <a href="{{ route('create-penerimaan-cutting') }}" class="btn btn-success btn-sm mb-3"><i class="fa fa-plus"></i> New</a>
-                    <div class="mb-3">
-                        <button class="btn btn-success btn-sm" onclick="exportExcel()"><i class="fa fa-file-excel"></i></button>
-                    </div>
+                <div class="d-flex align-items-end gap-1 mb-3">
+                    <a href="{{ route('create-penerimaan-cutting') }}" data-bs-toggle="tooltip" data-bs-title="Buat Penerimaan Cutting" class="btn btn-sb btn-sm"><i class="fa fa-plus"></i></a>
+                    <button class="btn btn-sb-secondary btn-sm" data-bs-toggle="tooltip" data-bs-title="Refresh Data" onclick="dataTableReload()"><i class="fa fa-rotate"></i></button>
+                    <button class="btn btn-success btn-sm" data-bs-toggle="tooltip" data-bs-title="Export Excel" onclick="exportExcel()"><i class="fa fa-file-excel"></i></button>
                 </div>
             </div>
             <div class="table-responsive">

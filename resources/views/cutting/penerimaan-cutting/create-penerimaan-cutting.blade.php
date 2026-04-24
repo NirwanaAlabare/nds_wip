@@ -27,7 +27,7 @@
                 <div class="row align-items-end">
                     <div class="col-12 col-md-12">
                         <div class="mb-1">
-                            <label class="form-label"><small>Scan</small></label>
+                            <label class="form-label small">Scan</label>
                             <div class="input-group">
                                 <input type="text" class="form-control" id="scan_item" name="scan_item" value="">
                                 <button class="btn btn-outline-success" type="button" id="get-item" onclick="fetchScan()">Get</button>
@@ -62,32 +62,32 @@
                     <div class="row">
                         <div class="col-6 col-md-2">
                             <div class="mb-1">
-                                <label class="form-label"><small>Barcode</small></label>
+                                <label class="form-label small">Barcode</label>
                                 <input type="hidden" id="whs_bppb_det_id" name="whs_bppb_det_id">
                                 <input type="text" class="form-control" id="barcode" name="barcode" value="" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-2">
                             <div class="mb-1">
-                                <label class="form-label"><small>No. Req</small></label>
+                                <label class="form-label small">No. Req</label>
                                 <input type="text" class="form-control" id="no_req" name="no_req" value="" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-2">
                             <div class="mb-1">
-                                <label class="form-label"><small>No. BPPB</small></label>
+                                <label class="form-label small">No. BPPB</label>
                                 <input type="text" class="form-control" id="no_bppb" name="no_bppb" value="" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-2">
                             <div class="mb-1">
-                                <label class="form-label"><small>Tanggal BPPB</small></label>
+                                <label class="form-label small">Tanggal BPPB</label>
                                 <input type="text" class="form-control" id="tanggal_bppb" name="tanggal_bppb" value="" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="mb-1">
-                                <label class="form-label"><small>Tujuan</small></label>
+                                <label class="form-label small">Tujuan</label>
                                 <input type="text" class="form-control" id="tujuan" name="tujuan" value="" readonly>
                             </div>
                         </div>
@@ -96,38 +96,32 @@
                     <div class="row">
                         <div class="col-6 col-md-2">
                             <div class="mb-1">
-                                <label class="form-label"><small>No. WS</small></label>
+                                <label class="form-label small">No. WS</label>
                                 <input type="text" class="form-control" id="no_ws" name="no_ws" value="" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-2">
                             <div class="mb-1">
-                                <label class="form-label"><small>No. WS Act</small></label>
+                                <label class="form-label small">No. WS Act</label>
                                 <input type="text" class="form-control" id="no_ws_act" name="no_ws_act" value="" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-2">
+                        <div class="col-6 col-md-4">
                             <div class="mb-1">
-                                <label class="form-label"><small>Qty Out</small></label>
-                                <input type="text" class="form-control" id="qty_out" name="qty_out" value="" readonly>
+                                <label class="form-label small">Qty Out</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="qty_out" name="qty_out" value="" readonly>
+                                    <input type="text" class="form-control" id="unit" name="unit" value="" readonly>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-2">
+                        <div class="col-6 col-md-4">
                             <div class="mb-1">
-                                <label class="form-label"><small>Unit</small></label>
-                                <input type="text" class="form-control" id="unit" name="unit" value="" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <div class="mb-1">
-                                <label class="form-label"><small>Qty Konv</small></label>
-                                <input type="text" class="form-control" id="qty_konv" name="qty_konv" value="" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <div class="mb-1">
-                                <label class="form-label"><small>Unit Konv</small></label>
-                                <input type="text" class="form-control" id="unit_konv" name="unit_konv" value="" readonly>
+                                <label class="form-label small">Qty Konv</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="qty_konv" name="qty_konv" value="" readonly>
+                                    <input type="text" class="form-control" id="unit_konv" name="unit_konv" value="" readonly>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -135,31 +129,31 @@
                     <div class="row">
                         <div class="col-6 col-md-2">
                             <div class="mb-1">
-                                <label class="form-label"><small>Style</small></label>
+                                <label class="form-label small">Style</label>
                                 <input type="text" class="form-control" id="style" name="style" value="" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-2">
                             <div class="mb-1">
-                                <label class="form-label"><small>Warna</small></label>
+                                <label class="form-label small">Warna</label>
                                 <input type="text" class="form-control" id="warna" name="warna" value="" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-2">
                             <div class="mb-1">
-                                <label class="form-label"><small>No. Lot</small></label>
+                                <label class="form-label small">No. Lot</label>
                                 <input type="text" class="form-control" id="no_lot" name="no_lot" value="" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-2">
                             <div class="mb-1">
-                                <label class="form-label"><small>No. Roll</small></label>
+                                <label class="form-label small">No. Roll</label>
                                 <input type="text" class="form-control" id="no_roll" name="no_roll" value="" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="mb-1">
-                                <label class="form-label"><small>No. Roll Buyer</small></label>
+                                <label class="form-label small">No. Roll Buyer</label>
                                 <input type="text" class="form-control" id="no_roll_buyer" name="no_roll_buyer" value="" readonly>
                             </div>
                         </div>
@@ -168,13 +162,13 @@
                     <div class="row">
                         <div class="col-6 col-md-2">
                             <div class="mb-1">
-                                <label class="form-label"><small>ID Item</small></label>
+                                <label class="form-label small">ID Item</label>
                                 <input type="text" class="form-control" id="id_item" name="id_item" value="" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-10">
                             <div class="mb-1">
-                                <label class="form-label"><small>Nama Barang</small></label>
+                                <label class="form-label small">Nama Barang</label>
                                 <input type="text" class="form-control" id="nama_barang" name="nama_barang" value="" readonly>
                             </div>
                         </div>
@@ -243,7 +237,7 @@
 
         $(document).ready(async function () {
             initScan();
-            
+
             $("#scan_item").focus();
 
             table_list_barcode = $('#datatable').DataTable({
@@ -268,13 +262,19 @@
                     { data: 'no_ws' },
                     { data: 'no_ws_act' },
                     { data: 'whs_bppb_det_id', visible: false }
+                ],
+                columnDefs: [
+                    {
+                        targets: "_all",
+                        className: "text-nowrap align-middle"
+                    }
                 ]
             });
 
             // Klik barcode, ambil data lengkap via AJAX
             $('#datatable tbody').on('click', '.barcode-click', function(e) {
                 e.preventDefault();
-                let barcode = $(this).text(); 
+                let barcode = $(this).text();
 
                 document.getElementById("loading").classList.remove("d-none");
 
@@ -304,7 +304,7 @@
                         $('#no_ws_act').val(res.no_ws_act);
                         $('#qty_out').val(res.qty_out);
                         $('#unit').val(res.unit);
-                        
+
                         if (res.unit == 'YRD' || res.unit == 'YARD') {
                             $('#qty_konv').val((res.qty_out * 0.9144).toFixed(2));
                             $('#unit_konv').val('METER');
@@ -389,19 +389,19 @@
             $('#items').val(JSON.stringify(data));
         });
 
-        
+
         function highlightRowByBarcode(barcode) {
-            
+
             $('#datatable tbody tr').css('background-color', '');
 
             table_list_barcode.rows().every(function () {
                 let data = this.data();
                 if (data.barcode === barcode) {
-                    $(this.node()).css('background-color', '#b7d3ff'); 
+                    $(this.node()).css('background-color', '#b7d3ff');
                 }
             });
         }
-            
+
         // Select2 Autofocus
         $(document).on('select2:open', () => {
             document.querySelector('.select2-search__field').focus();
@@ -508,7 +508,7 @@
                             Swal.fire({
                                 icon: 'warning',
                                 title: 'Warning',
-                                text: res.message, 
+                                text: res.message,
                                 confirmButtonText: 'Oke'
                             });
 
@@ -614,6 +614,6 @@
                 e.preventDefault();
             }
         }
-        
+
     </script>
 @endsection

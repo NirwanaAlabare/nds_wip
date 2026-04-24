@@ -12,7 +12,7 @@
             <li>
                 <a href="{{ route('penerimaan-cutting') }}"
                     class="appeared dropdown-item {{ $routeName == 'penerimaan-cutting' ? 'active' : '' }}">
-                    Penerimaan Fabric Cutting <i class="fas fa-cut fa-sm"></i>
+                    Penerimaan Fabric Cutting <i class="fa-solid fa-tape"></i>
                 </a>
             </li>
             <li>
