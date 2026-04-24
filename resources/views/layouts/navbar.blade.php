@@ -1036,6 +1036,13 @@
                                     DC - IN Secondary Dalam
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('secondary-in') }}"
+                                    target="_blank" rel="noopener noreferrer"
+                                    class="dropdown-item {{ $routeName == 'secondary-in' ? 'active' : '' }}">
+                                    DC - Secondary IN
+                                </a>
+                            </li>
                         </ul>
                     </li>
 
@@ -1069,6 +1076,13 @@
                                     target="_blank" rel="noopener noreferrer"
                                     class="dropdown-item {{ $routeName == 'loading_out' ? 'active' : '' }}">
                                     DC - Loading Out / WIP Out
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('loading-line') }}"
+                                    target="_blank" rel="noopener noreferrer"
+                                    class="dropdown-item {{ $routeName == 'loading-line' ? 'active' : '' }}">
+                                    DC - Loading Line
                                 </a>
                             </li>
                         </ul>
