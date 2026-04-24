@@ -52,7 +52,7 @@
         </tr>
     @endforeach
     <tr>
-        <td style="text-align: right;font-weight: bold;" colspan="13">TOTAL</td>
+        <td style="text-align: right;font-weight: bold;" colspan="14">TOTAL</td>
         <td style="font-weight: bold;">{{ $totalQty }}</td>
     </tr>
 </table>
