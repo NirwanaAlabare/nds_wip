@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Log;
 use DB;
 use Carbon\Carbon;
 
-class CuttingServicePiece
+class CuttingPieceService
 {
     public function checkStockerForm($id) {
         $exists = Stocker::where("form_piece_id", $id)
@@ -198,10 +198,10 @@ class CuttingServicePiece
                     "edited_by" => auth()->id(),
                     "edited_by_username" => auth()->user()->username,
                     "edited_at" => now(),
-                    "edited_notes" => "Update Qty from $qtyBefore to $qtyAfter"
+                    "edited_notes" => "Update Qty $detailSize->size from $qtyBefore to $qtyAfter"
                 ]);
 
-                $updateMessage .= "<br>Update Qty from $qtyBefore to $qtyAfter";
+                $updateMessage .= "<br>Update Qty $detailSize->size from $qtyBefore to $qtyAfter";
             }
 
             // Add to Total Qty Usage

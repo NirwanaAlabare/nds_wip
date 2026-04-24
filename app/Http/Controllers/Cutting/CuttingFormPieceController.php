@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Cutting\FormCutPiece;
 use App\Models\Cutting\FormCutPieceDetail;
 use App\Models\Cutting\FormCutPieceDetailSize;
-use App\Services\CuttingServicePiece;
+use App\Services\CuttingPieceService;
 use App\Models\Part\PartDetail;
 use App\Models\Cutting\ScannedItem;
 use App\Models\Part\Part;
@@ -337,13 +337,13 @@ class CuttingFormPieceController extends Controller
                         if ($request->so_det_id && count($request->so_det_id) > 0) {
                             $cuttingPieceDetailSizeArr = [];
                             for($i = 0; $i < count($request->so_det_id); $i++) {
-                                if ($request->so_det_id[$i] && $request->size[$i] && $request->qty_detail[$i] && $request->qty_detail[$i] > 0) {
+                                if ($request->so_det_id[$i] && $request->size[$i]) {
                                     array_push($cuttingPieceDetailSizeArr, [
                                         "form_detail_id" => $validatedRequest["id_detail"],
                                         "so_det_id" => $request->so_det_id[$i],
                                         "size" => $request->size[$i],
                                         "dest" => $request->dest[$i],
-                                        "qty" => $request->qty_detail[$i],
+                                        "qty" => $request->qty_detail[$i] ? $request->qty_detail[$i] : 0,
                                         "created_by" => Auth::user()->id,
                                         "created_by_username" => Auth::user()->username
                                     ]);
@@ -783,10 +783,10 @@ class CuttingFormPieceController extends Controller
         }
     }
 
-    public function updateDetail(Request $request, CuttingServicePiece $cuttingServicePiece)
+    public function updateDetail(Request $request, CuttingPieceService $cuttingPieceService)
     {
         try {
-            $result = $cuttingServicePiece->updateFormCutPiece($request);
+            $result = $cuttingPieceService->updateFormCutPiece($request);
 
             return [
                 "status" => 200,
@@ -801,13 +801,13 @@ class CuttingFormPieceController extends Controller
         }
     }
 
-    // public function updateDetail(Request $request, CuttingServicePiece $cuttingServicePiece)
+    // public function updateDetail(Request $request, CuttingPieceService $cuttingPieceService)
     // {
     //     $form = FormCutPiece::where("id", $request->id)->first();
 
     //     if ($form) {
     //         // Check Stocker
-    //         $checkStockerForm = $cuttingServicePiece->checkStockerForm($form->id);
+    //         $checkStockerForm = $cuttingPieceService->checkStockerForm($form->id);
     //         if (!$checkStockerForm) {
     //             return array(
     //                 "status" => 400,
@@ -849,7 +849,7 @@ class CuttingFormPieceController extends Controller
 
     //             // Update Chained Roll Qty
     //             $diffQty = ($qtyUsageBefore-$formDetail->qty_pemakaian);
-    //             $cuttingServicePiece->fixChainedQty($formDetail->id, $diffQty);
+    //             $cuttingPieceService->fixChainedQty($formDetail->id, $diffQty);
 
     //             // Get Scanned Item
     //             $scannedItem = ScannedItem::where("id_roll", $formDetail->id_roll)->first();
