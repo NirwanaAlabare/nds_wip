@@ -3023,7 +3023,8 @@ FROM
 				COALESCE(msb.size, s.size) size,
 				mp.nama_part,
 				pd.id as part_detail_id,
-				pd.part_status
+				pd.part_status,
+                coalesce(f.no_form, fp.no_form, fr.no_form) no_form
 		from
 				dc_in_input a
 				left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -3068,7 +3069,8 @@ FROM
 				COALESCE(msb.size, s.size) size,
 				mp.nama_part,
 				pd.id as part_detail_id,
-				pd.part_status
+				pd.part_status,
+                coalesce(f.no_form, fp.no_form, fr.no_form) no_form
 		from
 				dc_in_input a
 				left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -3091,7 +3093,8 @@ FROM
 group by
 	dc.part_id,
 	dc.so_det_id,
-	dc.stocker_range
+	dc.stocker_range,
+    dc.no_form
 ),
 dc_in as (
 SELECT
@@ -3137,7 +3140,8 @@ FROM
 				COALESCE(msb.size, s.size) size,
 				mp.nama_part,
 				pd.id as part_detail_id,
-				pd.part_status
+				pd.part_status,
+                coalesce(f.no_form, fp.no_form, fr.no_form) no_form
 		from
 				dc_in_input a
 				left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -3182,7 +3186,8 @@ FROM
 				COALESCE(msb.size, s.size) size,
 				mp.nama_part,
 				pd.id as part_detail_id,
-				pd.part_status
+				pd.part_status,
+                coalesce(f.no_form, fp.no_form, fr.no_form) no_form
 		from
 				dc_in_input a
 				left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -3205,7 +3210,8 @@ FROM
 group by
 	dc.part_id,
 	dc.so_det_id,
-	dc.stocker_range
+	dc.stocker_range,
+    dc.no_form
 )
 
 SELECT
@@ -3305,7 +3311,7 @@ SELECT
 	GROUP_CONCAT(id_qr_stocker) as stockers,
 	no_form,
 	no_cut,
-	(DATE_FORMAT(created_at, '%Y-%m-%d')) as created_at,
+	(DATE_FORMAT(MAX(created_at), '%Y-%m-%d')) as created_at,
 	m.buyer,
 	act_costing_ws,
 	m.color,
@@ -3419,15 +3425,14 @@ group by
 	dc.so_det_id,
 	dc.stocker_range,
 	dc.no_form,
-    dc.no_cut,
-    dc.created_at
+    dc.no_cut
 ),
 dc_in as (
 SELECT
 	GROUP_CONCAT(id_qr_stocker) as stockers,
 	no_form,
 	no_cut,
-	(DATE_FORMAT(created_at, '%Y-%m-%d')) as created_at,
+	(DATE_FORMAT(MAX(created_at), '%Y-%m-%d')) as created_at,
 	m.buyer,
 	act_costing_ws,
 	m.color,
@@ -3541,8 +3546,7 @@ group by
 	dc.so_det_id,
 	dc.stocker_range,
 	dc.no_form,
-    dc.no_cut,
-    dc.created_at
+    dc.no_cut
 )
 
 SELECT
@@ -3565,9 +3569,9 @@ k.status
 
 FROM
 (
-SELECT id_so_det, panel, no_form, no_cut, created_at, 0 AS qty_cut_awal, sum(qty_dc) AS qty_dc_awal, 0 as qty_cutt, 0 as qty_dc, 0 as qty_replace FROM dc_awal group by id_so_det, panel
+SELECT id_so_det, panel, no_form, no_cut, created_at, 0 AS qty_cut_awal, sum(qty_dc) AS qty_dc_awal, 0 as qty_cutt, 0 as qty_dc, 0 as qty_replace FROM dc_awal group by id_so_det, no_form, panel
 UNION ALL
-SELECT id_so_det, panel, no_form, no_cut, created_at, 0 AS qty_cut_awal, 0 AS qty_dc_awal, 0 as qty_cutt, sum(qty_dc) as qty_dc, sum(qty_replace) as qty_replace  FROM dc_in group by id_so_det, panel
+SELECT id_so_det, panel, no_form, no_cut, created_at, 0 AS qty_cut_awal, 0 AS qty_dc_awal, 0 as qty_cutt, sum(qty_dc) as qty_dc, sum(qty_replace) as qty_replace  FROM dc_in group by id_so_det, no_form, panel
 ) a
 LEFT JOIN (
 SELECT sd.id as id_so_det, ac.kpno ws, ac.styleno, sd.color, sd.size, sd.dest, ms.supplier as buyer, sd.cancel, so.cancel_h, ac.status FROM signalbit_erp.so_det sd

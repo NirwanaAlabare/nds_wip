@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardFabricController;
 use App\Events\TestEvent;
 use App\Http\Controllers\AccountingController;
 use App\Http\Controllers\BarcodePackingController;
@@ -105,8 +106,10 @@ use App\Http\Controllers\TransferMemoController;
 |
 */
 
+// Authentication
 Auth::routes(['register' => false]);
 
+// Home
 Route::get('/', [App\Http\Controllers\General\HomeController::class, 'index']);
 
 Route::get('/home', [App\Http\Controllers\General\HomeController::class, 'index'])->name('home');
@@ -114,7 +117,7 @@ Route::get('/home', [App\Http\Controllers\General\HomeController::class, 'index'
 // Dashboard
 require base_path('routes/dashboard.php');
 
-// General
+// User
 require base_path('routes/user.php');
 
 // General

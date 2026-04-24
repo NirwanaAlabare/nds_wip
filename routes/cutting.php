@@ -18,7 +18,6 @@ use App\Http\Controllers\Cutting\PipingLoadingController;
 use App\Http\Controllers\Cutting\PipingProcessController;
 use App\Http\Controllers\Cutting\PipingStockController;
 use App\Http\Controllers\Cutting\ReportCuttingController;
-use App\Http\Controllers\DashboardFabricController;
 
 Route::middleware('auth')->group(function () {
     // Spreading
