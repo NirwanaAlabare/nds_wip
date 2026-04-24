@@ -1029,6 +1029,13 @@
                                     DC - DC IN
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('secondary-inhouse-in') }}"
+                                    target="_blank" rel="noopener noreferrer"
+                                    class="dropdown-item {{ $routeName == 'secondary-inhouse-in' ? 'active' : '' }}">
+                                    DC - IN Secondary Dalam
+                                </a>
+                            </li>
                         </ul>
                     </li>
 
@@ -1048,6 +1055,20 @@
                                     target="_blank" rel="noopener noreferrer"
                                     class="dropdown-item {{ $routeName == 'lap-det-pemasukanroll' ? 'active' : '' }}">
                                     Warehouse Fabric - Pemasukan Detail Roll
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('secondary-inhouse') }}"
+                                    target="_blank" rel="noopener noreferrer"
+                                    class="dropdown-item {{ $routeName == 'secondary-inhouse' ? 'active' : '' }}">
+                                    DC - OUT Secondary Dalam
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('loading_out') }}"
+                                    target="_blank" rel="noopener noreferrer"
+                                    class="dropdown-item {{ $routeName == 'loading_out' ? 'active' : '' }}">
+                                    DC - Loading Out / WIP Out
                                 </a>
                             </li>
                         </ul>
