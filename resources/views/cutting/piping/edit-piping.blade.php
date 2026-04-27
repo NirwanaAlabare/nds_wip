@@ -81,8 +81,13 @@
                         <div class="mb-1">
                             <div class="form-group mb-0">
                                 <label><small>No. WS</small></label>
-                                <input type="hidden" class="form-control d-none" id="edit_ws_id" name="edit_ws_id" value="{{ $piping->act_costing_id }}" readonly>
-                                <input type="text" class="form-control" id="edit_ws" name="edit_ws" value="{{ $piping->act_costing_ws }}" readonly>
+                                <input type="hidden" class="form-control" id="edit_ws" name="edit_ws" value="{{ $piping->act_costing_id }}" readonly>
+                                <input type="hidden" class="form-control" id="edit_ws_id_value" name="edit_ws_id_value" value="{{ $piping->act_costing_id }}" readonly>
+                                <select name="edit_ws_id" id="edit_ws_id" class="form-select select2bs4">
+                                    @foreach ($orders as $order)
+                                        <option value="{{ $order->id }}">{{ $order->kpno }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -90,7 +95,9 @@
                         <div class="mb-1">
                             <div class="form-group mb-0">
                                 <label><small>Color</small></label>
-                                <input type="text" class="form-control" id="edit_color" name="edit_color" value="{{ $piping->color }}" readonly>
+                                <input type="hidden" class="form-control" id="edit_color_value" name="edit_color_value" value="{{ $piping->color }}" readonly>
+                                <select name="edit_color" id="edit_color" class="form-select select2bs4">
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -98,7 +105,9 @@
                         <div class="mb-1">
                             <div class="form-group mb-0">
                                 <label><small>Panel</small></label>
-                                <input type="text" class="form-control" id="edit_panel" name="edit_panel" value="{{ $piping->panel }}" readonly>
+                                <input type="hidden" class="form-control" id="edit_panel_value" name="edit_panel_value" value="{{ $piping->panel }}" readonly>
+                                <select name="edit_panel" id="edit_panel" class="form-select select2bs4">
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -189,10 +198,13 @@
         $(document).ready(async function () {
             initScan();
 
-            //Reset Form
+            // Reset Form
             if (document.getElementById('update-piping')) {
                 document.getElementById('update-piping').reset();
             }
+
+            // WS
+            $("#edit_ws_id").val($("#edit_ws_id_value").val()).trigger("change");
         });
 
         // Select2 Autofocus
@@ -210,7 +222,7 @@
 
         // Scan QR Module :
             // Variable List :
-            var html5QrcodeScanner = new Html5Qrcode("reader");
+            var html5QrcodeScanner = document.getElementById("reader") ? new Html5Qrcode("reader") : null;
             var scannerInitialized = false;
 
         // Function List :
@@ -306,8 +318,6 @@
                     type: 'get',
                     dataType: 'json',
                     success: function(res) {
-                        console.log(res);
-
                         if (typeof res === 'object' && res !== null) {
                             if (res.qty > 0) {
                                 // if (res.unit.toLowerCase() != ($("#unit_cons_actual_gelaran").val()).toLowerCase()) {
@@ -429,6 +439,8 @@
 
         // Update Order Information Based on Order WS and Order Color
         function updateOrderInfo() {
+            document.getElementById('loading').classList.remove("d-none");
+
             return $.ajax({
                 url: '{{ route("get-marker-order") }}',
                 type: 'get',
@@ -438,18 +450,25 @@
                 },
                 dataType: 'json',
                 success: function (res) {
+                    document.getElementById('loading').classList.add("d-none");
+
                     if (res) {
                         document.getElementById('edit_ws').value = res.kpno;
                         document.getElementById('edit_buyer').value = res.buyer;
                         document.getElementById('edit_style').value = res.styleno;
                     }
                 },
+                error: function (jqXHR) {
+                    document.getElementById('loading').classList.add("d-none");
+                }
             });
         }
 
         // Update Color Select Option Based on Order WS
         function updateColorList() {
-            document.getElementById('color').value = null;
+            document.getElementById('loading').classList.remove("d-none");
+
+            document.getElementById('edit_color').value = null;
 
             return $.ajax({
                 url: '{{ route("get-marker-colors") }}',
@@ -458,6 +477,8 @@
                     act_costing_id: $('#edit_ws_id').val(),
                 },
                 success: function (res) {
+                    document.getElementById('loading').classList.add("d-none");
+
                     if (res) {
                         // Update this step
                         document.getElementById('edit_color').innerHTML = res;
@@ -472,16 +493,27 @@
                         // Close next step
                         $("#edit_panel").prop("disabled", true);
 
-                        // Reset order information
-                        document.getElementById('edit_piping').value = null;
+                        // Reset order information'
+                        let currentColor = document.getElementById('edit_color_value').value;
+                        if (currentColor) {
+                            $("#edit_color").val(currentColor).trigger("change");
+                        } else {
+                            document.getElementById('edit_cons_piping').value = 0;
+                        }
                     }
                 },
+                error: function (jqXHR) {
+                    document.getElementById('loading').classList.add("d-none");
+                }
             });
         }
 
         // Update Panel Select Option Based on Order WS and Color WS
         function updatePanelList() {
+            document.getElementById('loading').classList.remove("d-none");
+
             document.getElementById('edit_panel').value = null;
+
             return $.ajax({
                 url: '{{ route("get-general-panels") }}',
                 type: 'get',
@@ -490,6 +522,8 @@
                     color: $('#edit_color').val(),
                 },
                 success: function (res) {
+                    document.getElementById('loading').classList.add("d-none");
+
                     if (res) {
                         // Update this step
                         document.getElementById('edit_panel').innerHTML = res;
@@ -497,16 +531,26 @@
                         // Open this step
                         $("#edit_panel").prop("disabled", false);
 
-                        // Reset order information
-                        document.getElementById('edit_piping').value = null;
+                        // Reset order information'
+                        let currentPanel = document.getElementById('edit_panel_value').value;
+                        if (currentPanel) {
+                            $("#edit_panel").val(currentPanel).trigger("change");
+                        } else {
+                            document.getElementById('edit_cons_piping').value = 0;
+                        }
                     }
                 },
+                error: function (jqXHR) {
+                    document.getElementById('loading').classList.add("d-none");
+                }
             });
         }
 
         // Get & Set Order WS Cons and Order Qty Based on Order WS, Order Color and Order Panel
         function getNumber() {
-            document.getElementById('piping').value = null;
+            document.getElementById('loading').classList.remove("d-none");
+
+            document.getElementById('edit_cons_piping').value = null;
             return $.ajax({
                 url: ' {{ route("get-marker-piping") }}',
                 type: 'get',
@@ -517,6 +561,8 @@
                     panel: $('#edit_panel').val()
                 },
                 success: function (res) {
+                    document.getElementById('loading').classList.add("d-none");
+
                     console.log("marker", res);
                     if (res) {
                         document.getElementById('edit_cons_piping').value = res.cons_piping;
@@ -525,6 +571,8 @@
                     }
                 },
                 error: function (jqXHR) {
+                    document.getElementById('loading').classList.add("d-none");
+
                     console.error(jqXHR);
 
                     document.getElementById('edit_cons_piping').value = 0;
@@ -571,7 +619,7 @@
 
             console.log(qtyItem, piping, qtySisa, shortRoll);
 
-            document.getElementById("short_roll").value = shortRoll.round(2);
+            document.getElementById("edit_short_roll").value = shortRoll.round(2);
         }
     </script>
 @endsection

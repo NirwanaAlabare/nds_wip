@@ -50,13 +50,13 @@ class DCInController extends Controller
                 $additionalQuery .= " and p.buyer in (".addQuotesAround(implode("\n", $request->dc_filter_buyer)).")";
             }
             if ($request->dc_filter_ws && count($request->dc_filter_ws) > 0) {
-                $additionalQuery .= " and s.act_costing_ws in (".addQuotesAround(implode("\n", $request->dc_filter_ws)).")";
+                $additionalQuery .= " and COALESCE(msb.ws, s.act_costing_ws) in (".addQuotesAround(implode("\n", $request->dc_filter_ws)).")";
             }
             if ($request->dc_filter_style && count($request->dc_filter_style) > 0) {
-                $additionalQuery .= " and p.style in (".addQuotesAround(implode("\n", $request->dc_filter_style)).")";
+                $additionalQuery .= " and COALESCE(msb.styleno, p.style) in (".addQuotesAround(implode("\n", $request->dc_filter_style)).")";
             }
             if ($request->dc_filter_color && count($request->dc_filter_color) > 0) {
-                $additionalQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->dc_filter_color)).")";
+                $additionalQuery .= " and COALESCE(COALESCE(msb.color, s.color) color, s.color) in (".addQuotesAround(implode("\n", $request->dc_filter_color)).")";
             }
             if ($request->dc_filter_part && count($request->dc_filter_part) > 0) {
                 $additionalQuery .= " and mp.nama_part in (".addQuotesAround(implode("\n", $request->dc_filter_part)).")";
@@ -95,10 +95,10 @@ class DCInController extends Controller
                     (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
                     DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
                     a.tgl_trans,
-                    s.act_costing_ws,
-                    s.color,
-                    p.buyer,
-                    p.style,
+                    COALESCE(msb.ws, s.act_costing_ws) act_costing_ws,
+                    COALESCE(msb.color, s.color) color,
+                    COALESCE(msb.buyer, p.buyer) buyer,
+                    COALESCE(msb.styleno, p.style) style,
                     a.qty_awal,
                     a.qty_reject,
                     a.qty_replace,
@@ -157,10 +157,10 @@ class DCInController extends Controller
                 (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
                 DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
                 a.tgl_trans,
-                s.act_costing_ws,
-                s.color,
-                p.buyer,
-                p.style,
+                COALESCE(msb.ws, s.act_costing_ws) act_costing_ws,
+                COALESCE(msb.color, s.color) color,
+                COALESCE(msb.buyer, p.buyer) buyer,
+                COALESCE(msb.styleno, p.style) style,
                 a.qty_awal,
                 a.qty_reject,
                 a.qty_replace,
@@ -315,16 +315,16 @@ class DCInController extends Controller
             $additionalQuery .= " and (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) in (".addQuotesAround(implode("\n", $request->dc_filter_tipe)).")";
         }
         if ($request->dc_filter_buyer && count($request->dc_filter_buyer) > 0) {
-            $additionalQuery .= " and p.buyer in (".addQuotesAround(implode("\n", $request->dc_filter_buyer)).")";
+            $additionalQuery .= " and COALESCE(msb.buyer, p.buyer) in (".addQuotesAround(implode("\n", $request->dc_filter_buyer)).")";
         }
         if ($request->dc_filter_ws && count($request->dc_filter_ws) > 0) {
-            $additionalQuery .= " and s.act_costing_ws in (".addQuotesAround(implode("\n", $request->dc_filter_ws)).")";
+            $additionalQuery .= " and COALESCE(msb.ws, s.act_costing_ws) in (".addQuotesAround(implode("\n", $request->dc_filter_ws)).")";
         }
         if ($request->dc_filter_style && count($request->dc_filter_style) > 0) {
-            $additionalQuery .= " and p.style in (".addQuotesAround(implode("\n", $request->dc_filter_style)).")";
+            $additionalQuery .= " and COALESCE(msb.styleno, p.style) in (".addQuotesAround(implode("\n", $request->dc_filter_style)).")";
         }
         if ($request->dc_filter_color && count($request->dc_filter_color) > 0) {
-            $additionalQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->dc_filter_color)).")";
+            $additionalQuery .= " and COALESCE(msb.color, s.color) in (".addQuotesAround(implode("\n", $request->dc_filter_color)).")";
         }
         if ($request->dc_filter_part && count($request->dc_filter_part) > 0) {
             $additionalQuery .= " and mp.nama_part in (".addQuotesAround(implode("\n", $request->dc_filter_part)).")";
@@ -411,16 +411,16 @@ class DCInController extends Controller
             $additionalQuery .= " and (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) in (".addQuotesAround(implode("\n", $request->dc_filter_tipe)).")";
         }
         if ($request->dc_filter_buyer && count($request->dc_filter_buyer) > 0) {
-            $additionalQuery .= " and p.buyer in (".addQuotesAround(implode("\n", $request->dc_filter_buyer)).")";
+            $additionalQuery .= " and COALESCE(msb.buyer, p.buyer) in (".addQuotesAround(implode("\n", $request->dc_filter_buyer)).")";
         }
         if ($request->dc_filter_ws && count($request->dc_filter_ws) > 0) {
-            $additionalQuery .= " and s.act_costing_ws in (".addQuotesAround(implode("\n", $request->dc_filter_ws)).")";
+            $additionalQuery .= " and COALESCE(msb.ws, s.act_costing_ws) in (".addQuotesAround(implode("\n", $request->dc_filter_ws)).")";
         }
         if ($request->dc_filter_style && count($request->dc_filter_style) > 0) {
-            $additionalQuery .= " and p.style in (".addQuotesAround(implode("\n", $request->dc_filter_style)).")";
+            $additionalQuery .= " and COALESCE(msb.styleno, p.style) in (".addQuotesAround(implode("\n", $request->dc_filter_style)).")";
         }
         if ($request->dc_filter_color && count($request->dc_filter_color) > 0) {
-            $additionalQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->dc_filter_color)).")";
+            $additionalQuery .= " and COALESCE(COALESCE(msb.color, s.color) color, s.color) in (".addQuotesAround(implode("\n", $request->dc_filter_color)).")";
         }
         if ($request->dc_filter_part && count($request->dc_filter_part) > 0) {
             $additionalQuery .= " and mp.nama_part in (".addQuotesAround(implode("\n", $request->dc_filter_part)).")";
@@ -456,10 +456,10 @@ class DCInController extends Controller
                 (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
                 DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
                 a.tgl_trans,
-                s.act_costing_ws,
-                s.color,
-                p.buyer,
-                p.style,
+                COALESCE(msb.ws, s.act_costing_ws) act_costing_ws,
+                COALESCE(msb.color, s.color) color,
+                COALESCE(msb.buyer, p.buyer) buyer,
+                COALESCE(msb.styleno, p.style) style,
                 a.qty_awal,
                 a.qty_reject,
                 a.qty_replace,
@@ -600,7 +600,7 @@ class DCInController extends Controller
                 $additionalQuery .= " and m.buyer in (".addQuotesAround(implode("\n", $request->detail_dc_filter_buyer)).")";
             }
             if ($request->detail_dc_filter_ws && count($request->detail_dc_filter_ws) > 0) {
-                $additionalQuery .= " and s.act_costing_ws in (".addQuotesAround(implode("\n", $request->detail_dc_filter_ws)).")";
+                $additionalQuery .= " and m.ws in (".addQuotesAround(implode("\n", $request->detail_dc_filter_ws)).")";
             }
             if ($request->detail_dc_filter_style && count($request->detail_dc_filter_style) > 0) {
                 $additionalQuery .= " and styleno in (".addQuotesAround(implode("\n", $request->detail_dc_filter_style)).")";
@@ -614,7 +614,7 @@ class DCInController extends Controller
 
             $data_detail = DB::select("
                 select
-                    s.act_costing_ws, m.buyer, s.color, styleno, COALESCE(sum(dc.qty_awal), 0) qty_in, COALESCE(sum(dc.qty_reject), 0) qty_reject, COALESCE(sum(dc.qty_replace), 0) qty_replace, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) qty_out, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) balance, dc.lokasi
+                    COALESCE(m.ws, s.act_costing_ws) act_costing_ws, m.buyer, COALESCE(m.color, s.color) color, styleno, COALESCE(sum(dc.qty_awal), 0) qty_in, COALESCE(sum(dc.qty_reject), 0) qty_reject, COALESCE(sum(dc.qty_replace), 0) qty_replace, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) qty_out, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) balance, dc.lokasi
                 from
                     dc_in_input dc
                     left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
@@ -645,7 +645,7 @@ class DCInController extends Controller
 
         $data_detail = collect(DB::select("
             select
-                s.act_costing_ws, m.buyer, s.color, styleno, COALESCE(sum(dc.qty_awal), 0) qty_in, COALESCE(sum(dc.qty_reject), 0) qty_reject, COALESCE(sum(dc.qty_replace), 0) qty_replace, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) qty_out, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) balance, dc.lokasi
+                COALESCE(m.ws, s.act_costing_ws) act_costing_ws, m.buyer, COALESCE(m.color, s.color) color, styleno, COALESCE(sum(dc.qty_awal), 0) qty_in, COALESCE(sum(dc.qty_reject), 0) qty_reject, COALESCE(sum(dc.qty_replace), 0) qty_replace, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) qty_out, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) balance, dc.lokasi
             from
                 dc_in_input dc
                 left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
@@ -681,10 +681,10 @@ class DCInController extends Controller
     {
         $data_header = DB::select("
             SELECT
-                a.act_costing_ws,
+                COALESCE(msb.ws, a.act_costing_ws) act_costing_ws,
                 COALESCE(msb.buyer, m.buyer, fp.buyer, fr.buyer) buyer,
                 COALESCE(msb.styleno, m.style, fp.style, fr.style) styleno,
-                a.color,
+                COALESCE(msb.color, a.color) color,
                 COALESCE(msb.size, a.size) size,
                 COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
                 CONCAT(mp.nama_part, (CASE WHEN pd.part_status IS NOT NULL THEN CONCAT(' - ', pd.part_status) ELSE '' END)) nama_part,
@@ -789,7 +789,7 @@ class DCInController extends Controller
         //         ifnull(tmp.tempat,'-') tempat,
         //         ifnull(tmp.lokasi,'-') lokasi,
         //         concat(coalesce(ms.qty_ply_mod, ms.qty_ply) - coalesce(tmp.qty_reject,0) + coalesce(tmp.qty_replace,0), concat(' (', (coalesce(tmp.qty_replace,0) - coalesce(tmp.qty_reject,0)), ')')) qty_in,
-        //         ms.act_costing_ws,
+        //         mmsb.act_costing_ws,
         //         ms.size,
         //         ms.color,
         //         ms.panel,
@@ -835,7 +835,7 @@ class DCInController extends Controller
                 ifnull( tmp.lokasi, '-' ) lokasi,
                 concat(COALESCE ( ms.qty_ply_mod, ms.qty_ply ) - COALESCE ( tmp.qty_reject, 0 ) + COALESCE ( tmp.qty_replace, 0 ),
                 concat( ' (', ( COALESCE ( tmp.qty_replace, 0 ) - COALESCE ( tmp.qty_reject, 0 )), ')' )) qty_in,
-                ms.act_costing_ws,
+                msb.ws act_costing_ws,
                 msb.size,
                 ms.color,
                 ms.panel,
@@ -876,7 +876,7 @@ class DCInController extends Controller
                 ifnull( tmp.lokasi, '-' ) lokasi,
                 concat(COALESCE ( ms.qty_ply_mod, ms.qty_ply ) - COALESCE ( tmp.qty_reject, 0 ) + COALESCE ( tmp.qty_replace, 0 ),
                 concat( ' (', ( COALESCE ( tmp.qty_replace, 0 ) - COALESCE ( tmp.qty_reject, 0 )), ')' )) qty_in,
-                ms.act_costing_ws,
+                msb.ws act_costing_ws,
                 msb.size,
                 ms.color,
                 ms.panel,
@@ -917,7 +917,7 @@ class DCInController extends Controller
                 ifnull( tmp.lokasi, '-' ) lokasi,
                 concat(COALESCE ( ms.qty_ply_mod, ms.qty_ply ) - COALESCE ( tmp.qty_reject, 0 ) + COALESCE ( tmp.qty_replace, 0 ),
                 concat( ' (', ( COALESCE ( tmp.qty_replace, 0 ) - COALESCE ( tmp.qty_reject, 0 )), ')' )) qty_in,
-                ms.act_costing_ws,
+                msb.ws act_costing_ws,
                 msb.size,
                 ms.color,
                 ms.panel,
@@ -1035,10 +1035,10 @@ class DCInController extends Controller
         if ($thisStocker) {
             $data_header = DB::select("
                 SELECT
-                    a.act_costing_ws,
+                    COALESCE(msb.ws, a.act_costing_ws) act_costing_ws,
                     COALESCE(msb.buyer, m.buyer, fp.buyer, fr.buyer) buyer,
-                    COALESCE(msb.style, m.style, fp.style, fr.style) styleno,
-                    a.color,
+                    COALESCE(msb.styleno, m.style, fp.style, fr.style) styleno,
+                    COALESCE(msb.color, a.color) color,
                     COALESCE(msb.size, a.size) size,
                     a.panel,
                     COALESCE(f.no_cut, fp.no_cut, '-') no_cut,

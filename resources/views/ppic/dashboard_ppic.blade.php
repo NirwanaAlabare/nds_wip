@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    <div class="card">
+    {{-- <div class="card">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="p-2 bd-highlight">
@@ -93,8 +93,8 @@
                 </div>
             </div>
         </div>
-    </div>
-    <div class="card">
+    </div> --}}
+    {{-- <div class="card">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="p-2 bd-highlight">
@@ -129,7 +129,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> --}}
 @endsection
 
 @section('custom-script')

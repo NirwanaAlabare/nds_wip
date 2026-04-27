@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Cutting\FormCutPiece;
 use App\Models\Cutting\FormCutPieceDetail;
 use App\Models\Cutting\FormCutPieceDetailSize;
-use App\Services\CuttingServicePiece;
+use App\Services\CuttingPieceService;
 use App\Models\Part\PartDetail;
 use App\Models\Cutting\ScannedItem;
 use App\Models\Part\Part;
@@ -57,7 +57,7 @@ class CuttingFormPieceController extends Controller
                 toJSON();
         }
 
-        return view("cutting.cutting-form-piece.cutting-form-piece", ["page" => "dashboard-cutting", "subPageGroup" => "cutting-piece", "subPage" => "cutting-piece"]);
+        return view("cutting.cutting-form-piece.cutting-form-piece", ["page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "cutting-piece"]);
     }
 
     /**
@@ -73,7 +73,7 @@ class CuttingFormPieceController extends Controller
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
-        return view("cutting.cutting-form-piece.create-cutting-form-piece", ["orders" => $orders, "page" => "dashboard-cutting", "subPageGroup" => "cutting-piece", "subPage" => "cutting-piece"]);
+        return view("cutting.cutting-form-piece.create-cutting-form-piece", ["orders" => $orders, "page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "cutting-piece"]);
     }
 
     public function process($id = 0)
@@ -88,7 +88,7 @@ class CuttingFormPieceController extends Controller
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
-        return view('cutting.cutting-form-piece.create-cutting-form-piece', ['cuttingFormPiece' => $cuttingFormPiece, 'orders' => $orders, 'page' => 'dashboard-cutting', "subPageGroup" => "cutting-piece", "subPage" => "cutting-piece"]);
+        return view('cutting.cutting-form-piece.create-cutting-form-piece', ['cuttingFormPiece' => $cuttingFormPiece, 'orders' => $orders, 'page' => 'dashboard-cutting', "subPageGroup" => "proses-cutting", "subPage" => "cutting-piece"]);
     }
 
     public function createNew() {
@@ -337,13 +337,13 @@ class CuttingFormPieceController extends Controller
                         if ($request->so_det_id && count($request->so_det_id) > 0) {
                             $cuttingPieceDetailSizeArr = [];
                             for($i = 0; $i < count($request->so_det_id); $i++) {
-                                if ($request->so_det_id[$i] && $request->size[$i] && $request->qty_detail[$i] && $request->qty_detail[$i] > 0) {
+                                if ($request->so_det_id[$i] && $request->size[$i]) {
                                     array_push($cuttingPieceDetailSizeArr, [
                                         "form_detail_id" => $validatedRequest["id_detail"],
                                         "so_det_id" => $request->so_det_id[$i],
                                         "size" => $request->size[$i],
                                         "dest" => $request->dest[$i],
-                                        "qty" => $request->qty_detail[$i],
+                                        "qty" => $request->qty_detail[$i] ? $request->qty_detail[$i] : 0,
                                         "created_by" => Auth::user()->id,
                                         "created_by_username" => Auth::user()->username
                                     ]);
@@ -480,7 +480,7 @@ class CuttingFormPieceController extends Controller
                 groupBy("master_part.id")->
                 get();
 
-            return view("cutting.cutting-form-piece.show-cutting-form-piece", ["page" => "dashboard-cutting", "subPageGroup" => "cutting-piece", "subPage" => "cutting-piece", "formCutPiece" => $formCutPiece, "partDetails" => $partDetails]);
+            return view("cutting.cutting-form-piece.show-cutting-form-piece", ["page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "cutting-piece", "formCutPiece" => $formCutPiece, "partDetails" => $partDetails]);
         }
     }
 
@@ -494,7 +494,7 @@ class CuttingFormPieceController extends Controller
     {
         $cuttingFormPiece = FormCutPiece::find($id);
 
-        return view("cutting.cutting-form-piece.edit-cutting-form-piece", ["page" => "dashboard-cutting", "subPageGroup" => "cutting-piece", "subPage" => "cutting-piece", 'cuttingFormPiece' => $cuttingFormPiece]);
+        return view("cutting.cutting-form-piece.edit-cutting-form-piece", ["page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "cutting-piece", 'cuttingFormPiece' => $cuttingFormPiece]);
     }
 
     /**
@@ -783,10 +783,10 @@ class CuttingFormPieceController extends Controller
         }
     }
 
-    public function updateDetail(Request $request, CuttingServicePiece $cuttingServicePiece)
+    public function updateDetail(Request $request, CuttingPieceService $cuttingPieceService)
     {
         try {
-            $result = $cuttingServicePiece->updateFormCutPiece($request);
+            $result = $cuttingPieceService->updateFormCutPiece($request);
 
             return [
                 "status" => 200,
@@ -801,13 +801,13 @@ class CuttingFormPieceController extends Controller
         }
     }
 
-    // public function updateDetail(Request $request, CuttingServicePiece $cuttingServicePiece)
+    // public function updateDetail(Request $request, CuttingPieceService $cuttingPieceService)
     // {
     //     $form = FormCutPiece::where("id", $request->id)->first();
 
     //     if ($form) {
     //         // Check Stocker
-    //         $checkStockerForm = $cuttingServicePiece->checkStockerForm($form->id);
+    //         $checkStockerForm = $cuttingPieceService->checkStockerForm($form->id);
     //         if (!$checkStockerForm) {
     //             return array(
     //                 "status" => 400,
@@ -849,7 +849,7 @@ class CuttingFormPieceController extends Controller
 
     //             // Update Chained Roll Qty
     //             $diffQty = ($qtyUsageBefore-$formDetail->qty_pemakaian);
-    //             $cuttingServicePiece->fixChainedQty($formDetail->id, $diffQty);
+    //             $cuttingPieceService->fixChainedQty($formDetail->id, $diffQty);
 
     //             // Get Scanned Item
     //             $scannedItem = ScannedItem::where("id_roll", $formDetail->id_roll)->first();
@@ -985,7 +985,7 @@ class CuttingFormPieceController extends Controller
             return DataTables::of($stocker)->toJSON();
         }
 
-        return view("cutting.cutting-form-piece.stock-cutting-piece", ["page" => "dashboard-cutting", "subPageGroup" => "cutting-piece", "subPage" => "cutting-piece"]);
+        return view("cutting.cutting-form-piece.stock-cutting-piece", ["page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "cutting-piece"]);
     }
 
     public function getSizeList(Request $request)

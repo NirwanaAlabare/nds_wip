@@ -129,6 +129,11 @@ function disableFormSubmit(formId) {
             event.preventDefault();
         }
     });
+
+    // let buttons = form.querySelectorAll("button");
+    // buttons.forEach((element) => {
+    //     element.disabled = true;
+    // })
 }
 
 function isImage(i) {

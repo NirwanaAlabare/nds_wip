@@ -56,7 +56,7 @@ class ExportReportDefectReject implements FromView, ShouldAutoSize, WithEvents
                     output_defect_areas.defect_area,
                     output_defects_packing.defect_status AS status,
                     DATE_FORMAT(output_defects_packing.created_at, '%d-%m-%Y') AS tgl_defect,
-                    DATE_FORMAT(output_defects_packing.updated_at, '%d-%m-%Y') AS tgl_rework,
+                    (CASE WHEN output_defects_packing.defect_status != 'defect' THEN DATE_FORMAT(output_defects_packing.updated_at, '%d-%m-%Y') ELSE '' END) AS tgl_rework,
                     output_defect_types.allocation AS proses_type,
                     output_defect_in_out.status AS proses_status,
                     DATE_FORMAT(output_defect_in_out.created_at, '%d-%m-%Y') AS tgl_proses_in,
@@ -70,8 +70,8 @@ class ExportReportDefectReject implements FromView, ShouldAutoSize, WithEvents
                 LEFT JOIN output_reworks ON output_reworks.defect_id = output_defects_packing.id
                 LEFT JOIN output_defect_types ON output_defect_types.id = output_defects_packing.defect_type_id
                 LEFT JOIN output_defect_areas ON output_defect_areas.id = output_defects_packing.defect_area_id
-                LEFT JOIN output_defect_in_out 
-                    ON output_defect_in_out.output_type = 'packing' 
+                LEFT JOIN output_defect_in_out
+                    ON output_defect_in_out.output_type = 'packing'
                     AND output_defect_in_out.defect_id = output_defects_packing.id
                 WHERE
                     (
@@ -80,8 +80,8 @@ class ExportReportDefectReject implements FromView, ShouldAutoSize, WithEvents
                         output_defects_packing.updated_at BETWEEN ? AND ?
                     )
                     AND (
-                        ? IS NULL 
-                        OR ? = '' 
+                        ? IS NULL
+                        OR ? = ''
                         OR act_costing.kpno = ?
                     )
 
@@ -115,12 +115,12 @@ class ExportReportDefectReject implements FromView, ShouldAutoSize, WithEvents
                 LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
                 LEFT JOIN output_defect_types ON output_defect_types.id = output_rejects_packing.reject_type_id
                 LEFT JOIN output_defect_areas ON output_defect_areas.id = output_rejects_packing.reject_area_id
-                WHERE 
+                WHERE
                     output_rejects_packing.reject_status = 'mati'
                     AND output_rejects_packing.created_at BETWEEN ? AND ?
                     AND (
-                        ? IS NULL 
-                        OR ? = '' 
+                        ? IS NULL
+                        OR ? = ''
                         OR act_costing.kpno = ?
                     )
 
@@ -147,7 +147,7 @@ class ExportReportDefectReject implements FromView, ShouldAutoSize, WithEvents
                     output_defect_areas.defect_area,
                     output_defects.defect_status AS status,
                     DATE_FORMAT(output_defects.created_at, '%d-%m-%Y') AS tgl_defect,
-                    DATE_FORMAT(output_defects.updated_at, '%d-%m-%Y') AS tgl_rework,
+                    (CASE WHEN output_defects.defect_status != 'defect' THEN DATE_FORMAT(output_defects.updated_at, '%d-%m-%Y') ELSE '' END) AS tgl_rework,
                     output_defect_types.allocation AS proses_type,
                     output_defect_in_out.STATUS AS proses_status,
                     DATE_FORMAT(output_defect_in_out.created_at, '%d-%m-%Y') AS tgl_proses_in,
@@ -162,7 +162,7 @@ class ExportReportDefectReject implements FromView, ShouldAutoSize, WithEvents
                 LEFT JOIN output_reworks ON output_reworks.defect_id = output_defects.id
                 LEFT JOIN output_defect_types ON output_defect_types.id = output_defects.defect_type_id
                 LEFT JOIN output_defect_areas ON output_defect_areas.id = output_defects.defect_area_id
-                LEFT JOIN output_defect_in_out 
+                LEFT JOIN output_defect_in_out
                     ON output_defect_in_out.output_type = 'qc'
                     AND output_defect_in_out.defect_id = output_defects.id
                 WHERE
@@ -172,8 +172,8 @@ class ExportReportDefectReject implements FromView, ShouldAutoSize, WithEvents
                         output_defects.updated_at BETWEEN ? AND ?
                     )
                     AND (
-                        ? IS NULL 
-                        OR ? = '' 
+                        ? IS NULL
+                        OR ? = ''
                         OR act_costing.kpno = ?
                     )
 
@@ -207,12 +207,12 @@ class ExportReportDefectReject implements FromView, ShouldAutoSize, WithEvents
                 LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
                 LEFT JOIN output_defect_types ON output_defect_types.id = output_rejects.reject_type_id
                 LEFT JOIN output_defect_areas ON output_defect_areas.id = output_rejects.reject_area_id
-                WHERE 
+                WHERE
                     output_rejects.reject_status = 'mati'
                     AND output_rejects.created_at BETWEEN ? AND ?
                     AND (
-                        ? IS NULL 
-                        OR ? = '' 
+                        ? IS NULL
+                        OR ? = ''
                         OR act_costing.kpno = ?
                     )
 
@@ -238,7 +238,7 @@ class ExportReportDefectReject implements FromView, ShouldAutoSize, WithEvents
                     output_defect_areas.defect_area,
                     output_defects.defect_status AS status,
                     DATE_FORMAT(output_defects.created_at, '%d-%m-%Y') AS tgl_defect,
-                    DATE_FORMAT(output_defects.updated_at, '%d-%m-%Y') AS tgl_rework,
+                    (CASE WHEN output_defects.defect_status != 'defect' THEN DATE_FORMAT(output_defects.updated_at, '%d-%m-%Y') ELSE '' END) AS tgl_rework,
                     output_defect_types.allocation AS proses_type,
                     output_defect_in_out.STATUS AS proses_status,
                     DATE_FORMAT(output_defect_in_out.created_at, '%d-%m-%Y') AS tgl_proses_in,
@@ -253,7 +253,7 @@ class ExportReportDefectReject implements FromView, ShouldAutoSize, WithEvents
                 LEFT JOIN output_reworks ON output_reworks.defect_id = output_defects.id
                 LEFT JOIN output_defect_types ON output_defect_types.id = output_defects.defect_type_id
                 LEFT JOIN output_defect_areas ON output_defect_areas.id = output_defects.defect_area_id
-                LEFT JOIN output_defect_in_out 
+                LEFT JOIN output_defect_in_out
                     ON output_defect_in_out.output_type = 'qc'
                     AND output_defect_in_out.defect_id = output_defects.id
                 WHERE
@@ -263,8 +263,8 @@ class ExportReportDefectReject implements FromView, ShouldAutoSize, WithEvents
                         output_defects.updated_at BETWEEN ? AND ?
                     )
                     AND (
-                        ? IS NULL 
-                        OR ? = '' 
+                        ? IS NULL
+                        OR ? = ''
                         OR act_costing.kpno = ?
                     )
 
@@ -298,12 +298,12 @@ class ExportReportDefectReject implements FromView, ShouldAutoSize, WithEvents
                 LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
                 LEFT JOIN output_defect_types ON output_defect_types.id = output_rejects.reject_type_id
                 LEFT JOIN output_defect_areas ON output_defect_areas.id = output_rejects.reject_area_id
-                WHERE 
+                WHERE
                     output_rejects.reject_status = 'mati'
                     AND output_rejects.created_at BETWEEN ? AND ?
                     AND (
-                        ? IS NULL 
-                        OR ? = '' 
+                        ? IS NULL
+                        OR ? = ''
                         OR act_costing.kpno = ?
                     )
 
@@ -323,7 +323,7 @@ class ExportReportDefectReject implements FromView, ShouldAutoSize, WithEvents
                     output_defect_areas.defect_area,
                     output_defects_packing.defect_status AS status,
                     DATE_FORMAT(output_defects_packing.created_at, '%d-%m-%Y') AS tgl_defect,
-                    DATE_FORMAT(output_defects_packing.updated_at, '%d-%m-%Y') AS tgl_rework,
+                    (CASE WHEN output_defects_packing.defect_status != 'defect' THEN DATE_FORMAT(output_defects_packing.updated_at, '%d-%m-%Y') ELSE '' END) AS tgl_rework,
                     output_defect_types.allocation AS proses_type,
                     output_defect_in_out.status AS proses_status,
                     DATE_FORMAT(output_defect_in_out.created_at, '%d-%m-%Y') AS tgl_proses_in,
@@ -337,7 +337,7 @@ class ExportReportDefectReject implements FromView, ShouldAutoSize, WithEvents
                 LEFT JOIN output_reworks ON output_reworks.defect_id = output_defects_packing.id
                 LEFT JOIN output_defect_types ON output_defect_types.id = output_defects_packing.defect_type_id
                 LEFT JOIN output_defect_areas ON output_defect_areas.id = output_defects_packing.defect_area_id
-                LEFT JOIN output_defect_in_out 
+                LEFT JOIN output_defect_in_out
                     ON output_defect_in_out.output_type = 'packing'
                     AND output_defect_in_out.defect_id = output_defects_packing.id
                 WHERE
@@ -347,8 +347,8 @@ class ExportReportDefectReject implements FromView, ShouldAutoSize, WithEvents
                         output_defects_packing.updated_at BETWEEN ? AND ?
                     )
                     AND (
-                        ? IS NULL 
-                        OR ? = '' 
+                        ? IS NULL
+                        OR ? = ''
                         OR act_costing.kpno = ?
                     )
 
@@ -382,12 +382,12 @@ class ExportReportDefectReject implements FromView, ShouldAutoSize, WithEvents
                 LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
                 LEFT JOIN output_defect_types ON output_defect_types.id = output_rejects_packing.reject_type_id
                 LEFT JOIN output_defect_areas ON output_defect_areas.id = output_rejects_packing.reject_area_id
-                WHERE 
+                WHERE
                     output_rejects_packing.reject_status = 'mati'
                     AND output_rejects_packing.created_at BETWEEN ? AND ?
                     AND (
-                        ? IS NULL 
-                        OR ? = '' 
+                        ? IS NULL
+                        OR ? = ''
                         OR act_costing.kpno = ?
                     )
 

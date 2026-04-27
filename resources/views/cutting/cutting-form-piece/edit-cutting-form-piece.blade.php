@@ -143,7 +143,7 @@
                 </div>
                 <div class="card-footer border-1">
                     <div class="d-flex justify-content-end">
-                        <button class="btn btn-sb-secondary" type="submit" id="submit_process_one"><i class="fa fa-edit"></i> UPDATE DATA HEADER</button>
+                        <button class="btn btn-success fw-bold" type="submit" id="submit_process_one"><i class="fa fa-edit"></i> UPDATE DATA HEADER</button>
                     </div>
                 </div>
             </div>
@@ -943,8 +943,9 @@
             }
 
             function appendProcessThree(item) {
+
                 let form = document.createElement("form");
-                form.id = 'form_' + item.id_roll
+                form.id = 'form_' + (item.id)
                 form.method = 'post';
                 form.action = '{{ route("update-cutting-piece-detail") }}';
                 form.addEventListener("submit", function(event) {
@@ -958,22 +959,27 @@
 
                 const container = document.getElementById("process-three-container");
                 const cloneCard = card.cloneNode(true);
-                const suffix = "_" + item.id_roll;
+                const suffix = "_" + item.id;
                 cloneCard.id = `process-three-card${suffix}`;
                 cloneCard.classList.add("collapsed-card");
+                cloneCard.classList.remove("card-sb");
 
                 // 💡 Header with collapse button (prevent duplicate)
                 const header = cloneCard.querySelector(".card-header");
-                if (header && !header.querySelector(".card-tools")) {
-                    const tools = document.createElement("div");
-                    tools.className = "card-tools";
-                    tools.innerHTML = `<button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-plus"></i></button>`;
-                    header.appendChild(tools);
+                if (header) {
+                    header.classList.add("bg-sb-secondary");
+
+                    if (!header.querySelector(".card-tools")) {
+                        const tools = document.createElement("div");
+                        tools.className = "card-tools";
+                        tools.innerHTML = `<button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-plus"></i></button>`;
+                        header.appendChild(tools);
+                    }
                 }
 
                 // 💡 Set title
                 const title = cloneCard.querySelector(".card-title");
-                if (title) title.textContent = `${item.id_roll}`;
+                if (title) title.textContent = `${(item.id_roll ? item.id_roll : item.id)}`;
 
                 // ✅ Value map from item
                 const valueMap = {
@@ -1060,10 +1066,11 @@
                 // cloneCard.querySelector(".card-footer")?.remove();
                 let cloneCardButton = cloneCard.querySelector(".card-footer button");
                 if (cloneCardButton) {
-                    cloneCardButton.innerHTML = "UPDATE";
+                    cloneCardButton.innerHTML = "<i class='fa fa-save'></i> UPDATE";
                     cloneCardButton.removeAttribute("disabled");
                     cloneCardButton.classList.remove("btn-sb");
-                    cloneCardButton.classList.add("btn-sb-secondary");
+                    cloneCardButton.classList.add("btn-success");
+                    cloneCardButton.classList.add("fw-bold");
                 }
 
                 // Append Cloned Card to Form
