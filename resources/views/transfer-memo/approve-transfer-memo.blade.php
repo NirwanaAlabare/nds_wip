@@ -442,7 +442,10 @@ $('#btnApprove').on('click', function(){
     let approveIds = [];
     let cancelIds  = [];
 
-    $('.chk-detail').each(function(){
+    // 🔥 ambil SEMUA checkbox dari semua halaman DataTables
+    let table = $('#detailTable').DataTable(); 
+
+    table.$('.chk-detail').each(function(){
         let id = $(this).val();
 
         if($(this).is(':checked')){
@@ -525,12 +528,15 @@ $('#btnApprove').on('click', function(){
 
 
 
+
 $('#btnCancelAll').on('click', function(){
 
     let allIds = [];
 
-    // ambil semua ID tanpa peduli checkbox
-    $('.chk-detail').each(function(){
+    // 🔥 ambil semua data dari SEMUA halaman DataTables
+    let table = $('#detailTable').DataTable();
+
+    table.$('.chk-detail').each(function(){
         allIds.push($(this).val());
     });
 
@@ -562,7 +568,7 @@ $('#btnCancelAll').on('click', function(){
                 type: "POST",
                 data: {
                     no_trans: currentNoTrans,
-                    cancel_ids: allIds, // 🔥 semua ID langsung dikirim
+                    cancel_ids: allIds, // 🔥 semua ID dari semua page
                     _token: "{{ csrf_token() }}"
                 },
                 beforeSend: function(){
@@ -583,7 +589,7 @@ $('#btnCancelAll').on('click', function(){
                     });
 
                     $('#modalDetail').modal('hide');
-                     dataTableReload();
+                    dataTableReload();
 
                     // optional reload
                     // location.reload();
@@ -602,6 +608,7 @@ $('#btnCancelAll').on('click', function(){
     });
 
 });
+
 
 
 
