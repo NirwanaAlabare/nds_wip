@@ -1434,7 +1434,12 @@ class SecondaryInController extends Controller
 
                                             return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
                                         } else {
-                                            return "Data Secondary In sudah ada";
+                                            $additional = "";
+                                            if ($multiSecondaryBeforeSecondaryIn) {
+                                                $additional .= "<br> Secondary IN tanggal ".$multiSecondaryBeforeSecondaryIn->tgl_trans;
+                                            }
+
+                                            return "Data Secondary In sudah ada".$additional;
                                         }
                                     } else {
                                         return "Data Secondary Dalam belum ada";
