@@ -40,19 +40,19 @@
                             <input type="hidden" name="no_meja" id="no_meja" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->no_meja ? $formCutInputData->no_meja : Auth::user()->id) : Auth::user()->id }}" readonly>
                             <div class="col-6 col-md-4">
                                 <div class="mb-3">
-                                    <label class="form-label"><small><b>Start</b></small></label>
+                                    <label class="form-label small">Start</label>
                                     <input type="text" class="form-control form-control-sm" name="start" id="start-time" value="" readonly>
                                 </div>
                             </div>
                             <div class="col-6 col-md-4">
                                 <div class="mb-3">
-                                    <label class="form-label"><small><b>Finish</b></small></label>
+                                    <label class="form-label small">Finish</label>
                                     <input type="text" class="form-control form-control-sm" name="finish" id="finish-time" value="" readonly>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-4">
+                            <div class="col-6 col-md-4 d-none">
                                 <div class="mb-3">
-                                    <label class="form-label"><small><b>Shell</b></small></label>
+                                    <label class="form-label small">Shell</label>
                                     <select class="form-select form-select-sm" name="shell" id="shell">
                                         <option value="a">A</option>
                                         <option value="b">B</option>
@@ -60,31 +60,11 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-6">
+                            <div class="col-12 col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label "><small><b>No. Form</b></small></label>
-                                    <input type="text" class="form-control form-control-sm " name="no_form" id="no_form" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->no_form ? $formCutInputData->no_form : "") : "" }}" readonly>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label"><small><b>Tanggal</b></small></label>
-                                    <input type="date" class="form-control form-control-sm" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->tgl_form_cut ? $formCutInputData->tgl_form_cut : date('Y-m-d')) : date('Y-m-d') }}" name="tgl_form" readonly>
-                                </div>
-                            </div>
-
-                            {{-- Marker Form --}}
-                            <div class="col-6 col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label "><small><b>Kode Marker</b></small></label>
-                                    <input type="text" class="form-control form-control-sm" id="id_marker" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->kode ? $formCutInputData->kode : date('Y-m-d')) : date('Y-m-d') }}" readonly>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label "><small><b>No. WS</b></small></label>
+                                    <label class="form-label small ">No. WS</label>
                                     <input type="text" name="no_ws" id="no_ws" class="form-control form-control-sm d-none" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->act_costing_ws ? $formCutInputData->act_costing_ws : '') : '' }}" readonly>
-                                    <select class="form-control select2bs4" id="act_costing_id" name="act_costing_id" style="width: 100%;">
+                                    <select class="form-control select2bs4lg" id="act_costing_id" name="act_costing_id" style="width: 100%;">
                                         <option value="" selected>Pilih WS</option>
                                         @foreach ($orders as $order)
                                             <option value="{{ $order->id }}">
@@ -97,7 +77,27 @@
                             </div>
                             <div class="col-6 col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label "><small><b>Color</b></small></label>
+                                    <label class="form-label small ">No. Form</label>
+                                    <input type="text" class="form-control form-control-sm " name="no_form" id="no_form" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->no_form ? $formCutInputData->no_form : "") : "" }}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label small">Tanggal</label>
+                                    <input type="date" class="form-control form-control-sm" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->tgl_form_cut ? $formCutInputData->tgl_form_cut : date('Y-m-d')) : date('Y-m-d') }}" name="tgl_form" readonly>
+                                </div>
+                            </div>
+
+                            {{-- Marker Form --}}
+                            <div class="col-6 col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label small ">Kode Marker</label>
+                                    <input type="text" class="form-control form-control-sm" id="id_marker" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->kode ? $formCutInputData->kode : date('Y-m-d')) : date('Y-m-d') }}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label small ">Color</label>
                                     <select class="form-control select2bs4" id="color" name="color" style="width: 100%;">
                                         <option selected="selected" value="">Pilih Color</option>
                                         {{-- select 2 option --}}
@@ -107,7 +107,7 @@
                             </div>
                             <div class="col-6 col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label "><small><b>Panel</b></small></label>
+                                    <label class="form-label small ">Panel</label>
                                     <select class="form-control select2bs4" id="panel" name="panel" style="width: 100%;">
                                         <option selected="selected" value="">Pilih Panel</option>
                                         {{-- select 2 option --}}
@@ -117,19 +117,19 @@
                             </div>
                             <div class="col-6 col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label "><small><b>Buyer</b></small></label>
+                                    <label class="form-label small ">Buyer</label>
                                     <input type="text" class="form-control form-control-sm " name="buyer" id="buyer" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->buyer ? $formCutInputData->buyer : '') : '' }}" readonly>
                                 </div>
                             </div>
                             <div class="col-12 col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label "><small><b>Style</b></small></label>
+                                    <label class="form-label small ">Style</label>
                                     <input type="text" class="form-control form-control-sm " name="style" id="style" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->style ? $formCutInputData->style : '') : '' }}" readonly>
                                 </div>
                             </div>
                             <div class="col-4 col-md-4">
                                 <div class="mb-3">
-                                    <label class="form-label "><small><b>Tipe Marker</b></small></label>
+                                    <label class="form-label small ">Tipe Marker</label>
                                     <select class="form-select form-select-sm" name="tipe_marker" id="tipe_marker">
                                         <option value="pilot marker" selected>Pilot Marker</option>
                                     </select>
@@ -137,13 +137,13 @@
                             </div>
                             <div class="col-4 col-md-4">
                                 <div class="mb-3">
-                                    <label class="form-label"><small><b>PO</b></small></label>
+                                    <label class="form-label small">PO</label>
                                     <input type="text" class="form-control form-control-sm" name="po" id="po" value="{{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->po ? $formCutInputData->po : '') : '' }}">
                                 </div>
                             </div>
                             <div class="col-4 col-md-4">
                                 <div class="mb-3">
-                                    <label class="form-label"><small><b>QTY Gelar Marker</b></small></label>
+                                    <label class="form-label small">QTY Gelar Marker</label>
                                     <input type="text" class="form-control form-control-sm" name="gelar_qty" id="gelar_qty" {{ (isset($formCutInputData) && $formCutInputData) ? ($formCutInputData->gelar_qty ? "value=".$formCutInputData->gelar_qty." readonly" : '') : "" }} onchange="calculateAllRatio(this)" onkeyup="calculateAllRatio(this)">
                                 </div>
                             </div>
@@ -245,7 +245,7 @@
                     <div class="row">
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-input"><small><b>P. Act</b></small></label>
+                                <label class="form-label small label-input">P. Act</label>
                                 <input type="number" class="form-control form-control-sm border-input" name="p_act" id="p_act" value=""
                                     onkeyup="
                                         calculateConsAct();
@@ -260,13 +260,13 @@
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-input"><small><b>Unit Act</b></small></label>
+                                <label class="form-label small label-input">Unit Act</label>
                                 <input type="text" class="form-control form-control-sm border-input" name="unit_p_act" id="unit_p_act" value="METER" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-input"><small><b>Comma Act</b></small></label>
+                                <label class="form-label small label-input">Comma Act</label>
                                 <input type="number" class="form-control form-control-sm border-input" name="comma_act" id="comma_act" value="CM"
                                     onkeyup="
                                         calculateConsAct();
@@ -280,13 +280,13 @@
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-input"><small><b>Unit Act</b></small></label>
+                                <label class="form-label small label-input">Unit Act</label>
                                 <input type="text" class="form-control form-control-sm border-input" name="unit_comma_act" id="unit_comma_act" value="CM" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-input"><small><b>L. Act</b></small></label>
+                                <label class="form-label small label-input">L. Act</label>
                                 <input type="number" class="form-control form-control-sm border-input" name="l_act" id="l_act" value=""
                                     onkeyup="
                                         calculateConsAmpar();
@@ -298,37 +298,37 @@
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-input"><small><b>Unit Act</b></small></label>
+                                <label class="form-label small label-input">Unit Act</label>
                                 <input type="text" class="form-control form-control-sm border-input" name="unit_l_act" id="unit_l_act" value="CM" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
                             <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Cons WS</b></small></label>
+                                <label class="form-label small label-fetch">Cons WS</label>
                                 <input type="number" class="form-control form-control-sm border-fetch" name="cons_ws" id="cons_ws" value="{{ (isset($formCutInputData) && $formCutInputData) ? $formCutInputData->cons_ws : '' }}" readonly step=".01">
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
                             <div class="mb-3">
-                                <label class="form-label"><small><b>Gramasi</b></small></label>
+                                <label class="form-label small">Gramasi</label>
                                 <input type="number" class="form-control form-control-sm" name="gramasi" id="gramasi" value="" onkeyup="calculateConsAmpar()" onchange="calculateConsAmpar()" step=".01">
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
                             <div class="mb-3">
-                                <label class="form-label"><small><b>Cons Marker</b></small></label>
+                                <label class="form-label small">Cons Marker</label>
                                 <input type="number" class="form-control form-control-sm" name="cons_marker" id="cons_marker" value="" onkeyup="calculateEstKain(this.value)" onchange="calculateEstKain(this.value)" step=".01">
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
                             <div class="mb-3">
-                                <label class="form-label label-calc"><small><b>Cons Act</b></small></label>
+                                <label class="form-label small label-calc">Cons Act</label>
                                 <input type="number" class="form-control form-control-sm border-calc" name="cons_act" id="cons_act" value="" step=".01" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label"><small><b>Cons Piping</b></small></label>
+                                <label class="form-label small">Cons Piping</label>
                                 <div class="row">
                                     <div class="col-8">
                                         <input type="number" class="form-control form-control-sm" step=".01" name="cons_pipping" id="cons_pipping" value=""
@@ -344,7 +344,7 @@
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-calc"><small><b>Cons 1 Ampar</b></small></label>
+                                <label class="form-label small label-calc">Cons 1 Ampar</label>
                                 <div class="row">
                                     <div class="col-8">
                                         <input type="number" class="form-control form-control-sm border-calc" step=".01" name="cons_ampar" id="cons_ampar" value="" readonly>
@@ -357,7 +357,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-calc"><small><b>Est. Kebutuhan Kain Piping</b></small></label>
+                                <label class="form-label small label-calc">Est. Kebutuhan Kain Piping</label>
                                 <div class="row g-1">
                                     <div class="col-6">
                                         <input type="number" class="form-control form-control-sm border-calc" step=".01" name="est_pipping" id="est_pipping" value="0" readonly>
@@ -370,7 +370,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-calc"><small><b>Est. Kebutuhan Kain</b></small></label>
+                                <label class="form-label small label-calc">Est. Kebutuhan Kain</label>
                                 <div class="row g-1">
                                     <div class="col-6">
                                         <input type="number" class="form-control form-control-sm border-calc" step=".01" name="est_kain" id="est_kain" value="0" readonly>

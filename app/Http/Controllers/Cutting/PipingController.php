@@ -153,8 +153,10 @@ class PipingController extends Controller
         if ($id) {
             $piping = Piping::selectRaw("form_cut_piping.*, master_sb_ws.buyer")->leftJoin("master_sb_ws", "form_cut_piping.act_costing_id", "=", "master_sb_ws.id_act_cost")->where("form_cut_piping.id", $id)->first();
 
+            $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
+
             if ($piping) {
-                return view('cutting.piping.edit-piping', ["page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "form-cut-piping", "piping" => $piping]);
+                return view('cutting.piping.edit-piping', ["page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "form-cut-piping", "piping" => $piping, "orders" => $orders]);
             }
         }
     }
@@ -189,9 +191,21 @@ class PipingController extends Controller
         if ($piping) {
             $qty = $validatedRequest['edit_qty_sisa'];
 
+            // Check After Piping Form Cut Detail
             $formCutDetail = FormCutInputDetail::where("id_roll", $validatedRequest["edit_id_roll"])->where("created_at", ">=", $piping->created_at)->orderBy("form_cut_input_detail.created_at", "asc")->first();
 
             if ($formCutDetail) {
+
+                // Strict Qty
+                if ($formCutDetail->qty > $qty) {
+                    return array(
+                        "status" => 400,
+                        "message" => "Sisa Kain tidak bisa lebih kecil dari ".$formCutDetail->qty,
+                        "additional" => [],
+                    );
+                }
+
+                // Update After Piping Form Cut Detail
                 $formCut = $formCutDetail->formCutInput;
                 $pAct = $formCut->p_act + ($formCut->comma_p_act/100);
                 $sambunganRoll = $formCutDetail->formCutInputDetailSambungan ? $formCutDetail->formCutInputDetailSambungan->sum("sambungan_roll") : 0;
@@ -200,11 +214,14 @@ class PipingController extends Controller
                 $formCutDetail->shortRoll = $shortRoll;
                 $formCutDetail->save();
             } else {
+
+                // Update Scanned Item Qty
                 $updateScannedItem = ScannedItem::where("id_roll", $validatedRequest["edit_id_roll"])->update([
                     "qty" => $qty
                 ]);
             }
 
+            // Update Piping
             $piping->id_roll = $validatedRequest["edit_id_roll"];
             $piping->act_costing_id = $validatedRequest["edit_ws_id"];
             $piping->act_costing_ws = $validatedRequest["edit_ws"];
@@ -242,9 +259,12 @@ class PipingController extends Controller
             if ($piping) {
                 $qty = $piping->qty;
 
+                // Check After Piping Form Cut Detail
                 $formCutDetail = FormCutInputDetail::where("id_roll", $piping->id_roll)->where("created_at", ">=", $piping->created_at)->orderBy("form_cut_input_detail.created_at", "asc")->first();
 
                 if ($formCutDetail) {
+
+                    // Update After Piping Form Cut Detail
                     $formCut = $formCutDetail->formCutInput;
                     $pAct = $formCut->p_act + ($formCut->comma_p_act/100);
                     $sambunganRoll = $formCutDetail->formCutInputDetailSambungan ? $formCutDetail->formCutInputDetailSambungan->sum("sambungan_roll") : 0;
@@ -254,11 +274,14 @@ class PipingController extends Controller
                     $formCutDetail->shortRoll = $shortRoll;
                     $formCutDetail->save();
                 } else {
+
+                    // Update Scanned Item Qty
                     $updateScannedItem = ScannedItem::where("id_roll", $piping->id_roll)->update([
                         "qty" => $qty
                     ]);
                 }
 
+                // Delete Piping
                 $piping->delete();
 
                 return array(

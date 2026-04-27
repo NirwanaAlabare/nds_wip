@@ -45,6 +45,33 @@
     </style>
 </head>
 <body>
+    @php
+        function setFontSize($str) {
+            $strLen = strlen($str);
+            $fontSize = '10px';
+            switch ($strLen) {
+                case $strLen > 40 && $strLen <= 50:
+                    $fontSize = '9px';
+                    break;
+                case $strLen > 50 && $strLen <= 60:
+                    $fontSize = '8px';
+                    break;
+                case $strLen > 60 && $strLen <= 70:
+                    $fontSize = '7px';
+                    break;
+                case $strLen > 70 && $strLen <= 80:
+                    $fontSize = '6px';
+                    break;
+                case $strLen > 80:
+                    $fontSize = '5px';
+                    break;
+                default:
+                    $fontSize = '10px';
+            }
+
+            return $fontSize;
+        }
+    @endphp
     @foreach ($dataStockers as $dataStocker)
         <table class="{{ $loop->index != 0 ? 'page-break' : '' }}">
             <tr>
@@ -64,7 +91,8 @@
             <tr>
                 <td style="border: none;border-left: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;white-space: nowrap;">Kode Stocker</td>
                 <td style="border: none;border-left: none; border-top: 0.75px solid; border-bottom: 0.75px solid;text-align: center;width: auto;">:</td>
-                <td colspan="6" style="border: none;border-right: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;">{{ $dataStocker->id_qr_stocker }}</td>
+                <td colspan="2" style="border: none;border-right: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;">{{ $dataStocker->id_qr_stocker }}</td>
+                <td colspan="4" style="border: none; border-top: 0.75px solid; border-bottom: 0.75px solid; border-right: 0.75px solid;">{{ $dataStocker->proses }}</td>
             </tr>
             <tr>
                 <td style="border: none;border-left: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;white-space: nowrap;">Worksheet</td>
@@ -74,7 +102,7 @@
             <tr>
                 <td style="border: none;border-left: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;white-space: nowrap;">Panel</td>
                 <td style="border: none;border-left: none; border-top: 0.75px solid; border-bottom: 0.75px solid;text-align: center;width: auto;">:</td>
-                <td colspan="6" style="border: none;border-right: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;">{{ $dataStocker->panel }}</td>
+                <td colspan="6" style="border: none;border-right: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;{{ strlen($dataStocker->panel) > 40 ? "font-size: ".setFontSize($dataStocker->panel).";" : "" }}">{{ $dataStocker->panel }}</td>
             </tr>
             <tr>
                 <td style="border: none;border-left: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;white-space: nowrap;">Buyer</td>

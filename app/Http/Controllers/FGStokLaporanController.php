@@ -372,17 +372,18 @@ class FGStokLaporanController extends Controller
         $sheet->writeTo('A6', "No.")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('B6', "WS")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('C6', "Style")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('D6', "Product Group")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('E6', "Product Item")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('F6', "Color")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('G6', "Size")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('H6', "Grade")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('I6', "Lokasi")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('J6', "No. Carton")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('K6', "Saldo Awal")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('L6', "Penerimaan")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('M6', "Pengeluaran")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('N6', "Saldo Akhir")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('D6', "ID SO Det")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('E6', "Product Group")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('F6', "Product Item")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('G6', "Color")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('H6', "Size")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('I6', "Grade")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('J6', "Lokasi")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('K6', "No. Carton")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('L6', "Saldo Awal")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('M6', "Penerimaan")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('N6', "Pengeluaran")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('O6', "Saldo Akhir")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         // $sheet->writeTo('M4', "Saldo Awal")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         // $sheet->writeTo('N4', "Penerimaan")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         // $sheet->writeTo('O4', "Pengeluaran")->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
@@ -450,6 +451,7 @@ class FGStokLaporanController extends Controller
                 $i,
                 $row->ws ?? '-',
                 $row->styleno ?? '-',
+                $row->id_so_det ?? '-',
                 $row->product_group ?? '-',
                 $row->product_item ?? '-',
                 $row->color ?? '-',

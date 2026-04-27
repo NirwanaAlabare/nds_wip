@@ -44,7 +44,7 @@
             <li>
                 <a href="{{ route('stocker-reject') }}"
                     class="dropdown-item {{ $subPage == 'stocker-reject' ? 'active' : '' }}">
-                    Stocker Process Reject <i class="fa-solid fa-ticket"></i>
+                Stocker Ganti Reject <i class="fa-solid fa-ticket"></i>
                 </a>
             </li>
         </ul>
@@ -154,8 +154,7 @@
         </ul>
     </li>
     <li class="nav-item dropdown">
-        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-            class="nav-link dropdown-toggle {{ $subPageGroup == 'stocker-number' ? 'active' : '' }}">Number</a>
+        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"class="nav-link dropdown-toggle {{ $subPageGroup == 'stocker-number' ? 'active' : '' }}">Number</a>
         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
             <li>
                 <a href="{{ route('year-sequence') }}"
@@ -187,7 +186,7 @@
 @endrole
 @role('admin')
     <li class="nav-item dropdown">
-        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link {{ $subPageGroup == 'report' ? 'active' : '' }}"><i class="fa fa-file"></i></a>
+        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'report' ? 'active' : '' }}">Report</a>
         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
             <li>
                 <a href="{{ route('dc-report') }}"

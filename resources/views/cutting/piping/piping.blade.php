@@ -17,20 +17,23 @@
             <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-paperclip"></i> Piping</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-piping') }}" class="btn btn-success btn-sm mb-3"><i class="fa fa-plus"></i> New</a>
             <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
-                <div class="d-flex align-items-end gap-3 mb-3">
+                <div class="d-flex align-items-end gap-3">
                     <div>
-                        <label class="form-label"><small>Tanggal Awal</small></label>
+                        <label class="form-label small">Tanggal Awal</label>
                         <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="dataTableReload()">
                     </div>
                     <div>
-                        <label class="form-label"><small>Tanggal Akhir</small></label>
+                        <label class="form-label small">Tanggal Akhir</label>
                         <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="dataTableReload()">
                     </div>
                     <div>
                         <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
                     </div>
+                </div>
+                <div class="d-flex gap-1">
+                    <a href="{{ route('create-piping') }}" class="btn btn-success btn-sm" data-bs-toggle="tooltip" data-bs-title="Buat Form Piping Baru"><i class="fa fa-plus"></i></a>
+                    <button class="btn btn-sb-secondary btn-sm" data-bs-toggle="tooltip" data-bs-title="Refresh Data" onclick="dataTableReload()"><i class="fa fa-rotate"></i></button>
                 </div>
             </div>
             <div class="table-responsive">
@@ -194,8 +197,8 @@
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
-                        let btnEdit = "<a href='{{ route('edit-piping') }}/"+data+"' class='btn btn-primary btn-sm'><i class='fa fa-edit'></i></button>";
-                        let btnDelete = `<a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-piping') }}/`+data+`' onclick='deleteData(this)'><i class='fa fa-trash'></i></a>`;
+                        let btnEdit = "<a href='{{ route('edit-piping') }}/"+data+"' data-bs-toggle='tooltip' data-bs-title='Ubah Form Piping' class='btn btn-primary btn-sm'><i class='fa fa-edit'></i></button>";
+                        let btnDelete = `<a class='btn btn-danger btn-sm' data-bs-toggle='tooltip' data-bs-title='Hapus Form Piping' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-piping') }}/`+data+`' onclick='deleteData(this)'><i class='fa fa-trash'></i></a>`;
 
                         return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnDelete + `</div>`;
                     }

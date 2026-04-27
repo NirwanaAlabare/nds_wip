@@ -6,6 +6,15 @@ $.ajaxSetup({
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+    $(document)
+    .off('draw.dt.tooltipFix')
+    .on('draw.dt.tooltipFix', function (e) {
+        $(e.target)
+            .find('[data-bs-toggle="tooltip"]')
+            .tooltip('dispose')
+            .tooltip();
+    });
+
     // Bootstrap modal configuration
     $.fn.modal.Constructor.prototype.enforceFocus = function () { };
 
@@ -120,6 +129,11 @@ function disableFormSubmit(formId) {
             event.preventDefault();
         }
     });
+
+    // let buttons = form.querySelectorAll("button");
+    // buttons.forEach((element) => {
+    //     element.disabled = true;
+    // })
 }
 
 function isImage(i) {
@@ -308,6 +322,8 @@ function submitForm(e, evt) {
             }
 
             $("input[type=submit][clicked=true]").removeAttr('disabled');
+
+            // Swal with reload
             if (res.status == 200 || res.status == 999) {
                 $('.modal').modal('hide');
 
@@ -341,7 +357,10 @@ function submitForm(e, evt) {
                 if (res.callback != '') {
                     eval(res.callback);
                 }
-            } else if (res.status == 300) {
+            }
+
+            // Izitoast without reload
+            else if (res.status == 300) {
                 $('.modal').modal('hide');
 
                 iziToast.success({
@@ -355,7 +374,10 @@ function submitForm(e, evt) {
                     $(".select2").val('').trigger('change');
                     $(".select2bs4").val('').trigger('change');
                 }
-            } else if (res.status == 900) {
+            }
+
+            // Swal with reload
+            else if (res.status == 900) {
                 Swal.fire({
                     icon: 'success',
                     title: "Berhasil",
@@ -384,7 +406,10 @@ function submitForm(e, evt) {
                 if (res.callback != '') {
                     eval(res.callback);
                 }
-            } else if (res.status == 201) {
+            }
+
+            // Swal with conditional reload
+            else if (res.status == 201) {
                 // $('.modal').modal('hide');
 
                 Swal.fire({
@@ -417,7 +442,10 @@ function submitForm(e, evt) {
                 if (res.callback != '') {
                     eval(res.callback);
                 }
-            } else if (res.status == 202) {
+            }
+
+            // Swal with conditional reload
+            else if (res.status == 202) {
                 // $('.modal').modal('hide');
 
                 Swal.fire({
@@ -451,7 +479,10 @@ function submitForm(e, evt) {
                 if (res.callback != '') {
                     eval(res.callback);
                 }
-            } else if (res.status == 203) {
+            }
+
+            // Swal with multi condition message with reload
+            else if (res.status == 203) {
                 // $('.modal').modal('hide');
 
                 let successMessage = "";
@@ -496,7 +527,10 @@ function submitForm(e, evt) {
                 if (res.callback != '') {
                     eval(res.callback);
                 }
-            } else {
+            }
+
+            // When Error
+            else {
                 for (let i = 0; i < res.errors; i++) {
                     document.getElementById(res.errors[i]).classList.add('is-invalid');
                     modified.push([res.errors[i], 'classList', 'remove(', "'is-invalid')"])
@@ -512,13 +546,22 @@ function submitForm(e, evt) {
                     icon: 'error',
                     title: "Gagal",
                     html: res.message,
+                }).then(() => {
+
+                    console.log(res.reload);
+                    if (res.reload) {
+                        location.reload();
+                    }
                 });
+
             }
 
+            // Table Reload
             if (res.table != '') {
                 $('#' + res.table).DataTable().ajax.reload();
             }
 
+            // Invalid Form Handling
             if (res.additional && typeof res.additional === "object" && res.additional !== null) {
                 if (Object.keys(res.additional).length > 0) {
                     for (let key in res.additional) {

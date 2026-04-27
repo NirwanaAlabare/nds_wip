@@ -143,13 +143,13 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                                 modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                         where
                             (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
-                            AND marker_input_detail.ratio > 0
+                            AND (marker_input_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
                             ".($this->order ? "AND marker_input.act_costing_id = '".$this->order."'" : "")."
                         group by
                             marker_input.id,
                             marker_input_detail.so_det_id,
                             form_cut.id
-                    union
+                    union ALL
                         SELECT
                             '-' as kode,
                             form_cut_reject.no_form,
@@ -184,7 +184,7 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                         GROUP BY
                             form_cut_reject.id,
                             form_cut_reject_detail.so_det_id
-                    union
+                    union ALL
                         SELECT
                             '-' as kode,
                             form_cut_piece.no_form,
@@ -221,6 +221,75 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                         GROUP BY
                             form_cut_piece.id,
                             form_cut_piece_detail_size.so_det_id
+                    UNION ALL
+                        SELECT
+                            '-' kode,
+                            form_cut.no_form,
+                            form_cut.id_meja,
+                            form_cut.meja,
+                            form_cut.tgl_form,
+                            stocker_ws_additional.buyer,
+                            stocker_ws_additional.act_costing_id,
+                            stocker_ws_additional.act_costing_ws,
+                            stocker_ws_additional.style,
+                            stocker_ws_additional.color,
+                            stocker_ws_additional.panel,
+                            marker_input.cons_ws cons_ws,
+                            marker_input.unit_cons_ws unit,
+                            stocker_ws_additional_detail.so_det_id,
+                            CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
+                            stocker_ws_additional_detail.ratio,
+                            COALESCE(form_cut.notes) notes,
+                            SUM(marker_input.gelar_qty) marker_gelar,
+                            SUM(form_cut.qty_ply) spreading_gelar,
+                            SUM(COALESCE(form_cut.detail, form_cut.total_lembar)) form_gelar,
+                            SUM(modify_size_qty.difference_qty) diff
+                        FROM
+                            laravel_nds.form_cut_input
+                        LEFT JOIN
+                            marker_input on marker_input.id = form_cut_input.marker_id
+                        LEFT JOIN (
+                                SELECT
+                                    meja.id id_meja,
+                                    meja.`name` meja,
+                                    COALESCE ( DATE ( waktu_selesai ), DATE ( waktu_mulai ), tgl_form_cut ) tgl_form,
+                                    form_cut_input.id_marker,
+                                    form_cut_input.id,
+                                    form_cut_input.no_form,
+                                    form_cut_input.qty_ply,
+                                    form_cut_input.total_lembar,
+                                    form_cut_input.notes,
+                                    SUM( form_cut_input_detail.lembar_gelaran ) detail
+                                FROM
+                                    form_cut_input
+                                    LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
+                                    INNER JOIN form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
+                                WHERE
+                                    form_cut_input.`status` = 'SELESAI PENGERJAAN'
+                                    AND form_cut_input.id_marker IS NOT NULL
+                                    ".$dateFilter."
+                                GROUP BY
+                                    form_cut_input.id
+                            ) form_cut ON `form_cut`.`id` = `form_cut_input`.`id`
+                        LEFT JOIN
+                            laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
+                        LEFT JOIN
+                            laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
+                        LEFT JOIN
+                            laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
+                        LEFT JOIN
+                            master_sb_ws on master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
+                        LEFT JOIN
+                            laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id and modify_size_qty.form_cut_id = form_cut_input.id
+                        WHERE
+                            form_cut_input.status = 'SELESAI PENGERJAAN'
+                            AND (stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
+                            AND COALESCE ( DATE ( form_cut_input.updated_at ), DATE ( form_cut_input.created_at ), form_cut_input.tgl_form_cut ) >= '".$this->dateFrom."'
+                            AND COALESCE ( DATE ( form_cut_input.updated_at ), DATE ( form_cut_input.created_at ), form_cut_input.tgl_form_cut ) <= '".$this->dateTo."'
+                            ".($this->order ? "AND stocker_ws_additional.act_costing_id = '".$this->order."'" : "")."
+                        GROUP BY
+                            stocker_ws_additional.id,
+                            stocker_ws_additional_detail.so_det_id
                     ) marker_cutting
                 GROUP BY
                     marker_cutting.act_costing_id,
@@ -287,7 +356,7 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
 
         $this->rowCount = $dailyOrderGroup->count() + 4;
         $alphabets = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
-        $colCount = $dates->count() + ($this->groupBy == "size" ? 5 : 4);
+        $colCount = $dates->count() + ($this->groupBy == "size" ? 6 : 5);
         if ($colCount > (count($alphabets)-1)) {
             $colStack = floor($colCount/(count($alphabets)-1));
             $colStackModulo = $colCount%(count($alphabets)-1);

@@ -17,22 +17,23 @@
             <h5 class="card-title fw-bold"><i class="fas fa-tshirt"></i> Form PCS</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-cutting-piece') }}" class="btn btn-success btn mb-3"><i class="fa fa-plus"></i> Baru</a>
             <div class="d-flex justify-content-between align-items-end mb-3">
                 <div class="d-flex justify-content-start align-items-end gap-3">
                     <div>
-                        <label class="form-label">Dari</label>
-                        <input type="date" class="form-control" value="{{ date("Y-m-d", strtotime(date("Y-m-d")." - 7 days")) }}" id="date-from" name="date-from" onchange="cuttingPieceTableReload()">
+                        <label class="form-label small">Tanggal Awal</label>
+                        <input type="date" class="form-control form-control-sm" value="{{ date("Y-m-d", strtotime(date("Y-m-d")." - 7 days")) }}" id="date-from" name="date-from" onchange="cuttingPieceTableReload()">
                     </div>
                     <div>
-                        <label class="form-label">Sampai</label>
-                        <input type="date" class="form-control" value="{{ date("Y-m-d") }}" id="date-to" name="date-to" onchange="cuttingPieceTableReload()">
+                        <label class="form-label small">Tanggal Akhir</label>
+                        <input type="date" class="form-control form-control-sm" value="{{ date("Y-m-d") }}" id="date-to" name="date-to" onchange="cuttingPieceTableReload()">
                     </div>
                     <div>
-                        <button class="btn btn-sb" onclick="cuttingPieceTableReload()"><i class="fa fa-search"></i></button>
+                        <button class="btn btn-sb btn-sm" onclick="cuttingPieceTableReload()"><i class="fa fa-search"></i></button>
                     </div>
                 </div>
                 <div class="d-flex gap-1">
+                    <a href="{{ route('create-cutting-piece') }}" class="btn btn-success btn-sm" data-bs-toggle="tooltip" data-bs-title="Buat Form PCS Baru"><i class="fa fa-plus"></i></a>
+                    <button data-bs-toggle="tooltip" data-bs-title="Refresh Data" class="btn btn-sb-secondary btn-sm" onclick="cuttingPieceTableReload()"><i class="fa fa-rotate"></i></button>
                     {{-- <button class="btn btn-success" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i></button> --}}
                 </div>
             </div>
@@ -136,18 +137,20 @@
                     targets: [0],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
+                        let isAdmin = "{{ auth()->user()->roles->whereIn("nama_role", ["superadmin"])->count() }}";
+                        console.log(isAdmin);
                         let editRoute = "";
                         if (row.process == 3) {
                             editRoute = "{{ route('edit-cutting-piece') }}";
                         } else {
                             editRoute = "{{ route('process-cutting-piece') }}";
                         }
-                        let buttonEdit = `<a href="`+editRoute+`/`+data+`" class="btn btn-sb-secondary btn-sm mx-1"><i class="fa fa-edit"></i></a>`;
                         // let buttonDetail = `<a href="{{ route('show-cutting-piece') }}/`+data+`" class="btn btn-sb btn-sm mx-1"><i class="fa fa-search"></i></a>`;
                         let buttonDetail = "";
-                        let buttonDelete = `<a href='javascript:void(0);' class='btn btn-danger btn-sm mx-1' data='`+JSON.stringify(row)+`' data-url='`+'{{ route('destroy-cutting-piece') }}'+`/`+data+`' onclick='deleteData(this);'><i class='fa fa-trash'></i></a>`;
+                        let buttonEdit = `<a href="`+editRoute+`/`+data+`" class="btn btn-primary btn-sm mx-1" data-bs-toggle="tooltip" data-bs-title="Ubah Form PCS"><i class="fa fa-edit"></i></a>`;
+                        let buttonDelete = `<a href='javascript:void(0);' class='btn btn-danger btn-sm mx-1' data-bs-toggle="tooltip" data-bs-title="Hapus Form PCS" data='`+JSON.stringify(row)+`' data-url='`+'{{ route('destroy-cutting-piece') }}'+`/`+data+`' onclick='deleteData(this);'><i class='fa fa-trash'></i></a>`;
 
-                        return buttonEdit+buttonDetail+buttonDelete;
+                        return buttonDetail+buttonEdit+(isAdmin > 0 ? buttonDelete : '');
                     }
                 },
                 {

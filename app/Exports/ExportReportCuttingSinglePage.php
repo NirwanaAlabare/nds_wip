@@ -47,12 +47,12 @@
             if($dateFrom < $dateTo) {
                 if ($this->dateFrom) {
                     $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '".$this->dateFrom."'";
-                    $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) >= '".$this->dateFrom."'";
+                    $additionalQuery1 .= " and DATE(form_cut_piece.tanggal) >= '".$this->dateFrom."'";
                 }
 
                 if ($this->dateTo) {
                     $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) <= '".$this->dateTo."'";
-                    $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) <= '".$this->dateTo."'";
+                    $additionalQuery1 .= " and DATE(form_cut_piece.tanggal) <= '".$this->dateTo."'";
                 }
 
                 $reportCutting = DB::select("

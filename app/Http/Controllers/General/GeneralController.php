@@ -365,6 +365,13 @@ class GeneralController extends Controller
         return json_encode($number ? $number[0] : null);
     }
 
+    public function getItemByWsColorPanel(Request $request, GeneralService $generalService) {
+        // Get Item List by Costing, Color and Size
+        $items = $generalService->getItemByWsColorPanel($request->act_costing_ws, $request->color, $request->panel);
+
+        return json_encode($items);
+    }
+
     public function getCount(Request $request)
     {
         // Marker Counter

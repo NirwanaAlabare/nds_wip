@@ -51,7 +51,7 @@ class PartController extends Controller
                     part.buyer,
                     part.act_costing_ws,
                     REPLACE(part.style, '\"', ' ') style,
-                    COALESCE(GROUP_CONCAT(DISTINCT marker_input.color), part.color) color,
+                    COALESCE(GROUP_CONCAT(DISTINCT COALESCE(marker_input.color, form_cut_piece.color)), part.color) color,
                     part.panel,
                     UPPER(COALESCE(part.panel_status, '')) panel_status,
                     COUNT(DISTINCT form_cut_input.id) total_form,
@@ -61,6 +61,7 @@ class PartController extends Controller
                 ->leftJoin("master_part", "master_part.id", "part_detail.master_part_id")
                 ->leftJoin("part_form", "part_form.part_id", "part.id")
                 ->leftJoin("form_cut_input", "form_cut_input.id", "part_form.form_id")
+                ->leftJoin("form_cut_piece", "form_cut_piece.id", "part_form.form_pcs_id")
                 ->leftJoin("marker_input", "marker_input.id", "form_cut_input.marker_id")
                 ->leftJoin(
                     DB::raw("
@@ -497,7 +498,82 @@ class PartController extends Controller
      */
     public function update(Request $request, Part $part, $id = 0)
     {
-        //
+        if (!$id) {
+            return [
+                "status" => 400,
+                "message" => "ID tidak valid",
+                "reload" => true
+            ];
+        }
+
+        // Transaction
+        try {
+            $part = Part::find($id);
+
+            if (!$part) {
+                return [
+                    "status" => 404,
+                    "message" => "Part tidak valid",
+                    "reload" => true
+                ];
+            }
+
+            $partPanelStatus = $request->panel_status;
+
+            if (!$partPanelStatus) {
+                return [
+                    "status" => 400,
+                    "message" => "Panel status tidak valid",
+                    "reload" => true
+                ];
+            }
+
+            // Validate panel status based on current part details
+            switch ($partPanelStatus) {
+                case "complement":
+                    $complementPartDetails = $part->partDetails()->where("part_status", "complement")->get();
+                    if ($complementPartDetails->isNotEmpty()) {
+                        return [
+                            "status" => 400,
+                            "message" => "Part Group memiliki Part Complement",
+                        ];
+                    }
+                    break;
+
+                case "main":
+                    $mainPart = Part::where("id", "!=", $part->id)
+                        ->where("act_costing_id", $part->act_costing_id)
+                        ->where("panel_status", "main")
+                        ->first();
+
+                    if ($mainPart) {
+                        return [
+                            "status" => 400,
+                            "message" => "Main Panel sudah ada untuk WS ".$part->act_costing_ws." <a href='".route("manage-part-secondary")."/".$part->id."' target='_blank'>".$part->kode."</a>",
+                            "reload" => true
+                        ];
+                    }
+                    break;
+
+                default:
+                    // For other statuses, no additional checks
+                    break;
+            }
+
+            $part->panel_status = $partPanelStatus;
+            $part->save();
+
+            return [
+                "status" => 200,
+                "message" => "Part berhasil diubah",
+            ];
+        } catch (\Exception $e) {
+            return [
+                "status" => 400,
+                "message" => "Terjadi kesalahan saat mengubah part : " . $e->getMessage(),
+                "reload" => true
+            ];
+        }
     }
 
     /**
@@ -1099,7 +1175,27 @@ class PartController extends Controller
                         PartDetail::where("id", $validatedRequest['edit_com_id'])->update([
                             "master_part_id" => $validatedRequest['edit_com_master_part_id'],
                             "from_part_detail" => $validatedRequest['edit_com_from_part_id'],
+                            "from_part_detail" => $validatedRequest['edit_com_from_part_id'],
                         ]);
+
+                        // Phase 7 (Update Part Item)
+                        if ($request->edit_com_item && count($request->edit_com_item) > 0) {
+                            // Delete Current Part Detail Item
+                            PartDetailItem::where("part_detail_id", $validatedRequest['edit_com_id'])->delete();
+
+                            // Repopulate Part Detail Item
+                            $partItemData = [];
+                            for ($i = 0; $i < count($request->edit_com_item); $i++) {
+                                array_push($partItemData, [
+                                    "part_detail_id" => $validatedRequest['edit_com_id'],
+                                    "bom_jo_item_id" => $request->edit_com_item[$i],
+                                    "created_at" => $timestamp,
+                                    "updated_at" => $timestamp,
+                                ]);
+                            }
+
+                            PartDetailItem::upsert($partItemData, ['part_detail_id', 'bom_jo_item_id'], ["updated_at"]);
+                        }
 
                         $status = "200";
                         $message = 'Data Part Secondary "' . $validatedRequest["edit_com_id"] . '" berhasil disimpan.';
@@ -1461,7 +1557,7 @@ class PartController extends Controller
                 left join signalbit_erp.masteritem mi on mi.id_item = bji.id_item
             where
                 part_id = '" . $request->id . "' and
-                (part_status != 'complement')
+                (part_status IS NULL OR part_status != 'complement')
             GROUP BY
                 pd.id
             order by
@@ -1477,6 +1573,7 @@ class PartController extends Controller
         $list_part = DB::select(
             "
             SELECT
+                pd.id,
                 pd.id com_id,
                 CONCAT(mp.nama_part, ' - ', mp.bag) com_nama_part,
                 CONCAT(from_master_part.nama_part, ' - ', from_master_part.bag) as com_from_part,

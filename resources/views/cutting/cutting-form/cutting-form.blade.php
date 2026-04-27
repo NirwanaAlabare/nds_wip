@@ -20,20 +20,21 @@
             <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
-                        <label class="form-label"><small>Tanggal Awal</small></label>
+                        <label class="form-label small">Tanggal Awal</label>
                         <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="dataTableReload()">
                     </div>
                     <div>
-                        <label class="form-label"><small>Tanggal Akhir</small></label>
+                        <label class="form-label small">Tanggal Akhir</label>
                         <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="dataTableReload()">
                     </div>
                     <div>
                         <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
                     </div>
                 </div>
-                <div class="d-flex align-items-end gap-3 mb-3">
+                <div class="d-flex align-items-end gap-1 mb-3">
+                    <button class="btn btn-sb-secondary btn-sm" data-bs-toggle="tooltip" data-bs-title="Refresh Data" onclick="dataTableReload()"><i class="fa fa-rotate"></i></button>
                     @if (Auth::user()->type != 'meja')
-                        <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb"><i class="fas fa-clipboard-list"></i> Manual</a>
+                        <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb" data-bs-toggle="tooltip" data-bs-title="Buat Form Manual"><i class="fas fa-clipboard-list"></i> Manual</a>
                     @endif
                 </div>
             </div>
@@ -81,126 +82,126 @@
                                 <input type="hidden" id="edit_marker_id" name="edit_marker_id">
                                 <div class="col-6 col-md-4">
                                     <div class="mb-3">
-                                        <label class="form-label"><small>No. Form</small></label>
-                                        <input type="text" class="form-control" id="edit_no_form" name="edit_no_form" value="" readonly />
+                                        <label class="form-label small">No. Form</label>
+                                        <input type="text" class="form-control form-control-sm" id="edit_no_form" name="edit_no_form" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-4">
                                     <div class="mb-3">
-                                        <label class="form-label"><small>Tanggal</small></label>
-                                        <input type="text" class="form-control" id="edit_tgl_form_cut" name="edit_tgl_form_cut" value="" readonly />
+                                        <label class="form-label small">Tanggal</label>
+                                        <input type="text" class="form-control form-control-sm" id="edit_tgl_form_cut" name="edit_tgl_form_cut" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-4">
                                     <div class="mb-3">
-                                        <label class="form-label"><small>Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_id_marker" name="edit_id_marker" value="" readonly />
+                                        <label class="form-label small">Marker</label>
+                                        <input type="text" class="form-control form-control-sm" id="edit_id_marker" name="edit_id_marker" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-4">
                                     <div class="mb-3">
-                                        <label class="form-label"><small>WS</small></label>
-                                        <input type="text" class="form-control" id="edit_ws" name="edit_ws" value="" readonly />
+                                        <label class="form-label small">WS</label>
+                                        <input type="text" class="form-control form-control-sm" id="edit_ws" name="edit_ws" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-4">
                                     <div class="mb-3">
-                                        <label class="form-label"><small>Color</small></label>
-                                        <input type="text" class="form-control" id="edit_color" name="edit_color" value="" readonly />
+                                        <label class="form-label small">Color</label>
+                                        <input type="text" class="form-control form-control-sm" id="edit_color" name="edit_color" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-4">
                                     <div class="mb-3">
-                                        <label class="form-label"><small>Panel</small></label>
-                                        <input type="text" class="form-control" id="edit_panel" name="edit_panel" value="" readonly />
-                                    </div>
-                                </div>
-                                <div class="col-4 col-md-3">
-                                    <div class="mb-3">
-                                        <label class="form-label"><small>P. Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_panjang_marker" name="edit_panjang_marker" value="" readonly />
-                                    </div>
-                                </div>
-                                <div class="col-4 col-md-3">
-                                    <div class="mb-3">
-                                        <label class="form-label"><small>Unit P. Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_unit_panjang_marker" name="edit_unit_panjang_marker" value="" readonly />
-                                    </div>
-                                </div>
-                                <div class="col-4 col-md-3">
-                                    <div class="mb-3">
-                                        <label class="form-label"><small>Comma Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_comma_marker" name="edit_comma_marker" value="" readonly />
-                                    </div>
-                                </div>
-                                <div class="col-4 col-md-3">
-                                    <div class="mb-3">
-                                        <label class="form-label"><small>Unit Comma Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_unit_comma_marker" name="edit_unit_comma_marker" value="" readonly />
-                                    </div>
-                                </div>
-                                <div class="col-4 col-md-3">
-                                    <div class="mb-3">
-                                        <label class="form-label"><small>Lebar Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_lebar_marker" name="edit_lebar_marker" value="" readonly />
-                                    </div>
-                                </div>
-                                <div class="col-4 col-md-3">
-                                    <div class="mb-3">
-                                        <label class="form-label"><small>Unit Lebar Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_unit_lebar_marker" name="edit_unit_lebar_marker" value="" readonly />
+                                        <label class="form-label small">Panel</label>
+                                        <input type="text" class="form-control form-control-sm" id="edit_panel" name="edit_panel" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-4 col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label"><small>PO Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_po_marker" name="edit_po_marker" value="" readonly />
+                                        <label class="form-label small">Panjang Marker</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" class="form-control form-control-sm" id="edit_panjang_marker" name="edit_panjang_marker" value="" readonly />
+                                            <input type="text" class="form-control form-control-sm" id="edit_unit_panjang_marker" name="edit_unit_panjang_marker" value="" readonly />
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-4 col-md-3">
+                                <div class="col-4 col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label"><small>Gelar QTY</small></label>
-                                        <input type="text" class="form-control" id="edit_gelar_qty" name="edit_gelar_qty" value="" readonly />
+                                        <label class="form-label small">Comma Marker</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" class="form-control form-control-sm" id="edit_comma_marker" name="edit_comma_marker" value="" readonly />
+                                            <input type="text" class="form-control form-control-sm" id="edit_unit_comma_marker" name="edit_unit_comma_marker" value="" readonly />
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-4 col-md-3">
+                                <div class="col-4 col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label"><small>Ply QTY</small></label>
-                                        <input type="text" class="form-control" id="edit_qty_ply" name="edit_qty_ply" value="" readonly />
+                                        <label class="form-label small">Lebar Marker</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" class="form-control form-control-sm" id="edit_lebar_marker" name="edit_lebar_marker" value="" readonly />
+                                            <input type="text" class="form-control form-control-sm" id="edit_unit_lebar_marker" name="edit_unit_lebar_marker" value="" readonly />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label small">PO Marker</label>
+                                        <input type="text" class="form-control form-control-sm" id="edit_po_marker" name="edit_po_marker" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-3">
                                     <div class="mb-3">
-                                        <label class="form-label"><small>Urutan Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_urutan_marker" name="edit_urutan_marker" value="" readonly />
+                                        <label class="form-label small">Cons. Marker</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" class="form-control form-control-sm" id="edit_cons_marker" name="edit_cons_marker" value="" readonly />
+                                            <input type="text" class="form-control form-control-sm" id="edit_unit_cons_marker" name="edit_unit_cons_marker" value="" readonly />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label small">Gelar QTY</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" class="form-control form-control-sm" id="edit_gelar_qty" name="edit_gelar_qty" value="" readonly />
+                                            <input type="text" class="form-control form-control-sm" id="edit_unit_gelar_qty" name="edit_unit_gelar_qty" value="Ply" readonly />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label small">Ply QTY</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" class="form-control form-control-sm" id="edit_qty_ply" name="edit_qty_ply" value="" readonly />
+                                            <input type="text" class="form-control form-control-sm" id="edit_unit_qty_ply" name="edit_unit_qty_ply" value="Ply" readonly />
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-3">
                                     <div class="mb-3">
-                                        <label class="form-label"><small>Cons. Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_cons_marker" name="edit_cons_marker" value="" readonly />
+                                        <label class="form-label small">Urutan Marker</label>
+                                        <input type="text" class="form-control form-control-sm" id="edit_urutan_marker" name="edit_urutan_marker" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-4 col-md-4">
                                     <div class="mb-3">
-                                        <label class="form-label"><small>Tipe Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_tipe_marker" name="edit_tipe_marker" value="" readonly />
+                                        <label class="form-label small">Tipe Marker</label>
+                                        <input type="text" class="form-control form-control-sm" id="edit_tipe_marker" name="edit_tipe_marker" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-4 col-md-4">
                                     <div class="mb-3">
-                                        <label class="form-label"><small>Meja</small></label>
-                                        <input type="text" class="form-control" id="edit_nama_meja" name="edit_nama_meja" value="" readonly />
+                                        <label class="form-label small">Meja</label>
+                                        <input type="text" class="form-control form-control-sm" id="edit_nama_meja" name="edit_nama_meja" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-4 col-md-4">
                                     <div class="mb-3">
-                                        <label class="form-label"><small>Keterangan</small></label>
-                                        <textarea class="form-control" id="edit_notes" name="edit_notes" readonly></textarea>
+                                        <label class="form-label small">Keterangan</label>
+                                        <textarea class="form-control form-control-sm" id="edit_notes" name="edit_notes" readonly></textarea>
                                     </div>
                                 </div>
                                 <div class="col-md-12 table-responsive">
-                                    <table id="datatable-ratio" class="table table-bordered table-striped table w-100">
+                                    <table id="datatable-ratio" class="table table-bordered table-striped table-sm w-100">
                                         <thead>
                                             <tr>
                                                 <th>Size</th>
@@ -344,17 +345,15 @@
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
-                        let btnEdit = "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>";
+                        let btnEdit = "<a href='javascript:void(0);' data-bs-toggle='tooltip' data-bs-title='Detail Form' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>";
 
-                        let btnProcess = "";
-
+                        let linkProcess = "{{ route('process-form-cut-input') }}/" + row.id;
                         if (row.tipe_form_cut == 'MANUAL') {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-manual-form-cut') }}/` +row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></a>` : `<button class='btn btn-success btn-sm' data-bs-toggle='tooltip' target='_blank' disabled><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></button>`;
+                            linkProcess = "{{ route('process-manual-form-cut') }}/" +row.id;
                         } else if (row.tipe_form_cut == 'PILOT') {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-pilot-form-cut') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` : `<button class='btn btn-success btn-sm' data-bs-toggle='tooltip' target='_blank' disabled><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></button>`;
-                        } else {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) + `'></i></a>` : `<button class='btn btn-success btn-sm' data-bs-toggle='tooltip' target='_blank' disabled><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) + `'></i></button>`;
+                            linkProcess = "{{ route('process-pilot-form-cut') }}/" + row.id;
                         }
+                        btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='`+linkProcess+`' data-bs-toggle='tooltip' data-bs-title='Proses Form' target='_blank'><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></a>` : `<button class='btn btn-success btn-sm' data-bs-toggle='tooltip' target='_blank' disabled><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></button>`;
 
                         return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess + `</div>`;
                     }

@@ -17,6 +17,7 @@
         <th style="background: #505154; color: #FBFBFB;padding:10px;font-weight:bold;">STYLE</th>
         <th style="background: #505154; color: #FBFBFB;padding:10px;font-weight:bold;">COLOR</th>
         <th style="background: #505154; color: #FBFBFB;padding:10px;font-weight:bold;">SIZE</th>
+        <th style="background: #505154; color: #FBFBFB;padding:10px;font-weight:bold;">DESTINATION</th>
         <th style="background: #505154; color: #FBFBFB;padding:10px;font-weight:bold;">GROUP</th>
         <th style="background: #505154; color: #FBFBFB;padding:10px;font-weight:bold;">LOT</th>
         <th style="background: #505154; color: #FBFBFB;padding:10px;font-weight:bold;">CUT NUMBER</th>
@@ -40,6 +41,7 @@
             <td style="text-align: left;">{{ $d->style }}</td>
             <td style="text-align: left;">{{ $d->color }}</td>
             <td style="text-align: left;">{{ $d->size }}</td>
+            <td style="text-align: left;">{{ $d->dest }}</td>
             <td style="text-align: left;">{{ $d->group_roll }}</td>
             <td style="text-align: left;">{{ $d->lot }}</td>
             <td style="text-align: left;">{{ $d->no_cut }}</td>
@@ -50,7 +52,7 @@
         </tr>
     @endforeach
     <tr>
-        <td style="text-align: right;font-weight: bold;" colspan="13">TOTAL</td>
+        <td style="text-align: right;font-weight: bold;" colspan="14">TOTAL</td>
         <td style="font-weight: bold;">{{ $totalQty }}</td>
     </tr>
 </table>

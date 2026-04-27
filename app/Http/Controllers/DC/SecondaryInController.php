@@ -1068,7 +1068,18 @@ class SecondaryInController extends Controller
                                         return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
                                     }
                                 } else {
-                                    return "Secondary Inhouse belum ada";
+
+                                    $additional = "";
+                                    if ($currentPartDetailSecondary->secondary) {
+                                        // Secondary Inhouse
+                                        $route = "#";
+                                        if ($currentPartDetailSecondary->secondary->tujuan == "SECONDARY DALAM") {
+                                            $route = route('secondary-inhouse');
+                                        }
+                                        $additional .= "<br> Proses saat ini : <a href='".$route."' target='_blank'><b>".$currentPartDetailSecondary->secondary->tujuan." / ".$currentPartDetailSecondary->secondary->proses."</b></a>";
+                                    }
+
+                                    return "Secondary Inhouse belum ada".$additional;
                                 }
                             }
                             // If Secondary Luar

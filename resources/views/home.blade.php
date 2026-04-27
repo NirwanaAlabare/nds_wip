@@ -192,7 +192,7 @@
                             </div>
                             <?php } ?>
 
-                        @ppic
+                        @role("ppic")
                             <div class="col-lg-2 col-md-3 col-sm-6">
                                 <a href="{{ route('dashboard-ppic') }}" class="home-item">
                                     <div class="card h-100">
@@ -206,9 +206,9 @@
                                     </div>
                                 </a>
                             </div>
-                        @endppic
+                        @endrole
 
-                        @packing
+                        @role("packing")
                             <div class="col-lg-2 col-md-3 col-sm-6">
                                 <a href="{{ route('dashboard-packing') }}" class="home-item">
                                     <div class="card h-100">
@@ -236,9 +236,9 @@
                                     </div>
                                 </a>
                             </div>
-                        @endpacking
+                        @endrole
 
-                        @admin
+                        @role("admin")
                             <div class="col-lg-2 col-md-3 col-sm-6">
                                 <a href="{{ route('dashboard-report-doc') }}" class="home-item">
                                     <div class="card h-100">
@@ -252,11 +252,9 @@
                                     </div>
                                 </a>
                             </div>
-                        @endadmin
+                        @endrole
 
-                        {{-- Deprecated --}}
-                        {{--
-                        @ga
+                        @role("ga")
                             <div class="col-lg-2 col-md-3 col-sm-6">
                                 <a href="{{ route('dashboard-ga') }}" class="home-item">
                                     <div class="card h-100">
@@ -269,8 +267,7 @@
                                     </div>
                                 </a>
                             </div>
-                        @endga
-                    --}}
+                        @endrole
 
                         {{-- Marketing --}}
                         @role('admin')
@@ -299,6 +296,22 @@
                                                 <img src="{{ asset('dist/img/accounting_img.png') }}" class="img-fluid p-3"
                                                     alt="qr code image">
                                                 <p class="text-center fw-bold text-uppercase text-dark">Accounting</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        @endrole
+
+                        @role('export_import')
+                            <div class="col-lg-2 col-md-3 col-sm-6">
+                                <a href="{{ route('dashboard-export-import') }}" class="home-item">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex h-100 flex-column justify-content-between">
+                                                <img src="{{ asset('dist/img/exim_img.jpeg') }}" class="img-fluid p-3"
+                                                    alt="qr code image">
+                                                <p class="text-center fw-bold text-uppercase text-dark">Export Import</p>
                                             </div>
                                         </div>
                                     </div>

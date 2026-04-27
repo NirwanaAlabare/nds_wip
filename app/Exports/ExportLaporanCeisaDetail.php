@@ -94,7 +94,7 @@ class ExportLaporanCeisaDetail implements FromView, WithEvents, ShouldAutoSize
         $this->rowCount = count($data) + 3;
 
 
-        return view('accounting.export-ceisa-detail', [
+        return view('export-import.ceisa-detail.export', [
             'data' => $data,
             'from' => $this->from,
             'to' => $this->to,

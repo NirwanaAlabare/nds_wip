@@ -12,7 +12,7 @@
             <li>
                 <a href="{{ route('penerimaan-cutting') }}"
                     class="appeared dropdown-item {{ $routeName == 'penerimaan-cutting' ? 'active' : '' }}">
-                    Penerimaan Fabric Cutting <i class="fas fa-cut fa-sm"></i>
+                    Penerimaan Fabric Cutting <i class="fa-solid fa-tape"></i>
                 </a>
             </li>
             <li>
@@ -165,6 +165,18 @@
                     <a href="{{ route('report_mutasi_wip_cutting') }}"
                         class="dropdown-item {{ $routeName == 'report_mutasi_wip_cutting' ? 'active' : '' }}">
                         Mutasi WIP Cutting <i class="fa fa-list"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('report_pengeluaran_cutting') }}"
+                        class="dropdown-item {{ $routeName == 'report_pengeluaran_cutting' ? 'active' : '' }}">
+                        Pengeluaran Cutting <i class="fa fa-list"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('report_return_fabric_cutting') }}"
+                        class="dropdown-item {{ $routeName == 'report_return_fabric_cutting' ? 'active' : '' }}">
+                        Return Fabric Cutting <i class="fa fa-list"></i>
                     </a>
                 </li>
             </ul>

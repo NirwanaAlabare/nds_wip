@@ -66,7 +66,7 @@ class PPIC_MasterSOController extends Controller
                 inner join signalbit_erp.jo_det jd on so.id = jd.id_so
                 inner join signalbit_erp.masterproduct mp on ac.id_product = mp.id
                 inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.id_supplier
-                where sd.cancel = 'N' and so.cancel_h = 'N'
+                where sd.cancel = 'N' and so.cancel_h = 'N' and jd.cancel = 'N'
                 ),
                 pck_trf_gmt as (
                 select id_ppic_master_so, sum(qty) qty_trf from packing_trf_garment

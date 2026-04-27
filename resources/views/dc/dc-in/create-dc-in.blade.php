@@ -250,8 +250,14 @@
                 <h5 class="card-title fw-bold mb-0">List Data</h5>
             </div>
             <div class="card-body">
+                <div class="d-flex justify-content-end flex-column gap-2 mb-3">
+                    <div class="d-flex justify-content-end align-items-center gap-2">
+                        <span style="width:12px; height:12px; background-color: #fac0c6;" class="rounded"></span>
+                        <span>Sudah discan di DC</span>
+                    </div>
+                </div>
                 <div class="table-responsive">
-                    <table id="datatable-scan" class="table table-bordered table w-100 display nowrap">
+                    <table id="datatable-scan" class="table table-bordered table-sm w-100 display nowrap">
                         <thead>
                             <tr>
                                 <th>Action</th>
@@ -279,7 +285,7 @@
                         <p class="my-3">
                             Selected : <span id="checked-stocker-count" class="fw-bold">0</span>
                         </p>
-                        <div class="d-flex gap-3">
+                        <div class="d-flex align-items-center gap-2">
                             <button type="button" data-bs-toggle="modal" data-bs-target="#updateMassTmpDcModal" class="btn btn-primary btn-sm my-3" onclick="editCheckedTmpDcIn()">
                                 <i class="fa fa-edit"></i> Edit Selected Stocker
                             </button>
@@ -687,6 +693,7 @@
                     },
                     {
                         targets: '_all',
+                        className: 'align-middle',
                         render: (data, type, row, meta) => {
                             var color = '#000000';
                             if (row.cek_stat != 'x') {
@@ -697,7 +704,13 @@
                             return '<span style="font-weight: 600; color:' + color + '">' + data + '</span>';
                         }
                     }
-                ]
+                ],
+                rowCallback: function( row, data, index ) {
+                    if (data['dc'] > 0) {
+                        $('td', row).css('background-color', '#ffcbd1');
+                        $('td', row).css('border', '0.15px solid #d0d0d0');
+                    }
+                },
             });
         };
 
@@ -968,7 +981,7 @@
                 Swal.fire({
                     icon:'warning',
                     title: 'Warning',
-                    html: 'Harap ceklis stocker yang akan di ubahs',
+                    html: 'Harap ceklis stocker yang akan di ubah',
                 }).then(() => {
                     $('#updateMassTmpDcModal').modal('hide');
                 });

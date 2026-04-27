@@ -16,7 +16,7 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title">
-                    <i class='fa fa-plus'></i> Create Stocker Reject
+                    <i class='fa fa-plus'></i> Create Stocker Ganti Reject
                 </h5>
                 <a type="button" href="{{ route('stocker-reject') }}" class="btn btn-sm btn-primary"><i class="fa fa-reply"></i> Kembali ke stocker reject</a>
             </div>

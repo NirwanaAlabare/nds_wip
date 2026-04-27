@@ -143,7 +143,7 @@
                 </div>
                 <div class="card-footer border-1">
                     <div class="d-flex justify-content-end">
-                        <button class="btn btn-sb-secondary" type="submit" id="submit_process_one"><i class="fa fa-edit"></i> UPDATE DATA HEADER</button>
+                        <button class="btn btn-success fw-bold" type="submit" id="submit_process_one"><i class="fa fa-edit"></i> UPDATE DATA HEADER</button>
                     </div>
                 </div>
             </div>
@@ -943,30 +943,47 @@
             }
 
             function appendProcessThree(item) {
+
+                let form = document.createElement("form");
+                form.id = 'form_' + (item.id)
+                form.method = 'post';
+                form.action = '{{ route("update-cutting-piece-detail") }}';
+                form.addEventListener("submit", function(event) {
+                    event.preventDefault();
+
+                    updateDetail(this);
+                });
+
                 const card = document.getElementById("process-three-card");
                 if (!card) return console.error("Card not found");
 
                 const container = document.getElementById("process-three-container");
                 const cloneCard = card.cloneNode(true);
-                const suffix = "_" + item.id_roll;
+                const suffix = "_" + item.id;
                 cloneCard.id = `process-three-card${suffix}`;
                 cloneCard.classList.add("collapsed-card");
+                cloneCard.classList.remove("card-sb");
 
                 // 💡 Header with collapse button (prevent duplicate)
                 const header = cloneCard.querySelector(".card-header");
-                if (header && !header.querySelector(".card-tools")) {
-                    const tools = document.createElement("div");
-                    tools.className = "card-tools";
-                    tools.innerHTML = `<button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-plus"></i></button>`;
-                    header.appendChild(tools);
+                if (header) {
+                    header.classList.add("bg-sb-secondary");
+
+                    if (!header.querySelector(".card-tools")) {
+                        const tools = document.createElement("div");
+                        tools.className = "card-tools";
+                        tools.innerHTML = `<button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-plus"></i></button>`;
+                        header.appendChild(tools);
+                    }
                 }
 
                 // 💡 Set title
                 const title = cloneCard.querySelector(".card-title");
-                if (title) title.textContent = `${item.id_roll}`;
+                if (title) title.textContent = `${(item.id_roll ? item.id_roll : item.id)}`;
 
                 // ✅ Value map from item
                 const valueMap = {
+                    id_detail: item.id,
                     group_roll: item.group_roll,
                     lot: item.lot,
                     roll: item.roll,
@@ -987,6 +1004,7 @@
                     const oldId = el.id;
                     const newId = `${oldId}${suffix}`;
                     el.id = newId;
+                    el.removeAttribute("disabled");
 
                     if (valueMap.hasOwnProperty(oldId)) {
                         if ("value" in el) el.value = valueMap[oldId] ?? "";
@@ -1045,11 +1063,22 @@
                 }
 
                 // Remove card-footer if needed
-                cloneCard.querySelector(".card-footer")?.remove();
+                // cloneCard.querySelector(".card-footer")?.remove();
+                let cloneCardButton = cloneCard.querySelector(".card-footer button");
+                if (cloneCardButton) {
+                    cloneCardButton.innerHTML = "<i class='fa fa-save'></i> UPDATE";
+                    cloneCardButton.removeAttribute("disabled");
+                    cloneCardButton.classList.remove("btn-sb");
+                    cloneCardButton.classList.add("btn-success");
+                    cloneCardButton.classList.add("fw-bold");
+                }
 
-                container.appendChild(cloneCard);
+                // Append Cloned Card to Form
+                form.appendChild(cloneCard);
+
+                // Append Form to Container
+                container.appendChild(form);
             }
-
 
             function buildTableRows(details, suffix) {
                 return details.map((row, index) => `
@@ -1063,7 +1092,7 @@
                             ${row.dest}
                         </td>
                         <td>
-                            <input type="number" name="qty_detail[${index}]" id="qty_detail_${index}${suffix}" value="${row.qty}" class="form-control" readonly />
+                            <input type="number" name="qty_detail[${index}]" id="qty_detail_${index}${suffix}" value="${row.qty}" class="form-control detail-qty${suffix}" onkeyup="calculateTotalDetailQty('${suffix}')" onchange="calculateTotalDetailQty('${suffix}')"/>
                         </td>
                     </tr>
                 `).join("");
@@ -1172,8 +1201,8 @@
                 }
             }
 
-            function calculateTotalDetailQty() {
-                let detailQtyElements = document.getElementsByClassName("detail-qty");
+            function calculateTotalDetailQty(suffix = '') {
+                let detailQtyElements = document.getElementsByClassName("detail-qty"+suffix);
 
                 let totalQty = 0;
                 for (let i = 0; i < detailQtyElements.length; i++) {
@@ -1181,12 +1210,12 @@
                     totalQty += Number(detailQtyElements[i].value);
                 }
 
-                document.getElementById("total-detail-qty").innerHTML = totalQty;
+                document.getElementById("total-detail-qty"+suffix).innerHTML = totalQty;
 
                 // Sisa
-                let qtyItemElement = document.getElementById("qty");
-                let qtyUseElement = document.getElementById("qty_pemakaian");
-                let qtySisaElement = document.getElementById("qty_sisa");
+                let qtyItemElement = document.getElementById("qty"+suffix);
+                let qtyUseElement = document.getElementById("qty_pemakaian"+suffix);
+                let qtySisaElement = document.getElementById("qty_sisa"+suffix);
 
                 qtyUseElement.value = totalQty;
                 qtySisaElement.value = Number(qtyItemElement.value) - totalQty;
@@ -1337,6 +1366,7 @@
                 // Process Two
                 let form2 = document.getElementById("process-two-form");
                 for (let i = 0; i < form2.length; i++) {
+                    if (form2[i].id != '')
                     form2[i].setAttribute("disabled", "true");
                 }
 
@@ -1361,6 +1391,74 @@
                 document.getElementById("group_roll").focus();
             }
         // END OF THE LINE
+
+        // UPDATE DETAIL
+        function updateDetail(e) {
+            document.getElementById("loading").classList.remove("d-none");
+
+            event.preventDefault();
+
+            let form = new FormData(e);
+
+            let dataObj = {
+                "id": $("#id").val(),
+            }
+
+            form.forEach((value, key) => dataObj[key] = value);
+
+            console.log(dataObj);
+
+            $.ajax({
+                type: "put",
+                url: "{{ route('update-cutting-piece-detail') }}",
+                data: dataObj,
+                dataType: "json",
+                success: function (response) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    console.log(response);
+
+                    let alert = {};
+                    if (response) {
+                        alert = {
+                            icon: response.status == 200 ? "success" : "error",
+                            title: response.status == 200 ? "Berhasil" : "Gagal",
+                            html: response.message ? response.message : (response.status == 200 ? "Data Detail berhasil diubah" : "Data Detail gagal diubah"),
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        }
+                    } else {
+                        alert = {
+                            icon: "error",
+                            title: "Gagal",
+                            html: "Terjadi Kesalahan",
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        }
+                    }
+
+                    return Swal.fire(alert).then(() => {
+                        location.reload();
+                    });
+                },
+                error: function (jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    console.error(jqXHR);
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Gagal",
+                        text: "Terjadi Kesalahan",
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                    });
+                }
+            });
+        }
 
         // GO TO BOTTOM
             const scrollBtn = document.getElementById("scroll-to-bottom");

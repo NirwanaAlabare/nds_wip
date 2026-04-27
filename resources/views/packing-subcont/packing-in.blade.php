@@ -16,7 +16,7 @@
 @section('content')
 <div class="card card-sb">
     <div class="card-header">
-        <h5 class="card-title fw-bold mb-0">Data Packing In Subcont</h5>
+        <h5 class="card-title fw-bold mb-0">Data Sewing In Subcont</h5>
     </div>
     <div class="card-body">
         <div class="d-flex align-items-end gap-1 mb-1">
@@ -513,25 +513,22 @@ $('.select2type').select2({
             {
                 targets: [9],
                 render: (data, type, row, meta) => {
-                    let exportUrl = "{{ route('export-pl-sewing-out', ':id') }}"
-            .replace(':id', row.id);
+                    let exportUrl = "{{ route('export-pl-sewing-out', ':id') }}".replace(':id', row.id);
 
-                 if (row.status == 'DRAFT') {
-                    return `<div class='d-flex gap-1 justify-content-center'>
-                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='CancelPackingIn("` + row.no_bpb + `")'><i class="fa-solid fa-trash"></i></button>
-                    <button type='button' class='btn btn-sm btn-info' onclick='showDetail("${row.id}")'> <i class="fa-solid fa-eye"></i> Detail</button>
-                    </div>`;
-                }else if (row.status == 'APPROVED') {
-                    return `<div class='d-flex gap-1 justify-content-center'>
-                    <button type='button' class='btn btn-sm btn-info' onclick='showDetail("${row.id}")'> <i class="fa-solid fa-eye"></i> Detail</button>
-                    </div>`;
-                }else{
-                    return `<div class='d-flex gap-1 justify-content-center'>
-                    -
-                    </div>`;
+                    let deleteButton = `<button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='CancelPackingIn("` + row.no_bpb + `")'><i class="fa-solid fa-trash"></i></button>`;
+                    let detailButton = `<button type='button' class='btn btn-sm btn-info' onclick='showDetail("${row.id}")'> <i class="fa-solid fa-eye"></i> Detail</button>`;
+                    let pdfUrl = "http://10.10.5.62:8080/erp/pages/forms/cetaksj.php?mode=In&noid="+row.bpbno
+                    let pdfButton = `<a href="`+pdfUrl+`" target="_blank" class="btn btn-sm btn-dark"><i class="fa fa-file-pdf"></i></a>`;
+
+                    return `
+                        <div class='d-flex gap-1 justify-content-center'>
+                            `+(row.status == "DRAFT" ? deleteButton : "")+`
+                            `+detailButton+`
+                            `+pdfButton+`
+                        </div>
+                    `;
                 }
-                }
-            }
+            },
         ]
     });
 

@@ -45,12 +45,23 @@ class PenerimaanCuttingExport implements FromView, ShouldAutoSize
                 whs_bppb_det.no_roll_buyer,
                 whs_bppb_det.id_item,
                 whs_bppb_det.item_desc AS nama_barang,
-                whs_bppb_h.style_aktual AS style,
+                buyer_ws.styleno AS style,
                 masteritem.color AS warna
             ")
             ->leftJoin('signalbit_erp.whs_bppb_det', 'signalbit_erp.whs_bppb_det.id', '=', 'penerimaan_cutting.whs_bppb_det_id')
             ->leftJoin('signalbit_erp.whs_bppb_h', 'signalbit_erp.whs_bppb_h.no_bppb', '=', 'signalbit_erp.whs_bppb_det.no_bppb')
             ->leftJoin('signalbit_erp.masteritem', 'signalbit_erp.masteritem.id_item', '=', 'signalbit_erp.whs_bppb_det.id_item')
+            ->leftJoinSub(
+                DB::table('signalbit_erp.act_costing as ac')
+                    ->selectRaw('jod.id_jo, ac.kpno AS no_ws, ac.styleno')
+                    ->join('signalbit_erp.so as so', 'ac.id', '=', 'so.id_cost')
+                    ->join('signalbit_erp.jo_det as jod', 'so.id', '=', 'jod.id_so')
+                    ->groupBy('jod.id_jo', 'ac.kpno', 'ac.styleno'),
+                'buyer_ws',
+                function ($join) {
+                    $join->on('buyer_ws.id_jo', '=', 'signalbit_erp.whs_bppb_det.id_jo');
+                }
+            )
             ->whereBetween('penerimaan_cutting.created_at', [
                 $this->from . ' 00:00:00',
                 $this->to . ' 23:59:59'

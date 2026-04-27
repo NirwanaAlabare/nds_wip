@@ -98,7 +98,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Add Accesses</label>
-                            <select class="form-select select2bs4-edit" name="edit_acceses[]" id="edit_acceses" multiple="multiple">
+                            <select class="form-select select2bs4-edit" name="edit_accesses[]" id="edit_accesses" multiple="multiple">
                                 <option value=""></option>
                                 @foreach ($accesses as $access)
                                     <option value="{{ $access->id }}">{{ strtoupper($access->access) }}</option>
