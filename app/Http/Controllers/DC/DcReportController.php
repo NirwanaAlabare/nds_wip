@@ -2204,6 +2204,7 @@ class DcReportController extends Controller
                             FROM
                                 secondary_in_input si
                                 left join stocker_input s on s.id_qr_stocker = si.id_qr_stocker
+                                left join dc_in_input dc on dc.id_qr_stocker = s.id_qr_stocker
                                 left join part_detail pd on pd.id = s.part_detail_id
                                 left join master_secondary ms on ms.id = pd.master_secondary_id
                                 left join part_detail_secondary pds on pds.part_detail_id = pd.id and si.urutan = pds.urutan
@@ -2215,7 +2216,7 @@ class DcReportController extends Controller
                                 (s.cancel IS NULL OR s.cancel != 'y') and
                                 (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                 pd.part_status= 'main' AND
-                                COALESCE(mms.tujuan, ms.tujuan) = 'SECONDARY LUAR'
+                                COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
                             UNION ALL
                             SELECT
                                 si.id_qr_stocker,
@@ -2239,6 +2240,7 @@ class DcReportController extends Controller
                             FROM
                                 secondary_in_input si
                                 left join stocker_input s on s.id_qr_stocker = si.id_qr_stocker
+                                left join dc_in_input dc on dc.id_qr_stocker = s.id_qr_stocker
                                 left join part_detail pd on pd.id = s.part_detail_id
                                 left join master_secondary ms on ms.id = pd.master_secondary_id
                                 left join part_detail_secondary pds on pds.part_detail_id = pd.id and si.urutan = pds.urutan
@@ -2250,7 +2252,7 @@ class DcReportController extends Controller
                                 (s.cancel IS NULL OR s.cancel != 'y') and
                                 (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                 (pd.part_status != 'main' OR pd.part_status IS NULL) AND
-                                COALESCE(mms.tujuan, ms.tujuan) = 'SECONDARY LUAR'
+                                COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
                         ),
 
                         loading_line_qty as (
