@@ -811,7 +811,7 @@ class SecondaryInhouseOutController extends Controller
                         // Check Secondary Inhouse IN
                         $secondaryInhouseIn = $secondaryInhouseService->checkSecondaryInhouseIn($request->txtqrstocker);
                         if (!$secondaryInhouseIn) {
-                            return "Belum di-scan Secondary Inhouse IN";
+                            return "Belum di-scan <a href='".route('secondary-inhouse-in')."' target='_blank'>Secondary Inhouse IN</a>";
                         }
 
                         $cekdata = DB::select("
@@ -869,7 +869,7 @@ class SecondaryInhouseOutController extends Controller
                             // Check Secondary Inhouse IN
                             $secondaryInhouseIn = $secondaryInhouseService->checkSecondaryInhouseIn($request->txtqrstocker, $currentPartDetailSecondary->urutan);
                             if (!$secondaryInhouseIn) {
-                                return "Belum discan Secondary Inhouse IN";
+                                return "Belum discan <a href='".route('secondary-inhouse-in')."' target='_blank'>Secondary Inhouse IN</a>";
                             }
 
                             // Check the Secondary Inhouse IN first
@@ -1129,7 +1129,7 @@ class SecondaryInhouseOutController extends Controller
                     // Check Secondary Inhouse IN
                     $secondaryInhouseIn = $secondaryInhouseService->checkSecondaryInhouseIn($request->txtqrstocker);
                     if (!$secondaryInhouseIn) {
-                        return "Belum discan Secondary Inhouse IN";
+                        return "Belum discan <a href='".route('secondary-inhouse-in')."' target='_blank'>Secondary Inhouse IN</a>";
                     }
 
 
