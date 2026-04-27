@@ -93,6 +93,10 @@
                     @include('export-import.exim-nav')
                 @endif
 
+                @if ($page == 'dashboard-whs-soljer')
+                    @include('whs-soljer.soljer-nav')
+                @endif
+
                 @if ($page == 'dashboard-warehouse')
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"

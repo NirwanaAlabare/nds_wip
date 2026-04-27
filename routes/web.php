@@ -1,10 +1,11 @@
 <?php
 
-use App\Http\Controllers\DashboardFabricController;
 use App\Events\TestEvent;
 use App\Http\Controllers\AccountingController;
 use App\Http\Controllers\BarcodePackingController;
+use App\Http\Controllers\DashboardFabricController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\Exim\ExportImportController;
 use App\Http\Controllers\FGStokBPBController;
 use App\Http\Controllers\FGStokBPPBController;
 use App\Http\Controllers\FGStokLaporanController;
@@ -88,12 +89,10 @@ use App\Http\Controllers\ReturInMaterialController;
 use App\Http\Controllers\ReturMaterialController;
 use App\Http\Controllers\StockOpnameController;
 use App\Http\Controllers\TransferBpbController;
-use App\Http\Controllers\WarehouseController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Exim\ExportImportController;
-
-//transfer memo
 use App\Http\Controllers\TransferMemoController;
+use App\Http\Controllers\WarehouseController;
+use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -1274,6 +1273,20 @@ Route::middleware('auth')->group(function () {
         Route::get('/export-ceisa-detail', 'ExportReportCeisaDetail')->name('export-ceisa-detail');
         Route::get('/report-signalbit-bc', 'ReportSignalbitBC')->name('report-signalbit-bc');
         Route::get('/export-excel-report-signalbit-bc', 'ExportReportSignalbitBC')->name('export-excel-report-signalbit-bc');
+    });
+
+    // WHS Soljer
+    Route::controller(PenerimaanGudangInputanController::class)->prefix("penerimaan-gudang-inputan")->middleware('role:warehouse')->group(function () {
+        Route::get('/', 'index')->name('penerimaan-gudang-inputan');
+        Route::get('/create', 'create')->name('create-penerimaan-gudang-inputan');
+        Route::post('/store', 'store')->name('store-penerimaan-gudang-inputan');
+        Route::get('/edit/{id}', 'edit')->name('edit-penerimaan-gudang-inputan');
+        Route::put('/update/{id}', 'update')->name('update-penerimaan-gudang-inputan');
+        Route::put('/cancel/{id}', 'cancel')->name('cancel-penerimaan-gudang-inputan');
+        Route::get('/print-sj/{id}', 'printSj')->name('print-sj-penerimaan-gudang-inputan');
+        Route::get('/print-barcode/{id}', 'printBarcode')->name('print-barcode-penerimaan-gudang-inputan');
+        Route::get('/contoh-upload-import', 'contohUploadImport')->name('contoh-upload-import-penerimaan-gudang-inputan');
+        Route::post('/import-data', 'importData')->name('import-data-penerimaan-gudang-inputan');
     });
 });
 
