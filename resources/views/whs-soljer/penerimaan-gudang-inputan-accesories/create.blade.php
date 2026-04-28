@@ -62,10 +62,10 @@
 
 @section('content')
     <div class="d-flex justify-content-between mb-3">
-        <h5 class="fw-bold text-sb"><i class="fa fa-plus fa-sm"></i> Tambah Penerimaan Gudang Inputan (FABRIC)</h5>
-        <a href="{{ route('penerimaan-gudang-inputan') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali List Penerimaan Gudang Inputan (FABRIC)</a>
+        <h5 class="fw-bold text-sb"><i class="fa fa-plus fa-sm"></i> Tambah Penerimaan Gudang Inputan (ACCESORIES)</h5>
+        <a href="{{ route('penerimaan-gudang-inputan-accesories') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali List Penerimaan Gudang Inputan (ACCESORIES)</a>
     </div>
-    <form action="{{ route('store-penerimaan-gudang-inputan') }}" method="post" id="store-penerimaan-gudang-inputan" onsubmit="submitForm(this, event)">
+    <form action="{{ route('store-penerimaan-gudang-inputan-accesories') }}" method="post" id="store-penerimaan-gudang-inputan-accesories" onsubmit="submitForm(this, event)">
         @csrf
         <div class="card card-sb">
             <div class="card-header">
@@ -105,7 +105,7 @@
                             </a>
 
                             <a class="btn btn-outline-warning btn-sm"
-                                href="{{ route('contoh-upload-import-penerimaan-gudang-inputan') }}">
+                                href="{{ route('contoh-upload-import-penerimaan-gudang-inputan-accesories') }}">
                                 <i class="fas fa-file-download fa-sm"></i>
                                 Contoh Upload
                             </a>
@@ -115,23 +115,35 @@
                     <div class="row mt-3">
                         <div class="col-1 col-md-1">
                             <div class="mb-1">
-                                <label class="form-label"><small>No Roll</small></label>
-                                <input type="text" class="form-control" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" id="no_roll" name="no_roll" value="">
+                                <label class="form-label"><small>No Box/Koli</small></label>
+                                <input type="text" class="form-control" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" id="no_box" name="no_box" value="">
                             </div>
                         </div>
-                        <div class="col-2 col-md-2">
+                        <div class="col-1 col-md-1">
                             <div class="mb-1">
                                 <label class="form-label"><small>Buyer</small></label>
                                 <input type="text" class="form-control" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" id="buyer" name="buyer" value="">
                             </div>
                         </div>
-                        <div class="col-2 col-md-2">
+                        <div class="col-1 col-md-1">
                             <div class="mb-1">
-                                <label class="form-label"><small>Jenis Item</small></label>
-                                <input type="text" class="form-control" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" id="jenis_item" name="jenis_item" value="">
+                                <label class="form-label"><small>Worksheet</small></label>
+                                <input type="text" class="form-control" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" id="worksheet" name="worksheet" value="">
                             </div>
                         </div>
-                        <div class="col-2 col-md-2">
+                        <div class="col-1 col-md-1">
+                            <div class="mb-1">
+                                <label class="form-label"><small>Nama Barang</small></label>
+                                <input type="text" class="form-control" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" id="nama_barang" name="nama_barang" value="">
+                            </div>
+                        </div>
+                        <div class="col-1 col-md-1">
+                            <div class="mb-1">
+                                <label class="form-label"><small>Kode</small></label>
+                                <input type="text" class="form-control" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" id="kode" name="kode" value="">
+                            </div>
+                        </div>
+                        <div class="col-1 col-md-1">
                             <div class="mb-1">
                                 <label class="form-label"><small>Warna</small></label>
                                 <input type="text" class="form-control" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" id="warna" name="warna" value="">
@@ -139,8 +151,8 @@
                         </div>
                         <div class="col-1 col-md-1">
                             <div class="mb-1">
-                                <label class="form-label"><small>Lot</small></label>
-                                <input type="text" class="form-control" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" id="lot" name="lot" value="">
+                                <label class="form-label"><small>Size</small></label>
+                                <input type="text" class="form-control" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" id="size" name="size" value="">
                             </div>
                         </div>
                         <div class="col-1 col-md-1">
@@ -158,6 +170,12 @@
                                         <option value="{{ $row->id }}">{{ $row->nama_pilihan }}</option>
                                     @endforeach
                                 </select>
+                            </div>
+                        </div>
+                        <div class="col-1 col-md-1">
+                            <div class="mb-1">
+                                <label class="form-label"><small>Qty KGM</small></label>
+                                <input type="number" class="form-control text-end" id="qty_kgm" name="qty_kgm" value="">
                             </div>
                         </div>
                         <div class="col-1 col-md-1">
@@ -200,13 +218,16 @@
                         <table class="table table-bordered w-100 table" id="datatable">
                             <thead>
                                 <tr>
-                                    <th>No Roll</th>
+                                    <th>No Box/Koli</th>
                                     <th>Buyer</th>
-                                    <th>Jenis Item</th>
+                                    <th>Worksheet</th>
+                                    <th>Nama Barang</th>
+                                    <th>Kode</th>
                                     <th>Warna</th>
-                                    <th>Lot</th>
+                                    <th>Size</th>
                                     <th>Qty</th>
                                     <th>Satuan</th>
+                                    <th>Qty KGM</th>
                                     <th>Keterangan</th>
                                     <th>Lokasi</th>
                                     <th>Action</th>
@@ -214,9 +235,11 @@
                             </thead>
                             <tfoot>
                                 <tr>
-                                    <th colspan="5" class="text-center">TOTAL</th>
+                                    <th colspan="7" class="text-center">TOTAL</th>
                                     <th id="total_qty" class="text-end">0</th>
-                                    <th colspan="4"></th>
+                                    <th></th>
+                                    <th id="total_qty_kgm" class="text-end">0</th>
+                                    <th colspan="3"></th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -235,7 +258,7 @@
     <div class="modal fade" id="importExcel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
-            <form method="post" action="{{ route('import-data-penerimaan-gudang-inputan') }}" enctype="multipart/form-data"
+            <form method="post" action="{{ route('import-data-penerimaan-gudang-inputan-accesories') }}" enctype="multipart/form-data"
                 onsubmit="submitUploadForm(this, event)">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
@@ -288,13 +311,16 @@
                 serverSide: false,
                 data: [],
                 columns: [
-                    { data: 'no_roll' },
+                    { data: 'no_box' },
                     { data: 'buyer' },
-                    { data: 'jenis_item' },
+                    { data: 'worksheet' },
+                    { data: 'nama_barang' },
+                    { data: 'kode' },
                     { data: 'warna' },
-                    { data: 'lot' },
+                    { data: 'size' },
                     { data: 'qty', className: 'text-end' },
                     { data: 'satuan' },
+                    { data: 'qty_kgm', className: 'text-end' },
                     { data: 'keterangan' },
                     { data: 'lokasi' },
                     { data: 'action' },
@@ -302,13 +328,16 @@
             });
 
             $(document).on('click', '#simpan_detail_item', function () {
-                let no_roll = $('#no_roll').val();
+                let no_box = $('#no_box').val();
                 let buyer = $('#buyer').val();
-                let jenis_item = $('#jenis_item').val();
+                let worksheet = $('#worksheet').val();
+                let nama_barang = $('#nama_barang').val();
+                let kode = $('#kode').val();
                 let warna = $('#warna').val();
-                let lot = $('#lot').val();
+                let size = $('#size').val();
                 let qty = $('#qty').val();
                 let satuan = $('#satuan').val();
+                let qty_kgm = $('#qty_kgm').val();
                 let lokasi = $('#lokasi').val();
                 let keterangan = $('#keterangan').val();
                 
@@ -316,8 +345,8 @@
                 let lokasi_txt = $('#lokasi option:selected').text();
 
                 // Validasi sederhana
-                if (!no_roll || !buyer || !jenis_item || !warna || !lot || !qty || !satuan || !lokasi) {
-                    Swal.fire('Warning', 'Semua field wajib diisi kecuali keterangan!', 'warning');
+                if (!no_box || !buyer || !worksheet || !nama_barang || !warna || !size || !qty || !qty_kgm || !satuan || !lokasi) {
+                    Swal.fire('Warning', 'Semua field wajib diisi kecuali kode dan keterangan!', 'warning');
                     return;
                 }
 
@@ -327,12 +356,15 @@
                     let data = this.data();
 
                     if (
-                        data.no_roll === no_roll &&
+                        data.no_box === no_box &&
                         data.buyer === buyer &&
-                        data.jenis_item === jenis_item &&
+                        data.worksheet === worksheet &&
+                        data.nama_barang === nama_barang &&
+                        data.kode === kode &&
                         data.warna === warna &&
-                        data.lot === lot &&
+                        data.size === size &&
                         data.satuan === satuan_txt &&
+                        data.qty_kgm === qty_kgm &&
                         data.lokasi === lokasi_txt
                     ) {
                         isDuplicate = true;
@@ -349,13 +381,16 @@
                 }
 
                 table_detail_item.row.add({
-                    no_roll: no_roll,
+                    no_box: no_box,
                     buyer: buyer,
-                    jenis_item: jenis_item,
+                    worksheet: worksheet,
+                    nama_barang: nama_barang,
+                    kode: kode,
                     warna: warna,
-                    lot: lot,
+                    size: size,
                     qty: qty,
                     satuan: satuan_txt,
+                    qty_kgm: qty_kgm,
                     lokasi: lokasi_txt,
                     keterangan: keterangan,
                     action: `<button type="button" class="btn btn-danger btn-sm hapus">Hapus</button>`
@@ -363,9 +398,9 @@
 
                 updateTotalQty();
 
-
-                $("#no_roll").val("");
+                $("#no_box").val("");
                 $("#qty").val("");
+                $("#qty_kgm").val("");
             });
 
             $('#datatable tbody').on('click', '.hapus', function () {
@@ -429,12 +464,15 @@
             let data = table_detail_item.rows().data().toArray();
 
             let total = 0;
+            let total_qty_kgm = 0;
 
             data.forEach(row => {
                 total += parseFloat(row.qty || 0);
+                total_qty_kgm += parseFloat(row.qty_kgm || 0);
             });
 
             $('#total_qty').text(total);
+            $('#total_qty_kgm').text(total_qty_kgm);
         }
 
         function OpenModal() {
@@ -457,13 +495,16 @@
 
                         res.data.forEach(item => {
                             table_detail_item.row.add({
-                                no_roll: item.no_roll,
+                                no_box: item.no_box_koli,
                                 buyer: item.buyer,
-                                jenis_item: item.jenis_item,
+                                worksheet: item.worksheet,
+                                nama_barang: item.nama_barang,
+                                kode: item.kode,
                                 warna: item.warna,
-                                lot: item.lot,
+                                size: item.size,
                                 qty: item.qty,
                                 satuan: item.satuan,
+                                qty_kgm: item.qty_kgm,
                                 lokasi: item.lokasi,
                                 keterangan: item.keterangan,
                                 action: `<button type="button" class="btn btn-danger btn-sm hapus">Hapus</button>`

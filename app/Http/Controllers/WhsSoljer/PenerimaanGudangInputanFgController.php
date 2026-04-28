@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\WhsSoljer;
 
 use App\Http\Controllers\Controller;
-use App\Models\WhsSoljer\PenerimaanGudangInputan;
-use App\Models\WhsSoljer\PenerimaanGudangInputanDetail;
+use App\Models\WhsSoljer\PenerimaanGudangInputanFg;
+use App\Models\WhsSoljer\PenerimaanGudangInputanFgDetail;
 use Carbon\Carbon;
 use DB;
 use Exception;
@@ -14,30 +14,30 @@ use Maatwebsite\Excel\Facades\Excel;
 use PDF;
 use Yajra\DataTables\Facades\DataTables;
 
-class PenerimaanGudangInputanController extends Controller
+class PenerimaanGudangInputanFgController extends Controller
 {
     public function index(Request $request){
 
         if ($request->ajax()) {
-            $data = PenerimaanGudangInputan::selectRaw("
-                penerimaan_gudang_inputan.id,
-                penerimaan_gudang_inputan.no_bpb,
-                DATE_FORMAT(penerimaan_gudang_inputan.tgl_bpb, '%d-%m-%Y') AS tgl_bpb,
-                COALESCE(SUM(penerimaan_gudang_inputan_detail.qty),0) as total_qty,
-                penerimaan_gudang_inputan.created_by_username,
-                penerimaan_gudang_inputan.cancel,
+            $data = PenerimaanGudangInputanFg::selectRaw("
+                penerimaan_gudang_inputan_fg.id,
+                penerimaan_gudang_inputan_fg.no_bpb,
+                DATE_FORMAT(penerimaan_gudang_inputan_fg.tgl_bpb, '%d-%m-%Y') AS tgl_bpb,
+                COALESCE(SUM(penerimaan_gudang_inputan_fg_detail.qty),0) as total_qty,
+                penerimaan_gudang_inputan_fg.created_by_username,
+                penerimaan_gudang_inputan_fg.cancel,
                 CASE 
-                    WHEN penerimaan_gudang_inputan.cancel = 1 THEN 'Cancel'
+                    WHEN penerimaan_gudang_inputan_fg.cancel = 1 THEN 'Cancel'
                     ELSE 'Draft'
                 END as status
             ")
-            ->leftJoin("penerimaan_gudang_inputan_detail", "penerimaan_gudang_inputan_detail.penerimaan_gudang_inputan_id", "=", "penerimaan_gudang_inputan.id")
+            ->leftJoin("penerimaan_gudang_inputan_fg_detail", "penerimaan_gudang_inputan_fg_detail.penerimaan_gudang_inputan_fg_id", "=", "penerimaan_gudang_inputan_fg.id")
             ->groupBy(
-                "penerimaan_gudang_inputan.id",
-                "penerimaan_gudang_inputan.no_bpb",
-                "penerimaan_gudang_inputan.tgl_bpb",
-                "penerimaan_gudang_inputan.created_by_username",
-                "penerimaan_gudang_inputan.cancel"
+                "penerimaan_gudang_inputan_fg.id",
+                "penerimaan_gudang_inputan_fg.no_bpb",
+                "penerimaan_gudang_inputan_fg.tgl_bpb",
+                "penerimaan_gudang_inputan_fg.created_by_username",
+                "penerimaan_gudang_inputan_fg.cancel"
             );
 
             return DataTables::eloquent($data)->filter(function ($query) {
@@ -45,22 +45,22 @@ class PenerimaanGudangInputanController extends Controller
                 $tglAkhir = request('dateTo');
 
                 if ($tglAwal) {
-                    $query->whereRaw("penerimaan_gudang_inputan.tgl_bpb >= '" . $tglAwal . "'");
+                    $query->whereRaw("penerimaan_gudang_inputan_fg.tgl_bpb >= '" . $tglAwal . "'");
                 }
 
                 if ($tglAkhir) {
-                    $query->whereRaw("penerimaan_gudang_inputan.tgl_bpb <= '" . $tglAkhir . "'");
+                    $query->whereRaw("penerimaan_gudang_inputan_fg.tgl_bpb <= '" . $tglAkhir . "'");
                 }
             }, true)
             ->filterColumn('tgl_bpb', function($query, $keyword) {
                 $query->whereRaw("
-                    DATE_FORMAT(penerimaan_gudang_inputan.tgl_bpb, '%d/%m/%Y') LIKE ?
+                    DATE_FORMAT(penerimaan_gudang_inputan_fg.tgl_bpb, '%d/%m/%Y') LIKE ?
                 ", ["%{$keyword}%"]);
             })
             ->filterColumn('status', function($query, $keyword) {
                 $query->whereRaw("
                     CASE 
-                        WHEN penerimaan_gudang_inputan.cancel = 1 THEN 'Cancel'
+                        WHEN penerimaan_gudang_inputan_fg.cancel = 1 THEN 'Cancel'
                         ELSE 'Draft'
                     END LIKE ?
                 ", ["%{$keyword}%"]);
@@ -69,18 +69,18 @@ class PenerimaanGudangInputanController extends Controller
                 $query->whereRaw("
                     (
                         SELECT SUM(detail.qty)
-                        FROM penerimaan_gudang_inputan_detail detail
-                        WHERE detail.penerimaan_gudang_inputan_id = penerimaan_gudang_inputan.id
+                        FROM penerimaan_gudang_inputan_fg_detail detail
+                        WHERE detail.penerimaan_gudang_inputan_fg_id = penerimaan_gudang_inputan_fg.id
                     ) LIKE ?
                 ", ["%{$keyword}%"]);
             })
             ->order(function ($query) {
-                $query->orderBy('penerimaan_gudang_inputan.created_at', 'desc');
+                $query->orderBy('penerimaan_gudang_inputan_fg.created_at', 'desc');
             })
             ->toJson();
         }
 
-        return view("whs-soljer.penerimaan-gudang-inputan.index", [
+        return view("whs-soljer.penerimaan-gudang-inputan-fg.index", [
             "page" => "dashboard-whs-soljer",
             "subPageGroup" => "penerimaan-whs-soljer",
             'containerFluid' => true
@@ -91,7 +91,7 @@ class PenerimaanGudangInputanController extends Controller
 
         $no_bpb = DB::selectOne("
             SELECT 
-                CONCAT('WHS/F/IN/', DATE_FORMAT(CURRENT_DATE(), '%Y')) AS Mattype,
+                CONCAT('WHS/FG/IN/', DATE_FORMAT(CURRENT_DATE(), '%Y')) AS Mattype,
 
                 IF(
                     MAX(no_bpb) IS NULL,
@@ -100,7 +100,7 @@ class PenerimaanGudangInputanController extends Controller
                 ) AS nomor,
 
                 CONCAT(
-                    'WHS/F/IN/',
+                    'WHS/FG/IN/',
                     DATE_FORMAT(CURRENT_DATE(), '%m'),
                     DATE_FORMAT(CURRENT_DATE(), '%y'),
                     '/',
@@ -111,7 +111,7 @@ class PenerimaanGudangInputanController extends Controller
                     )
                 ) AS kode
 
-            FROM penerimaan_gudang_inputan
+            FROM penerimaan_gudang_inputan_fg
             WHERE 
                 MONTH(tgl_bpb) = MONTH(CURRENT_DATE())
                 AND YEAR(tgl_bpb) = YEAR(CURRENT_DATE())
@@ -136,7 +136,7 @@ class PenerimaanGudangInputanController extends Controller
                 masterlokasi
         ");
 
-        return view("whs-soljer.penerimaan-gudang-inputan.create", [
+        return view("whs-soljer.penerimaan-gudang-inputan-fg.create", [
             "page" => "dashboard-whs-soljer",
             "subPageGroup" => "penerimaan-whs-soljer",
             "no_bpb" => $no_bpb,
@@ -155,14 +155,13 @@ class PenerimaanGudangInputanController extends Controller
             $user = Auth::user();
             $now = Carbon::now();
 
-            $header = PenerimaanGudangInputan::create([
+            $header = PenerimaanGudangInputanFg::create([
                 'no_bpb'                => $request->no_bpb,
                 'tgl_bpb'               => date('Y-m-d'),
                 "created_by"            => $user ? $user->id : null,
                 "created_by_username"   => $user ? $user->username : null,
                 "created_at"            => $now,
             ]);
-
 
             $items = json_decode($request->items, true);
 
@@ -173,33 +172,36 @@ class PenerimaanGudangInputanController extends Controller
                         1,
                         MAX(RIGHT(barcode, 5)) + 1
                     ) AS nomor
-                FROM penerimaan_gudang_inputan_detail
+                FROM penerimaan_gudang_inputan_fg_detail
                 WHERE 
                     DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURRENT_DATE(), '%Y-%m')
-                    AND LEFT(barcode, 2) = 'WF'
+                    AND LEFT(barcode, 2) = 'WFG'
             ");
 
             $counter = $getLast->nomor;
 
             foreach ($items as $row) {
 
-                $barcode = 'WF' . date('ym') . str_pad($counter, 5, '0', STR_PAD_LEFT);
+                $barcode = 'WFG' . date('ym') . str_pad($counter, 5, '0', STR_PAD_LEFT);
 
-                PenerimaanGudangInputanDetail::create([
-                    'penerimaan_gudang_inputan_id'  => $header->id,
-                    'barcode'                       => $barcode,
-                    'no_roll'                       => $row['no_roll'],
-                    'buyer'                         => $row['buyer'],
-                    'jenis_item'                    => $row['jenis_item'],
-                    'warna'                         => $row['warna'],
-                    'lot'                           => $row['lot'],
-                    'qty'                           => $row['qty'],
-                    'satuan'                        => $row['satuan'],
-                    'lokasi'                        => $row['lokasi'],
-                    'keterangan'                    => $row['keterangan'],
-                    "created_by"                    => $user ? $user->id : null,
-                    "created_by_username"           => $user ? $user->username : null,
-                    "created_at"                    => $now,
+                PenerimaanGudangInputanFgDetail::create([
+                    'penerimaan_gudang_inputan_fg_id' => $header->id,
+                    'barcode'              => $barcode,
+                    'no_koli'              => $row['no_koli'],
+                    'buyer'                => $row['buyer'],
+                    'no_ws'                => $row['no_ws'],
+                    'style'                => $row['style'],
+                    'product_item'         => $row['product_item'],
+                    'warna'                => $row['warna'],
+                    'size'                 => $row['size'],
+                    'grade'                => $row['grade'],
+                    'qty'                  => $row['qty'],
+                    'satuan'               => $row['satuan'],
+                    'lokasi'               => $row['lokasi'],
+                    'keterangan'           => $row['keterangan'],
+                    "created_by"           => $user ? $user->id : null,
+                    "created_by_username"  => $user ? $user->username : null,
+                    "created_at"           => $now,
                 ]);
 
                 $counter++;
@@ -209,7 +211,7 @@ class PenerimaanGudangInputanController extends Controller
 
             return array(
                 "status" => 200,
-                "message" => "Data Penerimaan Gudang Inputan (FABRIC) berhasil disimpan.",
+                "message" => "Data Penerimaan Gudang Inputan (FG) berhasil disimpan.",
                 "additional" => [],
             );
 
@@ -226,17 +228,17 @@ class PenerimaanGudangInputanController extends Controller
 
     public function edit($id){
 
-        $data = PenerimaanGudangInputan::selectRaw("
-            penerimaan_gudang_inputan.id,
-            penerimaan_gudang_inputan.no_bpb,
-            DATE_FORMAT(penerimaan_gudang_inputan.tgl_bpb, '%d-%m-%Y') AS tgl_bpb
+        $data = PenerimaanGudangInputanFg::selectRaw("
+            penerimaan_gudang_inputan_fg.id,
+            penerimaan_gudang_inputan_fg.no_bpb,
+            DATE_FORMAT(penerimaan_gudang_inputan_fg.tgl_bpb, '%d-%m-%Y') AS tgl_bpb
         ")
-        ->where("penerimaan_gudang_inputan.id", $id)
+        ->where("penerimaan_gudang_inputan_fg.id", $id)
         ->first();
 
-        $data_detail = PenerimaanGudangInputanDetail::where("penerimaan_gudang_inputan_id", $id)->get();
+        $data_detail = PenerimaanGudangInputanFgDetail::where("penerimaan_gudang_inputan_fg_id", $id)->get();
 
-        return view("whs-soljer.penerimaan-gudang-inputan.update", [
+        return view("whs-soljer.penerimaan-gudang-inputan-fg.update", [
             "page" => "dashboard-whs-soljer",
             "subPageGroup" => "penerimaan-whs-soljer",
             "data" => $data,
@@ -261,7 +263,7 @@ class PenerimaanGudangInputanController extends Controller
             }
 
             foreach ($items as $row) {
-                PenerimaanGudangInputanDetail::where('id', $row['id'])
+                PenerimaanGudangInputanFgDetail::where('id', $row['id'])
                     ->update([
                         'qty' => $row['qty'],
                         'updated_at' => now(),
@@ -273,7 +275,7 @@ class PenerimaanGudangInputanController extends Controller
 
             return response()->json([
                 'status' => 200,
-                'message' => 'Data Penerimaan Gudang Inputan (FABRIC) berhasil diupdate.'
+                'message' => 'Data Penerimaan Gudang Inputan (FG) berhasil diupdate.'
             ]);
 
         } catch (\Exception $e) {
@@ -289,7 +291,7 @@ class PenerimaanGudangInputanController extends Controller
 
     public function cancel($id)
     {
-        $data = PenerimaanGudangInputan::findOrFail($id);
+        $data = PenerimaanGudangInputanFg::findOrFail($id);
 
         $data->update([
             'cancel' => 1
@@ -303,61 +305,64 @@ class PenerimaanGudangInputanController extends Controller
 
     public function printBarcode($id)
     {
-        $data = PenerimaanGudangInputan::selectRaw("
-            penerimaan_gudang_inputan.id,
-            penerimaan_gudang_inputan.no_bpb,
-            DATE_FORMAT(penerimaan_gudang_inputan.tgl_bpb, '%d-%m-%Y') AS tgl_bpb,
-            penerimaan_gudang_inputan_detail.*
+        $data = PenerimaanGudangInputanFg::selectRaw("
+            penerimaan_gudang_inputan_fg.id,
+            penerimaan_gudang_inputan_fg.no_bpb,
+            DATE_FORMAT(penerimaan_gudang_inputan_fg.tgl_bpb, '%d-%m-%Y') AS tgl_bpb,
+            penerimaan_gudang_inputan_fg_detail.*
         ")
-        ->leftJoin('penerimaan_gudang_inputan_detail', 'penerimaan_gudang_inputan.id', '=', 'penerimaan_gudang_inputan_detail.penerimaan_gudang_inputan_id')
-        ->where("penerimaan_gudang_inputan.id", $id)
+        ->leftJoin('penerimaan_gudang_inputan_fg_detail', 'penerimaan_gudang_inputan_fg.id', '=', 'penerimaan_gudang_inputan_fg_detail.penerimaan_gudang_inputan_fg_id')
+        ->where("penerimaan_gudang_inputan_fg.id", $id)
         ->get();
 
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
-        $pdf = PDF::loadView('whs-soljer.penerimaan-gudang-inputan.print-barcode', ["data" => $data])->setPaper('a7', 'landscape');
+        $pdf = PDF::loadView('whs-soljer.penerimaan-gudang-inputan-fg.print-barcode', ["data" => $data])->setPaper('a7', 'landscape');
 
-        $fileName = 'Penerimaan_Gudang_Inputan_Fabric_' . $id . '.pdf';
+        $fileName = 'Penerimaan_Gudang_Inputan_Fg_' . $id . '.pdf';
 
         return $pdf->stream(str_replace("/", "_", $fileName));
     }
 
     public function printSj($id)
     {
-        $dataHeader = PenerimaanGudangInputan::selectRaw("
-            penerimaan_gudang_inputan.id,
-            penerimaan_gudang_inputan.no_bpb,
-            DATE_FORMAT(penerimaan_gudang_inputan.tgl_bpb, '%d-%m-%Y') AS tgl_bpb,
-            penerimaan_gudang_inputan.created_at,
-            penerimaan_gudang_inputan.created_by_username
+        $dataHeader = PenerimaanGudangInputanFg::selectRaw("
+            penerimaan_gudang_inputan_fg.id,
+            penerimaan_gudang_inputan_fg.no_bpb,
+            DATE_FORMAT(penerimaan_gudang_inputan_fg.tgl_bpb, '%d-%m-%Y') AS tgl_bpb,
+            penerimaan_gudang_inputan_fg.created_at,
+            penerimaan_gudang_inputan_fg.created_by_username
         ")
-        ->where("penerimaan_gudang_inputan.id", $id)
+        ->where("penerimaan_gudang_inputan_fg.id", $id)
         ->first();
 
-        $dataDetail = PenerimaanGudangInputanDetail::selectRaw('
+        $dataDetail = PenerimaanGudangInputanFgDetail::selectRaw('
             buyer,
-            jenis_item,
+            no_ws,
+            style,
+            product_item,
             warna,
-            lot,
+            size,
+            grade,
             SUM(qty) as qty,
             satuan,
             keterangan,
             lokasi
         ')
-        ->where("penerimaan_gudang_inputan_id", $id)
-        ->groupBy('buyer', 'jenis_item', 'warna', 'lot', 'satuan', 'keterangan', 'lokasi')
+        ->where("penerimaan_gudang_inputan_fg_id", $id)
+        ->groupBy('buyer', 'no_ws', 'style', 'product_item', 'warna', 'size', 'grade', 'satuan', 'keterangan', 'lokasi')
         ->get();
 
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
-        $pdf = PDF::loadView('whs-soljer.penerimaan-gudang-inputan.print-sj', ["dataHeader" => $dataHeader, "dataDetail" => $dataDetail])->setPaper('a4', 'potrait');
+        $pdf = PDF::loadView('whs-soljer.penerimaan-gudang-inputan-fg.print-sj', ["dataHeader" => $dataHeader, "dataDetail" => $dataDetail])->setPaper('a4', 'potrait');
 
-        $fileName = 'Penerimaan_Gudang_Inputan_Fabric_' . $id . '.pdf';
+        $fileName = 'Penerimaan_Gudang_Inputan_Fg_' . $id . '.pdf';
 
         return $pdf->stream(str_replace("/", "_", $fileName));
     }
 
     public function contohUploadImport()
     {
-        $path = public_path('assets/example/contoh-import-penerimaan-gudang-input.xlsx');
+        $path = public_path('assets/example/contoh-import-penerimaan-gudang-input-fg.xlsx');
         return response()->download($path);
     }
 
@@ -373,15 +378,18 @@ class PenerimaanGudangInputanController extends Controller
             if ($i == 0) continue; 
 
             $data[] = [
-                'no_roll'     => $row[0],
-                'buyer'       => $row[1],
-                'jenis_item'  => $row[2],
-                'warna'       => $row[3],
-                'lot'         => $row[4],
-                'qty'         => $row[5],
-                'satuan'      => $row[6],
-                'keterangan'  => $row[7],
-                'lokasi'      => $row[8],
+                'no_koli'       => $row[0],
+                'buyer'         => $row[1],
+                'no_ws'         => $row[2],
+                'style'         => $row[3],
+                'product_item'  => $row[4],
+                'warna'         => $row[5],
+                'size'          => $row[6],
+                'grade'         => $row[7],
+                'qty'           => $row[8],
+                'satuan'        => $row[9],
+                'keterangan'    => $row[10],
+                'lokasi'        => $row[11],
             ];
         }
 
