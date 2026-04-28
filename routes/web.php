@@ -91,7 +91,9 @@ use App\Http\Controllers\StockOpnameController;
 use App\Http\Controllers\TransferBpbController;
 use App\Http\Controllers\TransferMemoController;
 use App\Http\Controllers\WarehouseController;
+use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanAccesoriesController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanController;
+use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanFgController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -1287,6 +1289,32 @@ Route::middleware('auth')->group(function () {
         Route::get('/print-barcode/{id}', 'printBarcode')->name('print-barcode-penerimaan-gudang-inputan');
         Route::get('/contoh-upload-import', 'contohUploadImport')->name('contoh-upload-import-penerimaan-gudang-inputan');
         Route::post('/import-data', 'importData')->name('import-data-penerimaan-gudang-inputan');
+    });
+
+    Route::controller(PenerimaanGudangInputanAccesoriesController::class)->prefix("penerimaan-gudang-inputan-accesories")->middleware('role:warehouse')->group(function () {
+        Route::get('/', 'index')->name('penerimaan-gudang-inputan-accesories');
+        Route::get('/create', 'create')->name('create-penerimaan-gudang-inputan-accesories');
+        Route::post('/store', 'store')->name('store-penerimaan-gudang-inputan-accesories');
+        Route::get('/edit/{id}', 'edit')->name('edit-penerimaan-gudang-inputan-accesories');
+        Route::put('/update/{id}', 'update')->name('update-penerimaan-gudang-inputan-accesories');
+        Route::put('/cancel/{id}', 'cancel')->name('cancel-penerimaan-gudang-inputan-accesories');
+        Route::get('/print-sj/{id}', 'printSj')->name('print-sj-penerimaan-gudang-inputan-accesories');
+        Route::get('/print-barcode/{id}', 'printBarcode')->name('print-barcode-penerimaan-gudang-inputan-accesories');
+        Route::get('/contoh-upload-import', 'contohUploadImport')->name('contoh-upload-import-penerimaan-gudang-inputan-accesories');
+        Route::post('/import-data', 'importData')->name('import-data-penerimaan-gudang-inputan-accesories');
+    });
+
+    Route::controller(PenerimaanGudangInputanFgController::class)->prefix("penerimaan-gudang-inputan-fg")->middleware('role:warehouse')->group(function () {
+        Route::get('/', 'index')->name('penerimaan-gudang-inputan-fg');
+        Route::get('/create', 'create')->name('create-penerimaan-gudang-inputan-fg');
+        Route::post('/store', 'store')->name('store-penerimaan-gudang-inputan-fg');
+        Route::get('/edit/{id}', 'edit')->name('edit-penerimaan-gudang-inputan-fg');
+        Route::put('/update/{id}', 'update')->name('update-penerimaan-gudang-inputan-fg');
+        Route::put('/cancel/{id}', 'cancel')->name('cancel-penerimaan-gudang-inputan-fg');
+        Route::get('/print-sj/{id}', 'printSj')->name('print-sj-penerimaan-gudang-inputan-fg');
+        Route::get('/print-barcode/{id}', 'printBarcode')->name('print-barcode-penerimaan-gudang-inputan-fg');
+        Route::get('/contoh-upload-import', 'contohUploadImport')->name('contoh-upload-import-penerimaan-gudang-inputan-fg');
+        Route::post('/import-data', 'importData')->name('import-data-penerimaan-gudang-inputan-fg');
     });
 });
 

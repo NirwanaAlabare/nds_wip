@@ -9,6 +9,18 @@
                     Penerimaan Gudang Inputan (FABRIC)
                 </a>
             </li>
+            <li>
+                <a href="{{ route('penerimaan-gudang-inputan-accesories') }}"
+                    class="dropdown-item {{ $routeName == 'penerimaan-gudang-inputan-accesories' ? 'active' : '' }}">
+                    Penerimaan Gudang Inputan (ACCESORIES)
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('penerimaan-gudang-inputan-fg') }}"
+                    class="dropdown-item {{ $routeName == 'penerimaan-gudang-inputan-fg' ? 'active' : '' }}">
+                    Penerimaan Gudang Inputan (FG)
+                </a>
+            </li>
         </ul>
     </li>
 @endrole
