@@ -66,3 +66,4 @@ Route::get('/sewing-summary', [DashboardController::class, 'sewingSummary'])->mi
 Route::get('/sewing-output-data', [DashboardController::class, 'sewingOutputData'])->middleware('auth')->name('dashboard-sewing-output');
 Route::get('/dashboard-manage-user', [DashboardController::class, 'manageUser'])->middleware('auth')->name('dashboard-manage-user');
 Route::get('/dashboard-export-import', [DashboardController::class, 'exportImport'])->middleware('auth')->name('dashboard-export-import');
+Route::get('/dashboard-whs-soljer', [DashboardController::class, 'whsSoljer'])->middleware('auth')->name('dashboard-whs-soljer');
