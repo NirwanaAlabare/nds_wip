@@ -28,7 +28,7 @@ class PenerimaanGudangInputanController extends Controller
                 penerimaan_gudang_inputan.cancel,
                 CASE 
                     WHEN penerimaan_gudang_inputan.cancel = 1 THEN 'Cancel'
-                    ELSE 'Active'
+                    ELSE 'Draft'
                 END as status
             ")
             ->leftJoin("penerimaan_gudang_inputan_detail", "penerimaan_gudang_inputan_detail.penerimaan_gudang_inputan_id", "=", "penerimaan_gudang_inputan.id")
@@ -61,7 +61,7 @@ class PenerimaanGudangInputanController extends Controller
                 $query->whereRaw("
                     CASE 
                         WHEN penerimaan_gudang_inputan.cancel = 1 THEN 'Cancel'
-                        ELSE 'Active'
+                        ELSE 'Draft'
                     END LIKE ?
                 ", ["%{$keyword}%"]);
             })

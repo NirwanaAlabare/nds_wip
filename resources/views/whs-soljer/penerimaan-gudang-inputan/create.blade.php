@@ -332,7 +332,6 @@
                         data.jenis_item === jenis_item &&
                         data.warna === warna &&
                         data.lot === lot &&
-                        data.qty === qty &&
                         data.satuan === satuan_txt &&
                         data.lokasi === lokasi_txt
                     ) {
@@ -472,7 +471,7 @@
                         });
 
                         updateTotalQty();
-                        
+
                         $('#importExcel').modal('hide');
 
                         Swal.fire('Success', 'Data berhasil diimport', 'success');
