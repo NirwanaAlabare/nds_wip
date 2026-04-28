@@ -54,97 +54,65 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
             groupBy('Id_Supplier', 'Supplier')->
             first();
 
-        $orderGroupSql = MasterPlan::selectRaw("
-                master_plan.tgl_plan tanggal,
-                act_costing.kpno ws,
-                act_costing.styleno style,
-                master_plan.color,
-                COALESCE(rfts.sewing_line, master_plan.sewing_line) as sewing_line
-                ".($this->groupBy == "size" ? ", so_det.id as so_det_id, so_det.size, (CASE WHEN so_det.dest is not null AND so_det.dest != '-' THEN CONCAT(so_det.size, ' - ', so_det.dest) ELSE so_det.size END) sizedest" : "")."
-            ")->
-            leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
-            join(DB::raw("(
-                SELECT
-                    master_plan.id_ws,
-                    userpassword.username sewing_line,
-                    coalesce( date( rfts.updated_at ), master_plan.tgl_plan ) tanggal,
-                    max( rfts.updated_at ) last_rft,
-                    count( rfts.id ) rft,
-                    master_plan.id master_plan_id,
-                    master_plan.id_ws master_plan_id_ws
-                    ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
-                FROM
-                    output_rfts".$this->outputType." rfts
-                    INNER JOIN master_plan ON master_plan.id = rfts.master_plan_id
-                    ".(
-                        $this->outputType == "_packing_po" ?
-                        "LEFT JOIN userpassword ON userpassword.username = rfts.created_by_line" :
-                        (
-                            $this->outputType != "_packing" ?
-                            "LEFT JOIN user_sb_wip ON user_sb_wip.id = rfts.created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" :
-                            "LEFT JOIN userpassword ON userpassword.username = rfts.created_by"
-                        )
-                    )."
-                    INNER JOIN act_costing on act_costing.id = master_plan.id_ws
-                WHERE
-                    rfts.updated_at ".$masterPlanDateFilter."
-                    AND master_plan.tgl_plan ".$masterPlanDateFilter1."
-                    ".($this->order ? " AND master_plan.id_ws = '".$this->order."'" : "")."
-                    ".($this->buyer ? " AND act_costing.id_buyer = '".$this->buyer."'" : "")."
-                GROUP BY
-                    master_plan.id_ws,
-                    master_plan.color,
-                    DATE ( rfts.updated_at ),
-                    COALESCE ( userpassword.username, master_plan.sewing_line )
-                    ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
-                ) as rfts
-             "), function ($join) {
-                $join->on("rfts.master_plan_id", "=", "master_plan.id");
-            });
-            if ($this->groupBy == "size") {
-                $orderGroupSql->leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->leftJoin('so_det', function ($join) { $join->on('so_det.id_so', '=', 'so.id'); $join->on('so_det.color', '=', 'master_plan.color'); });
-            }
-            if ($this->dateFrom) {
-                $orderGroupSql->where('rfts.tanggal', '>=', $this->dateFrom);
-            }
-            if ($this->dateTo) {
-                $orderGroupSql->where('rfts.tanggal', '<=', $this->dateTo);
-            }
-
-            if ($this->order) {
+        $orderGroupSql = DB::connection('mysql_sb')->table(DB::raw("(
+                    SELECT
+                        coalesce( date( output_rfts.updated_at ), master_plan.tgl_plan ) tanggal,
+                        master_plan.id_ws,
+                        output_rfts".($this->outputType).".master_plan_id,
+                        userpassword.username sewing_line,
+                        act_costing.id act_id_ws,
+                        act_costing.kpno ws,
+                        act_costing.styleno style,
+                        so_det.color
+                    FROM
+                        output_rfts".($this->outputType)."
+                        ".(
+                            $this->outputType == "_packing_po" ?
+                            "LEFT JOIN userpassword ON userpassword.username = output_rfts".($this->outputType).".created_by_line" :
+                            (
+                                $this->outputType != "_packing" ?
+                                "LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts".($this->outputType).".created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" :
+                                "LEFT JOIN userpassword ON userpassword.username = output_rfts".($this->outputType).".created_by"
+                            )
+                        )."
+                        LEFT JOIN master_plan on master_plan.id = output_rfts".($this->outputType).".master_plan_id
+                        LEFT JOIN so_det on so_det.id = output_rfts.so_det_id
+                        LEFT JOIN so on so.id = so_det.id_so
+                        LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                    WHERE
+                        output_rfts".($this->outputType).".created_by IS NOT NULL
+                        AND output_rfts".($this->outputType).".updated_at >= '".$this->dateFrom." 00:00:00'
+                        AND output_rfts".($this->outputType).".updated_at <= '".$this->dateTo." 23:59:59'
+                        " . ($this->order ? " AND act_costing.id = '".$this->order."'" : "") . "
+                    GROUP BY
+                        output_rfts".($this->outputType).".master_plan_id,
+                        output_rfts".($this->outputType).".created_by
+                ) as rfts"))->
+                selectRaw("
+                    master_plan.tgl_plan tanggal,
+                    rfts.ws ws,
+                    rfts.style,
+                    rfts.color,
+                    COALESCE(rfts.sewing_line, master_plan.sewing_line) as sewing_line
+                    ".($this->groupBy == "size" ? ", so_det.id as so_det_id, so_det.size, (CASE WHEN so_det.dest is not null AND so_det.dest != '-' THEN CONCAT(so_det.size, ' - ', so_det.dest) ELSE so_det.size END) sizedest" : "")."
+                ")->
+                leftJoin("act_costing", "act_costing.id", "=", "rfts.act_id_ws")->
+                leftJoin('master_plan', 'master_plan.id', '=', 'rfts.master_plan_id');
+                if ($this->groupBy == "size") $orderGroupSql->leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->leftJoin('so_det', function ($join) { $join->on('so_det.id_so', '=', 'so.id'); $join->on('so_det.color', '=', 'rfts.color'); });
+                if ($this->dateFrom) $orderGroupSql->where('rfts.tanggal', '>=', date('Y-m-d', strtotime('-10 days', strtotime($this->dateFrom))));
+                if ($this->dateTo) $orderGroupSql->where('rfts.tanggal', '<=', $this->dateTo);
+                if ($this->order) $orderGroupSql->where("act_costing.id", $this->order);
+                if ($this->buyer) $orderGroupSql->where("act_costing.id_buyer", $this->buyer);
                 $orderGroupSql->
-                    where("act_costing.id", $this->order);
-            }
+                    groupByRaw("rfts.act_id_ws, act_costing.styleno, rfts.color, COALESCE(rfts.sewing_line, master_plan.sewing_line) ".($this->groupBy == "size" ? ", so_det.size" : "")."")->
+                    orderBy("rfts.act_id_ws", "asc")->
+                    orderBy("act_costing.styleno", "asc")->
+                    orderBy("rfts.color", "asc")->
+                    orderByRaw("COALESCE(rfts.sewing_line, master_plan.sewing_line) asc ".($this->groupBy == 'size' ? ', so_det.id asc' : ''));
 
-            if ($this->buyer) {
-                $orderGroupSql->
-                    where("act_costing.id_buyer", $this->buyer);
-            }
+                $orderGroup = $orderGroupSql->get();
 
-            $orderGroupSql->
-                groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(rfts.sewing_line, master_plan.sewing_line) ".($this->groupBy == "size" ? ", so_det.size" : "")."")->
-                orderBy("master_plan.id_ws", "asc")->
-                orderBy("act_costing.styleno", "asc")->
-                orderBy("master_plan.color", "asc")->
-                orderByRaw("COALESCE(rfts.sewing_line, master_plan.sewing_line) asc ".($this->groupBy == 'size' ? ', so_det.id asc' : ''));
-
-            $orderGroup = $orderGroupSql->get();
-
-        $orderOutputsSql = MasterPlan::selectRaw("
-                rfts.tanggal,
-                ".($this->groupBy == 'size' ? ' rfts.so_det_id, so_det.size, ' : '')."
-                SUM( rfts.rft ) output,
-                act_costing.kpno ws,
-                act_costing.styleno style,
-                master_plan.color,
-                COALESCE ( rfts.created_by, master_plan.sewing_line ) AS sewing_line,
-                master_plan.smv smv,
-                master_plan.jam_kerja jam_kerja,
-                master_plan.man_power man_power,
-                master_plan.plan_target plan_target,
-                COALESCE ( rfts.last_rft, master_plan.tgl_plan ) latest_output
-            ")->
-            join(DB::raw("
+        $orderOutputsSql = DB::connection('mysql_sb')->table(DB::raw("
                 (
                     SELECT
                         coalesce( date( rfts.updated_at ), master_plan.tgl_plan ) tanggal,
@@ -152,10 +120,15 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                         count( rfts.id ) rft,
                         master_plan.id master_plan_id,
                         master_plan.id_ws master_plan_id_ws,
+                        act_costing.id act_id_ws,
+                        so_det.color,
                         COALESCE ( userpassword.username, master_plan.sewing_line ) created_by
                         ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
                     FROM
                         output_rfts".$this->outputType." rfts
+                        LEFT JOIN so_det ON so_det.id = rfts.so_det_id
+                        LEFT JOIN so ON so.id = so_det.id_so
+                        LEFT JOIN act_costing ON act_costing.id = so.id_cost
                         INNER JOIN master_plan ON master_plan.id = rfts.master_plan_id
                         ".(
                             $this->outputType == "_packing_po" ?
@@ -166,48 +139,46 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                                 "LEFT JOIN userpassword ON userpassword.username = rfts.created_by"
                             )
                         )."
-                        INNER JOIN act_costing on act_costing.id = master_plan.id_ws
                     WHERE
                         rfts.updated_at ".$masterPlanDateFilter."
                         AND master_plan.tgl_plan ".$masterPlanDateFilter1."
-                        ".($this->order ? " AND master_plan.id_ws = '".$this->order."'" : "")."
+                        ".($this->order ? " AND act_costing.id = '".$this->order."'" : "")."
                         ".($this->buyer ? " AND act_costing.id_buyer = '".$this->buyer."'" : "")."
                     GROUP BY
-                        master_plan.id_ws,
-                        master_plan.color,
+                        act_costing.id,
+                        so_det.color,
                         DATE ( rfts.updated_at ),
                         COALESCE ( userpassword.username, master_plan.sewing_line )
                         ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
                 ) rfts
-            "), "rfts.master_plan_id", "=", "master_plan.id")->
-            leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws");
-
-            if ($this->groupBy == "size") {
-                $orderOutputsSql->leftJoin('so_det', 'so_det.id', '=', 'rfts.so_det_id');
-            }
-
-            if ($this->order) {
-                $orderOutputsSql->
-                    where("act_costing.id", $this->order);
-            }
-
-            if ($this->buyer) {
-                $orderOutputsSql->
-                    where("act_costing.id_buyer", $this->buyer);
-            }
-
+            "))->
+            selectRaw("
+                rfts.tanggal,
+                ".($this->groupBy == 'size' ? ' rfts.so_det_id, so_det.size, ' : '')."
+                SUM( rfts.rft ) output,
+                act_costing.kpno ws,
+                act_costing.styleno style,
+                rfts.color,
+                COALESCE ( rfts.created_by, master_plan.sewing_line ) AS sewing_line,
+                master_plan.smv smv,
+                master_plan.jam_kerja jam_kerja,
+                master_plan.man_power man_power,
+                master_plan.plan_target plan_target,
+                COALESCE ( rfts.last_rft, master_plan.tgl_plan ) latest_output
+            ")->
+            leftJoin("act_costing", "act_costing.id", "=", "rfts.act_id_ws")->
+            leftJoin('master_plan', 'master_plan.id', '=', 'rfts.master_plan_id');
+            if ($this->groupBy == "size") $orderOutputsSql->leftJoin('so_det', 'so_det.id', '=', 'rfts.so_det_id');
+            if ($this->order) $orderOutputsSql->where("act_costing.id", $this->order);
+            if ($this->buyer) $orderOutputsSql->where("act_costing.id_buyer", $this->buyer);
+            if ($this->dateFrom) $orderOutputsSql->whereRaw('rfts.tanggal >= "'.$this->dateFrom.'"');
+            if ($this->dateTo) $orderOutputsSql->whereRaw('rfts.tanggal <= "'.$this->dateTo.'"');
             $orderOutputsSql->
-                groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(rfts.created_by, master_plan.sewing_line) , rfts.tanggal ".($this->groupBy == 'size' ? ', so_det.size' : '')."")->
-                orderBy("master_plan.id_ws", "asc")->
+                groupByRaw("rfts.act_id_ws, act_costing.styleno, rfts.color, COALESCE(rfts.created_by, master_plan.sewing_line), rfts.tanggal ".($this->groupBy == 'size' ? ', so_det.size' : '')."")->
+                orderBy("rfts.act_id_ws", "asc")->
                 orderBy("act_costing.styleno", "asc")->
-                orderBy("master_plan.color", "asc")->
+                orderBy("rfts.color", "asc")->
                 orderByRaw("COALESCE(rfts.created_by, master_plan.sewing_line) asc ".($this->groupBy == 'size' ? ', so_det.id asc' : ''));
-            if ($this->dateFrom) {
-                $orderOutputsSql->where('rfts.tanggal', '>=', $this->dateFrom);
-            }
-            if ($this->dateTo) {
-                $orderOutputsSql->where('rfts.tanggal', '<=', $this->dateTo);
-            }
             $orderOutputs = $orderOutputsSql->get();
 
         $this->rowCount = $orderGroup->count() + 4;
