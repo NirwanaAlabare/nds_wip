@@ -1088,9 +1088,9 @@ class LoadingLineController extends Controller
                 }
             }
 
-            $innerDateFilter = "";
+            $innerDateFilter = "WHERE (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')";
             if ($request->dateFrom || $request->dateTo) {
-                $innerDateFilter = "WHERE ";
+                $innerDateFilter .= " AND ";
                 $innerDateFromFilter = " loading_line.tanggal_loading >= '".($request->dateFrom ? $request->dateFrom : date("Y-m-d"))."' ";
                 $innerDateToFilter = " loading_line.tanggal_loading <= '".($request->dateTo ? $request->dateTo : date("Y-m-d"))."' ";
 
@@ -1223,9 +1223,9 @@ class LoadingLineController extends Controller
             }
         }
 
-        $innerDateFilter = "";
+        $innerDateFilter = "WHERE (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')";
         if ($request->dateFrom || $request->dateTo) {
-            $innerDateFilter = "WHERE ";
+            $innerDateFilter .= " AND ";
             $innerDateFromFilter = " loading_line.tanggal_loading >= '".($request->dateFrom ? $request->dateFrom : date("Y-m-d"))."' ";
             $innerDateToFilter = " loading_line.tanggal_loading <= '".($request->dateTo ? $request->dateTo : date("Y-m-d"))."' ";
 
@@ -1348,9 +1348,9 @@ class LoadingLineController extends Controller
             }
         }
 
-        $innerDateFilter = "";
+        $innerDateFilter = "WHERE (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')";
         if ($request->dateFrom || $request->dateTo) {
-            $innerDateFilter = "WHERE ";
+            $innerDateFilter .= " AND ";
             $innerDateFromFilter = " loading_line.tanggal_loading >= '".($request->dateFrom ? $request->dateFrom : date("Y-m-d"))."' ";
             $innerDateToFilter = " loading_line.tanggal_loading <= '".($request->dateTo ? $request->dateTo : date("Y-m-d"))."' ";
 
@@ -1489,9 +1489,9 @@ class LoadingLineController extends Controller
         $dateFrom = $request->dateFrom ? $request->dateFrom : date('Y-m-d');
         $dateTo = $request->dateTo ? $request->dateTo : date('Y-m-d');
 
-        $innerDateFilter = "";
+        $innerDateFilter = "WHERE (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')";
         if ($dateFrom || $dateTo) {
-            $innerDateFilter = "WHERE ";
+            $innerDateFilter .= " AND ";
             $innerDateFromFilter = " loading_line.tanggal_loading >= '".$dateFrom."' ";
             $innerDateToFilter = " loading_line.tanggal_loading <= '".$dateTo."' ";
 
