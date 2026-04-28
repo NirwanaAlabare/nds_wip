@@ -45,6 +45,7 @@
                             <th>No. BPB</th>
                             <th>Tgl BPB</th>
                             <th>Qty</th>
+                            <th>Status</th>
                             <th>Created By</th>
                             <th>Action</th>
                         </tr>
@@ -91,7 +92,7 @@
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i != 4) {
+            if (i != 5) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm"/>');
 
@@ -137,6 +138,9 @@
                     }
                 },
                 {
+                    data: 'status'
+                },
+                {
                     data: 'created_by_username'
                 },
                 {
@@ -145,11 +149,13 @@
             ],
             columnDefs: [
                 {
-                    targets: [4],
+                    targets: [5],
                     render: (data, type, row, meta) => {
 
                         let btnEdit = '';
                         let btnDelete = '';
+                        let btnPrint = '';
+                        let btnBarcode = '';
 
                         if (row.cancel != 1) {
                             btnEdit = `
@@ -166,27 +172,27 @@
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
                             `;
+
+                            btnPrint = `
+                                <a 
+                                    href="{{ url('penerimaan-gudang-inputan/print-sj') }}/${row.id}" 
+                                    target="_blank"
+                                    class="btn btn-warning btn-sm"
+                                >
+                                    <i class="fa-solid fa-print"></i>
+                                </a>
+                            `;
+    
+                            btnBarcode = `
+                                <a 
+                                    href="{{ url('penerimaan-gudang-inputan/print-barcode') }}/${row.id}" 
+                                    target="_blank"
+                                    class="btn btn-success btn-sm"
+                                >
+                                    <i class="fa-solid fa-barcode"></i>
+                                </a>
+                            `;
                         }
-
-                        let btnPrint = `
-                            <a 
-                                href="{{ url('penerimaan-gudang-inputan/print-sj') }}/${row.id}" 
-                                target="_blank"
-                                class="btn btn-warning btn-sm"
-                            >
-                                <i class="fa-solid fa-print"></i>
-                            </a>
-                        `;
-
-                        let btnBarcode = `
-                            <a 
-                                href="{{ url('penerimaan-gudang-inputan/print-barcode') }}/${row.id}" 
-                                target="_blank"
-                                class="btn btn-success btn-sm"
-                            >
-                                <i class="fa-solid fa-barcode"></i>
-                            </a>
-                        `;
 
                         return `
                             <div class="d-flex gap-1 justify-content-center">
@@ -247,46 +253,5 @@
                 }
             });
         });
-
-        async function exportExcel() {
-            Swal.fire({
-                title: "Exporting",
-                html: "Please Wait...",
-                timerProgressBar: true,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
-
-            await $.ajax({
-                url: "{{ route("export-penerimaan-cutting") }}",
-                type: "post",
-                data: {
-                    from : $("#tgl-awal").val(),
-                    to : $("#tgl-akhir").val()
-                },
-                xhrFields: { responseType : 'blob' },
-                success: function (res) {
-                    Swal.close();
-
-                    iziToast.success({
-                        title: 'Success',
-                        message: 'Success',
-                        position: 'topCenter'
-                    });
-
-                    var blob = new Blob([res]);
-                    var link = document.createElement('a');
-                    link.href = window.URL.createObjectURL(blob);
-                    link.download = "Penerimaan Gudang Inputan "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
-                    link.click();
-                },
-                error: function (jqXHR) {
-                    console.error(jqXHR);
-                }
-            });
-
-            Swal.close();
-        }
     </script>
 @endsection

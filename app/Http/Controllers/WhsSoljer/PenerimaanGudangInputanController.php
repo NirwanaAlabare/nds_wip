@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\WhsSoljer;
 
-use \avadim\FastExcelLaravel\Excel as FastExcel;
 use App\Http\Controllers\Controller;
 use App\Models\WhsSoljer\PenerimaanGudangInputan;
 use App\Models\WhsSoljer\PenerimaanGudangInputanDetail;
@@ -13,8 +12,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use PDF;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use QrCode;
 use Yajra\DataTables\Facades\DataTables;
 
 class PenerimaanGudangInputanController extends Controller
@@ -28,7 +25,11 @@ class PenerimaanGudangInputanController extends Controller
                 DATE_FORMAT(penerimaan_gudang_inputan.tgl_bpb, '%d-%m-%Y') AS tgl_bpb,
                 COALESCE(SUM(penerimaan_gudang_inputan_detail.qty),0) as total_qty,
                 penerimaan_gudang_inputan.created_by_username,
-                penerimaan_gudang_inputan.cancel
+                penerimaan_gudang_inputan.cancel,
+                CASE 
+                    WHEN penerimaan_gudang_inputan.cancel = 1 THEN 'Cancel'
+                    ELSE 'Active'
+                END as status
             ")
             ->leftJoin("penerimaan_gudang_inputan_detail", "penerimaan_gudang_inputan_detail.penerimaan_gudang_inputan_id", "=", "penerimaan_gudang_inputan.id")
             ->groupBy(
@@ -54,6 +55,14 @@ class PenerimaanGudangInputanController extends Controller
             ->filterColumn('tgl_bpb', function($query, $keyword) {
                 $query->whereRaw("
                     DATE_FORMAT(penerimaan_gudang_inputan.tgl_bpb, '%d/%m/%Y') LIKE ?
+                ", ["%{$keyword}%"]);
+            })
+            ->filterColumn('status', function($query, $keyword) {
+                $query->whereRaw("
+                    CASE 
+                        WHEN penerimaan_gudang_inputan.cancel = 1 THEN 'Cancel'
+                        ELSE 'Active'
+                    END LIKE ?
                 ", ["%{$keyword}%"]);
             })
             ->filterColumn('total_qty', function($query, $keyword) {
@@ -200,7 +209,7 @@ class PenerimaanGudangInputanController extends Controller
 
             return array(
                 "status" => 200,
-                "message" => "Data Penerimaan Gudang Inputan berhasil disimpan.",
+                "message" => "Data Penerimaan Gudang Inputan (FABRIC) berhasil disimpan.",
                 "additional" => [],
             );
 
@@ -264,7 +273,7 @@ class PenerimaanGudangInputanController extends Controller
 
             return response()->json([
                 'status' => 200,
-                'message' => 'Data Penerimaan Gudang Inputan berhasil diupdate.'
+                'message' => 'Data Penerimaan Gudang Inputan (FABRIC) berhasil diupdate.'
             ]);
 
         } catch (\Exception $e) {

@@ -116,7 +116,7 @@
                         <div class="col-1 col-md-1">
                             <div class="mb-1">
                                 <label class="form-label"><small>No Roll</small></label>
-                                <input type="text" class="form-control" style="text-transform: uppercase;" id="no_roll" name="no_roll" value="">
+                                <input type="text" class="form-control" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" id="no_roll" name="no_roll" value="">
                             </div>
                         </div>
                         <div class="col-2 col-md-2">
@@ -471,6 +471,8 @@
                             }).draw(false);
                         });
 
+                        updateTotalQty();
+                        
                         $('#importExcel').modal('hide');
 
                         Swal.fire('Success', 'Data berhasil diimport', 'success');
