@@ -1032,4 +1032,44 @@ class CuttingToolsController extends Controller
             "message" => $message,
         );
     }
+
+    public function emptySaldoAwalCutting(Request $request)
+    {
+        $type = $request->type ? $request->type : 'tmp';
+
+        switch ($type) {
+            case "tmp" :
+                // Backup
+                DB::table('mut_cut_pcs_tmp_pre_bk')->insertUsing([], DB::table('mut_cut_pcs_tmp_pre')->where("created_by", Auth::user()->id));
+
+                // Delete Saldo Tmp
+                $deleteSaldoTmp = MutasiCuttingPcsSaldoTmp::where("created_by", Auth::user()->id)->delete();
+
+                return array(
+                    "status" => $deleteSaldoTmp > 0 ? 200 : 400,
+                    "message" => $deleteSaldoTmp > 0 ? $deleteSaldoTmp." mutasi temporary cutting berhasil dihapus." : "Mutasi temporary cutting tidak ditemukan",
+                );
+
+                break;
+
+            case "actual" :
+                // Backup
+                DB::table('mut_cut_pcs_tmp_bk')->insertUsing([], DB::table('mut_cut_pcs_tmp'));
+
+                // Delete Saldo Tmp
+                $deleteSaldo = MutasiCuttingPcsSaldo::query()->delete();
+
+                return array(
+                    "status" => $deleteSaldo > 0 ? 200 : 400,
+                    "message" => $deleteSaldo > 0 ? $deleteSaldo." mutasi cutting berhasil dihapus." : "Mutasi cutting tidak ditemukan",
+                );
+
+                break;
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Gagal menghapus mutasi",
+        );
+    }
 }

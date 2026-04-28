@@ -562,9 +562,12 @@
                         <label for="images" class="drop-container" id="dropcontainer">
                             <input type="file" name="file" id="saldoAwalFileInput" onchange="submitImportSaldoAwalCutting(document.getElementById('importSaldoAwalForm'), event)">
                         </label>
-                        <a href="{{ asset('example/contoh-import-cutting-saldo-awal.xlsx') }}" download class="btn btn-sb-secondary btn-sm"><i class="fa fa-solid fa-download"></i> Contoh Excel</a>
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ asset('example/contoh-import-cutting-saldo-awal.xlsx') }}" download class="btn btn-sb-secondary btn-sm"><i class="fa fa-solid fa-download"></i> Contoh Excel</a>
+                            <button class="btn btn-no btn-sm" onclick="emptySaldoAwal('actual')" type="button"><i class="fa fa-trash"></i> Kosongkan Saldo Awal</button>
+                        </div>
 
-                        <div class="table-responsive mt-3">
+                        <div class="table-responsive mt-5">
                             <table class="table table-bordered w-100" id="saldo-awal-cutting-pcs-table">
                                 <thead>
                                     <tr>
@@ -582,6 +585,10 @@
                                 <tbody>
                                 </tbody>
                             </table>
+                        </div>
+
+                        <div class="d-flex justify-content-end my-3">
+                            <button class="btn btn-danger btn-sm" onclick="emptySaldoAwal('tmp')" type="button"><i class="fa fa-trash"></i> Kosongkan Saldo Awal Temporary</button>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -1288,9 +1295,7 @@
                             confirmButtonText: 'Oke',
                             timer: 5000,
                             timerProgressBar: true
-                        })
-
-                        $('#importExcel').modal('hide');
+                        });
                     }
                 },
                 error: function (jqXHR) {
@@ -1370,7 +1375,6 @@
                             showConfirmButton: true,
                             confirmButtonText: 'Oke'
                         }).then(() => {
-                            $('#importSaldoAwalExcel').modal('hide');
                             saldoAwalCuttingReload();
                         });
                     } else {
@@ -1507,6 +1511,57 @@
                         });
                     }
                 });
+            });
+        }
+
+        function emptySaldoAwal(type = 'tmp') {
+            Swal.fire({
+                title: 'Kosongkan Saldo Awal?',
+                html: 'Yakin akan mengosongkan semua saldo awal '+(type == 'tmp' ? 'Temporary' : 'Aktual')+'?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'UBAH',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#dc3545"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    emptySaldoAwalSubmit(type);
+                }
+            });
+        }
+
+        function emptySaldoAwalSubmit(type = 'tmp') {
+            document.getElementById("loading").classList.remove("d-none");
+
+            $.ajax({
+                type: "post",
+                url: '{{ route('empty-saldo-awal-cutting') }}',
+                data: {
+                    type: type
+                },
+                dataType: "json",
+                success: function (response) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    Swal.fire({
+                        icon: response.status == 200 ? "success" : "error" ,
+                        title: response.status == 200 ? "Berhasil" : "Gagal" ,
+                        html: response.message ? response.message : (response.status == 200 ? "Berhasil mengosongkan saldo awal" : "Terjadi kesalahan saat mengosongkan saldo awal")
+                    }).then(() => {
+                        saldoAwalCuttingReload();
+                    });
+                },
+                error: function (jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Gagal",
+                        html: "Terjadi Kesalahan"
+                    }).then(() => {
+                        saldoAwalCuttingReload();
+                    });
+                }
             });
         }
     </script>
