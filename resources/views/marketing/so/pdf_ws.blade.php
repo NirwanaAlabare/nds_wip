@@ -93,7 +93,7 @@
                     </tr>
                     <tr>
                         <td class="label-left">STYLE</td><td class="colon">:</td>
-                        <td class="value">{{ $header->styleno ?? '-' }}</td>
+                        <td class="value">{{ $header->style ?? '-' }}</td>
                         <td class="label">WORKSHEET</td><td class="colon">:</td>
                         <td class="value">{{ $header->kpno ?? '-' }}</td>
                     </tr>
@@ -111,7 +111,6 @@
                     </tr>
                 </table>
             </td>
-
             <td style="width: 25%; text-align: right; vertical-align: top; padding: 0;">
                 @if(!empty($header->nm_file))
                     <img src="{{ public_path('uploads/so/' . $header->nm_file) }}" class="img-so" alt="Gambar SO">
@@ -126,7 +125,8 @@
         <thead>
             <tr>
                 <th rowspan="2" width="5%">NO</th>
-                <th rowspan="2" class="text-left" width="25%">PO COLOR DESC.</th>
+                <th rowspan="2" class="text-left" width="15%">PO COLOR DESC.</th>
+                <th rowspan="2" class="text-center" width="15%">PRODUCT SET</th>
                 <th colspan="{{ count($sizes) > 0 ? count($sizes) : 1 }}">QTY</th>
                 <th rowspan="2" width="10%">TOTAL (PC)</th>
             </tr>
@@ -146,14 +146,17 @@
                 $grand_total = 0;
                 $size_totals = array_fill_keys($sizes, 0);
             @endphp
-            @forelse($details as $color => $row_sizes)
-                @php $row_total = 0; @endphp
+            @forelse($details as $row_data)
+                @php
+                    $row_total = 0;
+                @endphp
                 <tr>
                     <td>{{ $no++ }}</td>
-                    <td class="text-left fw-bold">{{ $color }}</td>
+                    <td class="text-left fw-bold">{{ $row_data['color'] }}</td>
+                    <td class="text-center fw-bold">{{ $row_data['product_set'] }}</td>
                     @foreach($sizes as $size)
                         @php
-                            $qty = $row_sizes[$size] ?? 0;
+                            $qty = $row_data['sizes'][$size] ?? 0;
                             $row_total += $qty;
                             $size_totals[$size] += $qty;
                         @endphp
@@ -163,12 +166,12 @@
                 </tr>
                 @php $grand_total += $row_total; @endphp
             @empty
-                <tr><td colspan="{{ count($sizes) + 3 }}">Belum ada detail ukuran & warna.</td></tr>
+                <tr><td colspan="{{ count($sizes) + 4 }}">Belum ada detail ukuran & warna.</td></tr>
             @endforelse
         </tbody>
         <tfoot>
             <tr>
-                <th colspan="2" class="text-right">GRAND TOTAL</th>
+                <th colspan="3" class="text-right">GRAND TOTAL</th>
                 @foreach($sizes as $size)
                     <th>{{ number_format($size_totals[$size], 0, ',', '.') }}</th>
                 @endforeach
@@ -187,7 +190,7 @@
         <table class="table-data" style="margin-bottom: 20px; {{ $avoid_break_if_empty }}">
             <thead>
                 <tr>
-                    <th colspan="{{ $is_fabric ? 13 : 10 }}" class="text-left" style="background-color: #e9ecef; font-size: 11px; padding: 6px;">
+                    <th colspan="{{ $is_fabric ? 14 : 11 }}" class="text-left" style="background-color: #e9ecef; font-size: 11px; padding: 6px;">
                         {{ $g_name }}
                     </th>
                 </tr>
@@ -206,6 +209,7 @@
                         <th width="5%">UNIT</th>
                         <th width="6%">TOTAL</th>
                         <th width="5%">UNIT</th>
+                        <th width="5%">PRODUCT SET</th>
                     </tr>
                 @else
                     <tr>
@@ -219,6 +223,7 @@
                         <th width="5%">UNIT</th>
                         <th width="6%">TOTAL</th>
                         <th width="6%">UNIT</th>
+                        <th width="5%">PRODUCT SET</th>
                     </tr>
                 @endif
             </thead>
@@ -271,6 +276,7 @@
                                     <td>{{ $unit_conv }}</td>
                                     <td class="text-right fw-bold">{{ $total > 0 ? number_format($total, 3, '.', ',') : '-' }}</td>
                                     <td>{{ $unit_conv }}</td>
+                                    <td>{{ $item->product_set ?? '-' }}</td>
                                 </tr>
                             @else
                                 @php
@@ -289,6 +295,7 @@
                                     <td>{{ $item->unit ?? '-' }}</td>
                                     <td class="text-right fw-bold">{{ $total > 0 ? number_format($total, 3, '.', ',') : '-' }}</td>
                                     <td>{{ $item->unit ?? '-' }}</td>
+                                    <td>{{ $item->product_set ?? '-' }}</td>
                                 </tr>
                             @endif
                         @endforeach
@@ -297,7 +304,7 @@
             @else
                 <tbody>
                     <tr>
-                        <td colspan="{{ $is_fabric ? 13 : 10 }}" class="text-center" style="color: black;">
+                        <td colspan="{{ $is_fabric ? 14 : 11 }}" class="text-center" style="color: black;">
                             Tidak ada data {{ $g_name }}
                         </td>
                     </tr>

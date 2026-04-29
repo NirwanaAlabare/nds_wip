@@ -13,10 +13,10 @@
             overflow-x: auto;
             padding: 0;
         }
-        #table-preview-po {
+        #table-preview-so {
             margin-bottom: 0 !important;
         }
-        #table-preview-po thead th {
+        #table-preview-so thead th {
             position: sticky;
             top: 0;
             z-index: 10;
@@ -28,21 +28,54 @@
 @section('content')
 <div class="card card-sb">
     <div class="card-header">
-        <h3 class="card-title fw-bold">Form Create Sales Order</h3>
+        <h3 class="card-title fw-bold">Create Sales Order</h3>
     </div>
     <form id="form-create-so" action="{{ route('so-store') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <div class="card-body">
-            <div class="row">
+            <div class="row mb-3 pb-3 border-bottom">
+                <div class="col-md-6 form-group mb-0">
+                    <div class="d-flex align-items-center" style="gap: 5px;">
+                        <select name="id_bom" id="id_bom" class="form-control select2bs4">
+                            <option value="">Pilih No Katalog BOM</option>
+                            @foreach($bom_catalog as $bom)
+                                <option value="{{ $bom->id }}">
+                                    {{ "{$bom->no_katalog_bom} - {$bom->style}" }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <button type="button" class="btn btn-sm btn-info" style="font-size: 12px; white-space: nowrap;" onclick="redirect_to_edit_bom()">
+                            <i class="fas fa-edit"></i> Edit BOM
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-2">
                 <div class="col-md-3 form-group">
                     <label>Buyer <span class="text-danger">*</span></label>
-                    <select name="id_buyer" class="form-control select2bs4">
+                    <select name="id_buyer" id="id_buyer" class="form-control select2bs4" >
                         <option value="">Pilih Buyer</option>
                         @foreach ($buyers as $buyer)
                             <option value="{{ $buyer->Id_Supplier }}">{{ $buyer->Supplier }}</option>
                         @endforeach
                     </select>
                 </div>
+                <div class="col-md-3 form-group">
+                    <label>Style <span class="text-danger">*</span></label>
+                    <input type="text" name="style" id="style" class="form-control" >
+                </div>
+                <div class="col-md-3 form-group">
+                    <label>Market <span class="text-danger">*</span></label>
+                    <input type="text" name="market" id="market" class="form-control" >
+                </div>
+                <div class="col-md-3 form-group">
+                    <label>Brand <span class="text-danger">*</span></label>
+                    <input type="text" name="brand" id="brand" class="form-control">
+                </div>
+            </div>
+
+            <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Product Group <span class="text-danger">*</span></label>
                     <select name="product_group" id="product_group" class="form-control select2bs4">
@@ -59,26 +92,14 @@
                     </select>
                 </div>
                 <div class="col-md-3 form-group">
-                    <label>Brand <span class="text-danger">*</span></label>
-                    <input type="text" name="brand" id="brand" class="form-control">
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-3 form-group">
-                    <label>Style <span class="text-danger">*</span></label>
-                    <input type="text" name="style" id="style" class="form-control">
-                </div>
-                <div class="col-md-3 form-group">
-                    <label>Market <span class="text-danger">*</span></label>
-                    <input type="text" name="market" id="market" class="form-control">
-                </div>
-                <div class="col-md-3 form-group">
                     <label>Marketing Order <span class="text-danger">*</span></label>
-                    <select name="marketing_order" id="marketing_order" class="form-control select2bs4">
+                    <select name="marketing_order" id="marketing_order" class="form-control select2bs4" required>
                         <option value="">Pilih Marketing Order</option>
-                        <option value="BANDUNG">Bandung</option>
-                        <option value="JAKARTA">Jakarta</option>
+                        @foreach ($marketing_orders as $mo)
+                            <option value="{{ $mo->id }}">
+                                {{ $mo->mkt_order }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="col-md-3 form-group">
@@ -97,86 +118,76 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-3 form-group">
+                <div class="col-md-3 form-group hidden">
                     <label>Confirm Price <span class="text-danger">*</span></label>
                     <input type="text" name="confirm_price" id="confirm_price" class="form-control input-decimal">
                 </div>
+                <div class="col-md-3 form-group">
+                    <label>Notes <span class="text-danger"></span></label>
+                    <input type="text" name="notes" id="notes" class="form-control">
+                </div>
+                <div class="col-md-3 form-group">
+                    <label>Type</label>
+                     <select name="type" id="type" class="form-control select2bs4" required disabled>
+                        <option value="single">SINGLE</option>
+                        <option value="multiple">MULTIPLE</option>
+                    </select>
+                </div>
+                <div class="col-md-3 form-group">
+                    <label>Product Type</label>
+                    <select id="product_set" name="product_set[]" class="form-control select2bs4" multiple disabled>
+                        @isset($master_set)
+                            @foreach ($master_set as $m_set)
+                                <option value="{{ $m_set->id }}">{{ $m_set->nama ?? $m_set->id }}</option>
+                            @endforeach
+                        @endisset
+                    </select>
+                </div>
+            </div>
+            <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Total Qty</label>
                     <input type="text" name="total_qty" id="total_qty" class="form-control bg-light input-decimal" readonly>
                 </div>
                 <div class="col-md-3 form-group">
-                    <label>Notes <span class="text-danger">*</span></label>
-                    <input type="text" name="notes" id="notes" class="form-control">
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-3 form-group">
                     <label>Jumlah PO</label>
                     <input type="text" name="jumlah_po" id="jumlah_po" class="form-control bg-light input-decimal" readonly>
                 </div>
-                <div class="col-md-3 form-group">
-                    <label>No Katalog BOM <span class="text-danger">*</span></label>
-                    <div class="d-flex align-items-center" style="gap: 5px;">
-                        <select name="id_bom" id="id_bom" class="form-control select2bs4">
-                            <option value="">Pilih No Katalog BOM</option>
-                            @foreach($bom_catalog as $bom)
-                                <option value="{{ $bom->id }}">{{ "{$bom->no_katalog_bom} - {$bom->style}" }}</option>
-                            @endforeach
-                        </select>
-                        <button type="button" class="btn btn-sm btn-info" style="font-size: 12px; white-space: nowrap;" onclick="goToEditBOM()">
-                            <i class="fas fa-edit"></i> Edit BOM
-                        </button>
-                    </div>
-                </div>
-                 <div class="col-md-3 form-group">
+            </div>
+
+            {{-- <div class="row">
+                <
+                 <div class="col-md-3 form-group hidden">
                     <label>Price Costing</label>
                     <input type="text" name="price_costing" id="price_costing" class="form-control input-decimal">
                 </div>
-            </div>
-
+            </div> --}}
             <hr>
 
-            <div class="row">
-                <div class="col-md-3 form-group">
-                    <label>VAT (%) <span class="text-danger">*</span></label>
-                    <input type="text" name="vat" id="vat" class="form-control input-decimal">
-                </div>
-                <div class="col-md-3 form-group">
-                    <label>GA Cost (%) <span class="text-danger">*</span></label>
-                    <input type="text" name="ga_cost" id="ga_cost" class="form-control input-decimal">
-                </div>
-                <div class="col-md-3 form-group">
-                    <label>Commission Fee (%) <span class="text-danger">*</span></label>
-                    <input type="text" name="commission_fee" id="commission_fee" class="form-control input-decimal">
-                </div>
-                <div class="col-md-3 form-group">
-                    <label>Profit (%)</label>
-                    <input type="text" name="profit" id="profit" class="form-control input-decimal" readonly>
-                </div>
-            </div>
+            <div class="row mb-3 bg-light pt-3 pb-2 rounded border mx-0 mt-3">
+                <div class="col-md-5">
+                    <div class="form-group mb-3">
+                        <label class="fw-bold"><i class="fas fa-image"></i> Upload Gambar SO <span class="text-danger">*</span></label>
+                        <input type="file" name="images" id="images" class="form-control p-1" accept="image/*">
+                    </div>
 
-            <hr>
-
-            <div class="row">
-                <div class="col-md-3 form-group">
-                    <label>Upload Gambar <span class="text-danger">*</span></label>
-                    <input type="file" name="images" id="images" class="form-control-file mb-2" accept="image/*">
-                    <div class="border rounded d-flex justify-content-center align-items-center bg-light" style="height: 150px; overflow: hidden;">
-                        <img id="preview_images" src="" alt="Preview Gambar" style="max-height: 100%; display: none;">
-                        <span id="text_preview" class="text-muted">Preview Gambar</span>
+                    <div class="form-group mb-0 mt-4 pt-2 border-top border-secondary">
+                        <label class="fw-bold"><i class="fas fa-file-excel text-success"></i> Upload File (Excel) <span class="text-danger">*</span></label>
+                        <div class="d-flex mb-2 mt-1">
+                            <a href="{{ asset('template/template_upload_so.xlsx') }}" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-download"></i> Download Template Excel
+                            </a>
+                        </div>
+                        <input type="file" name="file_so" id="file_so" class="form-control p-1" accept=".xls,.xlsx">
                     </div>
                 </div>
 
-                <div class="col-md-4 form-group">
-                    <label>Upload File (Excel) <span class="text-danger">*</span></label>
-                    <div class="d-flex mb-2">
-                        <a href="{{ asset('template/template_upload_so.xlsx') }}" class="btn btn-outline-info btn-sm mr-2">
-                            <i class="fas fa-download"></i> Download Template Excel
-                        </a>
+                <div class="col-md-7 form-group text-center d-flex flex-column mb-0">
+                    <label class="fw-bold text-secondary text-left mb-2">Preview Gambar</label>
+                    <div class="border border-secondary border-dashed rounded d-flex justify-content-center align-items-center bg-white flex-grow-1" style="min-height: 180px; overflow: hidden;">
+                        <img id="preview_images" src="" alt="Preview Gambar" class="img-thumbnail shadow-sm border-0" style="max-height: 180px; object-fit: contain; display: none;">
+                        <span id="text_preview" class="text-muted font-italic">Belum ada gambar terpilih</span>
                     </div>
-                    <input type="file" name="file_so" id="file_so" class="form-control-file" accept=".xls,.xlsx">
                 </div>
             </div>
         </div>
@@ -188,9 +199,9 @@
                 <h3 class="card-title fw-bold"><i class="fas fa-table"></i> Preview Data Upload</h3>
             </div>
             <div class="card-body">
-                <button type="button" id="btn-reload-preview" class="btn btn-info mb-2" onclick="loadPreviewUpload()"><i class="fas fa-refresh"></i> Reload Table</button>
+                {{-- <button type="button" id="btn-reload-preview" class="btn btn-info mb-2" onclick="loadPreviewUpload()"><i class="fas fa-refresh"></i> Reload Table</button> --}}
                 <div class="table-responsive">
-                    <table class="table table-bordered table-sm table-striped text-nowrap w-100" id="table-preview-po">
+                    <table class="table table-bordered table-sm table-striped text-nowrap w-100" id="table-preview-so">
                         <thead class="bg-sb text-white text-center">
                             <tr>
                                 <th>Style</th>
@@ -228,7 +239,7 @@
 <script>
     let previewTable = null;
 
-  function goToEditBOM() {
+    function redirect_to_edit_bom() {
         let id_bom = $('#id_bom').val();
 
         if (!id_bom) {
@@ -246,15 +257,15 @@
     //     let id_bom = $('#id_bom').val();
     //     if (!id_bom) return;
 
-    //     $('#table-preview-po tbody').html('<tr><td colspan="15" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading data...</td></tr>');
+    //     $('#table-preview-so tbody').html('<tr><td colspan="15" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading data...</td></tr>');
 
     //     $.ajax({
     //         url: "{{ route('so-get-temp-data') }}",
     //         type: 'GET',
     //         data: { id_bom: id_bom },
     //         success: function(res) {
-    //             if ($.fn.DataTable.isDataTable('#table-preview-po')) {
-    //                 $('#table-preview-po').DataTable().destroy();
+    //             if ($.fn.DataTable.isDataTable('#table-preview-so')) {
+    //                 $('#table-preview-so').DataTable().destroy();
     //             }
 
     //             let headerHtml = `<tr><th>Style</th><th>Desc</th><th>PO</th><th>Market</th><th>Ex Fty</th><th>Color</th>`;
@@ -262,7 +273,7 @@
     //                 headerHtml += `<th class="bg-warning text-dark text-center">${size}</th>`;
     //             });
     //             headerHtml += `</tr>`;
-    //             $('#table-preview-po thead').html(headerHtml);
+    //             $('#table-preview-so thead').html(headerHtml);
 
     //             let bodyHtml = '';
     //             if(res.data && res.data.length > 0) {
@@ -289,9 +300,9 @@
     //                 let colCount = 6 + (res.available_sizes ? res.available_sizes.length : 0);
     //                 bodyHtml = `<tr><td colspan="${colCount}" class="text-center">Belum ada data di-upload.</td></tr>`;
     //             }
-    //             $('#table-preview-po tbody').html(bodyHtml);
+    //             $('#table-preview-so tbody').html(bodyHtml);
 
-    //             if ($('#table-preview-po tfoot').length === 0) $('#table-preview-po').append('<tfoot></tfoot>');
+    //             if ($('#table-preview-so tfoot').length === 0) $('#table-preview-so').append('<tfoot></tfoot>');
 
     //             let footerHtml = `<tr>
     //                     <th class="bg-light"></th><th class="bg-light"></th><th class="bg-light"></th>
@@ -301,13 +312,13 @@
     //                 footerHtml += `<th class="text-right bg-light text-dark fw-bold">0</th>`;
     //             });
     //             footerHtml += `</tr>`;
-    //             $('#table-preview-po tfoot').html(footerHtml);
+    //             $('#table-preview-so tfoot').html(footerHtml);
 
     //             $('#total_qty').val(res.total_qty || 0);
     //             $('#jumlah_po').val(res.jumlah_po || 0);
 
     //             if (res.data && res.data.length > 0) {
-    //                 previewTable = $('#table-preview-po').DataTable({
+    //                 previewTable = $('#table-preview-so').DataTable({
     //                     "paging": false, "info": true, "searching": true, "ordering": false,
     //                     "autoWidth": false, "responsive": false, "scrollX": true,
     //                     "footerCallback": function (row, data, start, end, display) {
@@ -341,7 +352,7 @@
     //                 btnSubmit.prop('disabled', true);
 
     //                 // if ($('#btn-fix-bom').length === 0) {
-    //                 //     $('#table-preview-po').before(`<button type="button" id="btn-reload-preview" class="btn btn-info mb-2" onclick="loadPreviewUpload()"><i class="fas fa-refresh"></i> Reload Table</button>`);
+    //                 //     $('#table-preview-so').before(`<button type="button" id="btn-reload-preview" class="btn btn-info mb-2" onclick="loadPreviewUpload()"><i class="fas fa-refresh"></i> Reload Table</button>`);
     //                 // }
 
     //                 Swal.fire({
@@ -356,7 +367,146 @@
     //             }
     //         },
     //         error: function(xhr) {
-    //             $('#table-preview-po tbody').html('<tr><td colspan="10" class="text-center text-danger">Gagal memuat data preview.</td></tr>');
+    //             $('#table-preview-so tbody').html('<tr><td colspan="10" class="text-center text-danger">Gagal memuat data preview.</td></tr>');
+    //         }
+    //     });
+    // }
+
+    // function loadPreviewUpload() {
+    //     let id_bom = $('#id_bom').val();
+    //     if (!id_bom) return;
+
+    //     $('#table-preview-so tbody').html('<tr><td colspan="15" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading data...</td></tr>');
+
+    //     $.ajax({
+    //         url: "{{ route('so-get-temp-data') }}",
+    //         type: 'GET',
+    //         data: { id_bom: id_bom },
+    //         success: function(res) {
+    //             if ($.fn.DataTable.isDataTable('#table-preview-so')) {
+    //                 $('#table-preview-so').DataTable().destroy();
+    //             }
+
+    //             let headerHtml = `<tr><th>Style</th><th>Desc</th><th>PO</th><th>Market</th><th>Ex Fty</th><th>Color</th>`;
+    //             res.available_sizes.forEach(size => {
+    //                 headerHtml += `<th class="bg-warning text-dark text-center">${size}</th>`;
+    //             });
+    //             headerHtml += `</tr>`;
+    //             $('#table-preview-so thead').html(headerHtml);
+
+    //             let bodyHtml = '';
+    //             if(res.data && res.data.length > 0) {
+    //                 res.data.forEach(row => {
+    //                     let colorErrorClass = row.color_error ? 'bg-danger text-white font-weight-bold' : '';
+
+    //                     bodyHtml += `<tr>
+    //                         <td>${row.style || '-'}</td>
+    //                         <td>${row.desc || '-'}</td>
+    //                         <td>${row.po || '-'}</td>
+    //                         <td>${row.market || '-'}</td>
+    //                         <td>${row.ex_fty || '-'}</td>
+    //                         <td class="${colorErrorClass}">${row.color || '-'}</td>`;
+
+    //                     res.available_sizes.forEach(size => {
+    //                         let val = row[size];
+    //                         let qty = val ? Number(val).toLocaleString('id-ID') : '-';
+    //                         let isError = (row.errors && row.errors[size]) ? 'bg-danger text-white font-weight-bold' : '';
+    //                         bodyHtml += `<td class="text-right ${isError}">${qty}</td>`;
+    //                     });
+    //                     bodyHtml += `</tr>`;
+    //                 });
+    //             } else {
+    //                 let colCount = 6 + (res.available_sizes ? res.available_sizes.length : 0);
+    //                 bodyHtml = `<tr><td colspan="${colCount}" class="text-center">Belum ada data di-upload.</td></tr>`;
+    //             }
+    //             $('#table-preview-so tbody').html(bodyHtml);
+
+    //             if ($('#table-preview-so tfoot').length === 0) $('#table-preview-so').append('<tfoot></tfoot>');
+
+    //             let footerHtml = `<tr>
+    //                     <th class="bg-light"></th><th class="bg-light"></th><th class="bg-light"></th>
+    //                     <th class="bg-light"></th><th class="bg-light"></th>
+    //                     <th class="text-right align-middle bg-light text-dark fw-bold">TOTAL</th>`;
+    //             res.available_sizes.forEach(size => {
+    //                 footerHtml += `<th class="text-right bg-light text-dark fw-bold">0</th>`;
+    //             });
+    //             footerHtml += `</tr>`;
+    //             $('#table-preview-so tfoot').html(footerHtml);
+
+    //             $('#total_qty').val(res.total_qty || 0);
+    //             $('#jumlah_po').val(res.jumlah_po || 0);
+
+    //             if (res.data && res.data.length > 0) {
+    //                 previewTable = $('#table-preview-so').DataTable({
+    //                     "paging": false, "info": true, "searching": true, "ordering": false,
+    //                     "autoWidth": false, "responsive": false, "scrollX": true,
+    //                     "footerCallback": function (row, data, start, end, display) {
+    //                         let api = this.api();
+    //                         let intVal = function (i) {
+    //                             if (typeof i === 'string') {
+    //                                 let val = i.replace(/\./g, '');
+    //                                 return val === '-' ? 0 : val * 1;
+    //                             }
+    //                             return typeof i === 'number' ? i : 0;
+    //                         };
+
+    //                         let startColIndex = 6;
+    //                         let numSizes = res.available_sizes.length;
+    //                         for (let i = 0; i < numSizes; i++) {
+    //                             let colIndex = startColIndex + i;
+    //                             let colTotal = api.column(colIndex, { search: 'applied' }).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+    //                             $(api.column(colIndex).footer()).html(colTotal.toLocaleString('id-ID'));
+    //                         }
+    //                     },
+    //                     "drawCallback": function(settings) {
+    //                         let api = this.api();
+    //                         setTimeout(function() { api.columns.adjust(); }, 10);
+    //                     }
+    //                 });
+    //             }
+
+    //             let btnSubmit = $('#form-create-so button[type="submit"]');
+
+    //             if (res.has_bom_error) {
+    //                 btnSubmit.prop('disabled', true);
+
+    //                 let htmlError = '';
+
+    //                 if (res.missing_colors && res.missing_colors.length > 0) {
+    //                     htmlError += `<p class="text-danger mb-1" style="font-size:14px;"><b>Warna di BOM tapi TIDAK ADA di Excel:</b></p>
+    //                                   <p class="mb-3 text-dark">` + res.missing_colors.join(', ') + `</p>`;
+    //                 }
+    //                 if (res.missing_sizes && res.missing_sizes.length > 0) {
+    //                     htmlError += `<p class="text-danger mb-1" style="font-size:14px;"><b>Size di BOM tapi TIDAK ADA di Excel:</b></p>
+    //                                   <p class="mb-3 text-dark">` + res.missing_sizes.join(', ') + `</p>`;
+    //                 }
+
+    //                 if (htmlError !== '') {
+    //                     Swal.fire({
+    //                         icon: 'error',
+    //                         title: 'Data Excel Kurang Lengkap!',
+    //                         html: htmlError + '<br><small><b>Solusi:</b> Update File Excel Anda <b>ATAU</b> hapus warna/size tersebut dari BOM.</small>',
+    //                         confirmButtonText: 'Tutup'
+    //                     });
+    //                 } else {
+    //                     // if ($('#btn-fix-bom').length === 0) {
+    //                     //     $('#table-preview-so').before(`<button type="button" id="btn-fix-bom" class="btn btn-danger mb-2" onclick="redirect_to_edit_bom()"><i class="fas fa-tools"></i> Terdapat Material Belum Terdaftar (Klik untuk Fix di Tab Baru)</button>`);
+    //                     // }
+
+    //                     Swal.fire({
+    //                         toast: true, position: 'top-end', icon: 'error',
+    //                         title: 'Warna/Size tidak terdaftar di BOM!',
+    //                         text: 'Silakan klik Edit BOM untuk menambah material.',
+    //                         showConfirmButton: false, timer: 5000
+    //                     });
+    //                 }
+    //             } else {
+    //                 btnSubmit.prop('disabled', false);
+    //                 $('#btn-fix-bom').remove();
+    //             }
+    //         },
+    //         error: function(xhr) {
+    //             $('#table-preview-so tbody').html('<tr><td colspan="10" class="text-center text-danger">Gagal memuat data preview.</td></tr>');
     //         }
     //     });
     // }
@@ -365,35 +515,38 @@
         let id_bom = $('#id_bom').val();
         if (!id_bom) return;
 
-        $('#table-preview-po tbody').html('<tr><td colspan="15" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading data...</td></tr>');
+        $('#table-preview-so tbody').html('<tr><td colspan="15" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading data...</td></tr>');
 
         $.ajax({
             url: "{{ route('so-get-temp-data') }}",
             type: 'GET',
             data: { id_bom: id_bom },
             success: function(res) {
-                if ($.fn.DataTable.isDataTable('#table-preview-po')) {
-                    $('#table-preview-po').DataTable().destroy();
+                if ($.fn.DataTable.isDataTable('#table-preview-so')) {
+                    $('#table-preview-so').DataTable().destroy();
                 }
 
-                let headerHtml = `<tr><th>Style</th><th>Desc</th><th>PO</th><th>Market</th><th>Ex Fty</th><th>Color</th>`;
+                // Nambah Header Product Set
+                let headerHtml = `<tr><th>Style</th><th>Desc</th><th>PO</th><th>Market</th><th>Ex Fty</th><th>Product Set</th><th>Color</th>`;
                 res.available_sizes.forEach(size => {
                     headerHtml += `<th class="bg-warning text-dark text-center">${size}</th>`;
                 });
                 headerHtml += `</tr>`;
-                $('#table-preview-po thead').html(headerHtml);
+                $('#table-preview-so thead').html(headerHtml);
 
                 let bodyHtml = '';
                 if(res.data && res.data.length > 0) {
                     res.data.forEach(row => {
                         let colorErrorClass = row.color_error ? 'bg-danger text-white font-weight-bold' : '';
 
+                        // Nambah Body Product Set
                         bodyHtml += `<tr>
                             <td>${row.style || '-'}</td>
                             <td>${row.desc || '-'}</td>
                             <td>${row.po || '-'}</td>
                             <td>${row.market || '-'}</td>
                             <td>${row.ex_fty || '-'}</td>
+                            <td>${row.product_set || '-'}</td>
                             <td class="${colorErrorClass}">${row.color || '-'}</td>`;
 
                         res.available_sizes.forEach(size => {
@@ -405,28 +558,29 @@
                         bodyHtml += `</tr>`;
                     });
                 } else {
-                    let colCount = 6 + (res.available_sizes ? res.available_sizes.length : 0);
+                    let colCount = 7 + (res.available_sizes ? res.available_sizes.length : 0); // Ubah jadi 7
                     bodyHtml = `<tr><td colspan="${colCount}" class="text-center">Belum ada data di-upload.</td></tr>`;
                 }
-                $('#table-preview-po tbody').html(bodyHtml);
+                $('#table-preview-so tbody').html(bodyHtml);
 
-                if ($('#table-preview-po tfoot').length === 0) $('#table-preview-po').append('<tfoot></tfoot>');
+                if ($('#table-preview-so tfoot').length === 0) $('#table-preview-so').append('<tfoot></tfoot>');
 
+                // Nambah TH kosong buat Footer Product Set
                 let footerHtml = `<tr>
                         <th class="bg-light"></th><th class="bg-light"></th><th class="bg-light"></th>
-                        <th class="bg-light"></th><th class="bg-light"></th>
+                        <th class="bg-light"></th><th class="bg-light"></th><th class="bg-light"></th>
                         <th class="text-right align-middle bg-light text-dark fw-bold">TOTAL</th>`;
                 res.available_sizes.forEach(size => {
                     footerHtml += `<th class="text-right bg-light text-dark fw-bold">0</th>`;
                 });
                 footerHtml += `</tr>`;
-                $('#table-preview-po tfoot').html(footerHtml);
+                $('#table-preview-so tfoot').html(footerHtml);
 
                 $('#total_qty').val(res.total_qty || 0);
                 $('#jumlah_po').val(res.jumlah_po || 0);
 
                 if (res.data && res.data.length > 0) {
-                    previewTable = $('#table-preview-po').DataTable({
+                    previewTable = $('#table-preview-so').DataTable({
                         "paging": false, "info": true, "searching": true, "ordering": false,
                         "autoWidth": false, "responsive": false, "scrollX": true,
                         "footerCallback": function (row, data, start, end, display) {
@@ -439,7 +593,8 @@
                                 return typeof i === 'number' ? i : 0;
                             };
 
-                            let startColIndex = 6;
+                            // Index kolom size bergeser dari 6 jadi 7
+                            let startColIndex = 7;
                             let numSizes = res.available_sizes.length;
                             for (let i = 0; i < numSizes; i++) {
                                 let colIndex = startColIndex + i;
@@ -456,46 +611,31 @@
 
                 let btnSubmit = $('#form-create-so button[type="submit"]');
 
-                if (res.has_bom_error) {
+                let isSizeMissing = (res.missing_sizes && res.missing_sizes.length > 0);
+                let isDataEmpty = (!res.data || res.data.length === 0);
+
+                if (isDataEmpty) {
                     btnSubmit.prop('disabled', true);
+                }
+                else if (isSizeMissing) {
+                    btnSubmit.prop('disabled', false);
+                    let htmlError = `<p class="text-danger mb-1" style="font-size:14px;"><b>Size di BOM tapi TIDAK ADA di Excel:</b></p>
+                                     <p class="mb-3 text-dark">` + res.missing_sizes.join(', ') + `</p>`;
 
-                    let htmlError = '';
-
-                    if (res.missing_colors && res.missing_colors.length > 0) {
-                        htmlError += `<p class="text-danger mb-1" style="font-size:14px;"><b>Warna di BOM tapi TIDAK ADA di Excel:</b></p>
-                                      <p class="mb-3 text-dark">` + res.missing_colors.join(', ') + `</p>`;
-                    }
-                    if (res.missing_sizes && res.missing_sizes.length > 0) {
-                        htmlError += `<p class="text-danger mb-1" style="font-size:14px;"><b>Size di BOM tapi TIDAK ADA di Excel:</b></p>
-                                      <p class="mb-3 text-dark">` + res.missing_sizes.join(', ') + `</p>`;
-                    }
-
-                    if (htmlError !== '') {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Data Excel Kurang Lengkap!',
-                            html: htmlError + '<br><small><b>Solusi:</b> Update File Excel Anda <b>ATAU</b> hapus warna/size tersebut dari BOM.</small>',
-                            confirmButtonText: 'Tutup'
-                        });
-                    } else {
-                        // if ($('#btn-fix-bom').length === 0) {
-                        //     $('#table-preview-po').before(`<button type="button" id="btn-fix-bom" class="btn btn-danger mb-2" onclick="goToEditBOM()"><i class="fas fa-tools"></i> Terdapat Material Belum Terdaftar (Klik untuk Fix di Tab Baru)</button>`);
-                        // }
-
-                        Swal.fire({
-                            toast: true, position: 'top-end', icon: 'error',
-                            title: 'Warna/Size tidak terdaftar di BOM!',
-                            text: 'Silakan klik Edit BOM untuk menambah material.',
-                            showConfirmButton: false, timer: 5000
-                        });
-                    }
-                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Size Tidak Lengkap!',
+                        html: htmlError + '<br><small><b>Solusi:</b> Pastikan Size di Excel Anda lengkap sesuai BOM.</small>',
+                        confirmButtonText: 'Tutup'
+                    });
+                }
+                else {
                     btnSubmit.prop('disabled', false);
                     $('#btn-fix-bom').remove();
                 }
             },
             error: function(xhr) {
-                $('#table-preview-po tbody').html('<tr><td colspan="10" class="text-center text-danger">Gagal memuat data preview.</td></tr>');
+                $('#table-preview-so tbody').html('<tr><td colspan="10" class="text-center text-danger">Gagal memuat data preview.</td></tr>');
             }
         });
     }
@@ -508,10 +648,29 @@
         $('#product_group').on('change', function() {
             let selected_grup = $(this).val();
             let select_item = $('#id_product_item');
+
             if(selected_grup) {
                 $.post("{{ route('get-product-items') }}", { _token: "{{ csrf_token() }}", product_group: selected_grup }, function(res) {
                     select_item.empty().append('<option value="">Pilih Product Item</option>');
-                    $.each(res, function(key, value) { select_item.append(`<option value="${value.id}">${value.product_item}</option>`); });
+                    $.each(res, function(key, value) {
+                        select_item.append(`<option value="${value.id}">${value.product_item}</option>`);
+                    });
+
+                    let autoSelectText = select_item.attr('data-auto-select');
+                    if (autoSelectText) {
+                        let matchingOption = select_item.find("option").filter(function() {
+                            return $(this).text() === autoSelectText || $(this).val() == autoSelectText;
+                        });
+
+                        if (matchingOption.length > 0) {
+                            select_item.val(matchingOption.val());
+                        } else {
+                            select_item.append(new Option(autoSelectText, autoSelectText, true, true));
+                        }
+
+                        select_item.removeAttr('data-auto-select');
+                    }
+
                     select_item.trigger('change');
                 });
             } else {
@@ -544,7 +703,7 @@
 
         $('#id_bom').on('change', function() {
             let id_bom = $(this).val();
-            let hasData = $('#table-preview-po tbody tr td').length > 1;
+            let hasData = $('#table-preview-so tbody tr td').length > 1;
 
             if (id_bom && hasData) {
                 Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Memvalidasi ulang data...', showConfirmButton: false, timer: 2000 });
@@ -558,7 +717,7 @@
         $('#file_so').off('change').on('change', function() {
             let id_bom = $('#id_bom').val();
             if (!id_bom) {
-                Swal.fire('Peringatan!', 'Silakan pilih No Katalog BOM terlebih dahulu.', 'warning');
+                Swal.fire('Peringatan!', 'Silahkan pilih No Katalog BOM terlebih dahulu.', 'warning');
                 $(this).val('');
                 return;
             }
@@ -625,16 +784,11 @@
             checkEmpty('#marketing_order', 'Marketing Order');
             checkEmpty('#smv', 'SMV');
             checkEmpty('#id_currency', 'Currency');
-            checkEmpty('#confirm_price', 'Confirm Price');
-            checkEmpty('#notes', 'Notes');
             checkEmpty('#id_bom', 'No Katalog BOM');
-            checkEmpty('#vat', 'VAT (%)');
-            checkEmpty('#ga_cost', 'GA Cost (%)');
-            checkEmpty('#commission_fee', 'Commission Fee (%)');
 
-            if ($('#images').get(0).files.length === 0) {
-                empty_input.push('Upload Gambar');
-            }
+            // if ($('#images').get(0).files.length === 0) {
+            //     empty_input.push('Upload Gambar');
+            // }
 
             let totalQty = $('#total_qty').val();
             if (!totalQty || totalQty == 0) {
@@ -673,6 +827,71 @@
         });
 
         $('#btn-back').on('click', function(e) { window.location.href = "{{ route('master-marketing-so') }}"; });
+
+        $('#id_bom').on('change', function() {
+            let id_bom = $(this).val();
+            let hasData = $('#table-preview-so tbody tr td').length > 1;
+
+            if (id_bom) {
+                $.ajax({
+                    url: "{{ route('so-get-bom-data') }}",
+                    type: "GET",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        id_bom: id_bom
+                    },
+                    success: function(res) {
+                        if (res.status == 200) {
+                            let data = res.data;
+
+                            $('#brand').val(data.brand);
+                            $('#style').val(data.style);
+                            $('#market').val(data.market);
+                            $('#smv').val(data.smv);
+
+                            $('#id_buyer').val(data.id_buyer).trigger('change');
+                            $('#marketing_order').val(data.marketing_order).trigger('change');
+                            $('#id_currency').val(data.id_currency).trigger('change');
+
+                            if (data.nama_product_item) {
+                                $('#id_product_item').attr('data-auto-select', data.nama_product_item);
+                            }
+
+                            $('#product_group').val(data.product_group).trigger('change');
+                            console.log(data);
+                            $('#type').val(data.type).trigger('change');
+
+                            if (data.product_set) {
+                                let selectedSets = data.product_set.split(',').map(item => item.trim());
+                                $('#product_set').val(selectedSets).trigger('change');
+                            } else {
+                                $('#product_set').val(null).trigger('change');
+                            }
+
+                        } else {
+                            Swal.fire('Peringatan!', res.message, 'warning');
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error', 'Gagal mengambil detail BOM/Costing dari server.', 'error');
+                    }
+                });
+
+                if (hasData) {
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Memvalidasi ulang data...', showConfirmButton: false, timer: 2000 });
+                    loadPreviewUpload();
+                }
+
+            } else {
+                $('#brand, #style, #market, #smv').val('');
+                $('#id_buyer, #product_group, #id_product_item, #marketing_order, #id_currency').val('').trigger('change');
+
+                if (hasData) {
+                    $('#form-create-so button[type="submit"]').prop('disabled', true);
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'Pilih BOM!', text: 'Silakan pilih Katalog BOM untuk memvalidasi data.', showConfirmButton: false, timer: 3000 });
+                }
+            }
+        });
     });
 </script>
 @endsection

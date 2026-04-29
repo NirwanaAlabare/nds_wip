@@ -37,7 +37,24 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <label class="form-label"><small class="fw-bold">No Costing <span class="text-danger">*</span></small></label>
+                    <select name="id_costing" id="id_costing" class="form-control select2bs4">
+                        <option value="">Pilih Costing</option>
+                        @if(isset($costings))
+                            @foreach ($costings as $cost)
+                                <option value="{{ $cost->id }}"
+                                        data-buyer="{{ $cost->buyer ?? '' }}"
+                                        data-style="{{ $cost->style ?? '' }}"
+                                        data-market="{{ $cost->market ?? '' }}">
+                                    {{ $cost->no_costing }} - {{ $cost->style }}
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+
+                <div class="col-md-3">
                     <label class="form-label"><small class="fw-bold">Buyer <span class="text-danger">*</span></small></label>
                     <select name="id_buyer" id="id_buyer" class="form-control select2bs4">
                         <option value="">Pilih Buyer</option>
@@ -46,11 +63,11 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label"><small class="fw-bold">Style <span class="text-danger">*</span></small></label>
                     <input type="text" class="form-control" name="style" id="style">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label"><small class="fw-bold">Market</small></label>
                     <input type="text" class="form-control" name="market" id="market">
                 </div>
@@ -311,11 +328,13 @@
 
     function confirmCatalog() {
         let emptyFields = [];
+        let costing = $('#id_costing').val();
         let buyer = $('#id_buyer').val();
         let style = $('#style').val();
         let selectedColors = $('#colorList').select2('data');
         let selectedSizes = $('#sizeList').select2('data');
 
+        if (!costing) emptyFields.push('No Costing');
         if (!buyer) emptyFields.push('Buyer');
         if (!style || style.trim() === '') emptyFields.push('Style');
         if (selectedColors.length === 0) emptyFields.push('Master Color');
@@ -353,6 +372,7 @@
 
                 $.post("{{ route('store-bom-header') }}", {
                     _token: "{{ csrf_token() }}",
+                    id_costing: costing,
                     buyer: buyer,
                     style: style,
                     market: $('#market').val(),
@@ -360,11 +380,9 @@
                     sizes: $('#sizeList').val()
                 }, function(res) {
                     if(res.status == 200) {
-
                         let editUrl = "{{ route('edit-bom', ':id') }}";
                         editUrl = editUrl.replace(':id', res.id);
                         window.location.href = editUrl;
-
                     } else {
                         Swal.fire('Gagal', res.message || 'Terjadi kesalahan saat menyimpan.', 'error');
                     }
@@ -675,5 +693,19 @@
             });
         }
     }
+
+    $('#id_costing').on('change', function() {
+        let selected = $(this).find('option:selected');
+
+        if ($(this).val()) {
+            let buyer = selected.data('buyer');
+            let style = selected.data('style');
+            let market = selected.data('market');
+
+            $('#id_buyer').val(buyer).trigger('change');
+            $('#style').val(style);
+            $('#market').val(market);
+        }
+    });
 </script>
 @endsection

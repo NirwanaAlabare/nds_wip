@@ -938,11 +938,24 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('master-costing-approval') }}"
+                                    class="dropdown-item {{ $subPage == 'marketing-master-costing-approval' ? 'active' : '' }}">
+                                    Approval Costing <i class="fa-solid fa-list-ul fa-sm"></i>
+                                </a>
+                            </li>
+                             <li>
                                 <a href="{{ route('master-bom') }}"
                                     class="dropdown-item {{ $subPage == 'marketing-master-bom' ? 'active' : '' }}">
                                     BOM <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('master-bom-approval') }}"
+                                    class="dropdown-item {{ $subPage == 'marketing-master-bom-approval' ? 'active' : '' }}">
+                                    Approval BOM <i class="fa-solid fa-list-ul fa-sm"></i>
+                                </a>
+                            </li>
+
                             <li>
                                 <a href="{{ route('master-marketing-so') }}"
                                     class="dropdown-item {{ $subPage == 'marketing-master-so' ? 'active' : '' }}">
@@ -1049,6 +1062,22 @@
                                 </ul>
                             </li>
 
+                        </ul>
+                    </li>
+                @endif
+
+                {{-- Purchasing --}}
+                @if ($page == 'dashboard-purchasing')
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'purchasing' ? 'active' : '' }}">Proses</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('purchasing') }}"
+                                    class="dropdown-item {{ $subPage == 'purchasing' ? 'active' : '' }}">
+                                    Purchase Order <i class="fa-solid fa-list-ul fa-sm"></i>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif

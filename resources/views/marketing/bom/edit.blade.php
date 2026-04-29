@@ -50,9 +50,22 @@
         </div>
         <div class="card-body bg-light">
             <div class="row">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label"><small class="fw-bold">No Katalog BOM</small></label>
                     <input type="text" class="form-control" value="{{ $bom->no_katalog_bom }}" readonly>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label"><small class="fw-bold">No Costing <span class="text-danger">*</span></small></label>
+                    <select name="id_costing" id="id_costing" class="form-control select2bs4" disabled>
+                        <option value="">Pilih Costing</option>
+                        @if(isset($costings))
+                            @foreach ($costings as $cost)
+                                <option value="{{ $cost->id }}" {{ $bom->id_costing == $cost->id ? 'selected' : '' }}>
+                                    {{ $cost->no_costing }} - {{ $cost->style }}
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label"><small class="fw-bold">Buyer</small></label>
@@ -63,11 +76,11 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label"><small class="fw-bold">Style</small></label>
                     <input type="text" class="form-control" value="{{ $bom->style }}" readonly>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label"><small class="fw-bold">Market</small></label>
                     <input type="text" class="form-control" value="{{ $bom->market }}" readonly>
                 </div>
@@ -112,7 +125,7 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
-                    <div class="form-group">
+                    <div class="form-group hidden">
                         <label><small class="fw-bold">Supplier</small></label>
                         <select name="id_supplier" class="form-control select2bs4">
                             <option value="">Pilih Supplier</option>
@@ -131,7 +144,7 @@
                     </div>
                     <div class="form-group">
                         <label><small class="fw-bold">Item Contents *</small></label>
-                        <select name="item_contents" id="item_contents" class="form-control select2bs4" onchange="get_rule()" disabled>
+                        <select name="item_contents" id="item_contents" class="form-control select2bs4" onchange="get_rule(this)" disabled>
                             <option value="">Pilih Kategori Terlebih Dahulu</option>
                         </select>
                     </div>
@@ -155,13 +168,13 @@
                     <div class="form-group">
                         <label><small class="fw-bold">Shell</small></label>
                         <select name="shell" id="shell" class="form-control select2bs4">
-                            <option value="">Pilih Shell</option>
-                            <option value="A">A</option>
-                            <option value="B">B</option>
-                            <option value="C">C</option>
+                           <option value="">Pilih Shell</option>
+                            @foreach ($shell as $data)
+                                <option value="{{ $data->id }}">{{ $data->nama_panel }}</option>
+                            @endforeach
                         </select>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group hidden">
                         <label><small class="fw-bold">Currency</small></label>
                         <select name="currency" id="currency" class="form-control select2bs4">
                             <option value="">Pilih Currency</option>
@@ -192,7 +205,7 @@
                             <th width="22%">Color | Size</th>
                             <th>Item</th>
                             <th width="15%">Cons</th>
-                            <th width="15%">Price</th>
+                            {{-- <th width="15%">Price</th> --}}
                             <th width="5%">Act</th>
                         </tr>
                     </thead>
@@ -239,13 +252,12 @@
                         <th width="2%"><input type="checkbox" id="check-all"></th>
                         <th width="5%">No</th>
                         <th width="10%">Category</th>
+                        <th width="8%">Id Content</th>
                         <th width="20%">Content</th>
                         <th width="20%">Item Description</th>
                         <th width="10%">Color</th>
                         <th width="5%">Size</th>
                         <th width="5%">Cons</th>
-                        <th width="5%">Price</th>
-                        <th width="5%">Currency</th>
                         <th width="10%">Unit</th>
                         <th width="5%">Shell</th>
                         <th width="10%">Action</th>
@@ -258,11 +270,10 @@
                         <th><input type="text" class="form-control form-control-sm column-search" data-column="4"></th>
                         <th><input type="text" class="form-control form-control-sm column-search" data-column="5"></th>
                         <th><input type="text" class="form-control form-control-sm column-search" data-column="6"></th>
-                        <th></th>
+                        <th><input type="text" class="form-control form-control-sm column-search" data-column="7"></th>
                         <th></th>
                         <th><input type="text" class="form-control form-control-sm column-search" data-column="9"></th>
                         <th><input type="text" class="form-control form-control-sm column-search" data-column="10"></th>
-                        <th><input type="text" class="form-control form-control-sm column-search" data-column="11"></th>
                         <th></th>
                     </tr>
                 </thead>
@@ -272,7 +283,7 @@
     </div>
 </div>
 
-<div class="card card-sb mt-3" id="section_table_other">
+<div class="card card-sb mt-3 hidden" id="section_table_other">
     <div class="card-header bg-sb">
         <h5 class="card-title fw-bold mb-0">  BOM Detail Other</h5>
         <div class="card-tools">
@@ -375,9 +386,9 @@
                            <label><small class="fw-bold">Shell</small></label>
                             <select name="shell" id="edit_shell" class="form-control select2bs4-edit">
                                 <option value="">Pilih Shell</option>
-                                <option value="A">A</option>
-                                <option value="B">B</option>
-                                <option value="C">C</option>
+                                @foreach ($shell as $data)
+                                    <option value="{{ $data->id }}">{{ $data->nama_panel }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-md-6 mb-2">
@@ -389,7 +400,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-6 mb-2">
+                        <div class="col-md-6 mb-2 hidden">
                             <label><small class="fw-bold">Price</small></label>
                             <input type="number" step="0.0001" name="price" id="edit_price" class="form-control form-control-sm text-center price_input" required>
                         </div>
@@ -449,6 +460,17 @@
             }
         });
 
+        $(document).off('keyup change clear', '.column-search').on('keyup change clear', '.column-search', function(e) {
+            let colIdx = $(this).data('column');
+
+            clearTimeout(window.searchDelay);
+            window.searchDelay = setTimeout(() => {
+                if (table_add_item) {
+                    table_add_item.column(colIdx).search(this.value).draw();
+                }
+            }, 500);
+        });
+
         $(document).on('keypress', '.qty_input', function(e) {
             if (e.which == 45) { return false; }
         });
@@ -500,7 +522,11 @@
         });
     });
 
-    function get_rule() {
+    function get_rule(el) {
+
+        let unit = $(el).find(':selected').data('unit');
+        $("#unit").val(unit).trigger('change');
+
         let id_contents = $('#item_contents').val();
         if (!id_contents) return $('#rule_bom').html('<option value="">Pilih Rule</option>');
 
@@ -586,7 +612,6 @@
                     itemOptionsHtml += `<option value="${i.isi}" ${isSelected}>${i.tampil}</option>`;
                 });
 
-                // PENAMBAHAN CHECKBOX DAN TOMBOL HAPUS DI SINI
                 let row = `<tr>
                     <td class="text-center align-middle">
                         <input type="checkbox" class="check-input-row">
@@ -598,7 +623,6 @@
                     </td>
                     <td><select name="id_item[${idx}]" class="form-control select2-item">${itemOptionsHtml}</select></td>
                     <td><input type="number" step="0.0001" name="qty_input[${idx}]" class="form-control form-control-sm text-center qty_input" placeholder="0.0000" value="${savedQty}"></td>
-                    <td><input type="number" step="0.0001" name="price_input[${idx}]" class="form-control form-control-sm text-center price_input" placeholder="0.0000" value="${savedPrice}"></td>
                     <td class="text-center align-middle">
                         <button type="button" class="btn btn-sm btn-danger btn-hapus-row" title="Hapus Baris Ini">
                             <i class="fas fa-times"></i>
@@ -606,6 +630,8 @@
                     </td>
                 </tr>`;
                 tbody.append(row);
+                // <td><input type="number" step="0.0001" name="price_input[${idx}]" class="form-control form-control-sm text-center price_input" placeholder="0.0000" value="${savedPrice}"></td>
+
             });
 
             $('.select2-item').select2({ theme: 'bootstrap4', width: '100%' });
@@ -613,7 +639,7 @@
     }
 
 
-    function toggleBatchDeleteInput() {
+    function batch_delete() {
         let checkedCount = $('.check-input-row:checked').length;
         if (checkedCount > 0) {
             $('#count-input-selected').text(checkedCount);
@@ -626,14 +652,14 @@
     $('#check-all-input').on('click', function() {
         let isChecked = $(this).is(':checked');
         $('.check-input-row').prop('checked', isChecked);
-        toggleBatchDeleteInput();
+        batch_delete();
     });
 
     $('#itemTable').on('change', '.check-input-row', function() {
         let total = $('.check-input-row').length;
         let checked = $('.check-input-row:checked').length;
         $('#check-all-input').prop('checked', total === checked && total > 0);
-        toggleBatchDeleteInput();
+        batch_delete();
     });
 
     $('#btn-hapus-batch-input').on('click', function() {
@@ -641,13 +667,13 @@
             $(this).remove();
 
             $('#check-all-input').prop('checked', false);
-            toggleBatchDeleteInput();
+            batch_delete();
         });
     });
 
     $(document).on('click', '.btn-hapus-row', function() {
         $(this).closest('tr').remove();
-        toggleBatchDeleteInput();
+        batch_delete();
     });
 
     function submit_form(form) {
@@ -655,9 +681,18 @@
         let rule = $('#rule_bom').val();
         let supplier = $('select[name="id_supplier"]').val();
 
+        let shell = $('#shell').val();
+
         if (!content || !rule) {
-            Swal.fire({ icon: 'warning', title: 'Data Belum Lengkap!', text: 'Content dan Rule BOM wajib diisi.' });
+            Swal.fire({ icon: 'warning', title: 'Data Belum Lengkap!', text: 'Item Content dan Rule BOM wajib diisi.' });
             return false;
+        }
+
+        if (!shell) {
+            if($('#category').val() === 'Material') {
+                Swal.fire({ icon: 'warning', title: 'Data Belum Lengkap!', text: 'Shell wajib diisi untuk category Material.' });
+                return false;
+            }
         }
 
         let rowCount = $("#itemTable tbody tr").length;
@@ -724,6 +759,7 @@
         });
     }
 
+
     function load_items(id_header) {
         if (!id_header) return;
 
@@ -739,6 +775,8 @@
             processing: true, serverSide: true, destroy: true,
             lengthMenu: [[5, 10, 25, -1], [5, 10, 25, "All"]],
             pageLength: -1,
+            scrollY: "500px",
+            scrollCollapse: true,
             ajax: url,
             columns: [
                 {
@@ -747,6 +785,7 @@
                 },
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center' },
                 { data: 'category', name: 'category', className: 'text-center' },
+                { data: 'id_content', name: 'id_content', className: 'text-center', render: data => data ? data : '-' },
                 { data: 'content_name', name: 'content_name', render: data => data ? data : '-' },
                 { data: 'item_name', name: 'item_name' },
                 { data: 'color_name', name: 'color_name', className: 'text-center' },
@@ -758,16 +797,8 @@
                         return isNaN(nilai) ? '0.00' : nilai.toFixed(2);
                     }
                 },
-                {
-                    data: 'price', name: 'price', className: 'text-center', searchable: false,
-                    render: function(data) {
-                        let nilai = parseFloat(data);
-                        return isNaN(nilai) ? '0.00' : nilai.toFixed(2);
-                    }
-                },
-                { data: 'currency', name: 'currency', className: 'text-center' },
                 { data: 'unit', name: 'unit', className: 'text-center' },
-                { data: 'shell', name: 'shell', className: 'text-center' },
+                { data: 'nama_panel', name: 'nama_panel', className: 'text-center' },
                 {
                     data: 'id', orderable: false, searchable: false, className: 'text-center align-middle',
                     render: data => `
@@ -787,12 +818,7 @@
                 emptyTable: "Belum ada item yang ditambahkan.",
                 processing: '<i class="fa fa-spinner fa-spin fa-fw"></i> Menampilkan data...'
             },
-            autoWidth: false, responsive: true, orderCellsTop: true
-        });
-
-        $('#table-detail-bom thead').on('keyup change clear', '.column-search', function() {
-            let colIdx = $(this).data('column');
-            table_add_item.column(colIdx).search(this.value).draw();
+            autoWidth: false, responsive: false, orderCellsTop: true
         });
     }
 
@@ -938,6 +964,7 @@
 
     function get_item_contents() {
         let kategori = $('#category').val();
+        let id_costing = $('#id_costing').val();
 
         if (!kategori) {
             $('#item_contents').html('<option value="">Pilih Kategori Terlebih Dahulu</option>').prop('disabled', true);
@@ -946,10 +973,18 @@
             return;
         }
 
+        if (!id_costing) {
+            Swal.fire('Peringatan', 'Mohon pilih No Costing di bagian header atas terlebih dahulu!', 'warning');
+            $('#category').val('').trigger('change');
+            return;
+        }
+
         $('#item_contents').html('<option value="">Memuat data...</option>').prop('disabled', true);
 
         $.post("{{ route('get-item-contents-bom') }}", {
-            _token: "{{ csrf_token() }}", kategori: kategori
+            _token: "{{ csrf_token() }}",
+            kategori: kategori,
+            id_costing: id_costing
         }, function(res) {
             $('#item_contents').html(res).prop('disabled', false).trigger('change');
             $('#rule_bom').html('<option value="">Pilih Rule</option>');
@@ -1016,17 +1051,16 @@
         });
     }
 
-   function updateHeader() {
+    function updateHeader() {
         Swal.fire({ title: 'Memperbarui Master BOM...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
         let data = {
             _token: "{{ csrf_token() }}",
             id_bom_marketing: bom_id,
+            id_costing: $('#id_costing').val(),
             colors: $('#colorList').val(),
             sizes: $('#sizeList').val(),
         };
-
-        console.log(data);
 
         $.ajax({
             url: "{{ route('update-bom-header') }}",
@@ -1045,5 +1079,6 @@
             }
         });
     }
+
 </script>
 @endsection

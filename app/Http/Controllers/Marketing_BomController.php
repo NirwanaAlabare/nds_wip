@@ -54,6 +54,8 @@ class Marketing_BomController extends Controller
         $master_colors = $mysql_sb->table('master_colors_gmt')->orderBy('name', 'ASC')->get();
         $master_sizes = $mysql_sb->table('master_size_new')->orderBy('urutan', 'ASC')->get();
 
+        $costings = $mysql_sb->table('act_costing_new')->select('id', 'no_costing', 'style', 'market', 'buyer')->where('approval', 'Y')->orderBy('id', 'desc')->get();
+
         return view('marketing.bom.create', [
             'page'           => 'dashboard-marketing',
             'subPageGroup'   => 'marketing-master',
@@ -63,6 +65,7 @@ class Marketing_BomController extends Controller
             'master_colors'  => $master_colors,
             'master_sizes'   => $master_sizes,
             'masterUnits'    => $masterUnits,
+            'costings' => $costings,
             'containerFluid' => true
         ]);
     }
@@ -82,6 +85,8 @@ class Marketing_BomController extends Controller
         $selectedColors = $bom->colors ? json_decode($bom->colors, true) : [];
         $selectedSizes  = $bom->sizes ? json_decode($bom->sizes, true) : [];
 
+       
+
         $master_items_other = $mysql_sb->table('masterothers')
             ->select('id as isi', DB::raw("CONCAT(otherscode,' ',othersdesc) as tampil"))
             ->orderBy('id', 'DESC')
@@ -92,6 +97,13 @@ class Marketing_BomController extends Controller
         $master_sizes = $mysql_sb->table('master_size_new')->orderBy('urutan', 'ASC')->get();
         $master_currency = $mysql_sb->table('masterpilihan')->where('kode_pilihan', 'curr')->get();
 
+        $costings = $mysql_sb->table('act_costing_new')->select('id', 'no_costing', 'style')->orderBy('id', 'desc')->get();
+
+         $shell = $mysql_sb->table('masterpanel')
+                ->where('nama_panel', 'LIKE', 'shell' . '%')
+                ->orderBy('id', 'desc')
+                ->get();
+
         return view('marketing.bom.edit', [
             'page'               => 'dashboard-marketing',
             'subPageGroup'       => 'marketing-master',
@@ -99,13 +111,15 @@ class Marketing_BomController extends Controller
             'bom'                => $bom,
             'buyers'             => $buyers,
             'suppliers'          => $suppliers,
-            'master_units'        => $master_units,
+            'master_units'       => $master_units,
             'master_colors'      => $master_colors,
             'master_sizes'       => $master_sizes,
-            'master_currency'       => $master_currency,
+            'master_currency'    => $master_currency,
             'selectedColors'     => $selectedColors,
             'selectedSizes'      => $selectedSizes,
             'master_items_other' => $master_items_other,
+            'costings'           => $costings,
+            'shell'           => $shell,
             'containerFluid'     => true
         ]);
     }
@@ -144,6 +158,7 @@ class Marketing_BomController extends Controller
                 'id_buyer'       => $request->buyer,
                 'style'          => $request->style,
                 'market'         => $request->market,
+                'id_costing'     => $request->id_costing,
                 'colors'         => $colors_json,
                 'sizes'          => $sizes_json,
                 'created_at'     => now(),
@@ -154,12 +169,12 @@ class Marketing_BomController extends Controller
             return response()->json([
                 'status'  => 200,
                 'id'      => $id_bom,
-                'message' => 'Header BOM berhasil dibuat: ' . $no_katalog_bom
+                'message' => 'BOM berhasil dibuat: ' . $no_katalog_bom
             ]);
 
         } catch (\Exception $e) {
             $mysql_sb->rollback();
-            return response()->json(['status' => 500, 'message' => 'Gagal simpan header: ' . $e->getMessage()]);
+            return response()->json(['status' => 500, 'message' => 'Gagal simpan BOM: ' . $e->getMessage()]);
         }
     }
 
@@ -179,6 +194,11 @@ class Marketing_BomController extends Controller
             $currency    = $request->currency;
             $details     = [];
 
+            $item_content = explode('_', $request->item_contents);
+            $id_content = $item_content[0] ?? null;
+            $id_set     = (!empty($item_content[1])) ? $item_content[1] : null;
+            $item_desc  = (!empty($item_content[2])) ? $item_content[2] : null;
+
             foreach ($colors as $color_index => $data_color) {
                 foreach ($sizes as $size_index => $data_size) {
 
@@ -194,9 +214,11 @@ class Marketing_BomController extends Controller
                     if ($id_item) {
                         $details[] = [
                             'id_bom_marketing' => $bom_id,
-                            'id_contents'      => $request->item_contents,
+                            'id_contents'      => $id_content,
+                            'id_set'           => $id_set,
+                            'item_desc'        => $item_desc,
                             'rule_bom'         => $rule,
-                            'unit'          => $request->unit,
+                            'unit'             => $request->unit,
                             'notes'            => $request->notes,
                             'shell'            => $request->shell,
                             'id_color'         => $data_color,
@@ -228,6 +250,7 @@ class Marketing_BomController extends Controller
     public function updateBomHeader(Request $request)
     {
         $id_bom = $request->id_bom ?? $request->id_bom_marketing;
+        $id_costing = $request->id_costing;
 
 
         if (!$id_bom) {
@@ -241,12 +264,13 @@ class Marketing_BomController extends Controller
             DB::connection('mysql_sb')->table('bom_marketing')
                 ->where('id', $id_bom)
                 ->update([
+                    'id_costing'     => $id_costing,
                     'colors'     => json_encode($colors),
                     'sizes'      => json_encode($sizes),
                     'updated_at' => now(),
                 ]);
 
-            return response()->json(['status' => 200, 'message' => 'Master Color & Size Berhasil Diperbarui!']);
+            return response()->json(['status' => 200, 'message' => 'Data Berhasil Diperbarui!']);
         } catch (\Exception $e) {
             return response()->json(['status' => 500, 'message' => 'Gagal: ' . $e->getMessage()]);
         }
@@ -263,14 +287,19 @@ class Marketing_BomController extends Controller
             $id_supplier   = $request->id_supplier;
             $category      = $request->category;
             $currency      = $request->currency;
-            $item_contents = $request->item_contents;
             $rule_bom      = $request->rule_bom;
 
+            $item_contents = $request->item_contents;
+            $parts = explode('|', $item_contents);
+
+            $id_costing_detail = $parts[0] ?? null;
+            $id_content        = $parts[1] ?? null;
+            $id_set            = (isset($parts[2]) && $parts[2] !== '') ? $parts[2] : null;
+            $item_desc         = (isset($parts[3]) && $parts[3] !== '') ? $parts[3] : null;
 
             $bom_header = $mysql_sb->table('bom_marketing')->where('id', $bom_id)->first();
             $header_colors = $bom_header && $bom_header->colors ? json_decode($bom_header->colors, true) : [];
             $header_sizes  = $bom_header && $bom_header->sizes ? json_decode($bom_header->sizes, true) : [];
-
 
             $items  = $request->id_item ?? [];
             $colors = $request->id_color ?? [];
@@ -295,43 +324,61 @@ class Marketing_BomController extends Controller
                     foreach ($target_colors as $cId) {
                         foreach ($target_sizes as $sId) {
 
-                            $existing = $mysql_sb->table('bom_marketing_detail')
+                            $existingQuery = $mysql_sb->table('bom_marketing_detail')
                                 ->where('id_bom_marketing', $bom_id)
-                                ->where('id_contents', $item_contents)
+                                ->where('id_contents', $id_content)
                                 ->where('id_color', $cId)
                                 ->where('id_size', $sId)
-                                ->first();
+                                ->where('id_set', $id_set);
+
+                            if ($item_desc) {
+                                $existingQuery->where('item_desc', $item_desc);
+                            } else {
+                                $existingQuery->where(function($q) {
+                                    $q->whereNull('item_desc')->orWhere('item_desc', '');
+                                });
+                            }
+
+                            $existing = $existingQuery->first();
 
                             if ($existing) {
                                 $mysql_sb->table('bom_marketing_detail')
                                     ->where('id', $existing->id)
                                     ->update([
-                                        'id_item'     => $id_item,
-                                        'id_supplier' => $id_supplier,
-                                        'unit'        => $request->unit,
-                                        'id_currency' => $currency,
-                                        'qty'         => $qty,
-                                        'price'       => $price,
-                                        'notes'       => $request->notes,
-                                        'shell'       => $request->shell,
+                                        'id_item'           => $id_item,
+                                        'id_set'            => $id_set,
+                                        'item_desc'         => $item_desc,
+                                        'id_supplier'       => $id_supplier,
+                                        'unit'              => $request->unit,
+                                        'id_currency'       => $currency,
+                                        'qty'               => $qty,
+                                        // 'price'             => $price,
+                                        'notes'             => $request->notes,
+                                        'shell'             => $request->shell,
+                                        'id_costing_detail' => $id_costing_detail,
+
                                     ]);
                             } else {
                                 $details_to_insert[] = [
-                                    'id_bom_marketing' => $bom_id,
-                                    'id_contents'      => $item_contents,
-                                    'rule_bom'         => $rule_bom,
-                                    'unit'             => $request->unit,
-                                    'notes'            => $request->notes,
-                                    'shell'            => $request->shell,
-                                    'id_color'         => $cId,
-                                    'id_size'          => $sId,
-                                    'id_item'          => $id_item,
-                                    'id_supplier'      => $id_supplier,
-                                    'id_currency'      => $currency,
-                                    'qty'              => $qty,
-                                    'price'            => $price,
-                                    'category'         => $category,
-                                    'created_at'       => now(),
+                                    'id_bom_marketing'  => $bom_id,
+                                    'id_contents'       => $id_content,
+                                    'id_set'            => $id_set,
+                                    'item_desc'         => $item_desc,
+                                    'rule_bom'          => $rule_bom,
+                                    'unit'              => $request->unit,
+                                    'notes'             => $request->notes,
+                                    'shell'             => $request->shell,
+                                    'id_color'          => $cId,
+                                    'id_size'           => $sId,
+                                    'id_item'           => $id_item,
+                                    'id_supplier'       => $id_supplier,
+                                    'id_currency'       => $currency,
+                                    'qty'               => $qty,
+                                    // 'price'             => $price,
+                                    'category'          => $category,
+                                    'created_at'        => now(),
+                                    'id_costing_detail' => $id_costing_detail,
+
                                 ];
                             }
                         }
@@ -355,7 +402,6 @@ class Marketing_BomController extends Controller
     {
         $mysql_sb = DB::connection('mysql_sb');
 
-
         if ($request->ajax()) {
             $data = $mysql_sb->table('bom_marketing_detail as d')
                 ->leftJoin('masteritem as i', 'd.id_item', '=', 'i.id_item')
@@ -368,21 +414,31 @@ class Marketing_BomController extends Controller
                 ->leftJoin('mastercf as mfg', 'd.id_contents', '=', 'mfg.id')
                 ->leftJoin('masterpilihan as u', 'd.unit', '=', 'u.id')
                 ->leftJoin('masterpilihan as cur', 'd.id_currency', '=', 'cur.id')
+                ->leftJoin('master_set as st', 'd.id_set', '=', 'st.id')
+                ->leftJoin('masterpanel as mp', 'd.shell', '=', 'mp.id')
                 ->select(
                     'd.*',
+                    'mp.nama_panel',
                     $mysql_sb->raw("
                         CASE
                             WHEN d.category = 'Manufacturing'
                             THEN CONCAT(i.itemdesc, ' ', i.color, ' ', i.size, ' ', i.add_info)
-                            ELSE i.itemdesc
+                            ELSE CONCAT(i.id_item, ' ', i.itemdesc)
                         END as item_name
                     "),
                     $mysql_sb->raw("
                         CASE
                             WHEN d.category = 'Manufacturing'
-                            THEN CONCAT(mfg.cfcode, ' ', mfg.cfdesc)
-                            ELSE CONCAT(e.id, ' ', a.nama_group, ' ', s_grp.nama_sub_group, ' ', d2.nama_type, ' ', e.nama_contents)
+                            THEN CONCAT(mfg.cfdesc, IF(d.item_desc IS NOT NULL AND d.item_desc != '', CONCAT(' [', d.item_desc, ']'), ''), IF(st.nama IS NOT NULL, CONCAT(' [', st.nama, ']'), ''))
+                            ELSE CONCAT(a.nama_group, ' ', s_grp.nama_sub_group, ' ', d2.nama_type, ' ', e.nama_contents, IF(d.item_desc IS NOT NULL AND d.item_desc != '', CONCAT(' [', d.item_desc, ']'), ''), IF(st.nama IS NOT NULL, CONCAT(' [', st.nama, ']'), ''))
                         END as content_name
+                    "),
+                    $mysql_sb->raw("
+                        CASE
+                            WHEN d.category = 'Manufacturing'
+                            THEN mfg.cfcode
+                            ELSE e.id
+                        END as id_content
                     "),
                     'c.name as color_name',
                     's.size as size_name',
@@ -405,26 +461,33 @@ class Marketing_BomController extends Controller
                     $sql = "CASE
                                 WHEN d.category = 'Manufacturing'
                                 THEN CONCAT(i.itemdesc, ' ', i.color, ' ', i.size, ' ', i.add_info)
-                                ELSE i.itemdesc
+                                ELSE CONCAT(i.id_item, ' ', i.itemdesc)
                             END like ?";
                     $query->whereRaw($sql, ["%{$keyword}%"]);
                 })
                 ->filterColumn('content_name', function($query, $keyword) {
                     $sql = "CASE
                                 WHEN d.category = 'Manufacturing'
-                                THEN CONCAT(mfg.cfcode, ' ', mfg.cfdesc)
-                                ELSE CONCAT(e.id, ' ', a.nama_group, ' ', s_grp.nama_sub_group, ' ', d2.nama_type, ' ', e.nama_contents)
+                                THEN CONCAT(mfg.cfcode, ' ', mfg.cfdesc, IF(d.item_desc IS NOT NULL AND d.item_desc != '', CONCAT(' [', d.item_desc, ']'), ''), IF(st.nama IS NOT NULL, CONCAT(' [', st.nama, ']'), ''))
+                                ELSE CONCAT(e.id, ' ', a.nama_group, ' ', s_grp.nama_sub_group, ' ', d2.nama_type, ' ', e.nama_contents, IF(d.item_desc IS NOT NULL AND d.item_desc != '', CONCAT(' [', d.item_desc, ']'), ''), IF(st.nama IS NOT NULL, CONCAT(' [', st.nama, ']'), ''))
+                            END like ?";
+                    $query->whereRaw($sql, ["%{$keyword}%"]);
+                })
+                ->filterColumn('id_content', function($query, $keyword) {
+                    $sql = "CASE
+                                WHEN d.category = 'Manufacturing' THEN mfg.cfcode
+                                ELSE e.id
                             END like ?";
                     $query->whereRaw($sql, ["%{$keyword}%"]);
                 })
                 ->filterColumn('shell', function($query, $keyword) {
-                    $query->whereRaw("d.shell like ?", ["%{$keyword}%"]);
+                    $query->whereRaw("mp.nama_panel like ?", ["%{$keyword}%"]);
                 })
                 ->filterColumn('currency', function($query, $keyword) {
                     $query->whereRaw("cur.nama_pilihan like ?", ["%{$keyword}%"]);
                 })
                 ->filterColumn('unit', function($query, $keyword) {
-                    $query->whereRaw("d.unit like ?", ["%{$keyword}%"]);
+                    $query->whereRaw("u.nama_pilihan like ?", ["%{$keyword}%"]);
                 })
                 ->filterColumn('color_name', function($query, $keyword) {
                     $query->whereRaw("c.name like ?", ["%{$keyword}%"]);
@@ -438,6 +501,7 @@ class Marketing_BomController extends Controller
                 ->make(true);
         }
     }
+
 
     public function getItemRow($id)
     {
@@ -527,47 +591,320 @@ class Marketing_BomController extends Controller
         return response()->json($html);
     }
 
+    // public function getItemContents(Request $request)
+    // {
+    //     $kategori = $request->kategori;
+    //     $id_costing = $request->id_costing;
+
+    //     $html = "<option value=''>Pilih Item...</option>";
+
+    //     if (empty($kategori) || empty($id_costing)) {
+    //         return response()->json($html);
+    //     }
+
+    //     $mysql_sb = DB::connection('mysql_sb');
+
+    //     if ($kategori == 'Manufacturing') {
+
+    //         $items = $mysql_sb->table('act_costing_detail_new as ac')
+    //             ->join('mastercf as m', 'ac.item_id', '=', 'm.id')
+    //             ->where('ac.id_costing', $id_costing)
+    //             ->where('ac.type', 'Manufacturing')
+    //             ->select(
+    //                 'm.id as isi',
+    //                 $mysql_sb->raw("CONCAT(m.cfcode, ' ', m.cfdesc) as tampil")
+    //             )
+    //             ->distinct()
+    //             ->orderBy('m.id', 'DESC')
+    //             ->get();
+
+    //         foreach ($items as $item){
+    //             $html .= "<option value='{$item->isi}'>{$item->tampil}</option>";
+    //         }
+
+    //     } else if ($kategori == 'Other Cost') {
+
+    //         $others = $mysql_sb->table('act_costing_detail_new as ac')
+    //             ->join('masterothers as m', 'ac.item_id', '=', 'm.id')
+    //             ->where('ac.id_costing', $id_costing)
+    //             ->where('ac.type', 'Other Cost')
+    //             ->select(
+    //                 'm.id as isi',
+    //                 $mysql_sb->raw("CONCAT(m.otherscode, ' ', m.othersdesc) as tampil")
+    //             )
+    //             ->distinct()
+    //             ->orderBy('m.id', 'desc')
+    //             ->get();
+
+    //         foreach ($others as $o) {
+    //             $html .= '<option value="' . $o->isi . '">' . $o->tampil . '</option>';
+    //         }
+
+    //     } else {
+
+    //         $types_in_material = ['Fabric', 'Accessories Sewing', 'Accessories Packing'];
+
+    //         $items = $mysql_sb->table('act_costing_detail_new as ac')
+    //             ->join('mastercontents as e', 'ac.item_id', '=', 'e.id')
+    //             ->join('mastertype2 as d', 'e.id_type', '=', 'd.id')
+    //             ->join('mastersubgroup as s', 'd.id_sub_group', '=', 's.id')
+    //             ->join('mastergroup as a', 's.id_group', '=', 'a.id')
+    //             ->where('ac.id_costing', $id_costing)
+    //             ->whereIn('ac.type', $types_in_material)
+    //             ->where('e.aktif', 'Y')
+    //             ->select(
+    //                 'e.id as isi',
+    //                 $mysql_sb->raw("CONCAT(e.id, ' ', a.nama_group, ' ', s.nama_sub_group, ' ', d.nama_type, ' ', e.nama_contents) as tampil") // Teks panjang yang muncul di Dropdown
+    //             )
+    //             ->distinct()
+    //             ->get();
+
+    //         foreach ($items as $item) {
+    //             $html .= "<option value='{$item->isi}'>{$item->tampil}</option>";
+    //         }
+    //     }
+
+    //     return response()->json($html);
+    // }
+
+    // public function getItemContents(Request $request)
+    // {
+    //     $kategori = $request->kategori;
+    //     $id_costing = $request->id_costing;
+
+
+    //     $html = "<option value=''>Pilih Item...</option>";
+
+    //     if (empty($kategori) || empty($id_costing)) {
+    //         return response()->json($html);
+    //     }
+
+    //     $mysql_sb = DB::connection('mysql_sb');
+
+    //     if ($kategori == 'Manufacturing') {
+
+    //         $items = $mysql_sb->table('act_costing_detail_new as ac')
+    //             ->join('mastercf as m', 'ac.item_id', '=', 'm.id')
+    //             ->leftJoin('master_set as st', 'ac.set', '=', 'st.id')
+    //             ->where('ac.id_costing', $id_costing)
+    //             ->where('ac.type', 'Manufacturing')
+    //             ->select(
+    //                 $mysql_sb->raw("CONCAT(m.id, '_', IFNULL(ac.set, '')) as isi"),
+    //                 $mysql_sb->raw("CONCAT(m.cfcode, ' ', m.cfdesc, IF(st.nama IS NOT NULL, CONCAT(' [', st.nama, ']'), '')) as tampil"),
+    //                 'ac.unit',
+    //             )
+    //             ->distinct()
+    //             ->orderBy('m.id', 'DESC')
+    //             ->get();
+
+    //         foreach ($items as $item){
+    //             $html .= "<option value='{$item->isi}' data-unit='{$item->unit}'>{$item->tampil}</option>";
+    //         }
+
+    //     } else if ($kategori == 'Other Cost') {
+
+    //         $others = $mysql_sb->table('act_costing_detail_new as ac')
+    //             ->join('masterothers as m', 'ac.item_id', '=', 'm.id')
+    //             ->where('ac.id_costing', $id_costing)
+    //             ->where('ac.type', 'Other Cost')
+    //             ->select(
+    //                 $mysql_sb->raw("CONCAT(m.id, '_', IFNULL(ac.set, '')) as isi"),
+    //                 $mysql_sb->raw("CONCAT(m.otherscode, ' ', m.othersdesc) as tampil")
+    //             )
+    //             ->distinct()
+    //             ->orderBy('m.id', 'desc')
+    //             ->get();
+
+    //         foreach ($others as $o) {
+    //             $html .= '<option value="' . $o->isi . '" data-unit="">' . $o->tampil . '</option>';
+    //         }
+
+    //     } else {
+
+    //         $types_in_material = ['Fabric', 'Accessories Sewing', 'Accessories Packing'];
+
+    //         $items = $mysql_sb->table('act_costing_detail_new as ac')
+    //             ->join('mastercontents as e', 'ac.item_id', '=', 'e.id')
+    //             ->join('mastertype2 as d', 'e.id_type', '=', 'd.id')
+    //             ->join('mastersubgroup as s', 'd.id_sub_group', '=', 's.id')
+    //             ->join('mastergroup as a', 's.id_group', '=', 'a.id')
+    //             ->leftJoin('master_set as st', 'ac.set', '=', 'st.id')
+    //             ->where('ac.id_costing', $id_costing)
+    //             ->whereIn('ac.type', $types_in_material)
+    //             ->where('e.aktif', 'Y')
+    //             ->select(
+    //                 $mysql_sb->raw("CONCAT(e.id, '_', IFNULL(ac.set, '')) as isi"),
+    //                 $mysql_sb->raw("CONCAT(e.id, ' ', a.nama_group, ' ', s.nama_sub_group, ' ', d.nama_type, ' ', e.nama_contents, IF(st.nama IS NOT NULL, CONCAT(' [', st.nama, ']'), '')) as tampil"),
+    //                 'ac.unit'
+    //             )
+    //             ->distinct()
+    //             ->get();
+
+    //         foreach ($items as $item) {
+    //             $html .= "<option value='{$item->isi}' data-unit='{$item->unit}'>{$item->tampil}</option>";
+    //         }
+    //     }
+
+    //     return response()->json($html);
+    // }
+
     public function getItemContents(Request $request)
     {
         $kategori = $request->kategori;
-        $html = "<option value=''>Pilih Item Contents</option>";
+        $id_costing = $request->id_costing;
 
-        if (empty($kategori)) {
+        $html = "<option value=''>Pilih Item...</option>";
+
+        if (empty($kategori) || empty($id_costing)) {
             return response()->json($html);
         }
 
         $mysql_sb = DB::connection('mysql_sb');
 
-        if ($kategori == 'Material' || $kategori == 'Costing Detail') {
-            $items = $mysql_sb->table('mastergroup as a')
-                ->join('mastersubgroup as s', 'a.id', '=', 's.id_group')
-                ->join('mastertype2 as d', 's.id', '=', 'd.id_sub_group')
-                ->join('mastercontents as e', 'd.id', '=', 'e.id_type')
-                ->select('e.id as isi', $mysql_sb->raw("CONCAT(e.id,' ',a.nama_group,' ',s.nama_sub_group,' ',d.nama_type,' ',e.nama_contents) as tampil"))
-                ->get();
+        if ($kategori == 'Manufacturing') {
 
-            foreach ($items as $item) { $html .= "<option value='{$item->isi}'>{$item->tampil}</option>"; }
-
-        } elseif ($kategori == 'Manufacturing' || $kategori == 'Manufacturing - Complexity') {
-            $items = $mysql_sb->table('mastercf')
-                ->select('id as isi', $mysql_sb->raw("CONCAT(cfcode,' ',cfdesc) as tampil"))
-                ->orderBy('id', 'DESC')
+            $items = $mysql_sb->table('act_costing_detail_new as ac')
+                ->join('mastercf as m', 'ac.item_id', '=', 'm.id')
+                ->leftJoin('master_set as st', 'ac.set', '=', 'st.id')
+                ->where('ac.id_costing', $id_costing)
+                ->where('ac.type', 'Manufacturing')
+                ->select(
+                    $mysql_sb->raw("CONCAT(ac.id, '|', m.id, '|', IFNULL(ac.set, ''), '|', IFNULL(ac.item_desc, '')) as isi"),
+                    $mysql_sb->raw("CONCAT(m.cfcode, ' ', m.cfdesc, IF(ac.item_desc IS NOT NULL AND ac.item_desc != '', CONCAT(' [', ac.item_desc, ']'), ''), IF(st.nama IS NOT NULL, CONCAT(' [', st.nama, ']'), '')) as tampil"),
+                    'ac.unit'
+                )
+                ->distinct()
+                ->orderBy('m.id', 'DESC')
                 ->get();
 
             foreach ($items as $item){
-                $html .= "<option value='{$item->isi}'>{$item->tampil}</option>";
+                $html .= "<option value='{$item->isi}' data-unit='{$item->unit}'>{$item->tampil}</option>";
+            }
+
+        } else if ($kategori == 'Other Cost') {
+
+            $others = $mysql_sb->table('act_costing_detail_new as ac')
+                ->join('masterothers as m', 'ac.item_id', '=', 'm.id')
+                ->where('ac.id_costing', $id_costing)
+                ->where('ac.type', 'Other Cost')
+                ->select(
+                    $mysql_sb->raw("CONCAT(ac.id, '|', m.id, '|', IFNULL(ac.set, ''), '|', IFNULL(ac.item_desc, '')) as isi"),
+                    $mysql_sb->raw("CONCAT(m.otherscode, ' ', m.othersdesc, IF(ac.item_desc IS NOT NULL AND ac.item_desc != '', CONCAT(' [', ac.item_desc, ']'), '')) as tampil")
+                )
+                ->distinct()
+                ->orderBy('m.id', 'desc')
+                ->get();
+
+            foreach ($others as $o) {
+                $html .= '<option value="' . $o->isi . '" data-unit="">' . $o->tampil . '</option>';
+            }
+
+        } else {
+
+            $types_in_material = ['Fabric', 'Accessories Sewing', 'Accessories Packing'];
+
+            $items = $mysql_sb->table('act_costing_detail_new as ac')
+                ->join('mastercontents as e', 'ac.item_id', '=', 'e.id')
+                ->join('mastertype2 as d', 'e.id_type', '=', 'd.id')
+                ->join('mastersubgroup as s', 'd.id_sub_group', '=', 's.id')
+                ->join('mastergroup as a', 's.id_group', '=', 'a.id')
+                ->leftJoin('master_set as st', 'ac.set', '=', 'st.id')
+                ->where('ac.id_costing', $id_costing)
+                ->whereIn('ac.type', $types_in_material)
+                ->where('e.aktif', 'Y')
+                ->select(
+                    $mysql_sb->raw("CONCAT(ac.id, '|', e.id, '|', IFNULL(ac.set, ''), '|', IFNULL(ac.item_desc, '')) as isi"),
+                    $mysql_sb->raw("CONCAT(e.id, ' ', a.nama_group, ' ', s.nama_sub_group, ' ', d.nama_type, ' ', e.nama_contents, IF(ac.item_desc IS NOT NULL AND ac.item_desc != '', CONCAT(' [', ac.item_desc, ']'), ''), IF(st.nama IS NOT NULL, CONCAT(' [', st.nama, ']'), '')) as tampil"),
+                    'ac.unit'
+                )
+                ->distinct()
+                ->get();
+
+            foreach ($items as $item) {
+                $html .= "<option value='{$item->isi}' data-unit='{$item->unit}'>{$item->tampil}</option>";
             }
         }
 
         return response()->json($html);
     }
 
+    // public function getListData(Request $request)
+    // {
+    //     $id_contents = $request->id_contents;
+    //     $category = $request->category;
+
+    //     $id_bom = $request->id_bom;
+
+    //     $mysql_sb = DB::connection('mysql_sb');
+
+    //     dd($id_contents, $category, $id_bom);
+
+    //     if ($category == 'Manufacturing') {
+    //         $masterItems = $mysql_sb->table('masteritem as a')
+    //             ->join('mastercf as s', 'a.matclass', '=', 's.cfdesc')
+    //             ->where('a.mattype', 'C')
+    //             ->where('s.id', $id_contents)
+    //             ->select(
+    //                 'a.id_item as isi',
+    //                 DB::raw("CONCAT(a.itemdesc, ' ', a.color, ' ', a.size, ' ', a.add_info) as tampil")
+    //             )
+    //             ->orderBy('a.id_item', 'DESC')
+    //             ->get();
+    //     } else {
+    //         $masterItems = $mysql_sb->table('masteritem as a')
+    //             ->join('masterdesc as b', 'a.id_gen', '=', 'b.id')
+    //             ->join('mastercolor as c', 'b.id_color', '=', 'c.id')
+    //             ->join('masterweight as d', 'c.id_weight', '=', 'd.id')
+    //             ->join('masterlength as e', 'd.id_length', '=', 'e.id')
+    //             ->join('masterwidth as f', 'e.id_width', '=', 'f.id')
+    //             ->join('mastercontents as g', 'f.id_contents', '=', 'g.id')
+    //             ->where('g.id', $id_contents)
+    //             ->select(
+    //                 'a.id_item as isi',
+    //                 DB::raw("CONCAT(a.id_item, ' - ', a.itemdesc) as tampil")
+    //             )
+    //             ->groupBy('a.id_gen')
+    //             ->get();
+    //     }
+
+
+    //     $existingDetails = [];
+    //     if ($id_bom && $id_contents) {
+    //         $savedItems = $mysql_sb->table('bom_marketing_detail')
+    //             ->where('id_bom_marketing', $id_bom)
+    //             ->where('id_contents', $id_contents)
+    //             ->select('id_color', 'id_size', 'id_item', 'qty', 'price')
+    //             ->get();
+
+    //         foreach ($savedItems as $item) {
+    //             $cId = $item->id_color ?? 'null';
+    //             $sId = $item->id_size ?? 'null';
+
+    //             $existingDetails["{$cId}_{$sId}"] = [
+    //                 'id_item' => $item->id_item,
+    //                 'qty'     => $item->qty,
+    //                 'price'   => $item->price
+    //             ];
+    //         }
+    //     }
+
+    //     return response()->json([
+    //         'items'    => $masterItems,
+    //         'existing' => $existingDetails
+    //     ]);
+    // }
+
     public function getListData(Request $request)
     {
-        $id_contents = $request->id_contents;
         $category = $request->category;
+        $id_bom   = $request->id_bom;
 
-        $id_bom = $request->id_bom;
+        $data_contents = $request->id_contents;
+        $parts        = explode('|', $data_contents);
+
+        $id_contents       = $parts[1] ?? $data_contents;
+        $id_set            = (isset($parts[2]) && $parts[2] !== '') ? $parts[2] : null;
+        $item_desc         = (isset($parts[3]) && $parts[3] !== '') ? $parts[3] : null;
 
         $mysql_sb = DB::connection('mysql_sb');
 
@@ -578,7 +915,7 @@ class Marketing_BomController extends Controller
                 ->where('s.id', $id_contents)
                 ->select(
                     'a.id_item as isi',
-                    DB::raw("CONCAT(a.itemdesc, ' ', a.color, ' ', a.size, ' ', a.add_info) as tampil")
+                    DB::raw("CONCAT(a.itemdesc, ' ', IFNULL(a.color, ''), ' ', IFNULL(a.size, ''), ' ', IFNULL(a.add_info, '')) as tampil")
                 )
                 ->orderBy('a.id_item', 'DESC')
                 ->get();
@@ -599,14 +936,23 @@ class Marketing_BomController extends Controller
                 ->get();
         }
 
-
         $existingDetails = [];
         if ($id_bom && $id_contents) {
-            $savedItems = $mysql_sb->table('bom_marketing_detail')
+
+            $savedItemsQuery = $mysql_sb->table('bom_marketing_detail')
                 ->where('id_bom_marketing', $id_bom)
                 ->where('id_contents', $id_contents)
-                ->select('id_color', 'id_size', 'id_item', 'qty', 'price')
-                ->get();
+                ->where('id_set', $id_set);
+
+            if ($item_desc) {
+                $savedItemsQuery->where('item_desc', $item_desc);
+            } else {
+                $savedItemsQuery->where(function($q) {
+                    $q->whereNull('item_desc')->orWhere('item_desc', '');
+                });
+            }
+
+            $savedItems = $savedItemsQuery->select('id_color', 'id_size', 'id_item', 'qty', 'price')->get();
 
             foreach ($savedItems as $item) {
                 $cId = $item->id_color ?? 'null';
@@ -626,7 +972,7 @@ class Marketing_BomController extends Controller
         ]);
     }
 
-   public function storeColor(Request $request)
+    public function storeColor(Request $request)
     {
         $name = strtoupper($request->color_name);
 
@@ -702,5 +1048,54 @@ class Marketing_BomController extends Controller
     public function showDetail(Request $request, $id)
     {
         return $this->getItems($request, $id);
+    }
+
+    public function approval(Request $request)
+    {
+        if ($request->ajax()) {
+            $mysql_sb = DB::connection('mysql_sb');
+
+            $dateFrom = $request->get('date_from', date('Y-m-d'));
+            $dateTo = $request->get('date_to', date('Y-m-d'));
+
+            $data = $mysql_sb->table('bom_marketing as h')
+                ->leftJoin('mastersupplier as b', 'h.id_buyer', '=', 'b.Id_Supplier')
+                ->select('h.*', 'b.Supplier as nama_buyer', DB::raw('(SELECT SUM(qty) FROM bom_marketing_detail WHERE id_bom_marketing = h.id) as total_cons'))
+                ->where(function($query) {
+                    $query->whereNull('h.approval')
+                          ->orWhere('h.approval', '!=', 'Y');
+                })
+                ->where('h.created_at', '>=', $dateFrom . ' 00:00:00')
+                ->where('h.created_at', '<=', $dateTo . ' 23:59:59')
+                ->orderBy('h.created_at', 'desc')
+                ->get();
+
+            return response()->json(['data' => $data]);
+        }
+
+        return view('marketing.bom.approval', [
+            'page'           => 'dashboard-marketing',
+            'subPageGroup'   => 'marketing-master',
+            'subPage'        => 'marketing-master-bom-approval',
+            'containerFluid' => true
+        ]);
+    }
+
+    public function submitApproval(Request $request, $id)
+    {
+        try {
+            DB::connection('mysql_sb')
+                ->table('bom_marketing')
+                ->where('id', $id)
+                ->update([
+                    'approval' => 'Y',
+                    'approved_at' => now(),
+                    'approved_by' => Auth::user()->name
+                ]);
+
+            return response()->json(['status' => 200, 'message' => 'BOM berhasil di Approve.']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 500, 'message' => 'Gagal: ' . $e->getMessage()]);
+        }
     }
 }
