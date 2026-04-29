@@ -312,7 +312,8 @@ color,
 k.size,
 dest,
 panel,
-sum(qty_dc) - sum(qty_replace) as qty_dc,
+sum(qty_dc) - sum(qty_replace) as qty_dc_1,
+sum(qty_dc) as qty_dc,
 sum(qty_replace) as qty_replace,
 k.cancel,
 k.cancel_h,
@@ -333,7 +334,7 @@ INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
 LEFT JOIN signalbit_erp.master_size_new msn on k.size = msn.size
 group by ws, color, size, a.panel, a.no_form, a.no_cut, a.created_at
 HAVING
-    (SUM(qty_dc) - SUM(qty_replace)) <> 0
+    SUM(qty_dc) <> 0
     OR SUM(qty_replace) <> 0
 ORDER BY ws asc, color asc, urutan asc
     ");
