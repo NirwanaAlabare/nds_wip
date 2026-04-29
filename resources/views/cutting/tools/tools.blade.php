@@ -1520,7 +1520,7 @@
                 html: 'Yakin akan mengosongkan semua saldo awal '+(type == 'tmp' ? 'Temporary' : 'Aktual')+'?',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'UBAH',
+                confirmButtonText: 'KOSONGKAN',
                 cancelButtonText: 'BATAL',
                 confirmButtonColor: "#dc3545"
             }).then((result) => {
