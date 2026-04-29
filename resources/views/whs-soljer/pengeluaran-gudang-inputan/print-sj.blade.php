@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Penerimaan Gudang Inputan (FABRIC)</title>
+    <title>Pengeluaran Gudang Inputan (FABRIC)</title>
     <style>
         @page { margin: 15px; }
 
@@ -67,7 +67,7 @@
     </table>
     <table width="100%" style="border:none;">
         <tr style="line-height: 8px;">
-            <td align="center" style="border:none;"><h3>Bukti Penerimaan Gudang Inputan (FABRIC)</h3></td>
+            <td align="center" style="border:none;"><h3>Bukti Pengeluaran Gudang Inputan (FABRIC)</h3></td>
         </tr>
         <tr style="line-height: 8px;">
             <td align="center" style="border:none; font-size:14pt;">{{ $dataHeader->no_bpb }}</td>
@@ -101,15 +101,18 @@
                 <td align="center">Lot</td>
                 <td align="center">Qty</td>
                 <td align="center">Satuan</td>
+                <td align="center">Qty Out</td>
             </tr>
         </thead>
         <tbody>
         @php
-            $totalQty = 0;
+            $totalQtyAct = 0;
+            $totalQtyOut = 0;
         @endphp
         @foreach ($dataDetail as $row)
             @php
-                $totalQty += $row->qty;
+                $totalQtyAct += $row->qty_act;
+                $totalQtyOut += $row->qty_out;
             @endphp
 
             <tr>
@@ -119,8 +122,9 @@
                 <td align="left">{{ $row->jenis_item }}</td>
                 <td align="left">{{ $row->warna }}</td>
                 <td align="left">{{ $row->lot }}</td>
-                <td align="right">{{ number_format($row->qty, 2) }}</td>
+                <td align="right">{{ number_format($row->qty_act, 2) }}</td>
                 <td align="left">{{ $row->satuan }}</td>
+                <td align="right">{{ number_format($row->qty_out, 2) }}</td>
             </tr>
         @endforeach
         </tbody>
@@ -128,9 +132,12 @@
             <tr>
                 <th colspan="6" style="text-align:center;">TOTAL</th>
                 <th style="text-align:right;">
-                    {{ number_format($totalQty, 2) }}
+                    {{ number_format($totalQtyAct, 2) }}
                 </th>
                 <th></th>
+                <th style="text-align:right;">
+                    {{ number_format($totalQtyOut, 2) }}
+                </th>
             </tr>
     </tfoot>
     </table>
