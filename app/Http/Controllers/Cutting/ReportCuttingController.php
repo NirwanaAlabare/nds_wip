@@ -116,8 +116,18 @@ class ReportCuttingController extends Controller
                             GROUP BY
                                 form_cut_input.id
                         ) form_cut on form_cut.id_marker = marker_input.kode
-                    LEFT JOIN
-                        modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                    LEFT JOIN (
+                            select
+                            modify_size_qty.so_det_id,
+                            modify_size_qty.form_cut_id,
+                            SUM(modify_size_qty.difference_qty) difference_qty
+                        from
+                            modify_size_qty
+                            left join form_cut_input on form_cut_input.id = modify_size_qty.form_cut_id
+                        group by
+                            modify_size_qty.so_det_id,
+                            modify_size_qty.form_cut_id
+                    ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                 where
                     (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                     AND marker_input_detail.ratio > 0
@@ -188,8 +198,18 @@ class ReportCuttingController extends Controller
                 LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                 LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                 LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
-                    AND modify_size_qty.form_cut_id = form_cut_input.id
+                LEFT JOIN (
+                        select
+                        modify_size_qty.so_det_id,
+                        modify_size_qty.form_cut_id,
+                        SUM(modify_size_qty.difference_qty) difference_qty
+                    from
+                        modify_size_qty
+                        left join form_cut_input on form_cut_input.id = modify_size_qty.form_cut_id
+                    group by
+                        modify_size_qty.so_det_id,
+                        modify_size_qty.form_cut_id
+                ) modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
                 LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                 WHERE
                     form_cut_input.status = 'SELESAI PENGERJAAN'
@@ -336,8 +356,18 @@ class ReportCuttingController extends Controller
                                 GROUP BY
                                     form_cut_input.id
                             ) form_cut on form_cut.id_marker = marker_input.kode
-                        LEFT JOIN
-                            modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                        LEFT JOIN (
+                            select
+                                modify_size_qty.so_det_id,
+                                modify_size_qty.form_cut_id,
+                                SUM(modify_size_qty.difference_qty) difference_qty
+                            from
+                                modify_size_qty
+                                left join form_cut_input on form_cut_input.id = modify_size_qty.form_cut_id
+                            group by
+                                modify_size_qty.so_det_id,
+                                modify_size_qty.form_cut_id
+                        ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                     where
                         (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                         AND marker_input_detail.ratio > 0
@@ -410,8 +440,18 @@ class ReportCuttingController extends Controller
                     LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                     LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                     LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                    LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
-                        AND modify_size_qty.form_cut_id = form_cut_input.id
+                    LEFT JOIN (
+                        select
+                            modify_size_qty.so_det_id,
+                            modify_size_qty.form_cut_id,
+                            SUM(modify_size_qty.difference_qty) difference_qty
+                        from
+                            modify_size_qty
+                            left join form_cut_input on form_cut_input.id = modify_size_qty.form_cut_id
+                        group by
+                            modify_size_qty.so_det_id,
+                            modify_size_qty.form_cut_id
+                    ) modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
                     LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                     WHERE
                         form_cut_input.status = 'SELESAI PENGERJAAN'
