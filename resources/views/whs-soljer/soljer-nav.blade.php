@@ -23,4 +23,16 @@
             </li>
         </ul>
     </li>
+    <li class="nav-item dropdown">
+        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+            class="nav-link dropdown-toggle {{ $subPageGroup == 'pengeluaran-whs-soljer' ? 'active' : '' }}">Pengeluaran</a>
+        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+            <li>
+                <a href="{{ route('pengeluaran-gudang-inputan') }}"
+                    class="dropdown-item {{ $routeName == 'pengeluaran-gudang-inputan' ? 'active' : '' }}">
+                    Pengeluaran Gudang Inputan (FABRIC)
+                </a>
+            </li>
+        </ul>
+    </li>
 @endrole
