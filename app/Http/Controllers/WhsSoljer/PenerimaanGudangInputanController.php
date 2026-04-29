@@ -29,7 +29,17 @@ class PenerimaanGudangInputanController extends Controller
                 CASE 
                     WHEN penerimaan_gudang_inputan.cancel = 1 THEN 'Cancel'
                     ELSE 'Draft'
-                END as status
+                END as status,
+                EXISTS (
+                    SELECT 1
+                    FROM penerimaan_gudang_inputan_detail d
+                    JOIN pengeluaran_gudang_inputan_detail pd 
+                        ON pd.barcode = d.barcode
+                    JOIN pengeluaran_gudang_inputan p 
+                        ON p.id = pd.pengeluaran_gudang_inputan_id
+                    WHERE d.penerimaan_gudang_inputan_id = penerimaan_gudang_inputan.id
+                    AND p.cancel = 0
+                ) as is_used
             ")
             ->leftJoin("penerimaan_gudang_inputan_detail", "penerimaan_gudang_inputan_detail.penerimaan_gudang_inputan_id", "=", "penerimaan_gudang_inputan.id")
             ->groupBy(
@@ -373,15 +383,15 @@ class PenerimaanGudangInputanController extends Controller
             if ($i == 0) continue; 
 
             $data[] = [
-                'no_roll'     => $row[0],
+                'lokasi'      => $row[0],
                 'buyer'       => $row[1],
-                'jenis_item'  => $row[2],
-                'warna'       => $row[3],
-                'lot'         => $row[4],
-                'qty'         => $row[5],
-                'satuan'      => $row[6],
-                'keterangan'  => $row[7],
-                'lokasi'      => $row[8],
+                'keterangan'  => $row[2],
+                'jenis_item'  => $row[3],
+                'warna'       => $row[4],
+                'lot'         => $row[5],
+                'no_roll'     => $row[6],
+                'qty'         => $row[7],
+                'satuan'      => $row[8],
             ];
         }
 

@@ -158,6 +158,28 @@
                         let btnBarcode = '';
 
                         if (row.cancel != 1) {
+                            btnPrint = `
+                                <a 
+                                    href="{{ url('penerimaan-gudang-inputan/print-sj') }}/${row.id}" 
+                                    target="_blank"
+                                    class="btn btn-warning btn-sm"
+                                >
+                                    <i class="fa-solid fa-print"></i>
+                                </a>
+                            `;
+
+                            btnBarcode = `
+                                <a 
+                                    href="{{ url('penerimaan-gudang-inputan/print-barcode') }}/${row.id}" 
+                                    target="_blank"
+                                    class="btn btn-success btn-sm"
+                                >
+                                    <i class="fa-solid fa-barcode"></i>
+                                </a>
+                            `;
+                        }
+
+                        if (row.cancel != 1 && row.is_used != 1) {
                             btnEdit = `
                                 <a href="{{ url('penerimaan-gudang-inputan/edit') }}/${row.id}">
                                     <button type="button" class="btn btn-sm btn-primary">
@@ -171,26 +193,6 @@
                                     data-id="${row.id}">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
-                            `;
-
-                            btnPrint = `
-                                <a 
-                                    href="{{ url('penerimaan-gudang-inputan/print-sj') }}/${row.id}" 
-                                    target="_blank"
-                                    class="btn btn-warning btn-sm"
-                                >
-                                    <i class="fa-solid fa-print"></i>
-                                </a>
-                            `;
-    
-                            btnBarcode = `
-                                <a 
-                                    href="{{ url('penerimaan-gudang-inputan/print-barcode') }}/${row.id}" 
-                                    target="_blank"
-                                    class="btn btn-success btn-sm"
-                                >
-                                    <i class="fa-solid fa-barcode"></i>
-                                </a>
                             `;
                         }
 

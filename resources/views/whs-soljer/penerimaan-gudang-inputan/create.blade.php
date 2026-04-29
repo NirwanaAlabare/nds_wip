@@ -115,8 +115,13 @@
                     <div class="row mt-3">
                         <div class="col-1 col-md-1">
                             <div class="mb-1">
-                                <label class="form-label"><small>No Roll</small></label>
-                                <input type="text" class="form-control" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" id="no_roll" name="no_roll" value="">
+                                <label class="form-label"><small>Lokasi</small></label>
+                                <select class="form-control select2bs4" id="lokasi" name="lokasi">
+                                    <option value="">Pilih Lokasi</option>
+                                    @foreach($lokasi as $row)
+                                        <option value="{{ $row->idx }}">{{ $row->lokasi }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
                         <div class="col-2 col-md-2">
@@ -127,11 +132,17 @@
                         </div>
                         <div class="col-2 col-md-2">
                             <div class="mb-1">
+                                <label class="form-label"><small>Keterangan</small></label>
+                                <input type="text" class="form-control" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" id="keterangan" name="keterangan" value="">
+                            </div>
+                        </div>
+                        <div class="col-2 col-md-2">
+                            <div class="mb-1">
                                 <label class="form-label"><small>Jenis Item</small></label>
                                 <input type="text" class="form-control" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" id="jenis_item" name="jenis_item" value="">
                             </div>
                         </div>
-                        <div class="col-2 col-md-2">
+                        <div class="col-1 col-md-1">
                             <div class="mb-1">
                                 <label class="form-label"><small>Warna</small></label>
                                 <input type="text" class="form-control" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" id="warna" name="warna" value="">
@@ -141,6 +152,12 @@
                             <div class="mb-1">
                                 <label class="form-label"><small>Lot</small></label>
                                 <input type="text" class="form-control" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" id="lot" name="lot" value="">
+                            </div>
+                        </div>
+                        <div class="col-1 col-md-1">
+                            <div class="mb-1">
+                                <label class="form-label"><small>No Roll</small></label>
+                                <input type="text" class="form-control" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" id="no_roll" name="no_roll" value="">
                             </div>
                         </div>
                         <div class="col-1 col-md-1">
@@ -156,23 +173,6 @@
                                     <option value="">Pilih Satuan</option>
                                     @foreach($satuan as $row)
                                         <option value="{{ $row->id }}">{{ $row->nama_pilihan }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-1 col-md-1">
-                            <div class="mb-1">
-                                <label class="form-label"><small>Keterangan</small></label>
-                                <input type="text" class="form-control" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" id="keterangan" name="keterangan" value="">
-                            </div>
-                        </div>
-                        <div class="col-1 col-md-1">
-                            <div class="mb-1">
-                                <label class="form-label"><small>Lokasi</small></label>
-                                <select class="form-control select2bs4" id="lokasi" name="lokasi">
-                                    <option value="">Pilih Lokasi</option>
-                                    @foreach($lokasi as $row)
-                                        <option value="{{ $row->idx }}">{{ $row->lokasi }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -200,23 +200,23 @@
                         <table class="table table-bordered w-100 table" id="datatable">
                             <thead>
                                 <tr>
-                                    <th>No Roll</th>
+                                    <th>Lokasi</th>
                                     <th>Buyer</th>
+                                    <th>Keterangan</th>
                                     <th>Jenis Item</th>
                                     <th>Warna</th>
                                     <th>Lot</th>
+                                    <th>No Roll</th>
                                     <th>Qty</th>
                                     <th>Satuan</th>
-                                    <th>Keterangan</th>
-                                    <th>Lokasi</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
                             <tfoot>
                                 <tr>
-                                    <th colspan="5" class="text-center">TOTAL</th>
+                                    <th colspan="7" class="text-center">TOTAL</th>
                                     <th id="total_qty" class="text-end">0</th>
-                                    <th colspan="4"></th>
+                                    <th colspan="2"></th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -288,15 +288,15 @@
                 serverSide: false,
                 data: [],
                 columns: [
-                    { data: 'no_roll' },
+                    { data: 'lokasi' },
                     { data: 'buyer' },
+                    { data: 'keterangan' },
                     { data: 'jenis_item' },
                     { data: 'warna' },
                     { data: 'lot' },
+                    { data: 'no_roll' },
                     { data: 'qty', className: 'text-end' },
                     { data: 'satuan' },
-                    { data: 'keterangan' },
-                    { data: 'lokasi' },
                     { data: 'action' },
                 ]
             });
@@ -425,6 +425,16 @@
             theme: 'bootstrap4',
         })
 
+        $("#qty").on('blur', function () {
+            let val = parseFloat($(this).val());
+
+            if (!isNaN(val)) {
+                $(this).val(val.toFixed(2));
+            } else {
+                $(this).val('0.00');
+            }
+        });
+
         function updateTotalQty() {
             let data = table_detail_item.rows().data().toArray();
 
@@ -434,7 +444,7 @@
                 total += parseFloat(row.qty || 0);
             });
 
-            $('#total_qty').text(total);
+            $('#total_qty').text(total.toFixed(2));
         }
 
         function OpenModal() {
@@ -462,7 +472,7 @@
                                 jenis_item: item.jenis_item,
                                 warna: item.warna,
                                 lot: item.lot,
-                                qty: item.qty,
+                                qty: parseFloat(item.qty).toFixed(2),
                                 satuan: item.satuan,
                                 lokasi: item.lokasi,
                                 keterangan: item.keterangan,

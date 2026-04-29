@@ -56,40 +56,39 @@
                         <table class="table table-bordered w-100 table" id="datatable">
                             <thead>
                                 <tr>
-                                    <th>No Roll</th>
+                                    <th>Lokasi</th>
                                     <th>Buyer</th>
+                                    <th>Keterangan</th>
                                     <th>Jenis Item</th>
                                     <th>Warna</th>
                                     <th>Lot</th>
+                                    <th>No Roll</th>
                                     <th>Qty</th>
                                     <th>Satuan</th>
-                                    <th>Keterangan</th>
-                                    <th>Lokasi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($data_detail as $row)
                                 <tr data-id="{{ $row->id }}">
-                                    <td>{{ $row->no_roll }}</td>
+                                    <td>{{ $row->lokasi }}</td>
                                     <td>{{ $row->buyer }}</td>
+                                    <td>{{ $row->keterangan }}</td>
                                     <td>{{ $row->jenis_item }}</td>
                                     <td>{{ $row->warna }}</td>
                                     <td>{{ $row->lot }}</td>
+                                    <td>{{ $row->no_roll }}</td>
                                     <td>
-                                        {{-- <input type="number" class="form-control form-control-sm text-end qty" value="{{ $row->qty }}"> --}}
-                                        <input type="number" step="any" class="form-control form-control-sm text-end qty" value="{{ $row->qty }}">
+                                        <input type="number" step="any" class="form-control form-control-sm text-end qty" value="{{ number_format($row->qty, 2) }}">
                                     </td>
                                     <td>{{ $row->satuan }}</td>
-                                    <td>{{ $row->keterangan }}</td>
-                                    <td>{{ $row->lokasi }}</td>
                                 </tr>
                                 @endforeach
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th colspan="5" class="text-center">TOTAL</th>
+                                    <th colspan="7" class="text-center">TOTAL</th>
                                     <th id="total_qty" class="text-end">0</th>
-                                    <th colspan="3"></th>
+                                    <th></th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -129,6 +128,16 @@
 
         $(document).on('input', '.qty', function () {
             updateTotalQty();
+        });
+
+        $(document).on('blur', '.qty', function () {
+            let val = parseFloat($(this).val());
+
+            if (!isNaN(val)) {
+                $(this).val(val.toFixed(2));
+            } else {
+                $(this).val('0.00');
+            }
         });
 
         function setItemsBeforeSubmit(form, e) {
@@ -182,7 +191,7 @@
                 total += parseFloat($(this).val() || 0);
             });
 
-            $('#total_qty').text(total);
+            $('#total_qty').text(total.toFixed(2));
         }
     </script>
 @endsection
