@@ -449,5 +449,8 @@ Route::middleware('auth')->group(function () {
 
             // Save Saldo Awal Cutting
             Route::post('/save-saldo-awal-cutting', 'saveSaldoAwalCutting')->name('save-saldo-awal-cutting');
+
+            // Empty Saldo Awal Cutting
+            Route::post('/empty-saldo-awal-cutting', 'emptySaldoAwalCutting')->name('empty-saldo-awal-cutting');
         });
 });
