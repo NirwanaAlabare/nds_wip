@@ -116,8 +116,18 @@ class ReportCuttingController extends Controller
                             GROUP BY
                                 form_cut_input.id
                         ) form_cut on form_cut.id_marker = marker_input.kode
-                    LEFT JOIN
-                        modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                    LEFT JOIN (
+                            select
+                            modify_size_qty.so_det_id,
+                            modify_size_qty.form_cut_id,
+                            SUM(modify_size_qty.difference_qty) difference_qty
+                        from
+                            modify_size_qty
+                            left join form_cut_input on form_cut_input.id = modify_size_qty.form_cut_id
+                        group by
+                            modify_size_qty.so_det_id,
+                            modify_size_qty.form_cut_id
+                    ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                 where
                     (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                     AND marker_input_detail.ratio > 0
@@ -188,8 +198,18 @@ class ReportCuttingController extends Controller
                 LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                 LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                 LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
-                    AND modify_size_qty.form_cut_id = form_cut_input.id
+                LEFT JOIN (
+                        select
+                        modify_size_qty.so_det_id,
+                        modify_size_qty.form_cut_id,
+                        SUM(modify_size_qty.difference_qty) difference_qty
+                    from
+                        modify_size_qty
+                        left join form_cut_input on form_cut_input.id = modify_size_qty.form_cut_id
+                    group by
+                        modify_size_qty.so_det_id,
+                        modify_size_qty.form_cut_id
+                ) modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
                 LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                 WHERE
                     form_cut_input.status = 'SELESAI PENGERJAAN'
@@ -336,8 +356,18 @@ class ReportCuttingController extends Controller
                                 GROUP BY
                                     form_cut_input.id
                             ) form_cut on form_cut.id_marker = marker_input.kode
-                        LEFT JOIN
-                            modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                        LEFT JOIN (
+                            select
+                                modify_size_qty.so_det_id,
+                                modify_size_qty.form_cut_id,
+                                SUM(modify_size_qty.difference_qty) difference_qty
+                            from
+                                modify_size_qty
+                                left join form_cut_input on form_cut_input.id = modify_size_qty.form_cut_id
+                            group by
+                                modify_size_qty.so_det_id,
+                                modify_size_qty.form_cut_id
+                        ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                     where
                         (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                         AND marker_input_detail.ratio > 0
@@ -410,8 +440,18 @@ class ReportCuttingController extends Controller
                     LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                     LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                     LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                    LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
-                        AND modify_size_qty.form_cut_id = form_cut_input.id
+                    LEFT JOIN (
+                        select
+                            modify_size_qty.so_det_id,
+                            modify_size_qty.form_cut_id,
+                            SUM(modify_size_qty.difference_qty) difference_qty
+                        from
+                            modify_size_qty
+                            left join form_cut_input on form_cut_input.id = modify_size_qty.form_cut_id
+                        group by
+                            modify_size_qty.so_det_id,
+                            modify_size_qty.form_cut_id
+                    ) modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
                     LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                     WHERE
                         form_cut_input.status = 'SELESAI PENGERJAAN'
@@ -3068,7 +3108,8 @@ FROM
 				a.qty_reject,
 				a.qty_replace,
 				CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
-				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_main,
+				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_main_1,
+				a.qty_awal qty_in_main,
 				null qty_in,
 				a.tujuan,
 				a.lokasi,
@@ -3115,7 +3156,8 @@ FROM
 				a.qty_replace,
 				CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
 				null qty_in_main,
-				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in,
+				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_1,
+				a.qty_awal qty_in,
 				a.tujuan,
 				a.lokasi,
 				a.tempat,
@@ -3185,7 +3227,8 @@ FROM
 				a.qty_reject,
 				a.qty_replace,
 				CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
-				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_main,
+				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_main_1,
+				a.qty_awal qty_in_main,
 				null qty_in,
 				a.tujuan,
 				a.lokasi,
@@ -3232,7 +3275,8 @@ FROM
 				a.qty_replace,
 				CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
 				null qty_in_main,
-				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in,
+				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_1,
+				a.qty_awal qty_in,
 				a.tujuan,
 				a.lokasi,
 				a.tempat,
@@ -3281,7 +3325,8 @@ dest,
 panel,
 sum(qty_cut_awal) - sum(qty_dc_awal) as saldo_awal,
 sum(qty_cut) as qty_cut,
-sum(qty_dc) - sum(qty_replace) as qty_dc,
+sum(qty_dc) - sum(qty_replace) as qty_dc_1,
+sum(qty_dc) as qty_dc,
 sum(qty_replace) as qty_replace,
 (sum(qty_cut_awal) - sum(qty_dc_awal)) + sum(qty_cut) - sum(qty_dc) as saldo_akhir,
 k.cancel,
@@ -3313,7 +3358,7 @@ group by ws, color, size, a.panel
 HAVING
     (SUM(qty_cut_awal) - SUM(qty_dc_awal)) <> 0
     OR SUM(qty_cut) <> 0
-    OR (SUM(qty_dc) - SUM(qty_replace)) <> 0
+    OR SUM(qty_dc) <> 0
     OR SUM(qty_replace) <> 0
     OR (
         (SUM(qty_cut_awal) - SUM(qty_dc_awal))
@@ -3367,13 +3412,14 @@ SELECT
 	GROUP_CONCAT(id_qr_stocker) as stockers,
 	no_form,
 	no_cut,
-	(DATE_FORMAT(MAX(created_at), '%Y-%m-%d')) as created_at,
+	(DATE_FORMAT(MAX(tgl_trans), '%Y-%m-%d')) as created_at,
 	m.buyer,
 	act_costing_ws,
 	m.color,
 	panel,
 	so_det_id as id_so_det,
 	m.size,
+    stocker_reject,
 	panel_status,
 	GROUP_CONCAT(nama_part) as nama_part,
 	GROUP_CONCAT(part_status) as part_status,
@@ -3386,6 +3432,8 @@ FROM
 				DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
 				a.tgl_trans,
 				s.act_costing_ws,
+                s.group_stocker,
+                s.stocker_reject,
 				s.color,
 				p.buyer,
 				p.style,
@@ -3398,7 +3446,8 @@ FROM
 				a.qty_reject,
 				a.qty_replace,
 				CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
-				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_main,
+				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_main_1,
+				a.qty_awal qty_in_main,
 				null qty_in,
 				a.tujuan,
 				a.lokasi,
@@ -3432,6 +3481,8 @@ FROM
 				DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
 				a.tgl_trans,
 				s.act_costing_ws,
+                s.group_stocker,
+                s.stocker_reject,
 				s.color,
 				CASE WHEN pd.part_status = 'complement' THEN pcom.buyer ELSE p.buyer END as buyer,
 				CASE WHEN pd.part_status = 'complement' THEN pcom.style ELSE p.style END as style,
@@ -3445,7 +3496,8 @@ FROM
 				a.qty_replace,
 				CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
 				null qty_in_main,
-				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in,
+				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_1,
+				a.qty_awal qty_in,
 				a.tujuan,
 				a.lokasi,
 				a.tempat,
@@ -3477,18 +3529,21 @@ FROM
 	) dc
 	left join master_sb_ws m on dc.so_det_id = m.id_so_det
 group by
-	dc.part_id,
+	dc.panel,
 	dc.so_det_id,
-	dc.stocker_range,
+	dc.group_stocker,
+	dc.ratio,
+	-- dc.stocker_range,
 	dc.no_form,
-    dc.no_cut
+    dc.no_cut,
+    dc.stocker_reject
 ),
 dc_in as (
 SELECT
 	GROUP_CONCAT(id_qr_stocker) as stockers,
 	no_form,
 	no_cut,
-	(DATE_FORMAT(MAX(created_at), '%Y-%m-%d')) as created_at,
+	(DATE_FORMAT(MAX(tgl_trans), '%Y-%m-%d')) as created_at,
 	m.buyer,
 	act_costing_ws,
 	m.color,
@@ -3496,6 +3551,7 @@ SELECT
 	so_det_id as id_so_det,
 	m.size,
 	panel_status,
+    stocker_reject,
 	GROUP_CONCAT(nama_part) as nama_part,
 	GROUP_CONCAT(part_status) as part_status,
 	sum(qty_replace) as qty_replace,
@@ -3507,6 +3563,8 @@ FROM
 				DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
 				a.tgl_trans,
 				s.act_costing_ws,
+                s.group_stocker,
+                s.stocker_reject,
 				s.color,
 				p.buyer,
 				p.style,
@@ -3519,7 +3577,8 @@ FROM
 				a.qty_reject,
 				a.qty_replace,
 				CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
-				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_main,
+				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_main_1,
+				a.qty_awal qty_in_main,
 				null qty_in,
 				a.tujuan,
 				a.lokasi,
@@ -3553,6 +3612,8 @@ FROM
 				DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
 				a.tgl_trans,
 				s.act_costing_ws,
+                s.group_stocker,
+                s.stocker_reject,
 				s.color,
 				CASE WHEN pd.part_status = 'complement' THEN pcom.buyer ELSE p.buyer END as buyer,
 				CASE WHEN pd.part_status = 'complement' THEN pcom.style ELSE p.style END as style,
@@ -3566,7 +3627,8 @@ FROM
 				a.qty_replace,
 				CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
 				null qty_in_main,
-				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in,
+				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_1,
+				a.qty_awal qty_in,
 				a.tujuan,
 				a.lokasi,
 				a.tempat,
@@ -3598,11 +3660,14 @@ FROM
 	) dc
 	left join master_sb_ws m on dc.so_det_id = m.id_so_det
 group by
-	dc.part_id,
+	dc.panel,
 	dc.so_det_id,
-	dc.stocker_range,
+	dc.group_stocker,
+	dc.ratio,
+	-- dc.stocker_range,
 	dc.no_form,
-    dc.no_cut
+    dc.no_cut,
+    dc.stocker_reject
 )
 
 SELECT
@@ -3617,7 +3682,8 @@ color,
 k.size,
 dest,
 panel,
-sum(qty_dc) - sum(qty_replace) as qty_dc,
+sum(qty_dc) - sum(qty_replace) as qty_dc_1,
+sum(qty_dc) as qty_dc,
 sum(qty_replace) as qty_replace,
 k.cancel,
 k.cancel_h,
@@ -3638,7 +3704,7 @@ INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
 LEFT JOIN signalbit_erp.master_size_new msn on k.size = msn.size
 group by ws, color, size, a.panel, a.no_form, a.no_cut, a.created_at
 HAVING
-    (SUM(qty_dc) - SUM(qty_replace)) <> 0
+    SUM(qty_dc) <> 0
     OR SUM(qty_replace) <> 0
 ORDER BY ws asc, color asc, urutan asc
         ");

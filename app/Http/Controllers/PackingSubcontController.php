@@ -620,7 +620,7 @@ detail_po as (select a.no_po pono, kpno, styleno, jo_no,    b.id_jo, b.id_item, 
 
 detail_input as (select id_po, id_jo, id_item, sum(qty) qty_input, sum(qty_reject) qty_input_reject from packing_in_det_temp where created_by = '".$user."' GROUP BY id_po, id_jo, id_item),
 
-detail_out as (select id_po, id_jo, id_item, sum(qty + qty_reject) qty_terima from packing_in_det where status = 'Y' GROUP BY id_po, id_jo, id_item)
+detail_out as (select id_po, id_jo, id_item, sum(qty) qty_terima from packing_in_det where status = 'Y' GROUP BY id_po, id_jo, id_item)
 
 select a.*, COALESCE(qty_terima,0) qty_terima, COALESCE(qty_input,0) qty_input, COALESCE(qty_input_reject,0) qty_input_reject, (a.qty - COALESCE(qty_input,0) - COALESCE(qty_input_reject,0) - COALESCE(qty_terima,0)) qty_balance from detail_po a LEFT JOIN detail_input b on b.id_po = a.id_po and b.id_jo = a.id_jo and b.id_item = a.id_item LEFT JOIN detail_out c on c.id_po = a.id_po and c.id_jo = a.id_jo and c.id_item = a.id_item order by a.kpno asc");
 
@@ -647,7 +647,7 @@ select a.*, COALESCE(qty_terima,0) qty_terima, COALESCE(qty_input,0) qty_input, 
         $det_item = DB::connection('mysql_sb')->select("WITH
 detail_out as ( select a.no_po pono, kpno, styleno, jo_no,  b.id_jo, b.id_item, mi.itemdesc, b.color, b.size, b.unit, sum(b.qty) qty_out, b.id_po, id_buyer, buyer from packing_out_h a INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer, ac.id_buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo LEFT JOIN jo on jo.id = b.id_jo INNER JOIN masteritem mi on mi.id_item = b.id_item where b.id_po = '" . $request->id_po . "' and b.id_jo = '" . $request->id_jo . "' and b.id_item = '" . $request->id_item . "' GROUP BY b.id_jo, b.id_item, b.color, b.size),
 
-detail_terima as (select id_po, id_jo, id_item, color, size, sum(qty + qty_reject) qty_terima from packing_in_det where id_po = '" . $request->id_po . "' and id_jo = '" . $request->id_jo . "' and id_item = '" . $request->id_item . "' and status = 'Y' GROUP BY id_jo, id_item, color, size)
+detail_terima as (select id_po, id_jo, id_item, color, size, sum(qty) qty_terima from packing_in_det where id_po = '" . $request->id_po . "' and id_jo = '" . $request->id_jo . "' and id_item = '" . $request->id_item . "' and status = 'Y' GROUP BY id_jo, id_item, color, size)
 
 select a.*, COALESCE(qty_terima,0) qty_terima, (qty_out - COALESCE(qty_terima,0)) qty_balance from detail_out a left join detail_terima b on b.id_jo = a.id_jo and b.id_item = a.id_item and b.color = a.color and b.size = a.size LEFT JOIN master_size_new c on c.size = a.size where (qty_out - COALESCE(qty_terima,0)) > 0 order by a.itemdesc, a.color, c.urutan");
 
