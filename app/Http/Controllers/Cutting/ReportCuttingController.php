@@ -976,7 +976,6 @@ class ReportCuttingController extends Controller
                             from
                                 modify_size_qty
                                 left join form_cut_input on form_cut_input.id = modify_size_qty.form_cut_id
-                                where COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '2026-04-01'
                             group by
                                 modify_size_qty.so_det_id,
                                 modify_size_qty.form_cut_id
@@ -1269,7 +1268,6 @@ class ReportCuttingController extends Controller
                             from
                                 modify_size_qty
                                 left join form_cut_input on form_cut_input.id = modify_size_qty.form_cut_id
-                                where COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '2026-04-01'
                             group by
                                 modify_size_qty.so_det_id,
                                 modify_size_qty.form_cut_id
@@ -1376,7 +1374,6 @@ class ReportCuttingController extends Controller
                             from
                                 modify_size_qty
                                 left join form_cut_input on form_cut_input.id = modify_size_qty.form_cut_id
-                                where COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '2026-04-01'
                             group by
                                 modify_size_qty.so_det_id,
                                 modify_size_qty.form_cut_id
