@@ -5,14 +5,22 @@ namespace App\Models\Dc;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Stocker\Stocker;
+use Spatie\Activitylog\Traits\LogsActivity;
+
 
 class DCIn extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $table = "dc_in_input";
 
     protected $guarded = [];
+
+    //only the `deleted` event will get logged automatically
+    protected static $recordEvents = ['updated', 'deleted'];
+
+    protected static $logAttributes = ['*'];
+
 
     /**
      * Get the stocker dc in.

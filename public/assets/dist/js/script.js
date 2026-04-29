@@ -6,6 +6,15 @@ $.ajaxSetup({
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+    $(document)
+    .off('draw.dt.tooltipFix')
+    .on('draw.dt.tooltipFix', function (e) {
+        $(e.target)
+            .find('[data-bs-toggle="tooltip"]')
+            .tooltip('dispose')
+            .tooltip();
+    });
+
     // Bootstrap modal configuration
     $.fn.modal.Constructor.prototype.enforceFocus = function () { };
 
@@ -120,6 +129,11 @@ function disableFormSubmit(formId) {
             event.preventDefault();
         }
     });
+
+    // let buttons = form.querySelectorAll("button");
+    // buttons.forEach((element) => {
+    //     element.disabled = true;
+    // })
 }
 
 function isImage(i) {
@@ -532,7 +546,14 @@ function submitForm(e, evt) {
                     icon: 'error',
                     title: "Gagal",
                     html: res.message,
+                }).then(() => {
+
+                    console.log(res.reload);
+                    if (res.reload) {
+                        location.reload();
+                    }
                 });
+
             }
 
             // Table Reload

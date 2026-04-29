@@ -570,7 +570,7 @@ foreach ($maxLen as $i => $len) {
             // }
 
 
-            $data_inmaterial = DB::connection('mysql_sb')->select("select a.id, a.no_bpb, a.tgl_bpb, a.no_po, supplier, buyer, jenis_penerimaan, jenis_dok, CONCAT(a.created_by,' (',a.created_at,')') created_by, a.status from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where a.tgl_bpb BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."' GROUP BY a.no_bpb");
+            $data_inmaterial = DB::connection('mysql_sb')->select("select a.id, e.bpbno, a.no_bpb, a.tgl_bpb, a.no_po, supplier, buyer, jenis_penerimaan, jenis_dok, CONCAT(a.created_by,' (',a.created_at,')') created_by, a.status from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo INNER JOIN (select bpbno, bpbno_int from bpb where bpbdate BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."' and bpbno_int like '%SPCK%' GROUP BY bpbno_int) e on e.bpbno_int = a.no_bpb where a.tgl_bpb BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."' GROUP BY a.no_bpb");
 
 
             return DataTables::of($data_inmaterial)->toJson();

@@ -62,35 +62,108 @@ saldo_loading as (
                     SUM(qty_loading) as qty_loading
                 FROM (
                     SELECT
-                        b.so_det_id AS id_so_det,
-                        a.tanggal_loading,
-                        MIN( qty ) AS qty_loading
+                            b.so_det_id AS id_so_det,
+                            a.tanggal_loading,
+                            MIN( qty ) AS qty_loading
                     FROM
-                        laravel_nds.loading_line a
-                        INNER JOIN laravel_nds.stocker_input b ON a.stocker_id = b.id
+                            laravel_nds.loading_line a
+                            INNER JOIN laravel_nds.stocker_input b ON a.stocker_id = b.id
                     WHERE
-                        b.form_cut_id > 0 and tanggal_loading >= '$start_date'and  tanggal_loading <= '$end_date'
+                            b.form_cut_id > 0 and tanggal_loading >= '$start_date'and  tanggal_loading <= '$end_date'
+                            and (b.cancel IS NULL OR b.cancel != 'Y')
                     GROUP BY
-                        b.so_det_id,
-                        b.form_cut_id,
-                        b.group_stocker,
-                        b.ratio,
-                        a.tanggal_loading
+                            b.so_det_id,
+                            b.form_cut_id,
+                            b.group_stocker,
+                            b.ratio,
+                            a.tanggal_loading
                     UNION ALL
                     SELECT
-                        so_det_id AS id_so_det,
-                        tanggal_loading,
-                        MIN( qty ) AS qty_loading
+                            so_det_id AS id_so_det,
+                            tanggal_loading,
+                            MIN( qty ) AS qty_loading
                     FROM
-                        laravel_nds.loading_line
-                        LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+                            laravel_nds.loading_line
+                            LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
                     WHERE
-                        form_reject_id IS NOT NULL
-						and tanggal_loading >= '$start_date' and tanggal_loading <= '$end_date'
+                            form_reject_id IS NOT NULL
+                            and tanggal_loading >= '$start_date' and tanggal_loading <= '$end_date'
+                            and (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
                     GROUP BY
-                        so_det_id,
-                        form_reject_id,
-                        tanggal_loading
+                            so_det_id,
+                            form_reject_id,
+                            tanggal_loading
+                    UNION ALL
+                    SELECT
+                            so_det_id AS id_so_det,
+                            tanggal_loading,
+                            MIN( qty ) AS qty_loading
+                    FROM
+                            laravel_nds.loading_line
+                            LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+                    WHERE
+                            form_piece_id IS NOT NULL
+                            and tanggal_loading >= '$start_date' and tanggal_loading <= '$end_date'
+                            and (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
+                    GROUP BY
+                            so_det_id,
+                            form_piece_id,
+                            tanggal_loading
+                    UNION ALL
+                    SELECT
+                            b.so_det_id AS id_so_det,
+                            a.tanggal_loading,
+                            MIN( qty ) AS qty_loading
+                    FROM
+                            laravel_nds.loading_line a
+                            INNER JOIN laravel_nds.stocker_input b ON a.stocker_id = b.id
+                    WHERE
+                            stocker_reject is not null and
+                            b.form_cut_id > 0 and tanggal_loading >= '$start_date'and  tanggal_loading <= '$end_date'
+                            and (b.cancel IS NULL OR b.cancel != 'Y')
+                    GROUP BY
+                            b.so_det_id,
+                            b.form_cut_id,
+                            b.group_stocker,
+                            b.ratio,
+                            a.tanggal_loading,
+                            stocker_reject
+                    UNION ALL
+                    SELECT
+                            so_det_id AS id_so_det,
+                            tanggal_loading,
+                            MIN( qty ) AS qty_loading
+                    FROM
+                            laravel_nds.loading_line
+                            LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+                    WHERE
+                            form_reject_id IS NOT NULL
+                            and stocker_reject is not null
+                            and tanggal_loading >= '$start_date' and tanggal_loading <= '$end_date'
+                            and (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
+                    GROUP BY
+                            so_det_id,
+                            form_reject_id,
+                            tanggal_loading,
+                            stocker_reject
+                    UNION ALL
+                    SELECT
+                            so_det_id AS id_so_det,
+                            tanggal_loading,
+                            MIN( qty ) AS qty_loading
+                    FROM
+                            laravel_nds.loading_line
+                            LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+                    WHERE
+                            form_piece_id IS NOT NULL
+                            and stocker_reject is not null
+                            and tanggal_loading >= '$start_date' and tanggal_loading <= '$end_date'
+                            and (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
+                    GROUP BY
+                            so_det_id,
+                            form_piece_id,
+                            stocker_reject,
+                            tanggal_loading
                 ) loading
                 GROUP BY
 					tanggal_loading,
@@ -891,35 +964,111 @@ ORDER BY buyer asc, ws asc, color asc, urutan asc
                         SUM(qty_loading) as qty_loading
                     FROM (
                         SELECT
-                            b.so_det_id AS id_so_det,
-                            a.tanggal_loading,
-                            MIN( qty ) AS qty_loading
+                                        b.so_det_id AS id_so_det,
+                                        a.tanggal_loading,
+                                        MIN( a.qty ) AS qty_loading
                         FROM
-                            laravel_nds.loading_line a
-                            INNER JOIN laravel_nds.stocker_input b ON a.stocker_id = b.id
+                                        laravel_nds.loading_line a
+                                        INNER JOIN laravel_nds.stocker_input b ON a.stocker_id = b.id
                         WHERE
-                            b.form_cut_id > 0 and tanggal_loading >= '$start_date'and  tanggal_loading <= '$end_date'
+                                        stocker_reject is null and
+                                        b.form_cut_id > 0 and tanggal_loading >= '$start_date' and  tanggal_loading <= '$end_date'
+                                        and (b.cancel IS NULL OR b.cancel != 'Y')
                         GROUP BY
-                            b.so_det_id,
-                            b.form_cut_id,
-                            b.group_stocker,
-                            b.ratio,
-                            a.tanggal_loading
+                                        b.so_det_id,
+                                        b.form_cut_id,
+                                        b.group_stocker,
+                                        b.ratio,
+                                        a.tanggal_loading
                         UNION ALL
                         SELECT
-                            so_det_id AS id_so_det,
-                            tanggal_loading,
-                            MIN( qty ) AS qty_loading
+                                        so_det_id AS id_so_det,
+                                        tanggal_loading,
+                                        MIN( loading_line.qty ) AS qty_loading
                         FROM
-                            laravel_nds.loading_line
-                            LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+                                        laravel_nds.loading_line
+                                        LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
                         WHERE
-                            form_reject_id IS NOT NULL
-    						and tanggal_loading >= '$start_date' and tanggal_loading <= '$end_date'
+                                        stocker_reject is null and
+                                        form_reject_id IS NOT NULL
+                                        and tanggal_loading >= '$start_date' and tanggal_loading <= '2026-03-31'
+                                        and (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
                         GROUP BY
-                            so_det_id,
-                            form_reject_id,
-                            tanggal_loading
+                                        so_det_id,
+                                        form_reject_id,
+                                        tanggal_loading
+                        UNION ALL
+                        SELECT
+                                        so_det_id AS id_so_det,
+                                        tanggal_loading,
+                                        MIN( loading_line.qty ) AS qty_loading
+                        FROM
+                                        laravel_nds.loading_line
+                                        LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+                        WHERE
+                                        stocker_reject is null and
+                                        form_piece_id IS NOT NULL
+                                        and tanggal_loading >= '$start_date' and tanggal_loading <= '2026-03-31'
+                                        and (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
+                        GROUP BY
+                                        so_det_id,
+                                        form_piece_id,
+                                        tanggal_loading
+                        UNION ALL
+                        SELECT
+                                        b.so_det_id AS id_so_det,
+                                        a.tanggal_loading,
+                                        MIN( a.qty ) AS qty_loading
+                        FROM
+                                        laravel_nds.loading_line a
+                                        INNER JOIN laravel_nds.stocker_input b ON a.stocker_id = b.id
+                        WHERE
+                                        stocker_reject is not null and
+                                        b.form_cut_id > 0 and tanggal_loading >= '$start_date'and  tanggal_loading <= '$end_date'
+                                        and (b.cancel IS NULL OR b.cancel != 'Y')
+                        GROUP BY
+                                        b.so_det_id,
+                                        b.form_cut_id,
+                                        b.group_stocker,
+                                        b.ratio,
+                                        a.tanggal_loading,
+                                        stocker_reject
+                        UNION ALL
+                        SELECT
+                                        so_det_id AS id_so_det,
+                                        tanggal_loading,
+                                        MIN( loading_line.qty ) AS qty_loading
+                        FROM
+                                        laravel_nds.loading_line
+                                        LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+                        WHERE
+                                        form_reject_id IS NOT NULL
+                                        and stocker_reject is not null
+                                        and tanggal_loading >= '$start_date' and tanggal_loading <= '2026-03-31'
+                                        and (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
+                        GROUP BY
+                                        so_det_id,
+                                        form_reject_id,
+                                        tanggal_loading,
+                                        stocker_reject
+                        UNION ALL
+                        SELECT
+                                        so_det_id AS id_so_det,
+                                        tanggal_loading,
+                                        MIN( loading_line.qty ) AS qty_loading
+                        FROM
+                                        laravel_nds.loading_line
+                                        LEFT JOIN laravel_nds.stocker_input ON stocker_input.id = loading_line.stocker_id
+                        WHERE
+                                        form_piece_id IS NOT NULL
+                                        and stocker_reject is not null
+                                        and tanggal_loading >= '$start_date' and tanggal_loading <= '2026-03-31'
+                                        and (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
+                        GROUP BY
+                                        so_det_id,
+                                        form_piece_id,
+                                        stocker_reject,
+                                        tanggal_loading
                     ) loading
                     GROUP BY
     					tanggal_loading,

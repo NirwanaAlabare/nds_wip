@@ -9,6 +9,56 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    <style type="text/css">
+        input[type=file]::file-selector-button {
+        margin-right: 20px;
+        border: none;
+        background: #084cdf;
+        padding: 10px 20px;
+        border-radius: 10px;
+        color: #fff;
+        cursor: pointer;
+        transition: background .2s ease-in-out;
+        }
+
+        input[type=file]::file-selector-button:hover {
+        background: #0d45a5;
+        }
+
+        .drop-container {
+        position: relative;
+        display: flex;
+        gap: 10px;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 200px;
+        padding: 20px;
+        border-radius: 10px;
+        border: 2px dashed #555;
+        color: #444;
+        cursor: pointer;
+        transition: background .2s ease-in-out, border .2s ease-in-out;
+        }
+
+        .drop-container:hover {
+        background: #eee;
+        border-color: #111;
+        }
+
+        .drop-container:hover .drop-title {
+        color: #222;
+        }
+
+        .drop-title {
+        color: #444;
+        font-size: 20px;
+        font-weight: bold;
+        text-align: center;
+        transition: color .2s ease-in-out;
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -76,6 +126,27 @@
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Delete Redundant</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-12">
+                    <h5 class="text-sb-secondary fw-bold mt-3">Populate Data</h5>
+                </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" onclick="openImportCuttingManual()">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Import Cutting Manual</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" onclick="openImportSaldoAwalCutting()">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Inject Saldo Awal Cutting</h5>
                             </div>
                         </div>
                     </a>
@@ -445,6 +516,87 @@
                     <button type="button" class="btn btn-sb" onclick="modifyFormGroup()"><i class="fa fa-save"></i> Ubah</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    {{-- Import Manual --}}
+    <div class="modal fade" id="importExcel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <form method="post" action="{{ route('import-cutting-manual') }}" enctype="multipart/form-data" onsubmit="submitImportCuttingManual(this, event)">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h5 class="modal-title" id="exampleModalLabel">Import Cutting Manual</h5>
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        {{ csrf_field() }}
+                        <label for="images" class="drop-container" id="dropcontainer">
+                            <input type="file" name="file" required="required">
+                        </label>
+                        <a href="{{ asset('example/contoh-import-cutting-manual.xlsx') }}" download class="btn btn-sb-secondary btn-sm"><i class="fa fa-solid fa-download"></i> Contoh Excel</a>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
+                        <button type="submit" class="btn btn-sb toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Import</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Inject Cutting Saldo Awal --}}
+    <div class="modal fade" id="importSaldoAwalExcel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <form method="post" action="{{ route('save-saldo-awal-cutting') }}" enctype="multipart/form-data" id="importSaldoAwalForm" onsubmit="submitSaldoAwalCutting(this, event)">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h5 class="modal-title" id="exampleModalLabel">Inject Saldo Awal Cutting PCS</h5>
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        {{ csrf_field() }}
+                        <label for="images" class="drop-container" id="dropcontainer">
+                            <input type="file" name="file" id="saldoAwalFileInput" onchange="submitImportSaldoAwalCutting(document.getElementById('importSaldoAwalForm'), event)">
+                        </label>
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ asset('example/contoh-import-cutting-saldo-awal.xlsx') }}" download class="btn btn-sb-secondary btn-sm"><i class="fa fa-solid fa-download"></i> Contoh Excel</a>
+                            <button class="btn btn-no btn-sm" onclick="emptySaldoAwal('actual')" type="button"><i class="fa fa-trash"></i> Kosongkan Saldo Awal</button>
+                        </div>
+
+                        <div class="table-responsive mt-5">
+                            <table class="table table-bordered w-100" id="saldo-awal-cutting-pcs-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tanggal</th>
+                                        <th>ID SO Detail</th>
+                                        <th>Buyer</th>
+                                        <th>No. WS</th>
+                                        <th>Style</th>
+                                        <th>Color</th>
+                                        <th>Size</th>
+                                        <th>Panel</th>
+                                        <th>Qty</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-flex justify-content-end my-3">
+                            <button class="btn btn-danger btn-sm" onclick="emptySaldoAwal('tmp')" type="button"><i class="fa fa-trash"></i> Kosongkan Saldo Awal Temporary</button>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
+                        <button type="submit" class="btn btn-sb toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Inject</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 @endsection
@@ -1103,6 +1255,311 @@
                                 confirmButtonText: 'Oke',
                             });
                         }
+                    });
+                }
+            });
+        }
+
+        function openImportCuttingManual(){
+            $('#importExcel').modal('show');
+
+            saldoAwalCuttingReload();
+        }
+
+        function submitImportCuttingManual(e, evt) {
+            document.getElementById("loading").classList.remove("d-none");
+
+            evt.preventDefault();
+
+            clearModified();
+
+            $.ajax({
+                url: e.getAttribute('action'),
+                type: e.getAttribute('method'),
+                data: new FormData(e),
+                processData: false,
+                contentType: false,
+                success: async function(res) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    if (res.status == 200) {
+                        console.log(res);
+
+                        e.reset();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Data Cutting berhasil diupload',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                            timer: 5000,
+                            timerProgressBar: true
+                        });
+                    }
+                },
+                error: function (jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    console.error(jqXHR);
+                }
+            });
+        }
+
+        function openImportSaldoAwalCutting() {
+            $('#importSaldoAwalExcel').modal('show');
+
+            saldoAwalCuttingReload();
+        }
+
+        function submitImportSaldoAwalCutting(e, evt) {
+            document.getElementById("loading").classList.remove("d-none");
+
+            if (evt && evt.preventDefault) {
+                evt.preventDefault();
+            }
+
+            // Get file input
+            const fileInput = e.querySelector('input[type="file"]');
+
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                document.getElementById("loading").classList.add("d-none");
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'File Belum Dipilih',
+                    text: 'Silakan pilih file Excel terlebih dahulu.',
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                });
+                return;
+            }
+
+            // Validate file extension
+            const file = fileInput.files[0];
+            const validExtensions = ['xlsx', 'xls'];
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+
+            if (!validExtensions.includes(fileExtension)) {
+                document.getElementById("loading").classList.add("d-none");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Format File Salah',
+                    text: 'Hanya file Excel (.xlsx, .xls) yang diperbolehkan.',
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                });
+                return;
+            }
+
+            $.ajax({
+                url: '{{ route('import-saldo-awal-cutting') }}',
+                type: 'post',
+                data: new FormData(e),
+                processData: false,
+                contentType: false,
+                success: async function(res) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    if (res.status == 200) {
+                        console.log(res);
+
+                        e.reset();
+                        fileInput.value = '';
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Data Cutting berhasil diupload',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke'
+                        }).then(() => {
+                            saldoAwalCuttingReload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: res.message || 'Terjadi kesalahan saat upload file',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        });
+                    }
+                },
+                error: function (jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    console.error(jqXHR);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Terjadi Kesalahan',
+                        text: 'Gagal mengupload file. Silakan coba lagi.',
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                    });
+                }
+            });
+        }
+
+        // Initialize DataTable for #saldo-awal-cutting-pcs-table
+        $('#saldo-awal-cutting-pcs-table').DataTable({
+            processing: true,
+            serverSide: true,
+            ordering: false,
+            paging: true,
+            searching: true,
+            info: true,
+            lengthChange: true,
+            pageLength: 10,
+            ajax: {
+                url: '{{ route('get-saldo-awal-cutting-tmp') }}',
+                type: 'GET'
+            },
+            columns: [
+                { data: 'tgl_trans' },
+                { data: 'id_so_det' },
+                { data: 'buyer' },
+                { data: 'ws' },
+                { data: 'style' },
+                { data: 'color' },
+                { data: 'size' },
+                { data: 'panel' },
+                { data: 'saldo' }
+            ],
+            columnDefs: [
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                }
+            ]
+        });
+
+        function saldoAwalCuttingReload() {
+            $('#saldo-awal-cutting-pcs-table').DataTable().ajax.reload();
+        }
+
+        function submitSaldoAwalCutting(e, evt) {
+            if (evt && evt.preventDefault) {
+                evt.preventDefault();
+            }
+
+            // Ask for confirmation before sending request
+            Swal.fire({
+                icon: 'warning',
+                title: 'Konfirmasi',
+                text: 'Yakin akan simpan, Saldo Awal Cutting?',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Simpan',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                document.getElementById("loading").classList.remove("d-none");
+
+                $.ajax({
+                    url: e.getAttribute('action'),
+                    type: e.getAttribute('method'),
+                    processData: false,
+                    contentType: false,
+                    success: async function(res) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        if (res.status == 200) {
+                            console.log(res);
+
+                            e.reset();
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Data Saldo Cutting berhasil disimpan',
+                                html: res.message,
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke'
+                            }).then(() => {
+                                $('#importSaldoAwalExcel').modal('hide');
+                                saldoAwalCuttingReload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: res.message || 'Terjadi kesalahan',
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+                        }
+                    },
+                    error: function (jqXHR) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        console.error(jqXHR);
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Terjadi Kesalahan',
+                            text: 'Gagal menyimpan saldo awal. Silakan coba lagi.',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        });
+                    }
+                });
+            });
+        }
+
+        function emptySaldoAwal(type = 'tmp') {
+            Swal.fire({
+                title: 'Kosongkan Saldo Awal?',
+                html: 'Yakin akan mengosongkan semua saldo awal '+(type == 'tmp' ? 'Temporary' : 'Aktual')+'?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'KOSONGKAN',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#dc3545"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    emptySaldoAwalSubmit(type);
+                }
+            });
+        }
+
+        function emptySaldoAwalSubmit(type = 'tmp') {
+            document.getElementById("loading").classList.remove("d-none");
+
+            $.ajax({
+                type: "post",
+                url: '{{ route('empty-saldo-awal-cutting') }}',
+                data: {
+                    type: type
+                },
+                dataType: "json",
+                success: function (response) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    Swal.fire({
+                        icon: response.status == 200 ? "success" : "error" ,
+                        title: response.status == 200 ? "Berhasil" : "Gagal" ,
+                        html: response.message ? response.message : (response.status == 200 ? "Berhasil mengosongkan saldo awal" : "Terjadi kesalahan saat mengosongkan saldo awal")
+                    }).then(() => {
+                        saldoAwalCuttingReload();
+                    });
+                },
+                error: function (jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Gagal",
+                        html: "Terjadi Kesalahan"
+                    }).then(() => {
+                        saldoAwalCuttingReload();
                     });
                 }
             });

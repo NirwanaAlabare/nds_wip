@@ -427,7 +427,8 @@ FROM
 				COALESCE(msb.size, s.size) size,
 				mp.nama_part,
 				pd.id as part_detail_id,
-				pd.part_status
+				pd.part_status,
+                coalesce(f.no_form, fp.no_form, fr.no_form) no_form
 		from
 				dc_in_input a
 				left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -472,7 +473,8 @@ FROM
 				COALESCE(msb.size, s.size) size,
 				mp.nama_part,
 				pd.id as part_detail_id,
-				pd.part_status
+				pd.part_status,
+                coalesce(f.no_form, fp.no_form, fr.no_form) no_form
 		from
 				dc_in_input a
 				left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -495,7 +497,8 @@ FROM
 group by
 	dc.part_id,
 	dc.so_det_id,
-	dc.stocker_range
+	dc.stocker_range,
+	dc.no_form
 ),
 dc_in as (
 SELECT
@@ -541,7 +544,8 @@ FROM
 				COALESCE(msb.size, s.size) size,
 				mp.nama_part,
 				pd.id as part_detail_id,
-				pd.part_status
+				pd.part_status,
+                coalesce(f.no_form, fp.no_form, fr.no_form) no_form
 		from
 				dc_in_input a
 				left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -586,7 +590,8 @@ FROM
 				COALESCE(msb.size, s.size) size,
 				mp.nama_part,
 				pd.id as part_detail_id,
-				pd.part_status
+				pd.part_status,
+                coalesce(f.no_form, fp.no_form, fr.no_form) no_form
 		from
 				dc_in_input a
 				left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -609,7 +614,8 @@ FROM
 group by
 	dc.part_id,
 	dc.so_det_id,
-	dc.stocker_range
+	dc.stocker_range,
+	dc.no_form
 )
 
 SELECT

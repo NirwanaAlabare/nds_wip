@@ -116,8 +116,18 @@ class ReportCuttingController extends Controller
                             GROUP BY
                                 form_cut_input.id
                         ) form_cut on form_cut.id_marker = marker_input.kode
-                    LEFT JOIN
-                        modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                    LEFT JOIN (
+                            select
+                            modify_size_qty.so_det_id,
+                            modify_size_qty.form_cut_id,
+                            SUM(modify_size_qty.difference_qty) difference_qty
+                        from
+                            modify_size_qty
+                            left join form_cut_input on form_cut_input.id = modify_size_qty.form_cut_id
+                        group by
+                            modify_size_qty.so_det_id,
+                            modify_size_qty.form_cut_id
+                    ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                 where
                     (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                     AND marker_input_detail.ratio > 0
@@ -188,8 +198,18 @@ class ReportCuttingController extends Controller
                 LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                 LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                 LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
-                    AND modify_size_qty.form_cut_id = form_cut_input.id
+                LEFT JOIN (
+                        select
+                        modify_size_qty.so_det_id,
+                        modify_size_qty.form_cut_id,
+                        SUM(modify_size_qty.difference_qty) difference_qty
+                    from
+                        modify_size_qty
+                        left join form_cut_input on form_cut_input.id = modify_size_qty.form_cut_id
+                    group by
+                        modify_size_qty.so_det_id,
+                        modify_size_qty.form_cut_id
+                ) modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
                 LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                 WHERE
                     form_cut_input.status = 'SELESAI PENGERJAAN'
@@ -336,8 +356,18 @@ class ReportCuttingController extends Controller
                                 GROUP BY
                                     form_cut_input.id
                             ) form_cut on form_cut.id_marker = marker_input.kode
-                        LEFT JOIN
-                            modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                        LEFT JOIN (
+                            select
+                                modify_size_qty.so_det_id,
+                                modify_size_qty.form_cut_id,
+                                SUM(modify_size_qty.difference_qty) difference_qty
+                            from
+                                modify_size_qty
+                                left join form_cut_input on form_cut_input.id = modify_size_qty.form_cut_id
+                            group by
+                                modify_size_qty.so_det_id,
+                                modify_size_qty.form_cut_id
+                        ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                     where
                         (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                         AND marker_input_detail.ratio > 0
@@ -410,8 +440,18 @@ class ReportCuttingController extends Controller
                     LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                     LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                     LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                    LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
-                        AND modify_size_qty.form_cut_id = form_cut_input.id
+                    LEFT JOIN (
+                        select
+                            modify_size_qty.so_det_id,
+                            modify_size_qty.form_cut_id,
+                            SUM(modify_size_qty.difference_qty) difference_qty
+                        from
+                            modify_size_qty
+                            left join form_cut_input on form_cut_input.id = modify_size_qty.form_cut_id
+                        group by
+                            modify_size_qty.so_det_id,
+                            modify_size_qty.form_cut_id
+                    ) modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
                     LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                     WHERE
                         form_cut_input.status = 'SELESAI PENGERJAAN'
@@ -671,7 +711,7 @@ class ReportCuttingController extends Controller
                     WHERE
                         `id_roll` IS NOT NULL
                         AND `id_roll` = '" . $rollId->id_roll . "'
-                        AND form_cut_piece_detail.updated_at >= DATE ( NOW()- INTERVAL 1 YEAR )
+                        AND form_cut_piece.updated_at >= DATE ( NOW()- INTERVAL 1 YEAR )
                         AND status = 'complete'
                     GROUP BY
                         `id_item`,
@@ -968,8 +1008,18 @@ class ReportCuttingController extends Controller
                                 GROUP BY
                                     form_cut_input.id
                             ) form_cut on form_cut.id_marker = marker_input.kode
-                        LEFT JOIN
-                            modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                        LEFT JOIN (
+                            select
+                                modify_size_qty.so_det_id,
+                                modify_size_qty.form_cut_id,
+                                SUM(modify_size_qty.difference_qty) difference_qty
+                            from
+                                modify_size_qty
+                                left join form_cut_input on form_cut_input.id = modify_size_qty.form_cut_id
+                            group by
+                                modify_size_qty.so_det_id,
+                                modify_size_qty.form_cut_id
+                        ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                         where
                             (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                             AND marker_input_detail.ratio > 0
@@ -1050,8 +1100,19 @@ class ReportCuttingController extends Controller
                         LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                         LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                         LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                        LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
-                                        AND modify_size_qty.form_cut_id = form_cut_input.id
+                        LEFT JOIN (
+                            select
+                                modify_size_qty.so_det_id,
+                                modify_size_qty.form_cut_id,
+                                SUM(modify_size_qty.difference_qty) difference_qty
+                            from
+                                modify_size_qty
+                                left join form_cut_input on form_cut_input.id = modify_size_qty.form_cut_id
+                                where COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '2026-04-01'
+                            group by
+                                modify_size_qty.so_det_id,
+                                modify_size_qty.form_cut_id
+                        ) modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
                         LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                         WHERE
                             form_cut_input.status = 'SELESAI PENGERJAAN'
@@ -1239,8 +1300,18 @@ class ReportCuttingController extends Controller
                                 GROUP BY
                                     form_cut_input.id
                             ) form_cut on form_cut.id_marker = marker_input.kode
-                        LEFT JOIN
-                            modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                        LEFT JOIN (
+                            select
+                                modify_size_qty.so_det_id,
+                                modify_size_qty.form_cut_id,
+                                SUM(modify_size_qty.difference_qty) difference_qty
+                            from
+                                modify_size_qty
+                                left join form_cut_input on form_cut_input.id = modify_size_qty.form_cut_id
+                            group by
+                                modify_size_qty.so_det_id,
+                                modify_size_qty.form_cut_id
+                        ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                         where
                             (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                             AND marker_input_detail.ratio > 0
@@ -1335,8 +1406,18 @@ class ReportCuttingController extends Controller
                         LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                         LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
                         LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-                        LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
-                                        AND modify_size_qty.form_cut_id = form_cut_input.id
+                        LEFT JOIN (
+                            select
+                                modify_size_qty.so_det_id,
+                                modify_size_qty.form_cut_id,
+                                SUM(modify_size_qty.difference_qty) difference_qty
+                            from
+                                modify_size_qty
+                                left join form_cut_input on form_cut_input.id = modify_size_qty.form_cut_id
+                            group by
+                                modify_size_qty.so_det_id,
+                                modify_size_qty.form_cut_id
+                        ) modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
                         LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                         WHERE
                             form_cut_input.status = 'SELESAI PENGERJAAN'
@@ -1569,8 +1650,8 @@ FROM (
 		a.waktu_mulai,
 		a.waktu_selesai,
 		b.id,
-		DATE_FORMAT(b.created_at, '%M') bulan,
-		DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
+		DATE_FORMAT(a.waktu_selesai, '%M') bulan,
+		DATE_FORMAT(a.waktu_selesai, '%d-%m-%Y') tgl_input,
 		b.no_form_cut_input,
 		UPPER(meja.name) nama_meja,
 		mrk.act_costing_ws,
@@ -1656,7 +1737,7 @@ FROM (
 		AND a.status = 'SELESAI PENGERJAAN'
 		and b.status != 'not complete'
 		and b.id_item is not null
-		and b.created_at >= '$tgl_saldo 00:00:00' and b.created_at < '$start_date 00:00:00'
+		and a.waktu_selesai >= '$tgl_saldo 00:00:00' and a.waktu_selesai < '$start_date 00:00:00'
 	group by
 		b.id
 	UNION ALL
@@ -1665,8 +1746,8 @@ FROM (
 		form_cut_piping.created_at waktu_mulai,
 		form_cut_piping.updated_at waktu_selesai,
 		form_cut_piping.id,
-		DATE_FORMAT(form_cut_piping.created_at, '%M') bulan,
-		DATE_FORMAT(form_cut_piping.created_at, '%d-%m-%Y') tgl_input,
+		DATE_FORMAT(form_cut_piping.updated_at, '%M') bulan,
+		DATE_FORMAT(form_cut_piping.updated_at, '%d-%m-%Y') tgl_input,
 		'PIPING' no_form_cut_input,
 		'-' nama_meja,
 		form_cut_piping.act_costing_ws,
@@ -1737,7 +1818,7 @@ FROM (
 		left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
 	where
 		scanned_item.id_item is not null
-		and form_cut_piping.created_at >= '$tgl_saldo 00:00:00' and form_cut_piping.created_at < '$start_date 00:00:00'
+		and form_cut_piping.updated_at >= '$tgl_saldo 00:00:00' and form_cut_piping.updated_at < '$start_date 00:00:00'
 	group by
 		form_cut_piping.id
 	UNION ALL
@@ -1746,8 +1827,8 @@ FROM (
 		form_cut_piece.created_at waktu_mulai,
 		form_cut_piece.updated_at waktu_selesai,
 		form_cut_piece.id,
-		DATE_FORMAT( form_cut_piece.created_at, '%M' ) bulan,
-		DATE_FORMAT( form_cut_piece.created_at, '%d-%m-%Y' ) tgl_input,
+		DATE_FORMAT( form_cut_piece.updated_at, '%M' ) bulan,
+		DATE_FORMAT( form_cut_piece.updated_at, '%d-%m-%Y' ) tgl_input,
 		form_cut_piece.no_form no_form_cut_input,
 		'-' nama_meja,
 		form_cut_piece.act_costing_ws,
@@ -1818,7 +1899,7 @@ FROM (
 	WHERE
 		scanned_item.id_item IS NOT NULL
 		AND form_cut_piece_detail.STATUS = 'complete'
-		and form_cut_piece_detail.created_at >= '$tgl_saldo 00:00:00' and form_cut_piece_detail.created_at < '$start_date 00:00:00'
+		and form_cut_piece.updated_at >= '$tgl_saldo 00:00:00' and form_cut_piece.updated_at < '$start_date 00:00:00'
 	GROUP BY
 		form_cut_piece_detail.id
 ) cutting
@@ -1935,8 +2016,8 @@ FROM (
 		a.waktu_mulai,
 		a.waktu_selesai,
 		b.id,
-		DATE_FORMAT(b.created_at, '%M') bulan,
-		DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
+		DATE_FORMAT(a.waktu_selesai, '%M') bulan,
+		DATE_FORMAT(a.waktu_selesai, '%d-%m-%Y') tgl_input,
 		b.no_form_cut_input,
 		UPPER(meja.name) nama_meja,
 		mrk.act_costing_ws,
@@ -2021,7 +2102,7 @@ FROM (
 		AND a.status = 'SELESAI PENGERJAAN'
 		and b.status != 'not complete'
 		and b.id_item is not null
-		and b.created_at >= '$start_date 00:00:00' and b.created_at <= '$end_date 23:59:59'
+		and a.waktu_selesai >= '$start_date 00:00:00' and a.waktu_selesai <= '$end_date 23:59:59'
 	group by
 		b.id
 	UNION ALL
@@ -2030,8 +2111,8 @@ FROM (
 		form_cut_piping.created_at waktu_mulai,
 		form_cut_piping.updated_at waktu_selesai,
 		form_cut_piping.id,
-		DATE_FORMAT(form_cut_piping.created_at, '%M') bulan,
-		DATE_FORMAT(form_cut_piping.created_at, '%d-%m-%Y') tgl_input,
+		DATE_FORMAT(form_cut_piping.updated_at, '%M') bulan,
+		DATE_FORMAT(form_cut_piping.updated_at, '%d-%m-%Y') tgl_input,
 		'PIPING' no_form_cut_input,
 		'-' nama_meja,
 		form_cut_piping.act_costing_ws,
@@ -2100,7 +2181,7 @@ FROM (
 		left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
 	where
 		scanned_item.id_item is not null
-		and form_cut_piping.created_at >= '$start_date 00:00:00' and form_cut_piping.created_at <= '$end_date 23:59:59'
+		and form_cut_piping.updated_at >= '$start_date 00:00:00' and form_cut_piping.updated_at <= '$end_date 23:59:59'
 	group by
 		form_cut_piping.id
 	UNION ALL
@@ -2109,8 +2190,8 @@ FROM (
 		form_cut_piece.created_at waktu_mulai,
 		form_cut_piece.updated_at waktu_selesai,
 		form_cut_piece.id,
-		DATE_FORMAT( form_cut_piece.created_at, '%M' ) bulan,
-		DATE_FORMAT( form_cut_piece.created_at, '%d-%m-%Y' ) tgl_input,
+		DATE_FORMAT( form_cut_piece.updated_at, '%M' ) bulan,
+		DATE_FORMAT( form_cut_piece.updated_at, '%d-%m-%Y' ) tgl_input,
 		form_cut_piece.no_form no_form_cut_input,
 		'-' nama_meja,
 		form_cut_piece.act_costing_ws,
@@ -2181,7 +2262,7 @@ FROM (
 	WHERE
 		scanned_item.id_item IS NOT NULL
 		AND form_cut_piece_detail.STATUS = 'complete'
-		and form_cut_piece_detail.created_at >= '$start_date 00:00:00' and form_cut_piece_detail.created_at <= '$end_date 23:59:59'
+		and form_cut_piece.updated_at >= '$start_date 00:00:00' and form_cut_piece.updated_at <= '$end_date 23:59:59'
 	GROUP BY
 		form_cut_piece_detail.id
 ) cutting
@@ -2725,7 +2806,7 @@ SELECT
                 LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
             WHERE
-                DATE(form_cut_piece_detail.created_at) >= '$tgl_saldo' and DATE(form_cut_piece_detail.created_at) < '$start_date'
+                DATE(form_cut_piece.updated_at) >= '$tgl_saldo' and DATE(form_cut_piece.updated_at) < '$start_date'
 								and form_cut_piece_detail.status = 'complete'
             GROUP BY
                 form_cut_piece.id,
@@ -2899,7 +2980,7 @@ cutt_in as
                 LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
             WHERE
-                DATE(form_cut_piece_detail.created_at) >= '$start_date' and DATE(form_cut_piece_detail.created_at) <= '$end_date'
+                DATE(form_cut_piece.updated_at) >= '$start_date' and DATE(form_cut_piece.updated_at) <= '$end_date'
 								and form_cut_piece_detail.status = 'complete'
             GROUP BY
                 form_cut_piece.id,
@@ -3023,7 +3104,8 @@ FROM
 				COALESCE(msb.size, s.size) size,
 				mp.nama_part,
 				pd.id as part_detail_id,
-				pd.part_status
+				pd.part_status,
+                coalesce(f.no_form, fp.no_form, fr.no_form) no_form
 		from
 				dc_in_input a
 				left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -3068,7 +3150,8 @@ FROM
 				COALESCE(msb.size, s.size) size,
 				mp.nama_part,
 				pd.id as part_detail_id,
-				pd.part_status
+				pd.part_status,
+                coalesce(f.no_form, fp.no_form, fr.no_form) no_form
 		from
 				dc_in_input a
 				left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -3091,7 +3174,8 @@ FROM
 group by
 	dc.part_id,
 	dc.so_det_id,
-	dc.stocker_range
+	dc.stocker_range,
+    dc.no_form
 ),
 dc_in as (
 SELECT
@@ -3137,7 +3221,8 @@ FROM
 				COALESCE(msb.size, s.size) size,
 				mp.nama_part,
 				pd.id as part_detail_id,
-				pd.part_status
+				pd.part_status,
+                coalesce(f.no_form, fp.no_form, fr.no_form) no_form
 		from
 				dc_in_input a
 				left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -3182,7 +3267,8 @@ FROM
 				COALESCE(msb.size, s.size) size,
 				mp.nama_part,
 				pd.id as part_detail_id,
-				pd.part_status
+				pd.part_status,
+                coalesce(f.no_form, fp.no_form, fr.no_form) no_form
 		from
 				dc_in_input a
 				left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -3205,7 +3291,8 @@ FROM
 group by
 	dc.part_id,
 	dc.so_det_id,
-	dc.stocker_range
+	dc.stocker_range,
+    dc.no_form
 )
 
 SELECT
@@ -3305,7 +3392,7 @@ SELECT
 	GROUP_CONCAT(id_qr_stocker) as stockers,
 	no_form,
 	no_cut,
-	(DATE_FORMAT(created_at, '%Y-%m-%d')) as created_at,
+	(DATE_FORMAT(MAX(created_at), '%Y-%m-%d')) as created_at,
 	m.buyer,
 	act_costing_ws,
 	m.color,
@@ -3419,15 +3506,14 @@ group by
 	dc.so_det_id,
 	dc.stocker_range,
 	dc.no_form,
-    dc.no_cut,
-    dc.created_at
+    dc.no_cut
 ),
 dc_in as (
 SELECT
 	GROUP_CONCAT(id_qr_stocker) as stockers,
 	no_form,
 	no_cut,
-	(DATE_FORMAT(created_at, '%Y-%m-%d')) as created_at,
+	(DATE_FORMAT(MAX(created_at), '%Y-%m-%d')) as created_at,
 	m.buyer,
 	act_costing_ws,
 	m.color,
@@ -3541,8 +3627,7 @@ group by
 	dc.so_det_id,
 	dc.stocker_range,
 	dc.no_form,
-    dc.no_cut,
-    dc.created_at
+    dc.no_cut
 )
 
 SELECT
@@ -3565,9 +3650,9 @@ k.status
 
 FROM
 (
-SELECT id_so_det, panel, no_form, no_cut, created_at, 0 AS qty_cut_awal, sum(qty_dc) AS qty_dc_awal, 0 as qty_cutt, 0 as qty_dc, 0 as qty_replace FROM dc_awal group by id_so_det, panel
+SELECT id_so_det, panel, no_form, no_cut, created_at, 0 AS qty_cut_awal, sum(qty_dc) AS qty_dc_awal, 0 as qty_cutt, 0 as qty_dc, 0 as qty_replace FROM dc_awal group by id_so_det, no_form, panel
 UNION ALL
-SELECT id_so_det, panel, no_form, no_cut, created_at, 0 AS qty_cut_awal, 0 AS qty_dc_awal, 0 as qty_cutt, sum(qty_dc) as qty_dc, sum(qty_replace) as qty_replace  FROM dc_in group by id_so_det, panel
+SELECT id_so_det, panel, no_form, no_cut, created_at, 0 AS qty_cut_awal, 0 AS qty_dc_awal, 0 as qty_cutt, sum(qty_dc) as qty_dc, sum(qty_replace) as qty_replace  FROM dc_in group by id_so_det, no_form, panel
 ) a
 LEFT JOIN (
 SELECT sd.id as id_so_det, ac.kpno ws, ac.styleno, sd.color, sd.size, sd.dest, ms.supplier as buyer, sd.cancel, so.cancel_h, ac.status FROM signalbit_erp.so_det sd

@@ -1,21 +1,18 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Sewing;
 
-use App\Exports\Sewing\ReportHourlyExportMonthly;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
-use Yajra\DataTables\Facades\DataTables;
-use DB;
 use Illuminate\Support\Facades\Auth;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\ExportLaporanPPICTracking;
-use App\Exports\ExportPPIC_Master_so_sb;
-use App\Exports\ExportPPIC_Master_so_ppic;
+use App\Exports\Sewing\ReportHourlyExportMonthly;
 use App\Exports\Sewing\ReportHourlyExport;
-use App\Imports\ImportPPIC_SO;
+use Yajra\DataTables\Facades\DataTables;
+use Maatwebsite\Excel\Facades\Excel;
 use \avadim\FastExcelLaravel\Excel as FastExcel;
 use PhpOffice\PhpSpreadsheet\Style\Style;
+use Carbon\Carbon;
+use DB;
 
 class ReportHourlyController extends Controller
 {

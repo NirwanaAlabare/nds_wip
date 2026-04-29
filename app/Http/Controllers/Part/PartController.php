@@ -498,7 +498,82 @@ class PartController extends Controller
      */
     public function update(Request $request, Part $part, $id = 0)
     {
-        //
+        if (!$id) {
+            return [
+                "status" => 400,
+                "message" => "ID tidak valid",
+                "reload" => true
+            ];
+        }
+
+        // Transaction
+        try {
+            $part = Part::find($id);
+
+            if (!$part) {
+                return [
+                    "status" => 404,
+                    "message" => "Part tidak valid",
+                    "reload" => true
+                ];
+            }
+
+            $partPanelStatus = $request->panel_status;
+
+            if (!$partPanelStatus) {
+                return [
+                    "status" => 400,
+                    "message" => "Panel status tidak valid",
+                    "reload" => true
+                ];
+            }
+
+            // Validate panel status based on current part details
+            switch ($partPanelStatus) {
+                case "complement":
+                    $complementPartDetails = $part->partDetails()->where("part_status", "complement")->get();
+                    if ($complementPartDetails->isNotEmpty()) {
+                        return [
+                            "status" => 400,
+                            "message" => "Part Group memiliki Part Complement",
+                        ];
+                    }
+                    break;
+
+                case "main":
+                    $mainPart = Part::where("id", "!=", $part->id)
+                        ->where("act_costing_id", $part->act_costing_id)
+                        ->where("panel_status", "main")
+                        ->first();
+
+                    if ($mainPart) {
+                        return [
+                            "status" => 400,
+                            "message" => "Main Panel sudah ada untuk WS ".$part->act_costing_ws." <a href='".route("manage-part-secondary")."/".$part->id."' target='_blank'>".$part->kode."</a>",
+                            "reload" => true
+                        ];
+                    }
+                    break;
+
+                default:
+                    // For other statuses, no additional checks
+                    break;
+            }
+
+            $part->panel_status = $partPanelStatus;
+            $part->save();
+
+            return [
+                "status" => 200,
+                "message" => "Part berhasil diubah",
+            ];
+        } catch (\Exception $e) {
+            return [
+                "status" => 400,
+                "message" => "Terjadi kesalahan saat mengubah part : " . $e->getMessage(),
+                "reload" => true
+            ];
+        }
     }
 
     /**
@@ -1498,6 +1573,7 @@ class PartController extends Controller
         $list_part = DB::select(
             "
             SELECT
+                pd.id,
                 pd.id com_id,
                 CONCAT(mp.nama_part, ' - ', mp.bag) com_nama_part,
                 CONCAT(from_master_part.nama_part, ' - ', from_master_part.bag) as com_from_part,

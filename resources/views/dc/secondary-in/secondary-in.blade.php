@@ -1290,7 +1290,8 @@
 
                     Swal.fire({
                         icon: 'warning',
-                        title: request.responseText ? request.responseText : 'Data Tidak Ada',
+                        title: 'Gagal',
+                        html: request.responseText ? request.responseText : 'Data Tidak Ada',
                         showConfirmButton: true,
                     })
                 },

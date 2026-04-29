@@ -506,7 +506,8 @@ class LoadingLineController extends Controller
                 trolley.nama_trolley,
                 stocker_input.id_qr_stocker,
                 stocker_input.so_det_id,
-                stocker_input.size,
+                master_sb_ws.size,
+                master_sb_ws.dest,
                 stocker_input.shade,
                 stocker_input.group_stocker,
                 stocker_input.range_awal,
@@ -545,6 +546,7 @@ class LoadingLineController extends Controller
                 LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
                 LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
                 LEFT JOIN users ON users.id = loading_line.created_by
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                 LEFT JOIN (
                     select
 						COALESCE(p_com.panel, p.panel) panel,
@@ -892,7 +894,8 @@ class LoadingLineController extends Controller
                 trolley.nama_trolley,
                 stocker_input.id_qr_stocker,
                 stocker_input.so_det_id,
-                stocker_input.size,
+                master_sb_ws.size,
+                master_sb_ws.dest,
                 stocker_input.shade,
                 stocker_input.group_stocker,
                 stocker_input.range_awal,
@@ -975,6 +978,7 @@ class LoadingLineController extends Controller
                 AND loading_qty.ratio          <=> stocker_input.ratio
                 AND loading_qty.stocker_reject <=> stocker_input.stocker_reject
             WHERE
+                (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y') and
                 loading_line_plan.id in ".$loadingPlanIds."
                 ".$innerDetailDateFilter."
             GROUP BY
@@ -1084,9 +1088,9 @@ class LoadingLineController extends Controller
                 }
             }
 
-            $innerDateFilter = "";
+            $innerDateFilter = "WHERE (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')";
             if ($request->dateFrom || $request->dateTo) {
-                $innerDateFilter = "WHERE ";
+                $innerDateFilter .= " AND ";
                 $innerDateFromFilter = " loading_line.tanggal_loading >= '".($request->dateFrom ? $request->dateFrom : date("Y-m-d"))."' ";
                 $innerDateToFilter = " loading_line.tanggal_loading <= '".($request->dateTo ? $request->dateTo : date("Y-m-d"))."' ";
 
@@ -1219,9 +1223,9 @@ class LoadingLineController extends Controller
             }
         }
 
-        $innerDateFilter = "";
+        $innerDateFilter = "WHERE (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')";
         if ($request->dateFrom || $request->dateTo) {
-            $innerDateFilter = "WHERE ";
+            $innerDateFilter .= " AND ";
             $innerDateFromFilter = " loading_line.tanggal_loading >= '".($request->dateFrom ? $request->dateFrom : date("Y-m-d"))."' ";
             $innerDateToFilter = " loading_line.tanggal_loading <= '".($request->dateTo ? $request->dateTo : date("Y-m-d"))."' ";
 
@@ -1344,9 +1348,9 @@ class LoadingLineController extends Controller
             }
         }
 
-        $innerDateFilter = "";
+        $innerDateFilter = "WHERE (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')";
         if ($request->dateFrom || $request->dateTo) {
-            $innerDateFilter = "WHERE ";
+            $innerDateFilter .= " AND ";
             $innerDateFromFilter = " loading_line.tanggal_loading >= '".($request->dateFrom ? $request->dateFrom : date("Y-m-d"))."' ";
             $innerDateToFilter = " loading_line.tanggal_loading <= '".($request->dateTo ? $request->dateTo : date("Y-m-d"))."' ";
 
@@ -1485,9 +1489,9 @@ class LoadingLineController extends Controller
         $dateFrom = $request->dateFrom ? $request->dateFrom : date('Y-m-d');
         $dateTo = $request->dateTo ? $request->dateTo : date('Y-m-d');
 
-        $innerDateFilter = "";
+        $innerDateFilter = "WHERE (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')";
         if ($dateFrom || $dateTo) {
-            $innerDateFilter = "WHERE ";
+            $innerDateFilter .= " AND ";
             $innerDateFromFilter = " loading_line.tanggal_loading >= '".$dateFrom."' ";
             $innerDateToFilter = " loading_line.tanggal_loading <= '".$dateTo."' ";
 

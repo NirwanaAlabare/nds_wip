@@ -3,43 +3,9 @@
 use App\Events\TestEvent;
 use App\Http\Controllers\AccountingController;
 use App\Http\Controllers\BarcodePackingController;
-use App\Http\Controllers\Cutting\CompletedFormController;
-use App\Http\Controllers\Cutting\CuttingFormController;
-use App\Http\Controllers\Cutting\CuttingFormManualController;
-use App\Http\Controllers\Cutting\CuttingFormPieceController;
-use App\Http\Controllers\Cutting\CuttingFormPilotController;
-use App\Http\Controllers\Cutting\CuttingFormRejectController;
-use App\Http\Controllers\Cutting\CuttingPlanController;
-use App\Http\Controllers\Cutting\CuttingToolsController;
-use App\Http\Controllers\Cutting\GantiRejectController;
-use App\Http\Controllers\Cutting\MasterPipingController;
-use App\Http\Controllers\Cutting\PenerimaanCuttingController;
-use App\Http\Controllers\Cutting\PipingController;
-use App\Http\Controllers\Cutting\PipingLoadingController;
-use App\Http\Controllers\Cutting\PipingProcessController;
-use App\Http\Controllers\Cutting\PipingStockController;
-use App\Http\Controllers\Cutting\ReportCuttingController;
-use App\Http\Controllers\Cutting\RollController;
-use App\Http\Controllers\Cutting\SpreadingController;
 use App\Http\Controllers\DashboardFabricController;
-use App\Http\Controllers\DashboardWipLineController;
-use App\Http\Controllers\DC\BonLoadingController;
-use App\Http\Controllers\DC\DCInController;
-use App\Http\Controllers\DC\DcReportController;
-use App\Http\Controllers\DC\DcToolsController;
-use App\Http\Controllers\DC\LoadingLineController;
-use App\Http\Controllers\DC\LoadingOutController;
-use App\Http\Controllers\DC\RackController;
-use App\Http\Controllers\DC\RackStockerController;
-use App\Http\Controllers\DC\SecondaryInController;
-use App\Http\Controllers\DC\SecondaryInhouseInController;
-use App\Http\Controllers\DC\SecondaryInhouseOutController;
-use App\Http\Controllers\DC\StockDcCompleteController;
-use App\Http\Controllers\DC\StockDcIncompleteController;
-use App\Http\Controllers\DC\StockDcWipController;
-use App\Http\Controllers\DC\TrolleyController;
-use App\Http\Controllers\DC\TrolleyStockerController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\Exim\ExportImportController;
 use App\Http\Controllers\FGStokBPBController;
 use App\Http\Controllers\FGStokBPPBController;
 use App\Http\Controllers\FGStokLaporanController;
@@ -53,10 +19,6 @@ use App\Http\Controllers\FinishGoodPengeluaranController;
 use App\Http\Controllers\FinishGoodReturController;
 use App\Http\Controllers\GAApprovalBahanBakarController;
 use App\Http\Controllers\GAPengajuanBahanBakarController;
-use App\Http\Controllers\General\DashboardController;
-use App\Http\Controllers\General\GeneralController;
-use App\Http\Controllers\General\TrackController;
-use App\Http\Controllers\General\WorksheetController;
 use App\Http\Controllers\IE_Laporan_Controller;
 use App\Http\Controllers\IE_Proses_OB_Controller;
 use App\Http\Controllers\IEDashboardController;
@@ -73,7 +35,6 @@ use App\Http\Controllers\LapMutasiBarcodeController;
 use App\Http\Controllers\LapMutasiDetailController;
 use App\Http\Controllers\LapMutasiGlobalController;
 use App\Http\Controllers\MaintainBpbController;
-use App\Http\Controllers\Marker\MarkerController;
 use App\Http\Controllers\Marketing_AdditionalBomController;
 use App\Http\Controllers\Marketing_BomController;
 use App\Http\Controllers\Marketing_CostingController;
@@ -105,9 +66,6 @@ use App\Http\Controllers\PackingPackingOutController;
 use App\Http\Controllers\PackingReportController;
 use App\Http\Controllers\PackingSubcontController;
 use App\Http\Controllers\PackingTransferGarmentController;
-use App\Http\Controllers\Part\MasterPartController;
-use App\Http\Controllers\Part\MasterSecondaryController;
-use App\Http\Controllers\Part\PartController;
 use App\Http\Controllers\PPIC_LaporanTrackingController;
 use App\Http\Controllers\PPIC_MasterSOController;
 use App\Http\Controllers\PPIC_MonitoringMaterialController;
@@ -127,51 +85,18 @@ use App\Http\Controllers\QCInspectProsesPackingListController;
 use App\Http\Controllers\QCInspectShadeBandController;
 use App\Http\Controllers\QcPassController;
 use App\Http\Controllers\ReportDocController;
-use App\Http\Controllers\ReportHourlyController;
 use App\Http\Controllers\ReqMaterialController;
 use App\Http\Controllers\ReturInMaterialController;
 use App\Http\Controllers\ReturMaterialController;
-use App\Http\Controllers\Sewing\DataDetailProduksiController;
-use App\Http\Controllers\Sewing\DataDetailProduksiDayController;
-use App\Http\Controllers\Sewing\DataProduksiController;
-use App\Http\Controllers\Sewing\LineDashboardController;
-use App\Http\Controllers\Sewing\LineWipController;
-use App\Http\Controllers\Sewing\MasterBuyerController;
-use App\Http\Controllers\Sewing\MasterDefectController;
-use App\Http\Controllers\Sewing\MasterJabatanController;
-use App\Http\Controllers\Sewing\MasterKaryawanController;
-use App\Http\Controllers\Sewing\MasterKursBiController;
-use App\Http\Controllers\Sewing\MasterLineController;
-use App\Http\Controllers\Sewing\MasterPlanController;
-use App\Http\Controllers\Sewing\OrderDefectController;
-use App\Http\Controllers\Sewing\ReportController;
-use App\Http\Controllers\Sewing\ReportDefectController;
-use App\Http\Controllers\Sewing\ReportDefectRejectController;
-use App\Http\Controllers\Sewing\ReportDetailOutputController;
-use App\Http\Controllers\Sewing\ReportEfficiencyController;
-use App\Http\Controllers\Sewing\ReportEfficiencyNewController;
-use App\Http\Controllers\Sewing\ReportMutasiOutputController;
-use App\Http\Controllers\Sewing\ReportOutputController;
-use App\Http\Controllers\Sewing\ReportProductionController;
-use App\Http\Controllers\Sewing\ReportRejectController;
-use App\Http\Controllers\Sewing\SewingSecondaryMasterController;
-use App\Http\Controllers\Sewing\SewingToolsController;
-use App\Http\Controllers\Sewing\TrackOrderOutputController;
-use App\Http\Controllers\Sewing\TransferOutputController;
-use App\Http\Controllers\Sewing\UndoOutputController;
-use App\Http\Controllers\Stocker\StockerController;
-use App\Http\Controllers\Stocker\StockerRejectController;
-use App\Http\Controllers\Stocker\StockerToolsController;
-use App\Http\Controllers\Stocker\YearSequenceController;
 use App\Http\Controllers\StockOpnameController;
 use App\Http\Controllers\TransferBpbController;
-use App\Http\Controllers\User\ManageAccessController;
-use App\Http\Controllers\User\ManageRoleController;
-use App\Http\Controllers\User\ManageUserController;
-use App\Http\Controllers\User\ManageUserLineController;
-use App\Http\Controllers\User\UserController;
+use App\Http\Controllers\TransferMemoController;
 use App\Http\Controllers\WarehouseController;
 use App\Http\Controllers\PurchasingController;
+use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanAccesoriesController;
+use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanController;
+use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanFgController;
+use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -185,1314 +110,48 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// Authentication
 Auth::routes(['register' => false]);
 
+// Home
 Route::get('/', [App\Http\Controllers\General\HomeController::class, 'index']);
 
 Route::get('/home', [App\Http\Controllers\General\HomeController::class, 'index'])->name('home');
 
+// Dashboard
+require base_path('routes/dashboard.php');
+
+// User
+require base_path('routes/user.php');
+
+// General
+require base_path('routes/general.php');
+
+// Part
+require base_path('routes/part.php');
+
+// Marker
+require base_path('routes/marker.php');
+
+// Cutting
+require base_path('routes/cutting.php');
+
+// Cutting
+require base_path('routes/stocker.php');
+
+// DC
+require base_path('routes/dc.php');
+
+// Sewing
+require base_path('routes/sewing.php');
+
+// QC Inspect
+require base_path('routes/qcinspect.php');
+
+// SB WIP SUMMARY
+require base_path('routes/sbwipsummary.php');
+
 Route::middleware('auth')->group(function () {
-    // User
-    Route::controller(UserController::class)->prefix("user")->group(function () {
-        Route::put('/update/{id?}', 'update')->name('update-user');
-    });
-
-    // General
-    Route::controller(GeneralController::class)->prefix("general")->group(function () {
-        // generate unlock token
-        Route::post('/generate-unlock-token', 'generateUnlockToken')->name('generate-unlock-token');
-        // get order
-        Route::get('/get-order', 'getOrderInfo')->name('get-general-order');
-        // get colors
-        Route::get('/get-colors', 'getColorList')->name('get-general-colors');
-        // get panels
-        Route::get('/get-panels', 'getPanelList')->name('get-general-panels');
-        // get sizes
-        Route::get('/get-sizes', 'getSizeList')->name('get-general-sizes');
-        // get count
-        Route::get('/get-count', 'getCount')->name('get-general-count');
-        // get number
-        Route::get('/get-number', 'getNumber')->name('get-general-number');
-        // get no form
-        Route::get('/get-no-form-cut', 'getNoFormCut')->name('get-no-form-cut');
-        // get group
-        Route::get('/get-form-group', 'getFormGroup')->name('get-form-group');
-        // get stocker
-        Route::get('/get-form-stocker', 'getFormStocker')->name('get-form-stocker');
-
-        // new general
-        // get buyers
-        Route::get('/get-buyers-new', 'getBuyers')->name('get-buyers');
-        // get orders
-        Route::get('/get-orders-new', 'getOrders')->name('get-orders');
-        // get colors
-        Route::get('/get-colors-new', 'getColors')->name('get-colors');
-        // get sizes
-        Route::get('/get-sizes-new', 'getSizes')->name('get-sizes');
-        // get po
-        Route::get('/get-pos', 'getPos')->name('get-pos');
-        // get panels new
-        Route::get('/get-panels-new', 'getPanelListNew')->name('get-panels');
-
-        // General Tools
-        Route::get('/general-tools', 'generalTools')->middleware('role:superadmin')->name('general-tools');
-        Route::post('/update-master-sb-ws', 'updateMasterSbWs')->middleware('role:superadmin')->name('update-master-sb-ws');
-        Route::post('/update-general-order', 'updateGeneralOrder')->middleware('role:superadmin')->name('update-general-order');
-
-        Route::post('/get-general-order-color-from', 'getGeneralOrderColorFrom')->middleware('role:superadmin')->name('get-general-order-color-from');
-        Route::post('/get-general-order-color-to', 'getGeneralOrderColorTo')->middleware('role:superadmin')->name('get-general-order-color-to');
-        Route::post('/update-general-order-color', 'updateGeneralOrderColor')->middleware('role:superadmin')->name('update-general-order-color');
-
-        // get scanned employee
-        Route::get('/get-scanned-employee/{id?}', 'getScannedEmployee')->name('get-scanned-employee');
-
-        // cutting items
-        Route::get('/get-scanned-item/{id?}', 'getScannedItem')->name('get-scanned-form-cut-input');
-        Route::get('/get-item', 'getItem')->name('get-item-form-cut-input');
-
-        // output
-        Route::get('/get-output', 'getOutput')->name('get-output');
-        Route::post('/get-output-post', 'getOutput')->name('get-output-post');
-
-        // master plan
-        Route::get('/get-master-plan', 'getMasterPlan')->name('get-master-plan');
-        Route::get('/get-master-plan-detail/{id?}', 'getMasterPlanDetail')->name('get-master-plan-detail');
-        Route::get('/get-master-plan-output', 'getMasterPlanOutput')->name('get-master-plan-output');
-        Route::get('/get-master-plan-output-size', 'getMasterPlanOutputSize')->name('get-master-plan-output-size');
-
-        // reject in out
-        Route::get('/get-reject-in', 'getRejectIn')->name('get-reject-in');
-        // defect in out
-        Route::get('/get-defect-in-out', 'getDefectInOut')->name('get-defect-in-out');
-
-        // Part Item
-        Route::get('/get-part-item', 'getPartItemList')->name('get-part-item');
-
-        // Item by WS, Color, Panel
-        Route::get('/get-item-by-ws-color-panel', 'getItemByWsColorPanel')->name('get-item-by-ws-color-panel');
-    });
-
-    // Worksheet
-    Route::controller(WorksheetController::class)->prefix("worksheet")->group(function () {
-        // get worksheet
-        Route::get('/', 'index')->name('worksheet');
-        Route::post('/print-qr', 'printQr')->name('worksheet-print-qr');
-    });
-
-    // Part :
-    // Master Part
-    Route::controller(MasterPartController::class)->prefix("master-part")->middleware('role:marker')->group(function () {
-        Route::get('/', 'index')->name('master-part');
-        Route::post('/store', 'store')->name('store-master-part');
-        Route::put('/update/{id?}', 'update')->name('update-master-part');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-master-part');
-    });
-
-    // Master Secondary
-    Route::controller(MasterSecondaryController::class)->prefix("master-secondary")->middleware('role:marker')->group(function () {
-        Route::get('/', 'index')->name('master-secondary');
-        Route::post('/store', 'store')->name('store-master-secondary');
-        Route::get('/show_master_secondary', 'show_master_secondary')->name('show_master_secondary');
-        Route::put('/update_master_secondary', 'update_master_secondary')->name('update_master_secondary');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-master-secondary');
-    });
-
-    // Part
-    Route::controller(PartController::class)->prefix("part")->middleware('role:marker,cutting,stocker')->group(function () {
-        Route::get('/', 'index')->name('part');
-        Route::get('/create', 'create')->name('create-part');
-        Route::post('/store', 'store')->name('store-part');
-        Route::get('/edit', 'edit')->name('edit-part');
-        Route::put('/update/{id?}', 'update')->name('update-part');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-part');
-
-        // part form
-        Route::get('/manage-part-form/{id?}', 'managePartForm')->name('manage-part-form');
-        Route::get('/get-form-cut/{id?}', 'getFormCut')->name('get-part-form-cut');
-        Route::post('/store-part-form', 'storePartForm')->name('store-part-form');
-        Route::delete('/destroy-part-form', 'destroyPartForm')->name('destroy-part-form');
-        Route::get('/show-part-form', 'showPartForm')->name('show-part-form');
-
-        // part secondary
-        Route::get('/manage-part-secondary/{id?}', 'managePartSecondary')->name('manage-part-secondary');
-        Route::get('/datatable_list_part/{id?}', 'datatable_list_part')->name('datatable_list_part');
-        Route::get('/datatable_list_part_complement/{id?}', 'datatable_list_part_complement')->name('datatable_list_part_complement');
-        Route::get('/get_proses', 'get_proses')->name('get_proses');
-        Route::post('/store_part_secondary', 'store_part_secondary')->name('store_part_secondary');
-        Route::put('/update-part-secondary', 'updatePartSecondary')->name('update-part-secondary');
-        Route::put('/update-part-secondary-complement', 'updatePartSecondaryComplement')->name('update-part-secondary-complement');
-
-        // part detail
-        Route::delete('/destroy-part-detail/{id?}', 'destroyPartDetail')->name('destroy-part-detail');
-        Route::delete('/cancel-part-detail/{id?}', 'cancelPartDetail')->name('cancel-part-detail');
-        Route::put('/uncancel-part-detail/{id?}', 'uncancelPartDetail')->name('uncancel-part-detail');
-
-        // get order
-        Route::get('/get-order', 'getOrderInfo')->name('get-part-order');
-        // get colors
-        Route::get('/get-colors', 'getColorList')->name('get-part-colors');
-        // get panels
-        Route::get('/get-panels', 'getPanelList')->name('get-part-panels');
-        // get master part
-        Route::get('/get-master-parts', 'getMasterParts')->name('get-master-parts');
-        // get master tujuan
-        Route::get('/get-master-tujuan', 'getMasterTujuan')->name('get-master-tujuan');
-        // get master secondary
-        Route::get('/get-master-secondary', 'getMasterSecondary')->name('get-master-secondary');
-        // get complement panels
-        Route::get('/get-complement-panels', 'getComplementPanelList')->name('get-part-complement-panels');
-        // get complement panel parts
-        Route::get('/get-complement-panel-parts', 'getComplementPanelPartList')->name('get-part-complement-panel-parts');
-
-        // get part detail process
-        Route::get('/get-edit-part-detail-process', 'getEditPartDetailProcess')->name('get-edit-part-detail-process');
-
-        // get part detail items
-        Route::get('/get-edit-part-detail-items', 'getEditPartDetailItems')->name('get-edit-part-detail-items');
-    });
-
-    // Marker :
-    // Marker
-    Route::controller(MarkerController::class)->prefix("marker")->middleware('role:marker')->group(function () {
-        Route::get('/', 'index')->name('marker');
-        Route::get('/create', 'create')->name('create-marker');
-        Route::post('/store', 'store')->name('store-marker');
-        Route::get('/edit/{id?}', 'edit')->name('edit-marker');
-        Route::put('/update/{id?}', 'update')->name('update-marker');
-        Route::post('/show', 'show')->name('show-marker');
-        Route::post('/show_gramasi', 'show_gramasi')->name('show_gramasi');
-        Route::post('/update_status', 'update_status')->name('update_status');
-        Route::put('/update_marker', 'update_marker')->name('update_marker');
-        Route::post('/print-marker/{kodeMarker?}', 'printMarker')->name('print-marker');
-        Route::post('/fix-marker-balance-qty', 'fixMarkerBalanceQty')->name('fix-marker-balance-qty');
-
-        // get order
-        Route::get('/get-order', 'getOrderInfo')->name('get-marker-order');
-        // get colors
-        Route::get('/get-colors', 'getColorList')->name('get-marker-colors');
-        // get panels
-        Route::get('/get-panels', 'getPanelList')->name('get-marker-panels');
-        // get sizes
-        Route::get('/get-sizes', 'getSizeList')->name('get-marker-sizes');
-        // get count
-        Route::get('/get-count', 'getCount')->name('get-marker-count');
-        // get number
-        Route::get('/get-number', 'getNumber')->name('get-marker-number');
-    });
-
-    // Cutting :
-    // Spreading
-    Route::controller(SpreadingController::class)->prefix("spreading")->middleware('role:cutting')->group(function () {
-        Route::get('/', 'index')->name('spreading');
-        Route::get('/create', 'create')->name('create-spreading');
-        Route::post('/getno_marker', 'getno_marker')->name('getno_marker');
-        Route::get('/getdata_marker', 'getdata_marker')->name('getdata_marker');
-        Route::get('/getdata_ratio', 'getdata_ratio')->name('getdata_ratio');
-        Route::post('/store', 'store')->name('store-spreading');
-        Route::put('/update', 'update')->name('update-spreading');
-        Route::get('/get-order-info', 'getOrderInfo')->name('get-spreading-data');
-        Route::get('/get-cut-qty', 'getCutQty')->name('get-cut-qty-data');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-spreading');
-        Route::post('/export', 'exportExcel')->name('export-cutting-form');
-        Route::post('/export-pdf', 'exportPdf')->name('export-cutting-form-pdf');
-        // export excel
-        // Route::get('/export_excel', 'export_excel')->name('export_excel');
-        // Route::get('/export', 'export')->name('export');
-    });
-
-    Route::controller(SpreadingController::class)->prefix("spreading")->middleware('role:superadmin')->group(function () {
-        Route::put('/update-status', 'updateStatus')->name('update-status');
-        Route::put('/update-status-redirect', 'updateStatusRedirect')->name('update-status-redirect');
-    });
-
-    // Penerimaan Cutting
-    Route::controller(PenerimaanCuttingController::class)->prefix("penerimaan-cutting")->middleware("role:cutting")->group(function () {
-        Route::get('/', 'index')->name('penerimaan-cutting');
-        Route::get('/create', 'create')->name('create-penerimaan-cutting');
-        Route::post('/store', 'store')->name('store-penerimaan-cutting');
-        Route::get('/edit/{id?}', 'edit')->name('edit-penerimaan-cutting');
-        Route::post('/update', 'update')->name('update-penerimaan-cutting');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-penerimaan-cutting');
-        Route::post('/export', 'exportPenerimaanCutting')->name('export-penerimaan-cutting');
-        Route::get('/get-scanned-item/{id?}', 'getBarcodeFabric')->name('get-scanned-penerimaan-cutting');
-    });
-
-    // Form Cut Input
-    Route::controller(CuttingFormController::class)->prefix("form-cut-input")->middleware("role:cutting")->group(function () {
-        Route::get('/', 'index')->name('form-cut-input');
-        Route::get('/process/{id?}', 'process')->name('process-form-cut-input');
-        Route::get('/get-number-data', 'getNumberData')->name('get-number-form-cut-input');
-        Route::put('/start-process/{id?}', 'startProcess')->name('start-process-form-cut-input');
-        Route::put('/next-process-one/{id?}', 'nextProcessOne')->name('next-process-one-form-cut-input');
-        Route::put('/next-process-two/{id?}', 'nextProcessTwo')->name('next-process-two-form-cut-input');
-        Route::get('/get-time-record/{id?}/{noForm?}', 'getTimeRecord')->name('get-time-form-cut-input');
-        Route::post('/store-scanned-item', 'storeScannedItem')->name('store-scanned-form-cut-input');
-        Route::post('/store-time-record', 'storeTimeRecord')->name('store-time-form-cut-input');
-        Route::post('/store-time-record-extension', 'storeTimeRecordExtension')->name('store-time-ext-form-cut-input');
-        Route::post('/store-this-time-record', 'storeThisTimeRecord')->name('store-this-time-form-cut-input');
-        Route::put('/finish-process/{id?}', 'finishProcess')->name('finish-process-form-cut-input');
-        Route::get('/check-spreading-form/{id?}/{noForm?}/{noMeja?}', 'checkSpreadingForm')->name('check-spreading-form-cut-input');
-        Route::get('/check-time-record/{detailId?}', 'checkTimeRecordLap')->name('check-time-record-form-cut-input');
-        Route::post('/store-lost-time/{id?}', 'storeLostTime')->name('store-lost-form-cut-input');
-        Route::get('/check-lost-time/{id?}', 'checkLostTime')->name('check-lost-form-cut-input');
-        Route::get('/get-form-cut-ratio', 'getRatio')->name('get-form-cut-ratio');
-
-        Route::get('/check-sambungan/{id?}', 'checkSambungan')->name('check-sambungan');
-
-        Route::get('/store-sambungan', 'storeSambungan')->name('store-sambungan');
-
-        // get order
-        Route::get('/get-order', 'getOrderInfo')->name('form-cut-get-marker-order');
-        // get colors
-        Route::get('/get-colors', 'getColorList')->name('form-cut-get-marker-colors');
-        // get panels
-        Route::get('/get-panels', 'getPanelList')->name('form-cut-get-general-panels');
-        // get sizes
-        Route::get('/get-sizes', 'getSizeList')->name('form-cut-get-marker-sizes');
-        // get count
-        Route::get('/get-count', 'getCount')->name('form-cut-get-marker-count');
-        // get number
-        Route::get('/get-number', 'getNumber')->name('form-cut-get-marker-number');
-
-        // no cut update
-        Route::put('/update-no-cut', 'updateNoCut')->name('form-cut-update-no-cut');
-
-        // lock form
-        Route::post('/form-cut-lock', 'formCutLock')->name('form-cut-lock');
-        // unlock form
-        Route::post('/form-cut-unlock', 'formCutUnlock')->name('form-cut-unlock');
-    });
-
-    // Manual Form Cut Input
-    Route::controller(CuttingFormManualController::class)->prefix("manual-form-cut")->middleware("role:cutting")->group(function () {
-        Route::get('/', 'index')->name('manual-form-cut');
-        Route::get('/create', 'create')->name('create-manual-form-cut');
-        Route::get('/create-new', 'createNew')->name('create-new-manual-form-cut');
-        Route::get('/process/{id?}', 'process')->name('process-manual-form-cut');
-        Route::get('/get-number-data', 'getNumberData')->name('get-number-manual-form-cut');
-        Route::get('/get-scanned-item/{id?}', 'getScannedItem')->name('get-scanned-manual-form-cut');
-        Route::get('/get-item', 'getItem')->name('get-item-manual-form-cut');
-        Route::put('/start-process/{id?}', 'startProcess')->name('start-process-manual-form-cut');
-        Route::post('/jump-to-detail/{id?}', 'jumpToDetail')->name('jump-to-detail-manual-form-cut');
-        Route::post('/store-marker/{id?}', 'storeMarker')->name('store-marker-manual-form-cut');
-        Route::put('/next-process-one/{id?}', 'nextProcessOne')->name('next-process-one-manual-form-cut');
-        Route::put('/next-process-two/{id?}', 'nextProcessTwo')->name('next-process-two-manual-form-cut');
-        Route::get('/get-time-record/{id?}/{noForm?}', 'getTimeRecord')->name('get-time-manual-form-cut');
-        Route::post('/store-scanned-item', 'storeScannedItem')->name('store-scanned-manual-form-cut');
-        Route::post('/store-time-record', 'storeTimeRecord')->name('store-time-manual-form-cut');
-        Route::post('/store-time-record-extension', 'storeTimeRecordExtension')->name('store-time-ext-manual-form-cut');
-        Route::post('/store-this-time-record', 'storeThisTimeRecord')->name('store-this-time-manual-form-cut');
-        Route::put('/finish-process/{id?}', 'finishProcess')->name('finish-process-manual-form-cut');
-        Route::get('/check-spreading-form/{id?}/{noForm?}/{noMeja?}', 'checkSpreadingForm')->name('check-spreading-manual-form-cut');
-        Route::get('/check-time-record/{detailId?}', 'checkTimeRecordLap')->name('check-time-record-manual-form-cut');
-        Route::post('/store-lost-time/{id?}', 'storeLostTime')->name('store-lost-manual-form-cut');
-        Route::get('/check-lost-time/{id?}', 'checkLostTime')->name('check-lost-manual-form-cut');
-        Route::get('/get-form-cut-ratio', 'getRatio')->name('get-manual-form-cut-ratio');
-
-        // get order
-        Route::get('/get-order', 'getOrderInfo')->name('manual-form-cut-get-order');
-        // get colors
-        Route::get('/get-colors', 'getColorList')->name('manual-form-cut-get-colors');
-        // get panels
-        Route::get('/get-panels', 'getPanelList')->name('manual-form-cut-get-panels');
-        // get sizes
-        Route::get('/get-sizes', 'getSizeList')->name('manual-form-cut-get-sizes');
-        // get count
-        Route::get('/get-count', 'getCount')->name('manual-form-cut-get-count');
-        // get number
-        Route::get('/get-number', 'getNumber')->name('manual-form-cut-get-number');
-    });
-
-    // Pilot Form Cut Input
-    Route::controller(CuttingFormPilotController::class)->prefix("pilot-form-cut")->middleware("role:cutting")->group(function () {
-        Route::get('/', 'index')->name('pilot-form-cut');
-        Route::get('/create', 'create')->name('create-pilot-form-cut');
-        Route::get('/create-new', 'createNew')->name('create-new-pilot-form-cut');
-        Route::get('/process/{id?}', 'process')->name('process-pilot-form-cut');
-        Route::get('/get-number-data', 'getNumberData')->name('get-number-pilot-form-cut');
-        Route::get('/get-scanned-item/{id?}', 'getScannedItem')->name('get-scanned-pilot-form-cut');
-        Route::get('/get-item', 'getItem')->name('get-item-pilot-form-cut');
-        Route::put('/start-process', 'startProcess')->name('start-process-pilot-form-cut');
-        Route::post('/store-marker/{id?}', 'storeMarker')->name('store-marker-pilot-form-cut');
-        Route::put('/next-process-one/{id?}', 'nextProcessOne')->name('next-process-one-pilot-form-cut');
-        Route::put('/next-process-two/{id?}', 'nextProcessTwo')->name('next-process-two-pilot-form-cut');
-        Route::get('/get-time-record/{id?}/{noForm?}', 'getTimeRecord')->name('get-time-pilot-form-cut');
-        Route::post('/store-scanned-item', 'storeScannedItem')->name('store-scanned-pilot-form-cut');
-        Route::post('/store-time-record', 'storeTimeRecord')->name('store-time-pilot-form-cut');
-        Route::post('/store-time-record-extension', 'storeTimeRecordExtension')->name('store-time-ext-pilot-form-cut');
-        Route::post('/store-this-time-record', 'storeThisTimeRecord')->name('store-this-time-pilot-form-cut');
-        Route::put('/finish-process/{id?}', 'finishProcess')->name('finish-process-pilot-form-cut');
-        Route::get('/check-spreading-form/{id?}/{noForm?}/{noMeja?}', 'checkSpreadingForm')->name('check-spreading-pilot-form-cut');
-        Route::get('/check-time-record/{detailId?}', 'checkTimeRecordLap')->name('check-time-record-pilot-form-cut');
-        Route::post('/store-lost-time/{id?}', 'storeLostTime')->name('store-lost-pilot-form-cut');
-        Route::get('/check-lost-time/{id?}', 'checkLostTime')->name('check-lost-pilot-form-cut');
-        Route::get('/get-form-cut-ratio', 'getRatio')->name('get-pilot-form-cut-ratio');
-
-        // get order
-        Route::get('/get-order', 'getOrderInfo')->name('pilot-form-cut-get-order');
-        // get colors
-        Route::get('/get-colors', 'getColorList')->name('pilot-form-cut-get-colors');
-        // get panels
-        Route::get('/get-panels', 'getPanelList')->name('pilot-form-cut-get-panels');
-        // get sizes
-        Route::get('/get-sizes', 'getSizeList')->name('pilot-form-cut-get-sizes');
-        // get count
-        Route::get('/get-count', 'getCount')->name('pilot-form-cut-get-count');
-        // get number
-        Route::get('/get-number', 'getNumber')->name('pilot-form-cut-get-number');
-    });
-
-    // Piping  Controller
-    Route::controller(PipingController::class)->prefix("form-cut-piping")->middleware("role:cutting")->group(function () {
-        Route::get('/', 'index')->name('form-cut-piping');
-        Route::get('/create', 'create')->name('create-piping');
-        Route::post('/store', 'store')->name('store-piping');
-        Route::get('/edit/{id?}', 'edit')->name('edit-piping');
-        Route::post('/update', 'update')->name('update-piping');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-piping');
-
-        Route::get('/get-marker-piping', 'getMarkerPiping')->name('get-marker-piping');
-    });
-
-    // Master Piping
-    Route::controller(MasterPipingController::class)->prefix("master-piping")->middleware("role:cutting")->group(function () {
-        Route::get('/', 'index')->name('master-piping');
-        Route::get('/create', 'create')->name('create-master-piping');
-        Route::post('/store', 'store')->name('store-master-piping');
-        Route::put('/update', 'update')->name('update-master-piping');
-
-        // List Master Piping
-        Route::get('/list', 'list')->name('list-master-piping');
-
-        // Take Master Piping
-        Route::get('/take/{id?}', 'take')->name('take-master-piping');
-    });
-
-    // Piping Process
-    Route::controller(PipingProcessController::class)->prefix("piping-process")->middleware("role:cutting")->group(function () {
-        Route::get('/', 'index')->name('piping-process');
-        Route::get('/create', 'create')->name('create-piping-process');
-        Route::get('/create/new', 'createNew')->name('create-new-piping-process');
-        Route::get('/process/{id?}', 'process')->name('process-piping-process');
-        Route::post('/store', 'store')->name('store-piping-process');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-piping-process');
-        Route::get('/take-piping/{id?}', 'takePiping')->name('take-piping-process');
-        Route::get('/pdf/{id?}', 'pdf')->name('pdf-piping-process');
-
-        // Generate
-        Route::get('/generate', 'generate')->name('generate-piping-process');
-
-        // Item Forms
-        Route::get('/item/{id?}', 'item')->name('item-piping');
-        Route::get('/item/forms/{id?}', 'itemForms')->name('item-forms-piping');
-        Route::get('/item/piping/{id?}/{idForm?}/{type?}', 'itemPiping')->name('item-piping-piping');
-    });
-
-    // Piping Loading
-    Route::controller(PipingLoadingController::class)->prefix("piping-loading")->middleware("role:cutting")->group(function () {
-        Route::get("/", "index")->name("piping-loading");
-        Route::get("/create", "create")->name("create-piping-loading");
-        Route::post("/store", "store")->name("store-piping-loading");
-        Route::get("/total", "total")->name("total-piping-loading");
-
-        Route::get("/pipingProcess/{id?}", "getPipingProcess")->name("get-piping-process");
-    });
-
-    // Cutting Reject
-    Route::controller(CuttingFormRejectController::class)->prefix("form-cut-input-reject")->middleware("role:cutting")->group(function () {
-        Route::get('/', 'index')->name('cutting-reject');
-        Route::get('/show/{id?}', 'show')->name('show-cutting-reject');
-        Route::get('/create', 'create')->name('create-cutting-reject');
-        Route::get('/process', 'process')->name('process-cutting-reject');
-        Route::post('/store', 'store')->name('store-cutting-reject');
-        Route::get('/edit/{id?}', 'edit')->name('edit-cutting-reject');
-        Route::put('/update', 'update')->name('update-cutting-reject');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-cutting-reject');
-
-        // add-on
-        Route::get('/stock', 'stock')->name('stock-cutting-reject');
-        Route::get('/generate-code', 'generateCode')->name('generate-code-cutting-reject');
-
-        // get sizes
-        Route::get('/get-sizes', 'getSizeList')->name('get-form-reject-sizes');
-
-        // export reject
-        Route::post('/export-excel', 'exportExcel')->name('export-form-reject');
-
-        Route::post('/save_fabric_form_reject', 'save_fabric_form_reject')->name('save_fabric_form_reject');
-        Route::get('/show_fabric_form_reject', 'show_fabric_form_reject')->name('show_fabric_form_reject');
-    });
-
-    // Cutting Piece
-    Route::controller(CuttingFormPieceController::class)->prefix("form-cut-input-piece")->middleware("role:cutting")->group(function () {
-        Route::get('/', 'index')->name('cutting-piece');
-        Route::get('/show/{id?}', 'show')->name('show-cutting-piece');
-        Route::get('/create', 'create')->name('create-cutting-piece');
-        Route::get('/create-new', 'createNew')->name('create-new-cutting-piece');
-        Route::get('/process/{id?}', 'process')->name('process-cutting-piece');
-        Route::get('/incomplete-item/{id?}', 'incompleteItem')->name('incomplete-item-cutting-piece');
-        Route::post('/store', 'store')->name('store-cutting-piece');
-        Route::get('/edit/{id?}', 'edit')->name('edit-cutting-piece');
-        Route::put('/update', 'update')->name('update-cutting-piece');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-cutting-piece');
-
-        // add-on
-        Route::get('/stock', 'stock')->name('stock-cutting-piece');
-        Route::get('/generate-code', 'generateCode')->name('generate-code-cutting-piece');
-
-        // get sizes
-        Route::get('/get-sizes', 'getSizeList')->name('get-form-piece-sizes');
-
-        // export piece
-        Route::post('/export-excel', 'exportExcel')->name('export-form-piece');
-    });
-
-    // Piping Stock
-    Route::controller(PipingStockController::class)->prefix("piping-stock")->middleware("role:cutting")->group(function () {
-        Route::get("/", "index")->name("piping-stock");
-        Route::get("/total", "total")->name("total-piping-stock");
-        Route::get("/show/{id?}/{color?}", "show")->name("show-piping-stock");
-    });
-
-    // Cutting Plan
-    Route::controller(CuttingPlanController::class)->prefix("cut-plan")->middleware("role:cutting")->group(function () {
-        Route::get('/', 'index')->name('cut-plan');
-        Route::get('/create', 'create')->name('create-cut-plan');
-        Route::post('/store', 'store')->name('store-cut-plan');
-        Route::put('/update/{id?}', 'update')->name('update-cut-plan');
-        Route::delete('/destroy', 'destroy')->name('destroy-cut-plan');
-        Route::get('/get-selected-form/{noCutPlan?}', 'getSelectedForm')->name('get-selected-form');
-        Route::get('/get-cut-plan-form', 'getCutPlanForm')->name('get-cut-plan-form');
-
-        Route::post('/check-all-form', 'checkAllForm')->name('check-all-form-cut-plan');
-        Route::post('/check-all-form-selected', 'checkAllFormSelected')->name('check-all-form-selected-cut-plan');
-
-        Route::get('/cut-plan-output', 'cuttingPlanOutput')->name('cut-plan-output');
-        Route::get('/cut-plan-output/show/{id?}', 'showCuttingPlanOutput')->name('detail-cut-plan-output');
-        Route::get('/cut-plan-output/show-form', 'showCutPlanOutputForm')->name('cut-plan-output-form');
-        Route::get('/cut-plan-output/show-available-form', 'showCutPlanOutputAvailableForm')->name('available-cut-plan-output-form');
-
-        Route::get('/cut-plan-output/create', 'createCuttingPlanOutput')->name('create-cut-plan-output');
-        Route::post('/cut-plan-output/store', 'storeCuttingPlanOutput')->name('store-cut-plan-output');
-        Route::put('/cut-plan-output/update', 'updateCuttingPlanOutput')->name('edit-cut-plan-output');
-        Route::delete('/cut-plan-output/destroy', 'destroyCuttinPlanOutputForm')->name('destroy-cut-plan-output');
-        Route::get('/cut-plan-output/check-form', 'checkAllForms')->name('cut-plan-output-check-all-form');
-        Route::post('/cut-plan-output/add-form', 'addCuttingPlanOutputForm')->name('add-cut-plan-output-form');
-        Route::delete('/cut-plan-output/remove-form', 'removeCuttinPlanOutputForm')->name('remove-cut-plan-output-form');
-
-        Route::post('/export', 'exportCuttingPlan')->name('export-cutting-plan');
-    });
-
-    // CompletedForm
-    Route::controller(CompletedFormController::class)->prefix("manager")->middleware("role:cutting")->group(function () {
-        Route::get('/cutting', 'cutting')->name('manage-cutting');
-        Route::get('/cutting/detail/{id?}', 'detailCutting')->name('detail-cutting');
-        Route::put('/cutting/generate/{id?}', 'generateStocker')->name('generate-stocker');
-        Route::post('/cutting/update-form', 'updateCutting')->name('update-spreading-form');
-        Route::post('/cutting/update-detail', 'updateDetail')->name('update-detail-form');
-        Route::post('/cutting/update-header', 'updateHeader')->name('update-header-form');
-        Route::put('/cutting/update-finish/{id?}', 'updateFinish')->name('finish-update-spreading-form');
-        Route::delete('/cutting/destroy-roll/{id?}', 'destroySpreadingRoll')->name('destroy-spreading-roll');
-        Route::post('/cutting/recalculate-form/{id?}', 'recalculateForm')->name('recalculate-spreading-form');
-        Route::get('/check-stocker-form', 'checkStockerForm')->name('check-stocker-form');
-    });
-
-    // ReportCutting
-    Route::controller(ReportCuttingController::class)->prefix("report-cutting")->middleware('role:cutting')->group(function () {
-        Route::get('/cutting', 'cutting')->name('report-cutting');
-        Route::get('/total-cutting', 'totalCutting')->name('total-cutting');
-        Route::get('/cutting-daily', 'cuttingDaily')->name('report-cutting-daily');
-        Route::get('/total-cutting-daily', 'totalCuttingDaily')->name('total-cutting-daily');
-        Route::get('/track-cutting-output', 'trackCuttingOutput')->name('track-cutting-output');
-        Route::get('/track-cutting-output/export', 'cuttingOrderOutputExport')->name('track-cutting-output-export');
-        Route::get('/pemakaian-roll', 'pemakaianRoll')->name('pemakaian-roll');
-        Route::get('/detail-pemakaian-roll', 'detailPemakaianRoll')->name('detail-pemakaian-roll');
-        Route::get('/total-pemakaian-roll', 'totalPemakaianRoll')->name('total-pemakaian-roll');
-        Route::get('/report_cutting_mutasi_fabric', 'report_cutting_mutasi_fabric')->name('report_cutting_mutasi_fabric');
-        Route::get('/report_cutting_mutasi_fabric_proporsional', 'report_cutting_mutasi_fabric_proporsional')->name('report_cutting_mutasi_fabric_proporsional');
-        Route::get('/report_gr_set', 'report_gr_set')->name('report_gr_set');
-        Route::get('/report_gr_panel', 'report_gr_panel')->name('report_gr_panel');
-        Route::get('/report_mutasi_wip_cutting', 'report_mutasi_wip_cutting')->name('report_mutasi_wip_cutting');
-        Route::get('/report_pengeluaran_cutting', 'report_pengeluaran_cutting')->name('report_pengeluaran_cutting');
-        Route::get('/report_return_fabric_cutting', 'report_return_fabric_cutting')->name('report_return_fabric_cutting');
-
-        // export excel
-        Route::post('/cutting/export', 'export')->name('report-cutting-export');
-        Route::post('/cutting-daily/export', 'cuttingDailyExport')->name('report-cutting-daily-export');
-        Route::post('/pemakaian-roll/export', 'pemakaianRollExport')->name('pemakaian-roll-export');
-        Route::post('/detail-pemakaian-roll/export', 'detailPemakaianRollExport')->name('detail-pemakaian-roll-export');
-        Route::get('/export_excel_report_cutting_mutasi_fabric', 'export_excel_report_cutting_mutasi_fabric')->name('export_excel_report_cutting_mutasi_fabric');
-        Route::get('/export_excel_report_cutting_mutasi_fabric_proporsional', 'export_excel_report_cutting_mutasi_fabric_proporsional')->name('export_excel_report_cutting_mutasi_fabric_proporsional');
-        Route::get('/export_excel_report_gr_set', 'export_excel_report_gr_set')->name('export_excel_report_gr_set');
-        Route::get('/export_excel_report_gr_panel', 'export_excel_report_gr_panel')->name('export_excel_report_gr_panel');
-        Route::get('/export_excel_report_mut_wip_cutting', 'export_excel_report_mut_wip_cutting')->name('export_excel_report_mut_wip_cutting');
-        Route::get('/export_excel_report_pengeluaran_cutting', 'export_excel_report_pengeluaran_cutting')->name('export_excel_report_pengeluaran_cutting');
-        Route::get('/export_excel_report_return_fabric_cutting', 'export_excel_report_return_fabric_cutting')->name('export_excel_report_return_fabric_cutting');
-    });
-
-    // Roll
-    Route::controller(RollController::class)->prefix("lap_pemakaian")->middleware('role:cutting')->group(function () {
-        Route::get('/', 'index')->name('lap_pemakaian');
-        Route::post('/manajemen_roll', 'pemakaianRollData')->name('lap_pemakaian_data');
-        Route::get('/sisa_kain_roll', 'sisaKainRoll')->name('sisa_kain_roll');
-        Route::get('/sisa_kain_roll/get_scanned_item/{id?}', 'getScannedItem')->name('sisa_kain_scan_item');
-        Route::get('/sisa_kain_roll/forms', 'getSisaKainForm')->name('sisa_kain_form');
-        // supplier
-        Route::get('/get-supplier', 'getSupplier')->name('roll-get-supplier');
-        Route::get('/get-order', 'getOrder')->name('roll-get-order');
-        // export excel
-        Route::post('/export_excel', 'export_excel')->name('export_excel_manajemen_roll');
-        Route::post('/export', 'export')->name('export');
-        // print
-        Route::post('/sisa_kain/print/{id?}', 'printSisaKain')->name('print_sisa_kain');
-        Route::post('/mass_sisa_kain/print', 'massPrintSisaKain')->name('mass_print_sisa_kain');
-        // alokasi fabric gr panel
-        Route::get('/alokasi_fabric_gr_panel', 'alokasi_fabric_gr_panel')->name('alokasi_fabric_gr_panel');
-        Route::get('/create_alokasi_fabric_gr_panel', 'create_alokasi_fabric_gr_panel')->name('create_alokasi_fabric_gr_panel');
-        Route::post('/save_alokasi_fabric_gr_panel', 'save_alokasi_fabric_gr_panel')->name('save_alokasi_fabric_gr_panel');
-        // Penerimaan Fabric Cutting
-        Route::get('/roll_fabric_cutting_in', 'roll_fabric_cutting_in')->name('roll_fabric_cutting_in');
-        Route::get('/export_roll_fabric_cutting_in', 'export_roll_fabric_cutting_in')->name('export_roll_fabric_cutting_in');
-    });
-
-    // Ganti Reject GR
-    Route::controller(GantiRejectController::class)->prefix("ganti_reject")->middleware('role:cutting')->group(function () {
-        // form ganti reject panel gr
-        Route::get('/form_gr_panel', 'form_gr_panel')->name('form_gr_panel');
-        Route::get('/create_form_gr_panel', 'create_form_gr_panel')->name('create_form_gr_panel');
-        Route::get('/get_barcode_form_gr_panel/{id?}', 'get_barcode_form_gr_panel')->name('get_barcode_form_gr_panel');
-        Route::get('/get_ws_all_form_gr_panel', 'get_ws_all_form_gr_panel')->name('get_ws_all_form_gr_panel');
-        Route::post('/save_form_gr_panel', 'save_form_gr_panel')->name('save_form_gr_panel');
-        Route::get('/export_excel_form_gr_panel_det', 'export_excel_form_gr_panel_det')->name('export_excel_form_gr_panel_det');
-    });
-
-    // Cutting Tools
-    Route::controller(CuttingToolsController::class)->prefix("cutting")->middleware('role:superadmin')->group(function () {
-        // form
-        Route::get('/index', 'index')->name('cutting-tools');
-
-        // fix roll qty
-        Route::get('/get-roll-qty', 'getRollQty')->name('get-roll-qty');
-        Route::post('/fix-roll-qty', 'fixRollQty')->name('fix-roll-qty');
-
-        // fix form ratio
-        Route::get('/get-form-ratio', 'getFormRatio')->name('get-form-ratio');
-        Route::post('/update-form-ratio', 'updateFormRatio')->name('update-form-ratio');
-
-        // fix form marker
-        Route::get('/get-form-marker', 'getFormMarker')->name('get-form-marker');
-        Route::post('/update-form-marker', 'updateFormMarker')->name('update-form-marker');
-
-        // fix form swap size
-        Route::post('/update-form-swap', 'updateFormSwap')->name('update-form-swap');
-
-        // modify group
-        Route::post('/update-form-group', 'updateFormGroup')->name('update-form-group');
-
-        // Delete redundant roll
-        Route::post('/delete-redundant-roll', 'deleteRedundantRoll')->name('delete-redundant-roll');
-    });
-
-    // Stocker :
-    Route::controller(StockerController::class)->prefix("stocker")->middleware('role:cutting')->group(function () {
-        Route::get('/', 'index')->name('stocker');
-        Route::get('/show/{formCutId?}', 'show')->name('show-stocker');
-        Route::post('/print-stocker/{index?}', 'printStocker')->name('print-stocker');
-        Route::post('/print-stocker-all-size/{partDetailId?}', 'printStockerAllSize')->name('print-stocker-all-size');
-        Route::post('/print-stocker-checked', 'printStockerChecked')->name('print-stocker-checked');
-        Route::post('/print-stocker-checked-add', 'printStockerCheckedAdd')->name('print-stocker-checked-add');
-        Route::post('/print-numbering/{index?}', 'printNumbering')->name('print-numbering');
-        Route::post('/print-numbering-checked', 'printNumberingChecked')->name('print-numbering-checked');
-        Route::post('/full-generate-numbering', 'fullGenerateNumbering')->name('full-generate-numbering');
-        Route::post('/fix-redundant-stocker', 'fixRedundantStocker')->name('fix-redundant-stocker');
-        Route::post('/fix-redundant-numbering', 'fixRedundantNumbering')->name('fix-redundant-numbering');
-        Route::put('/count-stocker-update', 'countStockerUpdate')->name('count-stocker-update');
-
-        Route::get('/stocker-part', 'part')->name('stocker-part');
-
-        Route::get('/show-pcs/{formCutId?}', 'showPcs')->name('show-stocker-pcs');
-        Route::post('/print-stocker-pcs/{index?}', 'printStockerPcs')->name('print-stocker-pcs');
-        Route::post('/print-stocker-all-size-pcs/{partDetailId?}', 'printStockerAllSizePcs')->name('print-stocker-all-size-pcs');
-        Route::post('/print-stocker-checked-pcs', 'printStockerCheckedPcs')->name('print-stocker-checked-pcs');
-
-        // adjust
-        Route::post('/rearrange-group', 'rearrangeGroup')->name('rearrange-group');
-        Route::post('/reorder-stocker-numbering', 'reorderStockerNumbering')->name('reorder-stocker-numbering');
-        Route::post('/modify-size-qty', 'modifySizeQty')->name('modify-size-qty');
-
-        // part form
-        Route::get('/manage-part-form/{id?}', 'managePartForm')->name('stocker-manage-part-form');
-        Route::get('/get-form-cut/{id?}', 'getFormCut')->name('stocker-get-part-form-cut');
-        Route::post('/store-part-form', 'storePartForm')->name('stocker-store-part-form');
-        Route::delete('/destroy-part-form', 'destroyPartForm')->name('stocker-destroy-part-form');
-        Route::get('/show-part-form', 'showPartForm')->name('stocker-show-part-form');
-
-        // part secondary
-        Route::get('/manage-part-secondary/{id?}', 'managePartSecondary')->name('stocker-manage-part-secondary');
-        Route::get('/datatable_list_part/{id?}', 'datatable_list_part')->name('stocker-datatable_list_part');
-        Route::get('/get_proses', 'get_proses')->name('stocker-get_proses');
-        Route::post('/store_part_secondary', 'store_part_secondary')->name('stocker-store_part_secondary');
-
-        // get stocker
-        Route::get('/get-stocker', 'getStocker')->name('get-stocker');
-
-        // add
-        Route::post('/print-stocker-all-size-add', 'printStockerAllSizeAdd')->name('print-stocker-all-size-add');
-        Route::post('/submit-stocker-add', 'submitStockerAdd')->name('submit-stocker-add');
-
-        // stocker reject
-        Route::post('/print-stocker-reject-all-size/{partDetailId?}', 'printStockerRejectAllSize')->name('print-stocker-reject-all-size');
-        Route::post('/print-stocker-reject-checked', 'printStockerRejectChecked')->name('print-stocker-reject-checked');
-        Route::post('/print-stocker-reject/{id?}', 'printStockerReject')->name('print-stocker-reject');
-
-        // separate stocker
-        Route::post('/separate-stocker', 'separateStocker')->name('separate-stocker');
-    });
-
-    Route::controller(YearSequenceController::class)->prefix("stocker")->middleware("role:cutting,stocker,dc")->group(function () {
-        // stocker list
-        Route::get('/stocker-list', 'stockerList')->name('stocker-list');
-        Route::get('/stocker-list-total', 'stockerListTotal')->name('stocker-list-total');
-        Route::get('/stocker-list/export', 'stockerListExport')->name('stocker-list-export');
-        Route::get('/stocker-list/detail/{form_cut_id?}/{group_stocker?}/{ratio?}/{so_det_id?}/{normal?}', 'stockerListDetail')->name('stocker-list-detail');
-        Route::get('/stocker-list/detail/export/{form_cut_id?}/{group_stocker?}/{ratio?}/{so_det_id?}/{normal?}', 'stockerListDetailExport')->name('stocker-list-detail-export');
-        Route::get('/stocker-list/check-year-sequence', 'checkYearSequenceNumber')->name('check-year-sequence-number');
-        Route::post('/stocker-list/set-month-count', 'setMonthCountNumber')->name('set-month-count-number');
-        Route::post('/stocker-list/set-year-sequence', 'setYearSequenceNumber')->name('set-year-sequence-number');
-        Route::post('/stocker-list/check-all-stock-number', 'checkAllStockNumber')->name('check-all-stock-number');
-        Route::post('/stocker-list/print-stock-number', 'printStockNumber')->name('print-stock-number');
-
-        // month count
-        Route::get('/month-count', 'customMonthCount')->name('month-count');
-        Route::get('/month-count/get-range', 'getRangeMonthCount')->name('get-range-month-count');
-        Route::post('/month-count/print', 'printMonthCount')->name('print-month-count');
-        Route::post('/month-count/print-checked', 'printMonthCountChecked')->name('print-month-count-checked');
-
-        // year sequence
-        Route::get('/year-sequence', 'yearSequence')->name('year-sequence');
-        Route::get('/year-sequence/get-sequence', 'getSequenceYearSequence')->name('get-sequence-year-sequence');
-        Route::get('/year-sequence/get-range', 'getRangeYearSequence')->name('get-range-year-sequence');
-        Route::post('/year-sequence/print', 'printYearSequence')->name('print-year-sequence');
-        Route::post('/year-sequence/print-new', 'printYearSequenceNew')->name('print-year-sequence-new');
-        Route::post('/year-sequence/print-new-format', 'printYearSequenceNewFormat')->name('print-year-sequence-new-format');
-        // Route::post('/year-sequence/print-checked', 'printYearSequenceChecked')->name('print-year-sequence-checked');
-
-        // modify year sequence
-        Route::get('/modify-year-sequence', 'modifyYearSequence')->name('modify-year-sequence');
-        Route::post('/modify-year-sequence-list', 'modifyYearSequenceList')->name('modify-year-sequence-list');
-        Route::post('/modify-year-sequence-update', 'modifyYearSequenceUpdate')->name('update-year-sequence');
-        Route::post('/modify-year-sequence-delete', 'modifyYearSequenceDelete')->name('delete-year-sequence');
-
-        // get stocker
-        Route::get('/get-stocker-month-count', 'getStockerMonthCount')->name('get-stocker-month-count');
-        Route::get('/get-stocker-year-sequence', 'getStockerYearSequence')->name('get-stocker-year-sequence');
-    });
-
-    Route::controller(StockerRejectController::class)->prefix('stocker-reject')->middleware('role:stocker,dc')->group(function () {
-        Route::get('/index', 'index')->name('stocker-reject');
-        Route::get('/get-stocker-reject', 'getStockerReject')->name('get-stocker-reject');
-        Route::get('/get-stocker-reject-process', 'getStockerRejectProcess')->name('get-stocker-reject-process');
-        Route::get('/show/{id?}/{process?}', 'show')->name('show-stocker-reject');
-        Route::get('/create', 'create')->name('create-stocker-reject');
-        Route::post('/print-stocker-process-reject/{id?}', 'printStocker')->name('print-stocker-process-reject');
-        Route::post('/store', 'storeStockerProcessReject')->name('store-stocker-reject');
-
-        Route::post('/export', 'exportStockerReject')->name('export-stocker-reject');
-    });
-
-    // Stocker Tools
-    Route::controller(StockerToolsController::class)->prefix("stocker")->middleware('role:superadmin')->group(function () {
-        // form
-        Route::get('/index', 'index')->name('stocker-tools');
-
-        // reset stocker
-        Route::post('/reset-stocker-id', 'resetStockerId')->name('reset-stocker-id');
-        Route::post('/reset-stocker-form', 'resetStockerForm')->name('reset-stocker-form');
-        Route::post('/reset-redundant-stocker', 'resetRedundantStocker')->name('reset-redundant-stocker');
-        Route::post('/restore-stocker-log', 'restoreStockerLog')->name('restore-stocker-log');
-
-        Route::post('/import-stocker-manual', 'importStockerManual')->name('import-stocker-manual');
-
-        Route::post('/rearrange-groups', 'rearrangeGroups')->name('rearrange-groups');
-        Route::post('/recalculate-stocker-transaction', 'recalculateStockerTransaction')->name('recalculate-stocker-transaction');
-
-        Route::delete('/undo-stocker-additional', 'undoStockerAdditional')->name('undo-stocker-additional');
-    });
-
-    // DC :
-    // // DC IN BACKUP
-    // Route::controller(DCInController::class)->prefix("dc-in")->middleware('dc')->group(function () {
-    //     Route::get('/', 'index')->name('dc-in');
-    //     Route::get('/create/{no_form?}', 'create')->name('create-dc-in');
-    //     Route::get('/getdata_stocker_info', 'getdata_stocker_info')->name('getdata_stocker_info');
-    //     Route::get('/getdata_stocker_input', 'getdata_stocker_input')->name('getdata_stocker_input');
-    //     Route::get('/getdata_dc_in', 'getdata_dc_in')->name('getdata_dc_in');
-    //     Route::post('/show_tmp_dc_in', 'show_tmp_dc_in')->name('show_tmp_dc_in');
-    //     Route::post('/get_alokasi', 'get_alokasi')->name('get_alokasi');
-    //     Route::post('/get_det_alokasi', 'get_det_alokasi')->name('get_det_alokasi');
-    //     Route::put('/update_tmp_dc_in', 'update_tmp_dc_in')->name('update_tmp_dc_in');
-    //     Route::post('/store', 'store')->name('store_dc_in');
-    //     Route::post('/simpan_final_dc_in', 'simpan_final_dc_in')->name('simpan_final_dc_in');
-    //     Route::get('/getdata_stocker_history', 'getdata_stocker_history')->name('getdata_stocker_history');
-    // });
-
-    // DC IN
-    Route::controller(DCInController::class)->prefix("dc-in")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('dc-in');
-        Route::get('/detail_dc_in', 'detail_dc_in')->name('detail_dc_in');
-        Route::get('/total_dc_in', 'total_dc_in')->name('total_dc_in');
-        Route::get('/show_data_header', 'show_data_header')->name('show_data_header');
-        Route::get('/create', 'create')->name('create-dc-in');
-        Route::post('/store', 'store')->name('store-dc-in');
-        Route::delete('/destroy', 'destroy')->name('destroy');
-
-        Route::get('/filter_dc_in', 'filter_dc_in')->name('filter-dc-in');
-        Route::get('/filter_detail_dc_in', 'filter_detail_dc_in')->name('filter-detail-dc-in');
-
-        Route::get('/get_proses', 'get_proses')->name('get_proses_dc_in');
-        Route::get('/get_tempat', 'get_tempat')->name('get_tempat');
-        Route::get('/get_lokasi', 'get_lokasi')->name('get_lokasi');
-
-        Route::get('/get_tmp_dc_in', 'get_tmp_dc_in')->name('get_tmp_dc_in');
-        Route::get('/show_tmp_dc_in', 'show_tmp_dc_in')->name('show_tmp_dc_in');
-        Route::post('/insert_tmp_dc_in', 'insert_tmp_dc_in')->name('insert_tmp_dc_in');
-        Route::post('/mass_insert_tmp_dc_in', 'mass_insert_tmp_dc_in')->name('mass_insert_tmp_dc_in');
-        Route::put('/update_tmp_dc_in', 'update_tmp_dc_in')->name('update_tmp_dc_in');
-        Route::put('/update_mass_tmp_dc_in', 'update_mass_tmp_dc_in')->name('update_mass_tmp_dc_in');
-        Route::delete('/delete_mass_tmp_dc_in', 'delete_mass_tmp_dc_in')->name('delete_mass_tmp_dc_in');
-
-        Route::post('/export-excel', 'exportExcel')->name('dc-in-export-excel');
-        Route::get('/export-excel-detail', 'exportExcelDetail')->name('dc-in-detail-export-excel');
-    });
-
-    // Secondary INHOUSE IN
-    Route::controller(SecondaryInhouseInController::class)->prefix("secondary-inhouse-in")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('secondary-inhouse-in');
-        Route::get('/total_secondary_inhouse', 'total_secondary_inhouse_in')->name('total_secondary_inhouse_in');
-        Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse_in');
-        Route::post('/store', 'storeSecondaryInhouseIn')->name('store-secondary-inhouse-in');
-        Route::post('/mass-store', 'massStore')->name('mass-store-secondary-inhouse-in');
-        Route::get('/detail_stocker_inhouse', 'detail_stocker_inhouse')->name('detail_stocker_inhouse_in');
-
-        // Temp
-        Route::get('/cek_data_stocker_inhouse_temp', 'cek_data_stocker_inhouse_temp')->name('cek_data_stocker_inhouse_in_temp');
-        Route::delete('/destroy-secondary-inhouse-in-temp/{id?}', 'destroySecondaryInhouseInTemp')->name('destroy-secondary-inhouse-in-temp');
-
-        Route::get('/filter-sec-inhouse', 'filterSecondaryInhouse')->name('filter-sec-inhouse-in');
-        Route::get('/filter-detail-sec-inhouse', 'filterDetailSecondaryInhouse')->name('filter-detail-sec-inhouse-in');
-
-        Route::get('/export-excel', 'exportExcel')->name('secondary-inhouse-in-export-excel');
-        Route::get('/export-excel-detail', 'exportExcelDetail')->name('secondary-inhouse-in-detail-export-excel');
-    });
-
-    // Secondary INHOUSE
-    Route::controller(SecondaryInhouseOutController::class)->prefix("secondary-inhouse")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('secondary-inhouse');
-        Route::get('/total_secondary_inhouse_out', 'total_secondary_inhouse_out')->name('total_secondary_inhouse_out');
-        Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse');
-        Route::post('/store', 'store')->name('store-secondary-inhouse');
-        Route::post('/mass-store', 'massStore')->name('mass-store-secondary-inhouse');
-        Route::get('/detail_stocker_inhouse', 'detail_stocker_inhouse')->name('detail_stocker_inhouse');
-
-        Route::get('/filter-sec-inhouse', 'filterSecondaryInhouse')->name('filter-sec-inhouse');
-        Route::get('/filter-detail-sec-inhouse', 'filterDetailSecondaryInhouse')->name('filter-detail-sec-inhouse');
-
-        Route::get('/export-excel', 'exportExcel')->name('secondary-inhouse-export-excel');
-        Route::get('/export-excel-detail', 'exportExcelDetail')->name('secondary-inhouse-detail-export-excel');
-    });
-
-    // Route::controller(SecondaryInhouseOutController::class)->prefix("secondary-inhouse")->middleware('role:dc')->group(function () {
-    //     Route::get('/', 'index')->name('secondary-inhouse');
-    //     Route::get('/total_stocker_inhouse', 'totalStockerInhouse')->name('total-stocker-inhouse');
-    //     Route::get('/total_secondary_inhouse_out', 'total_secondary_inhouse_out')->name('total_secondary_inhouse_out');
-    //     Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse');
-    //     Route::post('/store', 'store')->name('store-secondary-inhouse');
-    //     Route::post('/mass-store', 'massStore')->name('mass-store-secondary-inhouse');
-    //     Route::get('/detail_stocker_inhouse', 'detail_stocker_inhouse')->name('detail_stocker_inhouse');
-
-    //     Route::get('/filter-sec-inhouse', 'filterSecondaryInhouse')->name('filter-sec-inhouse');
-    //     Route::get('/filter-detail-sec-inhouse', 'filterDetailSecondaryInhouse')->name('filter-detail-sec-inhouse');
-
-    //     Route::get('/export-excel', 'exportExcel')->name('secondary-inhouse-export-excel');
-    //     Route::get('/export-excel-detail', 'exportExcelDetail')->name('secondary-inhouse-detail-export-excel');
-    // });
-
-    // Secondary IN
-    Route::controller(SecondaryInController::class)->prefix("secondary-in")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('secondary-in');
-        Route::get('/total_secondary_in', 'total_secondary_in')->name('total_secondary_in');
-        Route::get('/cek_data_stocker_in', 'cek_data_stocker_in')->name('cek_data_stocker_in');
-        Route::get('/cek_data_stocker_in_edit', 'cek_data_stocker_in_edit')->name('cek_data_stocker_in_edit');
-        Route::post('/store', 'store')->name('store-secondary-in');
-        Route::post('/update', 'update')->name('update-secondary-in');
-        Route::post('/mass-store', 'massStore')->name('mass-store-secondary-in');
-        Route::get('/detail_stocker_in', 'detail_stocker_in')->name('detail_stocker_in');
-
-        Route::get('/filter-sec-in', 'filterSecondaryIn')->name('filter-sec-in');
-        Route::get('/filter-detail-sec-in', 'filterDetailSecondaryIn')->name('filter-detail-sec-in');
-
-        Route::get('/export-excel', 'exportExcel')->name('secondary-in-export-excel');
-        Route::get('/export-excel-detail', 'exportExcelDetail')->name('secondary-in-detail-export-excel');
-    });
-
-    // Rack
-    Route::controller(RackController::class)->prefix("rack")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('rack');
-        Route::get('/create', 'create')->name('create-rack');
-        Route::post('/store', 'store')->name('store-rack');
-        Route::put('/update', 'update')->name('update-rack');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-rack');
-        Route::post('/print-rack/{id?}', 'printRack')->name('print-rack');
-
-        Route::get('/get-scanned-rack-detail/{id?}', 'getScannedRackDetail')->name('get-scanned-rack-detail');
-    });
-
-    // Rack Stocker
-    Route::controller(RackStockerController::class)->prefix("stock-rack")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('stock-rack');
-        Route::get('/allocate', 'allocate')->name('allocate-rack');
-        Route::get('/current-rack-stock', 'currentRackStock')->name('current-rack-stock');
-        Route::get('/stock-rack-visual', 'stockRackVisual')->name('stock-rack-visual');
-        Route::get('/stock-rack-visual-detail', 'stockRackVisualDetail')->name('stock-rack-visual-detail');
-        Route::post('/store', 'store')->name('store-rack-stock');
-        Route::put('/update', 'update')->name('update-rack-stock');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-rack-stock');
-        Route::post('/print-bon-mutasi/{id?}', 'printBonMutasi')->name('print-rack-stock');
-    });
-
-    // Trolley
-    Route::controller(TrolleyController::class)->prefix("trolley")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('trolley');
-        Route::get('/create', 'create')->name('create-trolley');
-        Route::post('/store', 'store')->name('store-trolley');
-        Route::put('/update', 'update')->name('update-trolley');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-trolley');
-        Route::post('/print-trolley/{id?}', 'printTrolley')->name('print-trolley');
-    });
-
-    // Trolley Stocker
-    Route::controller(TrolleyStockerController::class)->prefix("stock-trolley")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('stock-trolley');
-        Route::post('/store', 'store')->name('store-trolley-stock');
-        Route::put('/update', 'update')->name('update-trolley-stock');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-trolley-stock');
-        Route::post('/print-bon-mutasi/{id?}', 'printBonMutasi')->name('print-trolley-stock');
-
-        // allocate
-        Route::get('/allocate', 'allocate')->name('allocate-trolley');
-        Route::post('/store-allocate', 'storeAllocate')->name('store-allocate-trolley');
-        Route::get('/allocate-this/{id?}', 'allocateThis')->name('allocate-this-trolley');
-        Route::post('/store-allocate-this', 'storeAllocateThis')->name('store-allocate-this-trolley');
-
-        // send
-        Route::get('/send-trolley-stock/{id?}', 'send')->name('send-trolley-stock');
-        Route::post('/submit-send-trolley-stock', 'submitSend')->name('submit-send-trolley-stock');
-
-        // get data
-        Route::get('/get-stocker-data/{id?}', 'getStockerData')->name('get-stocker-data-trolley-stock');
-    });
-
-    // Loading Stock
-    Route::controller(LoadingLineController::class)->prefix("loading-line")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('loading-line');
-        Route::get('/total-loading', 'totalLoading')->name('total-loading-line');
-        Route::get('/detail/{id?}/{dateFrom?}/{dateTo?}', 'show')->name('detail-loading-plan');
-        Route::get('/create', 'create')->name('create-loading-plan');
-        Route::post('/store', 'store')->name('store-loading-plan');
-        Route::get('/edit/{id?}', 'edit')->name('edit-loading-plan');
-        Route::put('/update/{id?}', 'update')->name('update-loading-plan');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-loading-plan');
-        Route::post('/export-loading-line', 'exportLoadingLine')->name('export-loading-line');
-        Route::get('/summary', 'summary')->name('summary-loading');
-        Route::get('/get-total-summary', 'getTotalSummary')->name('total-summary-loading');
-        Route::post('/export-excel', 'exportExcel')->name('export-excel-loading');
-
-        Route::get('/filter-summary-loading', 'filterSummary')->name('filter-summary-loading');
-
-        Route::get('/modify-loading-line', 'modifyLoadingLine')->name('modify-loading-line');
-        Route::post('/modify-loading-line/update', 'modifyLoadingLineUpdate')->name('modify-loading-line-update');
-        Route::delete('/modify-loading-line/delete', 'modifyLoadingLineDelete')->name('modify-loading-line-delete');
-    });
-
-    // Loading Out
-    Route::controller(LoadingOutController::class)->prefix("loading-out")->middleware('role:dc')->group(function () {
-        Route::get('/loading_out', 'loading_out')->name('loading_out');
-        Route::get('/loading_out_det', 'loading_out_det')->name('loading_out_det');
-        Route::get('/input_loading_out', 'input_loading_out')->name('input_loading_out');
-        Route::get('/getpo_loading_out', 'getpo_loading_out')->name('getpo_loading_out');
-        Route::get('/get_list_po_loading_out', 'get_list_po_loading_out')->name('get_list_po_loading_out');
-        Route::post('/get_loading_out_stocker_info', 'get_loading_out_stocker_info')->name('get_loading_out_stocker_info');
-        Route::post('/save_tmp_stocker_loading_out', 'save_tmp_stocker_loading_out')->name('save_tmp_stocker_loading_out');
-        Route::get('/get_list_tmp_scan_loading_out', 'get_list_tmp_scan_loading_out')->name('get_list_tmp_scan_loading_out');
-        Route::post('/loading_out_delete_tmp', 'loading_out_delete_tmp')->name('loading_out_delete_tmp');
-        Route::post('/save_loading_out', 'save_loading_out')->name('save_loading_out');
-        Route::get('/get_info_modal_det_loading_out', 'get_info_modal_det_loading_out')->name('get_info_modal_det_loading_out');
-        Route::get('/get_table_modal_det_loading_out', 'get_table_modal_det_loading_out')->name('get_table_modal_det_loading_out');
-        Route::get('/get_table_modal_stocker_loading_out', 'get_table_modal_stocker_loading_out')->name('get_table_modal_stocker_loading_out');
-        Route::post('/loading_out_konfirmasi', 'loading_out_konfirmasi')->name('loading_out_konfirmasi');
-        Route::get('/get_det_summary_loading_out', 'get_det_summary_loading_out')->name('get_det_summary_loading_out');
-        Route::get('/export_excel_loading_out', 'export_excel_loading_out')->name('export_excel_loading_out');
-    });
-
-    // Bon Loading
-    Route::controller(BonLoadingController::class)->prefix("bon-loading")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('bon-loading-line');
-        Route::post('/store', 'store')->name('store-bon-loading-line');
-        Route::get('/history', 'history')->name('bon-loading-line-history');
-    });
-
-    // Stock DC Complete
-    Route::controller(StockDcCompleteController::class)->prefix("stock-dc-complete")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('stock-dc-complete');
-        Route::get('/show/{partId?}/{color?}/{size?}', 'show')->name('stock-dc-complete-detail');
-    });
-
-    // Stock DC Incomplete
-    Route::controller(StockDcIncompleteController::class)->prefix("stock-dc-incomplete")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('stock-dc-incomplete');
-        Route::get('/show/{partId?}/{color?}/{size?}', 'show')->name('stock-dc-incomplete-detail');
-    });
-
-    // Stock DC WIP
-    Route::controller(StockDcWipController::class)->prefix("stock-dc-wip")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('stock-dc-wip');
-        Route::get('/show/{partId?}', 'show')->name('stock-dc-wip-detail');
-    });
-
-    // DC Tools
-    Route::controller(DcToolsController::class)->prefix("dc-tools")->middleware('role:superadmin')->group(function () {
-        Route::get('/', 'index')->name('dc-tools');
-        Route::post('/empty-order-loading', 'emptyOrderLoading')->name('empty-order-loading');
-        Route::post('/redundant-loading-plan', 'redundantLoadingPlan')->name('redundant-loading-plan');
-        Route::get('/modify-dc-qty', 'modifyDcQty')->middleware('role:superadmin')->name('modify-dc-qty');
-        Route::get('/get-dc-qty', 'getDcQty')->middleware('role:superadmin')->name('get-dc-qty');
-        Route::post('/update-dc-qty', 'updateDcQty')->middleware('role:superadmin')->name('update-dc-qty');
-    });
-
-    // DC report
-    Route::controller(DcReportController::class)->prefix("dc-report")->middleware('role:dc')->group(function () {
-        Route::get('/', 'index')->name('dc-report');
-        Route::post('/export-report-dc', 'exportReportDc')->name('export-report-dc');
-    });
-
-    // Sewing :
-    // Master Line
-    Route::controller(MasterLineController::class)->prefix("master-line")->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('master-line');
-        Route::get('show/{line?}/{date?}', 'show')->name('master-line-detail');
-        Route::get('create', 'create')->name('create-master-line');
-        Route::post('store', 'store')->name('store-master-line');
-        Route::put('update', 'update')->name('update-master-line');
-        Route::delete('destroy/{id?}', 'destroy')->name('destroy-master-line');
-        Route::post('export', 'exportExcel')->name('export-master-line');
-
-        Route::post('update-image', 'updateImage')->name('update-master-line-image');
-
-        Route::post('import-master-line', 'importMasterLine')->name('import-master-line');
-        Route::get("tmp-master-line", 'tmpMasterLine')->name("tmp-master-line");
-        Route::delete("destroy-tmp-master-line/{id?}", 'destroyTmpMasterLine')->name("destroy-tmp-master-line");
-        Route::post('submit-imported-master-line', "submitImportedMasterLine")->name("submit-imported-master-line");
-    });
-
-    // Master Plan
-    Route::controller(MasterPlanController::class)->prefix("master-plan")->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('master-plan');
-        Route::get('show/{line?}/{date?}', 'show')->name('master-plan-detail');
-        Route::put('update', 'update')->name('update-master-plan');
-        Route::post('store', 'store')->name('store-master-plan');
-        Route::delete('destroy/{id?}', 'destroy')->name('destroy-master-plan');
-        Route::post('/import-master-plan', 'importMasterPlan')->name('import-master-plan');
-    });
-
-    // Master Defect
-    Route::controller(MasterDefectController::class)->prefix("master-defect")->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('master-defect');
-
-        Route::put('update-defect-type', 'updateDefectType')->name('update-defect-type');
-        Route::post('store-defect-type', 'storeDefectType')->name('store-defect-type');
-        Route::delete('destroy-defect-type/{id?}', 'destroyDefectType')->name('destroy-defect-type');
-
-        Route::put('update-defect-area', 'updateDefectArea')->name('update-defect-area');
-        Route::post('store-defect-area', 'storeDefectArea')->name('store-defect-area');
-        Route::delete('destroy-defect-area/{id?}', 'destroyDefectArea')->name('destroy-defect-area');
-
-        Route::post('merge-defect-type', 'mergeDefectType')->name('merge-defect-type');
-        Route::post('merge-defect-area', 'mergeDefectArea')->name('merge-defect-area');
-    });
-
-    //  Master Secondary
-    Route::controller(SewingSecondaryMasterController::class)->prefix("sewing-secondary-master")->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('sewing-secondary-master');
-
-        Route::put('update-secondary-master', 'updateSecondaryMaster')->name('update-sewing-secondary-master');
-        Route::post('store-secondary-master', 'storeSecondaryMaster')->name('store-sewing-secondary-master');
-        Route::delete('destroy-secondary-master/{id?}', 'destroySecondaryMaster')->name('destroy-sewing-secondary-master');
-    });
-
-    // Report Daily Sewing
-    Route::controller(ReportController::class)->prefix('report')->middleware('role:sewing')->group(function () {
-        Route::get('/index/{type}', 'index')->name("daily-sewing");
-        Route::get('/defect-in-out', 'defectInOut')->name("report-defect-in-out");
-        Route::post('/output/export', 'exportOutput');
-        Route::post('/production/export', 'exportProduction');
-        Route::post('/production/defect/export', 'exportProductionDefect');
-        Route::post('/production-all/export', 'exportProductionAll');
-        Route::post('/track-order-output/export', 'exportOrderOutput');
-        Route::post('/defect-in-out/export', 'exportDefectInOut');
-    });
-
-    // Pareto Chart Defect Sewing
-    Route::controller(OrderDefectController::class)->prefix('order-defects')->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('order-defects');
-        Route::get('/{buyerId?}/{dateFrom?}/{dateTo?}/{type?}', 'getOrderDefects')->name('get-order-defects');
-    });
-
-    // Track Order Output Sewing
-    Route::controller(TrackOrderOutputController::class)->prefix('track-order-output')->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('sewing-track-order-output');
-    });
-
-    // Transfer Output Sewing
-    Route::controller(TransferOutputController::class)->prefix('transfer-output')->middleware('role:superadmin')->group(function () {
-        Route::get('/', 'index')->name('sewing-transfer-output');
-    });
-
-    // Dashboard List Sewing
-    Route::controller(LineDashboardController::class)->prefix('line-dashboards')->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('sewing-dashboard');
-    });
-
-    // Report
-    Route::controller(MasterKursBiController::class)->prefix('master-kurs-bi')->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('kursBi');
-        Route::get('/get-data', 'getData')->name('kursBi.getData');
-        Route::post('/scrap-data', 'scrapData')->name('kursBi.scrapData');
-    });
-
-    Route::controller(MasterJabatanController::class)->prefix('master-jabatan')->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('jabatan');
-        Route::get('/get-data', 'getData')->name('jabatan.getData');
-        Route::post('/store-data', 'store')->name('jabatan.storeData');
-        Route::put('/update-data', 'update')->name('jabatan.updateData');
-        Route::delete('/destroy-data/{id}', 'destroy')->name('jabatan.destroyData');
-    });
-
-    Route::controller(MasterKaryawanController::class)->prefix('master-karyawan')->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('karyawan');
-        Route::get('/get-data', 'getData')->name('karyawan.getData');
-        Route::put('/update-data', 'update')->name('karyawan.updateData');
-        Route::delete('/destroy-data/{id}', 'destroy')->name('karyawan.destroyData');
-
-        Route::get('/other-source', 'otherSource')->name('karyawan.otherSource');
-        Route::post('/transfer-data', 'transfer')->name('karyawan.transferData');
-    });
-
-    Route::controller(MasterBuyerController::class)->prefix('master-buyer')->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('buyer');
-        Route::get('/get-data', 'getData')->name('buyer.getData');
-        Route::put('/update-data', 'update')->name('buyer.updateData');
-        Route::delete('/destroy-data/{id}', 'destroy')->name('buyer.destroyData');
-
-        Route::get('/other-source', 'otherSource')->name('buyer.otherSource');
-        Route::post('/transfer-data', 'transfer')->name('buyer.transferData');
-    });
-
-    Route::controller(DataProduksiController::class)->prefix('data-produksi')->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('dataProduksi');
-        Route::get('/get-data', 'getData')->name('dataProduksi.getData');
-        Route::put('/update-data', 'update')->name('dataProduksi.updateData');
-        Route::delete('/destroy-data/{id}', 'destroy')->name('dataProduksi.destroyData');
-
-        Route::post('/transfer-data', 'transfer')->name('dataProduksi.transferData');
-    });
-
-    Route::controller(DataDetailProduksiController::class)->prefix('data-detail-produksi')->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('dataDetailProduksi');
-        Route::get('/get-data', 'getData')->name('dataDetailProduksi.getData');
-        Route::put('/update-data', 'update')->name('dataDetailProduksi.updateData');
-        Route::delete('/destroy-data/{id}', 'destroy')->name('dataDetailProduksi.destroyData');
-
-        Route::post('/transfer-data', 'transfer')->name('dataDetailProduksi.transferData');
-    });
-
-    Route::controller(DataDetailProduksiDayController::class)->prefix('data-detail-produksi-day')->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('dataDetailProduksiDay');
-        Route::get('/get-data', 'getData')->name('dataDetailProduksiDay.getData');
-        Route::put('/update-data', 'update')->name('dataDetailProduksiDay.updateData');
-        Route::delete('/destroy-data/{id}', 'destroy')->name('dataDetailProduksiDay.destroyData');
-
-        Route::post('/transfer-data', 'transfer')->name('dataDetailProduksiDay.transferData');
-    });
-
-    Route::controller(ReportOutputController::class)->prefix('report-output')->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('reportOutput');
-        Route::get('/get-data', 'getData')->name('reportOutput.getData');
-        Route::post('/export-data', 'exportData')->name('reportOutput.exportData');
-
-        Route::post('/transfer-data', 'transfer')->name('reportOutput.transferData');
-    });
-
-    Route::controller(ReportProductionController::class)->prefix('report-production')->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('reportProduction');
-        Route::get('/get-data', 'getData')->name('reportProduction.getData');
-        Route::post('/export-data', 'exportData')->name('reportProduction.exportData');
-
-        Route::post('/transfer-data', 'transfer')->name('reportProduction.transferData');
-    });
-
-    Route::controller(ReportEfficiencyController::class)->prefix('report-efficiency')->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('reportEfficiency');
-        Route::get('/get-data', 'getData')->name('reportEfficiency.getData');
-        Route::post('/export-data', 'exportData')->name('reportEfficiency.exportData');
-
-        Route::post('/transfer-data', 'transfer')->name('reportEfficiency.transferData');
-    });
-
-    // Report Defect
-    Route::controller(ReportDefectController::class)->prefix('report-defect')->middleware('role:sewing')->group(function () {
-        Route::get('/index', 'index')->name("report-defect");
-        Route::get('/filter', 'filter')->name("filter-defect");
-        Route::get('/total', 'total')->name("total-defect");
-        Route::get('/update-date-from', 'updateDateFrom')->name("update-date-from-defect");
-
-        Route::get('/defect-map', 'defectMap')->name("defect-map");
-        Route::get('/defect-map/data', 'defectMapData')->name("defect-map-data");
-
-        Route::post('/report-defect-export', 'reportDefectExport')->name("report-defect-export");
-    });
-
-    // Report Reject
-    Route::controller(ReportRejectController::class)->prefix('report-reject')->middleware('role:sewing')->group(function () {
-        Route::get('/index', 'index')->name("report-reject");
-        Route::get('/filter', 'filter')->name("filter-reject");
-        Route::get('/total', 'total')->name("total-reject");
-        Route::get('/update-date-from', 'updateDateFrom')->name("update-date-from-reject");
-
-        Route::get('/top', 'top')->name("top-reject");
-
-        Route::post('/report-reject-export', 'reportRejectExport')->name("report-reject-export");
-    });
-
-    // Report Efficiency New
-    Route::controller(ReportEfficiencyNewController::class)->prefix("report-efficiency-new")->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('reportEfficiencynew');
-        Route::get('/export_excel_rep_eff_new', 'export_excel_rep_eff_new')->name('export_excel_rep_eff_new');
-    });
-
-    // Report Defect Reject
-    Route::controller(ReportDefectRejectController::class)->prefix("report-defect-reject")->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('reportDefectReject');
-        Route::get('/export_excel_report_defect_reject', 'export_excel_report_defect_reject')->name('export_excel_report_defect_reject');
-    });
-
-
-    // Report Mutasi Output
-    Route::controller(ReportMutasiOutputController::class)->prefix("report-mut-output")->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('report_mut_output');
-        Route::get('/show_mut_output', 'show_mut_output')->name('show_mut_output');
-        Route::get('/export_excel_mut_output', 'export_excel_mut_output')->name('export_excel_mut_output');
-    });
-
-    Route::controller(ReportDetailOutputController::class)->prefix('report-detail-output')->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('reportDetailOutput');
-        Route::get('/packing', 'packing')->name('reportDetailOutputPacking');
-        Route::get('/get-data', 'getData')->name('reportDetailOutput.getData');
-        Route::post('/export-data', 'exportData')->name('reportDetailOutput.exportData');
-        Route::post('/export-data-packing', 'exportDataPacking')->name('reportDetailOutput.exportDataPacking');
-        Route::post('/transfer-data', 'transfer')->name('reportDetailOutput.transferData');
-    });
-
-    // Line WIP
-    Route::controller(LineWipController::class)->prefix("line-wip")->middleware('role:sewing')->group(function () {
-        Route::get('/index', 'index')->name('line-wip');
-        Route::get('/total', 'total')->name('total-line-wip');
-        Route::get('/export-excel', 'exportExcel')->name('export-excel-line-wip');
-    });
-
-    // Track
-    Route::controller(TrackController::class)->prefix("track")->middleware('role:sewing,dc,cutting,stocker')->group(function () {
-        // worksheet
-        Route::get('/worksheet', 'worksheet')->name('track-ws');
-        Route::post('/worksheet/export', 'worksheetExport')->name('track-ws-export');
-        Route::get('/worksheet/show/{actCostingId?}', 'showWorksheet')->name('track-ws-detail');
-        Route::get('/worksheet/show-part', 'wsPart')->name('track-ws-part');
-        Route::get('/worksheet/show-part-id', 'wsPartId')->name('track-ws-part-id');
-        Route::get('/worksheet/show-marker', 'wsMarker')->name('track-ws-marker');
-        Route::get('/worksheet/show-marker-total', 'wsMarkerTotal')->name('track-ws-marker-total');
-        Route::get('/worksheet/show-form', 'wsForm')->name('track-ws-form');
-        Route::get('/worksheet/show-form-total', 'wsFormTotal')->name('track-ws-form-total');
-        Route::get('/worksheet/show-roll', 'wsRoll')->name('track-ws-roll');
-        Route::get('/worksheet/show-roll-total', 'wsRollTotal')->name('track-ws-roll-total');
-        Route::get('/worksheet/show-stocker', 'wsStocker')->name('track-ws-stocker');
-        Route::get('/worksheet/show-stocker-total', 'wsStockerTotal')->name('track-ws-stocker-total');
-        Route::get('/worksheet/ws-sewing-output', 'wsSewingOutput')->name('track-ws-sewing-output');
-
-        // stocker
-        Route::get('/stocker', 'stocker')->name('track-stocker');
-        Route::get('/stocker/show/{actCostingId?}', 'showStocker')->name('track-stocker-detail');
-        Route::post('/stocker/export', 'stockerExport')->name('track-stocker-export');
-    });
-
-    // Undo History
-    Route::controller(UndoOutputController::class)->prefix("undo-output")->middleware("sewing")->group(function () {
-        Route::get('/', 'history')->name("undo-output-history");
-    });
-
-    // Sewing Tools
-    Route::controller(SewingToolsController::class)->prefix("sewing-tools")->middleware("role:superadmin")->group(function () {
-        Route::get('/', 'index')->name("sewing-tools");
-
-        // General synchronize (usually miss on update)
-        Route::post('/miss-user', 'missUser')->name("sewing-miss-user");
-        Route::post('/miss-masterplan', 'missMasterPlan')->name("sewing-miss-masterplan");
-        Route::post('/miss-rework', 'missRework')->name("sewing-miss-rework");
-        Route::post('/miss-reject', 'missReject')->name("sewing-miss-reject");
-        Route::post('/miss-packing-po', 'missPackingPo')->name("sewing-miss-packing-po");
-
-        // Check Output Detail
-        Route::get('/check-output-detail', 'checkOutputDetail')->name("check-output-detail");
-        Route::post('/check-output-detail-list', 'checkOutputDetailList')->name("check-output-detail-list");
-        Route::post('/check-output-detail-export', 'checkOutputDetailExport')->name("check-output-detail-export");
-
-        // Output Line Migration
-        Route::get('/line-migration', 'lineMigration')->name("line-migration");
-        Route::post('/line-migration-submit', 'lineMigrationSubmit')->name("line-migration-submit");
-
-        // Modify Output Manual
-        Route::get('/modify-output', 'modifyOutput')->name("modify-output");
-        Route::post('/modify-output/action', 'modifyOutputAction')->name("modify-output-action");
-
-        // Undo & Restore
-        Route::get('/undo-output', 'undoOutput')->name("undo-output");
-        Route::post('/undo-output-submit', 'undoOutputSubmit')->name("undo-output-submit");
-        Route::get('/restore-undo', 'restoreUndo')->name("restore-undo");
-        Route::post('/restore-undo-submit', 'restoreUndoSubmit')->name("restore-undo-submit");
-
-        // Reject IN OUT
-        Route::get('/undo-reject', 'undoReject')->name("undo-reject");
-        Route::post('/undo-reject-submit', 'undoRejectSubmit')->name("undo-reject-submit");
-
-        // Defect IN OUT
-        Route::get('/undo-defect-in-out', 'undoDefectInOut')->name("undo-defect-in-out");
-        Route::post('/undo-defect-in-out-submit', 'undoDefectInOutSubmit')->name("undo-defect-in-out-submit");
-
-        // Print Line
-        Route::post('/print-line-label', 'printLineLabel')->name("print-line-label");
-
-        // Sewing Secondary
-        Route::get('/modify-secondary-type', 'modifySecondaryType')->name("modify-secondary-type");
-        Route::post('/get-output-secondary', 'getOutputSecondary')->name('get-output-secondary');
-        Route::put('/update-secondary', 'updateSecondary')->name('update-secondary');
-        Route::post('/undo-secondary', 'undoSecondary')->name('undo-secondary');
-
-        // Modify Packing PO
-        Route::get('/get-po', 'getPo')->name('get-po-qr');
-        Route::post('/get-packing-po', 'getPackingPo')->name('get-packing-po');
-        Route::get('/modify-packing-po', 'modifyPackingPo')->name('modify-packing-po');
-        Route::put('/modify-packing-po/update', 'modifyPackingPoUpdate')->name('modify-packing-po-update');
-        Route::post('/modify-packing-po/delete', 'modifyPackingPoDelete')->name('modify-packing-po-delete');
-    });
-
     // Mutasi Mesin
     Route::controller(MutasiMesinController::class)->prefix("mut-mesin")->middleware("role:machine")->group(function () {
         Route::get('/', 'index')->name('mut-mesin');
@@ -1684,7 +343,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/save-out-manual-edit', 'saveoutmanualEdit')->name('save-out-manual-edit');
     });
 
-
     //mutasi-lokasi
     Route::controller(MutLokasiController::class)->prefix("mutasi-lokasi")->middleware('mutasi-lokasi')->group(function () {
         Route::get('/', 'index')->name('mutasi-lokasi');
@@ -1838,6 +496,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-data-pengeluaran', 'getdatapengeluaran')->name('get-data-pengeluaran');
     });
 
+    //transfer memo
+    Route::controller(TransferMemoController::class)->prefix("transfer-memo")->middleware('marketing')->group(function () {
+        Route::get('/approve-transfer-memo', 'ApproveTransferMemo')->name('approve-transfer-memo');
+        Route::get('/get-detail-transfer-memo/{id?}', 'DetailTransferMemo')->name('get-detail-transfer-memo');
+        Route::post('/update-transfer-memo-approve', 'UpdateTransferMemoApprove')->name('update-transfer-memo-approve');
+        Route::post('/update-transfer-memo-cancel', 'UpdateTransferMemoCancel')->name('update-transfer-memo-cancel');
+        Route::get('/', 'index')->name('transfer-memo-to-exim');
+        Route::get('/create', 'create')->name('create-transfer-memo');
+        Route::post('/store', 'store')->name('save-transfer-memo');
+        Route::get('/cancel-transfer-memo', 'canceltransfer')->name('cancel-transfer-memo');
+    });
+
     //transfer bpb
     Route::controller(TransferBpbController::class)->prefix("transfer-bpb")->middleware('warehouse')->group(function () {
         Route::get('/', 'index')->name('transfer-bpb');
@@ -1854,7 +524,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/detail', 'detailmodal')->name('maintain-bpb-detail');
         Route::get('/cancel-maintain', 'cancelmaintain')->name('cancel-maintain');
     });
-
 
     //FG Stock
     // Master Lokasi FG Stock
@@ -2263,15 +932,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/delete_upload_adj_mut_output', 'delete_upload_adj_mut_output')->name('delete_upload_adj_mut_output');
     });
 
-    // Report Hourly Output
-    Route::controller(ReportHourlyController::class)->prefix("laporan-report-hourly")->middleware('packing')->group(function () {
-        Route::get('/', 'index')->name('report-hourly');
-        Route::get('/export-excel-hourly', 'exportExcelHourly')->name('export-excel-hourly');
-        Route::get('/export-excel-hourly-monthly', 'exportExcelHourlyMonthly')->name('export-excel-hourly-monthly');
-        // Route::get('/show_lap_tracking_ppic', 'show_lap_tracking_ppic')->name('show_lap_tracking_ppic');
-        // Route::get('/export_excel_tracking', 'export_excel_tracking')->name('export_excel_tracking');
-    });
-
     // GA
         // Pengajuan
             Route::controller(GAPengajuanBahanBakarController::class)->prefix("ga-pengajuan-bahan-bakar")->middleware('ga')->group(function () {
@@ -2312,47 +972,6 @@ Route::middleware('auth')->group(function () {
         // TEST TRIGGER SOCKET.IO
         Route::get('/trigger/all/{date?}', 'cutting_chart_trigger_all')->name('cutting-chart-trigger-all');
         Route::get('/trigger/{date?}/{mejaId?}', 'cutting_trigger_chart_by_mejaid')->name('cutting-trigger-chart-by-mejaid');
-    });
-
-    // Manage User
-    Route::controller(ManageUserController::class)->prefix("manage-user")->middleware('role:superadmin')->group(function () {
-        Route::get('/', 'index')->name('manage-user');
-        Route::post('/store', 'store')->name('store-user');
-        Route::put('/update', 'update')->name('update-user-detail');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-user');
-
-        Route::get('/get-user-role', 'getUserRole')->name('get-user-role');
-        Route::delete('/destroy-user-role/{id?}', 'destroyUserRole')->name('destroy-user-role');
-    });
-
-    // Manage Role
-    Route::controller(ManageRoleController::class)->prefix("manage-role")->middleware('role:superadmin')->group(function () {
-        Route::get('/', 'index')->name('manage-role');
-        Route::post('/store', 'store')->name('store-role');
-        Route::put('/update', 'update')->name('update-role');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-role');
-
-        Route::get('/get-role-access', 'getRoleAccess')->name('get-role-access');
-        Route::delete('/destroy-role-access/{id?}', 'destroyRoleAccess')->name('destroy-role-access');
-    });
-
-    // Manage Access
-    Route::controller(ManageAccessController::class)->prefix("manage-access")->middleware('role:superadmin')->group(function () {
-        Route::get('/', 'index')->name('manage-access');
-        Route::post('/store', 'store')->name('store-access');
-        Route::put('/update', 'update')->name('update-access');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-access');
-    });
-
-    // Manage
-    Route::controller(ManageUserLineController::class)->prefix("manage-user-line")->middleware('role:superadmin')->group(function () {
-        Route::get('/', 'index')->name('manage-user-line');
-        Route::post('/store', 'store')->name('store-user-line');
-        Route::put('/update', 'update')->name('update-user-line');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-user-line');
-
-        Route::get('/get-user-line-sub', 'getUserLineSub')->name('get-user-line-sub');
-        Route::delete('/destroy-user-line-sub/{id?}', 'destroyUserLineSub')->name('destroy-user-line-sub');
     });
 
     // Marketing
@@ -2670,70 +1289,70 @@ Route::middleware('auth')->group(function () {
         Route::get('/IE_lap_recap_smv', 'IE_lap_recap_smv')->name('IE_lap_recap_smv');
         Route::get('/IE_lap_recap_cm_price', 'IE_lap_recap_cm_price')->name('IE_lap_recap_cm_price');
     });
+
+    // Export Import (EXIM)
+    Route::controller(ExportImportController::class)->prefix("export-import")->middleware('role:export_import')->group(function () {
+        Route::get('/', 'index')->name('export-import');
+        Route::get('/report-rekonsiliasi-ceisa', 'ReportRekonsiliasi')->name('report-rekonsiliasi-ceisa');
+        Route::get('/export-rekonsiliasi-ceisa', 'ExportReportRekonsiliasi')->name('export-rekonsiliasi-ceisa');
+        Route::get('/report-ceisa-detail', 'ReportCeisaDetail')->name('report-ceisa-detail');
+        Route::get('/export-ceisa-detail', 'ExportReportCeisaDetail')->name('export-ceisa-detail');
+        Route::get('/report-signalbit-bc', 'ReportSignalbitBC')->name('report-signalbit-bc');
+        Route::get('/export-excel-report-signalbit-bc', 'ExportReportSignalbitBC')->name('export-excel-report-signalbit-bc');
+    });
+
+    // WHS Soljer
+    Route::controller(PenerimaanGudangInputanController::class)->prefix("penerimaan-gudang-inputan")->middleware('role:warehouse')->group(function () {
+        Route::get('/', 'index')->name('penerimaan-gudang-inputan');
+        Route::get('/create', 'create')->name('create-penerimaan-gudang-inputan');
+        Route::post('/store', 'store')->name('store-penerimaan-gudang-inputan');
+        Route::get('/edit/{id}', 'edit')->name('edit-penerimaan-gudang-inputan');
+        Route::put('/update/{id}', 'update')->name('update-penerimaan-gudang-inputan');
+        Route::put('/cancel/{id}', 'cancel')->name('cancel-penerimaan-gudang-inputan');
+        Route::get('/print-sj/{id}', 'printSj')->name('print-sj-penerimaan-gudang-inputan');
+        Route::get('/print-barcode/{id}', 'printBarcode')->name('print-barcode-penerimaan-gudang-inputan');
+        Route::get('/contoh-upload-import', 'contohUploadImport')->name('contoh-upload-import-penerimaan-gudang-inputan');
+        Route::post('/import-data', 'importData')->name('import-data-penerimaan-gudang-inputan');
+    });
+
+    Route::controller(PenerimaanGudangInputanAccesoriesController::class)->prefix("penerimaan-gudang-inputan-accesories")->middleware('role:warehouse')->group(function () {
+        Route::get('/', 'index')->name('penerimaan-gudang-inputan-accesories');
+        Route::get('/create', 'create')->name('create-penerimaan-gudang-inputan-accesories');
+        Route::post('/store', 'store')->name('store-penerimaan-gudang-inputan-accesories');
+        Route::get('/edit/{id}', 'edit')->name('edit-penerimaan-gudang-inputan-accesories');
+        Route::put('/update/{id}', 'update')->name('update-penerimaan-gudang-inputan-accesories');
+        Route::put('/cancel/{id}', 'cancel')->name('cancel-penerimaan-gudang-inputan-accesories');
+        Route::get('/print-sj/{id}', 'printSj')->name('print-sj-penerimaan-gudang-inputan-accesories');
+        Route::get('/print-barcode/{id}', 'printBarcode')->name('print-barcode-penerimaan-gudang-inputan-accesories');
+        Route::get('/contoh-upload-import', 'contohUploadImport')->name('contoh-upload-import-penerimaan-gudang-inputan-accesories');
+        Route::post('/import-data', 'importData')->name('import-data-penerimaan-gudang-inputan-accesories');
+    });
+
+    Route::controller(PenerimaanGudangInputanFgController::class)->prefix("penerimaan-gudang-inputan-fg")->middleware('role:warehouse')->group(function () {
+        Route::get('/', 'index')->name('penerimaan-gudang-inputan-fg');
+        Route::get('/create', 'create')->name('create-penerimaan-gudang-inputan-fg');
+        Route::post('/store', 'store')->name('store-penerimaan-gudang-inputan-fg');
+        Route::get('/edit/{id}', 'edit')->name('edit-penerimaan-gudang-inputan-fg');
+        Route::put('/update/{id}', 'update')->name('update-penerimaan-gudang-inputan-fg');
+        Route::put('/cancel/{id}', 'cancel')->name('cancel-penerimaan-gudang-inputan-fg');
+        Route::get('/print-sj/{id}', 'printSj')->name('print-sj-penerimaan-gudang-inputan-fg');
+        Route::get('/print-barcode/{id}', 'printBarcode')->name('print-barcode-penerimaan-gudang-inputan-fg');
+        Route::get('/contoh-upload-import', 'contohUploadImport')->name('contoh-upload-import-penerimaan-gudang-inputan-fg');
+        Route::post('/import-data', 'importData')->name('import-data-penerimaan-gudang-inputan-fg');
+    });
+
+    Route::controller(PengeluaranGudangInputanController::class)->prefix("pengeluaran-gudang-inputan")->middleware('role:warehouse')->group(function () {
+        Route::get('/', 'index')->name('pengeluaran-gudang-inputan');
+        Route::get('/create', 'create')->name('create-pengeluaran-gudang-inputan');
+        Route::post('/store', 'store')->name('store-pengeluaran-gudang-inputan');
+        Route::get('/edit/{id}', 'edit')->name('edit-pengeluaran-gudang-inputan');
+        Route::put('/update/{id}', 'update')->name('update-pengeluaran-gudang-inputan');
+        Route::put('/cancel/{id}', 'cancel')->name('cancel-pengeluaran-gudang-inputan');
+        Route::get('/print-sj/{id}', 'printSj')->name('print-sj-pengeluaran-gudang-inputan');
+        Route::get('/print-barcode/{id}', 'printBarcode')->name('print-barcode-pengeluaran-gudang-inputan');
+        Route::get('/get-data-barcode', 'getDataBarcode')->name('get-data-barcode-pengeluaran-gudang-inputan');
+    });
 });
-
-// Dashboard
-Route::get('/dashboard-track', [DashboardController::class, 'track'])->middleware('auth')->name('dashboard-track');
-Route::get('/dashboard-marker', [DashboardController::class, 'marker'])->middleware('auth')->name('dashboard-marker');
-Route::get('/dashboard-wip', [DashboardWipLineController::class, 'index'])->middleware('auth')->name('dashboard-wip');
-Route::get('/dashboard-wip/wip-line/{id?}', [DashboardWipLineController::class, 'show_wip_line'])->name('show_wip_line');
-// Factory
-Route::get('/dashboard-wip/factory-performance/{year?}/{month?}', [DashboardWipLineController::class, 'factoryPerformance'])->name('dashboard-factory-performance');
-// Chief
-Route::get('/dashboard-wip/chief-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'chiefSewing'])->name('dashboard-chief-sewing');
-Route::get('/dashboard-wip/chief-sewing-data', [DashboardWipLineController::class, 'chiefSewingData'])->name('dashboard-chief-sewing-data');
-// Chief Range
-Route::get('/dashboard-wip/chief-sewing-range/{dateFrom?}/{dateTo?}', [DashboardWipLineController::class, 'chiefSewingRange'])->middleware('auth')->name('dashboard-chief-sewing-range');
-Route::get('/dashboard-wip/chief-sewing-range-data', [DashboardWipLineController::class, 'chiefSewingRangeData'])->middleware('auth')->name('dashboard-chief-sewing-range-data');
-Route::post('/dashboard-wip/chief-sewing-range-data-export', [DashboardWipLineController::class, 'chiefSewingRangeDataExport'])->middleware('auth')->name('dashboard-chief-sewing-range-data-export');
-// Leader
-Route::get('/dashboard-wip/leader-sewing/{dateFrom?}/{dateTo?}', [DashboardWipLineController::class, 'leaderSewing'])->middleware('auth')->name('dashboard-leader-sewing');
-Route::get('/dashboard-wip/leader-sewing-data', [DashboardWipLineController::class, 'leaderSewingData'])->middleware('auth')->name('dashboard-leader-sewing-data');
-Route::get('/dashboard-wip/leader-sewing-filter', [DashboardWipLineController::class, 'leaderSewingFilter'])->middleware('auth')->name('dashboard-leader-sewing-filter');
-Route::post('/dashboard-wip/leader-sewing-range-data-export', [DashboardWipLineController::class, 'leaderSewingRangeDataExport'])->middleware('auth')->name('dashboard-leader-sewing-range-data-export');
-// Line Support
-Route::get('/dashboard-wip/support-line-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'supportLineSewing'])->name('dashboard-support-line-sewing');
-Route::get('/dashboard-wip/support-line-sewing-data', [DashboardWipLineController::class, 'supportLineSewingData'])->name('dashboard-support-line-sewing-data');
-// Factory
-Route::get('/dashboard-wip/factory-daily-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'factoryDailyPerformance'])->name('dashboard-factory-daily-sewing');
-Route::get('/dashboard-wip/factory-daily-sewing-data', [DashboardWipLineController::class, 'factoryDailyPerformanceData'])->name('dashboard-factory-daily-sewing-data');
-// Chief Leader
-Route::get('/dashboard-wip/chief-leader-sewing/{dateFrom?}/{dateTo?}', [DashboardWipLineController::class, 'chiefLeaderSewing'])->middleware('auth')->name('dashboard-chief-leader-sewing');
-Route::get('/dashboard-wip/chief-leader-sewing-data', [DashboardWipLineController::class, 'chiefLeaderSewingData'])->middleware('auth')->name('dashboard-chief-leader-sewing-data');
-Route::post('/dashboard-wip/chief-leader-sewing-range-data-export', [DashboardWipLineController::class, 'chiefLeaderSewingRangeDataExport'])->middleware('auth')->name('dashboard-chief-leader-sewing-range-data-export');
-// Chief Top
-Route::get('/dashboard-wip/top-chief-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'topChiefSewing'])->name('dashboard-top-chief-sewing');
-Route::get('/dashboard-wip/top-chief-sewing-data', [DashboardWipLineController::class, 'topChiefSewingData'])->name('dashboard-top-chief-sewing-data');
-// Leader Top
-Route::get('/dashboard-wip/top-leader-sewing/{year?}/{month?}', [DashboardWipLineController::class, 'topLeaderSewing'])->name('dashboard-top-leader-sewing');
-Route::get('/dashboard-wip/top-leader-sewing-data', [DashboardWipLineController::class, 'topLeaderSewingData'])->name('dashboard-top-leader-sewing-data');
-
-Route::get('/marker-qty', [DashboardController::class, 'markerQty'])->middleware('auth')->name('marker-qty');
-Route::get('/dashboard-cutting', [DashboardController::class, 'cutting'])->middleware('auth')->name('dashboard-cutting');
-Route::get('/dashboard-cutting-chart', [DashboardController::class, 'cutting_chart'])->middleware('auth')->name('dashboard-cutting-chart');
-Route::get('/meja-dashboard-cutting', [DashboardController::class, 'get_cutting_chart_meja'])->middleware('auth')->name('meja-dashboard-cutting');
-Route::get('/cutting-chart-by-mejaid', [DashboardController::class, 'cutting_chart_by_mejaid'])->middleware('auth')->name('cutting-chart-by-mejaid');
-Route::get('/cutting-qty', [DashboardController::class, 'cuttingQty'])->middleware('auth')->name('cutting-qty');
-Route::get('/cutting-dashboard-list', [DashboardController::class, 'cuttingDashboardList'])->middleware('auth')->name('cutting-dashboard-list');
-Route::get('/cutting-form-list', [DashboardController::class, 'cuttingFormList'])->middleware('auth')->name('cutting-form-list');
-Route::get('/cutting-form-chart', [DashboardController::class, 'cuttingFormChart'])->middleware('auth')->name('cutting-form-chart');
-Route::get('/cutting-worksheet-list', [DashboardController::class, 'cuttingWorksheetList'])->middleware('auth')->name('cutting-worksheet-list');
-Route::get('/cutting-worksheet-total', [DashboardController::class, 'cuttingWorksheetTotal'])->middleware('auth')->name('cutting-worksheet-total');
-Route::get('/cutting-output-list', [DashboardController::class, 'cuttingOutputList'])->middleware('auth')->name('cutting-output-list');
-Route::get('/cutting-output-list-all', [DashboardController::class, 'cuttingOutputListAll'])->middleware('auth')->name('cutting-output-list-all');
-Route::get('/cutting-output-list-panels', [DashboardController::class, 'cuttingOutputListPanels'])->middleware('auth')->name('cutting-output-list-panels');
-Route::get('/cutting-output-list-data', [DashboardController::class, 'cuttingOutputListData'])->middleware('auth')->name('cutting-output-list-data');
-Route::get('/cutting-stock-list-data', [DashboardController::class, 'cuttingStockListData'])->middleware('auth')->name('cutting-stock-list-data');
-
-Route::get('/dashboard-stocker', [DashboardController::class, 'stocker'])->middleware('auth')->name('dashboard-stocker');
-Route::get('/dashboard-stocker/show/{actCostingId?}', [DashboardController::class, 'showStocker'])->middleware('auth')->name('dashboard-stocker-show');
-
-Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
-Route::get('/dc-qty', [DashboardController::class, 'dcQty'])->middleware('auth')->name('dc-qty');
-Route::get('/dashboard-sewing-eff', [DashboardController::class, 'sewingEff'])->middleware('auth')->name('dashboard-sewing-eff');
-Route::get('/sewing-summary', [DashboardController::class, 'sewingSummary'])->middleware('auth')->name('dashboard-sewing-sum');
-Route::get('/sewing-output-data', [DashboardController::class, 'sewingOutputData'])->middleware('auth')->name('dashboard-sewing-output');
-Route::get('/dashboard-manage-user', [DashboardController::class, 'manageUser'])->middleware('auth')->name('dashboard-manage-user');
 
 // Accounting
 Route::controller(AccountingController::class)->prefix("accounting")->middleware('role:accounting')->group(function () {
@@ -2745,15 +1364,14 @@ Route::controller(AccountingController::class)->prefix("accounting")->middleware
     Route::post('/store', 'store')->name('store-update-ceisa');
     Route::get('/cancel-keterangan-ceisa', 'CancelDataCeisa')->name('cancel-keterangan-ceisa');
     Route::get('/edit-keterangan-ceisa', 'EditDataCeisa')->name('edit-keterangan-ceisa');
-    Route::get('/report-rekonsiliasi-ceisa', 'ReportRekonsiliasi')->name('report-rekonsiliasi-ceisa');
-    Route::get('/export-rekonsiliasi-ceisa', 'ExportReportRekonsiliasi')->name('export-rekonsiliasi-ceisa');
-    Route::get('/report-ceisa-detail', 'ReportCeisaDetail')->name('report-ceisa-detail');
-    Route::get('/export-ceisa-detail', 'ExportReportCeisaDetail')->name('export-ceisa-detail');
+    // Route::get('/report-rekonsiliasi-ceisa', 'ReportRekonsiliasi')->name('report-rekonsiliasi-ceisa');
+    // Route::get('/export-rekonsiliasi-ceisa', 'ExportReportRekonsiliasi')->name('export-rekonsiliasi-ceisa');
+    // Route::get('/report-ceisa-detail', 'ReportCeisaDetail')->name('report-ceisa-detail');
+    // Route::get('/export-ceisa-detail', 'ExportReportCeisaDetail')->name('export-ceisa-detail');
 
-    Route::get('/report-signalbit-bc', 'ReportSignalbitBC')->name('report-signalbit-bc');
-    Route::get('/export-excel-report-signalbit-bc', 'ExportReportSignalbitBC')->name('export-excel-report-signalbit-bc');
+    // Route::get('/report-signalbit-bc', 'ReportSignalbitBC')->name('report-signalbit-bc');
+    // Route::get('/export-excel-report-signalbit-bc', 'ExportReportSignalbitBC')->name('export-excel-report-signalbit-bc');
 });
-
 
 // Purchasing
 Route::controller(PurchasingController::class)->prefix("purchasing")->middleware('role:purchasing')->group(function () {
@@ -2780,19 +1398,6 @@ Route::get('/trigger', function () {
     event(new TestEvent('This is realtime data'));
     return response()->json(['status' => 'Event sent testing']);
 });
-
-// Dashboard
-// Route::get('/dashboard-marker', function () {
-//     return view('dashboard', ['page' => 'dashboard-marker']);
-// })->middleware('auth')->name('dashboard-marker');
-
-// Route::get('/dashboard-cutting', function () {
-//     return view('dashboard', ['page' => 'dashboard-cutting']);
-// })->middleware('auth')->name('dashboard-cutting');
-
-// Route::get('/dashboard-stocker', function () {
-//     return view('dashboard', ['page' => 'dashboard-stocker']);
-// })->middleware('auth')->name('dashboard-stocker');
 
 //warehouse
 // Route::get('/dashboard-warehouse', function () {
@@ -2900,5 +1505,3 @@ Route::get('/validation-form', function () {
 Route::get('/bon-mutasi', function () {
     return view('bon-mutasi');
 })->middleware('auth');
-
-require __DIR__ . '/qc_inspect.php';

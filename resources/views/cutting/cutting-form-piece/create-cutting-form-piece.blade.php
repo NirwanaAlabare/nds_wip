@@ -1393,22 +1393,27 @@
 
                 const container = document.getElementById("process-three-container");
                 const cloneCard = card.cloneNode(true);
-                const suffix = "_" + item.id_roll;
+                const suffix = "_" + (item.id);
                 cloneCard.id = `process-three-card${suffix}`;
                 cloneCard.classList.add("collapsed-card");
+                cloneCard.classList.remove("card-sb");
 
                 // 💡 Header with collapse button (prevent duplicate)
                 const header = cloneCard.querySelector(".card-header");
-                if (header && !header.querySelector(".card-tools")) {
-                    const tools = document.createElement("div");
-                    tools.className = "card-tools";
-                    tools.innerHTML = `<button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-plus"></i></button>`;
-                    header.appendChild(tools);
+                if (header) {
+                    header.classList.add("bg-sb-secondary");
+
+                    if (!header.querySelector(".card-tools")) {
+                        const tools = document.createElement("div");
+                        tools.className = "card-tools";
+                        tools.innerHTML = `<button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-plus"></i></button>`;
+                        header.appendChild(tools);
+                    }
                 }
 
                 // 💡 Set title
                 const title = cloneCard.querySelector(".card-title");
-                if (title) title.textContent = `${item.id_roll}`;
+                if (title) title.textContent = `${(item.id_roll ? item.id_roll : item.id)}`;
 
                 // ✅ Value map from item
                 const valueMap = {
@@ -1497,7 +1502,10 @@
 
 
             function buildTableRows(details, suffix) {
-                return details.map((row, index) => `
+                let filteredDetails = details.filter((item) => {
+                    return item.qty > 0;
+                })
+                return filteredDetails.map((row, index) => `
                     <tr>
                         <td>
                             <input type="hidden" name="so_det_id[${index}]" id="so_det_id_${index}${suffix}" value="${row.so_det_id}" />

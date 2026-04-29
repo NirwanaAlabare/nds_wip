@@ -41,7 +41,9 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 marker_input.style,
                 marker_input.color,
                 master_sb_ws.id_so_det,
-                (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE marker_input_detail.size END) size,
+                COALESCE(master_sb_ws.size, marker_input_detail.size) AS size,
+                master_sb_ws.dest,
+                (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE marker_input_detail.size END) size_dest,
                 form_cut_input_detail.group_roll,
                 form_cut_input_detail.lot,
                 form_cut_input.no_cut,
@@ -104,7 +106,9 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 form_cut_piece.style,
                 form_cut_piece.color,
                 master_sb_ws.id_so_det,
-                (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE form_cut_piece_detail_size.size END) size,
+                COALESCE(master_sb_ws.size, form_cut_piece_detail_size.size) AS size,
+                master_sb_ws.dest,
+                (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE form_cut_piece_detail_size.size END) size_dest,
                 form_cut_piece_detail.`group_roll`,
                 form_cut_piece_detail.lot,
                 form_cut_piece.no_cut,
@@ -137,7 +141,9 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 stocker_ws_additional.style,
                 stocker_ws_additional.color,
                 stocker_ws_additional_detail.so_det_id AS id_so_det,
-                stocker_ws_additional_detail.size,
+                COALESCE(master_sb_ws.size, stocker_ws_additional_detail.size) AS size,
+                master_sb_ws.dest,
+                (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE stocker_ws_additional_detail.size END) size_dest,
                 form_cut_input_detail.group_roll,
                 form_cut_input_detail.lot,
                 form_cut_input.no_cut,
@@ -153,8 +159,7 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
             LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
             LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
             LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-            LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id
-                AND modify_size_qty.form_cut_id = form_cut_input.id
+            LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
             LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
             LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id AND marker_input_detail.size = stocker_ws_additional_detail.size
             LEFT JOIN (
@@ -180,8 +185,8 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 FROM laravel_nds.form_cut_input_detail
                 WHERE status NOT IN ('not complete', 'extension')
                 GROUP BY form_cut_id
-            ) AS similar
-                ON similar.form_cut_id = form_cut_input_detail.form_cut_id
+            ) AS similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
+            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
             WHERE
                 COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) between '".$this->dateFrom."' and '".$this->dateTo."'
                 AND form_cut_input.status = 'SELESAI PENGERJAAN'
@@ -235,7 +240,7 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
         );
 
         $event->sheet->styleCells(
-            'A4:N' . ($event->getConcernable()->rowCount+5),
+            'A4:O' . ($event->getConcernable()->rowCount+5),
             [
                 'borders' => [
                     'allBorders' => [

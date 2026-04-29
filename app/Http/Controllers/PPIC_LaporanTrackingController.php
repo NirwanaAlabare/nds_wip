@@ -604,7 +604,7 @@ FROM (
 		laravel_nds.modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
 		where
 		(marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
-		AND marker_input_detail.ratio > 0
+		AND (marker_input_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
 		group by
 		marker_input.id,
 		marker_input_detail.so_det_id,
@@ -2022,7 +2022,7 @@ FROM (
 		laravel_nds.modify_size_qty ON modify_size_qty.form_cut_id = form_cut.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
 		where
 		(marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
-		AND marker_input_detail.ratio > 0
+		AND (marker_input_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
 		group by
 		marker_input.id,
 		marker_input_detail.so_det_id,

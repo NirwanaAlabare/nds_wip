@@ -2235,4 +2235,18 @@ class DashboardController extends Controller
             return view('dashboard', ['page' => 'dashboard-manage-user', "months" => $months, "years" => $years]);
         }
     // End of Manage User
+
+    // Export Import
+        public function exportImport(Request $request) {
+
+            return view('dashboard', ['page' => 'dashboard-export-import']);
+        }
+    // End of Export Import
+
+    // Whs Soljer
+        public function whsSoljer(Request $request) {
+
+            return view('dashboard', ['page' => 'dashboard-whs-soljer']);
+        }
+    // End of Whs Soljer
 }
