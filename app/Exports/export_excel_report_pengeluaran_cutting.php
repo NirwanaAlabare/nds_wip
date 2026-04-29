@@ -42,13 +42,14 @@ SELECT
 	GROUP_CONCAT(id_qr_stocker) as stockers,
 	no_form,
 	no_cut,
-	(DATE_FORMAT(MAX(created_at), '%Y-%m-%d')) as created_at,
+	(DATE_FORMAT(MAX(tgl_trans), '%Y-%m-%d')) as created_at,
 	m.buyer,
 	act_costing_ws,
 	m.color,
 	panel,
 	so_det_id as id_so_det,
 	m.size,
+    stocker_reject,
 	panel_status,
 	GROUP_CONCAT(nama_part) as nama_part,
 	GROUP_CONCAT(part_status) as part_status,
@@ -61,6 +62,8 @@ FROM
 				DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
 				a.tgl_trans,
 				s.act_costing_ws,
+                s.group_stocker,
+                s.stocker_reject,
 				s.color,
 				p.buyer,
 				p.style,
@@ -107,6 +110,8 @@ FROM
 				DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
 				a.tgl_trans,
 				s.act_costing_ws,
+                s.group_stocker,
+                s.stocker_reject,
 				s.color,
 				CASE WHEN pd.part_status = 'complement' THEN pcom.buyer ELSE p.buyer END as buyer,
 				CASE WHEN pd.part_status = 'complement' THEN pcom.style ELSE p.style END as style,
@@ -152,18 +157,21 @@ FROM
 	) dc
 	left join master_sb_ws m on dc.so_det_id = m.id_so_det
 group by
-	dc.part_id,
+	dc.panel,
 	dc.so_det_id,
-	dc.stocker_range,
+	dc.group_stocker,
+	dc.ratio,
+	-- dc.stocker_range,
 	dc.no_form,
-    dc.no_cut
+    dc.no_cut,
+    dc.stocker_reject
 ),
 dc_in as (
 SELECT
 	GROUP_CONCAT(id_qr_stocker) as stockers,
 	no_form,
 	no_cut,
-	(DATE_FORMAT(MAX(created_at), '%Y-%m-%d')) as created_at,
+	(DATE_FORMAT(MAX(tgl_trans), '%Y-%m-%d')) as created_at,
 	m.buyer,
 	act_costing_ws,
 	m.color,
@@ -171,6 +179,7 @@ SELECT
 	so_det_id as id_so_det,
 	m.size,
 	panel_status,
+    stocker_reject,
 	GROUP_CONCAT(nama_part) as nama_part,
 	GROUP_CONCAT(part_status) as part_status,
 	sum(qty_replace) as qty_replace,
@@ -182,6 +191,8 @@ FROM
 				DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
 				a.tgl_trans,
 				s.act_costing_ws,
+                s.group_stocker,
+                s.stocker_reject,
 				s.color,
 				p.buyer,
 				p.style,
@@ -228,6 +239,8 @@ FROM
 				DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
 				a.tgl_trans,
 				s.act_costing_ws,
+                s.group_stocker,
+                s.stocker_reject,
 				s.color,
 				CASE WHEN pd.part_status = 'complement' THEN pcom.buyer ELSE p.buyer END as buyer,
 				CASE WHEN pd.part_status = 'complement' THEN pcom.style ELSE p.style END as style,
@@ -273,11 +286,14 @@ FROM
 	) dc
 	left join master_sb_ws m on dc.so_det_id = m.id_so_det
 group by
-	dc.part_id,
+	dc.panel,
 	dc.so_det_id,
-	dc.stocker_range,
+	dc.group_stocker,
+	dc.ratio,
+	-- dc.stocker_range,
 	dc.no_form,
-    dc.no_cut
+    dc.no_cut,
+    dc.stocker_reject
 )
 
 SELECT
