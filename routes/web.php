@@ -1371,6 +1371,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/approve/{id}', 'approve')->name('approve-purchase-order');
     });
 
+    Route::controller(PurchasingDashboardController::class)->middleware('purchasing')->group(function () {
+        Route::get('/dashboard_purchasing', 'dashboard_purchasing')->name('dashboard-purchasing');
+    });
+
     Route::controller(PengeluaranGudangInputanFgController::class)->prefix("pengeluaran-gudang-inputan-fg")->middleware('role:warehouse')->group(function () {
         Route::get('/', 'index')->name('pengeluaran-gudang-inputan-fg');
         Route::get('/create', 'create')->name('create-pengeluaran-gudang-inputan-fg');

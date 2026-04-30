@@ -163,33 +163,31 @@
         </div>
     </div>
 </div>
-<div class="modal fade" id="modalEditDate" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-sm">
+
+
+<div class="modal fade" id="modalApproval" tabindex="-1" role="dialog" aria-labelledby="modalApprovalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <form id="form-edit-date">
+            <form id="form-approve-po" method="POST">
                 @csrf
-                <div class="modal-header bg-warning py-2">
-                    <h6 class="modal-title fw-bold text-dark"><i class="fas fa-calendar-alt"></i> Update ETD & ETA</h6>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                <div class="modal-header bg-sb text-white">
+                    <h5 class="modal-title fw-bold" id="modalApprovalLabel"><i class="fas fa-check"></i> Konfirmasi Approval</h5>
+                    <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body bg-light">
-                    <input type="hidden" id="edit_date_id" name="id">
-
-                    <div class="form-group">
-                        <label class="fw-bold"><small>ETD</small></label>
-                        <input type="date" class="form-control form-control-sm" id="edit_etd" name="etd">
-                    </div>
-
-                    <div class="form-group mb-0">
-                        <label class="fw-bold"><small>ETA</small></label>
-                        <input type="date" class="form-control form-control-sm" id="edit_eta" name="eta">
+                    <input type="hidden" name="id_costing" id="approve_id_po">
+                    <div class="text-center mb-3">
+                        <h6 class="mb-1">Apakah Anda yakin akan menyetujui PO ini?</h6>
+                        <h4 class="fw-bold text-dark" id="approve_no_po">-</h4>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-success btn-sm fw-bold"><i class="fas fa-save"></i> Simpan</button>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-danger fw-bold" data-bs-dismiss="modal">
+                        <i class="fas fa-times-circle"></i> Batal
+                    </button>
+                    <button type="submit" class="btn btn-primary fw-bold"><i class="fas fa-check-circle"></i> Approve</button>
                 </div>
             </form>
         </div>
@@ -371,37 +369,38 @@
         });
     });
 
-    $(document).on('click', '.btn-edit-date', function() {
+    $(document).on('click', '.btn-approve', function() {
         let id = $(this).data('id');
-        let etd = $(this).data('etd');
-        let eta = $(this).data('eta');
+        let tr = $(this).closest('tr');
+        let data = tableDraft.row(tr).data();
+        $('#approve_id_po').val(id);
+        $('#approve_no_po').text(data.pono);
 
-        $('#edit_date_id').val(id);
-        $('#edit_etd').val(etd !== '-' ? etd : '');
-        $('#edit_eta').val(eta !== '-' ? eta : '');
-
-        $('#modalEditDate').modal('show');
+        $('#modalApproval').modal('show');
     });
 
-    $('#form-edit-date').on('submit', function(e) {
+    $('#form-approve-po').on('submit', function(e) {
         e.preventDefault();
 
-        let id = $('#edit_date_id').val();
-        let actionUrl = '{{ route("update-date-purchase-order", ":id") }}';
+        let id = $('#approve_id_po').val();
+        let actionUrl = '{{ route("approve-purchase-order", ":id") }}';
         actionUrl = actionUrl.replace(':id', id);
 
-        let formData = $(this).serialize();
-
-        Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+        Swal.fire({
+            title: 'Memproses Approval...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
 
         $.ajax({
             url: actionUrl,
             type: 'POST',
-            data: formData,
+            data: $(this).serialize(),
             success: function(response) {
                 if(response.status === 200) {
                     Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: response.message, showConfirmButton: false, timer: 1500 });
-                    $('#modalEditDate').modal('hide');
+                    $('#modalApproval').modal('hide');
+
                     refreshTable();
                 } else {
                     Swal.fire('Gagal!', response.message, 'error');

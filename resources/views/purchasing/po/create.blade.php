@@ -55,8 +55,13 @@
 
 @section('content')
 <div class="card card-sb">
-    <div class="card-header">
-        <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-invoice-dollar"></i> Form Create Purchase Order (PO)</h5>
+    <div class="card-header bg-sb">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title fw-bold">Purchase Order</h5>
+            <a href="{{ route('purchasing') }}" class="btn btn-sm btn-primary">
+                <i class="fa fa-reply"></i> Kembali ke List
+            </a>
+        </div>
     </div>
 
     <form id="form-create-po" action="#" method="POST">

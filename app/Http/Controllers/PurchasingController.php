@@ -88,7 +88,7 @@ class PurchasingController extends Controller
         }
 
         $suppliers = DB::connection('mysql_sb')->table('mastersupplier')->get();
-        return view('purchasing.pr.index', [
+        return view('purchasing.po.index', [
             'page' => 'dashboard-purchasing',
             'subPageGroup' => 'purchasing',
             'subPage' => 'purchase-order',
@@ -169,7 +169,7 @@ class PurchasingController extends Controller
             ->get();
 
 
-        return view('purchasing.pr.create', [
+        return view('purchasing.po.create', [
             'page'           => 'dashboard-purchasing',
             'subPageGroup'   => 'purchasing',
             'subPage'        => 'purchase-requisition',
@@ -260,7 +260,7 @@ class PurchasingController extends Controller
             ->select('nama_pilihan')
             ->get();
 
-        return view('purchasing.pr.edit', [
+        return view('purchasing.po.edit', [
             'page'           => 'dashboard-purchasing',
             'subPageGroup'   => 'purchasing',
             'subPage'        => 'purchase-requisition',
@@ -1017,7 +1017,7 @@ class PurchasingController extends Controller
 
         $suppliers = DB::connection('mysql_sb')->table('mastersupplier')->get();
 
-        return view('purchasing.pr.approval', [
+        return view('purchasing.po.approval', [
             'page' => 'dashboard-purchasing',
             'subPageGroup' => 'purchasing',
             'subPage' => 'purchase-order',
