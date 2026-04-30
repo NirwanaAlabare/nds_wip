@@ -87,6 +87,9 @@
                             <th class="text-center align-middle">Color</th>
                             <th class="text-center align-middle">Size</th>
                             <th class="text-center align-middle">Panel</th>
+                            <th class="text-center align-middle">Panel Status</th>
+                            <th class="text-center align-middle">Part</th>
+                            <th class="text-center align-middle">Part Status</th>
                             <th class="text-center align-middle">Qty</th>
                         </tr>
                     </thead>
@@ -160,8 +163,8 @@
                 destroy: true,
                 ordering: false,
                 responsive: false,
-                serverSide: false,
-                paging: false,
+                serverSide: true,
+                paging: true,
                 searching: true,
 
                 scrollX: true,
@@ -215,6 +218,15 @@
                     },
                     {
                         data: 'panel'
+                    },
+                    {
+                        data: 'panel_status'
+                    },
+                    {
+                        data: 'nama_part'
+                    },
+                    {
+                        data: 'part_status'
                     },
                     {
                         data: 'qty_dc'
