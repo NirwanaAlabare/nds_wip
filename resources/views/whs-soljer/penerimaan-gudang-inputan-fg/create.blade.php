@@ -457,6 +457,16 @@
             theme: 'bootstrap4',
         })
 
+        $("#qty").on('blur', function () {
+            let val = parseFloat($(this).val());
+
+            if (!isNaN(val)) {
+                $(this).val(val.toFixed(2));
+            } else {
+                $(this).val('0.00');
+            }
+        });
+
         function updateTotalQty() {
             let data = table_detail_item.rows().data().toArray();
 
@@ -466,7 +476,7 @@
                 total += parseFloat(row.qty || 0);
             });
 
-            $('#total_qty').text(total);
+            $('#total_qty').text(total.toFixed(2));
         }
 
         function OpenModal() {
@@ -497,7 +507,7 @@
                                 warna: item.warna,
                                 size: item.size,
                                 grade: item.grade,
-                                qty: item.qty,
+                                qty: parseFloat(item.qty).toFixed(2),
                                 satuan: item.satuan,
                                 lokasi: item.lokasi,
                                 keterangan: item.keterangan,
