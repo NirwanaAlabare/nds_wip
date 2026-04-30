@@ -74,6 +74,7 @@ use App\Http\Controllers\PPIC_MonitoringMaterialSumController;
 use App\Http\Controllers\PPIC_tools_adjustmentController;
 use App\Http\Controllers\PPICDashboardController;
 use App\Http\Controllers\ProcurementController;
+use App\Http\Controllers\PurchasingDashboardController;
 use App\Http\Controllers\QCInspectDashboardController;
 use App\Http\Controllers\QCInspectLaporanController;
 use App\Http\Controllers\QCInspectMasterController;
@@ -91,6 +92,7 @@ use App\Http\Controllers\StockOpnameController;
 use App\Http\Controllers\TransferBpbController;
 use App\Http\Controllers\TransferMemoController;
 use App\Http\Controllers\WarehouseController;
+use App\Http\Controllers\PurchasingController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanAccesoriesController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanFgController;
@@ -983,15 +985,33 @@ Route::middleware('auth')->group(function () {
     });
 
     // Master
+    // Route::controller(Marketing_CostingController::class)->prefix("master-costing")->middleware('marketing')->group(function () {
+    //     Route::get('/', 'index')->name('master-costing');
+    //     Route::get('/getprod_item_costing', 'getprod_item_costing')->name('getprod_item_costing');
+    //     Route::post('/store_master_costing_production', 'store_master_costing_production')->name('store_master_costing_production');
+    //     Route::get('/edit_costing/{id?}', 'edit_costing')->name('edit_costing');
+    //     Route::post('/update_header_master_costing', 'update_header_master_costing')->name('update_header_master_costing');
+    //     Route::get('/get_jns_costing_material', 'get_jns_costing_material')->name('get_jns_costing_material');
+    //     Route::get('/get_material_costing', 'get_material_costing')->name('get_material_costing');
+
+    // });
+
+    // Master BOM
     Route::controller(Marketing_CostingController::class)->prefix("master-costing")->middleware('marketing')->group(function () {
         Route::get('/', 'index')->name('master-costing');
-        Route::get('/getprod_item_costing', 'getprod_item_costing')->name('getprod_item_costing');
-        Route::post('/store_master_costing_production', 'store_master_costing_production')->name('store_master_costing_production');
-        Route::get('/edit_costing/{id?}', 'edit_costing')->name('edit_costing');
-        Route::post('/update_header_master_costing', 'update_header_master_costing')->name('update_header_master_costing');
-        Route::get('/get_jns_costing_material', 'get_jns_costing_material')->name('get_jns_costing_material');
-        Route::get('/get_material_costing', 'get_material_costing')->name('get_material_costing');
-
+        Route::get('/create', 'create')->name('create-costing');
+        Route::post('/store', 'store')->name('store-costing');
+        Route::get('/get-item-contents', 'getItemContents')->name('get-item-contents');
+        Route::get('/edit/{id}', 'edit')->name('edit-costing');
+        Route::post('/store-detail', 'storeDetail')->name('store-costing-detail');
+        Route::put('/update-header/{id}', 'updateHeader')->name('update-costing-header');
+        Route::delete('/delete-detail/{id}', 'destroyDetail')->name('delete-costing-detail');
+        Route::get('/print-pdf/{id}', 'printPdf')->name('print-costing-pdf');
+        Route::get('get-detail-row-costing/{id}', 'getDetailRow')->name('get-detail-row-costing');
+        Route::post('update-detail', 'updateDetail')->name('update-detail-costing');
+        Route::get('print-excel-costing/{id}', 'printExcel')->name('print-excel-costing');
+        Route::get('/approval', 'approval')->name('master-costing-approval');
+        Route::post('/approve/{id}', 'submitApproval')->name('submit-costing-approval');
     });
 
     // Master BOM
@@ -1017,6 +1037,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/bom-marketing/delete-other/{id}', [Marketing_BomController::class, 'destroyOther'])->name('bom.destroy_other');
         Route::post('/master-marketing-bom/store-detail-edit', [Marketing_BomController::class, 'storeDetailEdit'])->name('store-bom-detail-edit');
         Route::post('/master-marketing-bom/update-header', [Marketing_BomController::class, 'updateBomHeader'])->name('update-bom-header');
+        Route::get('/approval', 'approval')->name('master-bom-approval');
+        Route::post('/approve/{id}', 'submitApproval')->name('submit-bom-approval');
     });
 
      // Master BOM Additional
@@ -1037,7 +1059,7 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/store-header', 'storeHeader')->name('store-bom-additional-header');
         Route::post('/store-item', 'storeDetail')->name('store-bom-additional-item');
-        Route::post('/update-po', 'updatePo')->name('bom-add.update-po'); // <--- Route Sync PO baru
+        Route::post('/update-po', 'updatePo')->name('bom-add.update-po');
         Route::post('/update-item-row/{id}', 'updateItemRow')->name('update-item-row-bom-additional');
 
 
@@ -1068,8 +1090,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/so-store-master-size', 'storeMasterSizeQuick')->name('so-store-master-size');
         Route::post('/update-qty', 'updateQtySO')->name('update-qty-so');
         Route::post('/cancel-restore-so', 'cancelRestoreSO')->name('cancel-restore-so');
+        Route::get('/print-pdf/{id}', 'printPdfSO')->name('print-pdf-so');
+        Route::get('/get-bom-data', 'getBomCostingData')->name('so-get-bom-data');
     });
-
 
     // QC Inspect Kain
     // Dashboard
@@ -1332,6 +1355,38 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-data-barcode', 'getDataBarcode')->name('get-data-barcode-pengeluaran-gudang-inputan');
     });
 
+
+    Route::controller(PurchasingController::class)->prefix("purchasing")->middleware('role:purchasing')->group(function () {
+        Route::get('/', 'index')->name('purchasing');
+        Route::get('/list-data', 'index')->name('index-purchase-order');
+        Route::get('/count-data', 'countData')->name('count-purchase-order');
+        Route::get('/create', 'create')->name('create-purchase-order');
+        Route::post('/store', 'store')->name('store-purchase-order');
+        Route::get('/get-items-by-bom', 'getItemsByBom')->name('get-items-by-bom');
+        Route::get('/edit/{id}', 'edit')->name('edit-purchase-order');
+        Route::post('/update/{id}', 'update')->name('update-purchase-order');
+        Route::get('/show/{id}', 'show')->name('show-purchase-order');
+        Route::post('/update-date/{id}', 'updateDate')->name('update-date-purchase-order');
+        Route::get('/approval', 'approval')->name('approval-purchase-order');
+        Route::post('/approve/{id}', 'approve')->name('approve-purchase-order');
+    });
+
+    Route::controller(PurchasingDashboardController::class)->middleware('purchasing')->group(function () {
+        Route::get('/dashboard_purchasing', 'dashboard_purchasing')->name('dashboard-purchasing');
+    });
+
+    Route::controller(PengeluaranGudangInputanAccesoriesController::class)->prefix("pengeluaran-gudang-inputan-accesories")->middleware('role:warehouse')->group(function () {
+        Route::get('/', 'index')->name('pengeluaran-gudang-inputan-accesories');
+        Route::get('/create', 'create')->name('create-pengeluaran-gudang-inputan-accesories');
+        Route::post('/store', 'store')->name('store-pengeluaran-gudang-inputan-accesories');
+        Route::get('/edit/{id}', 'edit')->name('edit-pengeluaran-gudang-inputan-accesories');
+        Route::put('/update/{id}', 'update')->name('update-pengeluaran-gudang-inputan-accesories');
+        Route::put('/cancel/{id}', 'cancel')->name('cancel-pengeluaran-gudang-inputan-accesories');
+        Route::get('/print-sj/{id}', 'printSj')->name('print-sj-pengeluaran-gudang-inputan-accesories');
+        Route::get('/print-barcode/{id}', 'printBarcode')->name('print-barcode-pengeluaran-gudang-inputan-accesories');
+        Route::get('/get-data-barcode', 'getDataBarcode')->name('get-data-barcode-pengeluaran-gudang-inputan-accesories');
+    });
+
     Route::controller(PengeluaranGudangInputanFgController::class)->prefix("pengeluaran-gudang-inputan-fg")->middleware('role:warehouse')->group(function () {
         Route::get('/', 'index')->name('pengeluaran-gudang-inputan-fg');
         Route::get('/create', 'create')->name('create-pengeluaran-gudang-inputan-fg');
@@ -1364,7 +1419,11 @@ Route::controller(AccountingController::class)->prefix("accounting")->middleware
     // Route::get('/export-excel-report-signalbit-bc', 'ExportReportSignalbitBC')->name('export-excel-report-signalbit-bc');
 });
 
-// Redis
+
+
+// Route::get('/dashboard-chart', function () {
+//    return view('cutting.chart.dashboard-chart');
+// });
 Route::get('/trigger', function () {
     event(new TestEvent('This is realtime data'));
     return response()->json(['status' => 'Event sent testing']);

@@ -12,10 +12,10 @@
 
 @section('content')
     <div class="d-flex justify-content-between mb-3">
-        <h5 class="fw-bold text-sb"><i class="fa fa-plus fa-sm"></i> Edit Pengeluaran Gudang Inputan (FG)</h5>
-        <a href="{{ route('pengeluaran-gudang-inputan-fg') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali List Pengeluaran Gudang Inputan (FG)</a>
+        <h5 class="fw-bold text-sb"><i class="fa fa-plus fa-sm"></i> Edit Pengeluaran Gudang Inputan (ACCESORIES)</h5>
+        <a href="{{ route('pengeluaran-gudang-inputan-accesories') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali List Pengeluaran Gudang Inputan (ACCESORIES)</a>
     </div>
-    <form action="{{ route('update-pengeluaran-gudang-inputan-fg', $data->id) }}" method="post" id="store-pengeluaran-gudang-inputan-fg" onsubmit="setItemsBeforeSubmit(this, event)">
+    <form action="{{ route('update-pengeluaran-gudang-inputan-accesories', $data->id) }}" method="post" id="store-pengeluaran-gudang-inputan-accesories" onsubmit="setItemsBeforeSubmit(this, event)">
         @csrf
         @method('PUT')
         <div class="card card-sb">
@@ -57,55 +57,64 @@
                             <thead>
                                 <tr>
                                     <th>Barcode</th>
-                                    <th>No Koli</th>
+                                    <th>No Box/Koli</th>
                                     <th>Buyer</th>
-                                    <th>No WS</th>
-                                    <th>Style</th>
-                                    <th>Product Item</th>
+                                    <th>Worksheet</th>
+                                    <th>Nama Barang</th>
+                                    <th>Kode</th>
                                     <th>Warna</th>
                                     <th>Size</th>
-                                    <th>Grade</th>
                                     <th>Qty</th>
                                     <th>Satuan</th>
+                                    <th>Qty KGM</th>
                                     <th>Keterangan</th>
                                     <th>Lokasi</th>
-                                    <th>Qty Out</th>
+                                    <th width="100px;">Qty Out</th>
+                                    <th width="100px;">Qty KGM Out</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @php
                                     $totalQtyAct = 0;
+                                    $totalQtyKgmAct = 0;
                                 @endphp
                                 @foreach($data_detail as $row)
                                     @php
                                         $totalQtyAct += $row->qty_act;
+                                        $totalQtyKgmAct += $row->qty_kgm_act;
                                     @endphp
                                     <tr data-id="{{ $row->id }}">
                                         <td>{{ $row->barcode }}</td>
-                                        <td>{{ $row->no_koli }}</td>
+                                        <td>{{ $row->no_box }}</td>
                                         <td>{{ $row->buyer }}</td>
-                                        <td>{{ $row->no_ws }}</td>
-                                        <td>{{ $row->style }}</td>
-                                        <td>{{ $row->product_item }}</td>
+                                        <td>{{ $row->worksheet }}</td>
+                                        <td>{{ $row->nama_barang }}</td>
+                                        <td>{{ $row->kode }}</td>
                                         <td>{{ $row->warna }}</td>
                                         <td>{{ $row->size }}</td>
-                                        <td>{{ $row->grade }}</td>
                                         <td class="text-end">{{ number_format($row->qty_act, 2) }}</td>
                                         <td>{{ $row->satuan }}</td>
+                                        <td class="text-end">{{ number_format($row->qty_kgm_act, 2) }}</td>
                                         <td>{{ $row->keterangan }}</td>
                                         <td>{{ $row->lokasi }}</td>
                                         <td>
                                             <input type="number" step="any" class="form-control form-control-sm text-end qty_out" value="{{ number_format($row->qty_out, 2, '.', '') }}">
+                                        </td>
+                                        <td>
+                                            <input type="number" step="any" class="form-control form-control-sm text-end qty_kgm_out" value="{{ number_format($row->qty_kgm_out, 2, '.', '') }}">
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th colspan="9" class="text-center">TOTAL</th>
+                                    <th colspan="8" class="text-center">TOTAL</th>
                                     <th id="total_qty_act" class="text-end">{{ number_format($totalQtyAct, 2) }}</th>
-                                    <th colspan="3"></th>
+                                    <th></th>
+                                    <th id="total_qty_kgm_act" class="text-end">{{ number_format($totalQtyKgmAct, 2) }}</th>
+                                    <th colspan="2"></th>
                                     <th id="total_qty_out" class="text-end">0</th>
+                                    <th id="total_qty_kgm_out" class="text-end">0</th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -148,7 +157,7 @@
             let val = parseFloat(input.val()) || 0;
 
             let row = input.closest('tr');
-            let qty_act = parseFloat(row.find('td:eq(9)').text().replace(/,/g, '')) || 0;
+            let qty_act = parseFloat(row.find('td:eq(8)').text().replace(/,/g, '')) || 0;
 
             if (val > qty_act) {
                 Swal.fire('Warning', 'Qty Out tidak boleh lebih dari Qty!', 'warning');
@@ -158,13 +167,28 @@
             updateTotalQty();
         });
 
-        $(document).on('blur', '.qty_out', function () {
+        $(document).on('input', '.qty_kgm_out', function () {
+            let input = $(this);
+            let val = parseFloat(input.val()) || 0;
+
+            let row = input.closest('tr');
+            let qty_kgm_act = parseFloat(row.find('td:eq(10)').text().replace(/,/g, '')) || 0;
+
+            if (val > qty_kgm_act) {
+                Swal.fire('Warning', 'Qty KGM Out tidak boleh lebih dari Qty KGM!', 'warning');
+                input.val("0"); 
+            }
+
+            updateTotalQty();
+        });
+
+        $(document).on('blur', '.qty_out, .qty_kgm_out', function () {
             let val = parseFloat($(this).val());
 
             if (!isNaN(val)) {
                 $(this).val(val.toFixed(2));
             } else {
-                $(this).val('0.00');
+                $(this).val('0');
             }
         });
 
@@ -179,7 +203,8 @@
 
                 data.push({
                     id: row.attr('data-id'),
-                    qty_out: row.find('.qty_out').val()
+                    qty_out: row.find('.qty_out').val(),
+                    qty_kgm_out: row.find('.qty_kgm_out').val()
                 });
 
             });
@@ -189,10 +214,13 @@
                 return;
             }
 
-            let invalid = data.some(item => !item.qty_out || item.qty_out <= 0);
+            let invalid = data.some(item => 
+                !item.qty_out || item.qty_out <= 0 ||
+                !item.qty_kgm_out || item.qty_kgm_out <= 0
+            );
 
             if (invalid) {
-                Swal.fire('Warning', 'Qty Out tidak boleh kosong atau 0!', 'warning');
+                Swal.fire('Warning', 'Qty Out dan Qty KGM Out tidak boleh kosong atau 0!', 'warning');
                 return;
             }
 
@@ -214,12 +242,18 @@
 
         function updateTotalQty() {
             let total_qty_out = 0;
+            let total_qty_kgm_out = 0;
 
             $('#datatable tbody .qty_out').each(function () {
                 total_qty_out += parseFloat($(this).val() || 0);
             });
 
+            $('#datatable tbody .qty_kgm_out').each(function () {
+                total_qty_kgm_out += parseFloat($(this).val() || 0);
+            });
+
             $('#total_qty_out').text(total_qty_out.toFixed(2));
+            $('#total_qty_kgm_out').text(total_qty_kgm_out.toFixed(2));
         }
     </script>
 @endsection

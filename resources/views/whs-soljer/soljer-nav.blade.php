@@ -34,6 +34,12 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('pengeluaran-gudang-inputan-accesories') }}"
+                    class="dropdown-item {{ $routeName == 'pengeluaran-gudang-inputan-accesories' ? 'active' : '' }}">
+                    Pengeluaran Gudang Inputan (ACCESORIES)
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('pengeluaran-gudang-inputan-fg') }}"
                     class="dropdown-item {{ $routeName == 'pengeluaran-gudang-inputan-fg' ? 'active' : '' }}">
                     Pengeluaran Gudang Inputan (FG)

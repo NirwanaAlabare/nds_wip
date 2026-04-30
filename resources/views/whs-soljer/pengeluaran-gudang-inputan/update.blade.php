@@ -89,7 +89,7 @@
                                         <td class="text-end">{{ number_format($row->qty_act, 2) }}</td>
                                         <td>{{ $row->satuan }}</td>
                                         <td>
-                                            <input type="number" step="any" class="form-control form-control-sm text-end qty_out" value="{{ number_format($row->qty_out, 2) }}">
+                                            <input type="number" step="any" class="form-control form-control-sm text-end qty_out" value="{{ number_format($row->qty_out, 2, '.', '') }}">
                                         </td>
                                     </tr>
                                 @endforeach

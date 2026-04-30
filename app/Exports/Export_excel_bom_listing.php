@@ -19,7 +19,7 @@ class Export_excel_bom_listing implements FromView, WithEvents, ShouldAutoSize
          $this->id = $id;
     }
 
-   public function view(): View
+    public function view(): View
     {
         $mysql_sb = DB::connection('mysql_sb');
 
@@ -33,25 +33,34 @@ class Export_excel_bom_listing implements FromView, WithEvents, ShouldAutoSize
             ->leftJoin('signalbit_erp.mastersubgroup as s_grp', 'd2.id_sub_group', '=', 's_grp.id')
             ->leftJoin('signalbit_erp.mastergroup as a', 's_grp.id_group', '=', 'a.id')
             ->leftJoin('signalbit_erp.mastercf as mfg', 'd.id_contents', '=', 'mfg.id')
-            ->leftJoin('signalbit_erp.masterpilihan as u', 'd.id_unit', '=', 'u.id')
             ->leftJoin('signalbit_erp.masterpilihan as cur', 'd.id_currency', '=', 'cur.id')
             ->leftJoin('signalbit_erp.mastersupplier as supp', 'bm.id_buyer', '=', 'supp.id_Supplier')
+            ->leftJoin('signalbit_erp.masterpilihan as u', 'd.unit', '=', 'u.id')
+            ->leftJoin('master_set as st', 'd.id_set', '=', 'st.id')
+            ->leftJoin('masterpanel as mp', 'd.shell', '=', 'mp.id')
             ->select(
                 'supp.Supplier as buyer',
                 'bm.style',
                 'bm.market',
+                'd.category',
+                DB::raw("
+                    CASE
+                        WHEN d.category = 'Manufacturing' THEN mfg.cfcode
+                        ELSE e.id
+                    END as id_content
+                "),
                 DB::raw("
                     CASE
                         WHEN d.category = 'Manufacturing'
                         THEN CONCAT(i.itemdesc, ' ', i.color, ' ', i.size, ' ', i.add_info)
-                        ELSE i.itemdesc
+                        ELSE CONCAT(i.id_item, ' ', i.itemdesc)
                     END as item_name
                 "),
                 DB::raw("
                     CASE
                         WHEN d.category = 'Manufacturing'
-                        THEN CONCAT(mfg.cfcode, ' ', mfg.cfdesc)
-                        ELSE CONCAT(e.id, ' ', a.nama_group, ' ', s_grp.nama_sub_group, ' ', d2.nama_type, ' ', e.nama_contents)
+                        THEN CONCAT(mfg.cfdesc, IF(st.nama IS NOT NULL, CONCAT(' [', st.nama, ']'), ''))
+                        ELSE CONCAT(a.nama_group, ' ', s_grp.nama_sub_group, ' ', d2.nama_type, ' ', e.nama_contents, IF(st.nama IS NOT NULL, CONCAT(' [', st.nama, ']'), ''))
                     END as content_name
                 "),
                 'd.qty',
@@ -59,12 +68,18 @@ class Export_excel_bom_listing implements FromView, WithEvents, ShouldAutoSize
                 's.size as size_name',
                 'u.nama_pilihan as unit_name',
                 'cur.nama_pilihan as currency',
-                'd.shell',
-                'd.category',
+                'mp.nama_panel',
                 'd.price'
             )
             ->where('bm.id', $this->id)
-            ->orderBy('d.id', 'desc');
+            ->orderByRaw("
+                CASE
+                    WHEN d.category = 'Manufacturing' THEN 999
+                    WHEN a.root_group IS NULL THEN 998
+                    ELSE a.root_group
+                END ASC
+            ")
+            ->orderBy('d.id', 'asc');
 
         $data = $query->get();
         $this->rowCount = count($data);
@@ -80,14 +95,14 @@ class Export_excel_bom_listing implements FromView, WithEvents, ShouldAutoSize
             AfterSheet::class => function(AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
 
-                $sheet->mergeCells('A1:N1');
+                $sheet->mergeCells('A1:J1');
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
                 $sheet->getStyle('A1')->getAlignment()->setHorizontal('center')->setVertical('center');
 
-                $event->sheet->getStyle('A2:N2')->getFont()->setBold(true);
+                $event->sheet->getStyle('A2:J2')->getFont()->setBold(true);
 
                 $lastRow = $this->rowCount + 2;
-                $event->sheet->getStyle('A1:N' . $lastRow)->applyFromArray([
+                $event->sheet->getStyle('A1:J' . $lastRow)->applyFromArray([
                     'borders' => [
                         'allBorders' => [
                             'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
