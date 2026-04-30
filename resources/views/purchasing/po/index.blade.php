@@ -221,9 +221,9 @@
         <div class="modal-content">
             <form id="form-edit-date">
                 @csrf
-                <div class="modal-header bg-warning py-2">
-                    <h6 class="modal-title fw-bold text-dark"><i class="fas fa-calendar-alt"></i> Update ETD & ETA</h6>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                <div class="modal-header bg-sb text-white py-2">
+                    <h6 class="modal-title fw-bold"><i class="fas fa-search"></i> Update ETD & ETA</h6>
+                    <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
