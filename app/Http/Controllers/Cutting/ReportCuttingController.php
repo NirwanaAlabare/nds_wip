@@ -1903,10 +1903,11 @@ FROM (
 	GROUP BY
 		form_cut_piece_detail.id
 ) cutting
-where
-	cutting.id_roll is not null and cutting.id_roll != '-'
+-- where
+-- 	cutting.id_roll is not null and cutting.id_roll != '-'
 group by
 	id_roll,
+    id_item,
 	act_costing_ws
 order by
 	created_at
@@ -2266,10 +2267,11 @@ FROM (
 	GROUP BY
 		form_cut_piece_detail.id
 ) cutting
-where
-	cutting.id_roll is not null and cutting.id_roll != '-'
+-- where
+-- 	cutting.id_roll is not null and cutting.id_roll != '-'
 group by
 	id_roll,
+    id_item,
 	act_costing_ws
 order by
 	created_at
