@@ -253,36 +253,108 @@
                     },
                     {
                         data: 'saldo_awal',
-                        className: 'text-end'
+                        className: 'text-end',
+                        render: function(data, type, row) {
+                            let value = parseFloat(data);
+
+                            if (value === 0) {
+                                return '0'; 
+                            }
+
+                            return value.toFixed(2);
+                        }
                     },
                     {
                         data: 'penerimaan',
-                        className: 'text-end'
+                        className: 'text-end',
+                        render: function(data, type, row) {
+                            let value = parseFloat(data);
+
+                            if (value === 0) {
+                                return '0'; 
+                            }
+
+                            return value.toFixed(2);
+                        }
                     },
                     {
                         data: 'pemakaian',
-                        className: 'text-end'
+                        className: 'text-end',
+                        render: function(data, type, row) {
+                            let value = parseFloat(data);
+
+                            if (value === 0) {
+                                return '0'; 
+                            }
+
+                            return value.toFixed(2);
+                        }
                     },
                     {
                         data: 'short_roll',
-                        className: 'text-end'
+                        className: 'text-end',
+                        render: function(data, type, row) {
+                            let value = parseFloat(data);
+
+                            if (value === 0) {
+                                return '0'; 
+                            }
+
+                            return value.toFixed(2);
+                        }
                     },
                     {
                         data: 'gr_set',
-                        className: 'text-end'
+                        className: 'text-end',
+                        render: function(data, type, row) {
+                            let value = parseFloat(data);
+
+                            if (value === 0) {
+                                return '0'; 
+                            }
+
+                            return value.toFixed(2);
+                        }
                     },
                     {
                         data: 'gr_panel',
-                        className: 'text-end'
+                        className: 'text-end',
+                        render: function(data, type, row) {
+                            let value = parseFloat(data);
+
+                            if (value === 0) {
+                                return '0'; 
+                            }
+
+                            return value.toFixed(2);
+                        }
                     },
                     {
                         data: 'retur',
-                        className: 'text-end'
+                        className: 'text-end',
+                        render: function(data, type, row) {
+                            let value = parseFloat(data);
+
+                            if (value === 0) {
+                                return '0'; 
+                            }
+
+                            return value.toFixed(2);
+                        }
                     },
                     {
                         data: 'saldo_akhir',
-                        className: 'text-end'
-                    }
+                        className: 'text-end',
+                        render: function(data, type, row) {
+                            let value = parseFloat(data);
+
+                            if (value === 0) {
+                                return '0'; 
+                            }
+
+                            return value.toFixed(2);
+                        }
+                    },
                 ],
 
                 initComplete: function() {
