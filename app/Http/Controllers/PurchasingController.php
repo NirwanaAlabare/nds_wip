@@ -33,7 +33,7 @@ class PurchasingController extends Controller
             $query = DB::connection('mysql_sb')->table('po_header as h')
                 ->leftJoin('mastersupplier as s', 'h.id_supplier', '=', 's.Id_Supplier')
                 ->leftJoin('masterpterms as t', 'h.id_terms', '=', 't.id')
-                ->select('h.*', 's.Supplier as nama_supplier', 't.nama_pterms as nama_terms');
+                ->select('h.*', 's.Supplier as nama_supplier', 't.kode_pterms as nama_terms');
 
             if ($tahun) {
                 $query->whereYear('h.podate', $tahun);
@@ -64,7 +64,7 @@ class PurchasingController extends Controller
                         $base_url = 'http://' . $host . ':8080';
                     }
 
-                    $url_pdf = $base_url . '/erp/pages/pur/pdfPO_Draft.php?id=' . $row->id;
+                    $url_pdf = $base_url . '/erp/pages/pur/pdfPO.php?id=' . $row->id;
 
                     $urlEdit = route('edit-purchase-order', $row->id);
 
@@ -94,7 +94,8 @@ class PurchasingController extends Controller
             'subPage' => 'purchase-order',
             'suppliers' => $suppliers,
             'containerFluid' => true
-        ]);}
+        ]);
+    }
 
     public function countData(Request $request)
     {
@@ -961,6 +962,87 @@ class PurchasingController extends Controller
             return response()->json([
                 'status'  => 500,
                 'message' => 'Gagal Update Tanggal: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    public function approval(Request $request)
+    {
+        if ($request->ajax()) {
+            $tahun = $request->tahun;
+            $supplier = $request->supplier;
+
+            $query = DB::connection('mysql_sb')->table('po_header as h')
+                ->leftJoin('mastersupplier as s', 'h.id_supplier', '=', 's.Id_Supplier')
+                ->leftJoin('masterpterms as t', 'h.id_terms', '=', 't.id')
+                ->select('h.*', 's.Supplier as nama_supplier', 't.kode_pterms as nama_terms');
+
+            if ($tahun) {
+                $query->whereYear('h.podate', $tahun);
+            }
+
+            if ($supplier) {
+                $query->where('h.id_supplier', $supplier);
+            }
+
+            $query->where('h.app', 'W');
+
+            $query->orderBy('h.podate', 'desc')->orderBy('h.id', 'desc');
+
+            return datatables()->of($query)
+                ->addColumn('action', function ($row) {
+
+                    $host = request()->getHost();
+
+                    if ($host == 'localhost' || $host == '127.0.0.1') {
+                        $base_url = 'http://localhost:8080';
+                    } else {
+                        $base_url = 'http://' . $host . ':8080';
+                    }
+
+                    $url_pdf = $base_url . '/erp/pages/pur/pdfPO.php?id=' . $row->id;
+
+                    return '<div class="d-flex justify-content-center">
+                                <button type="button" class="btn btn-sm btn-success mr-1 btn-approve" data-id="'.$row->id.'" title="Approve"><i class="fas fa-check"></i></button>
+                                <button type="button" class="btn btn-sm btn-primary mr-1 btn-view" data-id="'.$row->id.'" title="View"><i class="fas fa-eye"></i></button>
+                                <a href="' . $url_pdf . '" class="btn btn-sm btn-secondary mr-1" title="Print" target="_blank"><i class="fas fa-print"></i></a>
+                            </div>';
+
+                })
+
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+
+        $suppliers = DB::connection('mysql_sb')->table('mastersupplier')->get();
+
+        return view('purchasing.pr.approval', [
+            'page' => 'dashboard-purchasing',
+            'subPageGroup' => 'purchasing',
+            'subPage' => 'purchase-order',
+            'suppliers' => $suppliers,
+            'containerFluid' => true
+        ]);
+    }
+
+    public function approve(Request $request, $id)
+    {
+        try {
+            DB::connection('mysql_sb')->table('po_header')->where('id', $id)->update([
+                'app' => 'A',
+                'app_date' => now(),
+                'app_by' => auth()->user()->name ?? '',
+            ]);
+
+            return response()->json([
+                'status'  => 200,
+                'message' => 'PO Berhasil Diapprove!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => 500,
+                'message' => 'Gagal Approve PO: ' . $e->getMessage()
             ], 500);
         }
     }

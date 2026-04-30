@@ -1352,6 +1352,24 @@ Route::middleware('auth')->group(function () {
         Route::get('/print-barcode/{id}', 'printBarcode')->name('print-barcode-pengeluaran-gudang-inputan');
         Route::get('/get-data-barcode', 'getDataBarcode')->name('get-data-barcode-pengeluaran-gudang-inputan');
     });
+
+    Route::controller(PurchasingController::class)->prefix("purchasing")->middleware('role:purchasing')->group(function () {
+        Route::get('/', 'index')->name('purchasing');
+        Route::get('/list-data', 'index')->name('index-purchase-order');
+        Route::get('/count-data', 'countData')->name('count-purchase-order');
+        Route::get('/create', 'create')->name('create-purchase-order');
+        Route::post('/store', 'store')->name('store-purchase-order');
+        Route::get('/get-items-by-bom', 'getItemsByBom')->name('get-items-by-bom');
+        Route::get('/edit/{id}', 'edit')->name('edit-purchase-order');
+        Route::post('/update/{id}', 'update')->name('update-purchase-order');
+        Route::get('/show/{id}', 'show')->name('show-purchase-order');
+        Route::post('/update-date/{id}', 'updateDate')->name('update-date-purchase-order');
+        Route::get('/approval', 'approval')->name('approval-purchase-order');
+    });
+
+    Route::controller(PurchasingDashboardController::class)->middleware('purchasing')->group(function () {
+        Route::get('/dashboard_purchasing', 'dashboard_purchasing')->name('dashboard-purchasing');
+    });
 });
 
 // Accounting
@@ -1373,23 +1391,7 @@ Route::controller(AccountingController::class)->prefix("accounting")->middleware
     // Route::get('/export-excel-report-signalbit-bc', 'ExportReportSignalbitBC')->name('export-excel-report-signalbit-bc');
 });
 
-// Purchasing
-Route::controller(PurchasingController::class)->prefix("purchasing")->middleware('role:purchasing')->group(function () {
-    Route::get('/', 'index')->name('purchasing');
-    Route::get('/list-data', 'index')->name('index-purchase-order');
-    Route::get('/count-data', 'countData')->name('count-purchase-order');
-    Route::get('/create', 'create')->name('create-purchase-order');
-    Route::post('/store', 'store')->name('store-purchase-order');
-    Route::get('/get-items-by-bom', 'getItemsByBom')->name('get-items-by-bom');
-    Route::get('/edit/{id}', 'edit')->name('edit-purchase-order');
-    Route::post('/update/{id}', 'update')->name('update-purchase-order');
-    Route::get('/show/{id}', 'show')->name('show-purchase-order');
-    Route::post('/update-date/{id}', 'updateDate')->name('update-date-purchase-order');
-});
 
- Route::controller(PurchasingDashboardController::class)->middleware('purchasing')->group(function () {
-    Route::get('/dashboard_purchasing', 'dashboard_purchasing')->name('dashboard-purchasing');
-});
 
 // Route::get('/dashboard-chart', function () {
 //    return view('cutting.chart.dashboard-chart');

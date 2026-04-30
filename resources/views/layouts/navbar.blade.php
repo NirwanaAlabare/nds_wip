@@ -1189,6 +1189,12 @@
                                     Purchase Order <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('approval-purchase-order') }}"
+                                    class="dropdown-item {{ $subPage == 'approval-purchase-order' ? 'active' : '' }}">
+                                    Approval PO <i class="fa-solid fa-list-ul fa-sm"></i>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif
