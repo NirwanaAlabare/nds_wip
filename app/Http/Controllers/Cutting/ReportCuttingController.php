@@ -2398,6 +2398,21 @@ short_roll as short_roll,
 m.satuan,
 m.ws
 FROM m
+-- TAMBAH DATA UNTUK YANG NON SISTEM
+UNION ALL
+SELECT
+barcode,
+id_item,
+saldo_awal,
+0 as penerimaan,
+0 as pemakaian,
+0 as retur,
+0 as gr_set,
+0 as gr_panel,
+0 as short_roll,
+satuan,
+ws
+FROM sa_report_cut_non_sistem
 ) mut
 left join signalbit_erp.masteritem mi on mut.id_item = mi.id_item
 $group)
@@ -3093,7 +3108,8 @@ FROM
 				a.qty_reject,
 				a.qty_replace,
 				CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
-				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_main,
+				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_main_1,
+				a.qty_awal qty_in_main,
 				null qty_in,
 				a.tujuan,
 				a.lokasi,
@@ -3140,7 +3156,8 @@ FROM
 				a.qty_replace,
 				CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
 				null qty_in_main,
-				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in,
+				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_1,
+				a.qty_awal qty_in,
 				a.tujuan,
 				a.lokasi,
 				a.tempat,
@@ -3210,7 +3227,8 @@ FROM
 				a.qty_reject,
 				a.qty_replace,
 				CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
-				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_main,
+				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_main_1,
+				a.qty_awal qty_in_main,
 				null qty_in,
 				a.tujuan,
 				a.lokasi,
@@ -3257,7 +3275,8 @@ FROM
 				a.qty_replace,
 				CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
 				null qty_in_main,
-				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in,
+				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_1,
+				a.qty_awal qty_in,
 				a.tujuan,
 				a.lokasi,
 				a.tempat,
@@ -3306,7 +3325,8 @@ dest,
 panel,
 sum(qty_cut_awal) - sum(qty_dc_awal) as saldo_awal,
 sum(qty_cut) as qty_cut,
-sum(qty_dc) - sum(qty_replace) as qty_dc,
+sum(qty_dc) - sum(qty_replace) as qty_dc_1,
+sum(qty_dc) as qty_dc,
 sum(qty_replace) as qty_replace,
 (sum(qty_cut_awal) - sum(qty_dc_awal)) + sum(qty_cut) - sum(qty_dc) as saldo_akhir,
 k.cancel,
@@ -3338,7 +3358,7 @@ group by ws, color, size, a.panel
 HAVING
     (SUM(qty_cut_awal) - SUM(qty_dc_awal)) <> 0
     OR SUM(qty_cut) <> 0
-    OR (SUM(qty_dc) - SUM(qty_replace)) <> 0
+    OR SUM(qty_dc) <> 0
     OR SUM(qty_replace) <> 0
     OR (
         (SUM(qty_cut_awal) - SUM(qty_dc_awal))
@@ -3392,13 +3412,14 @@ SELECT
 	GROUP_CONCAT(id_qr_stocker) as stockers,
 	no_form,
 	no_cut,
-	(DATE_FORMAT(MAX(created_at), '%Y-%m-%d')) as created_at,
+	(DATE_FORMAT(MAX(tgl_trans), '%Y-%m-%d')) as created_at,
 	m.buyer,
 	act_costing_ws,
 	m.color,
 	panel,
 	so_det_id as id_so_det,
 	m.size,
+    stocker_reject,
 	panel_status,
 	GROUP_CONCAT(nama_part) as nama_part,
 	GROUP_CONCAT(part_status) as part_status,
@@ -3411,6 +3432,8 @@ FROM
 				DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
 				a.tgl_trans,
 				s.act_costing_ws,
+                s.group_stocker,
+                s.stocker_reject,
 				s.color,
 				p.buyer,
 				p.style,
@@ -3423,7 +3446,8 @@ FROM
 				a.qty_reject,
 				a.qty_replace,
 				CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
-				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_main,
+				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_main_1,
+				a.qty_awal qty_in_main,
 				null qty_in,
 				a.tujuan,
 				a.lokasi,
@@ -3457,6 +3481,8 @@ FROM
 				DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
 				a.tgl_trans,
 				s.act_costing_ws,
+                s.group_stocker,
+                s.stocker_reject,
 				s.color,
 				CASE WHEN pd.part_status = 'complement' THEN pcom.buyer ELSE p.buyer END as buyer,
 				CASE WHEN pd.part_status = 'complement' THEN pcom.style ELSE p.style END as style,
@@ -3470,7 +3496,8 @@ FROM
 				a.qty_replace,
 				CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
 				null qty_in_main,
-				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in,
+				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_1,
+				a.qty_awal qty_in,
 				a.tujuan,
 				a.lokasi,
 				a.tempat,
@@ -3502,18 +3529,21 @@ FROM
 	) dc
 	left join master_sb_ws m on dc.so_det_id = m.id_so_det
 group by
-	dc.part_id,
+	dc.panel,
 	dc.so_det_id,
-	dc.stocker_range,
+	dc.group_stocker,
+	dc.ratio,
+	-- dc.stocker_range,
 	dc.no_form,
-    dc.no_cut
+    dc.no_cut,
+    dc.stocker_reject
 ),
 dc_in as (
 SELECT
 	GROUP_CONCAT(id_qr_stocker) as stockers,
 	no_form,
 	no_cut,
-	(DATE_FORMAT(MAX(created_at), '%Y-%m-%d')) as created_at,
+	(DATE_FORMAT(MAX(tgl_trans), '%Y-%m-%d')) as created_at,
 	m.buyer,
 	act_costing_ws,
 	m.color,
@@ -3521,6 +3551,7 @@ SELECT
 	so_det_id as id_so_det,
 	m.size,
 	panel_status,
+    stocker_reject,
 	GROUP_CONCAT(nama_part) as nama_part,
 	GROUP_CONCAT(part_status) as part_status,
 	sum(qty_replace) as qty_replace,
@@ -3532,6 +3563,8 @@ FROM
 				DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
 				a.tgl_trans,
 				s.act_costing_ws,
+                s.group_stocker,
+                s.stocker_reject,
 				s.color,
 				p.buyer,
 				p.style,
@@ -3544,7 +3577,8 @@ FROM
 				a.qty_reject,
 				a.qty_replace,
 				CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
-				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_main,
+				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_main_1,
+				a.qty_awal qty_in_main,
 				null qty_in,
 				a.tujuan,
 				a.lokasi,
@@ -3578,6 +3612,8 @@ FROM
 				DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
 				a.tgl_trans,
 				s.act_costing_ws,
+                s.group_stocker,
+                s.stocker_reject,
 				s.color,
 				CASE WHEN pd.part_status = 'complement' THEN pcom.buyer ELSE p.buyer END as buyer,
 				CASE WHEN pd.part_status = 'complement' THEN pcom.style ELSE p.style END as style,
@@ -3591,7 +3627,8 @@ FROM
 				a.qty_replace,
 				CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
 				null qty_in_main,
-				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in,
+				(a.qty_awal - a.qty_reject + a.qty_replace) qty_in_1,
+				a.qty_awal qty_in,
 				a.tujuan,
 				a.lokasi,
 				a.tempat,
@@ -3623,11 +3660,14 @@ FROM
 	) dc
 	left join master_sb_ws m on dc.so_det_id = m.id_so_det
 group by
-	dc.part_id,
+	dc.panel,
 	dc.so_det_id,
-	dc.stocker_range,
+	dc.group_stocker,
+	dc.ratio,
+	-- dc.stocker_range,
 	dc.no_form,
-    dc.no_cut
+    dc.no_cut,
+    dc.stocker_reject
 )
 
 SELECT
@@ -3642,7 +3682,8 @@ color,
 k.size,
 dest,
 panel,
-sum(qty_dc) - sum(qty_replace) as qty_dc,
+sum(qty_dc) - sum(qty_replace) as qty_dc_1,
+sum(qty_dc) as qty_dc,
 sum(qty_replace) as qty_replace,
 k.cancel,
 k.cancel_h,
@@ -3663,7 +3704,7 @@ INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
 LEFT JOIN signalbit_erp.master_size_new msn on k.size = msn.size
 group by ws, color, size, a.panel, a.no_form, a.no_cut, a.created_at
 HAVING
-    (SUM(qty_dc) - SUM(qty_replace)) <> 0
+    SUM(qty_dc) <> 0
     OR SUM(qty_replace) <> 0
 ORDER BY ws asc, color asc, urutan asc
         ");
