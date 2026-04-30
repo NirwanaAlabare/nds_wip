@@ -903,6 +903,21 @@ short_roll as short_roll,
 m.satuan,
 m.ws
 FROM m
+-- TAMBAH DATA UNTUK YANG NON SISTEM
+UNION ALL
+SELECT
+barcode,
+id_item,
+saldo_awal,
+0 as penerimaan,
+0 as pemakaian,
+0 as retur,
+0 as gr_set,
+0 as gr_panel,
+0 as short_roll,
+satuan,
+ws
+FROM sa_report_cut_non_sistem
 ) mut
 left join signalbit_erp.masteritem mi on mut.id_item = mi.id_item
 $group)
