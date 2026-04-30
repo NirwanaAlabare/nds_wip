@@ -29,7 +29,17 @@ class PenerimaanGudangInputanFgController extends Controller
                 CASE 
                     WHEN penerimaan_gudang_inputan_fg.cancel = 1 THEN 'Cancel'
                     ELSE 'Draft'
-                END as status
+                END as status,
+                EXISTS (
+                    SELECT 1
+                    FROM penerimaan_gudang_inputan_fg_detail d
+                    JOIN pengeluaran_gudang_inputan_fg_detail pd 
+                        ON pd.barcode = d.barcode
+                    JOIN pengeluaran_gudang_inputan_fg p 
+                        ON p.id = pd.pengeluaran_gudang_inputan_fg_id
+                    WHERE d.penerimaan_gudang_inputan_fg_id = penerimaan_gudang_inputan_fg.id
+                    AND p.cancel = 0
+                ) as is_used
             ")
             ->leftJoin("penerimaan_gudang_inputan_fg_detail", "penerimaan_gudang_inputan_fg_detail.penerimaan_gudang_inputan_fg_id", "=", "penerimaan_gudang_inputan_fg.id")
             ->groupBy(
@@ -175,7 +185,7 @@ class PenerimaanGudangInputanFgController extends Controller
                 FROM penerimaan_gudang_inputan_fg_detail
                 WHERE 
                     DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURRENT_DATE(), '%Y-%m')
-                    AND LEFT(barcode, 2) = 'WFG'
+                    AND LEFT(barcode, 3) = 'WFG'
             ");
 
             $counter = $getLast->nomor;

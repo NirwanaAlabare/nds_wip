@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Penerimaan Gudang Inputan (FG)</title>
+    <title>Pengeluaran Gudang Inputan (FG)</title>
     <style>
         @page { margin: 1px; }
 
@@ -43,7 +43,7 @@
 <body>
     @foreach($data as $row)
     <div style=" padding: 5px; @if(!$loop->last) page-break-after: always; @endif">
-        <div> PENERIMAAN GUDANG INPUTAN (FG)</div><br>
+        <div> PENGELUARAN GUDANG INPUTAN (FG)</div><br>
         <table style="width: 100%;margin-bottom: 5px;">
             <tr>
                 <th style="border: none;vertical-align: middle; width: 70px;">No BPB</th>
@@ -77,20 +77,22 @@
                 <th style="padding-left: 1px;font-size: 7px;">Satuan</th>
                 <th style="padding-left: 1px;font-size: 7px;">Keterangan</th>
                 <th style="padding-left: 1px;font-size: 7px;">Lokasi</th>
+                <th style="padding-left: 1px;font-size: 7px;">Qty Out</th>
             </tr>
             <tr>
-                <td style="padding-left: 1px;font-size: 7px;">{{ $row->no_koli }}</td>
-                <td style="padding-left: 1px;font-size: 7px;">{{ $row->buyer }}</td>
-                <td style="padding-left: 1px;font-size: 7px;">{{ $row->no_ws }}</td>
-                <td style="padding-left: 1px;font-size: 7px;">{{ $row->style }}</td>
-                <td style="padding-left: 1px;font-size: 7px;">{{ $row->product_item }}</td>
-                <td style="padding-left: 1px;font-size: 7px;">{{ $row->warna }}</td>
-                <td style="padding-left: 1px;font-size: 7px;">{{ $row->size }}</td>
-                <td style="padding-left: 1px;font-size: 7px;">{{ $row->grade }}</td>
-                <td style="padding-left: 1px; padding-right: 1px; font-size: 7px; text-align: right;">{{ number_format($row->qty, 2) }}</td>
-                <td style="padding-left: 1px;font-size: 7px;">{{ $row->satuan }}</td>
-                <td style="padding-left: 1px;font-size: 7px;">{{ $row->keterangan }}</td>
-                <td style="padding-left: 1px;font-size: 7px;">{{ $row->lokasi }}</td>
+                <td style="padding-left: 1px; padding-right: 1px; font-size: 7px;">{{ $row->no_koli }}</td>
+                <td style="padding-left: 1px; padding-right: 1px; font-size: 7px;">{{ $row->buyer }}</td>
+                <td style="padding-left: 1px; padding-right: 1px; font-size: 7px;">{{ $row->no_ws }}</td>
+                <td style="padding-left: 1px; padding-right: 1px; font-size: 7px;">{{ $row->style }}</td>
+                <td style="padding-left: 1px; padding-right: 1px; font-size: 7px;">{{ $row->product_item }}</td>
+                <td style="padding-left: 1px; padding-right: 1px; font-size: 7px;">{{ $row->warna }}</td>
+                <td style="padding-left: 1px; padding-right: 1px; font-size: 7px;">{{ $row->size }}</td>
+                <td style="padding-left: 1px; padding-right: 1px; font-size: 7px;">{{ $row->grade }}</td>
+                <td style="padding-left: 1px; padding-right: 1px; font-size: 7px; text-align: right;">{{ number_format($row->qty_act, 2) }}</td>
+                <td style="padding-left: 1px; padding-right: 1px; font-size: 7px;">{{ $row->satuan }}</td>
+                <td style="padding-left: 1px; padding-right: 1px; font-size: 7px;">{{ $row->keterangan }}</td>
+                <td style="padding-left: 1px; padding-right: 1px; font-size: 7px;">{{ $row->lokasi }}</td>
+                <td style="padding-left: 1px; padding-right: 1px; font-size: 7px; text-align: right;">{{ number_format($row->qty_out, 2) }}</td>
             </tr>
         </table>
         

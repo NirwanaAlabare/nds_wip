@@ -33,6 +33,12 @@
                     Pengeluaran Gudang Inputan (FABRIC)
                 </a>
             </li>
+            <li>
+                <a href="{{ route('pengeluaran-gudang-inputan-fg') }}"
+                    class="dropdown-item {{ $routeName == 'pengeluaran-gudang-inputan-fg' ? 'active' : '' }}">
+                    Pengeluaran Gudang Inputan (FG)
+                </a>
+            </li>
         </ul>
     </li>
 @endrole

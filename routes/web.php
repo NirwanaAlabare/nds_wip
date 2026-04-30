@@ -94,7 +94,9 @@ use App\Http\Controllers\WarehouseController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanAccesoriesController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanFgController;
+use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanAccesoriesController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanController;
+use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanFgController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -1328,6 +1330,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/print-sj/{id}', 'printSj')->name('print-sj-pengeluaran-gudang-inputan');
         Route::get('/print-barcode/{id}', 'printBarcode')->name('print-barcode-pengeluaran-gudang-inputan');
         Route::get('/get-data-barcode', 'getDataBarcode')->name('get-data-barcode-pengeluaran-gudang-inputan');
+    });
+
+    Route::controller(PengeluaranGudangInputanFgController::class)->prefix("pengeluaran-gudang-inputan-fg")->middleware('role:warehouse')->group(function () {
+        Route::get('/', 'index')->name('pengeluaran-gudang-inputan-fg');
+        Route::get('/create', 'create')->name('create-pengeluaran-gudang-inputan-fg');
+        Route::post('/store', 'store')->name('store-pengeluaran-gudang-inputan-fg');
+        Route::get('/edit/{id}', 'edit')->name('edit-pengeluaran-gudang-inputan-fg');
+        Route::put('/update/{id}', 'update')->name('update-pengeluaran-gudang-inputan-fg');
+        Route::put('/cancel/{id}', 'cancel')->name('cancel-pengeluaran-gudang-inputan-fg');
+        Route::get('/print-sj/{id}', 'printSj')->name('print-sj-pengeluaran-gudang-inputan-fg');
+        Route::get('/print-barcode/{id}', 'printBarcode')->name('print-barcode-pengeluaran-gudang-inputan-fg');
+        Route::get('/get-data-barcode', 'getDataBarcode')->name('get-data-barcode-pengeluaran-gudang-inputan-fg');
     });
 });
 
