@@ -358,7 +358,8 @@ class YearSequenceController extends Controller
                             year_sequence_num.year_sequence,
                             year_sequence_num.total qty,
                             CONCAT( MIN( year_sequence_num.range_awal ), ' - ', MAX( year_sequence_num.range_akhir )) numbering_range,
-                            (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
+                            (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
+                            loading_line.no_bon
                         from
                             stocker_input
                             left join stocker_input stocker_bundle on stocker_bundle.form_cut_id <=> stocker_input.form_cut_id
@@ -369,6 +370,7 @@ class YearSequenceController extends Controller
                                 AND stocker_bundle.ratio          <=> stocker_input.ratio
                                 AND stocker_bundle.stocker_reject <=> stocker_input.stocker_reject
                             inner join stocker_label year_sequence_num on year_sequence_num.id_qr_stocker = stocker_input.id_qr_stocker
+                            LEFT JOIN loading_line on loading_line.stocker_id = stocker_input.id
                             left join part_detail on stocker_input.part_detail_id = part_detail.id
                             left join part on part.id = part_detail.part_id
                             left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
@@ -421,6 +423,10 @@ class YearSequenceController extends Controller
         $tanggal_filter = "";
         if ($request->tanggal_filter) {
             $tanggal_filter = "AND year_sequence_num.updated_at LIKE '%".$request->tanggal_filter."%' ";
+        }
+         $no_bon_filter = "";
+        if ($request->no_bon_filter) {
+            $no_bon_filter = "AND loading_line.no_bon LIKE '%".$request->no_bon_filter."%' ";
         }
         $no_form_filter = "";
         if ($request->no_form_filter) {
@@ -812,7 +818,8 @@ class YearSequenceController extends Controller
                         year_sequence_num.year_sequence,
                         year_sequence_num.total qty,
                         CONCAT( MIN( year_sequence_num.range_awal ), ' - ', MAX( year_sequence_num.range_akhir )) numbering_range,
-                        (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
+                        (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
+                        loading_line.no_bon
                     from
                         stocker_input
                         left join stocker_input stocker_bundle on stocker_bundle.form_cut_id <=> stocker_input.form_cut_id
@@ -823,6 +830,7 @@ class YearSequenceController extends Controller
                             AND stocker_bundle.ratio          <=> stocker_input.ratio
                             AND stocker_bundle.stocker_reject <=> stocker_input.stocker_reject
                         inner join stocker_label year_sequence_num on year_sequence_num.id_qr_stocker = stocker_input.id_qr_stocker
+                        LEFT JOIN loading_line on loading_line.stocker_id = stocker_input.id
                         left join part_detail on stocker_input.part_detail_id = part_detail.id
                         left join part on part.id = part_detail.part_id
                         left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
@@ -835,6 +843,7 @@ class YearSequenceController extends Controller
                     WHERE
                         stocker_input.id is not null
                         ".$tanggal_filter."
+                        ".$no_bon_filter."
                         ".$no_form_filter."
                         ".$no_cut_filter."
                         ".$color_filter."

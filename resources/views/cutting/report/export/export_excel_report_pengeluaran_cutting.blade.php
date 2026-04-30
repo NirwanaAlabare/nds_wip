@@ -20,6 +20,9 @@
                 <th class="text-center align-middle">Color</th>
                 <th class="text-center align-middle">Size</th>
                 <th class="text-center align-middle">Panel</th>
+                <th class="text-center align-middle">Panel Status</th>
+                <th class="text-center align-middle">Part</th>
+                <th class="text-center align-middle">Part Status</th>
                 <th class="text-center align-middle">Qty</th>
             </tr>
         </thead>
@@ -35,6 +38,9 @@
                     <td>{{ $row->color }}</td>
                     <td>{{ $row->size }}</td>
                     <td>{{ $row->panel }}</td>
+                    <td>{{ $row->panel_status }}</td>
+                    <td>{{ $row->nama_part }}</td>
+                    <td>{{ $row->part_status }}</td>
                     <td class="text-end">{{ $row->qty_dc }}</td>
                 </tr>
             @endforeach
