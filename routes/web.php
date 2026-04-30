@@ -1375,6 +1375,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard_purchasing', 'dashboard_purchasing')->name('dashboard-purchasing');
     });
 
+    Route::controller(PengeluaranGudangInputanAccesoriesController::class)->prefix("pengeluaran-gudang-inputan-accesories")->middleware('role:warehouse')->group(function () {
+        Route::get('/', 'index')->name('pengeluaran-gudang-inputan-accesories');
+        Route::get('/create', 'create')->name('create-pengeluaran-gudang-inputan-accesories');
+        Route::post('/store', 'store')->name('store-pengeluaran-gudang-inputan-accesories');
+        Route::get('/edit/{id}', 'edit')->name('edit-pengeluaran-gudang-inputan-accesories');
+        Route::put('/update/{id}', 'update')->name('update-pengeluaran-gudang-inputan-accesories');
+        Route::put('/cancel/{id}', 'cancel')->name('cancel-pengeluaran-gudang-inputan-accesories');
+        Route::get('/print-sj/{id}', 'printSj')->name('print-sj-pengeluaran-gudang-inputan-accesories');
+        Route::get('/print-barcode/{id}', 'printBarcode')->name('print-barcode-pengeluaran-gudang-inputan-accesories');
+        Route::get('/get-data-barcode', 'getDataBarcode')->name('get-data-barcode-pengeluaran-gudang-inputan-accesories');
+    });
+
     Route::controller(PengeluaranGudangInputanFgController::class)->prefix("pengeluaran-gudang-inputan-fg")->middleware('role:warehouse')->group(function () {
         Route::get('/', 'index')->name('pengeluaran-gudang-inputan-fg');
         Route::get('/create', 'create')->name('create-pengeluaran-gudang-inputan-fg');

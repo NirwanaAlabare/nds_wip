@@ -14,7 +14,7 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"> Penerimaan Gudang Inputan (ACCESORIES)</h5>
+            <h5 class="card-title fw-bold mb-0"> Pengeluaran Gudang Inputan (ACCESORIES)</h5>
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
@@ -32,7 +32,7 @@
                     </div>
                 </div>
                 <div class="d-flex align-items-end gap-3 mb-3">
-                    <a href="{{ route('create-penerimaan-gudang-inputan-accesories') }}" class="btn btn-success btn-sm mb-3"><i class="fa fa-plus"></i> New</a>
+                    <a href="{{ route('create-pengeluaran-gudang-inputan-accesories') }}" class="btn btn-success btn-sm mb-3"><i class="fa fa-plus"></i> New</a>
                     {{-- <div class="mb-3">
                         <button class="btn btn-success btn-sm" onclick="exportExcel()"><i class="fa fa-file-excel"></i></button>
                     </div> --}}
@@ -44,8 +44,8 @@
                         <tr>
                             <th>No. BPB</th>
                             <th>Tgl BPB</th>
-                            <th>Qty</th>
-                            <th>Qty KGM</th>
+                            <th>Qty Out</th>
+                            <th>Qty KGM Out</th>
                             <th>Status</th>
                             <th>Created By</th>
                             <th>Action</th>
@@ -118,7 +118,7 @@
             scrollY: "500px",
             pageLength: 50,
             ajax: {
-                url: '{{ route('penerimaan-gudang-inputan-accesories') }}',
+                url: '{{ route('pengeluaran-gudang-inputan-accesories') }}',
                 data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
@@ -166,30 +166,8 @@
                         let btnBarcode = '';
 
                         if (row.cancel != 1) {
-                            btnPrint = `
-                                <a 
-                                    href="{{ url('penerimaan-gudang-inputan-accesories/print-sj') }}/${row.id}" 
-                                    target="_blank"
-                                    class="btn btn-warning btn-sm"
-                                >
-                                    <i class="fa-solid fa-print"></i>
-                                </a>
-                            `;
-
-                            btnBarcode = `
-                                <a 
-                                    href="{{ url('penerimaan-gudang-inputan-accesories/print-barcode') }}/${row.id}" 
-                                    target="_blank"
-                                    class="btn btn-success btn-sm"
-                                >
-                                    <i class="fa-solid fa-barcode"></i>
-                                </a>
-                            `;
-                        }
-
-                        if (row.cancel != 1 && row.is_used != 1) {
                             btnEdit = `
-                                <a href="{{ url('penerimaan-gudang-inputan-accesories/edit') }}/${row.id}">
+                                <a href="{{ url('pengeluaran-gudang-inputan-accesories/edit') }}/${row.id}">
                                     <button type="button" class="btn btn-sm btn-primary">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
@@ -202,8 +180,27 @@
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
                             `;
-                        }
 
+                            btnPrint = `
+                                <a 
+                                    href="{{ url('pengeluaran-gudang-inputan-accesories/print-sj') }}/${row.id}" 
+                                    target="_blank"
+                                    class="btn btn-warning btn-sm"
+                                >
+                                    <i class="fa-solid fa-print"></i>
+                                </a>
+                            `;
+    
+                            btnBarcode = `
+                                <a 
+                                    href="{{ url('pengeluaran-gudang-inputan-accesories/print-barcode') }}/${row.id}" 
+                                    target="_blank"
+                                    class="btn btn-success btn-sm"
+                                >
+                                    <i class="fa-solid fa-barcode"></i>
+                                </a>
+                            `;
+                        }
 
                         return `
                             <div class="d-flex gap-1 justify-content-center">
@@ -228,7 +225,7 @@
 
         $(document).on('click', '.btn-delete', function () {
             let id = $(this).data('id');
-            let url = "{{ url('penerimaan-gudang-inputan-accesories/cancel') }}/" + id;
+            let url = "{{ url('pengeluaran-gudang-inputan-accesories/cancel') }}/" + id;
 
             Swal.fire({
                 title: 'Yakin cancel data ini?',

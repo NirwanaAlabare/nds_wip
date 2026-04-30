@@ -51,6 +51,7 @@
                         <tr>
                             <th>Act</th>
                             <th>Tanggal</th>
+                            <th>No. BON</th>
                             <th>No. Form</th>
                             <th>No. Cut</th>
                             <th>Color</th>
@@ -76,7 +77,7 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <th colspan="7"></th>
+                            <th colspan="8"></th>
                             <th></th>
                             <th colspan="3"></th>
                             <th></th>
@@ -299,7 +300,7 @@
             $("#switch-method").prop("checked", false);
         });
 
-        var stockListFilter = ['action', 'tanggal_filter', 'no_form_filter', 'no_cut_filter', 'color_filter', 'size_filter', 'dest_filter', 'qty_filter', 'year_sequence_filter', 'numbering_range_filter', 'buyer_filter', 'ws_filter', 'style_filter', 'stocker_filter', 'tipe_filter', 'part_filter', 'group_filter', 'shade_filter', 'ratio_filter', 'stocker_range_filter'];
+        var stockListFilter = ['action', 'tanggal_filter', 'no_bon_filter', 'no_form_filter', 'no_cut_filter', 'color_filter', 'size_filter', 'dest_filter', 'qty_filter', 'year_sequence_filter', 'numbering_range_filter', 'buyer_filter', 'ws_filter', 'style_filter', 'stocker_filter', 'tipe_filter', 'part_filter', 'group_filter', 'shade_filter', 'ratio_filter', 'stocker_range_filter'];
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
@@ -354,6 +355,9 @@
                 },
                 {
                     data: 'updated_at'
+                },
+                {
+                    data: 'no_bon'
                 },
                 {
                     data: 'no_form'
@@ -430,14 +434,14 @@
                 },
                 // Form Hyperlink
                 {
-                    targets: [2],
+                    targets: [3],
                     render: (data, type, row, meta) => {
                         return data ? ( row.tipe == 'REJECT' ? `<a class='fw-bold' href='{{ route("show-cutting-reject") }}/`+row.form_cut_id+`' target='_blank'><u>`+data+`</u></a>` : `<a class='fw-bold' href='{{ route("show-stocker") }}/`+row.form_cut_id+`' target='_blank'><u>`+data+`</u></a>` ) : "-";
                     }
                 },
                 // Stocker List
                 {
-                    targets: [14],
+                    targets: [15],
                     render: (data, type, row, meta) => {
                         return `<div style='width: 200px; overflow-x: auto;'>`+data+`</div>`;
                     }
@@ -463,6 +467,7 @@
                         'dateFrom': $('#tgl-awal').val(),
                         'dateTo': $('#tgl-akhir').val(),
                         'tanggal_filter': $('#tanggal_filter').val(),
+                        'no_bon_filter': $('#no_bon_filter').val(),
                         'no_form_filter': $('#no_form_filter').val(),
                         'no_cut_filter': $('#no_cut_filter').val(),
                         'color_filter': $('#color_filter').val(),
@@ -486,8 +491,8 @@
                         if (response && response[0]) {
                             // Update footer by showing the total with the reference of the column index
                             $(api.column(0).footer()).html('Total');
-                            $(api.column(7).footer()).html(response[0]['total_row']);
-                            $(api.column(8).footer()).html(response[0]['total_qty']);
+                            $(api.column(8).footer()).html(response[0]['total_row']);
+                            $(api.column(9).footer()).html(response[0]['total_qty']);
                         }
                     },
                     error: function(request, status, error) {

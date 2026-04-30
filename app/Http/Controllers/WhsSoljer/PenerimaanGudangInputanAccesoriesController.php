@@ -30,7 +30,17 @@ class PenerimaanGudangInputanAccesoriesController extends Controller
                 CASE 
                     WHEN penerimaan_gudang_inputan_accesories.cancel = 1 THEN 'Cancel'
                     ELSE 'Draft'
-                END as status
+                END as status,
+                EXISTS (
+                    SELECT 1
+                    FROM penerimaan_gudang_inputan_accesories_detail d
+                    JOIN pengeluaran_gudang_inputan_accesories_detail pd 
+                        ON pd.barcode = d.barcode
+                    JOIN pengeluaran_gudang_inputan_accesories p 
+                        ON p.id = pd.pengeluaran_gudang_inputan_accesories_id
+                    WHERE d.penerimaan_gudang_inputan_accesories_id = penerimaan_gudang_inputan_accesories.id
+                    AND p.cancel = 0
+                ) as is_used
             ")
             ->leftJoin("penerimaan_gudang_inputan_accesories_detail", "penerimaan_gudang_inputan_accesories_detail.penerimaan_gudang_inputan_accesories_id", "=", "penerimaan_gudang_inputan_accesories.id")
             ->groupBy(

@@ -3,10 +3,7 @@
 namespace App\Http\Controllers\WhsSoljer;
 
 use App\Http\Controllers\Controller;
-use App\Models\WhsSoljer\PenerimaanGudangInputanDetail;
 use App\Models\WhsSoljer\PenerimaanGudangInputanFgDetail;
-use App\Models\WhsSoljer\PengeluaranGudangInputan;
-use App\Models\WhsSoljer\PengeluaranGudangInputanDetail;
 use App\Models\WhsSoljer\PengeluaranGudangInputanFg;
 use App\Models\WhsSoljer\PengeluaranGudangInputanFgDetail;
 use Carbon\Carbon;
