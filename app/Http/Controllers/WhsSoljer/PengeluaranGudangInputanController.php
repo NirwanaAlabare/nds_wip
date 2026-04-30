@@ -333,7 +333,7 @@ class PengeluaranGudangInputanController extends Controller
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
         $pdf = PDF::loadView('whs-soljer.pengeluaran-gudang-inputan.print-sj', ["dataHeader" => $dataHeader, "dataDetail" => $dataDetail])->setPaper('a4', 'potrait');
 
-        $fileName = 'Penerimaan_Gudang_Inputan_Fabric_' . $id . '.pdf';
+        $fileName = 'Pengeluaran_Gudang_Inputan_Fabric_' . $id . '.pdf';
 
         return $pdf->stream(str_replace("/", "_", $fileName));
     }
