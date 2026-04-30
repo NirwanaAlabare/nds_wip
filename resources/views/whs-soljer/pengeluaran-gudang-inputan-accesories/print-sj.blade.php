@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Pengeluaran Gudang Inputan (FG)</title>
+    <title>Pengeluaran Gudang Inputan (ACCESORIES)</title>
     <style>
         @page { margin: 15px; }
 
@@ -67,7 +67,7 @@
     </table>
     <table width="100%" style="border:none;">
         <tr style="line-height: 8px;">
-            <td align="center" style="border:none;"><h3>Bukti Pengeluaran Gudang Inputan (FG)</h3></td>
+            <td align="center" style="border:none;"><h3>Bukti Pengeluaran Gudang Inputan (ACCESORIES)</h3></td>
         </tr>
         <tr style="line-height: 8px;">
             <td align="center" style="border:none; font-size:14pt;">{{ $dataHeader->no_bpb }}</td>
@@ -93,56 +93,69 @@
     <table class="main" repeat_header="1" border="1" cellspacing="0" width="100%" style="border-collapse: collapse; width:100%; font-size: 11px;">
         <thead>
             <tr class="head">
-                <td align="center">Buyer</td>
-                <td align="center">No WS</td>
-                <td align="center">Style</td>
-                <td align="center">Product Item</td>
-                <td align="center">Warna</td>
-                <td align="center">Size</td>
-                <td align="center">Grade</td>
-                <td align="center">Qty</td>
-                <td align="center">Satuan</td>
-                <td align="center">Keterangan</td>
-                <td align="center">Lokasi</td>
-                <td align="center">Qty Out</td>
+                <th align="center">Buyer</th>
+                <th align="center">Worksheet</th>
+                <th align="center">Nama Barang</th>
+                <th align="center">Kode</th>
+                <th align="center">Warna</th>
+                <th align="center">Size</th>
+                <th align="center">Qty</th>
+                <th align="center">Satuan</th>
+                <th align="center">Qty KGM</th>
+                <th align="center">Keterangan</th>
+                <th align="center">Lokasi</th>
+                <th align="center">Qty Out</th>
+                <th align="center">Qty KGM Out</th>
             </tr>
         </thead>
         <tbody>
         @php
             $totalQtyAct = 0;
             $totalQtyOut = 0;
+            $totalQtyKgmAct = 0;
+            $totalQtyKgmOut = 0;
         @endphp
         @foreach ($dataDetail as $row)
             @php
                 $totalQtyAct += $row->qty_act;
                 $totalQtyOut += $row->qty_out;
+                $totalQtyKgmAct += $row->qty_kgm_act;
+                $totalQtyKgmOut += $row->qty_kgm_out;
             @endphp
 
             <tr>
                 <td align="left">{{ $row->buyer }}</td>
-                <td align="left">{{ $row->no_ws }}</td>
-                <td align="left">{{ $row->style }}</td>
-                <td align="left">{{ $row->product_item }}</td>
+                <td align="left">{{ $row->worksheet }}</td>
+                <td align="left">{{ $row->nama_barang }}</td>
+                <td align="left">{{ $row->kode }}</td>
                 <td align="left">{{ $row->warna }}</td>
                 <td align="left">{{ $row->size }}</td>
-                <td align="left">{{ $row->grade }}</td>
                 <td align="right">{{ number_format($row->qty_act, 2) }}</td>
                 <td align="left">{{ $row->satuan }}</td>
+                <td align="right">{{ number_format($row->qty_kgm_act, 2) }}</td>
                 <td align="left">{{ $row->keterangan }}</td>
                 <td align="left">{{ $row->lokasi }}</td>
                 <td align="right">{{ number_format($row->qty_out, 2) }}</td>
+                <td align="right">{{ number_format($row->qty_kgm_out, 2) }}</td>
             </tr>
         @endforeach
         </tbody>
         <tfoot>
             <tr>
-                <th colspan="7" style="text-align:center;">TOTAL</th>
+                <th colspan="6" style="text-align:center;">TOTAL</th>
                 <th style="text-align:right;">
                     {{ number_format($totalQtyAct, 2) }}
                 </th>
-                <th colspan="3"></th>
+                <th></th>
+                <th style="text-align:right;">
+                    {{ number_format($totalQtyKgmAct, 2) }}
+                </th>
+                <th colspan="2"></th>
                 <th style="text-align:right;">
                     {{ number_format($totalQtyOut, 2) }}
+                </th>
+                <th style="text-align:right;">
+                    {{ number_format($totalQtyKgmOut, 2) }}
                 </th>
             </tr>
     </tfoot>
