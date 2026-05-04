@@ -174,6 +174,12 @@
                     </a>
                 </li>
                 <li>
+                    <a href="{{ route('report_pengeluaran_cutting_panel') }}"
+                        class="dropdown-item {{ $routeName == 'report_pengeluaran_cutting_panel' ? 'active' : '' }}">
+                        Pengeluaran Cutting Panel <i class="fa fa-list"></i>
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('report_return_fabric_cutting') }}"
                         class="dropdown-item {{ $routeName == 'report_return_fabric_cutting' ? 'active' : '' }}">
                         Return Fabric Cutting <i class="fa fa-list"></i>

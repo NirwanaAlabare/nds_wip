@@ -163,6 +163,8 @@
                             <th>Part</th>
                             <th>Part Stats</th>
                             <th>Size</th>
+                            <th>Shade</th>
+                            <th>Group Stocker</th>
                             <th>No. Cut</th>
                             <th>Tujuan</th>
                             <th>Tempat</th>
@@ -423,6 +425,8 @@
             'panel_filter',
             'panel_status_filter',
             'size_filter',
+            'shade_filter',
+            'group_stocker_filter',
             'no_cut_filter',
             'tujuan_filter',
             'tempat_filter',
@@ -525,6 +529,8 @@
                         'color': $('#color_filter').val(),
                         'part': $('#part_filter').val(),
                         'size': $('#size_filter').val(),
+                        'shade': $('#shade_filter').val(),
+                        'group_stocker': $('#group_stocker_filter').val(),
                         'no_cut': $('#no_cut_filter').val(),
                         'tujuan': $('#tujuan_filter').val(),
                         'tempat': $('#tempat_filter').val(),
@@ -601,6 +607,8 @@
                     d.dc_filter_panel = $('#dc_filter_panel').val();
                     d.dc_filter_panel_status = $('#dc_filter_panel_status').val();
                     d.dc_filter_size = $('#dc_filter_size').val();
+                    d.dc_filter_group_stocker = $('#dc_filter_group_stocker').val();
+                    d.dc_filter_shade = $('#dc_filter_shade').val();
                     d.dc_filter_no_cut = $('#dc_filter_no_cut').val();
                     d.dc_filter_tujuan = $('#dc_filter_tujuan').val();
                     d.dc_filter_tempat = $('#dc_filter_tempat').val();
@@ -643,6 +651,12 @@
                 },
                 {
                     data: 'size',
+                },
+                {
+                    data: 'shade',
+                },
+                {
+                    data: 'group_stocker',
                 },
                 {
                     data: 'no_cut',
