@@ -1005,7 +1005,6 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
         $tgl_awal  = $request->dateFrom;
         $tgl_akhir = $request->dateTo;
 
-        dd($tgl_awal, $tgl_akhir);
 
         $tanggal_saldo_awal = '2026-03-01';
 
