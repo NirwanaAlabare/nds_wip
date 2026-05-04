@@ -91,6 +91,7 @@ use App\Http\Controllers\StockOpnameController;
 use App\Http\Controllers\TransferBpbController;
 use App\Http\Controllers\TransferMemoController;
 use App\Http\Controllers\WarehouseController;
+use App\Http\Controllers\WhsSoljer\LaporanPenerimaanPerKategoriController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanAccesoriesController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanFgController;
@@ -1354,6 +1355,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/print-sj/{id}', 'printSj')->name('print-sj-pengeluaran-gudang-inputan-fg');
         Route::get('/print-barcode/{id}', 'printBarcode')->name('print-barcode-pengeluaran-gudang-inputan-fg');
         Route::get('/get-data-barcode', 'getDataBarcode')->name('get-data-barcode-pengeluaran-gudang-inputan-fg');
+    });
+
+    Route::controller(LaporanPenerimaanPerKategoriController::class)->prefix("laporan-penerimaan-per-kategori")->middleware('role:warehouse')->group(function () {
+        Route::get('/', 'index')->name('laporan-penerimaan-per-kategori');
+        Route::post('/export', 'export')->name('export-laporan-penerimaan-per-kategori');
     });
 });
 
