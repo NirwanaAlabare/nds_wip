@@ -47,4 +47,16 @@
             </li>
         </ul>
     </li>
+    <li class="nav-item dropdown">
+        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+            class="nav-link dropdown-toggle {{ $subPageGroup == 'laporan-whs-soljer' ? 'active' : '' }}">Laporan</a>
+        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+            <li>
+                <a href="{{ route('laporan-penerimaan-per-kategori') }}"
+                    class="dropdown-item {{ $routeName == 'laporan-penerimaan-per-kategori' ? 'active' : '' }}">
+                    Penerimaan Per Kategori
+                </a>
+            </li>
+        </ul>
+    </li>
 @endrole
