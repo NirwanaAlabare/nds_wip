@@ -36,6 +36,14 @@
         .modal-xl {
             max-width: 95% !important;
         }
+
+        #table-material-so thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background-color: #f8f9fa;
+            box-shadow: inset 0 -1px 0 #dee2e6, inset 0 1px 0 #dee2e6;
+        }
     </style>
 @endsection
 
@@ -147,10 +155,13 @@
     </div>
 </div>
 <div class="modal fade" id="modal-detail-material" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-xl" role="document"> <div class="modal-content">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
             <div class="modal-header bg-warning text-dark">
                 <h5 class="modal-title fw-bold"><i class="fas fa-boxes"></i> Detail Material BOM</h5>
-                <button type="button" class="close text-dark btn-close-modal"><span>&times;</span></button>
+                <button type="button" class="close text-dark btn-close-modal" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
                 <div class="table-responsive table-scroll-modal">
@@ -162,6 +173,7 @@
                                 <th>ID Contents</th>
                                 <th>Panel</th>
                                 <th>Dest</th>
+                                <th>Product Set</th>
                                 <th>Color Gmt</th>
                                 <th>Size Gmt</th>
                                 <th>Item</th>
@@ -180,7 +192,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-sm btn-close-modal">Tutup</button>
+                <button type="button" class="btn btn-secondary btn-sm btn-close-modal" data-bs-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>
@@ -227,7 +239,7 @@
                     { data: 'so_no', name: 'so.so_no' },
                     { data: 'no_po', name: 'so.no_po' },
                     { data: 'kpno', name: 'act.kpno' },
-                    { data: 'styleno', name: 'act.styleno' },
+                    { data: 'style', name: 'so.styleno' },
                     { data: 'buyer', name: 'ms.Supplier' },
                     { data: 'product_group', name: 'mp.product_group' },
                     { data: 'product_item', name: 'mp.product_item' },
@@ -434,6 +446,7 @@
                         <td>${item.id_contents || '-'}</td>
                         <td>${item.panel || '-'}</td>
                         <td>${item.dest || '-'}</td>
+                        <td>${item.product_set || '-'}</td>
                         <td>${item.color_gmt || '-'}</td>
                         <td>${item.size_gmt || '-'}</td>
                         <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${item.item_desc || '-'}</td>
@@ -454,7 +467,6 @@
                     "paging": true,
                     "info": true,
                     "searching": true,
-                    "scrollX": true,
                     "lengthMenu": [
                         [5, 10, 25, -1],
                         [5, 10, 25, "All"]

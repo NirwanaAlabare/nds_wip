@@ -37,8 +37,25 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-4">
-                    <label class="form-label"><small class="fw-bold">Buyer</small></label>
+                <div class="col-md-3">
+                    <label class="form-label"><small class="fw-bold">No Costing <span class="text-danger">*</span></small></label>
+                    <select name="id_costing" id="id_costing" class="form-control select2bs4">
+                        <option value="">Pilih Costing</option>
+                        @if(isset($costings))
+                            @foreach ($costings as $cost)
+                                <option value="{{ $cost->id }}"
+                                        data-buyer="{{ $cost->buyer ?? '' }}"
+                                        data-style="{{ $cost->style ?? '' }}"
+                                        data-market="{{ $cost->market ?? '' }}">
+                                    {{ $cost->no_costing }} - {{ $cost->style }}
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label"><small class="fw-bold">Buyer <span class="text-danger">*</span></small></label>
                     <select name="id_buyer" id="id_buyer" class="form-control select2bs4">
                         <option value="">Pilih Buyer</option>
                         @foreach ($buyers as $buyer)
@@ -46,11 +63,11 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label"><small class="fw-bold">Style</small></label>
+                <div class="col-md-3">
+                    <label class="form-label"><small class="fw-bold">Style <span class="text-danger">*</span></small></label>
                     <input type="text" class="form-control" name="style" id="style">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label"><small class="fw-bold">Market</small></label>
                     <input type="text" class="form-control" name="market" id="market">
                 </div>
@@ -59,7 +76,7 @@
             <div class="row mt-3">
                 <div class="col-md-6">
                     <div class="form-label d-flex justify-content-between">
-                        <small class="fw-bold">Master Color</small>
+                        <small class="fw-bold">Master Color <span class="text-danger">*</span></small>
                         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalColor">
                             <i class="fas fa-plus"></i>
                         </button>
@@ -73,7 +90,7 @@
 
                 <div class="col-md-6">
                     <div class="form-label d-flex justify-content-between">
-                        <small class="fw-bold">Master Size</small>
+                        <small class="fw-bold">Master Size <span class="text-danger">*</span></small>
                         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalSize">
                             <i class="fas fa-plus"></i>
                         </button>
@@ -310,18 +327,27 @@
     });
 
     function confirmCatalog() {
+        let emptyFields = [];
+        let costing = $('#id_costing').val();
         let buyer = $('#id_buyer').val();
         let style = $('#style').val();
         let selectedColors = $('#colorList').select2('data');
         let selectedSizes = $('#sizeList').select2('data');
 
-        if (!buyer) {
-            Swal.fire('Peringatan', 'Mohon lengkapi data Buyer terlebih dahulu!', 'warning');
-            return;
-        }
+        if (!costing) emptyFields.push('No Costing');
+        if (!buyer) emptyFields.push('Buyer');
+        if (!style || style.trim() === '') emptyFields.push('Style');
+        if (selectedColors.length === 0) emptyFields.push('Master Color');
+        if (selectedSizes.length === 0) emptyFields.push('Master Size');
 
-        if (selectedColors.length === 0 || selectedSizes.length === 0) {
-            Swal.fire('Peringatan', 'Mohon lengkapi Color, dan Size terlebih dahulu!', 'warning');
+        if (emptyFields.length > 0) {
+            let errHtml = emptyFields.map(e => `<li>${e}</li>`).join('');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Data Belum Lengkap!',
+                html: `Silakan lengkapi data berikut sebelum membuat katalog:<br><br><ul class="text-left" style="font-size: 14px;">${errHtml}</ul>`,
+                confirmButtonText: 'Mengerti'
+            });
             return;
         }
 
@@ -346,6 +372,7 @@
 
                 $.post("{{ route('store-bom-header') }}", {
                     _token: "{{ csrf_token() }}",
+                    id_costing: costing,
                     buyer: buyer,
                     style: style,
                     market: $('#market').val(),
@@ -353,11 +380,9 @@
                     sizes: $('#sizeList').val()
                 }, function(res) {
                     if(res.status == 200) {
-
                         let editUrl = "{{ route('edit-bom', ':id') }}";
                         editUrl = editUrl.replace(':id', res.id);
                         window.location.href = editUrl;
-
                     } else {
                         Swal.fire('Gagal', res.message || 'Terjadi kesalahan saat menyimpan.', 'error');
                     }
@@ -484,20 +509,27 @@
     }
 
     function submitAddMaster(form, targetSelect, inputId, modalId) {
-        let val = $(inputId).val().toUpperCase();
         $.ajax({
             url: $(form).attr('action'),
             type: 'POST',
             data: new FormData(form),
-            processData: false, contentType: false,
+            processData: false,
+            contentType: false,
             success: function(res) {
                 if (res.status == 200) {
-                    if ($(targetSelect + " option[value='" + val + "']").length == 0) {
-                        $(targetSelect).append(new Option(val, val, false, false)).trigger('change');
+                    let id   = res.data.id;
+                    let name = res.data.name;
+
+                    if ($(targetSelect + " option[value='" + id + "']").length == 0) {
+                        let newOption = new Option(name, id, true, true);
+                        $(targetSelect).append(newOption).trigger('change');
+                    } else {
+                        $(targetSelect).val(id).trigger('change');
                     }
+
                     $(modalId).modal('hide');
                     form.reset();
-                    Swal.fire({ icon: 'success', title: 'Tersimpan', timer: 1000, showConfirmButton: false });
+                    Swal.fire({ icon: 'success', title: 'Data Tersimpan', timer: 1000, showConfirmButton: false });
                 }
             }
         });
@@ -661,5 +693,19 @@
             });
         }
     }
+
+    $('#id_costing').on('change', function() {
+        let selected = $(this).find('option:selected');
+
+        if ($(this).val()) {
+            let buyer = selected.data('buyer');
+            let style = selected.data('style');
+            let market = selected.data('market');
+
+            $('#id_buyer').val(buyer).trigger('change');
+            $('#style').val(style);
+            $('#market').val(market);
+        }
+    });
 </script>
 @endsection

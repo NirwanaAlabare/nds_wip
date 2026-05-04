@@ -698,3 +698,7 @@ table.sticky-table .fixed-column {
 .dt-search {
     margin-bottom: 10px !important;
 }
+
+.dt-info, .dt-paging {
+    margin-top: 10px !important;
+}

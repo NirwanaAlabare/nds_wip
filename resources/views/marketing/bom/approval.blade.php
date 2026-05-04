@@ -25,17 +25,14 @@
 
 @section('content')
 <div class="card card-sb">
-    <div class="card-header">
-        <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> List Data</h5>
+    <div class="card-header bg-sb">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title fw-bold text-white mb-0">
+                <i class="fas fa-check-circle"></i> Approval Data BOM
+            </h5>
+        </div>
     </div>
     <div class="card-body">
-        <div class="mb-3">
-            <a href="{{ route('create-bom') }}" class="btn btn-outline-primary">
-                <i class="fas fa-plus"></i>
-                Create BOM
-            </a>
-        </div>
-
         <div class="row align-items-end mb-4">
             <div class="col-md-2">
                 <label class="small fw-bold">Tgl Awal</label>
@@ -46,15 +43,14 @@
                 <input type="date" id="date_to" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
             </div>
             <div class="col-md-2">
-                <button class="btn btn-primary btn-sm" onclick="refreshTable()">
+                <button class="btn btn-primary btn-sm fw-bold" onclick="refreshTable()">
                     <i class="fas fa-search"></i> Filter
                 </button>
             </div>
         </div>
 
-
         <div class="table-responsive">
-            <table class="table table-bordered table-hover w-100" id="table-bom">
+            <table class="table table-bordered table-hover w-100" id="table-bom-approval">
                 <thead>
                     <tr class="text-center">
                         <th>No</th>
@@ -113,6 +109,36 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalApproval" tabindex="-1" role="dialog" aria-labelledby="modalApprovalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="form-approve-bom" method="POST">
+                @csrf
+                <div class="modal-header bg-sb text-white">
+                    <h5 class="modal-title fw-bold" id="modalApprovalLabel"><i class="fas fa-check"></i> Konfirmasi Approval</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body bg-light">
+                    <input type="hidden" name="id_bom" id="approve_id_bom">
+
+                    <div class="text-center mb-3">
+                        <h6 class="mb-1">Apakah Anda yakin akan menyetujui BOM ini?</h6>
+                        <h4 class="fw-bold text-dark" id="approve_no_bom">-</h4>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-danger fw-bold" data-dismiss="modal">
+                        <i class="fas fa-times-circle"></i> Batal
+                    </button>
+                    <button type="submit" class="btn btn-primary fw-bold"><i class="fas fa-check-circle"></i> Approve</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('custom-script')
@@ -126,17 +152,11 @@
         let tableDetail = null;
 
         $(document).ready(function() {
-            $(".close").click(function() {
-                $("#modalDetail").modal("hide");
+           $('[data-dismiss="modal"], [data-bs-dismiss="modal"]').on('click', function() {
+                $(this).closest('.modal').modal('hide');
             });
 
-            $('#modalDetail').on('shown.bs.modal', function () {
-                if ($.fn.DataTable.isDataTable('#table-detail')) {
-                    $('#table-detail').DataTable().columns.adjust().responsive.recalc();
-                }
-            });
-
-            tableBom = $('#table-bom').DataTable({
+            tableBom = $('#table-bom-approval').DataTable({
                 processing: true,
                 serverSide: false,
                 ajax: {
@@ -170,16 +190,17 @@
                         className: "text-center align-middle",
                         width: "15%",
                         orderable: false,
-                        render: function (data) {
-                            let editUrl = "{{ route('edit-bom', ':id') }}".replace(':id', data);
+                        render: function (data, type, row) {
+                            let noBom = row.no_katalog_bom || 'Unknown';
+
                             return `
                                 <div class="d-flex justify-content-center align-items-center">
-                                    <button class="btn btn-sm btn-info mr-1 py-1 px-2" style="font-size: 12px;" onclick="viewDetail(${data})">
+                                    <button class="btn btn-sm btn-info mr-1 py-1 px-2 fw-bold" style="font-size: 12px;" onclick="viewDetail(${data})">
                                         <i class="fas fa-eye"></i> Detail
                                     </button>
-                                    <a href="${editUrl}" class="btn btn-sm btn-success py-1 px-2" style="font-size: 12px;">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
+                                    <button type="button" class="btn btn-sm btn-success py-1 px-2 fw-bold" style="font-size: 12px; white-space: nowrap;" onclick="openApprovalModal(${data}, '${noBom}')">
+                                        <i class="fas fa-check-circle"></i> Approve
+                                    </button>
                                 </div>
                             `;
                         }
@@ -200,10 +221,49 @@
                     tableDetail.column(colIdx).search(this.value).draw();
                 }
             });
+
+
+            $('#form-approve-bom').on('submit', function(e) {
+                e.preventDefault();
+
+                let id = $('#approve_id_bom').val();
+                let actionUrl = "{{ route('submit-bom-approval', ':id') }}".replace(':id', id);
+
+                Swal.fire({
+                    title: 'Memproses...',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                $.ajax({
+                    url: actionUrl,
+                    type: "POST",
+                    data: $(this).serialize(),
+                    success: function(res) {
+                        if (res.status == 200) {
+                            $('#modalApproval').modal('hide');
+                            Swal.fire('Berhasil!', res.message, 'success');
+                            refreshTable();
+                        } else {
+                            Swal.fire('Gagal!', res.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error!', 'Terjadi kesalahan sistem server.', 'error');
+                    }
+                });
+            });
         });
 
         function refreshTable() {
             tableBom.ajax.reload(null, false);
+        }
+
+        function openApprovalModal(id, noBom) {
+            $('#approve_id_bom').val(id);
+            $('#approve_no_bom').text(noBom);
+            $('#notes_approval').val('');
+            $('#modalApproval').modal('show');
         }
 
         function viewDetail(id) {
