@@ -1378,7 +1378,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     (SUM( pl_saldo_awal_masuk ) - SUM( pl_saldo_awal_keluar )) AS pl_saldo_awal,
                     SUM( pl_rft ) AS pl_rft,
                     SUM( pl_reject ) AS pl_reject,
-                    SUM( pl_keluar ) AS pl_keluar, /* <--- Sekarang narik data dari Transfer Garment */
+                    SUM( pl_keluar ) AS pl_keluar,
                     ((SUM( pl_saldo_awal_masuk ) - SUM( pl_saldo_awal_keluar )) + SUM( pl_rft ) + SUM( pl_reject ) - SUM( pl_keluar )) AS pl_saldo_akhir,
                     SUM( pc_saldo_awal ) AS pc_saldo_awal,
                     SUM( pc_terima ) AS pc_terima,
