@@ -1086,7 +1086,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 /* ================= PACKING CENTRAL SALDO AWAL ================= */
                     SELECT
                         pms.id_so_det AS so_det_id,
-                        0 AS pl_saldo_awal,
+                        (SUM( pi.qty ) * -1) AS pl_saldo_awal,
                         0 AS pl_rft,
                         0 AS pl_reject,
                         SUM( pi.qty ) AS pc_saldo_awal,

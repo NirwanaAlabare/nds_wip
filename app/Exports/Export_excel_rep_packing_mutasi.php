@@ -594,7 +594,7 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
             /* ================= PACKING CENTRAL SALDO AWAL ================= */
                 SELECT
                     pms.id_so_det AS so_det_id,
-                    0 AS pl_saldo_awal,
+                    (SUM( pi.qty ) * -1) AS pl_saldo_awal,
                     0 AS pl_rft,
                     0 AS pl_reject,
                     SUM( pi.qty ) AS pc_saldo_awal,
