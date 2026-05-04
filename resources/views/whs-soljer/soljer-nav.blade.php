@@ -57,6 +57,18 @@
                     Penerimaan Per Kategori
                 </a>
             </li>
+            <li>
+                <a href="{{ route('laporan-pengeluaran-per-kategori') }}"
+                    class="dropdown-item {{ $routeName == 'laporan-pengeluaran-per-kategori' ? 'active' : '' }}">
+                    Pengeluaran Per Kategori
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('laporan-mutasi-per-kategori') }}"
+                    class="dropdown-item {{ $routeName == 'laporan-mutasi-per-kategori' ? 'active' : '' }}">
+                    Mutasi Per Kategori
+                </a>
+            </li>
         </ul>
     </li>
 @endrole

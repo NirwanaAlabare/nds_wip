@@ -74,6 +74,7 @@ use App\Http\Controllers\PPIC_MonitoringMaterialSumController;
 use App\Http\Controllers\PPIC_tools_adjustmentController;
 use App\Http\Controllers\PPICDashboardController;
 use App\Http\Controllers\ProcurementController;
+use App\Http\Controllers\PurchasingController;
 use App\Http\Controllers\PurchasingDashboardController;
 use App\Http\Controllers\QCInspectDashboardController;
 use App\Http\Controllers\QCInspectLaporanController;
@@ -92,8 +93,9 @@ use App\Http\Controllers\StockOpnameController;
 use App\Http\Controllers\TransferBpbController;
 use App\Http\Controllers\TransferMemoController;
 use App\Http\Controllers\WarehouseController;
-use App\Http\Controllers\PurchasingController;
+use App\Http\Controllers\WhsSoljer\LaporanMutasiPerKategoriController;
 use App\Http\Controllers\WhsSoljer\LaporanPenerimaanPerKategoriController;
+use App\Http\Controllers\WhsSoljer\LaporanPengeluaranPerKategoriController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanAccesoriesController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanFgController;
@@ -1403,6 +1405,16 @@ Route::middleware('auth')->group(function () {
     Route::controller(LaporanPenerimaanPerKategoriController::class)->prefix("laporan-penerimaan-per-kategori")->middleware('role:warehouse')->group(function () {
         Route::get('/', 'index')->name('laporan-penerimaan-per-kategori');
         Route::post('/export', 'export')->name('export-laporan-penerimaan-per-kategori');
+    });
+
+    Route::controller(LaporanPengeluaranPerKategoriController::class)->prefix("laporan-pengeluaran-per-kategori")->middleware('role:warehouse')->group(function () {
+        Route::get('/', 'index')->name('laporan-pengeluaran-per-kategori');
+        Route::post('/export', 'export')->name('export-laporan-pengeluaran-per-kategori');
+    });
+
+    Route::controller(LaporanMutasiPerKategoriController::class)->prefix("laporan-mutasi-per-kategori")->middleware('role:warehouse')->group(function () {
+        Route::get('/', 'index')->name('laporan-mutasi-per-kategori');
+        Route::post('/export', 'export')->name('export-laporan-mutasi-per-kategori');
     });
 });
 
