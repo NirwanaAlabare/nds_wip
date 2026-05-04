@@ -535,11 +535,14 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                 GROUP BY
                     p.id_so_det
             ),
-            trx_union ( so_det_id, pl_saldo_awal, pl_rft, pl_reject, pc_saldo_awal, pc_terima, pc_keluar ) AS (
+            /* PERHATIKAN: Kolom dipisah jadi pl_saldo_awal_masuk dan pl_saldo_awal_keluar */
+            trx_union ( so_det_id, pl_saldo_awal_masuk, pl_saldo_awal_keluar, pl_rft, pl_reject, pc_saldo_awal, pc_terima, pc_keluar ) AS (
+
             /* ================= SALDO AWAL ================= */
                 SELECT
                     id_so_det AS so_det_id,
-                    CASE WHEN type = 'packing_line' THEN saldo ELSE 0 END AS pl_saldo_awal,
+                    CASE WHEN type = 'packing_line' THEN saldo ELSE 0 END AS pl_saldo_awal_masuk,
+                    0 AS pl_saldo_awal_keluar,
                     0 AS pl_rft,
                     0 AS pl_reject,
                     CASE WHEN type = 'packing_center' THEN saldo ELSE 0 END AS pc_saldo_awal,
@@ -555,7 +558,8 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
             /* ================= PACKING LINE SALDO AWAL ================= */
                 SELECT
                     so_det_id,
-                    COUNT(*) AS pl_saldo_awal,
+                    COUNT(*) AS pl_saldo_awal_masuk,
+                    0 AS pl_saldo_awal_keluar,
                     0 AS pl_rft,
                     0 AS pl_reject,
                     0 AS pc_saldo_awal,
@@ -575,7 +579,8 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
             /* ================= PACKING LINE PERIODE ================= */
                 SELECT
                     so_det_id,
-                    0 AS pl_saldo_awal,
+                    0 AS pl_saldo_awal_masuk,
+                    0 AS pl_saldo_awal_keluar,
                     SUM( type = 'RFT' ) AS pl_rft,
                     SUM( type = 'REJECT' ) AS pl_reject,
                     0 AS pc_saldo_awal,
@@ -594,7 +599,8 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
             /* ================= PACKING CENTRAL SALDO AWAL ================= */
                 SELECT
                     pms.id_so_det AS so_det_id,
-                    (SUM( pi.qty ) * -1) AS pl_saldo_awal,
+                    0 AS pl_saldo_awal_masuk,
+                    SUM( pi.qty ) AS pl_saldo_awal_keluar,
                     0 AS pl_rft,
                     0 AS pl_reject,
                     SUM( pi.qty ) AS pc_saldo_awal,
@@ -615,7 +621,8 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
             /* ================= PACKING CENTRAL PERIODE ================= */
                 SELECT
                     x.id_so_det AS so_det_id,
-                    0 AS pl_saldo_awal,
+                    0 AS pl_saldo_awal_masuk,
+                    0 AS pl_saldo_awal_keluar,
                     0 AS pl_rft,
                     0 AS pl_reject,
                     0 AS pc_saldo_awal,
@@ -657,11 +664,11 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                 msw.styleno AS style,
                 msw.size,
                 msw.buyer,
-                SUM( pl_saldo_awal ) AS pl_saldo_awal,
+                (SUM( pl_saldo_awal_masuk ) - SUM( pl_saldo_awal_keluar )) AS pl_saldo_awal,
                 SUM( pl_rft ) AS pl_rft,
                 SUM( pl_reject ) AS pl_reject,
                 SUM( pc_terima ) AS pl_keluar,
-                SUM( pl_saldo_awal ) + SUM( pl_rft ) + SUM( pl_reject ) - SUM( pc_terima ) AS pl_saldo_akhir,
+                ((SUM( pl_saldo_awal_masuk ) - SUM( pl_saldo_awal_keluar )) + SUM( pl_rft ) + SUM( pl_reject ) - SUM( pc_terima )) AS pl_saldo_akhir,
                 SUM( pc_saldo_awal ) AS pc_saldo_awal,
                 SUM( pc_terima ) AS pc_terima,
                 SUM( pc_keluar ) AS pc_packing_scan,
