@@ -37,7 +37,7 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Report Pengeluaran Cutting</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Report Pengeluaran Cutting Panel</h5>
         </div>
 
         <div class="card-body">
@@ -88,8 +88,6 @@
                             <th class="text-center align-middle">Size</th>
                             <th class="text-center align-middle">Panel</th>
                             <th class="text-center align-middle">Panel Status</th>
-                            <th class="text-center align-middle">Part</th>
-                            <th class="text-center align-middle">Part Status</th>
                             <th class="text-center align-middle">Qty</th>
                         </tr>
                     </thead>
@@ -175,7 +173,7 @@
                 processing: false,
 
                 ajax: {
-                    url: '{{ route('report_pengeluaran_cutting') }}',
+                    url: '{{ route('report_pengeluaran_cutting_panel') }}',
                     data(d) {
                         d.start_date = start_date;
                         d.end_date = end_date;
@@ -221,12 +219,6 @@
                         data: 'panel_status'
                     },
                     {
-                        data: 'nama_part'
-                    },
-                    {
-                        data: 'part_status'
-                    },
-                    {
                         data: 'qty_dc'
                     },
                 ],
@@ -260,7 +252,7 @@
 
             $.ajax({
                 type: "get",
-                url: '{{ route('export_excel_report_pengeluaran_cutting') }}',
+                url: '{{ route('export_excel_report_pengeluaran_cutting_panel') }}',
                 data: {
                     start_date: start_date,
                     end_date: end_date

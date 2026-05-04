@@ -480,7 +480,7 @@ class export_excel_report_pengeluaran_cutting implements FromView, ShouldAutoSiz
                     ) cutting
                     group by
                             no_form,
-                            size,
+                            id_so_det,
                             part_id,
                             part_detail_id
             ),
@@ -513,10 +513,10 @@ class export_excel_report_pengeluaran_cutting implements FromView, ShouldAutoSiz
                     left join part_detail on part_detail.part_id = part.id
                     left join master_part mp on mp.id = part_detail.master_part_id
                 where
-		            part.panel_status != 'COMPLEMENT' and part_detail.part_status != 'COMPLEMENT'
+                    part.panel_status != 'COMPLEMENT' and part_detail.part_status != 'COMPLEMENT'
                 group by
                     no_form,
-                    size,
+                    id_so_det,
                     part.id,
                     part_detail.id
             )
@@ -543,9 +543,9 @@ class export_excel_report_pengeluaran_cutting implements FromView, ShouldAutoSiz
                 '-' status,
                 MAX(part_id) part_id
             from (
-            select * from stocker
-            union all
-            select * from form_list
+                select * from stocker
+                union all
+                select * from form_list
             ) stocker
             group by
                 no_form,
