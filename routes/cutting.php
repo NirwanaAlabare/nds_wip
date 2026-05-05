@@ -454,6 +454,15 @@ Route::middleware('auth')->group(function () {
             // Save Saldo Awal Cutting
             Route::post('/save-saldo-awal-cutting', 'saveSaldoAwalCutting')->name('save-saldo-awal-cutting');
 
+            // Import Saldo Awal Cutting Detail
+            Route::post('/import-saldo-awal-cutting-detail', 'importSaldoAwalCuttingDetail')->name('import-saldo-awal-cutting-detail');
+
+            // Get Saldo Awal Cutting Detail
+            Route::get('/get-saldo-awal-cutting-tmp-detail', 'getSaldoAwalCuttingDetailTmp')->name('get-saldo-awal-cutting-detail-tmp');
+
+            // Save Saldo Awal Cutting Detail
+            Route::post('/save-saldo-awal-cutting-detail', 'saveSaldoAwalCuttingDetail')->name('save-saldo-awal-cutting-detail');
+
             // Empty Saldo Awal Cutting
             Route::post('/empty-saldo-awal-cutting', 'emptySaldoAwalCutting')->name('empty-saldo-awal-cutting');
         });

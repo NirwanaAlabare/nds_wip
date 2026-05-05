@@ -8,6 +8,8 @@ use App\Models\Cutting\ScannedItem;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\MutasiCuttingPcsSaldoTmp;
 use App\Models\Cutting\MutasiCuttingPcsSaldo;
+use App\Models\Cutting\MutasiCuttingPcsSaldoDetailTmp;
+use App\Models\Cutting\MutasiCuttingPcsSaldoDetail;
 use App\Models\Marker\Marker;
 use App\Models\Marker\MarkerDetail;
 use App\Models\Part\Part;
@@ -19,6 +21,7 @@ use App\Services\StockerService;
 use App\Services\CuttingService;
 use App\Imports\ImportCuttingManual;
 use App\Imports\ImportSaldoAwalCutting;
+use App\Imports\ImportSaldoAwalCuttingDetail;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -1034,6 +1037,175 @@ class CuttingToolsController extends Controller
     }
 
     public function emptySaldoAwalCutting(Request $request)
+    {
+        $type = $request->type ? $request->type : 'tmp';
+
+        switch ($type) {
+            case "tmp" :
+                // Backup
+                DB::table('mut_cut_pcs_tmp_pre_bk')->insertUsing([], DB::table('mut_cut_pcs_tmp_pre')->where("created_by", Auth::user()->id));
+
+                // Delete Saldo Tmp
+                $deleteSaldoTmp = MutasiCuttingPcsSaldoTmp::where("created_by", Auth::user()->id)->delete();
+
+                return array(
+                    "status" => $deleteSaldoTmp > 0 ? 200 : 400,
+                    "message" => $deleteSaldoTmp > 0 ? $deleteSaldoTmp." mutasi temporary cutting berhasil dihapus." : "Mutasi temporary cutting tidak ditemukan",
+                );
+
+                break;
+
+            case "actual" :
+                // Backup
+                DB::table('mut_cut_pcs_tmp_bk')->insertUsing([], DB::table('mut_cut_pcs_tmp'));
+
+                // Delete Saldo Tmp
+                $deleteSaldo = MutasiCuttingPcsSaldo::query()->delete();
+
+                return array(
+                    "status" => $deleteSaldo > 0 ? 200 : 400,
+                    "message" => $deleteSaldo > 0 ? $deleteSaldo." mutasi cutting berhasil dihapus." : "Mutasi cutting tidak ditemukan",
+                );
+
+                break;
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Gagal menghapus mutasi",
+        );
+    }
+
+    public function importSaldoAwalCuttingDetail(Request $request)
+    {
+        // validasi
+        $this->validate($request, [
+            'file' => 'required|mimes:csv,xls,xlsx'
+        ]);
+
+        $file = $request->file('file');
+
+        $nama_file = rand().$file->getClientOriginalName();
+
+        $file->move('file_upload',$nama_file);
+
+        $import = Excel::import(new importSaldoAwalCuttingDetail, public_path('/file_upload/'.$nama_file));
+
+        if ($import) {
+            return array(
+                "status" => 200,
+                "message" => 'Data Berhasil Di Upload',
+                "additional" => [],
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => 'Terjadi Kesalahan',
+            "additional" => [],
+        );
+    }
+
+    public function getSaldoAwalCuttingDetailTmp(Request $request)
+    {
+        $saldo = MutasiCuttingPcsSaldoDetailTmp::selectRaw("
+                mut_cut_pcs_tmp_detail_pre.tgl_trans,
+                mut_cut_pcs_tmp_detail_pre.id_so_det,
+                mastersupplier.Supplier as buyer,
+                act_costing.kpno ws,
+                act_costing.styleno style,
+                so_det.color,
+                so_det.size,
+                masterpanel.nama_panel as panel,
+                master_part.nama_part as part,
+                mut_cut_pcs_tmp_detail_pre.saldo
+            ")->
+            leftJoin("signalbit_erp.so_det", "so_det.id", "=", "mut_cut_pcs_tmp_detail_pre.id_so_det")->
+            leftJoin("signalbit_erp.so", "so.id", "=", "so_det.id_so")->
+            leftJoin("signalbit_erp.act_costing", "act_costing.id", "=", "so.id_cost")->
+            leftJoin("signalbit_erp.mastersupplier", "mastersupplier.Id_Supplier", "=", "act_costing.id_buyer")->
+            leftJoin("signalbit_erp.masterpanel", "masterpanel.nama_panel", "=", "mut_cut_pcs_tmp_detail_pre.panel")->
+            leftJoin("part_detail", "part_detail.id", "=", "mut_cut_pcs_tmp_detail_pre.part_detail_id")->
+            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            where("mut_cut_pcs_tmp_detail_pre.created_by", Auth::user()->id)->
+            get();
+
+        return DataTables::of($saldo)->toJson();
+    }
+
+    public function saveSaldoAwalCuttingDetail(Request $request)
+    {
+        $saldoTmps = MutasiCuttingPcsSaldoDetailTmp::where("created_by", Auth::user()->id)->get();
+
+        $status = null;
+        $message = "";
+        if ($saldoTmps && $saldoTmps->count() > 0) {
+
+            foreach ($saldoTmps as $saldoTmp) {
+                // Take Order Info
+                $orderInfo = DB::connection("mysql_sb")->select("
+                    SELECT
+                        mastersupplier.Supplier as buyer,
+                        act_costing.id as id_cost,
+                        act_costing.kpno as ws,
+                        act_costing.styleno as style,
+                        so_det.color,
+                        so_det.size,
+                        so_det.id
+                    FROM
+                        so_det
+                        LEFT JOIN so ON so.id = so_det.id_so
+                        LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                        LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                    WHERE
+                        so_det.id = '".$saldoTmp->id_so_det."' and
+                        (so_det.cancel != 'Y' OR so_det.cancel IS NULL)
+                    LIMIT 1
+                ");
+
+                if ($orderInfo && isset($orderInfo[0])) {
+
+                    // Take Panel
+                    $panel = DB::connection("mysql_sb")->table("masterpanel")->
+                        select("id", "nama_panel")->
+                        where("nama_panel", $saldoTmp->panel)->
+                        first();
+
+                    if ($panel) {
+
+                        // Create Cutting Pcs Saldo
+                        $createMutasiCuttingPcsSaldo = MutasiCuttingPcsSaldoDetail::create([
+                            "tgl_trans" => $saldoTmp->tgl_trans,
+                            "id_so_det" => $orderInfo[0]->id,
+                            "panel" => $panel->nama_panel,
+                            "part_detail_id" => $saldoTmp->part_detail_id,
+                            "saldo" => $saldoTmp->saldo,
+                        ]);
+
+                        if ($createMutasiCuttingPcsSaldo) {
+                            // Delete Created Saldo Temporary
+                            $saldoTmp->delete();
+
+                            $message .= "Saldo ".$orderInfo[0]->ws." / ".$orderInfo[0]->color." / ".$orderInfo[0]->size." / ".$orderInfo[0]->id." untuk panel ".$panel->nama_panel." dengan QTY : ".$saldoTmp->saldo." berhasil disimpan <br>";
+                        }
+                    } else {
+                        $message .= "Saldo ".$orderInfo[0]->ws." / ".$orderInfo[0]->color." / ".$orderInfo[0]->size." / ".$orderInfo[0]->id." Panel tidak ditemukan <br>";
+                    }
+                } else {
+                    $message .= "Saldo ".$saldoTmp->id_so_det." Gagal disimpan <br>";
+                }
+            }
+        } else {
+            $message .= "Saldo Cutting Temporary tidak ditemukan";
+        }
+
+        return array(
+            "status" => 200,
+            "message" => $message,
+        );
+    }
+
+    public function emptySaldoAwalCuttingDetail(Request $request)
     {
         $type = $request->type ? $request->type : 'tmp';
 

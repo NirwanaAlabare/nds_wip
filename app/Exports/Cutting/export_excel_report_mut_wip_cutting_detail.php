@@ -778,6 +778,34 @@ class export_excel_report_mut_wip_cutting_detail implements FromView, ShouldAuto
                             id_so_det,
                             part_id,
                             part_detail_id
+                    ),
+
+                    saldo_awal_cutting as (
+                        SELECT
+                            master_sb_ws.id_so_det,
+                            part.id part_id,
+                            part.panel as panel,
+                            part.panel_status,
+                            part_detail.id part_detail_id,
+                            master_part.id master_part_id,
+                            master_part.nama_part,
+                            part_detail.part_status,
+                            sum(mut_cut_pcs_tmp_detail.saldo) qty_cut_awal,
+                            0 as qty_dc_awal,
+                            0 AS qty_cut,
+                            0 AS qty_dc,
+                            0 as qty_replace
+                        FROM mut_cut_pcs_tmp_detail
+                        left join master_sb_ws on master_sb_ws.id_so_det = mut_cut_pcs_tmp_detail.id_so_det
+                        left join part on part.act_costing_ws = master_sb_ws.ws and part.panel = mut_cut_pcs_tmp_detail.panel
+                        left join part_detail on part_detail.id = mut_cut_pcs_tmp_detail.part_detail_id
+                        left join master_part on master_part.id = part_detail.master_part_id
+                        group by
+                            master_sb_ws.id_so_det,
+                            part.id,
+                            part.panel,
+                            part.panel_status,
+                            part_detail.id
                     )
 
                     SELECT
@@ -805,6 +833,8 @@ class export_excel_report_mut_wip_cutting_detail implements FromView, ShouldAuto
                         k.status
                     FROM
                     (
+                        SELECT id_so_det, part_id, panel, panel_status, part_detail_id, master_part_id, nama_part, part_status, qty_cut_awal, 0 as qty_dc_awal, 0 AS qty_cut, 0 AS qty_dc, 0 as qty_replace FROM saldo_awal_cutting
+                        UNION ALL
                         SELECT id_so_det, part_id, COALESCE(part_panel, panel) as panel, panel_status, part_detail_id, master_part_id, nama_part, part_status, sum(qty) qty_cut_awal, 0 as qty_dc_awal, 0 AS qty_cut, 0 AS qty_dc, 0 as qty_replace FROM cutt_awal WHERE (part_status != 'complement' OR part_status IS NULL) group by id_so_det, part_id, COALESCE(part_panel, panel), panel_status, part_detail_id
                         UNION ALL
                         SELECT id_so_det, part_id, COALESCE(part_panel, panel) as panel, panel_status, part_detail_id, master_part_id, nama_part, part_status, 0 AS qty_cut_awal, 0 AS qty_dc_awal, sum(qty) qty_cut, 0 AS qty_dc, 0 as qty_replace FROM cutt_in WHERE (part_status != 'complement' OR part_status IS NULL) group by id_so_det, part_id, COALESCE(part_panel, panel), panel_status, part_detail_id
