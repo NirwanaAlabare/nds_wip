@@ -54,6 +54,7 @@
                     <th>No BPB</th>
                     <th>Tgl BPB</th>
                     <th>No PO</th>
+                    <th>type PO</th>
                     <th>Supplier</th>
                     <th>buyer</th>
                     <th>Jenis Penerimaan</th>
@@ -69,9 +70,11 @@
                     <th>Item Desc</th>
                     <th>Color</th>
                     <th>Size</th>
-                    <th>Qty</th>
+                    <th>Qty BPB</th>
+                    <th>Qty Good</th>
                     <th>Qty Reject</th>
                     <th>Unit</th>
+                    <th>Price</th>
                     <th>Status</th>
                     <th>Keterangan</th>
                     <th>Created User</th>
@@ -119,6 +122,9 @@
                 },
                 {
                     data: 'no_po'
+                },
+                {
+                    data: 'tipe_com'
                 },
                 {
                     data: 'supplier'
@@ -169,10 +175,16 @@
                     data: 'qty'
                 },
                 {
+                    data: 'qty_good'
+                },
+                {
                     data: 'qty_reject'
                 },
                 {
                     data: 'unit'
+                },
+                {
+                    data: 'price'
                 },
                 {
                     data: 'status'

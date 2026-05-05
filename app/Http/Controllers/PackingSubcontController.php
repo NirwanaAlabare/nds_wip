@@ -925,7 +925,16 @@ if ($qty > 0 || $qtyReject > 0) {
             // }
 
 
-            $data_pemasukan = DB::connection('mysql_sb')->select("select a.id, a.no_bpb, a.tgl_bpb, a.no_po, supplier, buyer, jenis_penerimaan, jenis_dok, no_daftar, tgl_daftar, no_aju, tgl_aju, kpno, styleno, b.id_jo, b.id_item, mi.itemdesc, b.color, b.size, b.qty, b.qty_reject, b.unit, a.status, COALESCE(a.keterangan,'-') keterangan, CONCAT(a.created_by,' (',a.created_at,')') created_by from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo INNER JOIN masteritem mi on mi.id_item = b.id_item where a.tgl_bpb BETWEEN '".$request->dateFrom."' and '".$request->dateTo."' and b.status = 'Y' GROUP BY b.id");
+            $data_pemasukan = DB::connection('mysql_sb')->select("select a.id, a.no_bpb, a.tgl_bpb, a.no_po, supplier, buyer, jenis_penerimaan, jenis_dok, no_daftar, tgl_daftar, no_aju, tgl_aju, kpno, styleno, b.id_jo, b.id_item, mi.itemdesc, b.color, b.size, b.qty, b.qty_reject, (b.qty - b.qty_reject) qty_good, b.unit, if(phd.tipe_com ='FOC','0',pi.price) price, phd.tipe_com, a.status, COALESCE(a.keterangan,'-') keterangan, CONCAT(a.created_by,' (',a.created_at,')') created_by 
+                from packing_in_h a 
+                INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb 
+                INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier 
+                left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo 
+                INNER JOIN masteritem mi on mi.id_item = b.id_item 
+                INNER join po_header po on po.pono = a.no_po
+                INNER join po_header_draft phd on phd.id = po.id_draft
+                INNER join po_item pi on pi.id_po = b.id_po and pi.id_jo = b.id_jo and pi.id_gen = b.id_item
+                where a.tgl_bpb BETWEEN '".$request->dateFrom."' and '".$request->dateTo."' and b.status = 'Y' GROUP BY b.id");
 
 
             return DataTables::of($data_pemasukan)->toJson();
@@ -943,7 +952,16 @@ if ($qty > 0 || $qtyReject > 0) {
     // ==============================
     // SQL
     // ==============================
-    $sql = "select a.id, a.no_bpb, a.tgl_bpb, a.no_po, supplier, buyer, jenis_penerimaan, jenis_dok, no_daftar, tgl_daftar, no_aju, tgl_aju, kpno, styleno, b.id_jo, b.id_item, mi.itemdesc, b.color, b.size, b.qty, b.qty_reject, b.unit, a.status, COALESCE(a.keterangan,'-') keterangan, CONCAT(a.created_by,' (',a.created_at,')') created_by from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo INNER JOIN masteritem mi on mi.id_item = b.id_item where a.tgl_bpb BETWEEN '".$from."' and '".$to."' and b.status = 'Y' GROUP BY b.id";
+    $sql = "select a.id, a.no_bpb, a.tgl_bpb, a.no_po, supplier, buyer, jenis_penerimaan, jenis_dok, no_daftar, tgl_daftar, no_aju, tgl_aju, kpno, styleno, b.id_jo, b.id_item, mi.itemdesc, b.color, b.size, b.qty, b.qty_reject, (b.qty - b.qty_reject) qty_good, b.unit, if(phd.tipe_com ='FOC','0',pi.price) price, phd.tipe_com, a.status, COALESCE(a.keterangan,'-') keterangan, CONCAT(a.created_by,' (',a.created_at,')') created_by 
+                from packing_in_h a 
+                INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb 
+                INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier 
+                left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo 
+                INNER JOIN masteritem mi on mi.id_item = b.id_item 
+                INNER join po_header po on po.pono = a.no_po
+                INNER join po_header_draft phd on phd.id = po.id_draft
+                INNER join po_item pi on pi.id_po = b.id_po and pi.id_jo = b.id_jo and pi.id_gen = b.id_item
+                where a.tgl_bpb BETWEEN '".$from."' and '".$to."' and b.status = 'Y' GROUP BY b.id";
 
     $data = DB::connection('mysql_sb')->select($sql);
 
@@ -966,9 +984,9 @@ if ($qty > 0 || $qtyReject > 0) {
 
     // HEADER
     $sheet->writeRow([
-        'No BPB', 'Tgl BPB', 'No PO', 'Supplier', 'buyer', 'Jenis Penerimaan', 'Jenis Dok', 'No Daftar', 'Tgl Daftar', 'No Aju', 'Tgl Aju', 'WS', 'Style', 'ID JO', 'ID Item', 'Item Desc', 'Color', 'Size', 'Qty', 'Qty Reject', 'Unit', 'Status', 'Keterangan', 'Created User'
+        'No BPB', 'Tgl BPB', 'No PO', 'Type PO', 'Supplier', 'buyer', 'Jenis Penerimaan', 'Jenis Dok', 'No Daftar', 'Tgl Daftar', 'No Aju', 'Tgl Aju', 'WS', 'Style', 'ID JO', 'ID Item', 'Item Desc', 'Color', 'Size', 'Qty BPB', 'Qty Good', 'Qty Reject', 'Unit', 'Price', 'Status', 'Keterangan', 'Created User'
     ])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-    $sheet->mergeCells('A2:X2');
+    $sheet->mergeCells('A2:AA2');
     // DATA
     $maxLen = [];
 
@@ -977,6 +995,7 @@ foreach ($rows as $r) {
         $r['no_bpb'] ?? '',
         $r['tgl_bpb'] ?? '',
         $r['no_po'] ?? '',
+        $r['tipe_com'] ?? '',
         $r['supplier'] ?? '',
         $r['buyer'] ?? '',
         $r['jenis_penerimaan'] ?? '',
@@ -993,8 +1012,10 @@ foreach ($rows as $r) {
         $r['color'] ?? '',
         $r['size'] ?? '',
         round($r['qty'] ?? 0, 2),
+        round($r['qty_good'] ?? 0, 2),
         round($r['qty_reject'] ?? 0, 2),
         $r['unit'] ?? '',
+        round($r['price'] ?? 0, 2),
         $r['status'] ?? '',
         $r['keterangan'] ?? '',
         $r['created_by'] ?? '',
@@ -1564,8 +1585,8 @@ public function ApprovePackingInSubcont(Request $request)
                     'no_journal' => $no_bpb,
                     'tgl_journal' => $tgl_bpb,
                     'type_journal' => 'AP - BPB',
-                    'no_coa' => $no_coa_ppn,
-                    'nama_coa' => $nama_coa_ppn,
+                    'no_coa' => '8.07.01',
+                    'nama_coa' => 'PENDAPATAN LAIN-LAIN',
                     'no_costcenter' => 'DEP13SUB001',
                     'nama_costcenter' => 'PACKING',
                     'curr' => $curr,

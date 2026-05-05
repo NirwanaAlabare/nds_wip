@@ -197,7 +197,7 @@ class TrackOrderOutput extends Component
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "rfts.act_id_ws")->
             leftJoin("master_plan", "master_plan.id", "=", "rfts.master_plan_id");
-            if ($this->dateFromFilter) $orderFilterSql->where('master_plan.tgl_plan', '>=', date('Y-m-d', strtotime('-10 days', strtotime($this->dateFromFilter))));
+            if ($this->dateFromFilter) $orderFilterSql->where('master_plan.tgl_plan', '>=', date('Y-m-d', strtotime('-120 days', strtotime($this->dateFromFilter))));
             if ($this->dateToFilter) $orderFilterSql->where('master_plan.tgl_plan', '<=', $this->dateToFilter);
             if ($this->groupBy == "size") $orderFilterSql->leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->leftJoin('so_det', function ($join) { $join->on('so_det.id_so', '=', 'so.id'); $join->on('so_det.color', '=', 'master_plan.color'); });
             if ($this->groupBy == "size" && $this->sizeFilter) $orderFilterSql->where('so_det.size', $this->sizeFilter);
@@ -212,7 +212,7 @@ class TrackOrderOutput extends Component
             $this->orderFilter = $orderFilterSql->get();
 
             $masterPlanDateFilter = " between '".$this->dateFromFilter." 00:00:00' and '".$this->dateToFilter." 23:59:59'";
-            $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-10 days', strtotime($this->dateFromFilter)))."' and '".$this->dateToFilter."'";
+            $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-120 days', strtotime($this->dateFromFilter)))."' and '".$this->dateToFilter."'";
 
         $dates = [];
         $outputMap = [];
@@ -270,7 +270,7 @@ class TrackOrderOutput extends Component
                 leftJoin("act_costing", "act_costing.id", "=", "rfts.act_id_ws")->
                 leftJoin('master_plan', 'master_plan.id', '=', 'rfts.master_plan_id');
                 if ($this->groupBy == "size") $dailyOrderGroupSql->leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->leftJoin('so_det', function ($join) { $join->on('so_det.id_so', '=', 'so.id'); $join->on('so_det.color', '=', 'rfts.color'); });
-                if ($this->dateFromFilter) $dailyOrderGroupSql->where('rfts.tanggal', '>=', date('Y-m-d', strtotime('-10 days', strtotime($this->dateFromFilter))));
+                if ($this->dateFromFilter) $dailyOrderGroupSql->where('rfts.tanggal', '>=', date('Y-m-d', strtotime('-120 days', strtotime($this->dateFromFilter))));
                 if ($this->dateToFilter) $dailyOrderGroupSql->where('rfts.tanggal', '<=', $this->dateToFilter);
                 if ($this->colorFilter) $dailyOrderGroupSql->where('rfts.color', $this->colorFilter);
                 if ($this->lineFilter) $dailyOrderGroupSql->where('rfts.sewing_line', $this->lineFilter);
