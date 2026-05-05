@@ -1,6 +1,18 @@
 @role('warehouse')
     <li class="nav-item dropdown">
         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+            class="nav-link dropdown-toggle {{ $subPageGroup == 'master-whs-soljer' ? 'active' : '' }}">Master</a>
+        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+            <li>
+                <a href="{{ route('master-barang-per-kategori') }}"
+                    class="dropdown-item {{ $routeName == 'master-barang-per-kategori' ? 'active' : '' }}">
+                    Master Barang
+                </a>
+            </li>
+        </ul>
+    </li>
+    <li class="nav-item dropdown">
+        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
             class="nav-link dropdown-toggle {{ $subPageGroup == 'penerimaan-whs-soljer' ? 'active' : '' }}">Penerimaan</a>
         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
             <li>
