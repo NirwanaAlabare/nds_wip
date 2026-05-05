@@ -157,7 +157,7 @@ class TrackOrderOutput extends Component
         // Query for Filtering
         $orderFilterSql = DB::connection('mysql_sb')->table(DB::raw("(
                 SELECT
-                    DATE(output_rfts.updated_at) tanggal,
+                    DATE(output_rfts".($this->outputType).".updated_at) tanggal,
                     master_plan.id_ws,
                     act_costing.id act_id_ws,
                     so_det.color,
@@ -175,7 +175,7 @@ class TrackOrderOutput extends Component
                         )
                     )."
                     LEFT JOIN master_plan on master_plan.id = output_rfts".($this->outputType).".master_plan_id
-                    LEFT JOIN so_det ON so_det.id = output_rfts.so_det_id
+                    LEFT JOIN so_det ON so_det.id = output_rfts".($this->outputType).".so_det_id
                     LEFT JOIN so ON so.id = so_det.id_so
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
                 WHERE
@@ -227,7 +227,7 @@ class TrackOrderOutput extends Component
             // Query for Grouping
             $dailyOrderGroupSql = DB::connection('mysql_sb')->table(DB::raw("(
                     SELECT
-                        coalesce( date( output_rfts.updated_at ), master_plan.tgl_plan ) tanggal,
+                        coalesce( date( output_rfts".($this->outputType).".updated_at ), master_plan.tgl_plan ) tanggal,
                         master_plan.id_ws,
                         output_rfts".($this->outputType).".master_plan_id,
                         userpassword.username sewing_line,
@@ -247,7 +247,7 @@ class TrackOrderOutput extends Component
                             )
                         )."
                         LEFT JOIN master_plan on master_plan.id = output_rfts".($this->outputType).".master_plan_id
-                        LEFT JOIN so_det on so_det.id = output_rfts.so_det_id
+                        LEFT JOIN so_det on so_det.id = output_rfts".($this->outputType).".so_det_id
                         LEFT JOIN so on so.id = so_det.id_so
                         LEFT JOIN act_costing ON act_costing.id = so.id_cost
                     WHERE
