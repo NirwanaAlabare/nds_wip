@@ -4132,7 +4132,7 @@ order by a.tgl_trans asc
                     ORDER BY ws asc, color asc, urutan asc
                 ");
 
-                return DataTables::of($rawDate)->toJson();
+                return DataTables::of($rawData)->toJson();
             }
         }
 
