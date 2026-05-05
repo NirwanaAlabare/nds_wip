@@ -5505,7 +5505,7 @@ order by a.tgl_trans asc
                             left join part_detail on part_detail.part_id = part.id
                             left join master_part mp on mp.id = part_detail.master_part_id
                         where
-		                    part.panel_status != 'COMPLEMENT' and part_detail.part_status != 'COMPLEMENT'
+                            part.panel_status != 'COMPLEMENT' and part_detail.part_status != 'COMPLEMENT'
                         group by
                             no_form,
                             id_so_det,
@@ -5514,22 +5514,22 @@ order by a.tgl_trans asc
                     )
 
                     select
-                        MAX(id_so_det) id_so_det ,
-                        MAX(no_form) no_form ,
-                        MAX(no_cut) no_cut ,
-                        MAX(created_at) created_at ,
-                        MAX(buyer) buyer ,
-                        MAX(ws) ws ,
-                        MAX(styleno) styleno ,
-                        MAX(color) color ,
-                        MAX(size) size ,
-                        MAX(dest) dest ,
-                        MAX(panel) panel ,
-                        MAX(panel_status) panel_status ,
-                        MAX(part_detail_id ) part_detail_id,
-                        MAX(nama_part) nama_part ,
-                        MAX(part_status) part_status ,
-                        SUM(qty_dc) qty_dc,
+                        MAX(stocker.id_so_det) id_so_det ,
+                        MAX(stocker.no_form) no_form ,
+                        MAX(stocker.no_cut) no_cut ,
+                        MAX(stocker.created_at) created_at ,
+                        MAX(stocker.buyer) buyer ,
+                        MAX(stocker.ws) ws ,
+                        MAX(stocker.styleno) styleno ,
+                        MAX(stocker.color) color ,
+                        MAX(stocker.size) size ,
+                        MAX(stocker.dest) dest ,
+                        MAX(stocker.panel) panel ,
+                        MAX(stocker.panel_status) panel_status ,
+                        MAX(stocker.part_detail_id ) part_detail_id,
+                        MAX(stocker.nama_part) nama_part ,
+                        MAX(stocker.part_status) part_status ,
+                        SUM(stocker.qty_dc) qty_dc,
                         '-' cancel,
                         '-' cancel_h,
                         '-' status,
@@ -5539,13 +5539,18 @@ order by a.tgl_trans asc
                         union all
                         select * from form_list
                     ) stocker
+                    LEFT JOIN master_sb_ws msb ON msb.id_so_det = stocker.id_so_det
                     group by
                         no_form,
-                        size,
+                        stocker.ws,
+                        stocker.color,
+                        stocker.size,
                         part_id,
                         part_detail_id
                     order by
                         no_form,
+                        ws,
+                        color,
                         size,
                         part_id,
                         part_detail_id
@@ -5754,7 +5759,7 @@ order by a.tgl_trans asc
                             left join part_detail on part_detail.part_id = part.id
                             left join master_part mp on mp.id = part_detail.master_part_id
                         where
-		                    part.panel_status != 'COMPLEMENT' and part_detail.part_status != 'COMPLEMENT'
+                            part.panel_status != 'COMPLEMENT' and part_detail.part_status != 'COMPLEMENT'
                         group by
                             no_form,
                             id_so_det,
@@ -5766,22 +5771,22 @@ order by a.tgl_trans asc
                         *, MIN(qty) qty_dc
                     FROM (
                         select
-                            MAX(id_so_det) id_so_det ,
-                            MAX(no_form) no_form ,
-                            MAX(no_cut) no_cut ,
-                            MAX(created_at) created_at ,
-                            MAX(buyer) buyer ,
-                            MAX(ws) ws ,
-                            MAX(styleno) styleno ,
-                            MAX(color) color ,
-                            MAX(size) size ,
-                            MAX(dest) dest ,
-                            MAX(panel) panel ,
-                            MAX(panel_status) panel_status ,
-                            MAX(part_detail_id ) part_detail_id,
-                            MAX(nama_part) nama_part ,
-                            MAX(part_status) part_status ,
-                            SUM(qty_dc) qty,
+                            MAX(stocker.id_so_det) id_so_det ,
+                            MAX(stocker.no_form) no_form ,
+                            MAX(stocker.no_cut) no_cut ,
+                            MAX(stocker.created_at) created_at ,
+                            MAX(stocker.buyer) buyer ,
+                            MAX(stocker.ws) ws ,
+                            MAX(stocker.styleno) styleno ,
+                            MAX(stocker.color) color ,
+                            MAX(stocker.size) size ,
+                            MAX(stocker.dest) dest ,
+                            MAX(stocker.panel) panel ,
+                            MAX(stocker.panel_status) panel_status ,
+                            MAX(stocker.part_detail_id ) part_detail_id,
+                            MAX(stocker.nama_part) nama_part ,
+                            MAX(stocker.part_status) part_status ,
+                            SUM(stocker.qty_dc) qty_dc,
                             '-' cancel,
                             '-' cancel_h,
                             '-' status,
@@ -5791,13 +5796,18 @@ order by a.tgl_trans asc
                             union all
                             select * from form_list
                         ) stocker
+                        LEFT JOIN master_sb_ws msb ON msb.id_so_det = stocker.id_so_det
                         group by
                             no_form,
-                            size,
+                            stocker.ws,
+                            stocker.color,
+                            stocker.size,
                             part_id,
                             part_detail_id
                         order by
                             no_form,
+                            ws,
+                            color,
                             size,
                             part_id,
                             part_detail_id
