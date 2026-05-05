@@ -85,8 +85,8 @@
                     <div class="col-6 col-md-3">
                         <div class="mb-1">
                             <label class="form-label"><small>Tgl BPB</small></label>
-                            <input type="text" class="form-control" id="tgl_bpb" name="tgl_bpb"
-                                value="{{ date('d-m-Y') }}" readonly>
+                            <input type="date" class="form-control" id="tgl_bpb" name="tgl_bpb" 
+                                value="{{ date('Y-m-d') }}">
                         </div>
                     </div>
                 </div>
