@@ -489,7 +489,9 @@ class StockerService
                 form_cut_input.no_cut,
                 form_cut_input.no_form AS no_form,
                 form_cut_input.waktu_selesai,
-                'GENERAL' AS type
+                'GENERAL' AS type,
+                marker_input.act_costing_ws,
+                marker_input.color
             FROM
                 `form_cut_input`
                 LEFT JOIN `part_form` ON `part_form`.`form_id` = `form_cut_input`.`id`
@@ -516,7 +518,9 @@ class StockerService
                 form_cut_piece.no_cut,
                 form_cut_piece.no_form AS no_form,
                 form_cut_piece.updated_at as waktu_selesai,
-                'PIECE' AS type
+                'PIECE' AS type,
+                form_cut_piece.act_costing_ws,
+                form_cut_piece.color
             FROM
                 `form_cut_piece`
                 LEFT JOIN `part_form` ON `part_form`.`form_pcs_id` = `form_cut_piece`.`id`
@@ -570,7 +574,7 @@ class StockerService
                     "no_cut" => $currentNumber
                 ]);
 
-                $stockerForm = Stocker::whereRaw("stocker_input.id_qr_stocker IS NOT NULL")->where("form_piece_id", $formCut->id_form)->whereNotNull("stocker_input.id_qr_stocker")->whereNull("stocker_input.stocker_reject")->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("so_det_id", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
+                $stockerForm = Stocker::where("act_costing_ws", $formCut->act_costing_ws)->where("color", $formCut->color)->whereRaw("stocker_input.id_qr_stocker IS NOT NULL")->where("form_piece_id", $formCut->id_form)->whereNotNull("stocker_input.id_qr_stocker")->whereNull("stocker_input.stocker_reject")->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("so_det_id", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
 
                 $currentStockerPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
                 $currentStockerSize = "";
@@ -631,7 +635,7 @@ class StockerService
                 }
 
                 // Adjust stocker data
-                $stockerForm = Stocker::withoutGlobalScopes()->where("form_cut_id", $formCut->id_form)->whereRaw("(`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%')")->whereNotNull("stocker_input.id_qr_stocker")->whereNull("stocker_input.stocker_reject")->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("so_det_id", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
+                $stockerForm = Stocker::withoutGlobalScopes()->where("act_costing_ws", $formCut->act_costing_ws)->where("color", $formCut->color)->where("form_cut_id", $formCut->id_form)->whereRaw("(`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%' OR notes NOT LIKE '%CANCEL%')")->whereNotNull("stocker_input.id_qr_stocker")->whereNull("stocker_input.stocker_reject")->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("so_det_id", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
 
                 $currentStockerPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
                 $currentStockerSize = "";
