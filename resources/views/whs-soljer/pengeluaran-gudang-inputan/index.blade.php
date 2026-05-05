@@ -21,11 +21,11 @@
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
                         <label class="form-label"><small>Tanggal Awal</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="dataTableReload()">
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal">
                     </div>
                     <div>
                         <label class="form-label"><small>Tanggal Akhir</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="dataTableReload()">
+                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
                     </div>
                     <div>
                         <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
@@ -113,9 +113,7 @@
             processing: true,
             serverSide: true,
             ordering: false,
-            scrollX: "500px",
-            scrollY: "500px",
-            pageLength: 50,
+            pageLength: 10,
             ajax: {
                 url: '{{ route('pengeluaran-gudang-inputan') }}',
                 data: function(d) {
