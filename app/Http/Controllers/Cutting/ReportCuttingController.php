@@ -5768,7 +5768,7 @@ order by a.tgl_trans asc
                     )
 
                     SELECT
-                        *, MIN(qty) qty_dc
+                        *, MIN(qty_dc) qty_dc
                     FROM (
                         select
                             MAX(stocker.id_so_det) id_so_det ,
