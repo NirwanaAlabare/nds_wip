@@ -96,6 +96,7 @@ use App\Http\Controllers\WarehouseController;
 use App\Http\Controllers\WhsSoljer\LaporanMutasiPerKategoriController;
 use App\Http\Controllers\WhsSoljer\LaporanPenerimaanPerKategoriController;
 use App\Http\Controllers\WhsSoljer\LaporanPengeluaranPerKategoriController;
+use App\Http\Controllers\WhsSoljer\MasterBarangPerKategoriController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanAccesoriesController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanFgController;
@@ -1415,6 +1416,16 @@ Route::middleware('auth')->group(function () {
     Route::controller(LaporanMutasiPerKategoriController::class)->prefix("laporan-mutasi-per-kategori")->middleware('role:warehouse')->group(function () {
         Route::get('/', 'index')->name('laporan-mutasi-per-kategori');
         Route::post('/export', 'export')->name('export-laporan-mutasi-per-kategori');
+    });
+
+    Route::controller(MasterBarangPerKategoriController::class)->prefix("master-barang-per-kategori")->middleware('role:warehouse')->group(function () {
+        Route::get('/', 'index')->name('master-barang-per-kategori');
+        Route::get('/history-fabric', 'historyFabric')->name('history-fabric-master-barang-per-kategori');
+        Route::get('/history-detail-fabric', 'historyDetailFabric')->name('history-detail-fabric-master-barang-per-kategori');
+        Route::get('/history-accesories', 'historyAccesories')->name('history-accesories-master-barang-per-kategori');
+        Route::get('/history-detail-accesories', 'historyDetailAccesories')->name('history-detail-accesories-master-barang-per-kategori');
+        Route::get('/history-fg', 'historyFg')->name('history-fg-master-barang-per-kategori');
+        Route::get('/history-detail-fg', 'historyDetailFg')->name('history-detail-fg-master-barang-per-kategori');
     });
 });
 
