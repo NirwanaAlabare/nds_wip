@@ -102,7 +102,7 @@ class export_excel_report_mut_wip_cutting_detail implements FromView, ShouldAuto
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '$tgl_saldo'
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) < '$start_date'
                                 AND ( marker_input_detail.ratio > 0 OR ( similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0 ))
-                                AND part_detail.part_status != 'complement'
+                                AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                             GROUP BY
                                 form_cut_input.id,
                                 form_cut_input_detail.group_stocker,
@@ -154,7 +154,7 @@ class export_excel_report_mut_wip_cutting_detail implements FromView, ShouldAuto
                                 DATE( form_cut_piece.updated_at ) >= '$tgl_saldo'
                                 AND DATE( form_cut_piece.updated_at ) < '$start_date'
                                 AND form_cut_piece_detail.STATUS = 'complete'
-                                AND part_detail.part_status != 'complement'
+                                AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                             GROUP BY
                                 form_cut_piece.id,
                                 form_cut_piece_detail.group_stocker,
@@ -227,7 +227,7 @@ class export_excel_report_mut_wip_cutting_detail implements FromView, ShouldAuto
                                 AND ( stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 )
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '$tgl_saldo'
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) < '$start_date'
-                                AND part_detail.part_status != 'complement'
+                                AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                             GROUP BY
                                 form_cut_input.id,
                                 form_cut_input_detail.group_stocker,
@@ -310,7 +310,7 @@ class export_excel_report_mut_wip_cutting_detail implements FromView, ShouldAuto
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '$start_date'
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '$end_date'
                                 AND ( marker_input_detail.ratio > 0 OR ( similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0 ))
-                                AND part_detail.part_status != 'complement'
+                                AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                             GROUP BY
                                 form_cut_input.id,
                                 form_cut_input_detail.group_stocker,
@@ -363,7 +363,7 @@ class export_excel_report_mut_wip_cutting_detail implements FromView, ShouldAuto
                                 DATE( form_cut_piece.updated_at ) >= '$start_date'
                                 AND DATE( form_cut_piece.updated_at ) <= '$end_date'
                                 AND form_cut_piece_detail.STATUS = 'complete'
-                                AND part_detail.part_status != 'complement'
+                                AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                             GROUP BY
                                 form_cut_piece.id,
                                 form_cut_piece_detail.group_stocker,
@@ -437,7 +437,7 @@ class export_excel_report_mut_wip_cutting_detail implements FromView, ShouldAuto
                                 AND ( stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 )
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '$start_date'
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '$end_date'
-                                AND part_detail.part_status != 'complement'
+                                AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                             GROUP BY
                                 form_cut_input.id,
                                 form_cut_input_detail.group_stocker,
@@ -570,7 +570,7 @@ class export_excel_report_mut_wip_cutting_detail implements FromView, ShouldAuto
                                 left join part_detail on part_detail.part_id = part.id
                                 left join master_part mp on mp.id = part_detail.master_part_id
                             where
-                            part.panel_status != 'COMPLEMENT' and part_detail.part_status != 'COMPLEMENT'
+                            part.panel_status != 'COMPLEMENT' AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                             group by
                                 no_form,
                                 id_so_det,
@@ -733,7 +733,7 @@ class export_excel_report_mut_wip_cutting_detail implements FromView, ShouldAuto
                                 left join part_detail on part_detail.part_id = part.id
                                 left join master_part mp on mp.id = part_detail.master_part_id
                             where
-                            part.panel_status != 'COMPLEMENT' and part_detail.part_status != 'COMPLEMENT'
+                            part.panel_status != 'COMPLEMENT' AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                             group by
                                 no_form,
                                 id_so_det,
@@ -805,9 +805,9 @@ class export_excel_report_mut_wip_cutting_detail implements FromView, ShouldAuto
                         k.status
                     FROM
                     (
-                        SELECT id_so_det, part_id, COALESCE(part_panel, panel) as panel, panel_status, part_detail_id, master_part_id, nama_part, part_status, sum(qty) qty_cut_awal, 0 as qty_dc_awal, 0 AS qty_cut, 0 AS qty_dc, 0 as qty_replace FROM cutt_awal WHERE part_status != 'complement' group by id_so_det, part_detail_id
+                        SELECT id_so_det, part_id, COALESCE(part_panel, panel) as panel, panel_status, part_detail_id, master_part_id, nama_part, part_status, sum(qty) qty_cut_awal, 0 as qty_dc_awal, 0 AS qty_cut, 0 AS qty_dc, 0 as qty_replace FROM cutt_awal WHERE (part_status != 'complement' OR part_status IS NULL) group by id_so_det, part_detail_id
                         UNION ALL
-                        SELECT id_so_det, part_id, COALESCE(part_panel, panel) as panel, panel_status, part_detail_id, master_part_id, nama_part, part_status, 0 AS qty_cut_awal, 0 AS qty_dc_awal, sum(qty) qty_cut, 0 AS qty_dc, 0 as qty_replace FROM cutt_in WHERE part_status != 'complement' group by id_so_det, part_detail_id
+                        SELECT id_so_det, part_id, COALESCE(part_panel, panel) as panel, panel_status, part_detail_id, master_part_id, nama_part, part_status, 0 AS qty_cut_awal, 0 AS qty_dc_awal, sum(qty) qty_cut, 0 AS qty_dc, 0 as qty_replace FROM cutt_in WHERE (part_status != 'complement' OR part_status IS NULL) group by id_so_det, part_detail_id
                         UNION ALL
                         SELECT id_so_det, part_id, panel, panel_status, part_detail_id, master_part_id, nama_part, part_status, 0 AS qty_cut_awal, sum(qty_dc) AS qty_dc_awal, 0 as qty_cutt, 0 as qty_dc, 0 as qty_replace FROM dc_awal group by id_so_det, part_detail_id
                         UNION ALL
