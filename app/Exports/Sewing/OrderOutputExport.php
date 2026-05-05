@@ -56,7 +56,7 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
 
         $orderGroupSql = DB::connection('mysql_sb')->table(DB::raw("(
                     SELECT
-                        coalesce( date( output_rfts.updated_at ), master_plan.tgl_plan ) tanggal,
+                        coalesce( date( output_rfts".($this->outputType).".updated_at ), master_plan.tgl_plan ) tanggal,
                         master_plan.id_ws,
                         output_rfts".($this->outputType).".master_plan_id,
                         userpassword.username sewing_line,
@@ -76,7 +76,7 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                             )
                         )."
                         LEFT JOIN master_plan on master_plan.id = output_rfts".($this->outputType).".master_plan_id
-                        LEFT JOIN so_det on so_det.id = output_rfts.so_det_id
+                        LEFT JOIN so_det on so_det.id = output_rfts".($this->outputType).".so_det_id
                         LEFT JOIN so on so.id = so_det.id_so
                         LEFT JOIN act_costing ON act_costing.id = so.id_cost
                     WHERE

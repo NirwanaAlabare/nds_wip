@@ -490,8 +490,7 @@ class StockerService
                 form_cut_input.no_form AS no_form,
                 form_cut_input.waktu_selesai,
                 'GENERAL' AS type,
-                marker_input.act_costing_ws,
-                marker_input.color
+                marker_input.act_costing_ws
             FROM
                 `form_cut_input`
                 LEFT JOIN `part_form` ON `part_form`.`form_id` = `form_cut_input`.`id`
@@ -519,8 +518,7 @@ class StockerService
                 form_cut_piece.no_form AS no_form,
                 form_cut_piece.updated_at as waktu_selesai,
                 'PIECE' AS type,
-                form_cut_piece.act_costing_ws,
-                form_cut_piece.color
+                form_cut_piece.act_costing_ws
             FROM
                 `form_cut_piece`
                 LEFT JOIN `part_form` ON `part_form`.`form_pcs_id` = `form_cut_piece`.`id`

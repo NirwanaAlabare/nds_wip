@@ -17,6 +17,7 @@ use App\Models\Dc\LoadingLinePlan;
 use App\Models\Dc\LoadingLine;
 use App\Models\SignalBit\UserLine;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Carbon\Carbon;
@@ -64,6 +65,8 @@ class ImportStockerManual implements ToCollection, WithStartRow
 
             return $convertedDate;
         }
+
+        $batch = Str::uuid();
 
         $i = 0;
         foreach ($rows as $row)
@@ -211,8 +214,8 @@ class ImportStockerManual implements ToCollection, WithStartRow
                         'so_det_id' => $orderInfo[0]->id,
                         'color' => $color,
                         'panel' => $panelText,
-                        'shade' => $stockerId,
-                        'group_stocker' => $stockerId,
+                        'shade' => $batch,
+                        'group_stocker' => $batch,
                         'ratio' => 1,
                         'size' => $size,
                         'qty_ply' => $stockerQty,
@@ -221,7 +224,8 @@ class ImportStockerManual implements ToCollection, WithStartRow
                         'notes' => $stockerNotes,
                         'status' => $stockerStatus,
                         'created_by' => Auth::user()->id,
-                        'created_by_username' => Auth::user()->username
+                        'created_by_username' => Auth::user()->username,
+                        'created_at' => Carbon::instance(dateConvert($tanggal))->format('Y-m-d')." 01:00:00",
                     ]);
 
                     if ($createStocker) {
