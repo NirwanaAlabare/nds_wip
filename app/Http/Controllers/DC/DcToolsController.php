@@ -346,28 +346,28 @@ class DcToolsController extends Controller
                 }
 
                 // Check SecondaryInhouse
-                if (SecondaryInhouse::where("id_qr_stocker", $idQrStocker)->exists()) {
-                    $errors[] = $idQrStocker . " - Secondary Inhouse sudah ada";
-                    continue;
-                }
+                // if (SecondaryInhouse::where("id_qr_stocker", $idQrStocker)->exists()) {
+                //     $errors[] = $idQrStocker . " - Secondary Inhouse sudah ada";
+                //     continue;
+                // }
 
-                // Check SecondaryIn
-                if (SecondaryIn::where("id_qr_stocker", $idQrStocker)->exists()) {
-                    $errors[] = $idQrStocker . " - Secondary In sudah ada";
-                    continue;
-                }
+                // // Check SecondaryIn
+                // if (SecondaryIn::where("id_qr_stocker", $idQrStocker)->exists()) {
+                //     $errors[] = $idQrStocker . " - Secondary In sudah ada";
+                //     continue;
+                // }
 
-                // Check TrolleyStocker
-                if (TrolleyStocker::where("stocker_id", $stocker->id)->exists()) {
-                    $errors[] = $idQrStocker . " - Trolley Stocker sudah ada";
-                    continue;
-                }
+                // // Check TrolleyStocker
+                // if (TrolleyStocker::where("stocker_id", $stocker->id)->exists()) {
+                //     $errors[] = $idQrStocker . " - Trolley Stocker sudah ada";
+                //     continue;
+                // }
 
-                // Check LoadingLine
-                if (LoadingLine::where("stocker_id", $stocker->id)->exists()) {
-                    $errors[] = $idQrStocker . " - Loading Line sudah ada";
-                    continue;
-                }
+                // // Check LoadingLine
+                // if (LoadingLine::where("stocker_id", $stocker->id)->exists()) {
+                //     $errors[] = $idQrStocker . " - Loading Line sudah ada";
+                //     continue;
+                // }
 
                 $validStockers[] = $idQrStocker;
             }

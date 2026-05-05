@@ -157,7 +157,7 @@ class TrackOrderOutput extends Component
         // Query for Filtering
         $orderFilterSql = DB::connection('mysql_sb')->table(DB::raw("(
                 SELECT
-                    DATE(output_rfts.updated_at) tanggal,
+                    DATE(output_rfts".($this->outputType).".updated_at) tanggal,
                     master_plan.id_ws,
                     act_costing.id act_id_ws,
                     so_det.color,
@@ -175,7 +175,7 @@ class TrackOrderOutput extends Component
                         )
                     )."
                     LEFT JOIN master_plan on master_plan.id = output_rfts".($this->outputType).".master_plan_id
-                    LEFT JOIN so_det ON so_det.id = output_rfts.so_det_id
+                    LEFT JOIN so_det ON so_det.id = output_rfts".($this->outputType).".so_det_id
                     LEFT JOIN so ON so.id = so_det.id_so
                     LEFT JOIN act_costing ON act_costing.id = so.id_cost
                 WHERE
@@ -197,7 +197,7 @@ class TrackOrderOutput extends Component
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "rfts.act_id_ws")->
             leftJoin("master_plan", "master_plan.id", "=", "rfts.master_plan_id");
-            if ($this->dateFromFilter) $orderFilterSql->where('master_plan.tgl_plan', '>=', date('Y-m-d', strtotime('-10 days', strtotime($this->dateFromFilter))));
+            if ($this->dateFromFilter) $orderFilterSql->where('master_plan.tgl_plan', '>=', date('Y-m-d', strtotime('-120 days', strtotime($this->dateFromFilter))));
             if ($this->dateToFilter) $orderFilterSql->where('master_plan.tgl_plan', '<=', $this->dateToFilter);
             if ($this->groupBy == "size") $orderFilterSql->leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->leftJoin('so_det', function ($join) { $join->on('so_det.id_so', '=', 'so.id'); $join->on('so_det.color', '=', 'master_plan.color'); });
             if ($this->groupBy == "size" && $this->sizeFilter) $orderFilterSql->where('so_det.size', $this->sizeFilter);
@@ -212,7 +212,7 @@ class TrackOrderOutput extends Component
             $this->orderFilter = $orderFilterSql->get();
 
             $masterPlanDateFilter = " between '".$this->dateFromFilter." 00:00:00' and '".$this->dateToFilter." 23:59:59'";
-            $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-10 days', strtotime($this->dateFromFilter)))."' and '".$this->dateToFilter."'";
+            $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-120 days', strtotime($this->dateFromFilter)))."' and '".$this->dateToFilter."'";
 
         $dates = [];
         $outputMap = [];
@@ -227,7 +227,7 @@ class TrackOrderOutput extends Component
             // Query for Grouping
             $dailyOrderGroupSql = DB::connection('mysql_sb')->table(DB::raw("(
                     SELECT
-                        coalesce( date( output_rfts.updated_at ), master_plan.tgl_plan ) tanggal,
+                        coalesce( date( output_rfts".($this->outputType).".updated_at ), master_plan.tgl_plan ) tanggal,
                         master_plan.id_ws,
                         output_rfts".($this->outputType).".master_plan_id,
                         userpassword.username sewing_line,
@@ -247,7 +247,7 @@ class TrackOrderOutput extends Component
                             )
                         )."
                         LEFT JOIN master_plan on master_plan.id = output_rfts".($this->outputType).".master_plan_id
-                        LEFT JOIN so_det on so_det.id = output_rfts.so_det_id
+                        LEFT JOIN so_det on so_det.id = output_rfts".($this->outputType).".so_det_id
                         LEFT JOIN so on so.id = so_det.id_so
                         LEFT JOIN act_costing ON act_costing.id = so.id_cost
                     WHERE
@@ -270,7 +270,7 @@ class TrackOrderOutput extends Component
                 leftJoin("act_costing", "act_costing.id", "=", "rfts.act_id_ws")->
                 leftJoin('master_plan', 'master_plan.id', '=', 'rfts.master_plan_id');
                 if ($this->groupBy == "size") $dailyOrderGroupSql->leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->leftJoin('so_det', function ($join) { $join->on('so_det.id_so', '=', 'so.id'); $join->on('so_det.color', '=', 'rfts.color'); });
-                if ($this->dateFromFilter) $dailyOrderGroupSql->where('rfts.tanggal', '>=', date('Y-m-d', strtotime('-10 days', strtotime($this->dateFromFilter))));
+                if ($this->dateFromFilter) $dailyOrderGroupSql->where('rfts.tanggal', '>=', date('Y-m-d', strtotime('-120 days', strtotime($this->dateFromFilter))));
                 if ($this->dateToFilter) $dailyOrderGroupSql->where('rfts.tanggal', '<=', $this->dateToFilter);
                 if ($this->colorFilter) $dailyOrderGroupSql->where('rfts.color', $this->colorFilter);
                 if ($this->lineFilter) $dailyOrderGroupSql->where('rfts.sewing_line', $this->lineFilter);

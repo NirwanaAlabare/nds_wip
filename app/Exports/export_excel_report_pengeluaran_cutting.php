@@ -522,22 +522,22 @@ class export_excel_report_pengeluaran_cutting implements FromView, ShouldAutoSiz
             )
 
             select
-                MAX(id_so_det) id_so_det ,
-                MAX(no_form) no_form ,
-                MAX(no_cut) no_cut ,
-                MAX(created_at) created_at ,
-                MAX(buyer) buyer ,
-                MAX(ws) ws ,
-                MAX(styleno) styleno ,
-                MAX(color) color ,
-                MAX(size) size ,
-                MAX(dest) dest ,
-                MAX(panel) panel ,
-                MAX(panel_status) panel_status ,
-                MAX(part_detail_id ) part_detail_id,
-                MAX(nama_part) nama_part ,
-                MAX(part_status) part_status ,
-                SUM(qty_dc) qty_dc,
+                MAX(stocker.id_so_det) id_so_det ,
+                MAX(stocker.no_form) no_form ,
+                MAX(stocker.no_cut) no_cut ,
+                MAX(stocker.created_at) created_at ,
+                MAX(stocker.buyer) buyer ,
+                MAX(stocker.ws) ws ,
+                MAX(stocker.styleno) styleno ,
+                MAX(stocker.color) color ,
+                MAX(stocker.size) size ,
+                MAX(stocker.dest) dest ,
+                MAX(stocker.panel) panel ,
+                MAX(stocker.panel_status) panel_status ,
+                MAX(stocker.part_detail_id ) part_detail_id,
+                MAX(stocker.nama_part) nama_part ,
+                MAX(stocker.part_status) part_status ,
+                SUM(stocker.qty_dc) qty_dc,
                 '-' cancel,
                 '-' cancel_h,
                 '-' status,
@@ -547,13 +547,18 @@ class export_excel_report_pengeluaran_cutting implements FromView, ShouldAutoSiz
                 union all
                 select * from form_list
             ) stocker
+            LEFT JOIN master_sb_ws msb ON msb.id_so_det = stocker.id_so_det
             group by
                 no_form,
-                size,
+                stocker.ws,
+                stocker.color,
+                stocker.size,
                 part_id,
                 part_detail_id
             order by
                 no_form,
+                ws,
+                color,
                 size,
                 part_id,
                 part_detail_id

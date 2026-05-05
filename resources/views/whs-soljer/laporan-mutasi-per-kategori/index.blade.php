@@ -21,15 +21,15 @@
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
                         <label class="form-label"><small>Tanggal Awal</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="dataTableReload()">
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal">
                     </div>
                     <div>
                         <label class="form-label"><small>Tanggal Akhir</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="dataTableReload()">
+                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
                     </div>
                     <div>
                         <label class='form-label'><small>Kategori</small></label>
-                        <select class="form-select form-select-sm" id="kategori" name="kategori" style="width: 100%;"  onchange="dataTableReload()">
+                        <select class="form-select form-select-sm" id="kategori" name="kategori" style="width: 100%;">
                             <option selected="selected" value="" disabled="true">- Pilih Kategori -</option>
                             <option value="FABRIC">FABRIC</option>
                             <option value="ACCESORIES">ACCESORIES</option>
