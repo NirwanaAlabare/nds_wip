@@ -3472,7 +3472,7 @@ order by a.tgl_trans asc
                             marker_input_detail.id
                         UNION ALL
                         SELECT
-                            COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) tanggal,
+                            COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) tanggal,
                             '-' meja,
                             form_cut_piece.act_costing_ws worksheet,
                             form_cut_piece.buyer,
@@ -3497,8 +3497,9 @@ order by a.tgl_trans asc
                             LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
                             LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                         WHERE
-                            DATE(form_cut_piece.updated_at) >= '$tgl_saldo' and DATE(form_cut_piece.updated_at) < '$start_date'
-                                            and form_cut_piece_detail.status = 'complete'
+                            COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$tgl_saldo'
+                            and COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) < '$start_date'
+                            and form_cut_piece_detail.status = 'complete'
                         GROUP BY
                             form_cut_piece.id,
                             form_cut_piece_detail.group_stocker,
@@ -3646,7 +3647,7 @@ order by a.tgl_trans asc
                                     marker_input_detail.id
                                 UNION ALL
                                 SELECT
-                                    COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) tanggal,
+                                    COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) tanggal,
                                     '-' meja,
                                     form_cut_piece.act_costing_ws worksheet,
                                     form_cut_piece.buyer,
@@ -3671,8 +3672,9 @@ order by a.tgl_trans asc
                                     LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
                                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                                 WHERE
-                                    DATE(form_cut_piece.updated_at) >= '$start_date' and DATE(form_cut_piece.updated_at) <= '$end_date'
-                                                    and form_cut_piece_detail.status = 'complete'
+                                    COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$start_date'
+                                    and COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) <= '$end_date'
+                                    and form_cut_piece_detail.status = 'complete'
                                 GROUP BY
                                     form_cut_piece.id,
                                     form_cut_piece_detail.group_stocker,
@@ -4236,7 +4238,7 @@ order by a.tgl_trans asc
                                 part_detail_id
                         UNION ALL
                             SELECT
-                                COALESCE(DATE( form_cut_piece.updated_at ),DATE( form_cut_piece.created_at ),DATE( form_cut_piece.tanggal )) tanggal,
+                                COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) tanggal,
                                 '-' meja,
                                 form_cut_piece.act_costing_ws worksheet,
                                 form_cut_piece.buyer,
@@ -4277,8 +4279,8 @@ order by a.tgl_trans asc
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
                             WHERE
-                                DATE( form_cut_piece.updated_at ) >= '$tgl_saldo'
-                                AND DATE( form_cut_piece.updated_at ) < '$start_date'
+                                COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$tgl_saldo'
+                                AND COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) < '$start_date'
                                 AND form_cut_piece_detail.STATUS = 'complete'
                                 AND part_detail.part_status != 'complement'
                             GROUP BY
@@ -4444,7 +4446,7 @@ order by a.tgl_trans asc
                                 part_detail_id
                         UNION ALL
                             SELECT
-                                COALESCE(DATE( form_cut_piece.updated_at ),DATE( form_cut_piece.created_at ),DATE( form_cut_piece.tanggal )) tanggal,
+                                COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) tanggal,
                                 '-' meja,
                                 form_cut_piece.act_costing_ws worksheet,
                                 form_cut_piece.buyer,
@@ -4486,8 +4488,8 @@ order by a.tgl_trans asc
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
                             WHERE
-                                DATE( form_cut_piece.updated_at ) >= '$start_date'
-                                AND DATE( form_cut_piece.updated_at ) <= '$end_date'
+                                COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$start_date'
+                                AND COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) <= '$end_date'
                                 AND form_cut_piece_detail.STATUS = 'complete'
                                 AND part_detail.part_status != 'complement'
                             GROUP BY

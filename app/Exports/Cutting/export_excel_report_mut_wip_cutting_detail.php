@@ -110,7 +110,7 @@ class export_excel_report_mut_wip_cutting_detail implements FromView, ShouldAuto
                                 part_detail_id
                         UNION ALL
                             SELECT
-                                COALESCE(DATE( form_cut_piece.updated_at ),DATE( form_cut_piece.created_at ),DATE( form_cut_piece.tanggal )) tanggal,
+                                COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) tanggal,
                                 '-' meja,
                                 form_cut_piece.act_costing_ws worksheet,
                                 form_cut_piece.buyer,
@@ -151,8 +151,8 @@ class export_excel_report_mut_wip_cutting_detail implements FromView, ShouldAuto
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
                             WHERE
-                                DATE( form_cut_piece.updated_at ) >= '$tgl_saldo'
-                                AND DATE( form_cut_piece.updated_at ) < '$start_date'
+                                COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$tgl_saldo'
+                                AND COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) < '$start_date'
                                 AND form_cut_piece_detail.STATUS = 'complete'
                                 AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                             GROUP BY
@@ -318,7 +318,7 @@ class export_excel_report_mut_wip_cutting_detail implements FromView, ShouldAuto
                                 part_detail_id
                         UNION ALL
                             SELECT
-                                COALESCE(DATE( form_cut_piece.updated_at ),DATE( form_cut_piece.created_at ),DATE( form_cut_piece.tanggal )) tanggal,
+                                COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) tanggal,
                                 '-' meja,
                                 form_cut_piece.act_costing_ws worksheet,
                                 form_cut_piece.buyer,
@@ -360,8 +360,8 @@ class export_excel_report_mut_wip_cutting_detail implements FromView, ShouldAuto
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
                             WHERE
-                                DATE( form_cut_piece.updated_at ) >= '$start_date'
-                                AND DATE( form_cut_piece.updated_at ) <= '$end_date'
+                                COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$start_date'
+                                AND COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) <= '$end_date'
                                 AND form_cut_piece_detail.STATUS = 'complete'
                                 AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                             GROUP BY
