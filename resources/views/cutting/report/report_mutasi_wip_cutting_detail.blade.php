@@ -37,7 +37,7 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Report Mutasi WIP Cutting</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Report Mutasi WIP Cutting Detail</h5>
         </div>
 
         <div class="card-body">
@@ -83,6 +83,7 @@
                             <th class="text-center align-middle">Color</th>
                             <th class="text-center align-middle">Size</th>
                             <th class="text-center align-middle">Panel</th>
+                            <th class="text-center align-middle">Part</th>
                             <th class="text-center align-middle">Saldo Awal</th>
                             <th class="text-center align-middle">In</th>
                             <th class="text-center align-middle">Replacement</th>
@@ -172,7 +173,7 @@
                 processing: false,
 
                 ajax: {
-                    url: '{{ route('report_mutasi_wip_cutting') }}',
+                    url: '{{ route('report_mutasi_wip_cutting_detail') }}',
                     data(d) {
                         d.start_date = start_date;
                         d.end_date = end_date;
@@ -206,6 +207,9 @@
                         data: 'panel'
                     },
                     {
+                        data: 'nama_part'
+                    },
+                    {
                         data: 'saldo_awal',
                         className: 'text-end'
                     },
@@ -225,7 +229,6 @@
                         data: 'saldo_akhir',
                         className: 'text-end'
                     },
-
                 ],
 
                 initComplete: function() {
@@ -257,7 +260,7 @@
 
             $.ajax({
                 type: "get",
-                url: '{{ route('export_excel_report_mut_wip_cutting') }}',
+                url: '{{ route('export_excel_report_mut_wip_cutting_detail') }}',
                 data: {
                     start_date: start_date,
                     end_date: end_date

@@ -168,6 +168,12 @@
                     </a>
                 </li>
                 <li>
+                    <a href="{{ route('report_mutasi_wip_cutting_detail') }}"
+                        class="dropdown-item {{ $routeName == 'report_mutasi_wip_cutting_detail' ? 'active' : '' }}">
+                        Mutasi WIP Cutting Detail <i class="fa fa-list"></i>
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('report_pengeluaran_cutting') }}"
                         class="dropdown-item {{ $routeName == 'report_pengeluaran_cutting' ? 'active' : '' }}">
                         Pengeluaran Cutting <i class="fa fa-list"></i>
