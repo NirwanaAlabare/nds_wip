@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\WhsSoljer;
 
+use App\Exports\WhsSoljer\MasterBarangPerKategoriExport;
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use DB;
@@ -395,5 +396,11 @@ class MasterBarangPerKategoriController extends Controller
         "));
 
         return DataTables::queryBuilder($data)->make(true);
+    }
+
+    public function export(Request $request) {
+        $kategori = $request->kategori;
+
+        return Excel::download(new MasterBarangPerKategoriExport($kategori), 'master-barang-per-kategori.xlsx');
     }
 }

@@ -46,11 +46,11 @@
                         <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
                     </div>
                 </div>
-                {{-- <div class="d-flex align-items-end gap-3 mb-3">
+                <div class="d-flex align-items-end gap-3 mb-3">
                     <div class="mb-3">
                         <button class="btn btn-success btn-sm" id="exportExcel" data-bs-toggle="tooltip" data-bs-title="Export Excel" onclick="exportExcel()" disabled><i class="fa fa-file-excel"></i></button>
                     </div>
-                </div> --}}
+                </div>
             </div>
             <div id="table-fabric" class="table-responsive">
                 <table id="datatable-fabric" class="table table-bordered table-striped table-hover table w-100">
@@ -870,6 +870,46 @@
                     { data: 'lokasi' },
                 ]
             });
+        }
+
+        async function exportExcel() {
+            Swal.fire({
+                title: "Exporting",
+                html: "Please Wait...",
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+            });
+
+            await $.ajax({
+                url: "{{ route("export-master-barang-per-kategori") }}",
+                type: "post",
+                data: {
+                    kategori : $("#kategori").val()
+                },
+                xhrFields: { responseType : 'blob' },
+                success: function (res) {
+                    Swal.close();
+
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Success',
+                        position: 'topCenter'
+                    });
+
+                    var blob = new Blob([res]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Master Barang "+$("#kategori").val()+".xlsx";
+                    link.click();
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
+                }
+            });
+
+            Swal.close();
         }
 
     </script>
