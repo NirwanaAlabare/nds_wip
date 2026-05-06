@@ -218,6 +218,26 @@
                             </tr>
                         @endforelse
                     </tbody>
+                    <tfoot class="bg-sb text-white fw-bold" id="tfoot-po-items" style="display: none;">
+                        <tr>
+                            <td colspan="3" class="text-right align-middle border-right-0">GRAND TOTAL :</td>
+                            <td class="text-center align-middle" id="tot-stok">0.00</td>
+                            <td class="text-center align-middle" id="tot-bom">0.00</td>
+                            <td class="text-center align-middle" id="tot-need">0.00</td>
+                            <td class="text-center align-middle" id="tot-blc">0.00</td>
+                            <td class="text-center align-middle" id="tot-qty-pr">0.00</td>
+                            <td class="align-middle border-0"></td>
+                            <td class="text-center align-middle" id="tot-convert">0.00</td>
+                            <td class="align-middle border-0"></td>
+                            <td class="text-center align-middle" id="tot-qty-pr-conv">0.00</td>
+                            <td class="align-middle border-0"></td>
+                            <td class="text-right align-middle" id="tot-price-costing">0.00</td>
+                            <td class="text-right align-middle" id="tot-price-costing-conv">0.00</td>
+                            <td class="text-right align-middle" id="tot-price-pr">0.00</td>
+                            <td class="align-middle"></td>
+                        </tr>
+                    </tfoot>
+                </table>
                 </table>
             </div>
 
@@ -631,6 +651,7 @@
             $('.check-item, #check-all-items').prop('checked', false);
             $('#search_item_filter').val('').trigger('keyup');
             Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Item berhasil ditambahkan.', showConfirmButton: false, timer: 1500 });
+            hitungTotalPOItems();
         });
 
         $('#search_po_table').on('keyup', function() {
@@ -681,6 +702,8 @@
                         $('#table-po-items tbody').append(`<tr id="empty-row-item"><td colspan="17" class="text-center font-italic text-muted">Belum ada item yang dipilih. Silakan klik "Pilih Item".</td></tr>`);
                     }
                     Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Item berhasil dihapus.', showConfirmButton: false, timer: 1500 });
+
+                    hitungTotalPOItems();
                 }
             });
         });
@@ -693,6 +716,7 @@
                 $('#table-po-items tbody').append(`<tr id="empty-row-item"><td colspan="17" class="text-center font-italic text-muted">Belum ada item yang dipilih. Silakan klik "Pilih Item".</td></tr>`);
                 $('#check-all-po-items').prop('checked', false);
             }
+            hitungTotalPOItems();
         });
 
         $(document).on('keyup input', '.val-stok', function() {
@@ -703,6 +727,7 @@
             let need = Math.max(0, bom - stok);
             tr.find('.val-need').val(need);
             tr.find('.val-blc').val(need);
+            hitungTotalPOItems();
         });
 
         function calculatePoRow(tr) {
@@ -724,10 +749,13 @@
             tr.find('input[name="qty_pr_conv[]"]').val(parseFloat(qtyPrConv.toFixed(4)));
             tr.find('input[name="unit_pr_conv[]"]').val(finalUnit);
             tr.find('input[name="price_costing_conv[]"]').val(parseFloat(priceCostingConv.toFixed(4)));
+
+            hitungTotalPOItems();
         }
 
         $(document).on('keyup change', 'input[name="qty_pr[]"], input[name="convert[]"], select[name="unit_convert[]"], input[name="price_costing[]"]', function() {
             calculatePoRow($(this).closest('tr'));
+            hitungTotalPOItems();
         });
 
         $('#form-edit-po').on('submit', function(e) {
@@ -781,6 +809,44 @@
 
             console.log('Modal clear');
         });
+
+        function hitungTotalPOItems() {
+            let rowCount = $('#table-po-items tbody tr.po-item-row').length;
+            if (rowCount === 0) {
+                $('#tfoot-po-items').hide();
+                return;
+            } else {
+                $('#tfoot-po-items').show();
+            }
+
+            let tStok = 0, tBom = 0, tNeed = 0, tBlc = 0, tQtyPr = 0, tConvert = 0, tQtyPrConv = 0, tPriceCosting = 0, tPriceCostingConv = 0, tPricePr = 0;
+
+            $('#table-po-items tbody tr.po-item-row').each(function() {
+                tStok += parseNum($(this).find('input[name="stok_item[]"]').val());
+                tBom += parseNum($(this).find('input[name="qty_bom[]"]').val());
+                tNeed += parseNum($(this).find('input[name="qty_need[]"]').val());
+                tBlc += parseNum($(this).find('input[name="blc_pr[]"]').val());
+                tQtyPr += parseNum($(this).find('input[name="qty_pr[]"]').val());
+                tConvert += parseNum($(this).find('input[name="convert[]"]').val());
+                tQtyPrConv += parseNum($(this).find('input[name="qty_pr_conv[]"]').val());
+                tPriceCosting += parseNum($(this).find('input[name="price_costing[]"]').val());
+                tPriceCostingConv += parseNum($(this).find('input[name="price_costing_conv[]"]').val());
+                tPricePr += parseNum($(this).find('input[name="price_pr[]"]').val());
+            });
+
+            $('#tot-stok').text(formatIDR(tStok));
+            $('#tot-bom').text(formatIDR(tBom));
+            $('#tot-need').text(formatIDR(tNeed));
+            $('#tot-blc').text(formatIDR(tBlc));
+            $('#tot-qty-pr').text(formatIDR(tQtyPr));
+            $('#tot-convert').text(formatIDR(tConvert));
+            $('#tot-qty-pr-conv').text(formatIDR(tQtyPrConv));
+            $('#tot-price-costing').text(formatIDR(tPriceCosting));
+            $('#tot-price-costing-conv').text(formatIDR(tPriceCostingConv));
+            $('#tot-price-pr').text(formatIDR(tPricePr));
+        }
+
+        hitungTotalPOItems();
 
     });
 </script>
