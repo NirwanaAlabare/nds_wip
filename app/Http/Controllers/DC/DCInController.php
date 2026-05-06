@@ -132,8 +132,39 @@ class DCInController extends Controller
                 where
                     a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
                     ".$additionalQuery."
+                UNION ALL
+                select
+                    id_qr_stocker,
+                    'INJECT' tipe,
+                    DATE_FORMAT(tgl_trans, '%d-%m-%Y') tgl_trans_fix,
+                    tgl_trans,
+                    ws,
+                    color,
+                    buyer,
+                    style,
+                    qty_awal,
+                    qty_reject,
+                    qty_replace,
+                    qty_in,
+                    tujuan,
+                    lokasi,
+                    tempat,
+                    created_at,
+                    user,
+                    shade,
+                    group_stocker,
+                    `range` as stocker_range,
+                    no_cut,
+                    size,
+                    part as nama_part,
+                    part_status,
+                    panel,
+                    panel_status
+                from
+                    dc_in_dump
+                    where tgl_trans between '$request->dateFrom' and '$request->dateTo'
                 order by
-                    a.tgl_trans desc
+                    tgl_trans desc
             ");
 
             return DataTables::of($data_input)->toJson();
@@ -498,8 +529,40 @@ class DCInController extends Controller
             where
                 a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
                 ".$additionalQuery."
+            UNION ALL
+            select
+                id_qr_stocker,
+                'INJECT' tipe,
+                DATE_FORMAT(tgl_trans, '%d-%m-%Y') tgl_trans_fix,
+                tgl_trans,
+                ws,
+                color,
+                buyer,
+                style,
+                qty_awal,
+                qty_reject,
+                qty_replace,
+                qty_in,
+                tujuan,
+                lokasi,
+                tempat,
+                created_at,
+                shade,
+                group_stocker,
+                user,
+                `range` as stocker_range,
+                no_cut,
+                size,
+                part as nama_part,
+                'INJECT' notes,
+                part_status,
+                panel,
+                panel_status
+            from
+                dc_in_dump
+                where tgl_trans between '$from' and '$to'
             order by
-                a.tgl_trans desc
+                tgl_trans desc
         ");
 
         // Calculate totals
