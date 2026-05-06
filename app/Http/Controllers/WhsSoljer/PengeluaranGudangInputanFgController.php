@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\WhsSoljer\PenerimaanGudangInputanFgDetail;
 use App\Models\WhsSoljer\PengeluaranGudangInputanFg;
 use App\Models\WhsSoljer\PengeluaranGudangInputanFgDetail;
+use App\Models\WhsSoljer\PengeluaranGudangInputanFgHistory;
 use Carbon\Carbon;
 use DB;
 use Exception;
@@ -156,6 +157,16 @@ class PengeluaranGudangInputanFgController extends Controller
                     "created_by_username"              => $user ? $user->username : null,
                     "created_at"                       => $now,
                 ]);
+
+                PengeluaranGudangInputanFgHistory::create([
+                    'pengeluaran_gudang_inputan_fg_id' => $header->id,
+                    'barcode'                          => $row['barcode'],
+                    'qty_act'                          => $row['qty'],
+                    'qty_out'                          => $row['qty_out'],
+                    "created_by"                       => $user ? $user->id : null,
+                    "created_by_username"              => $user ? $user->username : null,
+                    "created_at"                       => $now,
+                ]);
             }
 
             DB::commit();
@@ -223,6 +234,8 @@ class PengeluaranGudangInputanFgController extends Controller
         DB::beginTransaction();
 
         try {
+            $user = Auth::user();
+            $now = Carbon::now();
 
             $items = json_decode($request->items, true);
 
@@ -234,6 +247,18 @@ class PengeluaranGudangInputanFgController extends Controller
             }
 
             foreach ($items as $row) {
+                $dataDetail = PengeluaranGudangInputanFgDetail::find($row['id']);
+
+                PengeluaranGudangInputanFgHistory::create([
+                    'pengeluaran_gudang_inputan_fg_id' => $dataDetail->pengeluaran_gudang_inputan_fg_id,
+                    'barcode'                          => $dataDetail->barcode,
+                    'qty_act'                          => $dataDetail->qty,
+                    'qty_out'                          => $row['qty_out'],
+                    "created_by"                       => $user ? $user->id : null,
+                    "created_by_username"              => $user ? $user->username : null,
+                    "created_at"                       => $now,
+                ]);
+
                 PengeluaranGudangInputanFgDetail::where('id', $row['id'])
                     ->update([
                         'qty_out' => $row['qty_out'],

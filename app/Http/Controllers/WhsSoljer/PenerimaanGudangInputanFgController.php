@@ -5,6 +5,7 @@ namespace App\Http\Controllers\WhsSoljer;
 use App\Http\Controllers\Controller;
 use App\Models\WhsSoljer\PenerimaanGudangInputanFg;
 use App\Models\WhsSoljer\PenerimaanGudangInputanFgDetail;
+use App\Models\WhsSoljer\PenerimaanGudangInputanFgHistory;
 use Carbon\Carbon;
 use DB;
 use Exception;
@@ -214,6 +215,26 @@ class PenerimaanGudangInputanFgController extends Controller
                     "created_at"           => $now,
                 ]);
 
+                PenerimaanGudangInputanFgHistory::create([
+                    'penerimaan_gudang_inputan_fg_id' => $header->id,
+                    'barcode'              => $barcode,
+                    'no_koli'              => $row['no_koli'],
+                    'buyer'                => $row['buyer'],
+                    'no_ws'                => $row['no_ws'],
+                    'style'                => $row['style'],
+                    'product_item'         => $row['product_item'],
+                    'warna'                => $row['warna'],
+                    'size'                 => $row['size'],
+                    'grade'                => $row['grade'],
+                    'qty'                  => $row['qty'],
+                    'satuan'               => $row['satuan'],
+                    'lokasi'               => $row['lokasi'],
+                    'keterangan'           => $row['keterangan'],
+                    "created_by"           => $user ? $user->id : null,
+                    "created_by_username"  => $user ? $user->username : null,
+                    "created_at"           => $now,
+                ]);
+
                 $counter++;
             }
 
@@ -257,11 +278,14 @@ class PenerimaanGudangInputanFgController extends Controller
         ]);
     }
 
-   public function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
         DB::beginTransaction();
 
         try {
+
+            $user = Auth::user();
+            $now = Carbon::now();
 
             $items = json_decode($request->items, true);
 
@@ -273,6 +297,28 @@ class PenerimaanGudangInputanFgController extends Controller
             }
 
             foreach ($items as $row) {
+                $dataDetail = PenerimaanGudangInputanFgDetail::find($row['id']);
+
+                PenerimaanGudangInputanFgHistory::create([
+                    'penerimaan_gudang_inputan_fg_id' => $dataDetail->penerimaan_gudang_inputan_fg_id,
+                    'barcode'              => $dataDetail->barcode,
+                    'no_koli'              => $dataDetail->no_koli,
+                    'buyer'                => $dataDetail->buyer,
+                    'no_ws'                => $dataDetail->no_ws,
+                    'style'                => $dataDetail->style,
+                    'product_item'         => $dataDetail->product_item,
+                    'warna'                => $dataDetail->warna,
+                    'size'                 => $dataDetail->size,
+                    'grade'                => $dataDetail->grade,
+                    'qty'                  => $row['qty'],
+                    'satuan'               => $dataDetail->satuan,
+                    'lokasi'               => $dataDetail->lokasi,
+                    'keterangan'           => $dataDetail->keterangan,
+                    "created_by"           => $user ? $user->id : null,
+                    "created_by_username"  => $user ? $user->username : null,
+                    "created_at"           => $now,
+                ]);
+
                 PenerimaanGudangInputanFgDetail::where('id', $row['id'])
                     ->update([
                         'qty' => $row['qty'],

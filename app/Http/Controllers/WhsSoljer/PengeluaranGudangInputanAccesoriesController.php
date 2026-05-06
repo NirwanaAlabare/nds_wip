@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\WhsSoljer\PenerimaanGudangInputanAccesoriesDetail;
 use App\Models\WhsSoljer\PengeluaranGudangInputanAccesories;
 use App\Models\WhsSoljer\PengeluaranGudangInputanAccesoriesDetail;
+use App\Models\WhsSoljer\PengeluaranGudangInputanAccesoriesHistory;
 use Carbon\Carbon;
 use DB;
 use Exception;
@@ -168,6 +169,18 @@ class PengeluaranGudangInputanAccesoriesController extends Controller
                     "created_by_username"              => $user ? $user->username : null,
                     "created_at"                       => $now,
                 ]);
+
+                PengeluaranGudangInputanAccesoriesHistory::create([
+                    'pengeluaran_gudang_inputan_accesories_id' => $header->id,
+                    'barcode'                          => $row['barcode'],
+                    'qty_act'                          => $row['qty'],
+                    'qty_out'                          => $row['qty_out'],
+                    'qty_kgm_act'                      => $row['qty_kgm'],
+                    'qty_kgm_out'                      => $row['qty_kgm_out'],
+                    "created_by"                       => $user ? $user->id : null,
+                    "created_by_username"              => $user ? $user->username : null,
+                    "created_at"                       => $now,
+                ]);
             }
 
             DB::commit();
@@ -236,6 +249,8 @@ class PengeluaranGudangInputanAccesoriesController extends Controller
         DB::beginTransaction();
 
         try {
+            $user = Auth::user();
+            $now = Carbon::now();
 
             $items = json_decode($request->items, true);
 
@@ -247,6 +262,20 @@ class PengeluaranGudangInputanAccesoriesController extends Controller
             }
 
             foreach ($items as $row) {
+                $dataDetail = PengeluaranGudangInputanAccesoriesDetail::find($row['id']);
+
+                PengeluaranGudangInputanAccesoriesHistory::create([
+                    'pengeluaran_gudang_inputan_accesories_id' => $dataDetail->pengeluaran_gudang_inputan_accesories_id,
+                    'barcode'                          => $dataDetail->barcode,
+                    'qty_act'                          => $dataDetail->qty,
+                    'qty_out'                          => $row['qty_out'],
+                    'qty_kgm_act'                      => $dataDetail->qty_kgm,
+                    'qty_kgm_out'                      => $row['qty_kgm_out'],
+                    "created_by"                       => $user ? $user->id : null,
+                    "created_by_username"              => $user ? $user->username : null,
+                    "created_at"                       => $now,
+                ]);
+
                 PengeluaranGudangInputanAccesoriesDetail::where('id', $row['id'])
                     ->update([
                         'qty_out' => $row['qty_out'],

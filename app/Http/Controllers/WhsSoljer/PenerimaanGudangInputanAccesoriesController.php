@@ -5,6 +5,7 @@ namespace App\Http\Controllers\WhsSoljer;
 use App\Http\Controllers\Controller;
 use App\Models\WhsSoljer\PenerimaanGudangInputanAccesories;
 use App\Models\WhsSoljer\PenerimaanGudangInputanAccesoriesDetail;
+use App\Models\WhsSoljer\PenerimaanGudangInputanAccesoriesHistory;
 use Carbon\Carbon;
 use DB;
 use Exception;
@@ -225,6 +226,26 @@ class PenerimaanGudangInputanAccesoriesController extends Controller
                     "created_at"           => $now,
                 ]);
 
+                PenerimaanGudangInputanAccesoriesHistory::create([
+                    'penerimaan_gudang_inputan_accesories_id' => $header->id,
+                    'barcode'              => $barcode,
+                    'no_box'               => $row['no_box'],
+                    'buyer'                => $row['buyer'],
+                    'worksheet'            => $row['worksheet'],
+                    'nama_barang'          => $row['nama_barang'],
+                    'kode'                 => $row['kode'],
+                    'warna'                => $row['warna'],
+                    'size'                 => $row['size'],
+                    'qty'                  => $row['qty'],
+                    'satuan'               => $row['satuan'],
+                    'qty_kgm'              => $row['qty_kgm'],
+                    'lokasi'               => $row['lokasi'],
+                    'keterangan'           => $row['keterangan'],
+                    "created_by"           => $user ? $user->id : null,
+                    "created_by_username"  => $user ? $user->username : null,
+                    "created_at"           => $now,
+                ]);
+
                 $counter++;
             }
 
@@ -268,11 +289,14 @@ class PenerimaanGudangInputanAccesoriesController extends Controller
         ]);
     }
 
-   public function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
         DB::beginTransaction();
 
         try {
+
+            $user = Auth::user();
+            $now = Carbon::now();
 
             $items = json_decode($request->items, true);
 
@@ -284,6 +308,28 @@ class PenerimaanGudangInputanAccesoriesController extends Controller
             }
 
             foreach ($items as $row) {
+                $dataDetail = PenerimaanGudangInputanAccesoriesDetail::find($row['id']);
+                
+                PenerimaanGudangInputanAccesoriesHistory::create([
+                    'penerimaan_gudang_inputan_accesories_id' => $dataDetail->penerimaan_gudang_inputan_accesories_id,
+                    'barcode'              => $dataDetail->barcode,
+                    'no_box'               => $dataDetail->no_box,
+                    'buyer'                => $dataDetail->buyer,
+                    'worksheet'            => $dataDetail->worksheet,
+                    'nama_barang'          => $dataDetail->nama_barang,
+                    'kode'                 => $dataDetail->kode,
+                    'warna'                => $dataDetail->warna,
+                    'size'                 => $dataDetail->size,
+                    'qty'                  => $row['qty'],
+                    'satuan'               => $dataDetail->satuan,
+                    'qty_kgm'              => $row['qty_kgm'],
+                    'lokasi'               => $dataDetail->lokasi,
+                    'keterangan'           => $dataDetail->keterangan,
+                    "created_by"           => $user ? $user->id : null,
+                    "created_by_username"  => $user ? $user->username : null,
+                    "created_at"           => $now,
+                ]);
+
                 PenerimaanGudangInputanAccesoriesDetail::where('id', $row['id'])
                     ->update([
                         'qty' => $row['qty'],
