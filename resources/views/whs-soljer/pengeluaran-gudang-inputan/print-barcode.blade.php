@@ -67,7 +67,6 @@
             <tr>
                 <th style="padding-left: 1px;font-size: 7px;">Lokasi</th>
                 <th style="padding-left: 1px;font-size: 7px;">Buyer</th>
-                <th style="padding-left: 1px;font-size: 7px;">Keterangan</th>
                 <th style="padding-left: 1px;font-size: 7px;">Jenis Item</th>
                 <th style="padding-left: 1px;font-size: 7px;">Warna</th>
                 <th style="padding-left: 1px;font-size: 7px;">Lot</th>
@@ -79,7 +78,6 @@
             <tr>
                 <td style="padding-left: 1px; padding-right: 1px; font-size: 7px;">{{ $row->lokasi }}</td>
                 <td style="padding-left: 1px; padding-right: 1px; font-size: 7px;">{{ $row->buyer }}</td>
-                <td style="padding-left: 1px; padding-right: 1px; font-size: 7px;">{{ $row->keterangan }}</td>
                 <td style="padding-left: 1px; padding-right: 1px; font-size: 7px;">{{ $row->jenis_item }}</td>
                 <td style="padding-left: 1px; padding-right: 1px; font-size: 7px;">{{ $row->warna }}</td>
                 <td style="padding-left: 1px; padding-right: 1px; font-size: 7px;">{{ $row->lot }}</td>
