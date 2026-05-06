@@ -1619,15 +1619,15 @@ class DcReportController extends Controller
 
                                 COALESCE(
                                     MIN(ll.qty) OVER (
-                                                PARTITION BY
-                                                    COALESCE(p_com.panel, p.panel),
-                                                    s.form_cut_id,
-                                                    s.form_reject_id,
-                                                    s.form_piece_id,
-                                                    s.so_det_id,
-                                                    s.group_stocker,
-                                                    s.ratio,
-                                                    s.stocker_reject
+                                        PARTITION BY
+                                            COALESCE(p_com.panel, p.panel),
+                                            s.form_cut_id,
+                                            s.form_reject_id,
+                                            s.form_piece_id,
+                                            s.so_det_id,
+                                            s.group_stocker,
+                                            s.ratio,
+                                            s.stocker_reject
                                     ),
                                     ll.qty
                                 ) AS loading_qty
