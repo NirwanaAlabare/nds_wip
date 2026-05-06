@@ -123,7 +123,16 @@
             
             <div class="modal-header">
                 <h5 class="modal-title">Detail History</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-success btn-sm" id="exportExcelHistory"
+                        data-bs-toggle="tooltip" data-bs-title="Export Excel"
+                        onclick="exportExcelHistory()">
+                        <i class="fa fa-file-excel"></i>
+                    </button>
+
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
             </div>
 
             <div class="modal-body">
@@ -180,7 +189,16 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Detail History</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-success btn-sm" id="exportExcelHistory"
+                            data-bs-toggle="tooltip" data-bs-title="Export Excel"
+                            onclick="exportExcelHistory()">
+                            <i class="fa fa-file-excel"></i>
+                        </button>
+
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
                 </div>
 
                 <div class="modal-body">
@@ -242,7 +260,16 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Detail History</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-success btn-sm" id="exportExcelHistory"
+                            data-bs-toggle="tooltip" data-bs-title="Export Excel"
+                            onclick="exportExcelHistory()">
+                            <i class="fa fa-file-excel"></i>
+                        </button>
+
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
                 </div>
 
                 <div class="modal-body">
@@ -604,9 +631,13 @@
             }
         }
 
+        let currentBarcode = '';
+
         $(document).on('click', '.btn-detail', function () {
             let kategori = $('#kategori').val();
             let barcode = $(this).data('barcode');
+
+            currentBarcode = barcode;
             
             if (kategori === 'FABRIC') {
                 $('#modalFabric').modal('show');
@@ -902,6 +933,47 @@
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
                     link.download = "Master Barang "+$("#kategori").val()+".xlsx";
+                    link.click();
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
+                }
+            });
+
+            Swal.close();
+        }
+
+        async function exportExcelHistory() {
+            Swal.fire({
+                title: "Exporting",
+                html: "Please Wait...",
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+            });
+
+            await $.ajax({
+                url: "{{ route("export-history-master-barang-per-kategori") }}",
+                type: "post",
+                data: {
+                    kategori : $("#kategori").val(),
+                    barcode : currentBarcode
+                },
+                xhrFields: { responseType : 'blob' },
+                success: function (res) {
+                    Swal.close();
+
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Success',
+                        position: 'topCenter'
+                    });
+
+                    var blob = new Blob([res]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Master Barang History "+$("#kategori").val()+".xlsx";
                     link.click();
                 },
                 error: function (jqXHR) {

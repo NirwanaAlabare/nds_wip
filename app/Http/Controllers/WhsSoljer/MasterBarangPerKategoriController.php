@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\WhsSoljer;
 
 use App\Exports\WhsSoljer\MasterBarangPerKategoriExport;
+use App\Exports\WhsSoljer\MasterBarangHistoryPerKategoriExport;
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use DB;
@@ -402,5 +403,12 @@ class MasterBarangPerKategoriController extends Controller
         $kategori = $request->kategori;
 
         return Excel::download(new MasterBarangPerKategoriExport($kategori), 'master-barang-per-kategori.xlsx');
+    }
+
+    public function exportHistory(Request $request) {
+        $kategori = $request->kategori;
+        $barcode = $request->barcode;
+
+        return Excel::download(new MasterBarangHistoryPerKategoriExport($kategori, $barcode), 'master-barang-per-kategori.xlsx');
     }
 }
