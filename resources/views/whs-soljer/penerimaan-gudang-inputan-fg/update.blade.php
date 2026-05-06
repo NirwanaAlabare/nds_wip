@@ -51,6 +51,11 @@
                 </h5>
             </div>
             <div class="card-body">
+                <div class="d-flex justify-content-end mb-2">
+                    <button type="button" class="btn btn-danger btn-sm" id="btnDeleteSelected" style="display:none;">
+                        <i class="fa fa-trash"></i> Delete
+                    </button>
+                </div>
                 <div class="row align-items-end">
                     <div class="col-md-12 table-responsive">
                         <table class="table table-bordered w-100 table" id="datatable">
@@ -68,6 +73,9 @@
                                     <th>Satuan</th>
                                     <th>Keterangan</th>
                                     <th>Lokasi</th>
+                                    <th class="text-center">
+                                        <input type="checkbox" id="check_all">
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -87,6 +95,9 @@
                                     <td>{{ $row->satuan }}</td>
                                     <td>{{ $row->keterangan }}</td>
                                     <td>{{ $row->lokasi }}</td>
+                                    <td class="text-center">
+                                        <input type="checkbox" class="row-check">
+                                    </td>
                                 </tr>
                                 @endforeach
                             </tbody>
@@ -94,7 +105,7 @@
                                 <tr>
                                     <th colspan="8" class="text-center">TOTAL</th>
                                     <th id="total_qty" class="text-end">0</th>
-                                    <th colspan="3"></th>
+                                    <th colspan="4"></th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -125,7 +136,14 @@
 
             $('#datatable').DataTable({
                 processing: true,
-                serverSide: false
+                serverSide: false,
+                columnDefs: [
+                    {
+                        targets: -1,
+                        orderable: false,
+                        searchable: false
+                    }
+                ]
             });
 
             updateTotalQty();
@@ -150,10 +168,11 @@
             e.preventDefault();
 
             let data = [];
+            let table = $('#datatable').DataTable();
 
-            $('#datatable tbody tr').each(function () {
+            table.rows().every(function () {
 
-                let row = $(this);
+                let row = $(this.node());
 
                 data.push({
                     id: row.attr('data-id'),
@@ -200,6 +219,58 @@
             });
 
             $('#total_qty').text(total.toFixed(2));
+        }
+
+        $('#check_all').on('change', function () {
+            $('.row-check').prop('checked', $(this).prop('checked'));
+            toggleDeleteButton();
+        });
+
+        $('#btnDeleteSelected').on('click', function () {
+            let table = $('#datatable').DataTable();
+            let checked = $('.row-check:checked');
+
+            if (checked.length === 0) {
+                Swal.fire('Warning', 'Tidak ada data yang dipilih!', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Yakin?',
+                text: 'Data yang dicentang akan dihapus!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, hapus!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+
+                    checked.each(function () {
+                        table.row($(this).closest('tr')).remove().draw();
+                    });
+
+                    $('#check_all').prop('checked', false);
+                    toggleDeleteButton();
+
+                    updateTotalQty();
+
+                    Swal.fire('Success', 'Data berhasil dihapus!', 'success');
+                }
+            });
+
+        });
+
+        $('#datatable').on('change', '.row-check', function () {
+            toggleDeleteButton();
+        });
+
+        function toggleDeleteButton() {
+            let checked = $('.row-check:checked').length;
+
+            if (checked > 0) {
+                $('#btnDeleteSelected').show();
+            } else {
+                $('#btnDeleteSelected').hide();
+            }
         }
     </script>
 @endsection

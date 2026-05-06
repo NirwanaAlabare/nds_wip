@@ -246,25 +246,44 @@ class PengeluaranGudangInputanFgController extends Controller
                 ]);
             }
 
+            // Delete
+            $existingIds = PengeluaranGudangInputanFgDetail::where('pengeluaran_gudang_inputan_fg_id', $id)
+                ->pluck('id')
+                ->toArray();
+
+            $submittedIds = collect($items)->pluck('id')->toArray();
+
+            $deletedIds = array_diff($existingIds, $submittedIds);
+
+            if (!empty($deletedIds)) {
+                PengeluaranGudangInputanFgDetail::whereIn('id', $deletedIds)->delete();
+            }
+
+            // Update and Create
             foreach ($items as $row) {
                 $dataDetail = PengeluaranGudangInputanFgDetail::find($row['id']);
 
-                PengeluaranGudangInputanFgHistory::create([
-                    'pengeluaran_gudang_inputan_fg_id' => $dataDetail->pengeluaran_gudang_inputan_fg_id,
-                    'barcode'                          => $dataDetail->barcode,
-                    'qty_act'                          => $dataDetail->qty,
-                    'qty_out'                          => $row['qty_out'],
-                    "created_by"                       => $user ? $user->id : null,
-                    "created_by_username"              => $user ? $user->username : null,
-                    "created_at"                       => $now,
-                ]);
+                $oldQty = (float) $dataDetail->qty_out;
+                $newQty = (float) $row['qty_out'];
 
-                PengeluaranGudangInputanFgDetail::where('id', $row['id'])
-                    ->update([
-                        'qty_out' => $row['qty_out'],
-                        'updated_at' => now(),
-                        'updated_by' => auth()->id(),
+                if ($oldQty != $newQty) {
+                    PengeluaranGudangInputanFgHistory::create([
+                        'pengeluaran_gudang_inputan_fg_id' => $dataDetail->pengeluaran_gudang_inputan_fg_id,
+                        'barcode'                          => $dataDetail->barcode,
+                        'qty_act'                          => $dataDetail->qty_act,
+                        'qty_out'                          => $row['qty_out'],
+                        "created_by"                       => $user ? $user->id : null,
+                        "created_by_username"              => $user ? $user->username : null,
+                        "created_at"                       => $now,
                     ]);
+
+                    PengeluaranGudangInputanFgDetail::where('id', $row['id'])
+                        ->update([
+                            'qty_out' => $row['qty_out'],
+                            'updated_at' => now(),
+                            'updated_by' => auth()->id(),
+                        ]);
+                }
             }
 
             DB::commit();

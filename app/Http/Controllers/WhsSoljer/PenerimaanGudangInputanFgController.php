@@ -296,35 +296,54 @@ class PenerimaanGudangInputanFgController extends Controller
                 ]);
             }
 
+            // Delete
+            $existingIds = PenerimaanGudangInputanFgDetail::where('penerimaan_gudang_inputan_fg_id', $id)
+                ->pluck('id')
+                ->toArray();
+
+            $submittedIds = collect($items)->pluck('id')->toArray();
+
+            $deletedIds = array_diff($existingIds, $submittedIds);
+
+            if (!empty($deletedIds)) {
+                PenerimaanGudangInputanFgDetail::whereIn('id', $deletedIds)->delete();
+            }
+
+            // Update and Create
             foreach ($items as $row) {
                 $dataDetail = PenerimaanGudangInputanFgDetail::find($row['id']);
 
-                PenerimaanGudangInputanFgHistory::create([
-                    'penerimaan_gudang_inputan_fg_id' => $dataDetail->penerimaan_gudang_inputan_fg_id,
-                    'barcode'              => $dataDetail->barcode,
-                    'no_koli'              => $dataDetail->no_koli,
-                    'buyer'                => $dataDetail->buyer,
-                    'no_ws'                => $dataDetail->no_ws,
-                    'style'                => $dataDetail->style,
-                    'product_item'         => $dataDetail->product_item,
-                    'warna'                => $dataDetail->warna,
-                    'size'                 => $dataDetail->size,
-                    'grade'                => $dataDetail->grade,
-                    'qty'                  => $row['qty'],
-                    'satuan'               => $dataDetail->satuan,
-                    'lokasi'               => $dataDetail->lokasi,
-                    'keterangan'           => $dataDetail->keterangan,
-                    "created_by"           => $user ? $user->id : null,
-                    "created_by_username"  => $user ? $user->username : null,
-                    "created_at"           => $now,
-                ]);
+                $oldQty = (float) $dataDetail->qty;
+                $newQty = (float) $row['qty'];
 
-                PenerimaanGudangInputanFgDetail::where('id', $row['id'])
-                    ->update([
-                        'qty' => $row['qty'],
-                        'updated_at' => now(),
-                        'updated_by' => auth()->id(),
+                if ($oldQty != $newQty) {
+                    PenerimaanGudangInputanFgHistory::create([
+                        'penerimaan_gudang_inputan_fg_id' => $dataDetail->penerimaan_gudang_inputan_fg_id,
+                        'barcode'              => $dataDetail->barcode,
+                        'no_koli'              => $dataDetail->no_koli,
+                        'buyer'                => $dataDetail->buyer,
+                        'no_ws'                => $dataDetail->no_ws,
+                        'style'                => $dataDetail->style,
+                        'product_item'         => $dataDetail->product_item,
+                        'warna'                => $dataDetail->warna,
+                        'size'                 => $dataDetail->size,
+                        'grade'                => $dataDetail->grade,
+                        'qty'                  => $row['qty'],
+                        'satuan'               => $dataDetail->satuan,
+                        'lokasi'               => $dataDetail->lokasi,
+                        'keterangan'           => $dataDetail->keterangan,
+                        "created_by"           => $user ? $user->id : null,
+                        "created_by_username"  => $user ? $user->username : null,
+                        "created_at"           => $now,
                     ]);
+
+                    PenerimaanGudangInputanFgDetail::where('id', $row['id'])
+                        ->update([
+                            'qty' => $row['qty'],
+                            'updated_at' => now(),
+                            'updated_by' => auth()->id(),
+                        ]);
+                }
             }
 
             DB::commit();

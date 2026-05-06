@@ -51,6 +51,11 @@
                 </h5>
             </div>
             <div class="card-body">
+                <div class="d-flex justify-content-end mb-2">
+                    <button type="button" class="btn btn-danger btn-sm" id="btnDeleteSelected" style="display:none;">
+                        <i class="fa fa-trash"></i> Delete
+                    </button>
+                </div>
                 <div class="row align-items-end">
                     <div class="col-md-12 table-responsive">
                         <table class="table table-bordered w-100 table" id="datatable">
@@ -70,16 +75,13 @@
                                     <th>Keterangan</th>
                                     <th>Lokasi</th>
                                     <th>Qty Out</th>
+                                    <th class="text-center">
+                                        <input type="checkbox" id="check_all">
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @php
-                                    $totalQtyAct = 0;
-                                @endphp
                                 @foreach($data_detail as $row)
-                                    @php
-                                        $totalQtyAct += $row->qty_act;
-                                    @endphp
                                     <tr data-id="{{ $row->id }}">
                                         <td>{{ $row->barcode }}</td>
                                         <td>{{ $row->no_koli }}</td>
@@ -90,12 +92,15 @@
                                         <td>{{ $row->warna }}</td>
                                         <td>{{ $row->size }}</td>
                                         <td>{{ $row->grade }}</td>
-                                        <td class="text-end">{{ number_format($row->qty_act, 2) }}</td>
+                                        <td class="text-end qty_act">{{ number_format($row->qty_act, 2) }}</td>
                                         <td>{{ $row->satuan }}</td>
                                         <td>{{ $row->keterangan }}</td>
                                         <td>{{ $row->lokasi }}</td>
                                         <td>
                                             <input type="number" step="any" class="form-control form-control-sm text-end qty_out" value="{{ number_format($row->qty_out, 2, '.', '') }}">
+                                        </td>
+                                        <td class="text-center">
+                                            <input type="checkbox" class="row-check">
                                         </td>
                                     </tr>
                                 @endforeach
@@ -103,9 +108,10 @@
                             <tfoot>
                                 <tr>
                                     <th colspan="9" class="text-center">TOTAL</th>
-                                    <th id="total_qty_act" class="text-end">{{ number_format($totalQtyAct, 2) }}</th>
+                                    <th id="total_qty_act" class="text-end">0</th>
                                     <th colspan="3"></th>
                                     <th id="total_qty_out" class="text-end">0</th>
+                                    <th></th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -136,7 +142,14 @@
 
             $('#datatable').DataTable({
                 processing: true,
-                serverSide: false
+                serverSide: false,
+                columnDefs: [
+                    {
+                        targets: -1,
+                        orderable: false,
+                        searchable: false
+                    }
+                ]
             });
 
             updateTotalQty();
@@ -172,10 +185,11 @@
             e.preventDefault();
 
             let data = [];
+            let table = $('#datatable').DataTable();
 
-            $('#datatable tbody tr').each(function () {
+            table.rows().every(function () {
 
-                let row = $(this);
+                let row = $(this.node());
 
                 data.push({
                     id: row.attr('data-id'),
@@ -214,12 +228,69 @@
 
         function updateTotalQty() {
             let total_qty_out = 0;
+            let total_qty_act = 0;
 
             $('#datatable tbody .qty_out').each(function () {
                 total_qty_out += parseFloat($(this).val() || 0);
             });
+            $('#datatable tbody .qty_act').each(function () {
+                total_qty_act += parseFloat($(this).text().replace(/,/g, '') || 0);
+            });
 
             $('#total_qty_out').text(total_qty_out.toFixed(2));
+            $('#total_qty_act').text(total_qty_act.toFixed(2));
+        }
+
+        $('#check_all').on('change', function () {
+            $('.row-check').prop('checked', $(this).prop('checked'));
+            toggleDeleteButton();
+        });
+
+        $('#btnDeleteSelected').on('click', function () {
+            let table = $('#datatable').DataTable();
+            let checked = $('.row-check:checked');
+
+            if (checked.length === 0) {
+                Swal.fire('Warning', 'Tidak ada data yang dipilih!', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Yakin?',
+                text: 'Data yang dicentang akan dihapus!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, hapus!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+
+                    checked.each(function () {
+                        table.row($(this).closest('tr')).remove().draw();
+                    });
+
+                    $('#check_all').prop('checked', false);
+                    toggleDeleteButton();
+
+                    updateTotalQty();
+
+                    Swal.fire('Success', 'Data berhasil dihapus!', 'success');
+                }
+            });
+
+        });
+
+        $('#datatable').on('change', '.row-check', function () {
+            toggleDeleteButton();
+        });
+
+        function toggleDeleteButton() {
+            let checked = $('.row-check:checked').length;
+
+            if (checked > 0) {
+                $('#btnDeleteSelected').show();
+            } else {
+                $('#btnDeleteSelected').hide();
+            }
         }
     </script>
 @endsection
