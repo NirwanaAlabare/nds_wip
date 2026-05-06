@@ -196,7 +196,7 @@
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-end mb-2">
-                    <button type="button" class="btn btn-danger btn-sm" id="btnDeleteSelected">
+                    <button type="button" class="btn btn-danger btn-sm" id="btnDeleteSelected" style="display:none;">
                         <i class="fa fa-trash"></i> Delete
                     </button>
                 </div>
@@ -509,6 +509,7 @@
 
         $('#check_all').on('change', function () {
             $('.row-check').prop('checked', $(this).prop('checked'));
+            toggleDeleteButton();
         });
 
         $('#btnDeleteSelected').on('click', function () {
@@ -534,7 +535,10 @@
                     });
 
                     table.draw(false);
+
                     $('#check_all').prop('checked', false);
+                    toggleDeleteButton();
+
                     updateTotalQty();
 
                     Swal.fire('Success', 'Data berhasil dihapus!', 'success');
@@ -542,6 +546,20 @@
             });
 
         });
+
+        $('#datatable').on('change', '.row-check', function () {
+            toggleDeleteButton();
+        });
+
+        function toggleDeleteButton() {
+            let checked = $('.row-check:checked').length;
+
+            if (checked > 0) {
+                $('#btnDeleteSelected').show();
+            } else {
+                $('#btnDeleteSelected').hide();
+            }
+        }
         
     </script>
 @endsection
