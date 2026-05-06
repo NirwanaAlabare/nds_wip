@@ -97,7 +97,7 @@ class CuttingToolsController extends Controller
                     "color" => $form->marker->color,
                     "panel" => $form->marker->panel,
                     "qty_ply" => $form->total_lembar,
-                    "ratio" => $form->marker->markerDetails
+                    "ratio" => $form->marker->markerDetails()->with("masterSbWs")->get()
                 );
             }
 
@@ -1215,7 +1215,7 @@ class CuttingToolsController extends Controller
                 DB::table('mut_cut_pcs_tmp_pre_bk')->insertUsing([], DB::table('mut_cut_pcs_tmp_pre')->where("created_by", Auth::user()->id));
 
                 // Delete Saldo Tmp
-                $deleteSaldoTmp = MutasiCuttingPcsSaldoTmp::where("created_by", Auth::user()->id)->delete();
+                $deleteSaldoTmp = MutasiCuttingPcsSaldoDetailTmp::where("created_by", Auth::user()->id)->delete();
 
                 return array(
                     "status" => $deleteSaldoTmp > 0 ? 200 : 400,
@@ -1229,7 +1229,7 @@ class CuttingToolsController extends Controller
                 DB::table('mut_cut_pcs_tmp_bk')->insertUsing([], DB::table('mut_cut_pcs_tmp'));
 
                 // Delete Saldo Tmp
-                $deleteSaldo = MutasiCuttingPcsSaldo::query()->delete();
+                $deleteSaldo = MutasiCuttingPcsSaldoDetail::query()->delete();
 
                 return array(
                     "status" => $deleteSaldo > 0 ? 200 : 400,

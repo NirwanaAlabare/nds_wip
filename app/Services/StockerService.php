@@ -229,8 +229,8 @@ class StockerService
                 form_cut_input.total_lembar,
                 form_cut_input.no_cut,
                 UPPER(form_cut_input.shell) shell,
-                GROUP_CONCAT(DISTINCT COALESCE(master_size_new.size, marker_input_detail.size) ORDER BY master_size_new.urutan ASC SEPARATOR ', ') sizes,
-                GROUP_CONCAT(DISTINCT CONCAT(' ', COALESCE(master_size_new.size, marker_input_detail.size), '(', marker_input_detail.ratio * form_cut_input.total_lembar, ')') ORDER BY master_size_new.urutan ASC) marker_details,
+                GROUP_CONCAT(DISTINCT COALESCE(master_sb_ws.size, master_size_new.size, marker_input_detail.size) ORDER BY master_size_new.urutan ASC SEPARATOR ', ') sizes,
+                GROUP_CONCAT(DISTINCT CONCAT(' ', COALESCE(master_sb_ws.size, master_size_new.size, marker_input_detail.size), '(', marker_input_detail.ratio * form_cut_input.total_lembar, ')') ORDER BY master_size_new.urutan ASC) marker_details,
                 GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) SEPARATOR ', ') part,
                 part.panel_status
             ")->
@@ -240,7 +240,8 @@ class StockerService
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
-            leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
             leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
             where("form_cut_input.id", $formCutId)->
             groupBy("form_cut_input.id")->
@@ -310,6 +311,7 @@ class StockerService
             leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
             leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
             leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
             leftJoin("stocker_input", function ($join) {
                 $join->on("stocker_input.form_cut_id", "=", "form_cut_input.id");
                 $join->on("stocker_input.so_det_id", "=", "marker_input_detail.so_det_id");

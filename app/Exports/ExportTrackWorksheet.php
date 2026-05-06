@@ -97,11 +97,12 @@ class ExportTrackWorksheet implements FromView, WithEvents, /*WithColumnWidths,*
                             SELECT
                                 marker_input_detail.marker_id,
                                 marker_input_detail.so_det_id,
-                                marker_input_detail.size,
+                                COALESCE(master_sb_ws.size, marker_input_detail.size) size,
                                 sum( marker_input_detail.ratio ) ratio,
                                 sum( marker_input_detail.cut_qty ) cut_qty
                             FROM
                                 marker_input_detail
+                                left join master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
                             WHERE
                                 marker_input_detail.ratio > 0
                             GROUP BY

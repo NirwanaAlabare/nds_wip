@@ -438,78 +438,51 @@ class RekapDC extends Command
                     ),
 
                     loading_line_qty as (
-                        select
-                                stocker_input.id_qr_stocker,
-                                part_detail.id as part_detail_id,
-                                stocker_input.so_det_id,
-                                null qty_in_dc_main,
-                                null qty_in_dc,
-                                null sec_inhouse_in_main,
-                                null sec_inhouse_in,
-                                null sec_inhouse_rep_main,
-                                null sec_inhouse_rep,
-                                null sec_inhouse_out_main,
-                                null sec_inhouse_out,
-                                null sec_in_in_main,
-                                null sec_in_in,
-                                null sec_in_rep_main,
-                                null sec_in_rep,
-                                null sec_in_out_main,
-                                null sec_in_out,
-                                COALESCE(loading_qty.loading_qty, loading_line.qty) loading_qty
-                        from
-                                loading_line
-                                LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
-                                left join part_detail on stocker_input.part_detail_id = part_detail.id
-                                left join part on part.id = part_detail.part_id
-                                left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
-                                left join part part_com on part_com.id = part_detail_com.part_id
-                                LEFT JOIN (
-                                        select
-                                                COALESCE(p_com.panel, p.panel) as panel,
-                                                s.form_cut_id,
-                                                s.form_reject_id,
-                                                s.form_piece_id,
-                                                s.so_det_id,
-                                                s.group_stocker,
-                                                s.ratio,
-                                                s.stocker_reject,
-                                                MIN(ll.qty) loading_qty
-                                        from
-                                                loading_line ll
-                                                left join stocker_input s on s.id = ll.stocker_id
-                                                left join part_detail pd on pd.id = s.part_detail_id
-                                                left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
-                                                left join part p on p.id = pd.part_id
-                                                left join part p_com on p_com.id = pd_com.part_id
-                                        where
-                                                ll.tanggal_loading > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
-                                                ll.tanggal_loading < DATE_FORMAT('".$refDate."', '%Y-%m-01') and
-                                                (s.cancel IS NULL OR s.cancel != 'y') and
-                                                (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
-                                        group by
-                                                COALESCE(p_com.panel, p.panel),
-                                                s.form_cut_id,
-                                                s.form_reject_id,
-                                                s.form_piece_id,
-                                                s.so_det_id,
-                                                s.group_stocker,
-                                                s.ratio,
-                                                s.stocker_reject
-                                ) as loading_qty on loading_qty.panel = COALESCE(part_com.panel, part.panel)
-                                AND loading_qty.form_cut_id    <=> stocker_input.form_cut_id
-                                AND loading_qty.form_reject_id <=> stocker_input.form_reject_id
-                                AND loading_qty.form_piece_id  <=> stocker_input.form_piece_id
-                                AND loading_qty.so_det_id      <=> stocker_input.so_det_id
-                                AND loading_qty.group_stocker  <=> stocker_input.group_stocker
-                                AND loading_qty.ratio          <=> stocker_input.ratio
-                                AND loading_qty.stocker_reject <=> stocker_input.stocker_reject
-                        WHERE
-                                loading_line.tanggal_loading > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND loading_line.tanggal_loading < DATE_FORMAT('".$refDate."', '%Y-%m-01') and
-                                (stocker_input.cancel IS NULL OR stocker_input.cancel != 'y') and
-                                (stocker_input.notes IS NULL OR stocker_input.notes NOT LIKE '%STOCKER MANUAL%')
-                        group by
-                                stocker_input.id
+                        SELECT
+                                s.id_qr_stocker,
+                                pd.id AS part_detail_id,
+                                s.so_det_id,
+
+                                NULL AS qty_in_dc_main,
+                                NULL AS qty_in_dc,
+                                NULL AS sec_inhouse_in_main,
+                                NULL AS sec_inhouse_in,
+                                NULL AS sec_inhouse_rep_main,
+                                NULL AS sec_inhouse_rep,
+                                NULL AS sec_inhouse_out_main,
+                                NULL AS sec_inhouse_out,
+                                NULL AS sec_in_in_main,
+                                NULL AS sec_in_in,
+                                NULL AS sec_in_rep_main,
+                                NULL AS sec_in_rep,
+                                NULL AS sec_in_out_main,
+                                NULL AS sec_in_out,
+
+                                COALESCE(
+                                    MIN(ll.qty) OVER (
+                                        PARTITION BY
+                                            COALESCE(p_com.panel, p.panel),
+                                            s.form_cut_id,
+                                            s.form_reject_id,
+                                            s.form_piece_id,
+                                            s.so_det_id,
+                                            s.group_stocker,
+                                            s.ratio,
+                                            s.stocker_reject
+                                    ),
+                                    ll.qty
+                                ) AS loading_qty
+                            FROM loading_line ll
+                            JOIN stocker_input s ON s.id = ll.stocker_id
+                            LEFT JOIN part_detail pd ON pd.id = s.part_detail_id
+                            LEFT JOIN part p ON p.id = pd.part_id
+                            LEFT JOIN part_detail pd_com ON pd_com.id = pd.from_part_detail AND pd.part_status = 'complement'
+                            LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                            WHERE
+                                ll.tanggal_loading > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
+                                ll.tanggal_loading < DATE_FORMAT('".$refDate."', '%Y-%m-01') and
+                                AND COALESCE(s.cancel, 'n') != 'y'
+                                AND (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
                     ),
 
                     loading_line as (
@@ -1046,76 +1019,50 @@ class RekapDC extends Command
                     ),
 
                     loading_line_qty as (
-                            select
-                                    stocker_input.id_qr_stocker,
-                                    part_detail.id as part_detail_id,
-                                    stocker_input.so_det_id,
-                                    null qty_in_dc_main,
-                                    null qty_in_dc,
-                                    null sec_inhouse_in_main,
-                                    null sec_inhouse_in,
-                                    null sec_inhouse_rep_main,
-                                    null sec_inhouse_rep,
-                                    null sec_inhouse_out_main,
-                                    null sec_inhouse_out,
-                                    null sec_in_in_main,
-                                    null sec_in_in,
-                                    null sec_in_rep_main,
-                                    null sec_in_rep,
-                                    null sec_in_out_main,
-                                    null sec_in_out,
-                                    COALESCE(loading_qty.loading_qty, loading_line.qty) loading_qty
-                            from
-                                    loading_line
-                                    LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
-                                    left join part_detail on stocker_input.part_detail_id = part_detail.id
-                                    left join part on part.id = part_detail.part_id
-                                    left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
-                                    left join part part_com on part_com.id = part_detail_com.part_id
-                                    LEFT JOIN (
-                                            select
-                                                    COALESCE(p_com.panel, p.panel) as panel,
-                                                    s.form_cut_id,
-                                                    s.form_reject_id,
-                                                    s.form_piece_id,
-                                                    s.so_det_id,
-                                                    s.group_stocker,
-                                                    s.ratio,
-                                                    s.stocker_reject,
-                                                    MIN(ll.qty) loading_qty
-                                            from
-                                                    loading_line ll
-                                                    left join stocker_input s on s.id = ll.stocker_id
-                                                    left join part_detail pd on pd.id = s.part_detail_id
-                                                    left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
-                                                    left join part p on p.id = pd.part_id
-                                                    left join part p_com on p_com.id = pd_com.part_id
-                                            where
-                                                    ll.tanggal_loading between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
-                                                    (s.cancel IS NULL OR s.cancel != 'y') and
-                                                    (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
-                                            group by
-                                                    COALESCE(p_com.panel, p.panel),
-                                                    s.form_cut_id,
-                                                    s.form_reject_id,
-                                                    s.form_piece_id,
-                                                    s.so_det_id,
-                                                    s.group_stocker,
-                                                    s.ratio,
-                                                    s.stocker_reject
-                                    ) as loading_qty on loading_qty.panel = COALESCE(part_com.panel, part.panel)
-                            AND loading_qty.form_cut_id    <=> stocker_input.form_cut_id
-                            AND loading_qty.form_reject_id <=> stocker_input.form_reject_id
-                            AND loading_qty.form_piece_id  <=> stocker_input.form_piece_id
-                            AND loading_qty.so_det_id      <=> stocker_input.so_det_id
-                            AND loading_qty.group_stocker  <=> stocker_input.group_stocker
-                            AND loading_qty.ratio          <=> stocker_input.ratio
-                            AND loading_qty.stocker_reject <=> stocker_input.stocker_reject
-                            WHERE loading_line.tanggal_loading between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' and
-                            (stocker_input.cancel IS NULL OR stocker_input.cancel != 'y') and
-                            (stocker_input.notes IS NULL OR stocker_input.notes NOT LIKE '%STOCKER MANUAL%')
-                            group by
-                                    stocker_input.id
+                        SELECT
+                            s.id_qr_stocker,
+                            pd.id AS part_detail_id,
+                            s.so_det_id,
+
+                            NULL AS qty_in_dc_main,
+                            NULL AS qty_in_dc,
+                            NULL AS sec_inhouse_in_main,
+                            NULL AS sec_inhouse_in,
+                            NULL AS sec_inhouse_rep_main,
+                            NULL AS sec_inhouse_rep,
+                            NULL AS sec_inhouse_out_main,
+                            NULL AS sec_inhouse_out,
+                            NULL AS sec_in_in_main,
+                            NULL AS sec_in_in,
+                            NULL AS sec_in_rep_main,
+                            NULL AS sec_in_rep,
+                            NULL AS sec_in_out_main,
+                            NULL AS sec_in_out,
+
+                            COALESCE(
+                                MIN(ll.qty) OVER (
+                                    PARTITION BY
+                                        COALESCE(p_com.panel, p.panel),
+                                        s.form_cut_id,
+                                        s.form_reject_id,
+                                        s.form_piece_id,
+                                        s.so_det_id,
+                                        s.group_stocker,
+                                        s.ratio,
+                                        s.stocker_reject
+                                ),
+                                ll.qty
+                            ) AS loading_qty
+                        FROM loading_line ll
+                        JOIN stocker_input s ON s.id = ll.stocker_id
+                        LEFT JOIN part_detail pd ON pd.id = s.part_detail_id
+                        LEFT JOIN part p ON p.id = pd.part_id
+                        LEFT JOIN part_detail pd_com ON pd_com.id = pd.from_part_detail AND pd.part_status = 'complement'
+                        LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                        WHERE
+                            ll.tanggal_loading BETWEEN DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
+                            AND COALESCE(s.cancel, 'n') != 'y'
+                            AND (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
                     ),
 
                     loading_line as (
@@ -1228,7 +1175,7 @@ class RekapDC extends Command
                 )
 
                 SELECT
-                    '".$refDate."' AS tanggal,
+                    '".date('Y-m-d', strtotime($refDate.' -1 day'))."' AS tanggal,
                     stockers,
                     buyer,
                     ws,
@@ -1350,7 +1297,8 @@ class RekapDC extends Command
             ");
 
             Log::channel('rekapDC')->info("Rekap DC berhasil diupdate.");
-            Log::channel('rekapDC')->info("Query yang dijalankan: \n INSERT INTO dc_report_rekap (
+            Log::channel('rekapDC')->info("Query yang dijalankan: \n
+                INSERT INTO dc_report_rekap (
                     tanggal,
                     stockers,
                     buyer,
@@ -1742,78 +1690,51 @@ class RekapDC extends Command
                     ),
 
                     loading_line_qty as (
-                        select
-                                stocker_input.id_qr_stocker,
-                                part_detail.id as part_detail_id,
-                                stocker_input.so_det_id,
-                                null qty_in_dc_main,
-                                null qty_in_dc,
-                                null sec_inhouse_in_main,
-                                null sec_inhouse_in,
-                                null sec_inhouse_rep_main,
-                                null sec_inhouse_rep,
-                                null sec_inhouse_out_main,
-                                null sec_inhouse_out,
-                                null sec_in_in_main,
-                                null sec_in_in,
-                                null sec_in_rep_main,
-                                null sec_in_rep,
-                                null sec_in_out_main,
-                                null sec_in_out,
-                                COALESCE(loading_qty.loading_qty, loading_line.qty) loading_qty
-                        from
-                                loading_line
-                                LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
-                                left join part_detail on stocker_input.part_detail_id = part_detail.id
-                                left join part on part.id = part_detail.part_id
-                                left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
-                                left join part part_com on part_com.id = part_detail_com.part_id
-                                LEFT JOIN (
-                                        select
-                                                COALESCE(p_com.panel, p.panel) as panel,
-                                                s.form_cut_id,
-                                                s.form_reject_id,
-                                                s.form_piece_id,
-                                                s.so_det_id,
-                                                s.group_stocker,
-                                                s.ratio,
-                                                s.stocker_reject,
-                                                MIN(ll.qty) loading_qty
-                                        from
-                                                loading_line ll
-                                                left join stocker_input s on s.id = ll.stocker_id
-                                                left join part_detail pd on pd.id = s.part_detail_id
-                                                left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
-                                                left join part p on p.id = pd.part_id
-                                                left join part p_com on p_com.id = pd_com.part_id
-                                        where
-                                                ll.tanggal_loading > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
-                                                ll.tanggal_loading < DATE_FORMAT('".$refDate."', '%Y-%m-01') and
-                                                (s.cancel IS NULL OR s.cancel != 'y') and
-                                                (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
-                                        group by
-                                                COALESCE(p_com.panel, p.panel),
-                                                s.form_cut_id,
-                                                s.form_reject_id,
-                                                s.form_piece_id,
-                                                s.so_det_id,
-                                                s.group_stocker,
-                                                s.ratio,
-                                                s.stocker_reject
-                                ) as loading_qty on loading_qty.panel = COALESCE(part_com.panel, part.panel)
-                                AND loading_qty.form_cut_id    <=> stocker_input.form_cut_id
-                                AND loading_qty.form_reject_id <=> stocker_input.form_reject_id
-                                AND loading_qty.form_piece_id  <=> stocker_input.form_piece_id
-                                AND loading_qty.so_det_id      <=> stocker_input.so_det_id
-                                AND loading_qty.group_stocker  <=> stocker_input.group_stocker
-                                AND loading_qty.ratio          <=> stocker_input.ratio
-                                AND loading_qty.stocker_reject <=> stocker_input.stocker_reject
-                        WHERE
-                                loading_line.tanggal_loading > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND loading_line.tanggal_loading < DATE_FORMAT('".$refDate."', '%Y-%m-01') and
-                                (stocker_input.cancel IS NULL OR stocker_input.cancel != 'y') and
-                                (stocker_input.notes IS NULL OR stocker_input.notes NOT LIKE '%STOCKER MANUAL%')
-                        group by
-                                stocker_input.id
+                        SELECT
+                                s.id_qr_stocker,
+                                pd.id AS part_detail_id,
+                                s.so_det_id,
+
+                                NULL AS qty_in_dc_main,
+                                NULL AS qty_in_dc,
+                                NULL AS sec_inhouse_in_main,
+                                NULL AS sec_inhouse_in,
+                                NULL AS sec_inhouse_rep_main,
+                                NULL AS sec_inhouse_rep,
+                                NULL AS sec_inhouse_out_main,
+                                NULL AS sec_inhouse_out,
+                                NULL AS sec_in_in_main,
+                                NULL AS sec_in_in,
+                                NULL AS sec_in_rep_main,
+                                NULL AS sec_in_rep,
+                                NULL AS sec_in_out_main,
+                                NULL AS sec_in_out,
+
+                                COALESCE(
+                                    MIN(ll.qty) OVER (
+                                        PARTITION BY
+                                            COALESCE(p_com.panel, p.panel),
+                                            s.form_cut_id,
+                                            s.form_reject_id,
+                                            s.form_piece_id,
+                                            s.so_det_id,
+                                            s.group_stocker,
+                                            s.ratio,
+                                            s.stocker_reject
+                                    ),
+                                    ll.qty
+                                ) AS loading_qty
+                            FROM loading_line ll
+                            JOIN stocker_input s ON s.id = ll.stocker_id
+                            LEFT JOIN part_detail pd ON pd.id = s.part_detail_id
+                            LEFT JOIN part p ON p.id = pd.part_id
+                            LEFT JOIN part_detail pd_com ON pd_com.id = pd.from_part_detail AND pd.part_status = 'complement'
+                            LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                            WHERE
+                                ll.tanggal_loading > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
+                                ll.tanggal_loading < DATE_FORMAT('".$refDate."', '%Y-%m-01') and
+                                AND COALESCE(s.cancel, 'n') != 'y'
+                                AND (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
                     ),
 
                     loading_line as (
@@ -2350,76 +2271,50 @@ class RekapDC extends Command
                     ),
 
                     loading_line_qty as (
-                            select
-                                    stocker_input.id_qr_stocker,
-                                    part_detail.id as part_detail_id,
-                                    stocker_input.so_det_id,
-                                    null qty_in_dc_main,
-                                    null qty_in_dc,
-                                    null sec_inhouse_in_main,
-                                    null sec_inhouse_in,
-                                    null sec_inhouse_rep_main,
-                                    null sec_inhouse_rep,
-                                    null sec_inhouse_out_main,
-                                    null sec_inhouse_out,
-                                    null sec_in_in_main,
-                                    null sec_in_in,
-                                    null sec_in_rep_main,
-                                    null sec_in_rep,
-                                    null sec_in_out_main,
-                                    null sec_in_out,
-                                    COALESCE(loading_qty.loading_qty, loading_line.qty) loading_qty
-                            from
-                                    loading_line
-                                    LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
-                                    left join part_detail on stocker_input.part_detail_id = part_detail.id
-                                    left join part on part.id = part_detail.part_id
-                                    left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
-                                    left join part part_com on part_com.id = part_detail_com.part_id
-                                    LEFT JOIN (
-                                            select
-                                                    COALESCE(p_com.panel, p.panel) as panel,
-                                                    s.form_cut_id,
-                                                    s.form_reject_id,
-                                                    s.form_piece_id,
-                                                    s.so_det_id,
-                                                    s.group_stocker,
-                                                    s.ratio,
-                                                    s.stocker_reject,
-                                                    MIN(ll.qty) loading_qty
-                                            from
-                                                    loading_line ll
-                                                    left join stocker_input s on s.id = ll.stocker_id
-                                                    left join part_detail pd on pd.id = s.part_detail_id
-                                                    left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
-                                                    left join part p on p.id = pd.part_id
-                                                    left join part p_com on p_com.id = pd_com.part_id
-                                            where
-                                                    ll.tanggal_loading between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
-                                                    (s.cancel IS NULL OR s.cancel != 'y') and
-                                                    (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
-                                            group by
-                                                    COALESCE(p_com.panel, p.panel),
-                                                    s.form_cut_id,
-                                                    s.form_reject_id,
-                                                    s.form_piece_id,
-                                                    s.so_det_id,
-                                                    s.group_stocker,
-                                                    s.ratio,
-                                                    s.stocker_reject
-                                    ) as loading_qty on loading_qty.panel = COALESCE(part_com.panel, part.panel)
-                            AND loading_qty.form_cut_id    <=> stocker_input.form_cut_id
-                            AND loading_qty.form_reject_id <=> stocker_input.form_reject_id
-                            AND loading_qty.form_piece_id  <=> stocker_input.form_piece_id
-                            AND loading_qty.so_det_id      <=> stocker_input.so_det_id
-                            AND loading_qty.group_stocker  <=> stocker_input.group_stocker
-                            AND loading_qty.ratio          <=> stocker_input.ratio
-                            AND loading_qty.stocker_reject <=> stocker_input.stocker_reject
-                            WHERE loading_line.tanggal_loading between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' and
-                            (stocker_input.cancel IS NULL OR stocker_input.cancel != 'y') and
-                            (stocker_input.notes IS NULL OR stocker_input.notes NOT LIKE '%STOCKER MANUAL%')
-                            group by
-                                    stocker_input.id
+                        SELECT
+                            s.id_qr_stocker,
+                            pd.id AS part_detail_id,
+                            s.so_det_id,
+
+                            NULL AS qty_in_dc_main,
+                            NULL AS qty_in_dc,
+                            NULL AS sec_inhouse_in_main,
+                            NULL AS sec_inhouse_in,
+                            NULL AS sec_inhouse_rep_main,
+                            NULL AS sec_inhouse_rep,
+                            NULL AS sec_inhouse_out_main,
+                            NULL AS sec_inhouse_out,
+                            NULL AS sec_in_in_main,
+                            NULL AS sec_in_in,
+                            NULL AS sec_in_rep_main,
+                            NULL AS sec_in_rep,
+                            NULL AS sec_in_out_main,
+                            NULL AS sec_in_out,
+
+                            COALESCE(
+                                MIN(ll.qty) OVER (
+                                    PARTITION BY
+                                        COALESCE(p_com.panel, p.panel),
+                                        s.form_cut_id,
+                                        s.form_reject_id,
+                                        s.form_piece_id,
+                                        s.so_det_id,
+                                        s.group_stocker,
+                                        s.ratio,
+                                        s.stocker_reject
+                                ),
+                                ll.qty
+                            ) AS loading_qty
+                        FROM loading_line ll
+                        JOIN stocker_input s ON s.id = ll.stocker_id
+                        LEFT JOIN part_detail pd ON pd.id = s.part_detail_id
+                        LEFT JOIN part p ON p.id = pd.part_id
+                        LEFT JOIN part_detail pd_com ON pd_com.id = pd.from_part_detail AND pd.part_status = 'complement'
+                        LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                        WHERE
+                            ll.tanggal_loading BETWEEN DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
+                            AND COALESCE(s.cancel, 'n') != 'y'
+                            AND (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
                     ),
 
                     loading_line as (
@@ -2532,7 +2427,7 @@ class RekapDC extends Command
                 )
 
                 SELECT
-                    '".$refDate."' AS tanggal,
+                    '".date('Y-m-d', strtotime($refDate.' -1 day'))."' AS tanggal,
                     stockers,
                     buyer,
                     ws,
@@ -2650,7 +2545,8 @@ class RekapDC extends Command
                     terima_good_secondary_luar = VALUES(terima_good_secondary_luar),
                     loading_qty = VALUES(loading_qty),
                     saldo_akhir = VALUES(saldo_akhir),
-                    updated_at = VALUES(updated_at)");
+                    updated_at = VALUES(updated_at);
+            ");
         } catch (\Exception $e) {
             Log::channel('rekapDC')->error("Error saat mengupdate Rekap DC: " . $e->getMessage());
         }

@@ -82,18 +82,19 @@ class TrackController extends Controller
                                 SELECT
                                     marker_input_detail.marker_id,
                                     marker_input_detail.so_det_id,
-                                    marker_input_detail.size,
+                                    COALESCE(master_sb_ws.size, marker_input_detail.size) size,
                                     sum( marker_input_detail.ratio ) ratio,
                                     sum( marker_input_detail.cut_qty ) cut_qty
                                 FROM
                                     marker_input_detail
+                                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
                                 WHERE
                                     marker_input_detail.ratio > 0
                                 GROUP BY
                                     marker_id,
                                     so_det_id
-                                ) marker_detail ON marker_detail.marker_id = marker.id
-                                LEFT JOIN (
+                            ) marker_detail ON marker_detail.marker_id = marker.id
+                            LEFT JOIN (
                                 SELECT
                                     form_cut_input.id,
                                     form_cut_input.id_marker,

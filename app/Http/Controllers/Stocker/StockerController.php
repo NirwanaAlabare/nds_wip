@@ -86,7 +86,7 @@ class StockerController extends Controller
                     form_cut_input.total_lembar,
                     part_form.kode kode_part_form,
                     part.kode kode_part,
-                    GROUP_CONCAT( DISTINCT CONCAT( marker_input_detail.size, '(', marker_input_detail.ratio, ')' ) SEPARATOR ' / ' ) marker_details,
+                    GROUP_CONCAT( DISTINCT CONCAT( COALESCE(master_sb_ws.size, marker_input_detail.size), '(', marker_input_detail.ratio, ')' ) SEPARATOR ' / ' ) marker_details,
                     GROUP_CONCAT( DISTINCT master_part.nama_part SEPARATOR ' || ' ) part_details,
                     'GENERAL' type
                 FROM
@@ -97,7 +97,8 @@ class StockerController extends Controller
                     LEFT JOIN `master_part` ON `master_part`.`id` = `part_detail`.`master_part_id`
                     LEFT JOIN `marker_input` ON `marker_input`.`kode` = `form_cut_input`.`id_marker`
                     LEFT JOIN `marker_input_detail` ON `marker_input_detail`.`marker_id` = `marker_input`.`id`
-                    LEFT JOIN `master_size_new` ON `master_size_new`.`size` = `marker_input_detail`.`size`
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
+                    LEFT JOIN `master_size_new` ON `master_size_new`.`size` = `master_sb_ws`.`size`
                     LEFT JOIN `users` ON `users`.`id` = `form_cut_input`.`no_meja`
                 WHERE
                     part_form.id IS NOT NULL
@@ -218,8 +219,8 @@ class StockerController extends Controller
                 form_detail.total_lembar,
                 form_cut_input.no_cut,
                 UPPER(form_cut_input.shell) shell,
-                GROUP_CONCAT(DISTINCT COALESCE(master_size_new.size, marker_input_detail.size) ORDER BY master_size_new.urutan ASC SEPARATOR ', ') sizes,
-                GROUP_CONCAT(DISTINCT CONCAT(' ', COALESCE(master_size_new.size, marker_input_detail.size), '(', marker_input_detail.ratio * form_cut_input.total_lembar, ')') ORDER BY master_size_new.urutan ASC) marker_details,
+                GROUP_CONCAT(DISTINCT COALESCE(master_sb_ws.size, master_size_new.size, marker_input_detail.size) ORDER BY master_size_new.urutan ASC SEPARATOR ', ') sizes,
+                GROUP_CONCAT(DISTINCT CONCAT(' ', COALESCE(master_sb_ws.size, master_size_new.size, marker_input_detail.size), '(', marker_input_detail.ratio * form_cut_input.total_lembar, ')') ORDER BY master_size_new.urutan ASC) marker_details,
                 GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) SEPARATOR ', ') part,
                 part.panel_status
             ")->
@@ -230,7 +231,8 @@ class StockerController extends Controller
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
-            leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
             leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
             where("form_cut_input.id", $formCutId)->
             groupBy("form_cut_input.id")->
@@ -3354,7 +3356,8 @@ class StockerController extends Controller
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
-            leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
             leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
             whereRaw("part_form.id is not null")->
             where("part.id", $request->id)->
@@ -3822,13 +3825,14 @@ class StockerController extends Controller
                     marker_input.style,
                     UPPER(TRIM(marker_input.color)) color,
                     marker_input.panel,
-                    GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') SEPARATOR ', ') marker_details,
+                    GROUP_CONCAT(DISTINCT CONCAT(COALESCE(master_sb_ws.size, master_size_new.size), '(', marker_input_detail.ratio, ')') SEPARATOR ', ') marker_details,
                     form_cut_input.qty_ply,
                     form_cut_input.no_cut
                 ")->
                 leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
                 leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
-                leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
+                leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
+                leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
                 leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
                 leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
                 where("form_cut_input.status", "SELESAI PENGERJAAN")->
