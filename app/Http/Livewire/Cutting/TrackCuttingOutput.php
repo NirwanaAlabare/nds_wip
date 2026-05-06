@@ -286,7 +286,7 @@ class TrackCuttingOutput extends Component
                 marker_input.color,
                 marker_input.panel,
                 marker_input_detail.so_det_id,
-                marker_input_detail.size
+                COALESCE(master_sb_ws.size, marker_input_detail.size) size
             FROM
                 `form_cut_input`
                 LEFT JOIN (
@@ -316,6 +316,7 @@ class TrackCuttingOutput extends Component
                 LEFT JOIN `marker_input` ON `marker_input`.`kode` = `form_cut_input`.`id_marker`
                 LEFT JOIN `marker_input_detail` ON `marker_input`.`id` = `marker_input_detail`.`marker_id`
                 AND `marker_input_detail`.`ratio` > 0
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
             WHERE
                 form_cut_input.`status` = 'SELESAI PENGERJAAN'
                 AND form_cut_input.id_marker IS NOT NULL
