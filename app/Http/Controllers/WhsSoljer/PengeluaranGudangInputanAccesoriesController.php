@@ -261,28 +261,50 @@ class PengeluaranGudangInputanAccesoriesController extends Controller
                 ]);
             }
 
+            // Delete
+            $existingIds = PengeluaranGudangInputanAccesoriesDetail::where('pengeluaran_gudang_inputan_accesories_id', $id)
+                ->pluck('id')
+                ->toArray();
+
+            $submittedIds = collect($items)->pluck('id')->toArray();
+
+            $deletedIds = array_diff($existingIds, $submittedIds);
+
+            if (!empty($deletedIds)) {
+                PengeluaranGudangInputanAccesoriesDetail::whereIn('id', $deletedIds)->delete();
+            }
+
+            // Update and Create
             foreach ($items as $row) {
                 $dataDetail = PengeluaranGudangInputanAccesoriesDetail::find($row['id']);
 
-                PengeluaranGudangInputanAccesoriesHistory::create([
-                    'pengeluaran_gudang_inputan_accesories_id' => $dataDetail->pengeluaran_gudang_inputan_accesories_id,
-                    'barcode'                          => $dataDetail->barcode,
-                    'qty_act'                          => $dataDetail->qty,
-                    'qty_out'                          => $row['qty_out'],
-                    'qty_kgm_act'                      => $dataDetail->qty_kgm,
-                    'qty_kgm_out'                      => $row['qty_kgm_out'],
-                    "created_by"                       => $user ? $user->id : null,
-                    "created_by_username"              => $user ? $user->username : null,
-                    "created_at"                       => $now,
-                ]);
+                $oldQty = (float) $dataDetail->qty_out;
+                $newQty = (float) $row['qty_out'];
 
-                PengeluaranGudangInputanAccesoriesDetail::where('id', $row['id'])
-                    ->update([
-                        'qty_out' => $row['qty_out'],
-                        'qty_kgm_out' => $row['qty_kgm_out'],
-                        'updated_at' => now(),
-                        'updated_by' => auth()->id(),
+                $oldKgm = (float) $dataDetail->qty_kgm_out;
+                $newKgm = (float) $row['qty_kgm_out'];
+
+                if ($oldQty != $newQty || $oldKgm != $newKgm) {
+                    PengeluaranGudangInputanAccesoriesHistory::create([
+                        'pengeluaran_gudang_inputan_accesories_id' => $dataDetail->pengeluaran_gudang_inputan_accesories_id,
+                        'barcode'                          => $dataDetail->barcode,
+                        'qty_act'                          => $dataDetail->qty_act,
+                        'qty_out'                          => $row['qty_out'],
+                        'qty_kgm_act'                      => $dataDetail->qty_kgm_act,
+                        'qty_kgm_out'                      => $row['qty_kgm_out'],
+                        "created_by"                       => $user ? $user->id : null,
+                        "created_by_username"              => $user ? $user->username : null,
+                        "created_at"                       => $now,
                     ]);
+
+                    PengeluaranGudangInputanAccesoriesDetail::where('id', $row['id'])
+                        ->update([
+                            'qty_out' => $row['qty_out'],
+                            'qty_kgm_out' => $row['qty_kgm_out'],
+                            'updated_at' => now(),
+                            'updated_by' => auth()->id(),
+                        ]);
+                }
             }
 
             DB::commit();

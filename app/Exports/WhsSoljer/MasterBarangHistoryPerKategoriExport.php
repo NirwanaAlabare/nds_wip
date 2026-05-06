@@ -74,7 +74,7 @@ class MasterBarangHistoryPerKategoriExport implements FromView, ShouldAutoSize, 
                         satuan
                     FROM
                         penerimaan_gudang_inputan
-                    LEFT JOIN penerimaan_gudang_inputan_detail ON penerimaan_gudang_inputan_detail.penerimaan_gudang_inputan_id = penerimaan_gudang_inputan.id
+                    LEFT JOIN penerimaan_gudang_inputan_history ON penerimaan_gudang_inputan_history.penerimaan_gudang_inputan_id = penerimaan_gudang_inputan.id
                     WHERE barcode = '{$this->barcode}' AND penerimaan_gudang_inputan.cancel = '0'
 
                     UNION ALL
@@ -83,7 +83,7 @@ class MasterBarangHistoryPerKategoriExport implements FromView, ShouldAutoSize, 
                         'PENGELUARAN' AS jenis_tipe,
                         no_bpb,
                         DATE_FORMAT(tgl_bpb, '%d-%m-%Y') AS tgl_bpb,
-                        pengeluaran_gudang_inputan_detail.barcode,
+                        pengeluaran_gudang_inputan_history.barcode,
                         lokasi,
                         buyer,
                         keterangan,
@@ -91,13 +91,13 @@ class MasterBarangHistoryPerKategoriExport implements FromView, ShouldAutoSize, 
                         warna,
                         lot,
                         no_roll,
-                        pengeluaran_gudang_inputan_detail.qty_out AS qty,
+                        pengeluaran_gudang_inputan_history.qty_out AS qty,
                         satuan
                     FROM
                         pengeluaran_gudang_inputan
-                    LEFT JOIN pengeluaran_gudang_inputan_detail ON pengeluaran_gudang_inputan_detail.pengeluaran_gudang_inputan_id = pengeluaran_gudang_inputan.id
-                    LEFT JOIN penerimaan_gudang_inputan_detail ON penerimaan_gudang_inputan_detail.barcode = pengeluaran_gudang_inputan_detail.barcode
-                    WHERE pengeluaran_gudang_inputan_detail.barcode = '{$this->barcode}' AND pengeluaran_gudang_inputan.cancel = '0'
+                    LEFT JOIN pengeluaran_gudang_inputan_history ON pengeluaran_gudang_inputan_history.pengeluaran_gudang_inputan_id = pengeluaran_gudang_inputan.id
+                    LEFT JOIN penerimaan_gudang_inputan_history ON penerimaan_gudang_inputan_history.barcode = pengeluaran_gudang_inputan_history.barcode
+                    WHERE pengeluaran_gudang_inputan_history.barcode = '{$this->barcode}' AND pengeluaran_gudang_inputan.cancel = '0'
                 ) as results
             "))->get();
 
@@ -161,7 +161,7 @@ class MasterBarangHistoryPerKategoriExport implements FromView, ShouldAutoSize, 
                         lokasi
                     FROM
                         penerimaan_gudang_inputan_accesories
-                    LEFT JOIN penerimaan_gudang_inputan_accesories_detail ON penerimaan_gudang_inputan_accesories_detail.penerimaan_gudang_inputan_accesories_id = penerimaan_gudang_inputan_accesories.id
+                    LEFT JOIN penerimaan_gudang_inputan_accesories_history ON penerimaan_gudang_inputan_accesories_history.penerimaan_gudang_inputan_accesories_id = penerimaan_gudang_inputan_accesories.id
                     WHERE barcode = '{$this->barcode}' AND penerimaan_gudang_inputan_accesories.cancel = '0'
 
                     UNION ALL
@@ -170,7 +170,7 @@ class MasterBarangHistoryPerKategoriExport implements FromView, ShouldAutoSize, 
                         'PENGELUARAN' AS jenis_tipe,
                         no_bpb,
                         DATE_FORMAT(tgl_bpb, '%d-%m-%Y') AS tgl_bpb,
-                        pengeluaran_gudang_inputan_accesories_detail.barcode,
+                        pengeluaran_gudang_inputan_accesories_history.barcode,
                         no_box,
                         buyer,
                         worksheet,
@@ -178,16 +178,16 @@ class MasterBarangHistoryPerKategoriExport implements FromView, ShouldAutoSize, 
                         kode,
                         warna,
                         size,
-                        pengeluaran_gudang_inputan_accesories_detail.qty_out AS qty,
+                        pengeluaran_gudang_inputan_accesories_history.qty_out AS qty,
                         satuan,
-                        pengeluaran_gudang_inputan_accesories_detail.qty_kgm_out AS qty_kgm,
+                        pengeluaran_gudang_inputan_accesories_history.qty_kgm_out AS qty_kgm,
                         keterangan,
                         lokasi
                     FROM
                         pengeluaran_gudang_inputan_accesories
-                    LEFT JOIN pengeluaran_gudang_inputan_accesories_detail ON pengeluaran_gudang_inputan_accesories_detail.pengeluaran_gudang_inputan_accesories_id = pengeluaran_gudang_inputan_accesories.id
-                    LEFT JOIN penerimaan_gudang_inputan_accesories_detail ON penerimaan_gudang_inputan_accesories_detail.barcode = pengeluaran_gudang_inputan_accesories_detail.barcode
-                    WHERE pengeluaran_gudang_inputan_accesories_detail.barcode = '{$this->barcode}' AND pengeluaran_gudang_inputan_accesories.cancel = '0'
+                    LEFT JOIN pengeluaran_gudang_inputan_accesories_history ON pengeluaran_gudang_inputan_accesories_history.pengeluaran_gudang_inputan_accesories_id = pengeluaran_gudang_inputan_accesories.id
+                    LEFT JOIN penerimaan_gudang_inputan_accesories_history ON penerimaan_gudang_inputan_accesories_history.barcode = pengeluaran_gudang_inputan_accesories_history.barcode
+                    WHERE pengeluaran_gudang_inputan_accesories_history.barcode = '{$this->barcode}' AND pengeluaran_gudang_inputan_accesories.cancel = '0'
                 ) as results
             "))->get();
 
@@ -249,7 +249,7 @@ class MasterBarangHistoryPerKategoriExport implements FromView, ShouldAutoSize, 
                         lokasi
                     FROM
                         penerimaan_gudang_inputan_fg
-                    LEFT JOIN penerimaan_gudang_inputan_fg_detail ON penerimaan_gudang_inputan_fg_detail.penerimaan_gudang_inputan_fg_id = penerimaan_gudang_inputan_fg.id
+                    LEFT JOIN penerimaan_gudang_inputan_fg_history ON penerimaan_gudang_inputan_fg_history.penerimaan_gudang_inputan_fg_id = penerimaan_gudang_inputan_fg.id
                     WHERE barcode = '{$this->barcode}' AND penerimaan_gudang_inputan_fg.cancel = '0'
 
                     UNION ALL
@@ -258,7 +258,7 @@ class MasterBarangHistoryPerKategoriExport implements FromView, ShouldAutoSize, 
                         'PENGELUARAN' AS jenis_tipe,
                         no_bpb,
                         DATE_FORMAT(tgl_bpb, '%d-%m-%Y') AS tgl_bpb,
-                        pengeluaran_gudang_inputan_fg_detail.barcode,
+                        pengeluaran_gudang_inputan_fg_history.barcode,
                         no_koli,
                         buyer,
                         no_ws,
@@ -267,15 +267,15 @@ class MasterBarangHistoryPerKategoriExport implements FromView, ShouldAutoSize, 
                         warna,
                         size,
                         grade,
-                        pengeluaran_gudang_inputan_fg_detail.qty_out AS qty,
+                        pengeluaran_gudang_inputan_fg_history.qty_out AS qty,
                         satuan,
                         keterangan,
                         lokasi
                     FROM
                         pengeluaran_gudang_inputan_fg
-                    LEFT JOIN pengeluaran_gudang_inputan_fg_detail ON pengeluaran_gudang_inputan_fg_detail.pengeluaran_gudang_inputan_fg_id = pengeluaran_gudang_inputan_fg.id
-                    LEFT JOIN penerimaan_gudang_inputan_fg_detail ON penerimaan_gudang_inputan_fg_detail.barcode = pengeluaran_gudang_inputan_fg_detail.barcode
-                    WHERE pengeluaran_gudang_inputan_fg_detail.barcode = '{$this->barcode}' AND pengeluaran_gudang_inputan_fg.cancel = '0'
+                    LEFT JOIN pengeluaran_gudang_inputan_fg_history ON pengeluaran_gudang_inputan_fg_history.pengeluaran_gudang_inputan_fg_id = pengeluaran_gudang_inputan_fg.id
+                    LEFT JOIN penerimaan_gudang_inputan_fg_history ON penerimaan_gudang_inputan_fg_history.barcode = pengeluaran_gudang_inputan_fg_history.barcode
+                    WHERE pengeluaran_gudang_inputan_fg_history.barcode = '{$this->barcode}' AND pengeluaran_gudang_inputan_fg.cancel = '0'
                 ) as results
             "))->get();
 
