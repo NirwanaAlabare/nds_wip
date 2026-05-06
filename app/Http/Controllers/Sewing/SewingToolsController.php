@@ -3556,6 +3556,7 @@ class SewingToolsController extends Controller
                     $rejectOutDetail = RejectOutDetail::where("reject_in_id", $output->id)->get();
                     if ($rejectOutDetail && $rejectOutDetail->count() > 0) {
                         $rejectOutIds = $rejectOutDetail->pluck("reject_out_id")->toArray();
+                        $rejectOutDetailIds = $rejectOutDetail->pluck("id")->toArray();
 
                         // Delete Group
                         $deleteRejectOut = RejectOut::whereIn("id", $rejectOutIds)->delete();
@@ -3566,7 +3567,7 @@ class SewingToolsController extends Controller
 
                             if ($deleteRejectOutDetail) {
                                 // Output Gudang Stok
-                                OutputGudangStok::where("reject_out_id", $rejectOutDetail->id)->delete();
+                                OutputGudangStok::whereIn("reject_out_id", $rejectOutDetailIds)->delete();
                             }
 
                             $message .= "Reject Out ".$output->kode_numbering." -> DELETED <br>";

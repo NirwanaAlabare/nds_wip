@@ -4927,6 +4927,7 @@ order by a.tgl_trans asc
                         left join part on part.act_costing_ws = master_sb_ws.ws and part.panel = mut_cut_pcs_tmp_detail.panel
                         left join part_detail on part_detail.id = mut_cut_pcs_tmp_detail.part_detail_id
                         left join master_part on master_part.id = part_detail.master_part_id
+                        where mut_cut_pcs_tmp_detail.tgl_trans = '$tgl_saldo'
                         group by
                             master_sb_ws.id_so_det,
                             part.id,
