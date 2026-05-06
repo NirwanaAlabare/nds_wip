@@ -32,8 +32,8 @@
     </div>
     <div class="card-body">
 
-        <div class="mb-3">
-            <a href="{{ route('create-purchase-order') }}" class="btn btn-outline-primary">
+        <div class="mb-3 d-flex gap-2">
+            <a href="{{ route('create-purchase-order') }}" class="btn btn-outline-primary mr-2">
                 <i class="fas fa-plus"></i> Create PO
             </a>
         </div>
@@ -102,7 +102,6 @@
                             <th>Approved by</th>
                             <th>Tanggal App</th>
                             <th>Act</th>
-
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -130,7 +129,6 @@
                             <th>Approved by</th>
                             <th>Tanggal App</th>
                             <th>Act</th>
-
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -141,6 +139,7 @@
     </div>
 </div>
 
+<!-- Modal View PO -->
 <div class="modal fade" id="modalViewPO" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
@@ -152,7 +151,17 @@
             </div>
             <div class="modal-body bg-light">
 
-                <h6 class="fw-bold border-bottom pb-2"><i class="fas fa-info-circle"></i> Info Header PO</h6>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                    <h6 class="fw-bold mb-0"><i class="fas fa-info-circle"></i> Info PO</h6>
+
+                    <div class="border bg-white d-flex align-items-center px-2 py-1 shadow-sm" style="border-radius: 4px; border-color: #ddd !important;">
+                        <i class="fas fa-truck fa-flip-horizontal fa-2x mr-2" style="color: #082149;"></i>
+                        <div class="d-flex flex-column" style="line-height: 1.1;">
+                            <span class="fw-bold text-dark" style="font-size: 1.1rem;" id="v_in_shipments">0</span>
+                            <span class="text-secondary" style="font-size: 0.75rem;">In Shipments</span>
+                        </div>
+                    </div>
+                </div>
                 <div class="row mb-4">
                     <div class="col-md-3 mb-2"><label class="small fw-bold mb-0">No PO:</label><div id="v_pono_text" class="text-dark border px-2 py-1 rounded bg-white">-</div></div>
                     <div class="col-md-3 mb-2"><label class="small fw-bold mb-0">Tanggal PO:</label><div id="v_podate" class="text-dark border px-2 py-1 rounded bg-white">-</div></div>
@@ -182,6 +191,17 @@
                             </tr>
                         </thead>
                         <tbody></tbody>
+                        <tfoot class="bg-sb text-white fw-bold" id="tfoot-view-items" style="display: none;">
+                            <tr>
+                                <td colspan="3" class="text-right align-middle border-right-0">GRAND TOTAL :</td>
+                                <td class="text-right align-middle" id="v_tot_qty">0</td>
+                                <td class="align-middle border-0"></td>
+                                <td class="text-right align-middle" id="v_tot_convert">0</td>
+                                <td class="text-right align-middle" id="v_tot_qty_conv">0</td>
+                                <td class="align-middle border-0"></td>
+                                <td class="text-right align-middle" id="v_tot_price">0</td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
 
@@ -216,6 +236,8 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Edit Date -->
 <div class="modal fade" id="modalEditDate" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
@@ -261,113 +283,106 @@
     $(document).ready(function() {
         $('.select2bs4').select2({ theme: 'bootstrap4', width: '100%' });
 
-    tableDraft = $('#table-draft').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: '{{ route("index-purchase-order") }}',
-            data: function (d) {
-                d.jenis = 'draft';
-                d.tahun = $('#filter_tahun').val();
-                d.supplier = $('#filter_supplier').val();
-            }
-        },
-        columns: [
-            {data: 'podate', name: 'podate'},
-            {data: 'pono', name: 'pono'},
-            {data: 'jenis', name: 'jenis'},
-            {data: 'nama_supplier', name: 'nama_supplier'},
-            {
-                data: 'style',
-                name: 'style',
-                defaultContent: '-',
-                render: function(data, type, row) {
-                    if (data && type === 'display') {
-                        return data.split(',').map(item => '- ' + $.trim(item)).join('<br>');
-                    }
-                    return data || '-';
+        tableDraft = $('#table-draft').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '{{ route("index-purchase-order") }}',
+                data: function (d) {
+                    d.jenis = 'draft';
+                    d.tahun = $('#filter_tahun').val();
+                    d.supplier = $('#filter_supplier').val();
                 }
             },
-            {data: 'notes', name: 'notes'},
-            {data: 'username', name: 'username'},
-            {data: 'nama_terms', name: 'nama_terms', defaultContent: '-'},
-            {
-                data: 'app',
-                name: 'app',
-                render: function(data, type, row) {
-                    let badgeClass = '';
-                    let badgeLabel = '';
-                    if (data === 'A') {
-                        badgeClass = 'success';
-                        badgeLabel = 'Approved';
-                    } else if (data === 'W') {
-                        badgeClass = 'warning';
-                        badgeLabel = 'Draft';
+            columns: [
+                {data: 'podate', name: 'podate'},
+                {data: 'pono', name: 'pono'},
+                {data: 'jenis', name: 'jenis'},
+                {data: 'nama_supplier', name: 'nama_supplier'},
+                {
+                    data: 'style',
+                    name: 'style',
+                    defaultContent: '-',
+                    render: function(data, type, row) {
+                        if (data && type === 'display') {
+                            return data.split(',').map(item => '- ' + $.trim(item)).join('<br>');
+                        }
+                        return data || '-';
                     }
-                    return `<span class="badge badge-${badgeClass}">${badgeLabel}</span>`;
-                }
-            },
-            {data: 'app_by', name: 'app_by', defaultContent: '-'},
-            {data: 'app_date', name: 'app_date', defaultContent: '-'},
-            {data: 'action', name: 'action', orderable: false, searchable: false},
+                },
+                {data: 'notes', name: 'notes'},
+                {data: 'username', name: 'username'},
+                {data: 'nama_terms', name: 'nama_terms', defaultContent: '-'},
+                {
+                    data: 'app',
+                    name: 'app',
+                    render: function(data, type, row) {
+                        let badgeClass = 'warning';
+                        let badgeLabel = 'Draft';
 
-        ]
-    });
+                        if (data === 'A') {
+                            badgeClass = 'success';
+                            badgeLabel = 'Approved';
+                        } else if (data === 'C') {
+                            badgeClass = 'danger';
+                            badgeLabel = 'Canceled';
+                        }
 
-    tablePo = $('#table-po').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: '{{ route("index-purchase-order") }}',
-            data: function (d) {
-                d.jenis = 'po';
-                d.tahun = $('#filter_tahun').val();
-                d.supplier = $('#filter_supplier').val();
-            }
-        },
-        columns: [
-            {data: 'podate', name: 'podate'},
-            {data: 'pono', name: 'pono'},
-            {data: 'etd', name: 'etd', defaultContent: '-'},
-            {data: 'eta', name: 'eta', defaultContent: '-'},
-            {data: 'jenis', name: 'jenis'},
-            {data: 'nama_supplier', name: 'nama_supplier'},
-            {
-                data: 'style',
-                name: 'style',
-                defaultContent: '-',
-                render: function(data, type, row) {
-                    if (data && type === 'display') {
-                        return data.split(',').map(item => '- ' + $.trim(item)).join('<br>');
+                        return `<span class="badge badge-${badgeClass}">${badgeLabel}</span>`;
                     }
-                    return data || '-';
+                },
+                {data: 'app_by', name: 'app_by', defaultContent: '-'},
+                {data: 'app_date', name: 'app_date', defaultContent: '-'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+
+        tablePo = $('#table-po').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '{{ route("index-purchase-order") }}',
+                data: function (d) {
+                    d.jenis = 'po';
+                    d.tahun = $('#filter_tahun').val();
+                    d.supplier = $('#filter_supplier').val();
                 }
             },
-            {data: 'notes', name: 'notes'},
-            {data: 'username', name: 'username'},
-            {data: 'nama_terms', name: 'nama_terms', defaultContent: '-'},
-            {
-                data: 'app',
-                name: 'app',
-                render: function(data, type, row) {
-                    let badgeClass = '';
-                    let badgeLabel = '';
-                    if (data === 'A') {
-                        badgeClass = 'success';
-                        badgeLabel = 'Approved';
-                    } else if (data === 'W') {
-                        badgeClass = 'warning';
-                        badgeLabel = 'Waiting';
+            columns: [
+                {data: 'podate', name: 'podate'},
+                {data: 'pono', name: 'pono'},
+                {data: 'etd', name: 'etd', defaultContent: '-'},
+                {data: 'eta', name: 'eta', defaultContent: '-'},
+                {data: 'jenis', name: 'jenis'},
+                {data: 'nama_supplier', name: 'nama_supplier'},
+                {
+                    data: 'style',
+                    name: 'style',
+                    defaultContent: '-',
+                    render: function(data, type, row) {
+                        if (data && type === 'display') {
+                            return data.split(',').map(item => '- ' + $.trim(item)).join('<br>');
+                        }
+                        return data || '-';
                     }
-                    return `<span class="badge badge-${badgeClass}">${badgeLabel}</span>`;
-                }
-            },
-            {data: 'app_by', name: 'app_by', defaultContent: '-'},
-            {data: 'app_date', name: 'app_date', defaultContent: '-'},
-            {data: 'action', name: 'action', orderable: false, searchable: false},
-
-        ]
-    });
+                },
+                {data: 'notes', name: 'notes'},
+                {data: 'username', name: 'username'},
+                {data: 'nama_terms', name: 'nama_terms', defaultContent: '-'},
+                {
+                    data: 'app',
+                    name: 'app',
+                    render: function(data, type, row) {
+                        let badgeClass = data === 'A' ? 'success' : 'warning';
+                        let badgeLabel = data === 'A' ? 'Approved' : 'Waiting';
+                        return `<span class="badge badge-${badgeClass}">${badgeLabel}</span>`;
+                    }
+                },
+                {data: 'app_by', name: 'app_by', defaultContent: '-'},
+                {data: 'app_date', name: 'app_date', defaultContent: '-'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
 
         refreshTable();
     });
@@ -433,27 +448,47 @@
 
                 let tbodyItems = $('#table-view-items tbody');
                 tbodyItems.empty();
+
+                let tQty = 0, tConvert = 0, tQtyConv = 0, tPrice = 0;
+
                 if(res.items.length > 0) {
+                    $('#tfoot-view-items').show();
+
                     $.each(res.items, function(i, val) {
-                        let totalCost = parseFloat(val.qty) * parseFloat(val.price);
+                        let qtyAwal = parseFloat(val.qty_pr_awal || 0);
+                        let convertVal = parseFloat(val.convert_val || 0);
+                        let qtyFinal = parseFloat(val.qty || 0);
+                        let priceItem = parseFloat(val.price || 0);
+
+                        tQty += qtyAwal;
+                        tConvert += convertVal;
+                        tQtyConv += qtyFinal;
+                        tPrice += priceItem;
+
                         tbodyItems.append(`
                             <tr>
                                 <td>${val.nama_style || '-'}</td>
                                 <td>${val.itemdesc || '-'}</td>
                                 <td class="text-center">${val.product_set || '-'}</td>
-                                <td class="text-right">${parseFloat(val.qty_pr_awal || 0)}</td>
+                                <td class="text-right">${qtyAwal}</td>
                                 <td class="text-center">${val.unit_pr_awal || '-'}</td>
-                                <td class="text-right">${parseFloat(val.convert_val || 0)}</td>
-                                <td class="text-right text-dark fw-bold">${parseFloat(val.qty || 0)}</td>
+                                <td class="text-right">${convertVal}</td>
+                                <td class="text-right text-dark fw-bold">${qtyFinal}</td>
                                 <td class="text-center text-dark fw-bold">${val.unit || '-'}</td>
-                                <td class="text-right">${formatIDR(val.price)}</td>
+                                <td class="text-right">${formatIDR(priceItem)}</td>
                             </tr>
                         `);
                     });
-                } else {
-                    tbodyItems.html('<tr><td colspan="10" class="text-center font-italic">Tidak ada rincian item.</td></tr>');
-                }
 
+                    $('#v_tot_qty').text(formatIDR(tQty));
+                    $('#v_tot_convert').text(formatIDR(tConvert));
+                    $('#v_tot_qty_conv').text(formatIDR(tQtyConv));
+                    $('#v_tot_price').text(formatIDR(tPrice));
+
+                } else {
+                    $('#tfoot-view-items').hide();
+                    tbodyItems.html('<tr><td colspan="9" class="text-center font-italic">Tidak ada rincian item.</td></tr>');
+                }
 
                 let tbodyBiaya = $('#table-view-biaya tbody');
                 tbodyBiaya.empty();
@@ -530,6 +565,79 @@
             },
             error: function() {
                 Swal.fire('Error!', 'Terjadi kesalahan sistem.', 'error');
+            }
+        });
+    });
+
+    $(document).on('click', '.btn-cancel', function() {
+        let id = $(this).data('id');
+        let actionUrl = '{{ route("cancel-purchase-order", ":id") }}';
+        actionUrl = actionUrl.replace(':id', id);
+
+        Swal.fire({
+            title: 'Cancel PO?',
+            text: "Status PO ini akan diubah menjadi Cancel.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+                $.ajax({
+                    url: actionUrl,
+                    type: 'POST',
+                    data: { _token: '{{ csrf_token() }}' },
+                    success: function(res) {
+                        if(res.status === 200) {
+                            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: res.message, showConfirmButton: false, timer: 1500 });
+                            refreshTable();
+                        } else {
+                            Swal.fire('Gagal!', res.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error!', 'Terjadi Kesalahan Sistem', 'error');
+                    }
+                });
+            }
+        });
+    });
+
+
+    $(document).on('click', '.btn-restore', function() {
+        let id = $(this).data('id');
+        let actionUrl = '{{ route("restore-purchase-order", ":id") }}';
+        actionUrl = actionUrl.replace(':id', id);
+
+        Swal.fire({
+            title: 'Restore PO ke Draft?',
+            text: "PO yang dicancel ini Kembalikan ke Draft.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Restore'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+                $.ajax({
+                    url: actionUrl,
+                    type: 'POST',
+                    data: { _token: '{{ csrf_token() }}' },
+                    success: function(res) {
+                        if(res.status === 200) {
+                            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: res.message, showConfirmButton: false, timer: 1500 });
+                            refreshTable();
+                        } else {
+                            Swal.fire('Gagal!', res.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error!', 'Terjadi Kesalahan Sistem', 'error');
+                    }
+                });
             }
         });
     });

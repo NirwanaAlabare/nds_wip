@@ -4,25 +4,20 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
-use App\Exports\ExportLaporanRekonsiliasi;
-use App\Exports\ExportLaporanCeisaDetail;
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Facades\Excel;
-use \avadim\FastExcelLaravel\Excel as FastExcel;
-use PhpOffice\PhpSpreadsheet\Style\Border;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Carbon\Carbon;
-use DB;
-use QrCode;
-use PDF;
-use PhpParser\Node\Expr\AssignOp\Concat;
 
 class PurchasingController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index(Request $request)
     {
         if ($request->ajax()) {
@@ -44,42 +39,45 @@ class PurchasingController extends Controller
             }
 
             if ($jenis === 'draft') {
-                $query->where('h.app', 'W');
+                $query->whereIn('h.app', ['W', 'C']);
             } else {
                 $query->where('h.app', 'A');
             }
 
             $query->orderBy('h.podate', 'desc')->orderBy('h.id', 'desc');
 
-           return datatables()->of($query)
+            return datatables()->of($query)
                 ->addColumn('action', function ($row) use ($jenis) {
-
-                    $urlEdit = route('edit-purchase-order', $row->id);
-
                     $host = request()->getHost();
-
-                    if ($host == 'localhost' || $host == '127.0.0.1') {
-                        $base_url = 'http://localhost:8080';
-                    } else {
-                        $base_url = 'http://' . $host . ':8080';
-                    }
+                    $base_url = ($host == 'localhost' || $host == '127.0.0.1') ? 'http://localhost:8080' : 'http://' . $host . ':8080';
 
                     $url_pdf = $base_url . '/erp/pages/pur/pdfPO.php?id=' . $row->id;
-
                     $urlEdit = route('edit-purchase-order', $row->id);
-
+                    $urlExcel = route('export-purchase-order', $row->id);
 
                     if ($jenis === 'draft') {
-                        return '<div class="d-flex justify-content-center">
-                                    <a href="' . $urlEdit . '" class="btn btn-sm btn-info mr-1" title="Edit"><i class="fas fa-edit"></i></a>
-                                    <button type="button" class="btn btn-sm btn-primary mr-1 btn-view" data-id="'.$row->id.'" title="View"><i class="fas fa-eye"></i></button>
-                                    <a href="' . $url_pdf . '" class="btn btn-sm btn-secondary mr-1" title="Print" target="_blank"><i class="fas fa-print"></i></a>
-                                </div>';
+                        if ($row->app === 'C') {
+                            return '<div class="d-flex justify-content-center">
+                                        <button type="button" class="btn btn-sm btn-success mr-1 btn-restore" data-id="'.$row->id.'" title="Restore ke Draft"><i class="fas fa-undo"></i></button>
+                                        <button type="button" class="btn btn-sm btn-primary mr-1 btn-view" data-id="'.$row->id.'" title="View"><i class="fas fa-eye"></i></button>
+                                        <a href="' . $url_pdf . '" class="btn btn-sm btn-secondary mr-1" title="Print" target="_blank"><i class="fas fa-print"></i></a>
+                                        <a href="' . $urlExcel . '" class="btn btn-sm btn-success" title="Export Excel"><i class="fas fa-file-excel"></i></a>
+                                    </div>';
+                        } else {
+                            return '<div class="d-flex justify-content-center">
+                                        <a href="' . $urlEdit . '" class="btn btn-sm btn-info mr-1" title="Edit"><i class="fas fa-edit"></i></a>
+                                        <button type="button" class="btn btn-sm btn-danger mr-1 btn-cancel" data-id="'.$row->id.'" title="Cancel PO"><i class="fas fa-times"></i></button>
+                                        <button type="button" class="btn btn-sm btn-primary mr-1 btn-view" data-id="'.$row->id.'" title="View"><i class="fas fa-eye"></i></button>
+                                        <a href="' . $url_pdf . '" class="btn btn-sm btn-secondary mr-1" title="Print" target="_blank"><i class="fas fa-print"></i></a>
+                                        <a href="' . $urlExcel . '" class="btn btn-sm btn-success" title="Export Excel"><i class="fas fa-file-excel"></i></a>
+                                    </div>';
+                        }
                     } else {
                         return '<div class="d-flex justify-content-center">
                                     <button type="button" class="btn btn-sm btn-primary mr-1 btn-view" data-id="'.$row->id.'" title="View"><i class="fas fa-eye"></i></button>
                                     <a href="' . $url_pdf . '" class="btn btn-sm btn-secondary mr-1" title="Print" target="_blank"><i class="fas fa-print"></i></a>
-                                    <button type="button" class="btn btn-sm btn-warning btn-edit-date" data-id="'.$row->id.'" data-etd="'.$row->etd.'" data-eta="'.$row->eta.'" title="Update ETD & ETA"><i class="fas fa-calendar-alt"></i></button>
+                                    <button type="button" class="btn btn-sm btn-warning mr-1 btn-edit-date" data-id="'.$row->id.'" data-etd="'.$row->etd.'" data-eta="'.$row->eta.'" title="Update ETD & ETA"><i class="fas fa-calendar-alt"></i></button>
+                                    <a href="' . $urlExcel . '" class="btn btn-sm btn-success" title="Export Excel"><i class="fas fa-file-excel"></i></a>
                                 </div>';
                     }
                 })
@@ -88,6 +86,7 @@ class PurchasingController extends Controller
         }
 
         $suppliers = DB::connection('mysql_sb')->table('mastersupplier')->get();
+
         return view('purchasing.po.index', [
             'page' => 'dashboard-purchasing',
             'subPageGroup' => 'purchasing',
@@ -125,31 +124,12 @@ class PurchasingController extends Controller
     {
         $mysql_sb = DB::connection('mysql_sb');
         $suppliers = $mysql_sb->table('mastersupplier')->where('tipe_sup', 'S')->orderBy('Supplier', 'ASC')->get();
-        $currency = $mysql_sb->table('masterpilihan')
-            ->where('kode_pilihan', 'Curr')
-            ->select('id', 'nama_pilihan')
-            ->get();
-        $payment_term = $mysql_sb->table('masterpterms')
-            ->where('aktif', 'Y')
-            ->select('id', DB::raw("CONCAT(kode_pterms, '-', nama_pterms) AS tampil"))
-            ->get();
-
-         $tax = $mysql_sb->table('mtax')
-            ->where('category_tax', 'PPN')
-            ->where('idtax', 1)
-            ->select('percentage AS id', DB::raw("concat(kriteria,' ',percentage,'%') AS tampil"))
-            ->get();
-
-        $day_terms = $mysql_sb->table('masterdayterms')
-            ->where('aktif', 'Y')
-            ->where('is_deleted', 'N')
-            ->select('id', DB::raw("concat(kode_pterms) AS tampil"))
-            ->get();
-
-        $kategori_biaya = $mysql_sb->table('po_master_pilihan')
-            ->where('status', 'Y')
-            ->select('id', DB::raw("UPPER(nama_kategori) AS tampil"))
-            ->get();
+        $currency = $mysql_sb->table('masterpilihan')->where('kode_pilihan', 'Curr')->select('id', 'nama_pilihan')->get();
+        $payment_term = $mysql_sb->table('masterpterms')->where('aktif', 'Y')->select('id', DB::raw("CONCAT(kode_pterms, '-', nama_pterms) AS tampil"))->get();
+        $tax = $mysql_sb->table('mtax')->where('category_tax', 'PPN')->where('idtax', 1)->select('percentage AS id', DB::raw("concat(kriteria,' ',percentage,'%') AS tampil"))->get();
+        $day_terms = $mysql_sb->table('masterdayterms')->where('aktif', 'Y')->where('is_deleted', 'N')->select('id', DB::raw("concat(kode_pterms) AS tampil"))->get();
+        $kategori_biaya = $mysql_sb->table('po_master_pilihan')->where('status', 'Y')->select('id', DB::raw("UPPER(nama_kategori) AS tampil"))->get();
+        $units = $mysql_sb->table('masterpilihan')->where('kode_pilihan', 'Satuan')->select('nama_pilihan')->get();
 
         $style = $mysql_sb->table('so')
             ->join('bom_marketing', 'so.id_bom', '=', 'bom_marketing.id')
@@ -162,12 +142,6 @@ class PurchasingController extends Controller
             ->groupBy('so.id_bom', 'act_costing_new.style')
             ->limit(500)
             ->get();
-
-        $units = $mysql_sb->table('masterpilihan')
-            ->where('kode_pilihan', 'Satuan')
-            ->select('nama_pilihan')
-            ->get();
-
 
         return view('purchasing.po.create', [
             'page'           => 'dashboard-purchasing',
@@ -185,7 +159,7 @@ class PurchasingController extends Controller
         ]);
     }
 
-     public function edit($id)
+    public function edit($id)
     {
         $mysql_sb = DB::connection('mysql_sb');
 
@@ -217,31 +191,12 @@ class PurchasingController extends Controller
             ->get();
 
         $suppliers = $mysql_sb->table('mastersupplier')->where('tipe_sup', 'S')->orderBy('Supplier', 'ASC')->get();
-        $currency = $mysql_sb->table('masterpilihan')
-            ->where('kode_pilihan', 'Curr')
-            ->select('id', 'nama_pilihan')
-            ->get();
-        $payment_term = $mysql_sb->table('masterpterms')
-            ->where('aktif', 'Y')
-            ->select('id', DB::raw("CONCAT(kode_pterms, '-', nama_pterms) AS tampil"))
-            ->get();
-
-         $tax = $mysql_sb->table('mtax')
-            ->where('category_tax', 'PPN')
-            ->where('idtax', 1)
-            ->select('percentage AS id', DB::raw("concat(kriteria,' ',percentage,'%') AS tampil"))
-            ->get();
-
-        $day_terms = $mysql_sb->table('masterdayterms')
-            ->where('aktif', 'Y')
-            ->where('is_deleted', 'N')
-            ->select('id', DB::raw("concat(kode_pterms) AS tampil"))
-            ->get();
-
-        $kategori_biaya = $mysql_sb->table('po_master_pilihan')
-            ->where('status', 'Y')
-            ->select('id', DB::raw("UPPER(nama_kategori) AS tampil"))
-            ->get();
+        $currency = $mysql_sb->table('masterpilihan')->where('kode_pilihan', 'Curr')->select('id', 'nama_pilihan')->get();
+        $payment_term = $mysql_sb->table('masterpterms')->where('aktif', 'Y')->select('id', DB::raw("CONCAT(kode_pterms, '-', nama_pterms) AS tampil"))->get();
+        $tax = $mysql_sb->table('mtax')->where('category_tax', 'PPN')->where('idtax', 1)->select('percentage AS id', DB::raw("concat(kriteria,' ',percentage,'%') AS tampil"))->get();
+        $day_terms = $mysql_sb->table('masterdayterms')->where('aktif', 'Y')->where('is_deleted', 'N')->select('id', DB::raw("concat(kode_pterms) AS tampil"))->get();
+        $kategori_biaya = $mysql_sb->table('po_master_pilihan')->where('status', 'Y')->select('id', DB::raw("UPPER(nama_kategori) AS tampil"))->get();
+        $units = $mysql_sb->table('masterpilihan')->where('kode_pilihan', 'Satuan')->select('nama_pilihan')->get();
 
         $style = $mysql_sb->table('so')
             ->join('bom_marketing', 'so.id_bom', '=', 'bom_marketing.id')
@@ -253,11 +208,6 @@ class PurchasingController extends Controller
             ->orderBy('so.d_insert', 'desc')
             ->groupBy('so.id_bom', 'act_costing_new.style')
             ->limit(500)
-            ->get();
-
-        $units = $mysql_sb->table('masterpilihan')
-            ->where('kode_pilihan', 'Satuan')
-            ->select('nama_pilihan')
             ->get();
 
         return view('purchasing.po.edit', [
@@ -288,10 +238,7 @@ class PurchasingController extends Controller
 
         $mysql_sb = DB::connection('mysql_sb');
 
-        $so = $mysql_sb->table('so')
-            ->where('id_bom', $id_bom)
-            ->orderBy('id', 'desc')
-            ->first();
+        $so = $mysql_sb->table('so')->where('id_bom', $id_bom)->orderBy('id', 'desc')->first();
 
         if (!$so) return response()->json([]);
 
@@ -299,19 +246,11 @@ class PurchasingController extends Controller
             ->leftJoin('master_colors_gmt as c', 'sd.id_color', '=', 'c.id')
             ->leftJoin('master_size_new as s', 'sd.id_size', '=', 's.id')
             ->where('sd.id_so', $so->id)
-            ->select(
-                'sd.id_color',
-                'sd.id_size',
-                'sd.product_set',
-                'c.name as color_name',
-                's.size as size_name',
-                $mysql_sb->raw('SUM(sd.qty) as qty')
-            )
+            ->select('sd.id_color', 'sd.id_size', 'sd.product_set', 'c.name as color_name', 's.size as size_name', $mysql_sb->raw('SUM(sd.qty) as qty'))
             ->groupBy('sd.id_color', 'sd.id_size', 'sd.product_set', 'c.name', 's.size')
             ->get();
 
         if ($so_details->isEmpty()) return response()->json([]);
-
 
         $bom_query = $mysql_sb->table('bom_marketing_detail as d')
             ->join('bom_marketing as h', 'd.id_bom_marketing', '=', 'h.id')
@@ -325,30 +264,16 @@ class PurchasingController extends Controller
             ->where('d.id_bom_marketing', $id_bom)
             ->whereNotNull('d.id_item');
 
-
         if ($jenis_item) {
             $bom_query->where('d.category', $jenis_item);
         }
 
         $bom_details_raw = $bom_query->select(
-                'd.id as detail_id',
-                'd.id_item',
-                'd.id_contents',
-                'd.id_color as bom_id_color',
-                'd.id_size as bom_id_size',
-                'd.id_set',
-                'mset.nama as bom_product_set',
-                'd.rule_bom',
-                'd.category',
-                'a.nama_group',
-                'i.itemdesc',
-                'i.color as i_color',
-                'i.size as i_size',
-                'i.add_info',
-                'd.qty as cons',
-                'd.unit as unit'
-            )
-            ->get();
+                'd.id as detail_id', 'd.id_item', 'd.id_contents', 'd.id_color as bom_id_color',
+                'd.id_size as bom_id_size', 'd.id_set', 'mset.nama as bom_product_set', 'd.rule_bom',
+                'd.category', 'a.nama_group', 'i.itemdesc', 'i.color as i_color', 'i.size as i_size',
+                'i.add_info', 'd.qty as cons', 'd.unit as unit'
+            )->get();
 
         $bom_details_raw = $bom_details_raw->map(function($item) {
             if ($item->category == 'Manufacturing') {
@@ -389,7 +314,6 @@ class PurchasingController extends Controller
                 }
 
                 if ($is_match) {
-
                     if (in_array($bom->rule_bom, ['All Color All Size', 'All Color Range Size'])) {
                         $color_label = 'ALL COLOR';
                     } else {
@@ -397,13 +321,10 @@ class PurchasingController extends Controller
                     }
 
                     $set_label = $so_set ?: 'SINGLE';
-
                     $key = $bom->id_item . '_' . $color_label . '_' . $set_label . '_' . $bom->unit;
 
                     if (!isset($grouped_data[$key])) {
-
                         $display_set = $set_label;
-
                         $nama_group = strtoupper(trim($bom->nama_group ?? ''));
                         $sort_val = 5;
                         if (strpos($nama_group, 'FABRIC') !== false) $sort_val = 1;
@@ -424,7 +345,6 @@ class PurchasingController extends Controller
 
                     $qty_baju = (float) $sdet->qty;
                     $cons = (float) $bom->cons;
-
                     $grouped_data[$key]['cons_bom'] += ($qty_baju * $cons);
                 }
             }
@@ -500,12 +420,7 @@ class PurchasingController extends Controller
             }
 
             $pono = $prefix . $no_urut;
-
             $kurs = (float) str_replace(',', '', $request->kurs ?? 0);
-
-            if ($request->has('style_item')) {
-                $id_boms = array_filter(array_unique($request->style_item));
-            }
 
             $style_string = null;
             if (count($id_boms) > 0) {
@@ -563,16 +478,12 @@ class PurchasingController extends Controller
                 $qty_bom            = (float) str_replace(',', '', $request->qty_bom[$index] ?? 0);
                 $qty_need           = (float) str_replace(',', '', $request->qty_need[$index] ?? 0);
                 $blc_pr             = (float) str_replace(',', '', $request->blc_pr[$index] ?? 0);
-
                 $qty_pr_awal        = (float) str_replace(',', '', $request->qty_pr[$index] ?? 0);
                 $unit_pr_awal       = $request->unit_pr[$index] ?? '';
-
                 $convert            = (float) str_replace(',', '', $request->convert[$index] ?? 0);
                 $unit_convert       = $request->unit_convert[$index] ?? '';
-
                 $price_costing      = (float) str_replace(',', '', $request->price_costing[$index] ?? 0);
                 $price_costing_conv = (float) str_replace(',', '', $request->price_costing_conv[$index] ?? 0);
-
                 $price_pr           = (float) str_replace(',', '', $request->price_pr[$index] ?? 0);
 
                 $qty_final  = ($convert > 0) ? (float) str_replace(',', '', $request->qty_pr_conv[$index]) : $qty_pr_awal;
@@ -660,18 +571,8 @@ class PurchasingController extends Controller
                             'created_at'  => now(),
                         ];
 
-                        $biaya_data_temp = [
-                            'id_kategori' => $kategori,
-                            'total'       => $total_biaya,
-                            'ppn'         => $ppn_biaya,
-                            'keterangan'  => $request->desc_biaya[$index] ?? '',
-                            'status'      => 'Y',
-                            'created_by'  => auth()->user()->name ?? '',
-                            'created_at'  => now(),
-                        ];
-
                         $po_biaya[] = $biaya_data;
-                        $po_biaya_temp[] = $biaya_data_temp;
+                        $po_biaya_temp[] = $biaya_data;
                     }
                 }
             }
@@ -780,16 +681,12 @@ class PurchasingController extends Controller
                 $qty_bom            = (float) str_replace(',', '', $request->qty_bom[$index] ?? 0);
                 $qty_need           = (float) str_replace(',', '', $request->qty_need[$index] ?? 0);
                 $blc_pr             = (float) str_replace(',', '', $request->blc_pr[$index] ?? 0);
-
                 $qty_pr_awal        = (float) str_replace(',', '', $request->qty_pr[$index] ?? 0);
                 $unit_pr_awal       = $request->unit_pr[$index] ?? '';
-
                 $convert            = (float) str_replace(',', '', $request->convert[$index] ?? 0);
                 $unit_convert       = $request->unit_convert[$index] ?? '';
-
                 $price_costing      = (float) str_replace(',', '', $request->price_costing[$index] ?? 0);
                 $price_costing_conv = (float) str_replace(',', '', $request->price_costing_conv[$index] ?? 0);
-
                 $price_pr           = (float) str_replace(',', '', $request->price_pr[$index] ?? 0);
 
                 $qty_final  = ($convert > 0) ? (float) str_replace(',', '', $request->qty_pr_conv[$index]) : $qty_pr_awal;
@@ -877,18 +774,8 @@ class PurchasingController extends Controller
                             'created_at'  => now(),
                         ];
 
-                        $biaya_data_temp = [
-                            'id_kategori' => $kategori,
-                            'total'       => $total_biaya,
-                            'ppn'         => $ppn_biaya,
-                            'keterangan'  => $request->desc_biaya[$index] ?? '',
-                            'status'      => 'Y',
-                            'created_by'  => auth()->user()->name ?? '',
-                            'created_at'  => now(),
-                        ];
-
                         $po_biaya[] = $biaya_data;
-                        $po_biaya_temp[] = $biaya_data_temp;
+                        $po_biaya_temp[] = $biaya_data;
                     }
                 }
             }
@@ -950,8 +837,8 @@ class PurchasingController extends Controller
     {
         try {
             DB::connection('mysql_sb')->table('po_header')->where('id', $id)->update([
-                'etd' => $request->etd,
-                'eta' => $request->eta,
+                'etd' => $request->etd ?: null,
+                'eta' => $request->eta ?: null,
             ]);
 
             return response()->json([
@@ -965,7 +852,6 @@ class PurchasingController extends Controller
             ], 500);
         }
     }
-
 
     public function approval(Request $request)
     {
@@ -987,30 +873,22 @@ class PurchasingController extends Controller
             }
 
             $query->where('h.app', 'W');
-
             $query->orderBy('h.podate', 'desc')->orderBy('h.id', 'desc');
 
             return datatables()->of($query)
                 ->addColumn('action', function ($row) {
-
                     $host = request()->getHost();
-
-                    if ($host == 'localhost' || $host == '127.0.0.1') {
-                        $base_url = 'http://localhost:8080';
-                    } else {
-                        $base_url = 'http://' . $host . ':8080';
-                    }
-
+                    $base_url = ($host == 'localhost' || $host == '127.0.0.1') ? 'http://localhost:8080' : 'http://' . $host . ':8080';
                     $url_pdf = $base_url . '/erp/pages/pur/pdfPO.php?id=' . $row->id;
+                    $urlExcel = route('export-purchase-order', $row->id);
 
                     return '<div class="d-flex justify-content-center">
                                 <button type="button" class="btn btn-sm btn-success mr-1 btn-approve" data-id="'.$row->id.'" title="Approve"><i class="fas fa-check"></i></button>
                                 <button type="button" class="btn btn-sm btn-primary mr-1 btn-view" data-id="'.$row->id.'" title="View"><i class="fas fa-eye"></i></button>
                                 <a href="' . $url_pdf . '" class="btn btn-sm btn-secondary mr-1" title="Print" target="_blank"><i class="fas fa-print"></i></a>
+                                <a href="' . $urlExcel . '" class="btn btn-sm btn-warning" title="Export Excel"><i class="fas fa-file-excel"></i></a>
                             </div>';
-
                 })
-
                 ->rawColumns(['action'])
                 ->make(true);
         }
@@ -1044,6 +922,159 @@ class PurchasingController extends Controller
                 'status'  => 500,
                 'message' => 'Gagal Approve PO: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+   public function exportExcel($id)
+    {
+        $header = DB::connection('mysql_sb')->table('po_header as h')
+            ->leftJoin('mastersupplier as s', 'h.id_supplier', '=', 's.Id_Supplier')
+            ->leftJoin('masterpterms as pt', 'h.id_terms', '=', 'pt.id')
+            ->select('h.*', 's.Supplier as nama_supplier', 'pt.kode_pterms as nama_terms')
+            ->where('h.id', $id)
+            ->first();
+
+        if (!$header) return back()->with('error', 'Data PO tidak ditemukan');
+
+        $po_no = str_replace('/', '_', $header->pono);
+        $file_name = 'PO_' . $po_no . '.xlsx';
+
+        return Excel::download(new class($id, $header) implements FromCollection, WithHeadings, WithMapping, WithStyles {
+            protected $id_po;
+            protected $header;
+
+            public function __construct($id_po, $header) {
+                $this->id_po = $id_po;
+                $this->header = $header;
+            }
+
+            public function collection() {
+                return DB::connection('mysql_sb')->table('po_item as pi')
+                    ->join('po_header as h', 'pi.id_po', '=', 'h.id')
+                    ->leftJoin('mastersupplier as s', 'h.id_supplier', '=', 's.Id_Supplier')
+                    ->leftJoin('masteritem as mi', 'pi.id_gen', '=', 'mi.id_item')
+                    ->leftJoin('bom_marketing as bm', 'pi.id_bom', '=', 'bm.id')
+                    ->leftJoin('act_costing_new as acn', 'bm.id_costing', '=', 'acn.id')
+                    ->select(
+                        'h.podate', 'h.pono', 'h.jenis', 's.Supplier as nama_supplier',
+                        'acn.style', 'mi.itemdesc', 'pi.product_set', 'pi.qty_pr_awal', 'pi.unit_pr_awal',
+                        'pi.convert_val', 'pi.qty', 'pi.unit', 'pi.price', 'h.n_kurs', 'h.notes'
+                    )
+                    ->where('pi.id_po', $this->id_po)
+                    ->get();
+            }
+
+            public function headings(): array {
+                $jenis_item = $this->header->jenis == 'M' ? 'Manufacturing' : 'Material';
+                $p_terms = ($this->header->jml_pterms ?? 0) . ' Days - ' . ($this->header->nama_terms ?? '-');
+                $kurs = number_format($this->header->n_kurs, 2, ',', '.');
+                $po_no_tampil = $this->header->pono ?: $this->header->pono;
+
+                return [
+                    ['NIRWANA ALABARE GARMENT'],
+                    ['PURCHASE ORDER (' . $po_no_tampil . ')'],
+                    [''],
+
+                    ['INFO PO'],
+                    ['No PO:', $po_no_tampil, '', 'Tanggal PO:', (date('d-m-Y', strtotime($this->header->podate))), '', 'Supplier:', $this->header->nama_supplier, '', 'Jenis Item:', $jenis_item],
+                    ['P Terms (Days):', $p_terms, '', 'Tax:', $this->header->tax ?? '-', '', 'Kurs:', $kurs, '', 'Tipe Comm:', $this->header->tipe_commercial ?? '-'],
+                    ['Notes:', $this->header->notes ?? '-'],
+                    [''],
+                    [''],
+                    [
+                        'Tanggal PO',
+                        'No PO',
+                        'Jenis',
+                        'Supplier',
+                        'Style',
+                        'Item Description',
+                        'Set',
+                        'Qty Awal',
+                        'Unit Awal',
+                        'Convert',
+                        'Qty',
+                        'Unit',
+                        'Price',
+                        'Kurs',
+                        'Total (Price * Qty)',
+                        'Notes'
+                    ]
+                ];
+            }
+
+            public function map($row): array {
+                return [
+                    $row->podate,
+                    $row->pono ?: '-',
+                    $row->jenis,
+                    $row->nama_supplier,
+                    $row->style ?: '-',
+                    $row->itemdesc,
+                    $row->product_set ?: '-',
+                    $row->qty_pr_awal,
+                    $row->unit_pr_awal,
+                    $row->convert_val,
+                    $row->qty,
+                    $row->unit,
+                    $row->price,
+                    $row->n_kurs,
+                    $row->qty * $row->price,
+                    $row->notes
+                ];
+            }
+
+            public function styles(Worksheet $sheet)
+            {
+                $sheet->mergeCells('A1:P1');
+                $sheet->mergeCells('A2:P2');
+                $sheet->mergeCells('A4:P4');
+                $sheet->mergeCells('A9:P9');
+
+                $sheet->mergeCells('B7:P7');
+
+                $cellsToBold = ['A5', 'D5', 'G5', 'J5', 'A6', 'D6', 'G6', 'J6', 'A7'];
+                foreach ($cellsToBold as $cell) {
+                    $sheet->getStyle($cell)->getFont()->setBold(true);
+                }
+
+                return [
+                    1 => [
+                        'font' => ['bold' => true, 'size' => 14],
+                        'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]
+                    ],
+                    2 => [
+                        'font' => ['bold' => true, 'size' => 12],
+                        'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]
+                    ],
+                    4 => ['font' => ['bold' => true, 'size' => 12]],
+                    9 => ['font' => ['bold' => true, 'size' => 12]],
+                    10 => ['font' => ['bold' => true]],
+                ];
+            }
+        }, $file_name);
+    }
+
+    public function cancel(Request $request, $id)
+    {
+        try {
+            DB::connection('mysql_sb')->table('po_header')->where('id', $id)->update([
+                'app' => 'C'
+            ]);
+            return response()->json(['status' => 200, 'message' => 'Data PO Berhasil Di-Cancel!']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 500, 'message' => 'Gagal Cancel PO: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function restore(Request $request, $id)
+    {
+        try {
+            DB::connection('mysql_sb')->table('po_header')->where('id', $id)->update([
+                'app' => 'W',
+            ]);
+            return response()->json(['status' => 200, 'message' => 'Data PO Berhasil Di-Restore menjadi Draft!']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 500, 'message' => 'Gagal Restore PO: ' . $e->getMessage()], 500);
         }
     }
 }

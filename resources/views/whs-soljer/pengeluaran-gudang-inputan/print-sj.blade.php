@@ -94,8 +94,6 @@
         <thead>
             <tr class="head">
                 <td align="center">Lokasi</td>
-                <td align="center">Buyer</td>
-                <td align="center">Keterangan</td>
                 <td align="center">Jenis Item</td>
                 <td align="center">Warna</td>
                 <td align="center">Lot</td>
@@ -117,8 +115,6 @@
 
             <tr>
                 <td align="left">{{ $row->lokasi }}</td>
-                <td align="left">{{ $row->buyer }}</td>
-                <td align="left">{{ $row->keterangan }}</td>
                 <td align="left">{{ $row->jenis_item }}</td>
                 <td align="left">{{ $row->warna }}</td>
                 <td align="left">{{ $row->lot }}</td>
@@ -130,7 +126,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <th colspan="6" style="text-align:center;">TOTAL</th>
+                <th colspan="4" style="text-align:center;">TOTAL</th>
                 <th style="text-align:right;">
                     {{ number_format($totalQtyAct, 2) }}
                 </th>

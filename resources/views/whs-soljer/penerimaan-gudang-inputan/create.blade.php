@@ -195,6 +195,11 @@
                 </h5>
             </div>
             <div class="card-body">
+                <div class="d-flex justify-content-end mb-2">
+                    <button type="button" class="btn btn-danger btn-sm" id="btnDeleteSelected" style="display:none;">
+                        <i class="fa fa-trash"></i> Delete
+                    </button>
+                </div>
                 <div class="row align-items-end">
                     <div class="col-md-12 table-responsive">
                         <table class="table table-bordered w-100 table" id="datatable">
@@ -209,7 +214,9 @@
                                     <th>No Roll</th>
                                     <th>Qty</th>
                                     <th>Satuan</th>
-                                    <th>Action</th>
+                                    <th class="text-center">
+                                        <input type="checkbox" id="check_all">
+                                    </th>
                                 </tr>
                             </thead>
                             <tfoot>
@@ -297,7 +304,14 @@
                     { data: 'no_roll' },
                     { data: 'qty', className: 'text-end' },
                     { data: 'satuan' },
-                    { data: 'action' },
+                    { 
+                        data: null,
+                        className: 'text-center',
+                        orderable: false,
+                        render: function () {
+                            return `<input type="checkbox" class="row-check">`;
+                        }
+                    },
                 ]
             });
 
@@ -368,31 +382,31 @@
                 $("#qty").val("");
             });
 
-            $('#datatable tbody').on('click', '.hapus', function () {
-                let row = table_detail_item.row($(this).parents('tr'));
+            // $('#datatable tbody').on('click', '.hapus', function () {
+            //     let row = table_detail_item.row($(this).parents('tr'));
 
-                Swal.fire({
-                    title: 'Yakin hapus?',
-                    text: 'Data akan dihapus dari list',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, hapus!',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        row.remove().draw(false);
-                        updateTotalQty();
+            //     Swal.fire({
+            //         title: 'Yakin hapus?',
+            //         text: 'Data akan dihapus dari list',
+            //         icon: 'warning',
+            //         showCancelButton: true,
+            //         confirmButtonText: 'Ya, hapus!',
+            //         cancelButtonText: 'Batal'
+            //     }).then((result) => {
+            //         if (result.isConfirmed) {
+            //             row.remove().draw(false);
+            //             updateTotalQty();
 
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil',
-                            text: 'Data berhasil dihapus',
-                            timer: 1200,
-                            showConfirmButton: false
-                        });
-                    }
-                });
-            });
+            //             Swal.fire({
+            //                 icon: 'success',
+            //                 title: 'Berhasil',
+            //                 text: 'Data berhasil dihapus',
+            //                 timer: 1200,
+            //                 showConfirmButton: false
+            //             });
+            //         }
+            //     });
+            // });
         });
 
 
@@ -475,8 +489,8 @@
                                 qty: parseFloat(item.qty).toFixed(2),
                                 satuan: item.satuan,
                                 lokasi: item.lokasi,
-                                keterangan: item.keterangan,
-                                action: `<button type="button" class="btn btn-danger btn-sm hapus">Hapus</button>`
+                                keterangan: item.keterangan
+                                // action: `<button type="button" class="btn btn-danger btn-sm hapus">Hapus</button>`
                             }).draw(false);
                         });
 
@@ -491,6 +505,60 @@
                     Swal.fire('Error', 'Import gagal', 'error');
                 }
             });
+        }
+
+        $('#check_all').on('change', function () {
+            $('.row-check').prop('checked', $(this).prop('checked'));
+            toggleDeleteButton();
+        });
+
+        $('#btnDeleteSelected').on('click', function () {
+            let table = $('#datatable').DataTable();
+            let checked = $('.row-check:checked');
+
+            if (checked.length === 0) {
+                Swal.fire('Warning', 'Tidak ada data yang dipilih!', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Yakin?',
+                text: 'Data yang dicentang akan dihapus!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, hapus!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+
+                    checked.each(function () {
+                        table.row($(this).closest('tr')).remove();
+                    });
+
+                    table.draw(false);
+
+                    $('#check_all').prop('checked', false);
+                    toggleDeleteButton();
+
+                    updateTotalQty();
+
+                    Swal.fire('Success', 'Data berhasil dihapus!', 'success');
+                }
+            });
+
+        });
+
+        $('#datatable').on('change', '.row-check', function () {
+            toggleDeleteButton();
+        });
+
+        function toggleDeleteButton() {
+            let checked = $('.row-check:checked').length;
+
+            if (checked > 0) {
+                $('#btnDeleteSelected').show();
+            } else {
+                $('#btnDeleteSelected').hide();
+            }
         }
         
     </script>

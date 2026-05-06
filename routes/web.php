@@ -1373,6 +1373,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/update-date/{id}', 'updateDate')->name('update-date-purchase-order');
         Route::get('/approval', 'approval')->name('approval-purchase-order');
         Route::post('/approve/{id}', 'approve')->name('approve-purchase-order');
+         Route::get('/export-excel/{id}', 'exportExcel')->name('export-purchase-order');
+        Route::post('/cancel/{id}', 'cancel')->name('cancel-purchase-order');
+        Route::post('restore/{id}', 'restore')->name('restore-purchase-order');
     });
 
     Route::controller(PurchasingDashboardController::class)->middleware('purchasing')->group(function () {

@@ -99,7 +99,17 @@
             </div>
             <div class="modal-body bg-light">
 
-                <h6 class="fw-bold border-bottom pb-2"><i class="fas fa-info-circle"></i> Info Header PO</h6>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                    <h6 class="fw-bold mb-0"><i class="fas fa-info-circle"></i> Info PO</h6>
+
+                    <div class="border bg-white d-flex align-items-center px-2 py-1 shadow-sm" style="border-radius: 4px; border-color: #ddd !important;">
+                        <i class="fas fa-truck fa-flip-horizontal fa-2x mr-2" style="color: #082149;"></i>
+                        <div class="d-flex flex-column" style="line-height: 1.1;">
+                            <span class="fw-bold text-dark" style="font-size: 1.1rem;" id="v_in_shipments">0</span>
+                            <span class="text-secondary" style="font-size: 0.75rem;">In Shipments</span>
+                        </div>
+                    </div>
+                </div>
                 <div class="row mb-4">
                     <div class="col-md-3 mb-2"><label class="small fw-bold mb-0">No PO:</label><div id="v_pono_text" class="text-dark border px-2 py-1 rounded bg-white">-</div></div>
                     <div class="col-md-3 mb-2"><label class="small fw-bold mb-0">Tanggal PO:</label><div id="v_podate" class="text-dark border px-2 py-1 rounded bg-white">-</div></div>
@@ -129,6 +139,17 @@
                             </tr>
                         </thead>
                         <tbody></tbody>
+                        <tfoot class="bg-sb text-white fw-bold" id="tfoot-view-items" style="display: none;">
+                            <tr>
+                                <td colspan="3" class="text-right align-middle border-right-0">GRAND TOTAL :</td>
+                                <td class="text-right align-middle" id="v_tot_qty">0</td>
+                                <td class="align-middle border-0"></td>
+                                <td class="text-right align-middle" id="v_tot_convert">0</td>
+                                <td class="text-right align-middle" id="v_tot_qty_conv">0</td>
+                                <td class="align-middle border-0"></td>
+                                <td class="text-right align-middle" id="v_tot_price">0</td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
 
@@ -310,23 +331,41 @@
 
                 let tbodyItems = $('#table-view-items tbody');
                 tbodyItems.empty();
+
+                let tQty = 0, tConvert = 0, tQtyConv = 0, tPrice = 0;
                 if(res.items.length > 0) {
                     $.each(res.items, function(i, val) {
-                        let totalCost = parseFloat(val.qty) * parseFloat(val.price);
+                        $('#tfoot-view-items').show();
+
+                        let qtyAwal = parseFloat(val.qty_pr_awal || 0);
+                        let convertVal = parseFloat(val.convert_val || 0);
+                        let qtyFinal = parseFloat(val.qty || 0);
+                        let priceItem = parseFloat(val.price || 0);
+
+                        tQty += qtyAwal;
+                        tConvert += convertVal;
+                        tQtyConv += qtyFinal;
+                        tPrice += priceItem;
+
                         tbodyItems.append(`
                             <tr>
                                 <td>${val.nama_style || '-'}</td>
                                 <td>${val.itemdesc || '-'}</td>
                                 <td class="text-center">${val.product_set || '-'}</td>
-                                <td class="text-right">${parseFloat(val.qty_pr_awal || 0)}</td>
+                                <td class="text-right">${formatIDR(qtyAwal)}</td>
                                 <td class="text-center">${val.unit_pr_awal || '-'}</td>
-                                <td class="text-right">${parseFloat(val.convert_val || 0)}</td>
-                                <td class="text-right text-dark fw-bold">${parseFloat(val.qty || 0)}</td>
+                                <td class="text-right">${formatIDR(convertVal)}</td>
+                                <td class="text-right text-dark fw-bold">${formatIDR(qtyFinal)}</td>
                                 <td class="text-center text-dark fw-bold">${val.unit || '-'}</td>
-                                <td class="text-right">${formatIDR(val.price)}</td>
+                                <td class="text-right">${formatIDR(priceItem)}
                             </tr>
                         `);
                     });
+                    $('#v_tot_qty').text(formatIDR(tQty));
+                    $('#v_tot_convert').text(formatIDR(tConvert));
+                    $('#v_tot_qty_conv').text(formatIDR(tQtyConv));
+                    $('#v_tot_price').text(formatIDR(tPrice));
+
                 } else {
                     tbodyItems.html('<tr><td colspan="10" class="text-center font-italic">Tidak ada rincian item.</td></tr>');
                 }

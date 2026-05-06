@@ -5,6 +5,7 @@ namespace App\Http\Controllers\WhsSoljer;
 use App\Http\Controllers\Controller;
 use App\Models\WhsSoljer\PenerimaanGudangInputan;
 use App\Models\WhsSoljer\PenerimaanGudangInputanDetail;
+use App\Models\WhsSoljer\PenerimaanGudangInputanHistory;
 use Carbon\Carbon;
 use DB;
 use Exception;
@@ -212,6 +213,23 @@ class PenerimaanGudangInputanController extends Controller
                     "created_at"                    => $now,
                 ]);
 
+                PenerimaanGudangInputanHistory::create([
+                    'penerimaan_gudang_inputan_id'  => $header->id,
+                    'barcode'                       => $barcode,
+                    'no_roll'                       => $row['no_roll'],
+                    'buyer'                         => $row['buyer'],
+                    'jenis_item'                    => $row['jenis_item'],
+                    'warna'                         => $row['warna'],
+                    'lot'                           => $row['lot'],
+                    'qty'                           => $row['qty'],
+                    'satuan'                        => $row['satuan'],
+                    'lokasi'                        => $row['lokasi'],
+                    'keterangan'                    => $row['keterangan'],
+                    "created_by"                    => $user ? $user->id : null,
+                    "created_by_username"           => $user ? $user->username : null,
+                    "created_at"                    => $now,
+                ]);
+
                 $counter++;
             }
 
@@ -255,11 +273,14 @@ class PenerimaanGudangInputanController extends Controller
         ]);
     }
 
-   public function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
         DB::beginTransaction();
 
         try {
+
+            $user = Auth::user();
+            $now = Carbon::now();
 
             $items = json_decode($request->items, true);
 
@@ -270,13 +291,52 @@ class PenerimaanGudangInputanController extends Controller
                 ]);
             }
 
+            // Delete
+            $existingIds = PenerimaanGudangInputanDetail::where('penerimaan_gudang_inputan_id', $id)
+                ->pluck('id')
+                ->toArray();
+
+            $submittedIds = collect($items)->pluck('id')->toArray();
+
+            $deletedIds = array_diff($existingIds, $submittedIds);
+
+            if (!empty($deletedIds)) {
+                PenerimaanGudangInputanDetail::whereIn('id', $deletedIds)->delete();
+            }
+
+            // Update and Create
             foreach ($items as $row) {
-                PenerimaanGudangInputanDetail::where('id', $row['id'])
-                    ->update([
-                        'qty' => $row['qty'],
-                        'updated_at' => now(),
-                        'updated_by' => auth()->id(),
+                $dataDetail = PenerimaanGudangInputanDetail::find($row['id']);
+
+                $oldQty = (float) $dataDetail->qty;
+                $newQty = (float) $row['qty'];
+
+                if ($oldQty != $newQty) {
+                    PenerimaanGudangInputanHistory::create([
+                        'penerimaan_gudang_inputan_id'  => $dataDetail->penerimaan_gudang_inputan_id,
+                        'barcode'                       => $dataDetail->barcode,
+                        'no_roll'                       => $dataDetail->no_roll,
+                        'buyer'                         => $dataDetail->buyer,
+                        'jenis_item'                    => $dataDetail->jenis_item,
+                        'warna'                         => $dataDetail->warna,
+                        'lot'                           => $dataDetail->lot,
+                        'qty'                           => $row['qty'],
+                        'satuan'                        => $dataDetail->satuan,
+                        'lokasi'                        => $dataDetail->lokasi,
+                        'keterangan'                    => $dataDetail->keterangan,
+                        "created_by"                    => $user ? $user->id : null,
+                        "created_by_username"           => $user ? $user->username : null,
+                        "created_at"                    => $now,
                     ]);
+                    
+                    PenerimaanGudangInputanDetail::where('id', $row['id'])
+                        ->update([
+                            'qty' => $row['qty'],
+                            'updated_at' => now(),
+                            'updated_by' => auth()->id(),
+                        ]);
+                }
+
             }
 
             DB::commit();
