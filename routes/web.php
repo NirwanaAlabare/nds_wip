@@ -1421,6 +1421,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(MasterBarangPerKategoriController::class)->prefix("master-barang-per-kategori")->middleware('role:warehouse')->group(function () {
         Route::get('/', 'index')->name('master-barang-per-kategori');
         Route::post('/export', 'export')->name('export-master-barang-per-kategori');
+        Route::post('/export-history', 'exportHistory')->name('export-history-master-barang-per-kategori');
         Route::get('/history-fabric', 'historyFabric')->name('history-fabric-master-barang-per-kategori');
         Route::get('/history-detail-fabric', 'historyDetailFabric')->name('history-detail-fabric-master-barang-per-kategori');
         Route::get('/history-accesories', 'historyAccesories')->name('history-accesories-master-barang-per-kategori');
