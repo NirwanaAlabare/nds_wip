@@ -86,6 +86,8 @@
 
             $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
 
+            $('#datatable').DataTable().ajax.reload(null, false);
+
             window.addEventListener("focus", () => {
                 $('#datatable').DataTable().ajax.reload(null, false);
             });
