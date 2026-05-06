@@ -234,7 +234,7 @@ return [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/rekapDC/rekapDC.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
-            'days' => 30,
+            'days' => 360,
         ],
         'formCutPieceChainedQty' => [
             'driver' => 'daily', // or 'daily' if you want rotation
