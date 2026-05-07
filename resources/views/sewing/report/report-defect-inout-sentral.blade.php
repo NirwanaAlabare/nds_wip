@@ -1,7 +1,5 @@
 @extends('layouts.index')
 
-@section('title', 'ReportQC Finishing')
-
 @section('custom-link')
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
@@ -26,7 +24,7 @@
 @section('content')
 <div class="card card-sb">
     <div class="card-header">
-        <h5 class="card-title fw-bold mb-0"><i class="fas fa-check-double"></i> QC Finishing Sentral Report</h5>
+        <h5 class="card-title fw-bold mb-0"><i class="fas fa-search-minus"></i> Defect Sewing (IN & OUT) Report</h5>
     </div>
     <div class="card-body">
         <div class="row align-items-end mb-4">
@@ -89,14 +87,8 @@
 <script>
     let table;
     const routeMap = {
-        'f_output': { data: "{{ route('report.f_output.data') }}", export: "{{ route('report.f_output.export') }}" },
-        'f_defect_sewing': { data: "{{ route('report.f_defect_sewing.data') }}", export: "{{ route('report.f_defect_sewing.export') }}" },
-        'f_defect_mending': { data: "{{ route('report.f_defect_mending.data') }}", export: "{{ route('report.f_defect_mending.export') }}" },
-        'f_defect_spot': { data: "{{ route('report.f_defect_spot.data') }}", export: "{{ route('report.f_defect_spot.export') }}" },
-        'f_rework_sewing': { data: "{{ route('report.f_rework_sewing.data') }}", export: "{{ route('report.f_rework_sewing.export') }}" },
-        'f_rework_mending': { data: "{{ route('report.f_rework_mending.data') }}", export: "{{ route('report.f_rework_mending.export') }}" },
-        'f_rework_spot': { data: "{{ route('report.f_rework_spot.data') }}", export: "{{ route('report.f_rework_spot.export') }}" },
-        'f_reject': { data: "{{ route('report.f_reject.data') }}", export: "{{ route('report.f_reject.export') }}" }
+        'defect_in': { data: "{{ route('report.defect_in.data') }}", export: "{{ route('report.defect_in.export') }}" },
+        'defect_out': { data: "{{ route('report.defect_out.data') }}", export: "{{ route('report.defect_out.export') }}" }
     };
 
     function initDatatable(tipe) {
@@ -111,8 +103,7 @@
                 {
                     data: null, className: 'text-center fw-bold',
                     render: function(data, type, row) {
-                        let keys = Object.keys(row);
-                        return row[keys[keys.length - 1]];
+                        let keys = Object.keys(row); return row[keys[keys.length - 1]];
                     }
                 }
             ]
@@ -121,7 +112,7 @@
 
     function refreshTable() {
         let tipe = $('#filter_tipe').val();
-        $("#label_jumlah").text("Jumlah " + $("#filter_tipe option:selected").text());
+        $("#label_jumlah").text("Jumlah " + $("#filter_tipe option:selected").text().replace('Defect Sewing ', ''));
         initDatatable(tipe);
     }
 
@@ -133,7 +124,7 @@
 
     $(document).ready(function() {
         $('.select2bs4').select2({ theme: 'bootstrap4' });
-        initDatatable('f_output');
+        initDatatable('defect_in');
     });
 </script>
 @endsection
