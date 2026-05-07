@@ -119,9 +119,17 @@
             data: "{{ route('report.rework.data') }}",
             export: "{{ route('report.rework.export') }}"
         },
+        'rework_mending': {
+            data: "{{ route('report.rework_mending.data') }}",
+            export: "{{ route('report.rework_mending.export') }}"
+        },
+        'rework_spotcleaning': {
+            data: "{{ route('report.rework_spotcleaning.data') }}",
+            export: "{{ route('report.rework_spotcleaning.export') }}"
+        },
         'reject': {
-            data: "{{ route('report.output.data') }}",
-            export: "{{ route('report.output.export') }}"
+            data: "{{ route('report.reject.data') }}",
+            export: "{{ route('report.reject.export') }}"
         }
     };
 

@@ -19,12 +19,14 @@ class SewingOutputReportController extends Controller
         $list_buyer = DB::connection('mysql_sb')->table('mastersupplier')->select('supplier')->orderBy('supplier', 'ASC')->get();
 
         $list_tipe = [
-            'output'       => 'Output Sewing',
-            'defect'       => 'Defect Sewing',
-            'mending'      => 'Defect Mending',
-            'spotcleaning' => 'Defect Spotcleaning',
-            'rework'       => 'Rework Sewing',
-            'reject'       => 'Reject'
+            'output'              => 'Output Sewing',
+            'defect'              => 'Defect Sewing',
+            'mending'             => 'Defect Mending',
+            'spotcleaning'        => 'Defect Spotcleaning',
+            'rework'              => 'Rework Sewing',
+            'rework_mending'      => 'Rework Mending',
+            'rework_spotcleaning' => 'Rework Spotcleaning',
+            'reject'              => 'Reject'
         ];
 
         return view('sewing.report.report-sewing-sentral', [

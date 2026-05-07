@@ -111,6 +111,14 @@ use App\Http\Controllers\Sewing\SewingDefectReportController;
 use App\Http\Controllers\Sewing\SewingMendingReportController;
 use App\Http\Controllers\Sewing\SewingSpotcleaningReportController;
 use App\Http\Controllers\Sewing\SewingReworkReportController;
+use App\Http\Controllers\Sewing\SewingReworkMendingReportController;
+use App\Http\Controllers\Sewing\SewingReworkSpotcleaningReportController;
+use App\Http\Controllers\Sewing\SewingRejectReportController;
+
+
+
+
+
 
 
 
@@ -1499,6 +1507,22 @@ Route::middleware('auth')->group(function () {
         Route::controller(SewingReworkReportController::class)->prefix('rework')->group(function () {
             Route::get('/data', 'getData')->name('report.rework.data');
             Route::get('/export', 'exportExcel')->name('report.rework.export');
+        });
+
+        Route::controller(SewingReworkMendingReportController::class)->prefix('rework-mending')->group(function () {
+            Route::get('/data', 'getData')->name('report.rework_mending.data');
+            Route::get('/export', 'exportExcel')->name('report.rework_mending.export');
+        });
+
+
+        Route::controller(SewingReworkSpotcleaningReportController::class)->prefix('rework-spotcleaning')->group(function () {
+            Route::get('/data', 'getData')->name('report.rework_spotcleaning.data');
+            Route::get('/export', 'exportExcel')->name('report.rework_spotcleaning.export');
+        });
+
+        Route::controller(SewingRejectReportController::class)->prefix('reject')->group(function () {
+            Route::get('/data', 'getData')->name('report.reject.data');
+            Route::get('/export', 'exportExcel')->name('report.reject.export');
         });
     });
 });
