@@ -69,5 +69,5 @@ Route::get('/dashboard-manage-user', [DashboardController::class, 'manageUser'])
 Route::get('/dashboard-export-import', [DashboardController::class, 'exportImport'])->middleware('auth')->name('dashboard-export-import');
 Route::get('/dashboard-whs-soljer', [DashboardController::class, 'whsSoljer'])->middleware('auth')->name('dashboard-whs-soljer');
 Route::get('/dashboard-rak', [DashboardRakController::class, 'index'])->middleware('auth')->name('dashboard-rak');
-Route::get('/dashboard-rak/detail/{id?}', [DashboardRakController::class, 'detail'])->middleware('auth')->name('dashboard-rak-detail');
+Route::get('/dashboard-rak/detail/{id?}', [DashboardRakController::class, 'detail'])->name('dashboard-rak-detail');
 Route::get('/dashboard-rak/getDataRak', [DashboardRakController::class, 'getDataRak'])->name('dashboard-rak-detail-get-data-rak');
