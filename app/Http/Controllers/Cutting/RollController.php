@@ -148,13 +148,13 @@ class RollController extends Controller
         if ($request->dateFrom) {
             $additionalQuery .= " and a.waktu_selesai >= '" . $request->dateFrom . " 00:00:00'";
             $additionalQuery1 .= " and form_cut_piping.updated_at >= '" . $request->dateFrom . " 00:00:00'";
-            $additionalQuery2 .= " and form_cut_piece.updated_at >= '" . $request->dateFrom . " 00:00:00'";
+            $additionalQuery2 .= " and form_cut_piece.waktu_selesai >= '" . $request->dateFrom . " 00:00:00'";
         }
 
         if ($request->dateTo) {
             $additionalQuery .= " and a.waktu_selesai <= '" . $request->dateTo . " 23:59:59'";
             $additionalQuery1 .= " and form_cut_piping.updated_at <= '" . $request->dateTo . " 23:59:59'";
-            $additionalQuery2 .= " and form_cut_piece.updated_at <= '" . $request->dateTo . " 23:59:59'";
+            $additionalQuery2 .= " and form_cut_piece.waktu_selesai <= '" . $request->dateTo . " 23:59:59'";
         }
 
         if ($request->supplier) {
@@ -378,10 +378,10 @@ class RollController extends Controller
                 SELECT
                     form_cut_piece_detail.qty qty_in,
                     form_cut_piece.created_at waktu_mulai,
-                    form_cut_piece.updated_at waktu_selesai,
+                    form_cut_piece.waktu_selesai waktu_selesai,
                     form_cut_piece.id,
-                    DATE_FORMAT( form_cut_piece.updated_at, '%M' ) bulan,
-                    DATE_FORMAT( form_cut_piece.updated_at, '%d-%m-%Y' ) tgl_input,
+                    DATE_FORMAT( form_cut_piece.waktu_selesai, '%M' ) bulan,
+                    DATE_FORMAT( form_cut_piece.waktu_selesai, '%d-%m-%Y' ) tgl_input,
                     form_cut_piece.no_form no_form_cut_input,
                     '-' nama_meja,
                     form_cut_piece.act_costing_ws,
@@ -566,13 +566,13 @@ class RollController extends Controller
         if ($request->dateFrom) {
             $additionalQuery .= " and a.waktu_selesai >= '" . $request->dateFrom . " 00:00:00'";
             $additionalQuery1 .= " and form_cut_piping.updated_at >= '" . $request->dateFrom . " 00:00:00'";
-            $additionalQuery2 .= " and form_cut_piece.updated_at >= '" . $request->dateFrom . " 00:00:00'";
+            $additionalQuery2 .= " and form_cut_piece.waktu_selesai >= '" . $request->dateFrom . " 00:00:00'";
         }
 
         if ($request->dateTo) {
             $additionalQuery .= " and a.waktu_selesai <= '" . $request->dateTo . " 23:59:59'";
             $additionalQuery1 .= " and form_cut_piping.updated_at <= '" . $request->dateTo . " 23:59:59'";
-            $additionalQuery2 .= " and form_cut_piece.updated_at <= '" . $request->dateTo . " 23:59:59'";
+            $additionalQuery2 .= " and form_cut_piece.waktu_selesai <= '" . $request->dateTo . " 23:59:59'";
         }
 
         if ($request->supplier) {
@@ -767,11 +767,11 @@ class RollController extends Controller
                 UNION ALL
                 SELECT
                     form_cut_piece_detail.qty qty_in,
-                    form_cut_piece.created_at waktu_mulai,
-                    form_cut_piece.updated_at waktu_selesai,
+                    form_cut_piece.waktu_mulai waktu_mulai,
+                    form_cut_piece.waktu_selesai waktu_selesai,
                     form_cut_piece.id,
-                    DATE_FORMAT( form_cut_piece.updated_at, '%M' ) bulan,
-                    DATE_FORMAT( form_cut_piece.updated_at, '%d-%m-%Y' ) tgl_input,
+                    DATE_FORMAT( form_cut_piece.waktu_selesai, '%M' ) bulan,
+                    DATE_FORMAT( form_cut_piece.waktu_selesai, '%d-%m-%Y' ) tgl_input,
                     form_cut_piece.no_form no_form_cut_input,
                     '-' nama_meja,
                     form_cut_piece.act_costing_ws,

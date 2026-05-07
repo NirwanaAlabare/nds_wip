@@ -634,7 +634,7 @@ FROM (
 		union all
 		-- FORM CUT PIECE
 		SELECT
-		COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) tgl_form_cut,
+		COALESCE ( DATE ( form_cut_piece.waktu_selesai ), DATE ( form_cut_piece.created_at ), DATE ( form_cut_piece.updated_at ), form_cut_piece.tanggal ) tgl_form_cut,
 		form_cut_piece.panel,
 		form_cut_piece_detail_size.so_det_id,
 		1 as ratio,
@@ -651,7 +651,7 @@ FROM (
 		WHERE
 		form_cut_piece.`status` = 'complete'
 		AND COALESCE ( form_cut_piece_detail_size.qty ) > 0
-		AND COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) >= '2025-01-01'
+		AND COALESCE ( DATE ( form_cut_piece.waktu_selesai ), DATE ( form_cut_piece.created_at ), DATE ( form_cut_piece.updated_at ), form_cut_piece.tanggal ) >= '2025-01-01'
 		AND form_cut_piece.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
 		GROUP BY
 		form_cut_piece.id,
@@ -2052,7 +2052,7 @@ FROM (
 		union all
 		-- FORM CUT PIECE
 		SELECT
-		COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) tgl_form_cut,
+		COALESCE ( DATE ( form_cut_piece.waktu_selesai ), DATE ( form_cut_piece.created_at ), DATE ( form_cut_piece.updated_at ), form_cut_piece.tanggal ) tgl_form_cut,
 		form_cut_piece.panel,
 		form_cut_piece_detail_size.so_det_id,
 		1 as ratio,
@@ -2069,7 +2069,7 @@ FROM (
 		WHERE
 		form_cut_piece.`status` = 'complete'
 		AND COALESCE ( form_cut_piece_detail_size.qty ) > 0
-		AND COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) >= '2025-01-01'
+		AND COALESCE ( DATE ( form_cut_piece.waktu_selesai ), DATE ( form_cut_piece.created_at ), DATE ( form_cut_piece.updated_at ), form_cut_piece.tanggal ) >= '2025-01-01'
 		AND form_cut_piece.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
 		GROUP BY
 		form_cut_piece.id,

@@ -359,7 +359,7 @@ class TrackCuttingOutput extends Component
             SELECT
                 '-' id_meja,
                 '-' meja,
-                COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) tanggal,
+                COALESCE ( DATE ( form_cut_piece.waktu_selesai ), DATE ( form_cut_piece.created_at ), DATE ( form_cut_piece.updated_at ), form_cut_piece.tanggal ) tanggal,
                 form_cut_piece.act_costing_id,
                 form_cut_piece.act_costing_ws ws,
                 form_cut_piece.style,
@@ -374,8 +374,8 @@ class TrackCuttingOutput extends Component
             WHERE
                 form_cut_piece.`status` = 'complete'
                 AND COALESCE ( form_cut_piece_detail_size.qty ) > 0
-                AND COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) >= '".$this->dateFromFilter."'
-                AND COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) <= '".$this->dateToFilter."' AND form_cut_piece.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
+                AND COALESCE ( DATE ( form_cut_piece.waktu_selesai ), DATE ( form_cut_piece.created_at ), DATE ( form_cut_piece.updated_at ), form_cut_piece.tanggal ) >= '".$this->dateFromFilter."'
+                AND COALESCE ( DATE ( form_cut_piece.waktu_selesai ), DATE ( form_cut_piece.created_at ), DATE ( form_cut_piece.updated_at ), form_cut_piece.tanggal ) <= '".$this->dateToFilter."' AND form_cut_piece.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
             GROUP BY
                 form_cut_piece.act_costing_id,
                 form_cut_piece.style,
@@ -599,7 +599,7 @@ class TrackCuttingOutput extends Component
                             form_cut_piece.no_form,
                             'piece' as id_meja,
                             'piece' as meja,
-                            COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) tgl_form_cut,
+                            COALESCE ( DATE ( form_cut_piece.waktu_selesai ), DATE ( form_cut_piece.created_at ), DATE ( form_cut_piece.updated_at ), form_cut_piece.tanggal ) tgl_form_cut,
                             form_cut_piece.buyer,
                             form_cut_piece.act_costing_id,
                             form_cut_piece.act_costing_ws,
@@ -624,8 +624,8 @@ class TrackCuttingOutput extends Component
                         WHERE
                             form_cut_piece.`status` = 'complete'
                             AND COALESCE ( form_cut_piece_detail_size.qty ) > 0
-                            AND COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) >= '".$this->dateFromFilter."'
-                            AND COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) <= '".$this->dateToFilter."' AND form_cut_piece.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
+                            AND COALESCE ( DATE ( form_cut_piece.waktu_selesai ), DATE ( form_cut_piece.created_at ), DATE ( form_cut_piece.updated_at ), form_cut_piece.tanggal ) >= '".$this->dateFromFilter."'
+                            AND COALESCE ( DATE ( form_cut_piece.waktu_selesai ), DATE ( form_cut_piece.created_at ), DATE ( form_cut_piece.updated_at ), form_cut_piece.tanggal ) <= '".$this->dateToFilter."' AND form_cut_piece.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
                             ".($this->colorFilter ? "AND form_cut_piece.color = '".$this->colorFilter."'" : "")."
                             ".($this->panelFilter ? "AND form_cut_piece.panel = '".$this->panelFilter."'" : "")."
                             ".($this->mejaFilter ? "AND '-' = '".$this->mejaFilter."'" : "")."
