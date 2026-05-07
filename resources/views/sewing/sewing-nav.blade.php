@@ -182,6 +182,24 @@
                     Report QC Finishing <i class="fas fa-file-excel"></i>
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{{ route('defect_inout.report.index') }}"
+                    class="dropdown-item {{ $subPage == 'reportDefectInOut' ? 'active' : '' }}">
+                    Defect Sewing (In/Out) <i class="fas fa-file-excel"></i>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('defect_mending_inout.report.index') }}"
+                    class="dropdown-item {{ $subPage == 'reportDefectMendingInOut' ? 'active' : '' }}">
+                    Defect Mending (In/Out) <i class="fas fa-file-excel"></i>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('defect_spotcleaning_inout.report.index') }}"
+                    class="dropdown-item {{ $subPage == 'reportDefectSpotcleaningInOut' ? 'active' : '' }}">
+                    Defect Spotcleaning (In/Out) <i class="fas fa-file-excel"></i>
+                </a>
+            </li>
             {{-- <li>
                 <a href="{{ route('report-sewing.output.index') }}"
                     class="dropdown-item {{ $subPage == 'reportOutput' ? 'active' : '' }}">

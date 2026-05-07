@@ -123,6 +123,14 @@ use App\Http\Controllers\Sewing\FinishingReworkSpotcleaningReportController;
 use App\Http\Controllers\Sewing\FinishingSpotcleaningReportController;
 use App\Http\Controllers\Sewing\FinishingReworkReportController;
 use App\Http\Controllers\Sewing\FinishingRejectReportController;
+use App\Http\Controllers\Sewing\DefectSewingInReportController;
+use App\Http\Controllers\Sewing\DefectSewingOutReportController;
+use App\Http\Controllers\Sewing\DefectMendingInReportController;
+use App\Http\Controllers\Sewing\DefectMendingOutReportController;
+use App\Http\Controllers\Sewing\DefectSpotcleaningInReportController;
+use App\Http\Controllers\Sewing\DefectSpotcleaningOutReportController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -1563,6 +1571,53 @@ Route::middleware('auth')->group(function () {
         Route::controller(FinishingRejectReportController::class)->prefix('reject')->group(function () {
             Route::get('/data', 'getData')->name('report.f_reject.data');
             Route::get('/export', 'exportExcel')->name('report.f_reject.export');
+        });
+    });
+
+    Route::middleware(['role:sewing'])->prefix('report-defect-inout')->group(function () {
+
+        Route::get('/sentral', [DefectSewingInReportController::class, 'index'])->name('defect_inout.report.index');
+
+        Route::controller(DefectSewingInReportController::class)->prefix('in')->group(function () {
+            Route::get('/data', 'getData')->name('report.defect_in.data');
+            Route::get('/export', 'exportExcel')->name('report.defect_in.export');
+        });
+
+        Route::controller(DefectSewingOutReportController::class)->prefix('out')->group(function () {
+            Route::get('/data', 'getData')->name('report.defect_out.data');
+            Route::get('/export', 'exportExcel')->name('report.defect_out.export');
+        });
+    });
+
+    Route::middleware(['role:sewing'])->prefix('report-defect-mending-inout')->group(function () {
+
+        Route::get('/sentral', [DefectMendingInReportController::class, 'index'])->name('defect_mending_inout.report.index');
+
+        Route::controller(DefectMendingInReportController::class)->prefix('in')->group(function () {
+            Route::get('/data', 'getData')->name('report.defect_mending_in.data');
+            Route::get('/export', 'exportExcel')->name('report.defect_mending_in.export');
+        });
+
+        Route::controller(DefectMendingOutReportController::class)->prefix('out')->group(function () {
+            Route::get('/data', 'getData')->name('report.defect_mending_out.data');
+            Route::get('/export', 'exportExcel')->name('report.defect_mending_out.export');
+        });
+    });
+
+
+
+    Route::middleware(['role:sewing'])->prefix('report-defect-spotcleaning-inout')->group(function () {
+
+        Route::get('/sentral', [DefectSpotcleaningInReportController::class, 'index'])->name('defect_spotcleaning_inout.report.index');
+
+        Route::controller(DefectSpotcleaningInReportController::class)->prefix('in')->group(function () {
+            Route::get('/data', 'getData')->name('report.defect_spotcleaning_in.data');
+            Route::get('/export', 'exportExcel')->name('report.defect_spotcleaning_in.export');
+        });
+
+        Route::controller(DefectSpotcleaningOutReportController::class)->prefix('out')->group(function () {
+            Route::get('/data', 'getData')->name('report.defect_spotcleaning_out.data');
+            Route::get('/export', 'exportExcel')->name('report.defect_spotcleaning_out.export');
         });
     });
 });
