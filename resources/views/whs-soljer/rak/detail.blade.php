@@ -192,7 +192,6 @@
                     <th>Barcode</th>
                     <th>Lokasi</th>
                     <th>Buyer</th>
-                    <th>Keterangan</th>
                     <th>Jenis Item</th>
                     <th>Warna</th>
                     <th>Lot</th>
@@ -234,7 +233,6 @@ $(document).ready(function () {
             { data: 'barcode' },
             { data: 'lokasi' },
             { data: 'buyer' },
-            { data: 'keterangan' },
             { data: 'jenis_item' },
             { data: 'warna' },
             { data: 'lot' },
