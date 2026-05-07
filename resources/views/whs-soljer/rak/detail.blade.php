@@ -155,7 +155,7 @@
             <div class="card card-custom bg-kapasitas">
                 <div class="card-body">
                     <div class="card-title">Kapasitas</div>
-                    <div class="card-value">{{ $data->kapasitas }}</div>
+                    <div class="card-value">{{ $jumlah_barang }}</div>
                     <i class="mdi mdi-view-dashboard card-icon"></i>
                 </div>
             </div>
@@ -175,7 +175,7 @@
             <div class="card card-custom bg-kosong">
                 <div class="card-body">
                     <div class="card-title">Ruang Kosong</div>
-                    <div class="card-value">{{ $ruang_kosong }}</div>
+                    <div class="card-value"> 0</div>
                     <i class="mdi mdi-package-variant-closed card-icon"></i>
                 </div>
             </div>
