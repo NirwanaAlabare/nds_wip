@@ -32,9 +32,9 @@
       <button class="btn btn-primary btn-sm" onclick="dataTableReload()">
         <i class="fas fa-search"></i> Search
       </button>
-      <button class="btn btn-info btn-sm" onclick="tambahdata()">
+      {{-- <button class="btn btn-info btn-sm" onclick="tambahdata()">
         <i class="fas fa-plus"></i> Add Data
-      </button>
+      </button> --}}
       <!-- <button class="btn btn-success btn-sm" onclick="printAllLokasi()">
     <i class="fas fa-print"></i> Print All
   </button> -->
@@ -386,17 +386,63 @@ function padZero(el) {
             {
                 targets: [6],
                 render: (data, type, row, meta) => {
-                    console.log(row);
+
+                    let btnEdit = `
+                        <button type="button" class="btn btn-sm btn-warning"
+                            onclick="editdata(
+                                '${row.id}',
+                                '${row.kapasitas}',
+                                '${row.inisial_lok}',
+                                '${row.baris_lok}',
+                                '${row.level_lok}',
+                                '${row.no_lok}',
+                                '${row.area_lok}',
+                                '${row.unit}',
+                                '${row.unit_roll}',
+                                '${row.unit_bundle}',
+                                '${row.unit_box}',
+                                '${row.unit_pack}',
+                                '${row.kode_lok}',
+                                '${row.subbaris_lok}',
+                                '${row.sublevel_lok}'
+                            )">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                    `;
+
+                    let btnPrint = `
+                        <button type="button" class="btn btn-sm btn-info"
+                            onclick="printlokasi('${row.id}')">
+                            <i class="fa fa-file-pdf"></i>
+                        </button>
+                    `;
+
+                    let btnActive = `
+                        <button type="button" class="btn btn-sm btn-success"
+                            onclick="nonactive_lokasi('${row.id}','${row.status}','${row.kode_lok}')">
+                            <i class="fa fa-unlock-alt"></i>
+                        </button>
+                    `;
+
+                    let btnInactive = `
+                        <button type="button" class="btn btn-sm btn-danger"
+                            onclick="nonactive_lokasi('${row.id}','${row.status}','${row.kode_lok}')">
+                            <i class="fa fa-lock"></i>
+                        </button>
+                    `;
+
                     if (row.status == 'Active') {
-                    return `<div class='d-flex gap-1 justify-content-center'>
-                   <button type='button' class='btn btn-sm btn-warning' href='javascript:void(0)' onclick='editdata("` + row.id + `","` + row.kapasitas + `","` + row.inisial_lok + `","` + row.baris_lok + `","` + row.level_lok + `","` + row.no_lok + `","` + row.area_lok + `","` + row.unit + `","` + row.unit_roll + `","` + row.unit_bundle + `","` + row.unit_box + `","` + row.unit_pack + `","` + row.kode_lok + `","` + row.subbaris_lok + `","` + row.sublevel_lok + `")'><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button type='button' class='btn btn-sm btn-info' onclick='printlokasi("` + row.id + `")'><i class='fa fa-file-pdf'></i></button>
-                    <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='nonactive_lokasi("` + row.id + `","` + row.status + `","` + row.kode_lok + `")'><i class='fa fa-unlock-alt'></i></button>
-                    </div>`;
-                    }else{
-                        return `<div class='d-flex gap-1 justify-content-center'>
-                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='nonactive_lokasi("` + row.id + `","` + row.status + `","` + row.kode_lok + `")'><i class='fa fa-lock'></i></button>
-                    </div>`;
+                        return `
+                            <div class="d-flex gap-1 justify-content-center">
+                                ${btnPrint}
+                            </div>
+                        `;
+                    } else {
+                        return `
+                            <div class="d-flex gap-1 justify-content-center">
+                                ${btnInactive}
+                            </div>
+                        `;
                     }
                 }
             }
