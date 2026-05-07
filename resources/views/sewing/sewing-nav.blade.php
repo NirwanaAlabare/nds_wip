@@ -170,6 +170,48 @@
                     Finishing Proses <i class="fas fa-file-excel"></i>
                 </a>
             </li>
+            <li>
+                <a href="{{ route('sewing.report.index') }}"
+                    class="dropdown-item {{ $subPage == 'reportSewingSentral' ? 'active' : '' }}">
+                    Report Sewing <i class="fas fa-file-excel"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('finishing.report.index') }}"
+                    class="dropdown-item {{ $subPage == 'reportFinishingSentral' ? 'active' : '' }}">
+                    Report QC Finishing <i class="fas fa-file-excel"></i>
+                </a>
+            </li>
+            {{-- <li>
+                <a href="{{ route('report-sewing.output.index') }}"
+                    class="dropdown-item {{ $subPage == 'reportOutput' ? 'active' : '' }}">
+                    Report Output Sewing <i class="fa-solid fa-file"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('report-sewing.defect.index') }}"
+                    class="dropdown-item {{ $subPage == 'reportDefect' ? 'active' : '' }}">
+                    Report Defect Sewing <i class="fa-solid fa-file"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('report-sewing.mending.index') }}"
+                    class="dropdown-item {{ $subPage == 'reportMending' ? 'active' : '' }}">
+                    Report Defect Mending <i class="fa-solid fa-file"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('report-sewing.spotcleaning.index') }}"
+                    class="dropdown-item {{ $subPage == 'reportSpotcleaning' ? 'active' : '' }}">
+                    Report Defect Spotcleaning <i class="fa-solid fa-file"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('report-sewing.rework.index') }}"
+                    class="dropdown-item {{ $subPage == 'reportRework' ? 'active' : '' }}">
+                    Report Rework Sewing <i class="fa-solid fa-sync-alt"></i>
+                </a>
+            </li> --}}
             {{-- Deprecated --}}
             {{--
                     <li>
