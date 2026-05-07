@@ -16,18 +16,24 @@ class SewingOutputReportController extends Controller
 {
     public function index()
     {
-        $list_buyer = DB::connection('mysql_sb')
-            ->table('mastersupplier')
-            ->select('supplier')
-            ->orderBy('supplier', 'ASC')
-            ->get();
+        $list_buyer = DB::connection('mysql_sb')->table('mastersupplier')->select('supplier')->orderBy('supplier', 'ASC')->get();
 
-        return view('sewing.report.report-output-sewing', [
-            'page'         => 'dashboard-sewing-eff',
-            'subPageGroup' => 'sewing-report',
-            'subPage'      => 'reportOutput',
+        $list_tipe = [
+            'output'       => 'Output Sewing',
+            'defect'       => 'Defect Sewing',
+            'mending'      => 'Defect Mending',
+            'spotcleaning' => 'Defect Spotcleaning',
+            'rework'       => 'Rework Sewing',
+            'reject'       => 'Reject'
+        ];
+
+        return view('sewing.report.report-sewing-sentral', [
+            'page'           => 'dashboard-sewing-eff',
+            'subPageGroup'   => 'sewing-report',
+            'subPage'        => 'reportSewingSentral',
+            'list_buyer'     => $list_buyer,
             "containerFluid" => true,
-            'list_buyer'   => $list_buyer
+            'list_tipe'      => $list_tipe
         ]);
     }
 

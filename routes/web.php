@@ -114,9 +114,6 @@ use App\Http\Controllers\Sewing\SewingReworkReportController;
 
 
 
-
-
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -1475,34 +1472,34 @@ Route::middleware('auth')->group(function () {
         Route::post('/print-lokasi-all', 'printLokasiAll')->name('print-lokasi-all-master-lokasi-whs-soljer');
     });
 
-     Route::controller(SewingOutputReportController::class)->prefix("report-sewing")->middleware('role:sewing')->group(function () {
-        Route::get('/report-output-sewing', 'index')->name('report-sewing.output.index');
-        Route::get('/report-output-sewing/data', 'getData')->name('report-sewing.output.data');
-        Route::get('/report-output-sewing/export', 'exportExcel')->name('report-sewing.output.export');
-    });
+    Route::middleware(['role:sewing'])->prefix('report-sewing')->group(function () {
 
-    Route::controller(SewingDefectReportController::class)->prefix("report-sewing")->middleware('role:sewing')->group(function () {
-        Route::get('/report-defect-sewing', 'index')->name('report-sewing.defect.index');
-        Route::get('/report-defect-sewing/data', 'getData')->name('report-sewing.defect.data');
-        Route::get('/report-defect-sewing/export', 'exportExcel')->name('report-sewing.defect.export');
-    });
+        Route::get('/sentral', [SewingOutputReportController::class, 'index'])->name('sewing.report.index');
 
-    Route::controller(SewingMendingReportController::class)->prefix("report-sewing")->middleware('role:sewing')->group(function () {
-        Route::get('/report-mending-sewing', 'index')->name('report-sewing.mending.index');
-        Route::get('/report-mending-sewing/data', 'getData')->name('report-sewing.mending.data');
-        Route::get('/report-mending-sewing/export', 'exportExcel')->name('report-sewing.mending.export');
-    });
+        Route::controller(SewingOutputReportController::class)->prefix('output')->group(function () {
+            Route::get('/data', 'getData')->name('report.output.data');
+            Route::get('/export', 'exportExcel')->name('report.output.export');
+        });
 
-    Route::controller(SewingSpotcleaningReportController::class)->prefix("report-sewing")->middleware('role:sewing')->group(function () {
-        Route::get('/report-spotcleaning-sewing', 'index')->name('report-sewing.spotcleaning.index');
-        Route::get('/report-spotcleaning-sewing/data', 'getData')->name('report-sewing.spotcleaning.data');
-        Route::get('/report-spotcleaning-sewing/export', 'exportExcel')->name('report-sewing.spotcleaning.export');
-    });
+        Route::controller(SewingDefectReportController::class)->prefix('defect')->group(function () {
+            Route::get('/data', 'getData')->name('report.defect.data');
+            Route::get('/export', 'exportExcel')->name('report.defect.export');
+        });
 
-    Route::controller(SewingReworkReportController::class)->prefix("report-sewing")->middleware('role:sewing')->group(function () {
-        Route::get('/report-rework-sewing', 'index')->name('report-sewing.rework.index');
-        Route::get('/report-rework-sewing/data', 'getData')->name('report-sewing.rework.data');
-        Route::get('/report-rework-sewing/export', 'exportExcel')->name('report-sewing.rework.export');
+        Route::controller(SewingMendingReportController::class)->prefix('mending')->group(function () {
+            Route::get('/data', 'getData')->name('report.mending.data');
+            Route::get('/export', 'exportExcel')->name('report.mending.export');
+        });
+
+        Route::controller(SewingSpotcleaningReportController::class)->prefix('spotcleaning')->group(function () {
+            Route::get('/data', 'getData')->name('report.spotcleaning.data');
+            Route::get('/export', 'exportExcel')->name('report.spotcleaning.export');
+        });
+
+        Route::controller(SewingReworkReportController::class)->prefix('rework')->group(function () {
+            Route::get('/data', 'getData')->name('report.rework.data');
+            Route::get('/export', 'exportExcel')->name('report.rework.export');
+        });
     });
 });
 

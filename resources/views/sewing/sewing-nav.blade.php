@@ -171,6 +171,12 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('sewing.report.index') }}"
+                    class="dropdown-item {{ $subPage == 'reportSewingSentral' ? 'active' : '' }}">
+                    Report Sewing Sentral <i class="fas fa-file-excel"></i>
+                </a>
+            </li>
+            {{-- <li>
                 <a href="{{ route('report-sewing.output.index') }}"
                     class="dropdown-item {{ $subPage == 'reportOutput' ? 'active' : '' }}">
                     Report Output Sewing <i class="fa-solid fa-file"></i>
@@ -199,7 +205,7 @@
                     class="dropdown-item {{ $subPage == 'reportRework' ? 'active' : '' }}">
                     Report Rework Sewing <i class="fa-solid fa-sync-alt"></i>
                 </a>
-            </li>
+            </li> --}}
             {{-- Deprecated --}}
             {{--
                     <li>
