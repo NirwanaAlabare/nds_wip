@@ -83,4 +83,10 @@
             </li>
         </ul>
     </li>
+    <li class="nav-item">
+        <a href="{{ route('dashboard-rak') }}"
+            class="nav-link {{ $routeName == 'dashboard-rak' ? 'active' : '' }}">
+            <i class="fa fa-pager"></i>
+        </a>
+    </li>
 @endrole

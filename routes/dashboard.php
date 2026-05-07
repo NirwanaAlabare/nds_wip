@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Controllers\General\DashboardController;
 use App\Http\Controllers\DashboardWipLineController;
+use App\Http\Controllers\General\DashboardController;
+use App\Http\Controllers\WhsSoljer\DashboardRakController;
 
 // Dashboard
 Route::get('/dashboard-track', [DashboardController::class, 'track'])->middleware('auth')->name('dashboard-track');
@@ -67,3 +68,6 @@ Route::get('/sewing-output-data', [DashboardController::class, 'sewingOutputData
 Route::get('/dashboard-manage-user', [DashboardController::class, 'manageUser'])->middleware('auth')->name('dashboard-manage-user');
 Route::get('/dashboard-export-import', [DashboardController::class, 'exportImport'])->middleware('auth')->name('dashboard-export-import');
 Route::get('/dashboard-whs-soljer', [DashboardController::class, 'whsSoljer'])->middleware('auth')->name('dashboard-whs-soljer');
+Route::get('/dashboard-rak', [DashboardRakController::class, 'index'])->middleware('auth')->name('dashboard-rak');
+Route::get('/dashboard-rak/detail/{id?}', [DashboardRakController::class, 'detail'])->middleware('auth')->name('dashboard-rak-detail');
+Route::get('/dashboard-rak/getDataRak', [DashboardRakController::class, 'getDataRak'])->middleware('auth')->name('dashboard-rak-detail-get-data-rak');
