@@ -173,7 +173,13 @@
             <li>
                 <a href="{{ route('sewing.report.index') }}"
                     class="dropdown-item {{ $subPage == 'reportSewingSentral' ? 'active' : '' }}">
-                    Report Sewing Sentral <i class="fas fa-file-excel"></i>
+                    Report Sewing <i class="fas fa-file-excel"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('finishing.report.index') }}"
+                    class="dropdown-item {{ $subPage == 'reportFinishingSentral' ? 'active' : '' }}">
+                    Report QC Finishing <i class="fas fa-file-excel"></i>
                 </a>
             </li>
             {{-- <li>

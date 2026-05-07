@@ -1,5 +1,7 @@
 @extends('layouts.index')
 
+@section('title', 'Report Sewing')
+
 @section('custom-link')
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
@@ -26,7 +28,7 @@
 @section('content')
 <div class="card card-sb">
     <div class="card-header">
-        <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-invoice"></i> Report Sewing Sentral</h5>
+        <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-invoice"></i> Report Sewing</h5>
     </div>
     <div class="card-body">
 
@@ -98,7 +100,7 @@
     let table;
 
 
-    const routeMap = {
+    const listRoute = {
         'output': {
             data: "{{ route('report.output.data') }}",
             export: "{{ route('report.output.export') }}"
@@ -143,13 +145,12 @@
         if ($.fn.DataTable.isDataTable('#datatable')) {
             $('#datatable').DataTable().destroy();
         }
-        console.log("Initializing datatable with tipe:", tipe);
-        console.log("Using AJAX URL:", routeMap[tipe].data);
+
         table = $('#datatable').DataTable({
             processing: true,
             serverSide: false,
             ajax: {
-                url: routeMap[tipe].data,
+                url: listRoute[tipe].data,
                 data: function(d) {
                     d.start_date = $('#start_date').val();
                     d.end_date = $('#end_date').val();
@@ -207,7 +208,7 @@
             didOpen: () => { Swal.showLoading(); }
         });
 
-        let url = `${routeMap[tipe].export}?start_date=${start}&end_date=${end}&buyer=${encodeURIComponent(buyer)}`;
+        let url = `${listRoute[tipe].export}?start_date=${start}&end_date=${end}&buyer=${encodeURIComponent(buyer)}`;
         window.location.href = url;
 
         setTimeout(() => { Swal.close(); }, 2000);
