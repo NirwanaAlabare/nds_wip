@@ -105,6 +105,7 @@ use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanAccesoriesController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanFgController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PurchasingReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -1298,8 +1299,11 @@ Route::middleware('auth')->group(function () {
     });
 
     // Export Import (EXIM)
+
+    Route::get('/dashboard-export-import', [ExportImportController::class, 'index'])->middleware('role:export_import')->name('dashboard-export-import');
+
     Route::controller(ExportImportController::class)->prefix("export-import")->middleware('role:export_import')->group(function () {
-        Route::get('/', 'index')->name('export-import');
+        Route::get('/alert-detail/{po}', 'getDetail')->name('export-import.alert-detail');
         Route::get('/report-rekonsiliasi-ceisa', 'ReportRekonsiliasi')->name('report-rekonsiliasi-ceisa');
         Route::get('/export-rekonsiliasi-ceisa', 'ExportReportRekonsiliasi')->name('export-rekonsiliasi-ceisa');
         Route::get('/report-ceisa-detail', 'ReportCeisaDetail')->name('report-ceisa-detail');
@@ -1374,13 +1378,18 @@ Route::middleware('auth')->group(function () {
         Route::post('/update-date/{id}', 'updateDate')->name('update-date-purchase-order');
         Route::get('/approval', 'approval')->name('approval-purchase-order');
         Route::post('/approve/{id}', 'approve')->name('approve-purchase-order');
-         Route::get('/export-excel/{id}', 'exportExcel')->name('export-purchase-order');
+        Route::get('/export-excel/{id}', 'exportExcel')->name('export-purchase-order');
         Route::post('/cancel/{id}', 'cancel')->name('cancel-purchase-order');
         Route::post('restore/{id}', 'restore')->name('restore-purchase-order');
     });
 
-    Route::controller(PurchasingDashboardController::class)->middleware('purchasing')->group(function () {
+    Route::controller(PurchasingDashboardController::class)->middleware('role:purchasing')->group(function () {
         Route::get('/dashboard_purchasing', 'dashboard_purchasing')->name('dashboard-purchasing');
+    });
+
+    Route::controller(PurchasingReportController::class)->prefix("report")->middleware('role:purchasing')->group(function () {
+        Route::get('/item-report', 'itemReport')->name('item-report-purchasing');
+        Route::get('/item-report/export', 'exportItemReport')->name('export-item-report-purchasing');
     });
 
     Route::controller(PengeluaranGudangInputanAccesoriesController::class)->prefix("pengeluaran-gudang-inputan-accesories")->middleware('role:warehouse')->group(function () {
