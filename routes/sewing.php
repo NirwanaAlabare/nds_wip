@@ -12,9 +12,12 @@ use App\Http\Controllers\Sewing\ReportDefectRejectController;
 use App\Http\Controllers\Sewing\ReportDetailOutputController;
 use App\Http\Controllers\Sewing\ReportEfficiencyController;
 use App\Http\Controllers\Sewing\ReportEfficiencyNewController;
+use App\Http\Controllers\Sewing\ReportFinishingController;
 use App\Http\Controllers\Sewing\ReportFinishingProsesController;
+use App\Http\Controllers\Sewing\ReportHourlyController;
 use App\Http\Controllers\Sewing\ReportMutasiOutputController;
 use App\Http\Controllers\Sewing\ReportOutputController;
+use App\Http\Controllers\Sewing\ReportPackingController;
 use App\Http\Controllers\Sewing\ReportProductionController;
 use App\Http\Controllers\Sewing\ReportRejectController;
 use App\Http\Controllers\Sewing\SewingSecondaryMasterController;
@@ -22,7 +25,6 @@ use App\Http\Controllers\Sewing\SewingToolsController;
 use App\Http\Controllers\Sewing\TrackOrderOutputController;
 use App\Http\Controllers\Sewing\TransferOutputController;
 use App\Http\Controllers\Sewing\UndoOutputController;
-use App\Http\Controllers\Sewing\ReportHourlyController;
 
 Route::middleware('auth')->group(function () {
     // Master Line
@@ -270,5 +272,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/export-excel-hourly-monthly', 'exportExcelHourlyMonthly')->name('export-excel-hourly-monthly');
         // Route::get('/show_lap_tracking_ppic', 'show_lap_tracking_ppic')->name('show_lap_tracking_ppic');
         // Route::get('/export_excel_tracking', 'export_excel_tracking')->name('export_excel_tracking');
+    });
+
+    Route::controller(ReportFinishingController::class)->prefix("report-finishing")->middleware('role:sewing')->group(function () {
+        Route::get('/', 'index')->name('report-finishing');
+        Route::post('/export', 'export')->name('export-report-finishing');
+    });
+
+    Route::controller(ReportPackingController::class)->prefix("report-packing")->middleware('role:sewing')->group(function () {
+        Route::get('/', 'index')->name('report-packing');
+        Route::post('/export', 'export')->name('export-report-packing');
     });
 });

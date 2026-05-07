@@ -200,6 +200,18 @@
                     Report Rework Sewing <i class="fa-solid fa-sync-alt"></i>
                 </a>
             </li>
+            <li>
+                <a href="{{ route('report-finishing') }}"
+                    class="dropdown-item {{ $subPage == 'report-finishing' ? 'active' : '' }}">
+                    Report Finishing <i class="fas fa-file-excel"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('report-packing') }}"
+                    class="dropdown-item {{ $subPage == 'report-packing' ? 'active' : '' }}">
+                    Report Packing <i class="fas fa-file-excel"></i>
+                </a>
+            </li>
             {{-- Deprecated --}}
             {{--
                     <li>
