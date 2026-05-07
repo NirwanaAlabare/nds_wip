@@ -1528,7 +1528,7 @@ Route::middleware('auth')->group(function () {
         });
     });
 
-    Route::middleware(['role:finishing'])->prefix('report-finishing')->group(function () {
+    Route::middleware(['role:sewing'])->prefix('report-finishing')->group(function () {
         Route::get('/sentral', [FinishingOutputReportController::class, 'index'])->name('finishing.report.index');
 
         Route::controller(FinishingOutputReportController::class)->prefix('output')->group(function () {
