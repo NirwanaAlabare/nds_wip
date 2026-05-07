@@ -183,11 +183,20 @@ class MasterBarangPerKategoriController extends Controller
                     lot,
                     no_roll,
                     qty,
-                    satuan
+                    satuan,
+                    '' AS tujuan
                 FROM
                     penerimaan_gudang_inputan
                 LEFT JOIN penerimaan_gudang_inputan_history ON penerimaan_gudang_inputan_history.penerimaan_gudang_inputan_id = penerimaan_gudang_inputan.id
-                WHERE barcode = '{$request->barcode}' AND penerimaan_gudang_inputan.cancel = '0'
+                WHERE barcode = '{$request->barcode}' 
+                AND penerimaan_gudang_inputan.cancel = '0'
+                AND EXISTS (
+                    SELECT 1
+                    FROM penerimaan_gudang_inputan_detail d
+                    WHERE 
+                        d.penerimaan_gudang_inputan_id = penerimaan_gudang_inputan.id
+                        AND d.barcode = penerimaan_gudang_inputan_history.barcode
+                )
 
                 UNION ALL
 
@@ -204,12 +213,21 @@ class MasterBarangPerKategoriController extends Controller
                     lot,
                     no_roll,
                     pengeluaran_gudang_inputan_history.qty_out AS qty,
-                    satuan
+                    satuan,
+                    tujuan
                 FROM
                     pengeluaran_gudang_inputan
                 LEFT JOIN pengeluaran_gudang_inputan_history ON pengeluaran_gudang_inputan_history.pengeluaran_gudang_inputan_id = pengeluaran_gudang_inputan.id
-                LEFT JOIN penerimaan_gudang_inputan_history ON penerimaan_gudang_inputan_history.barcode = pengeluaran_gudang_inputan_history.barcode
-                WHERE pengeluaran_gudang_inputan_history.barcode = '{$request->barcode}' AND pengeluaran_gudang_inputan.cancel = '0'
+                LEFT JOIN penerimaan_gudang_inputan_detail ON penerimaan_gudang_inputan_detail.barcode = pengeluaran_gudang_inputan_history.barcode
+                WHERE pengeluaran_gudang_inputan_history.barcode = '{$request->barcode}' 
+                AND pengeluaran_gudang_inputan.cancel = '0'
+                AND EXISTS (
+                    SELECT 1
+                    FROM pengeluaran_gudang_inputan_detail d
+                    WHERE 
+                        d.pengeluaran_gudang_inputan_id = pengeluaran_gudang_inputan.id
+                        AND d.barcode = pengeluaran_gudang_inputan_history.barcode
+                )
             ) as results
         "));
 

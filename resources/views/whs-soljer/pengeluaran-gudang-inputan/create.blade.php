@@ -134,6 +134,7 @@
                                     <th>Qty</th>
                                     <th>Satuan</th>
                                     <th>Qty Out</th>
+                                    <th>Tujuan</th>
                                     <th class="text-center">
                                         <input type="checkbox" id="check_all">
                                     </th>
@@ -145,7 +146,7 @@
                                     <th id="total_qty" class="text-end">0</th>
                                     <th></th>
                                     <th id="total_qty_out" class="text-end">0</th>
-                                    <th></th>
+                                    <th colspan="2"></th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -219,6 +220,7 @@
                     },
                     { data: 'satuan' },
                     { data: 'qty_out', className: 'text-end' },
+                    { data: 'tujuan' },
                     { 
                         data: null,
                         className: 'text-center',
@@ -266,6 +268,7 @@
                 let rowNode = $(this.node());
 
                 let qty_out = rowNode.find('.qty_out_input').val();
+                let tujuan = rowNode.find('.tujuan_input').val();
 
                 result.push({
                     barcode: rowData.barcode,
@@ -278,7 +281,8 @@
                     satuan: rowData.satuan,
                     lokasi: rowData.lokasi,
                     keterangan: rowData.keterangan,
-                    qty_out: parseFloat(qty_out) || 0
+                    qty_out: parseFloat(qty_out) || 0,
+                    tujuan: tujuan || '',
                 });
             });
 
@@ -372,6 +376,9 @@
                             value="${parseFloat(res.qty).toFixed(2)}" 
                             min="1" 
                             max="${res.qty}" 
+                            >`,
+                        tujuan: `<input type="text"
+                            class="form-control form-control-sm tujuan_input"
                             >`,
                         action: `<button type="button" class="btn btn-danger btn-sm hapus">Hapus</button>`
                     }).draw(false);

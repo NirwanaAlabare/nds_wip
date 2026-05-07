@@ -153,6 +153,7 @@ class PengeluaranGudangInputanController extends Controller
                     'barcode'                       => $row['barcode'],
                     'qty_act'                       => $row['qty'],
                     'qty_out'                       => $row['qty_out'],
+                    'tujuan'                        => $row['tujuan'],
                     "created_by"                    => $user ? $user->id : null,
                     "created_by_username"           => $user ? $user->username : null,
                     "created_at"                    => $now,
@@ -163,6 +164,7 @@ class PengeluaranGudangInputanController extends Controller
                     'barcode'                       => $row['barcode'],
                     'qty_act'                       => $row['qty'],
                     'qty_out'                       => $row['qty_out'],
+                    'tujuan'                        => $row['tujuan'],
                     "created_by"                    => $user ? $user->id : null,
                     "created_by_username"           => $user ? $user->username : null,
                     "created_at"                    => $now,
@@ -211,7 +213,8 @@ class PengeluaranGudangInputanController extends Controller
             penerimaan_gudang_inputan_detail.no_roll,
             pengeluaran_gudang_inputan_detail.qty_act,
             penerimaan_gudang_inputan_detail.satuan,
-            pengeluaran_gudang_inputan_detail.qty_out
+            pengeluaran_gudang_inputan_detail.qty_out,
+            pengeluaran_gudang_inputan_detail.tujuan
         ")
         ->lefTJoin("penerimaan_gudang_inputan_detail", "penerimaan_gudang_inputan_detail.barcode", "=", "pengeluaran_gudang_inputan_detail.barcode")
         ->where("pengeluaran_gudang_inputan_id", $id)
@@ -263,12 +266,13 @@ class PengeluaranGudangInputanController extends Controller
                 $oldQty = (float) $dataDetail->qty_out;
                 $newQty = (float) $row['qty_out'];
 
-                if ($oldQty != $newQty) {
+                if ($oldQty != $newQty || $dataDetail->tujuan != $row['tujuan']) {
                     PengeluaranGudangInputanHistory::create([
                         'pengeluaran_gudang_inputan_id' => $dataDetail->pengeluaran_gudang_inputan_id,
                         'barcode'                       => $dataDetail->barcode,
                         'qty_act'                       => $dataDetail->qty_act,
                         'qty_out'                       => $row['qty_out'],
+                        'tujuan'                        => $row['tujuan'],
                         "created_by"                    => $user ? $user->id : null,
                         "created_by_username"           => $user ? $user->username : null,
                         "created_at"                    => $now,
@@ -277,6 +281,7 @@ class PengeluaranGudangInputanController extends Controller
                     PengeluaranGudangInputanDetail::where('id', $row['id'])
                         ->update([
                             'qty_out' => $row['qty_out'],
+                            'tujuan'  => $row['tujuan'],
                             'updated_at' => now(),
                             'updated_by' => auth()->id(),
                         ]);
@@ -331,7 +336,8 @@ class PengeluaranGudangInputanController extends Controller
             penerimaan_gudang_inputan_detail.no_roll,
             pengeluaran_gudang_inputan_detail.qty_act,
             penerimaan_gudang_inputan_detail.satuan,
-            pengeluaran_gudang_inputan_detail.qty_out
+            pengeluaran_gudang_inputan_detail.qty_out,
+            pengeluaran_gudang_inputan_detail.tujuan
         ")
         ->leftJoin('pengeluaran_gudang_inputan_detail', 'pengeluaran_gudang_inputan.id', '=', 'pengeluaran_gudang_inputan_detail.pengeluaran_gudang_inputan_id')
         ->leftJoin('penerimaan_gudang_inputan_detail', 'penerimaan_gudang_inputan_detail.barcode', '=', 'pengeluaran_gudang_inputan_detail.barcode')
@@ -367,7 +373,8 @@ class PengeluaranGudangInputanController extends Controller
             SUM(pengeluaran_gudang_inputan_detail.qty_out) as qty_out,
             penerimaan_gudang_inputan_detail.satuan,
             penerimaan_gudang_inputan_detail.keterangan,
-            penerimaan_gudang_inputan_detail.lokasi
+            penerimaan_gudang_inputan_detail.lokasi,
+            pengeluaran_gudang_inputan_detail.tujuan
         ')
         ->leftJoin("penerimaan_gudang_inputan_detail", "penerimaan_gudang_inputan_detail.barcode", "=", "pengeluaran_gudang_inputan_detail.barcode")
         ->where("pengeluaran_gudang_inputan_id", $id)

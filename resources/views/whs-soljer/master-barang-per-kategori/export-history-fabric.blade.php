@@ -50,6 +50,7 @@
         <th style="font-weight: 800;border: 1px solid #000;">No Roll</th>
         <th style="font-weight: 800;border: 1px solid #000;">Qty</th>
         <th style="font-weight: 800;border: 1px solid #000;">Satuan</th>
+        <th style="font-weight: 800;border: 1px solid #000;">Tujuan</th>
     </tr>
     @foreach ($dataDetail as $detail)
         <tr>
@@ -66,6 +67,7 @@
             <td style="border: 1px solid #000;">{{ $detail->no_roll }} </td>
             <td style="border: 1px solid #000;">{{ $detail->qty }} </td>
             <td style="border: 1px solid #000;">{{ $detail->satuan }} </td>
+            <td style="border: 1px solid #000;">{{ $detail->tujuan }} </td>
         </tr>
     @endforeach
 </table>

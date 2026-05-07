@@ -72,6 +72,7 @@
                                     <th>Qty</th>
                                     <th>Satuan</th>
                                     <th>Qty Out</th>
+                                    <th>Tujuan</th>
                                     <th class="text-center">
                                         <input type="checkbox" id="check_all">
                                     </th>
@@ -98,6 +99,9 @@
                                         <td>{{ $row->satuan }}</td>
                                         <td>
                                             <input type="number" step="any" class="form-control form-control-sm text-end qty_out" value="{{ number_format($row->qty_out, 2, '.', '') }}">
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm tujuan" value="{{ $row->tujuan }}">
                                         </td>
                                         <td class="text-center">
                                             <input type="checkbox" class="row-check">
@@ -193,7 +197,8 @@
 
                 data.push({
                     id: row.attr('data-id'),
-                    qty_out: row.find('.qty_out').val()
+                    qty_out: row.find('.qty_out').val(),
+                    tujuan: row.find('.tujuan').val(),
                 });
 
             });
