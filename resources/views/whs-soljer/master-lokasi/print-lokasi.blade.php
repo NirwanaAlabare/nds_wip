@@ -35,10 +35,13 @@
     
 
     <table width="100%">
-        <tr style="line-height: 25px;">
+        {{-- <tr style="line-height: 25px;">
             <td colspan="4" style="vertical-align: middle; text-align: center;width:100%;font-size: 15px;">
              PT. NIRWANA ALABARE GARMENT
             </td>
+        </tr> --}}
+        <tr style="line-height: 25px;">
+            <td colspan="3" style="height: 27px;"></td>
         </tr>
 
         <tr style="line-height: 30px;">
@@ -89,13 +92,13 @@
             <td style="width:20%;border-bottom: 1px solid;"></td>
             <td style="width:20%;border-bottom: 1px solid;"><div style="text-align: center;" class="mb-2"></div></td>
         </tr>
-        <tr style="line-height: 15px;">
+        {{-- <tr style="line-height: 15px;">
             <td style="vertical-align: middle; text-align: left;width:25%">
              <img style="width: 45%" src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate($dataLokasi->kode)) !!}">
             </td>
             <td colspan="3" style="vertical-align: middle; text-align: left;width:60%;font-size: 15px;">
             </td>
-        </tr>
+        </tr> --}}
         <!-- {!!  DNS1D::getBarcodeHTML($dataLokasi->id, 'C128',1,40,'black', false); !!} -->
     </table>
 </body>
