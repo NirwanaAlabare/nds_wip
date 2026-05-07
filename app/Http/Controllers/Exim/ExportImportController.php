@@ -25,9 +25,45 @@ class ExportImportController extends Controller
      */
     public function index(Request $request)
     {
-        return view("export-import.dashboard", ["page" => "dashboard-export-import", "subPageGroup" => "export-import", "subPage" => "export-import"]);
+        $today = Carbon::now()->toDateString();
+        $targetDate = Carbon::now()->addDays(2)->toDateString();
+
+        $data = DB::table('ppic_master_so')
+            ->select(
+                'po',
+                'dest',
+                'desc',
+                'tgl_shipment',
+                DB::raw('SUM(qty_po) as total_qty')
+            )
+            ->whereBetween('tgl_shipment', [$today, $targetDate])
+            ->groupBy('po', 'dest', 'tgl_shipment')
+            ->orderBy('tgl_shipment', 'asc')
+            ->get();
+
+        return view("export-import.dashboard", [
+            "page"         => "dashboard-export-import",
+            "subPageGroup" => "export-import",
+            "subPage"      => "export-import",
+            "data"       => $data
+        ]);
     }
 
+    public function getDetail($po)
+    {
+       $details = DB::table('ppic_master_so')
+                ->select('ppic_master_so.id_so_det', 'ppic_master_so.qty_po', 'sd.color', 'ac.kpno', 'sd.size')
+                ->join('signalbit_erp.so_det as sd', 'ppic_master_so.id_so_det', '=', 'sd.id')
+                ->join('signalbit_erp.so as so', 'sd.id_so', '=', 'so.id')
+                ->join('signalbit_erp.act_costing as ac', 'so.id_cost', '=', 'ac.id')
+                ->where('ppic_master_so.po', $po)
+                ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data'   => $details
+        ]);
+    }
 
     public function ReportRekonsiliasi(Request $request)
     {
@@ -304,8 +340,8 @@ class ExportImportController extends Controller
 
         $sheet->writeRow(['Data BC Signalbit'])
         ->applyFontStyleBold()
-        ->applyFontSize(16); 
-        $sheet->writeRow(["Tanggal Daftar: {$from} s/d {$to}"])->applyFontStyleBold(); 
+        ->applyFontSize(16);
+        $sheet->writeRow(["Tanggal Daftar: {$from} s/d {$to}"])->applyFontStyleBold();
 
         $sheet->mergeCells('A1:M1');
 
