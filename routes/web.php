@@ -105,6 +105,16 @@ use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanFgController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PurchasingReportController;
+use App\Http\Controllers\Sewing\SewingOutputReportController;
+use App\Http\Controllers\Sewing\SewingDefectReportController;
+use App\Http\Controllers\Sewing\SewingMendingReportController;
+use App\Http\Controllers\Sewing\SewingSpotcleaningReportController;
+use App\Http\Controllers\Sewing\SewingReworkReportController;
+
+
+
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -1441,6 +1451,38 @@ Route::middleware('auth')->group(function () {
         Route::get('/history-fg', 'historyFg')->name('history-fg-master-barang-per-kategori');
         Route::get('/history-detail-fg', 'historyDetailFg')->name('history-detail-fg-master-barang-per-kategori');
     });
+
+    Route::controller(SewingOutputReportController::class)->prefix("report-sewing")->middleware('role:sewing')->group(function () {
+        Route::get('/report-output-sewing', 'index')->name('report-sewing.output.index');
+        Route::get('/report-output-sewing/data', 'getData')->name('report-sewing.output.data');
+        Route::get('/report-output-sewing/export', 'exportExcel')->name('report-sewing.output.export');
+    });
+
+    Route::controller(SewingDefectReportController::class)->prefix("report-sewing")->middleware('role:sewing')->group(function () {
+        Route::get('/report-defect-sewing', 'index')->name('report-sewing.defect.index');
+        Route::get('/report-defect-sewing/data', 'getData')->name('report-sewing.defect.data');
+        Route::get('/report-defect-sewing/export', 'exportExcel')->name('report-sewing.defect.export');
+    });
+
+    Route::controller(SewingMendingReportController::class)->prefix("report-sewing")->middleware('role:sewing')->group(function () {
+        Route::get('/report-mending-sewing', 'index')->name('report-sewing.mending.index');
+        Route::get('/report-mending-sewing/data', 'getData')->name('report-sewing.mending.data');
+        Route::get('/report-mending-sewing/export', 'exportExcel')->name('report-sewing.mending.export');
+    });
+
+    Route::controller(SewingSpotcleaningReportController::class)->prefix("report-sewing")->middleware('role:sewing')->group(function () {
+        Route::get('/report-spotcleaning-sewing', 'index')->name('report-sewing.spotcleaning.index');
+        Route::get('/report-spotcleaning-sewing/data', 'getData')->name('report-sewing.spotcleaning.data');
+        Route::get('/report-spotcleaning-sewing/export', 'exportExcel')->name('report-sewing.spotcleaning.export');
+    });
+
+    Route::controller(SewingReworkReportController::class)->prefix("report-sewing")->middleware('role:sewing')->group(function () {
+        Route::get('/report-rework-sewing', 'index')->name('report-sewing.rework.index');
+        Route::get('/report-rework-sewing/data', 'getData')->name('report-sewing.rework.data');
+        Route::get('/report-rework-sewing/export', 'exportExcel')->name('report-sewing.rework.export');
+    });
+
+
 });
 
 // Accounting
