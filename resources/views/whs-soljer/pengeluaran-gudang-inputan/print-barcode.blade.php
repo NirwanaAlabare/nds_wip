@@ -74,6 +74,7 @@
                 <th style="padding-left: 1px;font-size: 7px;">Qty</th>
                 <th style="padding-left: 1px;font-size: 7px;">Satuan</th>
                 <th style="padding-left: 1px;font-size: 7px;">Qty Out</th>
+                <th style="padding-left: 1px;font-size: 7px;">Tujuan</th>
             </tr>
             <tr>
                 <td style="padding-left: 1px; padding-right: 1px; font-size: 7px;">{{ $row->lokasi }}</td>
@@ -85,6 +86,7 @@
                 <td style="padding-left: 1px; padding-right: 1px; font-size: 7px; text-align: right;">{{ number_format($row->qty_act, 2) }}</td>
                 <td style="padding-left: 1px; padding-right: 1px; font-size: 7px;">{{ $row->satuan }}</td>
                 <td style="padding-left: 1px; padding-right: 1px; font-size: 7px; text-align: right;">{{ number_format($row->qty_out, 2) }}</td>
+                <td style="padding-left: 1px; padding-right: 1px; font-size: 7px;">{{ $row->tujuan }}</td>
             </tr>
         </table>
         

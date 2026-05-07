@@ -173,6 +173,7 @@
                                     <th>No Roll</th>
                                     <th>Qty</th>
                                     <th>Satuan</th>
+                                    <th>Tujuan</th>
                                 </tr>
                             </thead>
                         </table>
@@ -723,6 +724,7 @@
                         }
                     },
                     { data: 'satuan' },
+                    { data: 'tujuan' },
                 ]
             });
         }

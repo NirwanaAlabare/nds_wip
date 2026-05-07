@@ -100,6 +100,7 @@
                 <td align="center">Qty</td>
                 <td align="center">Satuan</td>
                 <td align="center">Qty Out</td>
+                <td align="center">Tujuan</td>
             </tr>
         </thead>
         <tbody>
@@ -121,6 +122,7 @@
                 <td align="right">{{ number_format($row->qty_act, 2) }}</td>
                 <td align="left">{{ $row->satuan }}</td>
                 <td align="right">{{ number_format($row->qty_out, 2) }}</td>
+                <td align="left">{{ $row->tujuan }}</td>
             </tr>
         @endforeach
         </tbody>
@@ -134,6 +136,7 @@
                 <th style="text-align:right;">
                     {{ number_format($totalQtyOut, 2) }}
                 </th>
+                <th></th>
             </tr>
     </tfoot>
     </table>
