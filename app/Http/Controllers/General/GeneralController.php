@@ -42,37 +42,23 @@ class GeneralController extends Controller
         // Get No. Form Cutting List
         $formCuts = collect(
             DB::select("
-                    SELECT
-                        form_cut_input.id as form_cut_id, form_cut_input.no_form, COUNT(stocker_input.id) total_stocker, 'normal' type, form_cut_input.updated_at timestamp
-                    FROM
-                        form_cut_input
-                        LEFT JOIN stocker_input ON stocker_input.form_cut_id = form_cut_input.id
-                    WHERE
-                        DATE(form_cut_input.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()
-                    GROUP BY
-                        form_cut_input.id
+                    SELECT id, no_form, updated_at, 'normal' AS type
+                    FROM form_cut_input
+                    WHERE updated_at >= CURDATE() - INTERVAL 6 MONTH
+
                 UNION ALL
-                    SELECT
-                        form_cut_reject.id as form_cut_id, form_cut_reject.no_form, COUNT(stocker_input.id) total_stocker, 'reject' type, form_cut_reject.updated_at timestamp
-                    FROM
-                        form_cut_reject
-                        LEFT JOIN stocker_input ON stocker_input.form_reject_id = form_cut_reject.id
-                    WHERE
-                        DATE(form_cut_reject.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()
-                    GROUP BY
-                        form_cut_reject.id
+
+                    SELECT id, no_form, updated_at, 'reject' AS type
+                    FROM form_cut_reject
+                    WHERE updated_at >= CURDATE() - INTERVAL 6 MONTH
+
                 UNION ALL
-                    SELECT
-                        form_cut_piece.id as form_cut_id, form_cut_piece.no_form, COUNT(stocker_input.id) total_stocker, 'piece' type, form_cut_piece.updated_at timestamp
-                    FROM
-                        form_cut_piece
-                        LEFT JOIN stocker_input ON stocker_input.form_piece_id = form_cut_piece.id
-                    WHERE
-                        DATE(form_cut_piece.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()
-                    GROUP BY
-                        form_cut_piece.id
+
+                    SELECT id, no_form, updated_at, 'piece' AS type
+                    FROM form_cut_piece
+                    WHERE updated_at >= CURDATE() - INTERVAL 6 MONTH
                 ORDER BY
-                    timestamp ASC
+                    updated_at ASC
             "));
 
         return $formCuts ? json_encode($formCuts) : null;
