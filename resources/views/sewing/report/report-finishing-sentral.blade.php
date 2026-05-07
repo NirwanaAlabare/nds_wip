@@ -7,116 +7,219 @@
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
     <style>
-        .table-custom th { background-color: #2c3e50 !important; color: white; text-align: center; font-size: 13px; }
-        .table-custom td { font-size: 13px; }
+        .table-custom th {
+            background-color: #2c3e50 !important;
+            color: white;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .table-custom td {
+            font-size: 13px;
+        }
     </style>
 @endsection
 
 @section('content')
-<div class="card card-sb">
-    <div class="card-header">
-        <h5 class="card-title fw-bold mb-0"><i class="fas fa-check-double"></i> QC Finishing Sentral Report</h5>
-    </div>
-    <div class="card-body">
-        <div class="row align-items-end mb-4">
-            <div class="col-md-2 mb-2">
-                <label class="small fw-bold">Tipe Report</label>
-                <select id="filter_tipe" class="form-control form-control-sm select2bs4">
-                    @foreach($list_tipe as $key => $val)
-                        <option value="{{ $key }}">{{ $val }}</option>
-                    @endforeach
-                </select>
+    <div class="card card-sb">
+        <div class="card-header">
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-check-double"></i> QC Finishing Sentral Report</h5>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-end mb-4">
+                <div class="col-md-2 mb-2">
+                    <label class="small fw-bold">Tipe Report</label>
+                    <select id="filter_tipe" class="form-control form-control-sm select2bs4">
+                        @foreach ($list_tipe as $key => $val)
+                            <option value="{{ $key }}">{{ $val }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="small fw-bold">Buyer</label>
+                    <select id="filter_buyer" class="form-control form-control-sm select2bs4">
+                        <option value="">Semua Buyer</option>
+                        @foreach ($list_buyer as $b)
+                            <option value="{{ $b->supplier }}">{{ $b->supplier }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label class="small fw-bold">Tgl Awal</label>
+                    <input type="date" id="start_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label class="small fw-bold">Tgl Akhir</label>
+                    <input type="date" id="end_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
+                </div>
+                <div class="col-md-3 mb-2 d-flex gap-2">
+                    <button class="btn btn-primary btn-sm" onclick="refreshTable()"><i class="fa fa-search"></i>
+                        Cari</button>
+                    <button class="btn btn-success btn-sm" onclick="exportExcel()"><i class="fa fa-file-excel"></i>
+                        Export</button>
+                </div>
             </div>
-            <div class="col-md-3 mb-2">
-                <label class="small fw-bold">Buyer</label>
-                <select id="filter_buyer" class="form-control form-control-sm select2bs4">
-                    <option value="">Semua Buyer</option>
-                    @foreach($list_buyer as $b)
-                        <option value="{{ $b->supplier }}">{{ $b->supplier }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-2 mb-2">
-                <label class="small fw-bold">Tgl Awal</label>
-                <input type="date" id="start_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
-            </div>
-            <div class="col-md-2 mb-2">
-                <label class="small fw-bold">Tgl Akhir</label>
-                <input type="date" id="end_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
-            </div>
-            <div class="col-md-3 mb-2 d-flex gap-2">
-                <button class="btn btn-primary btn-sm" onclick="refreshTable()"><i class="fa fa-search"></i> Cari</button>
-                <button class="btn btn-success btn-sm" onclick="exportExcel()"><i class="fa fa-file-excel"></i> Export</button>
+            <hr>
+            <div class="table-responsive">
+                <table id="datatable" class="table table-bordered table-sm table-custom table-hover w-100">
+                    <thead>
+                        <tr>
+                            <th>Buyer</th>
+                            <th>WS</th>
+                            <th>Style</th>
+                            <th>Color</th>
+                            <th>Size</th>
+                            <th id="label_jumlah">Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
-        <hr>
-        <div class="table-responsive">
-            <table id="datatable" class="table table-bordered table-sm table-custom table-hover w-100">
-                <thead>
-                    <tr>
-                        <th>Buyer</th><th>WS</th><th>Style</th><th>Color</th><th>Size</th><th id="label_jumlah">Jumlah</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
     </div>
-</div>
 @endsection
 
 @section('custom-script')
-<script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
-<script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
-<script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
-<script>
-    let table;
-    const routeMap = {
-        'f_output': { data: "{{ route('report.f_output.data') }}", export: "{{ route('report.f_output.export') }}" },
-        'f_defect_sewing': { data: "{{ route('report.f_defect_sewing.data') }}", export: "{{ route('report.f_defect_sewing.export') }}" },
-        'f_defect_mending': { data: "{{ route('report.f_defect_mending.data') }}", export: "{{ route('report.f_defect_mending.export') }}" },
-        'f_defect_spot': { data: "{{ route('report.f_defect_spot.data') }}", export: "{{ route('report.f_defect_spot.export') }}" },
-        'f_rework_sewing': { data: "{{ route('report.f_rework_sewing.data') }}", export: "{{ route('report.f_rework_sewing.export') }}" },
-        'f_rework_mending': { data: "{{ route('report.f_rework_mending.data') }}", export: "{{ route('report.f_rework_mending.export') }}" },
-        'f_rework_spot': { data: "{{ route('report.f_rework_spot.data') }}", export: "{{ route('report.f_rework_spot.export') }}" },
-        'f_reject': { data: "{{ route('report.f_reject.data') }}", export: "{{ route('report.f_reject.export') }}" }
-    };
-
-    function initDatatable(tipe) {
-        if ($.fn.DataTable.isDataTable('#datatable')) { $('#datatable').DataTable().destroy(); }
-        table = $('#datatable').DataTable({
-            ajax: {
-                url: routeMap[tipe].data,
-                data: function(d) { d.start_date = $('#start_date').val(); d.end_date = $('#end_date').val(); d.buyer = $('#filter_buyer').val(); }
+    <script>
+        let table;
+        const routeMap = {
+            'f_output': {
+                data: "{{ route('report.f_output.data') }}",
+                export: "{{ route('report.f_output.export') }}"
             },
-            columns: [
-                { data: 'buyer' }, { data: 'ws' }, { data: 'style' }, { data: 'color' }, { data: 'size' },
-                {
-                    data: null, className: 'text-center fw-bold',
-                    render: function(data, type, row) {
-                        let keys = Object.keys(row);
-                        return row[keys[keys.length - 1]];
+            'f_defect_sewing': {
+                data: "{{ route('report.f_defect_sewing.data') }}",
+                export: "{{ route('report.f_defect_sewing.export') }}"
+            },
+            'f_defect_mending': {
+                data: "{{ route('report.f_defect_mending.data') }}",
+                export: "{{ route('report.f_defect_mending.export') }}"
+            },
+            'f_defect_spot': {
+                data: "{{ route('report.f_defect_spot.data') }}",
+                export: "{{ route('report.f_defect_spot.export') }}"
+            },
+            'f_rework_sewing': {
+                data: "{{ route('report.f_rework_sewing.data') }}",
+                export: "{{ route('report.f_rework_sewing.export') }}"
+            },
+            'f_rework_mending': {
+                data: "{{ route('report.f_rework_mending.data') }}",
+                export: "{{ route('report.f_rework_mending.export') }}"
+            },
+            'f_rework_spot': {
+                data: "{{ route('report.f_rework_spot.data') }}",
+                export: "{{ route('report.f_rework_spot.export') }}"
+            },
+            'f_reject': {
+                data: "{{ route('report.f_reject.data') }}",
+                export: "{{ route('report.f_reject.export') }}"
+            }
+        };
+
+        function initDatatable(tipe) {
+            if ($.fn.DataTable.isDataTable('#datatable')) {
+                $('#datatable').DataTable().destroy();
+            }
+            table = $('#datatable').DataTable({
+                ajax: {
+                    url: routeMap[tipe].data,
+                    data: function(d) {
+                        d.start_date = $('#start_date').val();
+                        d.end_date = $('#end_date').val();
+                        d.buyer = $('#filter_buyer').val();
                     }
+                },
+                columns: [{
+                        data: 'buyer'
+                    }, {
+                        data: 'ws'
+                    }, {
+                        data: 'style'
+                    }, {
+                        data: 'color'
+                    }, {
+                        data: 'size'
+                    },
+                    {
+                        data: null,
+                        className: 'text-center fw-bold',
+                        render: function(data, type, row) {
+                            let keys = Object.keys(row);
+                            return row[keys[keys.length - 1]];
+                        }
+                    }
+                ]
+            });
+        }
+
+        function refreshTable() {
+            let tipe = $('#filter_tipe').val();
+            $("#label_jumlah").text("Jumlah " + $("#filter_tipe option:selected").text());
+            initDatatable(tipe);
+        }
+
+        function exportExcel() {
+            let tipe = $('#filter_tipe').val();
+            let tipeText = $("#filter_tipe option:selected").text();
+            let start = $('#start_date').val();
+            let end = $('#end_date').val();
+            let buyer = $('#filter_buyer').val();
+
+            if (!start || !end) {
+                Swal.fire('Perhatian', 'Rentang tanggal harus diisi!', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Exporting...',
+                text: 'Sedang menyiapkan file Excel, harap tunggu...',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
                 }
-            ]
+            });
+
+            let url = `${routeMap[tipe].export}?start_date=${start}&end_date=${end}&buyer=${encodeURIComponent(buyer)}`;
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('Gagal mengunduh file');
+                    return response.blob();
+                })
+                .then(blob => {
+                    let filename = `Report_${tipeText}_${start}_sd_${end}.xlsx`;
+                    let a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(a.href);
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: `File "${filename}" berhasil diunduh.`,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                })
+                .catch(err => {
+                    Swal.fire('Error', 'Gagal export: ' + err.message, 'error');
+                });
+        }
+
+        $(document).ready(function() {
+            $('.select2bs4').select2({
+                theme: 'bootstrap4'
+            });
+            initDatatable('f_output');
         });
-    }
-
-    function refreshTable() {
-        let tipe = $('#filter_tipe').val();
-        $("#label_jumlah").text("Jumlah " + $("#filter_tipe option:selected").text());
-        initDatatable(tipe);
-    }
-
-    function exportExcel() {
-        let tipe = $('#filter_tipe').val();
-        let url = `${routeMap[tipe].export}?start_date=${$('#start_date').val()}&end_date=${$('#end_date').val()}&buyer=${encodeURIComponent($('#filter_buyer').val())}`;
-        window.location.href = url;
-    }
-
-    $(document).ready(function() {
-        $('.select2bs4').select2({ theme: 'bootstrap4' });
-        initDatatable('f_output');
-    });
-</script>
+    </script>
 @endsection
