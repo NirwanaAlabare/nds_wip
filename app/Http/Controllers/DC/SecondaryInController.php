@@ -947,7 +947,7 @@ class SecondaryInController extends Controller
                                 // Check current secondary inhouse
                                 $multiSecondaryCurrentSecondary = DB::table("secondary_inhouse_input")->
                                     where("id_qr_stocker", $request->txtqrstocker)->
-                                    where("urutan", $currentPartDetailSecondary->secondary->urutan)->
+                                    where("urutan", $currentPartDetailSecondary->urutan)->
                                     first();
 
                                 // If there is current secondary
@@ -1035,7 +1035,7 @@ class SecondaryInController extends Controller
                                                 ".$multiSecondaryCurrentSecondary->qty_in." qty_awal,
                                                 s.lokasi lokasi_tujuan,
                                                 s.tempat tempat_tujuan,
-                                                ".$multiSecondaryCurrentSecondary->urutan." as urutan
+                                                ".$multiSecondaryCurrentSecondary->urutan." as urutan,
                                                 (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND ".$multiSecondaryCurrentSecondary->urutan." >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status
                                             from
                                                 stocker_input s
