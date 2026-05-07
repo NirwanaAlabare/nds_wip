@@ -93,7 +93,7 @@ class LoadingLineController extends Controller
                                 trolley.id trolley_id,
                                 trolley.nama_trolley,
                                 stocker_input.so_det_id,
-                                stocker_input.size,
+                                COALESCE(master_sb_ws.size, stocker_input.size) size,
                                 loading_line.loading_plan_id
                             FROM
                                 loading_line
@@ -104,7 +104,8 @@ class LoadingLineController extends Controller
                                 LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
                                 LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
                                 LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
-                                LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
+                                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                                LEFT JOIN master_size_new ON master_size_new.size = master_sb_ws.size
                                 ".$detailDateFilter."
                             GROUP BY
                                 loading_line.tanggal_loading,
@@ -288,7 +289,7 @@ class LoadingLineController extends Controller
                                     trolley.id trolley_id,
                                     trolley.nama_trolley,
                                     stocker_input.so_det_id,
-                                    stocker_input.size,
+                                    COALESCE(master_sb_ws.size, stocker_input.size) size,
                                     loading_line.loading_plan_id
                                 FROM
                                     loading_line
@@ -299,7 +300,8 @@ class LoadingLineController extends Controller
                                     LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
                                     LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
                                     LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
-                                    LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
+                                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                                    LEFT JOIN master_size_new ON master_size_new.size = master_sb_ws.size
                                     ".$detailDateFilter."
                                 GROUP BY
                                     loading_line.tanggal_loading,
@@ -544,9 +546,9 @@ class LoadingLineController extends Controller
                 LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
                 LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
                 LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
-                LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
-                LEFT JOIN users ON users.id = loading_line.created_by
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                LEFT JOIN master_size_new ON master_size_new.size = master_sb_ws.size
+                LEFT JOIN users ON users.id = loading_line.created_by
                 LEFT JOIN (
                     select
 						COALESCE(p_com.panel, p.panel) panel,
@@ -788,7 +790,7 @@ class LoadingLineController extends Controller
                             trolley.id trolley_id,
                             trolley.nama_trolley,
                             stocker_input.so_det_id,
-                            stocker_input.size,
+                            COALESCE(master_sb_ws.size, stocker_input.size) size,
                             loading_line.loading_plan_id,
                             loading_line.no_bon
                         FROM
@@ -799,7 +801,8 @@ class LoadingLineController extends Controller
                             LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
                             LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
                             LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
-                            LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
+                            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                            LEFT JOIN master_size_new ON master_size_new.size = master_sb_ws.size
                             ".$detailDateFilter."
                         GROUP BY
                             loading_line.tanggal_loading,
@@ -935,9 +938,9 @@ class LoadingLineController extends Controller
                 LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
                 LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
                 LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
-                LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
-                LEFT JOIN users ON users.id = loading_line.created_by
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                LEFT JOIN master_size_new ON master_size_new.size = master_sb_ws.size
+                LEFT JOIN users ON users.id = loading_line.created_by
                 LEFT JOIN (
                     select
 						COALESCE(p_com.panel, p.panel) panel,
@@ -1682,7 +1685,7 @@ class LoadingLineController extends Controller
                     loading_line.nama_line,
                     stocker_input.act_costing_ws,
                     stocker_input.color,
-                    stocker_input.size,
+                    COALESCE(master_sb_ws.size, stocker_input.size) size,
                     GROUP_CONCAT(DISTINCT stocker_input.lokasi SEPARATOR ' || ') as lokasi,
                     GROUP_CONCAT(DISTINCT trolley.nama_trolley SEPARATOR ' || ') as trolley,
                     GROUP_CONCAT(COALESCE(COALESCE(stocker_input.qty_ply, stocker_input.qty_ply_mod), '-') SEPARATOR ' || ') qty,
@@ -1698,6 +1701,7 @@ class LoadingLineController extends Controller
                 leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
                 leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
                 leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
+                leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
                 whereIn("stocker_input.id", $allStockerIds)->
                 groupBy('stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.form_piece_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio', 'stocker_input.stocker_reject')->
                 get();

@@ -48,7 +48,7 @@ class StockerRejectController extends Controller
                         GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
                         stocker_input.act_costing_ws,
                         stocker_input.color,
-                        stocker_input.size,
+                        COALESCE(master_sb_ws.size, stocker_input.size) size,
                         'DC In' AS proses,
                         COALESCE( ( dc_in_input.qty_reject - dc_in_input.qty_replace ) ) qty_reject,
                         COALESCE( stocker_reject.generated_qty_reject, 0 ) generated_qty_reject,
@@ -63,6 +63,7 @@ class StockerRejectController extends Controller
                         AND similar_stocker.ratio = stocker_input.ratio
                         AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
                         AND similar_stocker.stocker_reject is null
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                         LEFT JOIN (
                             SELECT
                                 stocker_reject.*,
@@ -93,7 +94,7 @@ class StockerRejectController extends Controller
                         GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
                         stocker_input.act_costing_ws,
                         stocker_input.color,
-                        stocker_input.size,
+                        COALESCE(master_sb_ws.size, stocker_input.size) size,
                         'Secondary Inhouse' AS proses,
                         COALESCE( ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) ) qty_reject,
                         COALESCE( stocker_reject.generated_qty_reject, 0 ) generated_qty_reject,
@@ -108,6 +109,7 @@ class StockerRejectController extends Controller
                         AND similar_stocker.ratio = stocker_input.ratio
                         AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
                         AND similar_stocker.stocker_reject is null
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                         LEFT JOIN (
                             SELECT
                                 stocker_reject.*,
@@ -138,7 +140,7 @@ class StockerRejectController extends Controller
                         GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
                         stocker_input.act_costing_ws,
                         stocker_input.color,
-                        stocker_input.size,
+                        COALESCE(master_sb_ws.size, stocker_input.size) size,
                         'Secondary In' AS proses,
                         COALESCE( ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) ) qty_reject,
                         COALESCE( stocker_reject.generated_qty_reject, 0 ) generated_qty_reject,
@@ -153,6 +155,7 @@ class StockerRejectController extends Controller
                         AND similar_stocker.ratio = stocker_input.ratio
                         AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
                         AND similar_stocker.stocker_reject is null
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                         LEFT JOIN (
                             SELECT
                                 stocker_reject.*,
@@ -271,7 +274,7 @@ class StockerRejectController extends Controller
                     GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
                     stocker_input.act_costing_ws,
                     stocker_input.color,
-                    stocker_input.size,
+                    COALESCE(master_sb_ws.size, stocker_input.size) size,
                     'DC In' AS proses,
                     ( dc_in_input.qty_reject - dc_in_input.qty_replace ) qty_reject
                 FROM
@@ -284,6 +287,7 @@ class StockerRejectController extends Controller
                     AND similar_stocker.ratio = stocker_input.ratio
                     AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
                     AND similar_stocker.stocker_reject is null
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                 WHERE
                     ( dc_in_input.qty_reject - dc_in_input.qty_replace ) > 0
                     ".$dcFilter."
@@ -301,7 +305,7 @@ class StockerRejectController extends Controller
                     GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
                     stocker_input.act_costing_ws,
                     stocker_input.color,
-                    stocker_input.size,
+                    COALESCE(master_sb_ws.size, stocker_input.size) size,
                     'Secondary Inhouse' AS proses,
                     ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) qty_reject
                 FROM
@@ -314,6 +318,7 @@ class StockerRejectController extends Controller
                     AND similar_stocker.ratio = stocker_input.ratio
                     AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
                     AND similar_stocker.stocker_reject is null
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                 WHERE
                     ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) > 0
                     ".$secondaryInhouseFilter."
@@ -331,7 +336,7 @@ class StockerRejectController extends Controller
                     GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
                     stocker_input.act_costing_ws,
                     stocker_input.color,
-                    stocker_input.size,
+                    COALESCE(master_sb_ws.size, stocker_input.size) size,
                     'Secondary In' AS proses,
                     ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) qty_reject
                 FROM
@@ -344,6 +349,7 @@ class StockerRejectController extends Controller
                     AND similar_stocker.ratio = stocker_input.ratio
                     AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
                     AND similar_stocker.stocker_reject is null
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                 WHERE
                     ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) > 0
                     ".$secondaryInFilter."
@@ -527,7 +533,7 @@ class StockerRejectController extends Controller
                         stocker_input.id_qr_stocker,
                         stocker_input.form_cut_id,
                         stocker_input.so_det_id,
-                        stocker_input.size,
+                        COALESCE(master_sb_ws.size, stocker_input.size) size,
                         stocker_input.panel,
                         stocker_input.part_detail_id,
                         stocker_input.group_stocker,
@@ -543,6 +549,7 @@ class StockerRejectController extends Controller
                     leftJoin("master_secondary as master_secondary_old", "master_secondary_old.id", "=", "part_detail.master_secondary_id")->
                     leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                     leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+                    leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
                     whereRaw("stocker_input.id_qr_stocker in (".$stockerListFilter.")")->
                     groupBy("stocker_input.id")->
                     get();
@@ -704,7 +711,7 @@ class StockerRejectController extends Controller
                         GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
                         stocker_input.act_costing_ws,
                         stocker_input.color,
-                        stocker_input.size,
+                        COALESCE(master_sb_ws.size, stocker_input.size) size,
                         'DC In' AS proses,
                         COALESCE( ( dc_in_input.qty_reject - dc_in_input.qty_replace ) ) qty_reject,
                         COALESCE( stocker_reject.generated_qty_reject, 0 ) generated_qty_reject,
@@ -719,6 +726,7 @@ class StockerRejectController extends Controller
                         AND similar_stocker.ratio = stocker_input.ratio
                         AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
                         AND similar_stocker.stocker_reject is null
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                         LEFT JOIN (
                             SELECT
                                 stocker_reject.*,
@@ -749,7 +757,7 @@ class StockerRejectController extends Controller
                         GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
                         stocker_input.act_costing_ws,
                         stocker_input.color,
-                        stocker_input.size,
+                        COALESCE(master_sb_ws.size, stocker_input.size) size,
                         'Secondary Inhouse' AS proses,
                         COALESCE( ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) ) qty_reject,
                         COALESCE( stocker_reject.generated_qty_reject, 0 ) generated_qty_reject,
@@ -764,6 +772,7 @@ class StockerRejectController extends Controller
                         AND similar_stocker.ratio = stocker_input.ratio
                         AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
                         AND similar_stocker.stocker_reject is null
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                         LEFT JOIN (
                             SELECT
                                 stocker_reject.*,
@@ -794,7 +803,7 @@ class StockerRejectController extends Controller
                         GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
                         stocker_input.act_costing_ws,
                         stocker_input.color,
-                        stocker_input.size,
+                        COALESCE(master_sb_ws.size, stocker_input.size) size,
                         'Secondary In' AS proses,
                         COALESCE( ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) ) qty_reject,
                         COALESCE( stocker_reject.generated_qty_reject, 0 ) generated_qty_reject,
@@ -809,6 +818,7 @@ class StockerRejectController extends Controller
                         AND similar_stocker.ratio = stocker_input.ratio
                         AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
                         AND similar_stocker.stocker_reject is null
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                         LEFT JOIN (
                             SELECT
                                 stocker_reject.*,

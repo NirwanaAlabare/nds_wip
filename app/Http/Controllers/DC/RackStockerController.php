@@ -34,7 +34,7 @@ class RackStockerController extends Controller
             marker_input.style,
             stocker_input.form_cut_id,
             stocker_input.color,
-            stocker_input.size,
+            COALESCE(master_sb_ws.size, stocker_input.size) size,
             stocker_input.so_det_id,
             form_cut_input.no_cut,
             stocker_input.shade,
@@ -48,6 +48,7 @@ class RackStockerController extends Controller
         leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
         leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
         leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+        leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
         whereRaw("
             rack_detail_stocker.status = 'active' and
             rack_detail_stocker.updated_at >= '".(date('Y-m-d', strtotime('-7 days')))." 00:00:00'
@@ -86,7 +87,7 @@ class RackStockerController extends Controller
                 marker_input.style,
                 marker_input.color,
                 master_part.nama_part part,
-                stocker_input.size
+                COALESCE(master_sb_ws.size, stocker_input.size) size
             ")->
             leftJoin("rack_detail_stocker", "rack_detail_stocker.detail_rack_id", "=", "rack_detail.id")->
             leftJoin("stocker_input", "stocker_input.id_qr_stocker", "=", "rack_detail_stocker.stocker_id")->
@@ -94,6 +95,7 @@ class RackStockerController extends Controller
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
             whereRaw("
                 rack_detail_stocker.status = 'active' and
                 rack_detail_stocker.updated_at >= '".(date('Y-m-d', strtotime('-7 days')))." 00:00:00'
@@ -199,7 +201,7 @@ class RackStockerController extends Controller
             marker_input.style,
             stocker_input.form_cut_id,
             stocker_input.color,
-            stocker_input.size,
+            COALESCE(master_sb_ws.size, stocker_input.size) size,
             stocker_input.so_det_id,
             form_cut_input.no_cut,
             stocker_input.shade,
@@ -214,6 +216,7 @@ class RackStockerController extends Controller
         leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
         leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
         leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+        leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
         whereRaw("
             rack_detail_stocker.status = 'active' and
             rack_detail_stocker.updated_at >= '".(date('Y-m-d', strtotime('-7 days')))." 00:00:00'

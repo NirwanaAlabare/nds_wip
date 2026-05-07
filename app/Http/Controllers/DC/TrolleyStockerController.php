@@ -1187,7 +1187,7 @@ class TrolleyStockerController extends Controller
                 stocker_input.act_costing_ws,
                 stocker_input.color,
                 stocker_input.id_qr_stocker,
-                stocker_input.size,
+                COALESCE(master_sb_ws.size, stocker_input.size) size,
                 coalesce(stocker_input.qty_ply_mod, stocker_input.qty_ply) qty_ply,
                 stocker_input.status,
                 trolley_stocker.id trolley_stock_id,
@@ -1203,6 +1203,7 @@ class TrolleyStockerController extends Controller
             leftJoin("marker_input", "marker_input.kode", "form_cut_input.id_marker")->
             leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
             leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
             where('id_qr_stocker', $id)->
             first();
 

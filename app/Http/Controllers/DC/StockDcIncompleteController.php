@@ -51,7 +51,7 @@ class StockDcIncompleteController extends Controller
                             form_cut_input.id form_cut_id,
                             stocker_input.act_costing_ws,
                             stocker_input.color,
-                            stocker_input.size,
+                            COALESCE(master_sb_ws.size, stocker_input.size) size,
                             MIN(CAST( stocker_input.range_awal AS INTEGER )) range_awal,
                             MAX(CAST( stocker_input.range_akhir AS INTEGER )) range_akhir,
                             ( MAX( (CASE WHEN dc_in_input.id is null THEN CAST(stocker_input.range_akhir AS INTEGER) ELSE 0 END) ) - MIN( (CASE WHEN dc_in_input.id is null THEN CAST(stocker_input.range_awal AS INTEGER) ELSE 0 END) ) + (CASE WHEN dc_in_input.id is null THEN 1 ELSE 0 END) ) qty,
@@ -65,6 +65,7 @@ class StockDcIncompleteController extends Controller
                             LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
                             LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                             LEFT JOIN part ON part.id = part_form.part_id
+                            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                         WHERE
                             stocker_input.id is not null
                             ".$additionalQuery."
@@ -140,7 +141,7 @@ class StockDcIncompleteController extends Controller
                 form_cut_input.no_form,
                 form_cut_input.no_cut,
                 stocker_input.color,
-                stocker_input.size,
+                COALESCE(master_sb_ws.size, stocker_input.size) size,
                 stocker_input.shade,
                 MIN(CAST(stocker_input.range_awal AS INTEGER)) range_awal,
                 MAX(CAST(stocker_input.range_akhir AS INTEGER)) range_akhir,
@@ -156,6 +157,7 @@ class StockDcIncompleteController extends Controller
                 LEFT JOIN part_detail on stocker_input.part_detail_id = part_detail.id
                 LEFT JOIN master_part on master_part.id = part_detail.master_part_id
                 LEFT JOIN master_secondary on master_secondary.id = part_detail.master_secondary_id
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
             WHERE
                 part.id = '".$partId."' AND
                 stocker_input.color = '".str_replace("_", "/", $color)."' AND

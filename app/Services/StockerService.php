@@ -82,8 +82,8 @@ class StockerService
                 leftJoin(DB::raw("part as part_com"), "part_com.id", "=", "part_detail_com.part_id")->
                 leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
                 leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-                leftJoin("master_size_new", "master_size_new.size", "=", "stocker_input.size")->
                 leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
+                leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
                 leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
                 where("form_cut_input.status", "SELESAI PENGERJAAN")->
                 where("stocker_input.form_cut_id", $formCutId);
