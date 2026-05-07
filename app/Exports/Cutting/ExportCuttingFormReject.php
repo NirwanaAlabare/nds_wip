@@ -41,7 +41,7 @@ class ExportCuttingFormReject implements FromView, WithEvents, ShouldAutoSize
                 form_cut_reject.panel,
                 master_part.nama_part part,
                 form_cut_reject.no_form,
-                stocker_input.size,
+                COALESCE(master_sb_ws.size,stocker_input.size) size,
                 form_cut_reject.group,
                 stocker_input.qty_ply qty,
                 stocker_input.notes,
@@ -54,6 +54,7 @@ class ExportCuttingFormReject implements FromView, WithEvents, ShouldAutoSize
             })->
             leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
             whereBetween("form_cut_reject.tanggal", [$this->dateFrom, $this->dateTo])->
             get();
 

@@ -241,7 +241,7 @@ class WarehouseController extends Controller
         if ($storeItem) {
             $dataSpreading = Stocker::selectRaw("
                     stocker_input.qty_cut bundle_qty,
-                    stocker_input.size,
+                    COALESCE(master_sb_ws.size, stocker_input.size) size,
                     stocker_input.range_awal,
                     stocker_input.range_akhir,
                     stocker_input.id_qr_stocker,
@@ -250,7 +250,7 @@ class WarehouseController extends Controller
                     marker_input.style,
                     marker_input.color,
                     stocker_input.shade
-                ")->leftJoin("form_cut_input", "form_cut_input.no_form", "=", "stocker_input.no_form_cut_input")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->where("form_cut_input.status", "SELESAI PENGERJAAN")->where("form_cut_input.no_form", $storeItem->no_form_cut_input)->where("stocker_input.id", $storeItem->id)->where("marker_input_detail.size", $storeItem->size)->groupBy("form_cut_input.id")->first();
+                ")->leftJoin("form_cut_input", "form_cut_input.no_form", "=", "stocker_input.no_form_cut_input")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->where("form_cut_input.status", "SELESAI PENGERJAAN")->where("form_cut_input.no_form", $storeItem->no_form_cut_input)->where("stocker_input.id", $storeItem->id)->where("marker_input_detail.size", $storeItem->size)->groupBy("form_cut_input.id")->first();
 
             // decode qr code
             $qrCodeDecode = base64_encode(QrCode::format('svg')->size(100)->generate($storeItem->id . "-" . $storeItem->id_qr_stocker));

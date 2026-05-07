@@ -933,7 +933,7 @@ class TrackController extends Controller
                 stocker_input.id_qr_stocker,
                 stocker_input.act_costing_ws,
                 stocker_input.so_det_id,
-                stocker_input.size,
+                COALESCE(master_sb_ws.size, stocker_input.size) size,
                 stocker_input.shade,
                 stocker_input.ratio,
                 COALESCE(master_part.nama_part, ' - ') nama_part,
@@ -963,7 +963,8 @@ class TrackController extends Controller
             leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")->
             leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
             leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
-            leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id");
+            leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id");
 
             if ($actCostingId) {
                 $stockerSql->whereRaw("COALESCE(marker_input.act_costing_id, form_cut_reject.act_costing_id, form_cut_piece.act_costing_id) = '" . $actCostingId . "'");
@@ -1112,7 +1113,7 @@ class TrackController extends Controller
             stocker_input.id_qr_stocker,
             stocker_input.act_costing_ws,
             stocker_input.so_det_id,
-            stocker_input.size,
+            COALESCE(master_sb_ws.size, stocker_input.size) size,
             stocker_input.shade,
             stocker_input.ratio,
             COALESCE(master_part.nama_part, ' - ') nama_part,
@@ -1144,7 +1145,8 @@ class TrackController extends Controller
         leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")->
         leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
         leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
-        leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id");
+        leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
+        leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id");
 
         if ($actCostingId) {
             $stockerSql->whereRaw("COALESCE(marker_input.act_costing_id, form_cut_reject.act_costing_id, form_cut_piece.act_costing_id) = '" . $actCostingId . "'");
@@ -1305,7 +1307,7 @@ class TrackController extends Controller
                         stocker_input.act_costing_ws,
                         master_sb_ws.styleno,
                         stocker_input.color,
-                        stocker_input.size,
+                        COALESCE(master_sb_ws.size, stocker_input.size) size,
                         COALESCE (
                             (
                                 MAX( dc_in_input.qty_awal ) - (

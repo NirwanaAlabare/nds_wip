@@ -171,6 +171,48 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('sewing.report.index') }}"
+                    class="dropdown-item {{ $subPage == 'reportSewingSentral' ? 'active' : '' }}">
+                    Report Sewing <i class="fas fa-file-excel"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('finishing.report.index') }}"
+                    class="dropdown-item {{ $subPage == 'reportFinishingSentral' ? 'active' : '' }}">
+                    Report QC Finishing <i class="fas fa-file-excel"></i>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('defect_inout.report.index') }}"
+                    class="dropdown-item {{ $subPage == 'reportDefectInOut' ? 'active' : '' }}">
+                    Defect Sewing (In/Out) <i class="fas fa-file-excel"></i>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('defect_mending_inout.report.index') }}"
+                    class="dropdown-item {{ $subPage == 'reportDefectMendingInOut' ? 'active' : '' }}">
+                    Defect Mending (In/Out) <i class="fas fa-file-excel"></i>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('defect_spotcleaning_inout.report.index') }}"
+                    class="dropdown-item {{ $subPage == 'reportDefectSpotcleaningInOut' ? 'active' : '' }}">
+                    Defect Spotcleaning (In/Out) <i class="fas fa-file-excel"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('report-finishing') }}"
+                    class="dropdown-item {{ $subPage == 'report-finishing' ? 'active' : '' }}">
+                    Report Finishing <i class="fas fa-file-excel"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('report-packing') }}"
+                    class="dropdown-item {{ $subPage == 'report-packing' ? 'active' : '' }}">
+                    Report Packing <i class="fas fa-file-excel"></i>
+                </a>
+            </li>
+            {{-- <li>
                 <a href="{{ route('report-sewing.output.index') }}"
                     class="dropdown-item {{ $subPage == 'reportOutput' ? 'active' : '' }}">
                     Report Output Sewing <i class="fa-solid fa-file"></i>
@@ -199,19 +241,8 @@
                     class="dropdown-item {{ $subPage == 'reportRework' ? 'active' : '' }}">
                     Report Rework Sewing <i class="fa-solid fa-sync-alt"></i>
                 </a>
-            </li>
-            <li>
-                <a href="{{ route('report-finishing') }}"
-                    class="dropdown-item {{ $subPage == 'report-finishing' ? 'active' : '' }}">
-                    Report Finishing <i class="fas fa-file-excel"></i>
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('report-packing') }}"
-                    class="dropdown-item {{ $subPage == 'report-packing' ? 'active' : '' }}">
-                    Report Packing <i class="fas fa-file-excel"></i>
-                </a>
-            </li>
+            </li> --}}
+            
             {{-- Deprecated --}}
             {{--
                     <li>

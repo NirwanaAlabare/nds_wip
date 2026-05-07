@@ -297,8 +297,8 @@ class StockerToolsController extends Controller
         leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
         leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
         leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
-        leftJoin("master_size_new", "master_size_new.size", "=", "stocker_input.size")->
         leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
+        leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
         leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
         whereIn("stocker_input.id", $updatedStockerIds)->
         groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->

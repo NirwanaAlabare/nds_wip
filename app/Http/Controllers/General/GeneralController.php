@@ -109,7 +109,8 @@ class GeneralController extends Controller
         }
 
         // Stocker Query
-        $stockers = Stocker::selectRaw('GROUP_CONCAT(stocker_input.id) stocker_ids, '.$formType.' form_cut_id, stocker_input.group_stocker, stocker_input.size, stocker_input.ratio, GROUP_CONCAT(stocker_input.id_qr_stocker) id_qr_stocker')
+        $stockers = Stocker::selectRaw('GROUP_CONCAT(stocker_input.id) stocker_ids, '.$formType.' form_cut_id, stocker_input.group_stocker, COALESCE(master_sb_ws.size, stocker_input.size) size, stocker_input.ratio, GROUP_CONCAT(stocker_input.id_qr_stocker) id_qr_stocker')
+            ->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")
             ->whereRaw('DATE(stocker_input.updated_at) between DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND CURDATE()')
             ->whereRaw($formType.' = "'.$request->form_cut_id.'"')
             ->where('stocker_input.group_stocker', $request->form_group)

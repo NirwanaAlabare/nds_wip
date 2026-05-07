@@ -1408,6 +1408,34 @@ class RollController extends Controller
                 AND form_cut_piping.updated_at >= DATE ( NOW()- INTERVAL 2 YEAR )
             GROUP BY
                 `form_cut_piping`.`id`
+
+            UNION
+
+            SELECT
+                form_cut_alokasi_gr_panel_barcode.id id_form,
+                'GR' no_form_cut_input,
+                '-',
+                barcode as id_roll,
+                MAX( qty_roll ) qty,
+                scanned_item.unit,
+                SUM( form_cut_alokasi_gr_panel_barcode.qty_pakai ) total_pemakaian_roll,
+                SUM( form_cut_alokasi_gr_panel_barcode.qty_roll - (form_cut_alokasi_gr_panel_barcode.qty_pakai + form_cut_alokasi_gr_panel_barcode.sisa_kain) ) short_roll,
+                form_cut_alokasi_gr_panel_barcode.sisa_kain sisa_kain,
+                '-' status_form,
+                '-' status,
+                COALESCE ( form_cut_alokasi_gr_panel_barcode.created_at, form_cut_alokasi_gr_panel_barcode.updated_at ) updated_at,
+                '-' edited_by_username,
+                '-' edited_at,
+                'GR' as tipe
+            FROM
+                `form_cut_alokasi_gr_panel_barcode`
+                left join scanned_item on scanned_item.id_roll = form_cut_alokasi_gr_panel_barcode.barcode
+            WHERE
+                `barcode` = '" . $request->id . "'
+                AND ( barcode IS NOT NULL AND barcode != '' )
+                AND form_cut_alokasi_gr_panel_barcode.updated_at >= DATE ( NOW()- INTERVAL 2 YEAR )
+            GROUP BY
+                `form_cut_alokasi_gr_panel_barcode`.`id`
             ORDER BY
                 updated_at asc,
                 qty desc

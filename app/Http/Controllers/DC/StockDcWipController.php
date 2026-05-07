@@ -41,7 +41,7 @@ class StockDcWipController extends Controller
                         form_cut_input.id form_cut_id,
                         stocker_input.act_costing_ws,
                         stocker_input.color,
-                        stocker_input.size,
+                        COALESCE(master_sb_ws.size, stocker_input.size) size,
                         MIN(CAST( stocker_input.range_awal AS INTEGER )) range_awal,
                         MAX(CAST( stocker_input.range_akhir AS INTEGER )) range_akhir,
                         ( MAX( (CASE WHEN dc_in_input.id is not null THEN CAST(stocker_input.range_akhir AS INTEGER) ELSE 0 END) ) - MIN( (CASE WHEN dc_in_input.id is not null THEN CAST(stocker_input.range_awal AS INTEGER) ELSE 0 END) ) + (CASE WHEN dc_in_input.id is not null THEN 1 ELSE 0 END) ) qty_complete,
@@ -52,6 +52,7 @@ class StockDcWipController extends Controller
                         LEFT JOIN form_cut_input ON form_cut_input.id = part_form.form_id
                         LEFT JOIN stocker_input ON stocker_input.form_cut_id = form_cut_input.id
                         LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                     GROUP BY
                         part_form.part_id,
                         form_cut_input.id,
@@ -127,7 +128,7 @@ class StockDcWipController extends Controller
                     form_cut_input.id form_cut_id,
                     stocker_input.act_costing_ws,
                     stocker_input.color,
-                    stocker_input.size,
+                    COALESCE(master_sb_ws.size, stocker_input.size) size,
                     MIN(CAST( stocker_input.range_awal AS INTEGER )) range_awal,
                     MAX(CAST( stocker_input.range_akhir AS INTEGER )) range_akhir,
                     ( MAX( (CASE WHEN dc_in_input.id is not null THEN CAST(stocker_input.range_akhir AS INTEGER) ELSE 0 END) ) - MIN( (CASE WHEN dc_in_input.id is not null THEN CAST(stocker_input.range_awal AS INTEGER) ELSE 0 END) ) + (CASE WHEN dc_in_input.id is not null THEN 1 ELSE 0 END) ) qty_complete,
@@ -138,6 +139,7 @@ class StockDcWipController extends Controller
                     LEFT JOIN form_cut_input ON form_cut_input.id = part_form.form_id
                     LEFT JOIN stocker_input ON stocker_input.form_cut_id = form_cut_input.id
                     LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                 GROUP BY
                     part_form.part_id,
                     form_cut_input.id,
@@ -182,7 +184,7 @@ class StockDcWipController extends Controller
                     form_cut_input.id form_cut_id,
                     stocker_input.act_costing_ws,
                     stocker_input.color,
-                    stocker_input.size,
+                    COALESCE(master_sb_ws.size, stocker_input.size) size,
                     MIN(CAST( stocker_input.range_awal AS INTEGER )) range_awal,
                     MAX(CAST( stocker_input.range_akhir AS INTEGER )) range_akhir,
                     ( MAX( (CASE WHEN dc_in_input.id is not null THEN CAST(stocker_input.range_akhir AS INTEGER) ELSE 0 END) ) - MIN( (CASE WHEN dc_in_input.id is not null THEN CAST(stocker_input.range_awal AS INTEGER) ELSE 0 END) ) + (CASE WHEN dc_in_input.id is not null THEN 1 ELSE 0 END) ) qty_complete,
@@ -193,6 +195,7 @@ class StockDcWipController extends Controller
                     LEFT JOIN form_cut_input ON form_cut_input.id = part_form.form_id
                     LEFT JOIN stocker_input ON stocker_input.form_cut_id = form_cut_input.id
                     LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
                 GROUP BY
                     part_form.part_id,
                     form_cut_input.id,

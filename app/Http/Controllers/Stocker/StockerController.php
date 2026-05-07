@@ -1945,8 +1945,8 @@ class StockerController extends Controller
             leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
             leftJoin("form_cut_piece_detail", "form_cut_piece_detail.form_id", "=", "form_cut_piece.id")->
             leftJoin("form_cut_piece_detail_size", "form_cut_piece_detail_size.form_detail_id", "=", "form_cut_piece_detail.id")->
-            leftJoin("master_size_new", "master_size_new.size", "=", "stocker_input.size")->
             leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
             where("form_cut_piece.status", "complete")->
             where("part_detail.id", $request['part_detail_id'][$index])->
             where("stocker_input.form_piece_id", $request['form_cut_id'])->
@@ -2173,8 +2173,8 @@ class StockerController extends Controller
             leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
             leftJoin("form_cut_piece_detail", "form_cut_piece_detail.form_id", "=", "form_cut_piece.id")->
             leftJoin("form_cut_piece_detail_size", "form_cut_piece_detail_size.form_detail_id", "=", "form_cut_piece_detail.id")->
-            leftJoin("master_size_new", "master_size_new.size", "=", "stocker_input.size")->
             leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
             where("form_cut_piece.status", "complete")->
             where("part_detail.id", $partDetailId)->
             where("stocker_input.form_piece_id", $request['form_cut_id'])->
@@ -2397,8 +2397,8 @@ class StockerController extends Controller
             leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
             leftJoin("form_cut_piece_detail", "form_cut_piece_detail.form_id", "=", "form_cut_piece.id")->
             leftJoin("form_cut_piece_detail_size", "form_cut_piece_detail_size.form_detail_id", "=", "form_cut_piece_detail.id")->
-            leftJoin("master_size_new", "master_size_new.size", "=", "stocker_input.size")->
             leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
             where("form_cut_piece.status", "complete")->
             whereIn("part_detail.id", $request['generate_stocker'])->
             where("stocker_input.form_piece_id", $request['form_cut_id'])->
@@ -4709,8 +4709,8 @@ class StockerController extends Controller
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
             leftJoin("part", "part.id", "=", "part_detail.part_id")->
             leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
-            leftJoin("master_size_new", "master_size_new.size", "=", "stocker_input.size")->
             leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
             where("stocker_input.form_reject_id", $request['id'])->
             where("part_detail.id", $partDetailId)->
             groupBy("form_cut_reject.id", "part_detail.id", "stocker_input.size", "stocker_input.shade")->
@@ -4800,8 +4800,8 @@ class StockerController extends Controller
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
             leftJoin("part", "part.id", "=", "part_detail.part_id")->
             leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
-            leftJoin("master_size_new", "master_size_new.size", "=", "stocker_input.size")->
             leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
             where("stocker_input.form_reject_id", $request['id'])->
             whereIn("part_detail.id", $request['generate_stocker'])->
             groupBy("form_cut_reject.id", "part_detail.id", "stocker_input.size", "stocker_input.shade")->
@@ -4840,8 +4840,8 @@ class StockerController extends Controller
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
             leftJoin("part", "part.id", "=", "part_detail.part_id")->
             leftJoin("form_cut_reject", "form_cut_reject.id", "=", "stocker_input.form_reject_id")->
-            leftJoin("master_size_new", "master_size_new.size", "=", "stocker_input.size")->
             leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
             where("stocker_input.id", $id)->
             groupBy("form_cut_reject.id", "part_detail.id", "stocker_input.size", "stocker_input.shade")->
             orderBy("stocker_input.so_det_id", "asc")->
@@ -4967,9 +4967,9 @@ class StockerController extends Controller
                     stocker_input.act_costing_ws,
                     part.act_costing_id,
                     part.style,
-                    UPPER(TRIM(stocker_input.color)) color,
-                    stocker_input.size,
-                    stocker_input.act_costing_ws,
+                    UPPER(TRIM(master_sb_ws.color)) color,
+                    master_sb_ws.size,
+                    master_sb_ws.ws,
                     COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
                     GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
                     COALESCE(form_cut_input.no_form, form_cut_piece.no_form, form_cut_reject.no_form) no_form,
@@ -5000,6 +5000,7 @@ class StockerController extends Controller
                 leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
                 leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
                 leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
                 where("stocker_input.id_qr_stocker", $request->stocker)->
                 first();
 

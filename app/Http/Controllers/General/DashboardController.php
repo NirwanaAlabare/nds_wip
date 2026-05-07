@@ -1694,7 +1694,7 @@ class DashboardController extends Controller
                             stocker_input.act_costing_ws,
                             master_sb_ws.styleno,
                             stocker_input.color,
-                            stocker_input.size,
+                            COALESCE(master_sb_ws.size, stocker_input.size) size,
                             COALESCE ((MAX( dc_in_input.qty_awal ) - (MAX(COALESCE ( dc_in_input.qty_reject, 0 )) + MAX(COALESCE ( dc_in_input.qty_replace, 0 ))) - (MAX(COALESCE ( secondary_in_input.qty_reject, 0 )) + MAX(COALESCE ( secondary_in_input.qty_replace, 0 ))) - (MAX(COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + MAX(COALESCE ( secondary_inhouse_input.qty_replace, 0 )))), COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply )) qty_ply
                         FROM
                             stocker_input

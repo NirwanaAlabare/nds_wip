@@ -146,7 +146,7 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                             trolley.id trolley_id,
                             trolley.nama_trolley,
                             stocker_input.so_det_id,
-                            stocker_input.size,
+                            COALESCE(master_sb_ws.size, stocker_input.size) size,
                             loading_line.loading_plan_id,
                             loading_line.no_bon
                         FROM
@@ -157,7 +157,8 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                             LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
                             LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
                             LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
-                            LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
+                            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                            LEFT JOIN master_size_new ON master_size_new.size = master_sb_ws.size
                             ".$detailDateFilter."
                         GROUP BY
                             loading_line.tanggal_loading,
@@ -250,7 +251,7 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                     trolley.nama_trolley,
                     stocker_input.id_qr_stocker,
                     stocker_input.so_det_id,
-                    stocker_input.size,
+                    COALESCE(master_sb_ws.size, stocker_input.size) size,
                     stocker_input.shade,
                     stocker_input.group_stocker,
                     stocker_input.range_awal,
@@ -287,7 +288,8 @@ class ExportLoadingLine implements FromView, WithEvents, ShouldAutoSize
                     LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
                     LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
                     LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
-                    LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                    LEFT JOIN master_size_new ON master_size_new.size = master_sb_ws.size
                     LEFT JOIN users ON users.id = loading_line.created_by
                     LEFT JOIN (
                         select

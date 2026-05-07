@@ -54,7 +54,7 @@ class ExportTrackStocker implements FromView, WithEvents, /*WithColumnWidths,*/ 
                     stocker_input.act_costing_ws,
                     master_sb_ws.styleno,
                     stocker_input.color,
-                    stocker_input.size,
+                    COALESCE(master_sb_ws.size, stocker_input.size) size,
                     COALESCE (
                         (
                             MAX( dc_in_input.qty_awal ) - (
