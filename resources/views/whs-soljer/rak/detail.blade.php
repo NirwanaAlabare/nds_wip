@@ -155,7 +155,7 @@
             <div class="card card-custom bg-kapasitas">
                 <div class="card-body">
                     <div class="card-title">Kapasitas</div>
-                    <div class="card-value">{{ $data->kapasitas }}</div>
+                    <div class="card-value">{{ $jumlah_barang }}</div>
                     <i class="mdi mdi-view-dashboard card-icon"></i>
                 </div>
             </div>
@@ -175,7 +175,7 @@
             <div class="card card-custom bg-kosong">
                 <div class="card-body">
                     <div class="card-title">Ruang Kosong</div>
-                    <div class="card-value">{{ $ruang_kosong }}</div>
+                    <div class="card-value"> 0</div>
                     <i class="mdi mdi-package-variant-closed card-icon"></i>
                 </div>
             </div>
@@ -189,10 +189,10 @@
         <table id="datatable" class="table table-bordered table-striped w-100">
             <thead class="bg-sb">
                 <tr>
+                    <th>No</th>
                     <th>Barcode</th>
                     <th>Lokasi</th>
                     <th>Buyer</th>
-                    <th>Keterangan</th>
                     <th>Jenis Item</th>
                     <th>Warna</th>
                     <th>Lot</th>
@@ -231,10 +231,18 @@ $(document).ready(function () {
             }
         },
         columns: [
+            { 
+                data: null,
+                render: function (data, type, row, meta) {
+                    return meta.row + meta.settings._iDisplayStart + 1;
+                },
+                className: "text-center",
+                orderable: false,
+                searchable: false
+            },
             { data: 'barcode' },
             { data: 'lokasi' },
             { data: 'buyer' },
-            { data: 'keterangan' },
             { data: 'jenis_item' },
             { data: 'warna' },
             { data: 'lot' },

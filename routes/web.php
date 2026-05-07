@@ -97,6 +97,7 @@ use App\Http\Controllers\WhsSoljer\LaporanMutasiPerKategoriController;
 use App\Http\Controllers\WhsSoljer\LaporanPenerimaanPerKategoriController;
 use App\Http\Controllers\WhsSoljer\LaporanPengeluaranPerKategoriController;
 use App\Http\Controllers\WhsSoljer\MasterBarangPerKategoriController;
+use App\Http\Controllers\WhsSoljer\MasterLokasiWhsSoljerController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanAccesoriesController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanFgController;
@@ -1452,7 +1453,29 @@ Route::middleware('auth')->group(function () {
         Route::get('/history-detail-fg', 'historyDetailFg')->name('history-detail-fg-master-barang-per-kategori');
     });
 
-    Route::controller(SewingOutputReportController::class)->prefix("report-sewing")->middleware('role:sewing')->group(function () {
+    Route::controller(MasterLokasiWhsSoljerController::class)->prefix("master-lokasi-whs-soljer")->middleware('role:warehouse')->group(function () {
+        Route::get('/', 'index')->name('master-lokasi-whs-soljer');
+        Route::get('/create', 'create')->name('create-master-lokasi-whs-soljer');
+        Route::post('/store', 'store')->name('store-master-lokasi-whs-soljer');
+        Route::get('/edit/{id}', 'edit')->name('edit-master-lokasi-whs-soljer');
+        Route::put('/update/{id}', 'update')->name('update-master-lokasi-whs-soljer');
+        Route::put('/cancel/{id}', 'cancel')->name('cancel-master-lokasi-whs-soljer');
+        Route::get('/print-sj/{id}', 'printSj')->name('print-sj-master-lokasi-whs-soljer');
+        Route::get('/print-barcode/{id}', 'printBarcode')->name('print-barcode-master-lokasi-whs-soljer');
+    });
+
+    Route::controller(MasterLokasiWhsSoljerController::class)->prefix("master-lokasi-whs-soljer")->middleware('role:warehouse')->group(function () {
+        Route::get('/', 'index')->name('master-lokasi-whs-soljer');
+        Route::get('/create', 'create')->name('create-lokasi-master-lokasi-whs-soljer');
+        Route::post('/store', 'store')->name('store-lokasi-master-lokasi-whs-soljer');
+        Route::get('/update/{id?}', 'update')->name('update-lokasi-master-lokasi-whs-soljer');
+        Route::get('/updatestatus', 'updatestatus')->name('updatestatus-master-lokasi-whs-soljer');
+        Route::get('/simpanedit', 'simpanedit')->name('simpan-edit-master-lokasi-whs-soljer');
+        Route::post('/print-lokasi/{id?}', 'printlokasi')->name('print-lokasi-master-lokasi-whs-soljer');
+        Route::post('/print-lokasi-all', 'printLokasiAll')->name('print-lokasi-all-master-lokasi-whs-soljer');
+    });
+
+     Route::controller(SewingOutputReportController::class)->prefix("report-sewing")->middleware('role:sewing')->group(function () {
         Route::get('/report-output-sewing', 'index')->name('report-sewing.output.index');
         Route::get('/report-output-sewing/data', 'getData')->name('report-sewing.output.data');
         Route::get('/report-output-sewing/export', 'exportExcel')->name('report-sewing.output.export');
@@ -1481,8 +1504,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/report-rework-sewing/data', 'getData')->name('report-sewing.rework.data');
         Route::get('/report-rework-sewing/export', 'exportExcel')->name('report-sewing.rework.export');
     });
-
-
 });
 
 // Accounting

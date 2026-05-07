@@ -9,6 +9,12 @@
                     Master Barang
                 </a>
             </li>
+            <li>
+                <a href="{{ route('master-lokasi-whs-soljer') }}"
+                    class="dropdown-item {{ $routeName == 'master-lokasi-whs-soljer' ? 'active' : '' }}">
+                    Master Lokasi
+                </a>
+            </li>
         </ul>
     </li>
     <li class="nav-item dropdown">

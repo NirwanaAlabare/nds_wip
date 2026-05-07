@@ -534,8 +534,8 @@ class DcReportController extends Controller
                                     COALESCE(p_com.panel, p.panel) panel,
                                     COALESCE(p_com.panel_status, p.panel_status) panel_status,
                                     pd.id as part_detail_id,
-                                    COALESCE(GROUP_CONCAT(DISTINCT mp_com.nama_part), GROUP_CONCAT(DISTINCT mp.nama_part)) as nama_part,
-                                    COALESCE(GROUP_CONCAT(DISTINCT pd_com.part_status), GROUP_CONCAT(DISTINCT pd.part_status)) as part_status,
+                                    COALESCE(GROUP_CONCAT(DISTINCT mp.nama_part)) as nama_part,
+                                    COALESCE(GROUP_CONCAT(DISTINCT pd.part_status)) as part_status,
                                     (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(qty_in_dc_main, 0)), SUM(COALESCE(qty_in_dc,0))) ELSE SUM(COALESCE(qty_in_dc, 0)) END) as qty_in,
                                     (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(sec_inhouse_in_main, 0)), SUM(COALESCE(sec_inhouse_in,0))) ELSE SUM(COALESCE(sec_inhouse_in, 0)) END) kirim_secondary_dalam,
                                     (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(sec_inhouse_rep_main, 0)), SUM(COALESCE(sec_inhouse_rep,0))) ELSE SUM(COALESCE(sec_inhouse_rep, 0)) END) terima_repaired_secondary_dalam,
@@ -1063,8 +1063,8 @@ class DcReportController extends Controller
                                 COALESCE(p_com.panel, p.panel) panel,
                                 COALESCE(p_com.panel_status, p.panel_status) panel_status,
                                 pd.id as part_detail_id,
-                                COALESCE(GROUP_CONCAT(DISTINCT mp_com.nama_part), GROUP_CONCAT(DISTINCT mp.nama_part)) as nama_part,
-                                COALESCE(GROUP_CONCAT(DISTINCT pd_com.part_status), GROUP_CONCAT(DISTINCT pd.part_status)) as part_status,
+                                COALESCE(GROUP_CONCAT(DISTINCT mp.nama_part)) as nama_part,
+                                COALESCE(GROUP_CONCAT(DISTINCT pd.part_status)) as part_status,
                                 (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(qty_in_dc_main, 0)), SUM(COALESCE(qty_in_dc,0))) ELSE SUM(COALESCE(qty_in_dc, 0)) END) as qty_in,
                                 (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(sec_inhouse_in_main, 0)), SUM(COALESCE(sec_inhouse_in,0))) ELSE SUM(COALESCE(sec_inhouse_in, 0)) END) kirim_secondary_dalam,
                                 (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(sec_inhouse_rep_main, 0)), SUM(COALESCE(sec_inhouse_rep,0))) ELSE SUM(COALESCE(sec_inhouse_rep, 0)) END) terima_repaired_secondary_dalam,
@@ -1245,7 +1245,8 @@ class DcReportController extends Controller
                     ws,
                     color,
                     size,
-                    part_detail_id
+                    panel,
+                    nama_part
             ");
 
             return DataTables::of($dataReport)->toJson();
@@ -1780,8 +1781,8 @@ class DcReportController extends Controller
                                     COALESCE(p_com.panel, p.panel) panel,
                                     COALESCE(p_com.panel_status, p.panel_status) panel_status,
                                     pd.id as part_detail_id,
-                                    COALESCE(GROUP_CONCAT(DISTINCT mp_com.nama_part), GROUP_CONCAT(DISTINCT mp.nama_part)) as nama_part,
-                                    COALESCE(GROUP_CONCAT(DISTINCT pd_com.part_status), GROUP_CONCAT(DISTINCT pd.part_status)) as part_status,
+                                    COALESCE(GROUP_CONCAT(DISTINCT mp.nama_part)) as nama_part,
+                                    COALESCE(GROUP_CONCAT(DISTINCT pd.part_status)) as part_status,
                                     (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(qty_in_dc_main, 0)), SUM(COALESCE(qty_in_dc,0))) ELSE SUM(COALESCE(qty_in_dc, 0)) END) as qty_in,
                                     (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(sec_inhouse_in_main, 0)), SUM(COALESCE(sec_inhouse_in,0))) ELSE SUM(COALESCE(sec_inhouse_in, 0)) END) kirim_secondary_dalam,
                                     (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(sec_inhouse_rep_main, 0)), SUM(COALESCE(sec_inhouse_rep,0))) ELSE SUM(COALESCE(sec_inhouse_rep, 0)) END) terima_repaired_secondary_dalam,
@@ -2311,8 +2312,8 @@ class DcReportController extends Controller
                                 COALESCE(p_com.panel, p.panel) panel,
                                 COALESCE(p_com.panel_status, p.panel_status) panel_status,
                                 pd.id as part_detail_id,
-                                COALESCE(GROUP_CONCAT(DISTINCT mp_com.nama_part), GROUP_CONCAT(DISTINCT mp.nama_part)) as nama_part,
-                                COALESCE(GROUP_CONCAT(DISTINCT pd_com.part_status), GROUP_CONCAT(DISTINCT pd.part_status)) as part_status,
+                                COALESCE(GROUP_CONCAT(DISTINCT mp.nama_part)) as nama_part,
+                                COALESCE(GROUP_CONCAT(DISTINCT pd.part_status)) as part_status,
                                 (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(qty_in_dc_main, 0)), SUM(COALESCE(qty_in_dc,0))) ELSE SUM(COALESCE(qty_in_dc, 0)) END) as qty_in,
                                 (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(sec_inhouse_in_main, 0)), SUM(COALESCE(sec_inhouse_in,0))) ELSE SUM(COALESCE(sec_inhouse_in, 0)) END) kirim_secondary_dalam,
                                 (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(sec_inhouse_rep_main, 0)), SUM(COALESCE(sec_inhouse_rep,0))) ELSE SUM(COALESCE(sec_inhouse_rep, 0)) END) terima_repaired_secondary_dalam,
@@ -2493,7 +2494,8 @@ class DcReportController extends Controller
                     ws,
                     color,
                     size,
-                    part_detail_id
+                    panel,
+                    nama_part
         ");
 
         // Create Excel file using FastExcel
