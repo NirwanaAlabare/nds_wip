@@ -92,18 +92,29 @@
     };
 
     function initDatatable(tipe) {
-        if ($.fn.DataTable.isDataTable('#datatable')) { $('#datatable').DataTable().destroy(); }
+        if ($.fn.DataTable.isDataTable('#datatable')) {
+            $('#datatable').DataTable().destroy();
+        }
         table = $('#datatable').DataTable({
             ajax: {
                 url: routeMap[tipe].data,
-                data: function(d) { d.start_date = $('#start_date').val(); d.end_date = $('#end_date').val(); d.buyer = $('#filter_buyer').val(); }
+                data: function(d) {
+                    d.start_date = $('#start_date').val();
+                    d.end_date = $('#end_date').val();
+                    d.buyer = $('#filter_buyer').val();
+                }
             },
             columns: [
-                { data: 'buyer' }, { data: 'ws' }, { data: 'style' }, { data: 'color' }, { data: 'size' },
+                { data: 'buyer' },
+                { data: 'ws' },
+                { data: 'style' },
+                { data: 'color' },
+                { data: 'size' },
                 {
                     data: null, className: 'text-center fw-bold',
                     render: function(data, type, row) {
-                        let keys = Object.keys(row); return row[keys[keys.length - 1]];
+                        let keys = Object.keys(row);
+                        return row[keys[keys.length - 1]];
                     }
                 }
             ]
@@ -116,14 +127,65 @@
         initDatatable(tipe);
     }
 
+
     function exportExcel() {
         let tipe = $('#filter_tipe').val();
-        let url = `${routeMap[tipe].export}?start_date=${$('#start_date').val()}&end_date=${$('#end_date').val()}&buyer=${encodeURIComponent($('#filter_buyer').val())}`;
-        window.location.href = url;
+        let tipeText = $("#filter_tipe option:selected").text();
+        let start = $('#start_date').val();
+        let end = $('#end_date').val();
+        let buyer = $('#filter_buyer').val();
+
+
+        if (!start || !end) {
+            Swal.fire('Perhatian', 'Rentang tanggal harus diisi!', 'warning');
+            return;
+        }
+
+
+        Swal.fire({
+            title: 'Exporting...',
+            text: 'Sedang menyiapkan file Excel, harap tunggu...',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        let url = `${routeMap[tipe].export}?start_date=${start}&end_date=${end}&buyer=${encodeURIComponent(buyer)}`;
+
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error('Gagal mengunduh file');
+                return response.blob();
+            })
+            .then(blob => {
+                let filename = `Report_${tipeText.replace(/ /g, '_')}_${start}_sd_${end}.xlsx`;
+                let a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: `File "${filename}" berhasil diunduh.`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            })
+            .catch(err => {
+                Swal.fire('Error', 'Gagal export: ' + err.message, 'error');
+            });
     }
 
     $(document).ready(function() {
         $('.select2bs4').select2({ theme: 'bootstrap4' });
+
         initDatatable('defect_in');
     });
 </script>

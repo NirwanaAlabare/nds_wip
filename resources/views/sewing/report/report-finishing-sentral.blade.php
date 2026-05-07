@@ -6,17 +6,6 @@
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
-    <<<<<<< HEAD <style>
-        .table-custom th {
-        background-color: #2c3e50 !important;
-        color: white;
-        text-align: center;
-        font-size: 13px;
-        }
-
-        .table-custom td {
-        font-size: 13px;
-        =======
         <style>
             .table-custom th {
                 background-color: var(--sb-color) !important;
@@ -31,7 +20,6 @@
                 vertical-align: middle !important;
                 font-size: 13px;
                 white-space: nowrap;
-                >>>>>>>8f7985b644e8254ed59be06875d98e4f4fb625d7
             }
         </style>
     @endsection
