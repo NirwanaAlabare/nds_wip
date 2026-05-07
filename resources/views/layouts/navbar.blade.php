@@ -536,6 +536,12 @@
                                     <i class="fas fa-file-upload fa-sm"></i> Report Mutasi Packing (WIP)
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('report-packing') }}"
+                                    class="dropdown-item {{ $subPage == 'report-packing' ? 'active' : '' }}">
+                                    <i class="fas fa-file-upload fa-sm"></i> Output Packing Line
+                                </a>
+                            </li>
 
                             <!-- packing subcont -->
                             {{-- <li>
