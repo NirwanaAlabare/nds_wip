@@ -6,6 +6,7 @@ use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\Piping;
 use App\Models\Cutting\FormCutInputDetail;
 use App\Models\Cutting\ScannedItem;
+use App\Models\Cutting\FormCutAlokasiGantiRejectPanel;
 use Illuminate\Http\Request;
 use Illuminate\HttpRequest;
 use Illuminate\Support\Facades\Auth;
@@ -356,6 +357,13 @@ class CuttingService
                         ->where('id_roll', $idRoll)
                         ->groupBy('id_roll');
                 });
+
+                $q->unionAll(function ($q3) use ($idRoll) {
+                    $q3->selectRaw('barcode as id_roll, SUM(qty_pakai) AS total_pakai')
+                        ->from('form_cut_alokasi_gr_panel_barcode')
+                        ->where('barcode', $idRoll)
+                        ->groupBy('barcode');
+                });
             }, 'form')
             ->selectRaw('id_roll, SUM(total_pakai) AS total_pakai')
             ->groupBy('id_roll')
@@ -386,10 +394,20 @@ class CuttingService
                 ->orderByDesc('created_at')
                 ->limit(1);
 
+            $alokasiGantiRejectPanelLatest = FormCutAlokasiGantiRejectPanel::selectRaw("
+                    barcode as id_roll,
+                    ROUND(sisa_kain, 2) AS sisa_kain,
+                    created_at AS ts
+                ")
+                ->where('barcode', $idRoll)
+                ->orderByDesc('created_at')
+                ->limit(1);
+
             $latestUnion = DB::query()
                 ->select('id_roll','sisa_kain','ts')
                 ->fromSub($inputLatest, 'input')
-                ->unionAll($pipingLatest);
+                ->unionAll($pipingLatest)
+                ->unionAll($alokasiGantiRejectPanelLatest);
 
             $newestSisa = DB::query()
                 ->fromSub($latestUnion, 'latest')
