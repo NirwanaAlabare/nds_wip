@@ -43,13 +43,13 @@ class ReportCuttingController extends Controller
             $dateTo = ($request->dateFrom ? ($request->dateTo ? $request->dateTo : null) : ($request->dateTo ? $request->dateTo : date("Y-m-d")));
 
             $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '" . ($dateFrom) . "'";
-            // $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) >= '" . ($dateFrom) . "'";
-            $additionalQuery1 .= " AND form_cut_piece.tanggal >= '" . ($dateFrom) . "'";
+            // $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at), DATE(form_cut_piece.tanggal)) >= '" . ($dateFrom) . "'";
+            $additionalQuery1 .= " AND form_cut_piece.waktu_selesai >= '" . ($dateFrom) . "'";
             $additionalQuery2 .= " AND form_cut_input.tgl_form_cut >= '" . ($dateFrom) . "'";
 
             $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) <= '" . ($dateTo) . "'";
-            // $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) <= '" . ($dateTo) . "'";
-            $additionalQuery1 .= " AND form_cut_piece.tanggal <= '" . ($dateTo) . "'";
+            // $additionalQuery1 .= " and COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at), DATE(form_cut_piece.tanggal)) <= '" . ($dateTo) . "'";
+            $additionalQuery1 .= " AND form_cut_piece.waktu_selesai <= '" . ($dateTo) . "'";
             $additionalQuery2 .= " AND form_cut_input.tgl_form_cut <= '" . ($dateTo) . "'";
 
             $keywordQuery = "";
@@ -242,19 +242,19 @@ class ReportCuttingController extends Controller
 
         if ($request->dateFrom) {
             $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '" . $request->dateFrom . "'";
-            $additionalQueryPcs .= " and form_cut_piece.tanggal >= '" . $request->dateFrom . "'";
+            $additionalQueryPcs .= " and form_cut_piece.waktu_selesai >= '" . $request->dateFrom . "'";
             $additionalQueryStokerWs .= " and form_cut_input.tgl_form_cut >= '" . $request->dateFrom . "'";
         }
 
         if ($request->dateTo) {
             $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) <= '" . $request->dateTo . "'";
-            $additionalQueryPcs .= " and form_cut_piece.tanggal <= '" . $request->dateTo . "'";
+            $additionalQueryPcs .= " and form_cut_piece.waktu_selesai <= '" . $request->dateTo . "'";
             $additionalQueryStokerWs .= " and form_cut_input.tgl_form_cut <= '" . $request->dateTo . "'";
         }
 
         if ($request->tgl_form_cut) {
             $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) LIKE '%" . $request->tgl_form_cut . "%'";
-            $additionalQueryPcs .= " and form_cut_piece.tanggal LIKE '%" . $request->tgl_form_cut . "%'";
+            $additionalQueryPcs .= " and form_cut_piece.waktu_selesai LIKE '%" . $request->tgl_form_cut . "%'";
             $additionalQueryStokerWs .= " and form_cut_input.tgl_form_cut LIKE '%" . $request->tgl_form_cut . "%'";
         }
 
@@ -917,13 +917,13 @@ class ReportCuttingController extends Controller
 
             if ($request->dateFrom) {
                 $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '" . $request->dateFrom . "'";
-                $additionalQuery1 .= " and form_cut_piece.tanggal >= '" . $request->dateFrom . "'";
+                $additionalQuery1 .= " and form_cut_piece.waktu_selesai >= '" . $request->dateFrom . "'";
                 $additionalQuery2 .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) >= '" . $request->dateFrom . "'";
             }
 
             if ($request->dateTo) {
                 $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) <= '" . $request->dateTo . "'";
-                $additionalQuery1 .= " and form_cut_piece.tanggal <= '" . $request->dateTo . "'";
+                $additionalQuery1 .= " and form_cut_piece.waktu_selesai <= '" . $request->dateTo . "'";
                 $additionalQuery2 .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) <= '" . $request->dateTo . "'";
             }
 
@@ -1157,13 +1157,13 @@ class ReportCuttingController extends Controller
 
         if ($request->dateFrom) {
             $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '" . $request->dateFrom . "'";
-            $additionalQuery1 .= " and form_cut_piece.tanggal >= '" . $request->dateFrom . "'";
+            $additionalQuery1 .= " and form_cut_piece.waktu_selesai >= '" . $request->dateFrom . "'";
             $additionalQuery2 .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) >= '" . $request->dateFrom . "'";
         }
 
         if ($request->dateTo) {
             $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) <= '" . $request->dateTo . "'";
-            $additionalQuery1 .= " and form_cut_piece.tanggal <= '" . $request->dateTo . "'";
+            $additionalQuery1 .= " and form_cut_piece.waktu_selesai <= '" . $request->dateTo . "'";
             $additionalQuery2 .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) <= '" . $request->dateTo . "'";
         }
 
@@ -1827,10 +1827,10 @@ FROM (
 	SELECT
 		form_cut_piece_detail.qty qty_in,
 		form_cut_piece.created_at waktu_mulai,
-		form_cut_piece.updated_at waktu_selesai,
+		form_cut_piece.waktu_selesai waktu_selesai,
 		form_cut_piece.id,
-		DATE_FORMAT( form_cut_piece.updated_at, '%M' ) bulan,
-		DATE_FORMAT( form_cut_piece.updated_at, '%d-%m-%Y' ) tgl_input,
+		DATE_FORMAT( form_cut_piece.waktu_selesai, '%M' ) bulan,
+		DATE_FORMAT( form_cut_piece.waktu_selesai, '%d-%m-%Y' ) tgl_input,
 		form_cut_piece.no_form no_form_cut_input,
 		'-' nama_meja,
 		form_cut_piece.act_costing_ws,
@@ -1901,7 +1901,7 @@ FROM (
 	WHERE
 		scanned_item.id_item IS NOT NULL
 		AND form_cut_piece_detail.STATUS = 'complete'
-		and form_cut_piece.updated_at >= '$tgl_saldo 00:00:00' and form_cut_piece.updated_at < '$start_date 00:00:00'
+		and form_cut_piece.waktu_selesai >= '$tgl_saldo 00:00:00' and form_cut_piece.waktu_selesai < '$start_date 00:00:00'
 	GROUP BY
 		form_cut_piece_detail.id
 ) cutting
@@ -2191,10 +2191,10 @@ FROM (
 	SELECT
 		form_cut_piece_detail.qty qty_in,
 		form_cut_piece.created_at waktu_mulai,
-		form_cut_piece.updated_at waktu_selesai,
+		form_cut_piece.waktu_selesai waktu_selesai,
 		form_cut_piece.id,
-		DATE_FORMAT( form_cut_piece.updated_at, '%M' ) bulan,
-		DATE_FORMAT( form_cut_piece.updated_at, '%d-%m-%Y' ) tgl_input,
+		DATE_FORMAT( form_cut_piece.waktu_selesai, '%M' ) bulan,
+		DATE_FORMAT( form_cut_piece.waktu_selesai, '%d-%m-%Y' ) tgl_input,
 		form_cut_piece.no_form no_form_cut_input,
 		'-' nama_meja,
 		form_cut_piece.act_costing_ws,
@@ -2265,7 +2265,7 @@ FROM (
 	WHERE
 		scanned_item.id_item IS NOT NULL
 		AND form_cut_piece_detail.STATUS = 'complete'
-		and form_cut_piece.updated_at >= '$start_date 00:00:00' and form_cut_piece.updated_at <= '$end_date 23:59:59'
+		and form_cut_piece.waktu_selesai >= '$start_date 00:00:00' and form_cut_piece.waktu_selesai <= '$end_date 23:59:59'
 	GROUP BY
 		form_cut_piece_detail.id
 ) cutting
@@ -2800,7 +2800,7 @@ order by a.tgl_trans asc
                             marker_input_detail.id
                         UNION ALL
                         SELECT
-                            COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) tanggal,
+                            COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at), DATE(form_cut_piece.tanggal)) tanggal,
                             '-' meja,
                             form_cut_piece.act_costing_ws worksheet,
                             form_cut_piece.buyer,
@@ -2825,7 +2825,7 @@ order by a.tgl_trans asc
                             LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
                             LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                         WHERE
-                            DATE(form_cut_piece.updated_at) >= '$tgl_saldo' and DATE(form_cut_piece.updated_at) < '$start_date'
+                            DATE(form_cut_piece.waktu_selesai) >= '$tgl_saldo' and DATE(form_cut_piece.waktu_selesai) < '$start_date'
                                             and form_cut_piece_detail.status = 'complete'
                         GROUP BY
                             form_cut_piece.id,
@@ -2974,7 +2974,7 @@ order by a.tgl_trans asc
                                     marker_input_detail.id
                                 UNION ALL
                                 SELECT
-                                    COALESCE(DATE(form_cut_piece.updated_at), DATE(form_cut_piece.created_at), DATE(form_cut_piece.tanggal)) tanggal,
+                                    COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at), DATE(form_cut_piece.tanggal)) tanggal,
                                     '-' meja,
                                     form_cut_piece.act_costing_ws worksheet,
                                     form_cut_piece.buyer,
@@ -2999,7 +2999,7 @@ order by a.tgl_trans asc
                                     LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
                                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                                 WHERE
-                                    DATE(form_cut_piece.updated_at) >= '$start_date' and DATE(form_cut_piece.updated_at) <= '$end_date'
+                                    DATE(form_cut_piece.waktu_selesai) >= '$start_date' and DATE(form_cut_piece.waktu_selesai) <= '$end_date'
                                                     and form_cut_piece_detail.status = 'complete'
                                 GROUP BY
                                     form_cut_piece.id,
@@ -3472,7 +3472,7 @@ order by a.tgl_trans asc
                             marker_input_detail.id
                         UNION ALL
                         SELECT
-                            COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) tanggal,
+                            COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) tanggal,
                             '-' meja,
                             form_cut_piece.act_costing_ws worksheet,
                             form_cut_piece.buyer,
@@ -3497,8 +3497,8 @@ order by a.tgl_trans asc
                             LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
                             LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                         WHERE
-                            COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$tgl_saldo'
-                            and COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) < '$start_date'
+                            COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$tgl_saldo'
+                            and COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) < '$start_date'
                             and form_cut_piece_detail.status = 'complete'
                         GROUP BY
                             form_cut_piece.id,
@@ -3647,7 +3647,7 @@ order by a.tgl_trans asc
                                     marker_input_detail.id
                                 UNION ALL
                                 SELECT
-                                    COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) tanggal,
+                                    COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) tanggal,
                                     '-' meja,
                                     form_cut_piece.act_costing_ws worksheet,
                                     form_cut_piece.buyer,
@@ -3672,8 +3672,8 @@ order by a.tgl_trans asc
                                     LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
                                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                                 WHERE
-                                    COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$start_date'
-                                    and COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) <= '$end_date'
+                                    COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$start_date'
+                                    and COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) <= '$end_date'
                                     and form_cut_piece_detail.status = 'complete'
                                 GROUP BY
                                     form_cut_piece.id,
@@ -4238,7 +4238,7 @@ order by a.tgl_trans asc
                                 part_detail_id
                         UNION ALL
                             SELECT
-                                COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) tanggal,
+                                COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) tanggal,
                                 '-' meja,
                                 form_cut_piece.act_costing_ws worksheet,
                                 form_cut_piece.buyer,
@@ -4279,8 +4279,8 @@ order by a.tgl_trans asc
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
                             WHERE
-                                COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$tgl_saldo'
-                                AND COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) < '$start_date'
+                                COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$tgl_saldo'
+                                AND COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) < '$start_date'
                                 AND form_cut_piece_detail.STATUS = 'complete'
                                 AND part_detail.part_status != 'complement'
                             GROUP BY
@@ -4446,7 +4446,7 @@ order by a.tgl_trans asc
                                 part_detail_id
                         UNION ALL
                             SELECT
-                                COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) tanggal,
+                                COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) tanggal,
                                 '-' meja,
                                 form_cut_piece.act_costing_ws worksheet,
                                 form_cut_piece.buyer,
@@ -4488,8 +4488,8 @@ order by a.tgl_trans asc
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
                             WHERE
-                                COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$start_date'
-                                AND COALESCE(DATE(form_cut_piece.tanggal), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) <= '$end_date'
+                                COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$start_date'
+                                AND COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) <= '$end_date'
                                 AND form_cut_piece_detail.STATUS = 'complete'
                                 AND part_detail.part_status != 'complement'
                             GROUP BY

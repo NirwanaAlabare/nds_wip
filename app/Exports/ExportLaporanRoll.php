@@ -247,10 +247,10 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                 SELECT
                     form_cut_piece_detail.qty qty_in,
                     form_cut_piece.created_at waktu_mulai,
-                    form_cut_piece.updated_at waktu_selesai,
+                    form_cut_piece.waktu_selesai waktu_selesai,
                     form_cut_piece.id,
-                    DATE_FORMAT( form_cut_piece.created_at, '%M' ) bulan,
-                    DATE_FORMAT( form_cut_piece.created_at, '%d-%m-%Y' ) tgl_input,
+                    DATE_FORMAT( form_cut_piece.waktu_selesai, '%M' ) bulan,
+                    DATE_FORMAT( form_cut_piece.waktu_selesai, '%d-%m-%Y' ) tgl_input,
                     form_cut_piece.no_form no_form_cut_input,
                     '-' nama_meja,
                     form_cut_piece.act_costing_ws,

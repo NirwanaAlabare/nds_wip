@@ -110,7 +110,8 @@ class CuttingFormPieceController extends Controller
         $noForm = "FP".$hari."-".$bulan."-".$urutan;
 
         $form = FormCutPiece::create([
-            "no_form" => $noForm
+            "no_form" => $noForm,
+            "waktu_mulai" => Carbon::now()
         ]);
 
         session(['currentFormCutPiece' => $form->id]);
@@ -448,6 +449,7 @@ class CuttingFormPieceController extends Controller
 
             // update form
             $currentForm->no_cut = $formCutPieceSimilarLatest+1;
+            $currentForm->waktu_selesai = Carbon::now();
             $currentForm->save();
 
             return true;

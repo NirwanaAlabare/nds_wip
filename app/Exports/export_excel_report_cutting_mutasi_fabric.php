@@ -330,10 +330,10 @@ FROM (
 	SELECT
 		form_cut_piece_detail.qty qty_in,
 		form_cut_piece.created_at waktu_mulai,
-		form_cut_piece.updated_at waktu_selesai,
+		form_cut_piece.waktu_selesai waktu_selesai,
 		form_cut_piece.id,
-		DATE_FORMAT( form_cut_piece.updated_at, '%M' ) bulan,
-		DATE_FORMAT( form_cut_piece.updated_at, '%d-%m-%Y' ) tgl_input,
+		DATE_FORMAT( form_cut_piece.waktu_selesai, '%M' ) bulan,
+		DATE_FORMAT( form_cut_piece.waktu_selesai, '%d-%m-%Y' ) tgl_input,
 		form_cut_piece.no_form no_form_cut_input,
 		'-' nama_meja,
 		form_cut_piece.act_costing_ws,
@@ -404,7 +404,7 @@ FROM (
 	WHERE
 		scanned_item.id_item IS NOT NULL
 		AND form_cut_piece_detail.STATUS = 'complete'
-		and form_cut_piece.updated_at >= '$tgl_saldo 00:00:00' and form_cut_piece.updated_at < '$start_date 00:00:00'
+		and form_cut_piece.waktu_selesai >= '$tgl_saldo 00:00:00' and form_cut_piece.waktu_selesai < '$start_date 00:00:00'
 	GROUP BY
 		form_cut_piece_detail.id
 ) cutting
@@ -694,10 +694,10 @@ FROM (
 	SELECT
 		form_cut_piece_detail.qty qty_in,
 		form_cut_piece.created_at waktu_mulai,
-		form_cut_piece.updated_at waktu_selesai,
+		form_cut_piece.waktu_selesai waktu_selesai,
 		form_cut_piece.id,
-		DATE_FORMAT( form_cut_piece.updated_at, '%M' ) bulan,
-		DATE_FORMAT( form_cut_piece.updated_at, '%d-%m-%Y' ) tgl_input,
+		DATE_FORMAT( form_cut_piece.waktu_selesai, '%M' ) bulan,
+		DATE_FORMAT( form_cut_piece.waktu_selesai, '%d-%m-%Y' ) tgl_input,
 		form_cut_piece.no_form no_form_cut_input,
 		'-' nama_meja,
 		form_cut_piece.act_costing_ws,
@@ -768,7 +768,7 @@ FROM (
 	WHERE
 		scanned_item.id_item IS NOT NULL
 		AND form_cut_piece_detail.STATUS = 'complete'
-		and form_cut_piece.updated_at >= '$start_date 00:00:00' and form_cut_piece.updated_at <= '$end_date 23:59:59'
+		and form_cut_piece.waktu_selesai >= '$start_date 00:00:00' and form_cut_piece.waktu_selesai <= '$end_date 23:59:59'
 	GROUP BY
 		form_cut_piece_detail.id
 ) cutting

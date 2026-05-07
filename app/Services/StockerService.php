@@ -518,7 +518,7 @@ class StockerService
                 form_cut_piece.id AS id_form,
                 form_cut_piece.no_cut,
                 form_cut_piece.no_form AS no_form,
-                form_cut_piece.updated_at as waktu_selesai,
+                form_cut_piece.waktu_selesai as waktu_selesai,
                 'PIECE' AS type,
                 form_cut_piece.act_costing_ws
             FROM

@@ -58,12 +58,12 @@ class StockerController extends Controller
 
             if ($request->dateFrom) {
                 $additionalQuery .= ' AND DATE(form_cut_input.waktu_selesai) >= "'.$request->dateFrom.'"';
-                $additionalQuery1 .= ' AND DATE(form_cut_piece.updated_at) >= "'.$request->dateFrom.'"';
+                $additionalQuery1 .= ' AND DATE(form_cut_piece.waktu_selesai) >= "'.$request->dateFrom.'"';
             }
 
             if ($request->dateTo) {
                 $additionalQuery .= ' AND DATE(form_cut_input.waktu_selesai) <= "'.$request->dateTo.'"';
-                $additionalQuery1 .= ' AND DATE(form_cut_piece.updated_at) <= "'.$request->dateTo.'"';
+                $additionalQuery1 .= ' AND DATE(form_cut_piece.waktu_selesai) <= "'.$request->dateTo.'"';
             }
 
             $formCutInputs = DB::select("
@@ -114,7 +114,7 @@ class StockerController extends Controller
                     form_cut_piece.no_form,
                     part.id part_id,
                     part.kode part_kode,
-                    DATE ( form_cut_piece.updated_at ) tanggal_selesai,
+                    DATE ( form_cut_piece.waktu_selesai ) tanggal_selesai,
                     '-' nama_meja,
                     NUll AS marker_id,
                     form_cut_piece.act_costing_ws,
@@ -511,7 +511,7 @@ class StockerController extends Controller
                 part_detail.id part_detail_id,
                 form_cut_piece.id,
                 form_cut_piece.no_form,
-                DATE(form_cut_piece.updated_at) tgl_form_cut,
+                DATE(form_cut_piece.waktu_selesai) tgl_form_cut,
                 form_cut_piece.act_costing_ws ws,
                 form_cut_piece.buyer,
                 form_cut_piece.panel,

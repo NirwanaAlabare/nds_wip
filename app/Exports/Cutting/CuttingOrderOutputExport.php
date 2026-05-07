@@ -200,7 +200,7 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                             form_cut_piece.no_form,
                             'piece' as id_meja,
                             'piece' as meja,
-                            COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) tgl_form_cut,
+                            COALESCE ( DATE ( form_cut_piece.waktu_selesai ), DATE ( form_cut_piece.created_at ), DATE ( form_cut_piece.updated_at ), form_cut_piece.tanggal ) tgl_form_cut,
                             form_cut_piece.buyer,
                             form_cut_piece.act_costing_id,
                             form_cut_piece.act_costing_ws,
@@ -225,8 +225,8 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                         WHERE
                             form_cut_piece.`status` = 'complete'
                             AND COALESCE ( form_cut_piece_detail_size.qty ) > 0
-                            AND COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) >= '".$this->dateFrom."'
-                            AND COALESCE ( DATE ( form_cut_piece.updated_at ), DATE ( form_cut_piece.created_at ), form_cut_piece.tanggal ) <= '".$this->dateTo."' AND form_cut_piece.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
+                            AND COALESCE ( DATE ( form_cut_piece.waktu_selesai ), DATE ( form_cut_piece.created_at ), DATE ( form_cut_piece.updated_at ), form_cut_piece.tanggal ) >= '".$this->dateFrom."'
+                            AND COALESCE ( DATE ( form_cut_piece.waktu_selesai ), DATE ( form_cut_piece.created_at ), DATE ( form_cut_piece.updated_at ), form_cut_piece.tanggal ) <= '".$this->dateTo."' AND form_cut_piece.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
                             ".($this->order ? "AND form_cut_piece.act_costing_id = '".$this->order."'" : "")."
                         GROUP BY
                             form_cut_piece.id,

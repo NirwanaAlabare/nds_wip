@@ -480,7 +480,7 @@ class RekapDC extends Command
                             LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                             WHERE
                                 ll.tanggal_loading > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
-                                ll.tanggal_loading < DATE_FORMAT('".$refDate."', '%Y-%m-01') and
+                                ll.tanggal_loading < DATE_FORMAT('".$refDate."', '%Y-%m-01')
                                 AND COALESCE(s.cancel, 'n') != 'y'
                                 AND (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
                     ),
@@ -584,7 +584,7 @@ class RekapDC extends Command
                                 msb.id_so_det,
                                 COALESCE(p_com.panel, p.panel) panel,
                                 COALESCE(p_com.panel_status, p.panel_status) panel_status,
-                                COALESCE(pd_com.id, pd.id) as part_detail_id,
+                                pd.id as part_detail_id,
                                 COALESCE(GROUP_CONCAT(DISTINCT mp_com.nama_part), GROUP_CONCAT(DISTINCT mp.nama_part)) as nama_part,
                                 COALESCE(GROUP_CONCAT(DISTINCT pd_com.part_status), GROUP_CONCAT(DISTINCT pd.part_status)) as part_status,
                                 (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(qty_in_dc_main, 0)), SUM(COALESCE(qty_in_dc,0))) ELSE SUM(COALESCE(qty_in_dc, 0)) END) as qty_in,
@@ -1060,7 +1060,7 @@ class RekapDC extends Command
                         LEFT JOIN part_detail pd_com ON pd_com.id = pd.from_part_detail AND pd.part_status = 'complement'
                         LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                         WHERE
-                            ll.tanggal_loading BETWEEN DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
+                            ll.tanggal_loading BETWEEN DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."'
                             AND COALESCE(s.cancel, 'n') != 'y'
                             AND (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
                     ),
@@ -1117,7 +1117,7 @@ class RekapDC extends Command
                             msb.id_so_det,
                             COALESCE(p_com.panel, p.panel) panel,
                             COALESCE(p_com.panel_status, p.panel_status) panel_status,
-                            COALESCE(pd_com.id, pd.id) as part_detail_id,
+                            pd.id as part_detail_id,
                             COALESCE(GROUP_CONCAT(DISTINCT mp_com.nama_part), GROUP_CONCAT(DISTINCT mp.nama_part)) as nama_part,
                             COALESCE(GROUP_CONCAT(DISTINCT pd_com.part_status), GROUP_CONCAT(DISTINCT pd.part_status)) as part_status,
                             (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(qty_in_dc_main, 0)), SUM(COALESCE(qty_in_dc,0))) ELSE SUM(COALESCE(qty_in_dc, 0)) END) as qty_in,
@@ -1175,7 +1175,7 @@ class RekapDC extends Command
                 )
 
                 SELECT
-                    '".date('Y-m-d', strtotime($refDate.' -1 day'))."' AS tanggal,
+                    '".$refDate."' AS tanggal,
                     stockers,
                     buyer,
                     ws,
@@ -1258,6 +1258,42 @@ class RekapDC extends Command
                         dc_before_saldo.so_det_id,
                         dc_before_saldo.part_detail_id
                     HAVING current_saldo_awal != 0
+                    UNION ALL
+                    select
+                        '' stockers,
+                        dc_in_dump.buyer,
+                        dc_in_dump.ws as act_costing_ws,
+                        dc_in_dump.style,
+                        dc_in_dump.color,
+                        dc_in_dump.size,
+                        '' so_det_id,
+                        dc_in_dump.panel,
+                        part.panel_status,
+                        part_detail.id part_detail_id,
+                        part nama_part,
+                        part_detail.part_status,
+                        0 current_saldo_awal,
+                        qty_in qty_in,
+                        0 kirim_secondary_dalam,
+                        0 terima_repaired_secondary_dalam,
+                        0 terima_good_secondary_dalam,
+                        0 kirim_secondary_luar,
+                        0 terima_repaired_secondary_luar,
+                        0 terima_good_secondary_luar,
+                        0 loading,
+                        qty_in current_saldo_akhir
+                    from
+                        dc_in_dump
+                        left join part on part.act_costing_ws = dc_in_dump.ws and part.panel = dc_in_dump.panel
+                        left join part_detail on part_detail.part_id = part.id
+                        inner join master_part ON master_part.id = part_detail.master_part_id and master_part.nama_part = dc_in_dump.part
+                    where
+                        dc_in_dump.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."'
+                    group by
+                        ws,
+                        color,
+                        size,
+                        part_detail_id
                 ) current_saldo
                 WHERE
                     ws IS NOT NULL AND
@@ -1732,7 +1768,7 @@ class RekapDC extends Command
                             LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                             WHERE
                                 ll.tanggal_loading > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
-                                ll.tanggal_loading < DATE_FORMAT('".$refDate."', '%Y-%m-01') and
+                                ll.tanggal_loading < DATE_FORMAT('".$refDate."', '%Y-%m-01')
                                 AND COALESCE(s.cancel, 'n') != 'y'
                                 AND (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
                     ),
@@ -1836,7 +1872,7 @@ class RekapDC extends Command
                                 msb.id_so_det,
                                 COALESCE(p_com.panel, p.panel) panel,
                                 COALESCE(p_com.panel_status, p.panel_status) panel_status,
-                                COALESCE(pd_com.id, pd.id) as part_detail_id,
+                                pd.id as part_detail_id,
                                 COALESCE(GROUP_CONCAT(DISTINCT mp_com.nama_part), GROUP_CONCAT(DISTINCT mp.nama_part)) as nama_part,
                                 COALESCE(GROUP_CONCAT(DISTINCT pd_com.part_status), GROUP_CONCAT(DISTINCT pd.part_status)) as part_status,
                                 (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(qty_in_dc_main, 0)), SUM(COALESCE(qty_in_dc,0))) ELSE SUM(COALESCE(qty_in_dc, 0)) END) as qty_in,
@@ -2312,7 +2348,7 @@ class RekapDC extends Command
                         LEFT JOIN part_detail pd_com ON pd_com.id = pd.from_part_detail AND pd.part_status = 'complement'
                         LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                         WHERE
-                            ll.tanggal_loading BETWEEN DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."' AND
+                            ll.tanggal_loading BETWEEN DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."'
                             AND COALESCE(s.cancel, 'n') != 'y'
                             AND (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
                     ),
@@ -2369,7 +2405,7 @@ class RekapDC extends Command
                             msb.id_so_det,
                             COALESCE(p_com.panel, p.panel) panel,
                             COALESCE(p_com.panel_status, p.panel_status) panel_status,
-                            COALESCE(pd_com.id, pd.id) as part_detail_id,
+                            pd.id as part_detail_id,
                             COALESCE(GROUP_CONCAT(DISTINCT mp_com.nama_part), GROUP_CONCAT(DISTINCT mp.nama_part)) as nama_part,
                             COALESCE(GROUP_CONCAT(DISTINCT pd_com.part_status), GROUP_CONCAT(DISTINCT pd.part_status)) as part_status,
                             (CASE WHEN pd.part_status = 'main' THEN COALESCE(SUM(COALESCE(qty_in_dc_main, 0)), SUM(COALESCE(qty_in_dc,0))) ELSE SUM(COALESCE(qty_in_dc, 0)) END) as qty_in,
@@ -2427,7 +2463,7 @@ class RekapDC extends Command
                 )
 
                 SELECT
-                    '".date('Y-m-d', strtotime($refDate.' -1 day'))."' AS tanggal,
+                    '".$refDate."' AS tanggal,
                     stockers,
                     buyer,
                     ws,
@@ -2510,6 +2546,42 @@ class RekapDC extends Command
                         dc_before_saldo.so_det_id,
                         dc_before_saldo.part_detail_id
                     HAVING current_saldo_awal != 0
+                    UNION ALL
+                    select
+                        '' stockers,
+                        dc_in_dump.buyer,
+                        dc_in_dump.ws as act_costing_ws,
+                        dc_in_dump.style,
+                        dc_in_dump.color,
+                        dc_in_dump.size,
+                        '' so_det_id,
+                        dc_in_dump.panel,
+                        part.panel_status,
+                        part_detail.id part_detail_id,
+                        part nama_part,
+                        part_detail.part_status,
+                        0 current_saldo_awal,
+                        qty_in qty_in,
+                        0 kirim_secondary_dalam,
+                        0 terima_repaired_secondary_dalam,
+                        0 terima_good_secondary_dalam,
+                        0 kirim_secondary_luar,
+                        0 terima_repaired_secondary_luar,
+                        0 terima_good_secondary_luar,
+                        0 loading,
+                        qty_in current_saldo_akhir
+                    from
+                        dc_in_dump
+                        left join part on part.act_costing_ws = dc_in_dump.ws and part.panel = dc_in_dump.panel
+                        left join part_detail on part_detail.part_id = part.id
+                        inner join master_part ON master_part.id = part_detail.master_part_id and master_part.nama_part = dc_in_dump.part
+                    where
+                        dc_in_dump.tgl_trans between DATE_FORMAT('".$refDate."', '%Y-%m-01') AND '".$refDate."'
+                    group by
+                        ws,
+                        color,
+                        size,
+                        part_detail_id
                 ) current_saldo
                 WHERE
                     ws IS NOT NULL AND

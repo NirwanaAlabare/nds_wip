@@ -1468,7 +1468,7 @@ class PartController extends Controller
                 form_cut_piece.id form_cut_id,
                 null as id_marker,
                 form_cut_piece.no_form,
-                DATE ( form_cut_piece.updated_at ) tanggal_selesai,
+                DATE ( form_cut_piece.waktu_selesai ) tanggal_selesai,
                 null nama_meja,
                 form_cut_piece.id marker_id,
                 form_cut_piece.act_costing_ws,
