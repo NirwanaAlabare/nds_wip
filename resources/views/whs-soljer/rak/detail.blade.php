@@ -189,6 +189,7 @@
         <table id="datatable" class="table table-bordered table-striped w-100">
             <thead class="bg-sb">
                 <tr>
+                    <th>No</th>
                     <th>Barcode</th>
                     <th>Lokasi</th>
                     <th>Buyer</th>
@@ -230,6 +231,15 @@ $(document).ready(function () {
             }
         },
         columns: [
+            { 
+                data: null,
+                render: function (data, type, row, meta) {
+                    return meta.row + meta.settings._iDisplayStart + 1;
+                },
+                className: "text-center",
+                orderable: false,
+                searchable: false
+            },
             { data: 'barcode' },
             { data: 'lokasi' },
             { data: 'buyer' },
