@@ -30,7 +30,7 @@
         <div class="row align-items-end mb-4">
             <div class="col-md-2 mb-2">
                 <label class="small fw-bold">Tipe Report</label>
-                <select id="filter_tipe" class="form-control form-control-sm select2bs4" onchange="refreshTable()">
+                <select id="filter_tipe" class="form-control form-control-sm select2bs4">
                     @foreach($list_tipe as $key => $val)
                         <option value="{{ $key }}">{{ $val }}</option>
                     @endforeach
