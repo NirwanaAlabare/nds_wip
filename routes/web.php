@@ -122,6 +122,7 @@ use App\Http\Controllers\WhsSoljer\LaporanMutasiPerKategoriController;
 use App\Http\Controllers\WhsSoljer\LaporanPenerimaanPerKategoriController;
 use App\Http\Controllers\WhsSoljer\LaporanPengeluaranPerKategoriController;
 use App\Http\Controllers\WhsSoljer\MasterBarangPerKategoriController;
+use App\Http\Controllers\WhsSoljer\MasterKoliWhsSoljerController;
 use App\Http\Controllers\WhsSoljer\MasterLokasiWhsSoljerController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanAccesoriesController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanController;
@@ -1471,17 +1472,6 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(MasterLokasiWhsSoljerController::class)->prefix("master-lokasi-whs-soljer")->middleware('role:warehouse')->group(function () {
         Route::get('/', 'index')->name('master-lokasi-whs-soljer');
-        Route::get('/create', 'create')->name('create-master-lokasi-whs-soljer');
-        Route::post('/store', 'store')->name('store-master-lokasi-whs-soljer');
-        Route::get('/edit/{id}', 'edit')->name('edit-master-lokasi-whs-soljer');
-        Route::put('/update/{id}', 'update')->name('update-master-lokasi-whs-soljer');
-        Route::put('/cancel/{id}', 'cancel')->name('cancel-master-lokasi-whs-soljer');
-        Route::get('/print-sj/{id}', 'printSj')->name('print-sj-master-lokasi-whs-soljer');
-        Route::get('/print-barcode/{id}', 'printBarcode')->name('print-barcode-master-lokasi-whs-soljer');
-    });
-
-    Route::controller(MasterLokasiWhsSoljerController::class)->prefix("master-lokasi-whs-soljer")->middleware('role:warehouse')->group(function () {
-        Route::get('/', 'index')->name('master-lokasi-whs-soljer');
         Route::get('/create', 'create')->name('create-lokasi-master-lokasi-whs-soljer');
         Route::post('/store', 'store')->name('store-lokasi-master-lokasi-whs-soljer');
         Route::get('/update/{id?}', 'update')->name('update-lokasi-master-lokasi-whs-soljer');
@@ -1489,6 +1479,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/simpanedit', 'simpanedit')->name('simpan-edit-master-lokasi-whs-soljer');
         Route::post('/print-lokasi/{id?}', 'printlokasi')->name('print-lokasi-master-lokasi-whs-soljer');
         Route::post('/print-lokasi-all', 'printLokasiAll')->name('print-lokasi-all-master-lokasi-whs-soljer');
+    });
+
+    Route::controller(MasterKoliWhsSoljerController::class)->prefix("master-koli-whs-soljer")->middleware('role:warehouse')->group(function () {
+        Route::get('/', 'index')->name('master-koli-whs-soljer');
+        Route::post('/store', 'store')->name('store-master-koli-whs-soljer');
+        Route::put('/delete/{id}', 'delete')->name('delete-master-koli-whs-soljer');
+        Route::get('/print-barcode/{id}', 'printBarcode')->name('print-barcode-master-koli-whs-soljer');
     });
 
     Route::controller(ReportOutputPackingLineController::class)->prefix("report-output-packing-line")->middleware('packing')->group(function () {
