@@ -8,6 +8,7 @@
                 <th colspan="6"> Report Output Packing Line</th>
             </tr>
             <tr><th colspan="6"> Periode : {{ date('d-m-Y', strtotime($startDate)) }} s/d {{ date('d-m-Y', strtotime($endDate)) }}</th></tr>
+            <tr><th colspan="6"> Tipe : {{ $tipe }}</th></tr>
             <tr><th colspan="6"> Buyer : {{ empty($buyer) ? "Semua Buyer" : $buyer }}</th></tr>
             <tr><th colspan="6"></th></tr>
 

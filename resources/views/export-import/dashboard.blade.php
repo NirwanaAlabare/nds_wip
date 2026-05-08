@@ -4,20 +4,21 @@
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
-        /* Tema Warna */
         :root { --navy: #081e3f; --primary-hover: #030d1a; }
 
-        /* --- Panel Alert & Filter --- */
         .alert-panel {
             background-color: #fff;
             border-radius: 8px;
             border-top: 5px solid var(--navy);
             padding: 20px;
             margin-bottom: 25px;
-            position: relative;
+            position: sticky;
+            top: 60px;
+            z-index: 999;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
 
-        /* Animasi Denyut pada Header Panel */
+
         .alert-panel-header {
             display: flex;
             justify-content: space-between;
@@ -33,14 +34,14 @@
             100% { box-shadow: 0 0 0 0px rgba(220, 53, 69, 0); }
         }
 
-        /* Ikon Peringatan Berkedip */
+
         .blink-icon { animation: blink 2.5s infinite; }
         @keyframes blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
 
-        /* Input Tanggal Elegan */
+
         .date-input-group { position: relative; }
         .date-input-group i {
             position: absolute;
@@ -63,7 +64,7 @@
             box-shadow: none;
         }
 
-        /* Tombol Custom */
+
         .btn-navy {
             background-color: var(--navy);
             color: #fff;
@@ -89,7 +90,7 @@
             box-shadow: 0 0 10px rgba(8, 30, 63, 0.3);
         }
 
-        /* --- Desain Card PO --- */
+
         .card-po {
             border: 1px solid #e0e0e0;
             border-radius: 8px;
@@ -101,12 +102,12 @@
         .card-po .card-body { background-color: #fafbfe; }
         .card-po .card-footer { background-color: #fff; border-top: 0; }
 
-        /* Ikon Destinasi */
+
         .dest-icon { color: #5bc0de; font-size: 1.1rem; }
         .dest-icon-franchis { color: #31708f; }
         .dest-icon-us { color: #b52b27; }
 
-        /* Garis Waktu (Timeline) */
+
         .timeline-box { display: flex; align-items: flex-start; }
         .timeline-dot {
             width: 10px; height: 10px;
@@ -117,10 +118,10 @@
         .timeline-line {
             width: 2px; height: 20px;
             background-color: #ced4da;
-            margin-left: 4px; /* Supaya sejajar dengan dot */
+            margin-left: 4px;
         }
 
-        /* Skeleton Animasi */
+
         .skeleton-box {
             position: relative; overflow: hidden;
             background-color: #e2e5e7; border-radius: 4px;
@@ -185,88 +186,97 @@
             </form>
         </div>
 
-        <div class="row" id="data-container">
-            @forelse($data ?? [] as $item)
-                <div class="col-md-4 mb-4">
-                    <div class="card card-po shadow-sm h-100">
-                        <div class="card-header font-weight-bold d-flex align-items-center">
-                            <span style="font-size: 1.1rem;">PO: {{ $item->po }}</span>
-                            <i class="fas fa-ship ml-auto fa-lg"></i>
-                        </div>
+        <div class="card shadow border-0 mb-5">
+            <div class="card-header bg-white border-bottom pb-3 pt-3">
+                <h5 class="font-weight-bold text-dark mb-0"><i class="fas fa-clipboard-list mr-2" style="color: var(--navy);"></i> Daftar PO Shipment</h5>
+            </div>
 
-                        <div class="card-body">
-                            <h5 class="card-title font-weight-bold text-dark w-100 mb-1" style="font-size: 1.1rem;">{{ $item->desc }}</h5>
-                            <h6 class="card-subtitle mb-3 "><i class="fas fa-map-marker-alt"></i> Dest: {{ $item->dest }}</h6>
+            <div class="card-body" style="background-color: #f4f6f9;">
 
-                            <div class="timeline-box align-items-center mb-3">
-                                <div class="col-auto p-0 mr-3">
-                                    <div class="timeline-dot"></div>
-                                    <div class="timeline-line"></div>
-                                    <div class="timeline-dot"></div>
+                <div class="row" id="data-container">
+                    @forelse($data ?? [] as $item)
+                        <div class="col-12 col-md-6 col-lg-3 mb-4">
+                            <div class="card card-po shadow-sm h-100 bg-white">
+                                <div class="card-header font-weight-bold d-flex align-items-center">
+                                    <span style="font-size: 1.1rem;">PO: {{ $item->po }}</span>
+                                    <i class="fas fa-ship ml-auto fa-lg"></i>
                                 </div>
-                                <div class="col p-0">
-                                    <small class="d-block ">Tanggal Shipment:</small>
-                                    <span style="font-size: 1.25rem;" class="font-weight-bold text-danger">
-                                        {{ \Carbon\Carbon::parse($item->tgl_shipment)->locale('id')->translatedFormat('l, d F Y') }}
-                                    </span>
+
+                                <div class="card-body">
+                                    <h5 class="card-title font-weight-bold text-dark w-100 mb-1" style="font-size: 1.1rem;">{{ $item->desc }}</h5>
+                                    <h6 class="card-subtitle mb-3 "><i class="fas fa-map-marker-alt"></i> Dest: {{ $item->dest }}</h6>
+
+                                    <div class="timeline-box align-items-center mb-3">
+                                        <div class="col-auto p-0 mr-3">
+                                            <div class="timeline-dot"></div>
+                                            <div class="timeline-line"></div>
+                                            <div class="timeline-dot"></div>
+                                        </div>
+                                        <div class="col p-0">
+                                            <small class="d-block ">Tanggal Shipment:</small>
+                                            <span style="font-size: 1rem;" class="font-weight-bold text-danger">
+                                                {{ \Carbon\Carbon::parse($item->tgl_shipment)->locale('id')->translatedFormat('l, d F Y') }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <small class="d-block ">Total QTY PO:</small>
+                                        <span style="font-size: 1.25rem;" class="font-weight-bold text-dark">
+                                            <i class="fas fa-list-ol mr-2" style="color: var(--navy);"></i>{{ number_format($item->total_qty, 0, ',', '.') }} PCS
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="card-footer pb-3 pt-0 text-center">
+                                    <button class="btn btn-outline-navy w-100 font-weight-bold py-2" onclick="cekDetail('{{ $item->po }}', '{{ $item->desc }}', '{{ $item->total_qty }}')">
+                                        <i class="fas fa-search-location mr-1"></i> Cek Detail
+                                    </button>
                                 </div>
                             </div>
-
-                            <div class="mb-2">
-                                <small class="d-block ">Total QTY PO:</small>
-                                <span style="font-size: 1.25rem;" class="font-weight-bold text-dark">
-                                    <i class="fas fa-list-ol mr-2" style="color: var(--navy);"></i>{{ number_format($item->total_qty, 0, ',', '.') }} PCS
-                                </span>
+                        </div>
+                    @empty
+                        <div class="col-12">
+                            <div class="alert alert-success shadow-sm d-flex align-items-center p-4" style="border-radius: 8px;">
+                                <i class="fas fa-check-circle fa-2x mr-3"></i>
+                                <div>
+                                    <strong>Aman Terkendali!</strong><br>
+                                    Belum ada PO yang mendekati jadwal Shipment pada rentang tanggal filter yang dipilih.
+                                </div>
                             </div>
                         </div>
+                    @endforelse
+                </div>
 
-                        <div class="card-footer pb-3 pt-0 text-center">
-                            <button class="btn btn-outline-navy w-100 font-weight-bold py-2" onclick="cekDetail('{{ $item->po }}', '{{ $item->desc }}', '{{ $item->total_qty }}')">
-                                <i class="fas fa-search-location mr-1"></i> Cek Detail
-                            </button>
+                <div class="row d-none" id="skeleton-container">
+                    @for ($i = 0; $i < 4; $i++)
+                        <div class="col-12 col-md-6 col-lg-3 mb-4">
+                            <div class="card card-po shadow-sm h-100">
+                                <div class="card-header d-flex align-items-center" style="background-color: #e2e5e7; height: 50px;">
+                                    <div class="skeleton-box" style="width: 130px; height: 20px;"></div>
+                                    <div class="skeleton-box ml-auto" style="width: 25px; height: 25px; border-radius: 50%;"></div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="skeleton-box mb-2" style="width: 80%; height: 24px;"></div>
+                                    <div class="skeleton-box mb-4" style="width: 40%; height: 16px;"></div>
+
+                                    <div class="skeleton-box mb-1" style="width: 50%; height: 14px;"></div>
+                                    <div class="skeleton-box mb-3" style="width: 60%; height: 22px;"></div>
+
+                                    <div class="skeleton-box mb-1" style="width: 40%; height: 14px;"></div>
+                                    <div class="skeleton-box" style="width: 50%; height: 22px;"></div>
+                                </div>
+                                <div class="card-footer bg-white pb-3 pt-0 text-center">
+                                    <div class="skeleton-box w-100" style="height: 40px; border-radius: 5px;"></div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    @endfor
                 </div>
-            @empty
-                <div class="col-12">
-                    <div class="alert alert-success shadow-sm d-flex align-items-center p-4" style="border-radius: 8px;">
-                        <i class="fas fa-check-circle fa-2x mr-3"></i>
-                        <div>
-                            <strong>Aman Terkendali!</strong><br>
-                            Belum ada PO yang mendekati jadwal Shipment pada rentang tanggal filter yang dipilih.
-                        </div>
-                    </div>
-                </div>
-            @endforelse
+
+            </div>
         </div>
-
-        <div class="row d-none" id="skeleton-container">
-            @for ($i = 0; $i < 3; $i++)
-                <div class="col-md-4 mb-4">
-                    <div class="card card-po shadow-sm h-100">
-                        <div class="card-header d-flex align-items-center" style="background-color: #e2e5e7; height: 50px;">
-                            <div class="skeleton-box" style="width: 130px; height: 20px;"></div>
-                            <div class="skeleton-box ml-auto" style="width: 25px; height: 25px; border-radius: 50%;"></div>
-                        </div>
-                        <div class="card-body">
-                            <div class="skeleton-box mb-2" style="width: 80%; height: 24px;"></div>
-                            <div class="skeleton-box mb-4" style="width: 40%; height: 16px;"></div>
-
-                            <div class="skeleton-box mb-1" style="width: 50%; height: 14px;"></div>
-                            <div class="skeleton-box mb-3" style="width: 60%; height: 22px;"></div>
-
-                            <div class="skeleton-box mb-1" style="width: 40%; height: 14px;"></div>
-                            <div class="skeleton-box" style="width: 50%; height: 22px;"></div>
-                        </div>
-                        <div class="card-footer bg-white pb-3 pt-0 text-center">
-                            <div class="skeleton-box w-100" style="height: 40px; border-radius: 5px;"></div>
-                        </div>
-                    </div>
-                </div>
-            @endfor
         </div>
-
-    </div>
 
     <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
@@ -331,9 +341,7 @@
             });
         });
 
-
         function cekDetail(po, desc, total) {
-
             let formattedTotal = new Intl.NumberFormat('id-ID').format(total);
 
             $('#detailModalLabel').text('Rincian PO: ' + po);

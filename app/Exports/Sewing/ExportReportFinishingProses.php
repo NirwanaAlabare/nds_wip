@@ -320,7 +320,7 @@ class ExportReportFinishingProses implements FromView, ShouldAutoSize, WithEvent
                                 output_rfts.created_by
                         UNION ALL
 
-                        -- OUTPUT RFT & REWORK
+                        -- OUTPUT RFT
                         SELECT
                                 output_rfts.so_det_id,
                                 output_rfts.created_by,

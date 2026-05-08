@@ -19,6 +19,17 @@
         </div>
         <div class="card-body" id="report-output-packing-line">
             <div class="row g-3 align-items-end mb-3">
+                <div class="col-12 col-md-2">
+                    <label class="form-label">
+                        <small>Tipe</small>
+                    </label>
+                    <select class="form-select form-select-sm select2bs4base" id="tipe" name="tipe">
+                        <option selected value="" disabled>Pilih Tipe</option>
+                        <option value="RFT">RFT</option>
+                        <option value="REJECT">REJECT</option>
+                    </select>
+                </div>
+
                 <div class="col-12 col-md-3">
                     <label class="form-label">
                         <small>Buyer</small>
@@ -54,7 +65,7 @@
                             Cari
                         </button>
 
-                        <button type="button" onclick="exportExcel()" id="exportExcel" class="btn btn-success btn-sm" disabled>
+                        <button type="button" onclick="exportExcel()" id="exportExcel" class="btn btn-success btn-sm">
                             <i class="fas fa-file-excel fa-sm"></i>
                             Export Excel
                         </button>
@@ -139,6 +150,7 @@
                     data: d => {
                         d.dateFrom = $('#tgl-awal').val();
                         d.dateTo = $('#tgl-akhir').val();
+                        d.tipe = $("#tipe").val();
                         d.buyer = $("#buyer").val();
                     }
                 },
@@ -162,7 +174,7 @@
                         data: 'jumlah',
                         className: 'text-end',
                         render: function(data, type, row) {
-                            return parseFloat(data).toFixed(2);
+                            return parseFloat(data);
                         }
                     },
                 ],
@@ -203,6 +215,7 @@
                 data: {
                     from : $("#tgl-awal").val(),
                     to : $("#tgl-akhir").val(),
+                    tipe : $("#tipe").val(),
                     buyer : $("#buyer").val()
                 },
                 xhrFields: { responseType : 'blob' },
