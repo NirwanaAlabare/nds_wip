@@ -112,7 +112,6 @@ class ExportReportFinishing implements FromView, ShouldAutoSize, WithEvents
                         a.created_at >= '{$tglAwal} 00:00:00'
                         AND a.created_at <= '{$tglAkhir} 23:59:59'
                         AND mp.cancel = 'N'
-                        AND a.status = 'defect'
                     GROUP BY so_det_id, DATE(a.created_at)
                 ) as results
             "))
@@ -158,6 +157,7 @@ class ExportReportFinishing implements FromView, ShouldAutoSize, WithEvents
                         AND a.reworked_at <= '{$tglAkhir} 23:59:59'
                         AND mp.cancel = 'N'
                         AND a.status = 'reworked'
+                        AND a.status = 'rejected'
                     GROUP BY so_det_id, DATE(a.reworked_at)
                 ) as results
             "))
