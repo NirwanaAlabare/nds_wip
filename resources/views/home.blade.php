@@ -7,7 +7,7 @@
     /* Hero / Topbar - dynamic background */
     .home-hero {
         background: var(--hero-gradient, linear-gradient(135deg, var(--sb-color, #3a7bd5) 0%, #5b9cf6 100%));
-        padding: 1.5rem 2rem 5rem;
+        padding: .8rem 1rem 2.2rem;
         position: sticky;
         top: 0;
         z-index: 10;
@@ -19,15 +19,15 @@
     .home-hero::before {
         content: '';
         position: absolute;
-        width: 340px; height: 340px;
+        width: 260px; height: 260px;
         border-radius: 50%;
         background: rgba(255,255,255,.07);
-        top: -80px; right: -60px;
+        top: -60px; right: -40px;
     }
     .home-hero::after {
         content: '';
         position: absolute;
-        width: 200px; height: 200px;
+        width: 150px; height: 150px;
         border-radius: 50%;
         background: rgba(255,255,255,.05);
         bottom: 10px; left: 5%;
@@ -40,46 +40,46 @@
         align-items: center;
         justify-content: space-between;
         position: relative;
-        z-index: 1;
+        z-index: 2;
         flex-wrap: wrap;
-        gap: 1rem;
+        gap: .75rem;
     }
 
     /* left: avatar + greeting */
-    .hero-left { display: flex; align-items: center; gap: .85rem; }
+    .hero-left { display: flex; align-items: center; gap: .65rem; }
 
     .home-avatar {
-        width: 48px; height: 48px;
+        width: 40px; height: 40px;
         border-radius: 50%;
-        background: rgba(255,255,255,.25);
+        background: rgba(255,255,255,.22);
         backdrop-filter: blur(6px);
-        border: 2px solid rgba(255,255,255,.4);
+        border: 2px solid rgba(255,255,255,.35);
         color: #fff;
         font-weight: 700;
-        font-size: 1.1rem;
+        font-size: 1rem;
         display: flex; align-items: center; justify-content: center;
         flex-shrink: 0;
     }
 
     .hero-greeting .sub {
-        font-size: .72rem;
-        color: rgba(255,255,255,.7);
-        letter-spacing: .06em;
+        font-size: .65rem;
+        color: rgba(255,255,255,.72);
+        letter-spacing: .05em;
         text-transform: uppercase;
         display: block;
     }
     .hero-greeting .name {
-        font-size: 1.25rem;
+        font-size: 1rem;
         font-weight: 700;
         color: #fff;
-        line-height: 1.2;
+        line-height: 1.15;
     }
 
     /* center: logo */
     .hero-logo {
         position: absolute;
         left: 50%; transform: translateX(-50%);
-        height: 52px; width: auto;
+        height: 42px; width: auto;
         object-fit: contain;
         filter: brightness(0) invert(1);
         opacity: .92;
@@ -88,19 +88,30 @@
 
     /* right: date/time pill */
     .hero-time {
-        background: rgba(255,255,255,.18);
+        position: relative;
+        z-index: 3;
+        background: rgba(255,255,255,.16);
         backdrop-filter: blur(8px);
-        border: 1px solid rgba(255,255,255,.3);
-        border-radius: 30px;
-        padding: .45rem 1.1rem;
-        font-size: .78rem;
+        border: 1px solid rgba(255,255,255,.28);
+        border-radius: 26px;
+        padding: .35rem .9rem;
+        font-size: .72rem;
         color: rgba(255,255,255,.9);
         white-space: nowrap;
     }
     .hero-time .clock {
         font-weight: 700;
         color: #fff;
-        margin-left: .35rem;
+        margin-left: .3rem;
+    }
+
+    .hero-right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: .5rem;
+        position: relative;
+        z-index: 2;
     }
 
     /* ══════════════════════════════════════
@@ -108,8 +119,8 @@
     ══════════════════════════════════════ */
     .home-content {
         max-width: 1140px;
-        margin: -2.8rem auto 0;
-        padding: 2.8rem 1.5rem 3rem;
+        margin: 0 auto;
+        padding: 1rem 1rem 2.25rem;
         position: relative;
         z-index: 2;
     }
@@ -119,10 +130,11 @@
         position: sticky;
         top: 0;
         z-index: 9;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
         background: #f0f4fc;
-        padding-top: .75rem;
-        padding-bottom: .75rem;
+        padding-top: .5rem;
+        padding-bottom: .5rem;
+        box-shadow: 0 8px 20px rgba(15,23,42,.06);
     }
 
     .search-wrap .search-icon {
@@ -181,7 +193,7 @@
     .menu-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
-        gap: 1.1rem;
+        gap: .85rem;
     }
 
     /* ── Card ── */
@@ -189,7 +201,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: .8rem;
+        gap: .65rem;
         padding: 1.75rem .75rem 1.4rem;
         background: #fff;
         border-radius: 20px;
@@ -343,9 +355,11 @@
         <img src="{{ asset('dist/img/logo-icon.png') }}" alt="Logo" class="hero-logo"
              onerror="this.style.display='none'">
 
-        <div class="hero-time">
-            <span id="home-date-text"></span>
-            <span class="clock" id="home-clock"></span>
+        <div class="hero-right">
+            <div class="hero-time">
+                <span id="home-date-text"></span>
+                <span class="clock" id="home-clock"></span>
+            </div>
         </div>
     </div>
 </div>
@@ -612,10 +626,8 @@
 
     function updateSearchStickyTop() {
         if (!hero || !searchWrap) return;
-        const heroHeight = Math.ceil(hero.getBoundingClientRect().height);
-        searchWrap.style.top = `${heroHeight}px`;
+        searchWrap.style.top = `${Math.ceil(hero.getBoundingClientRect().height)}px`;
     }
-
     updateSearchStickyTop();
     window.addEventListener('resize', updateSearchStickyTop);
 
@@ -632,6 +644,34 @@
         kw.textContent = q;
     }
 
+    let currentActualState = null;
+
+    function applyHeroVisual(state) {
+        const heroEl = document.querySelector('.home-hero');
+        let gradient;
+        if (state === 'morning') {
+            gradient = 'linear-gradient(135deg, #ff6b6b 0%, #ffa500 50%, #87ceeb 100%)';
+        } else if (state === 'day') {
+            gradient = 'linear-gradient(135deg, #2196F3 0%, #00b4db 100%)';
+        } else if (state === 'afternoon') {
+            gradient = 'linear-gradient(135deg, #ff7043 0%, #d946a6 100%)';
+        } else {
+            gradient = 'linear-gradient(135deg, #1a237e 0%, #283593 100%)';
+        }
+        document.documentElement.style.setProperty('--hero-gradient', gradient);
+        if (heroEl) {
+            heroEl.classList.remove('morning', 'day', 'afternoon', 'night');
+            heroEl.classList.add(state);
+        }
+    }
+
+    function getStateForHour(hour) {
+        if (hour >= 5 && hour < 8) return 'morning';
+        if (hour >= 8 && hour < 15) return 'day';
+        if (hour >= 15 && hour < 18) return 'afternoon';
+        return 'night';
+    }
+
     inp.addEventListener('input', () => filterMenu(inp.value));
     clr.addEventListener('click', () => { inp.value = ''; filterMenu(''); inp.focus(); });
     document.addEventListener('keydown', e => {
@@ -642,24 +682,9 @@
     /* ── Dynamic background by time ── */
     function setHeroGradient() {
         const hour = new Date().getHours();
-        let gradient;
-        if (hour >= 5 && hour < 8) {
-            // Pagi awal: sunrise
-            gradient = 'linear-gradient(135deg, #ff6b6b 0%, #ffa500 50%, #87ceeb 100%)';
-        } else if (hour >= 8 && hour < 11) {
-            // Pagi: orange ke biru
-            gradient = 'linear-gradient(135deg, #ff9a56 0%, #4db8e8 100%)';
-        } else if (hour >= 11 && hour < 15) {
-            // Siang: bright blue
-            gradient = 'linear-gradient(135deg, #2196F3 0%, #00b4db 100%)';
-        } else if (hour >= 15 && hour < 17) {
-            // Sore: sunset orange-pink-purple
-            gradient = 'linear-gradient(135deg, #ff7043 0%, #d946a6 100%)';
-        } else {
-            // Malam (17-5am): dark blue-indigo
-            gradient = 'linear-gradient(135deg, #1a237e 0%, #283593 100%)';
-        }
-        document.documentElement.style.setProperty('--hero-gradient', gradient);
+        const state = getStateForHour(hour);
+        currentActualState = state;
+        applyHeroVisual(state);
     }
     setHeroGradient();
     setInterval(setHeroGradient, 60000); // update setiap 1 menit
