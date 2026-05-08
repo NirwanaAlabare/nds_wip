@@ -1412,6 +1412,7 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(PurchasingDashboardController::class)->middleware('role:purchasing')->group(function () {
         Route::get('/dashboard_purchasing', 'dashboard_purchasing')->name('dashboard-purchasing');
+        Route::get('/dashboard-list-po', 'get_list_po_status')->name('dashboard-list-po');
     });
 
     Route::controller(PurchasingReportController::class)->prefix("report")->middleware('role:purchasing')->group(function () {
