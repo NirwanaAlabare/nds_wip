@@ -10,6 +10,7 @@ use App\Models\Stocker\StockerAdditional;
 use App\Models\Stocker\StockerAdditionalDetail;
 use App\Models\Dc\DCIn;
 use App\Models\Dc\SecondaryIn;
+use App\Models\Dc\SecondaryInhouseIn;
 use App\Models\Dc\SecondaryInhouse;
 use App\Models\Dc\RackDetailStocker;
 use App\Models\Dc\TrolleyStocker;
@@ -29,7 +30,8 @@ use DB;
 
 class StockerToolsController extends Controller
 {
-    public function index() {
+    public function index()
+    {
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno', 'styleno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
         return view('stocker.tools.tools', [
@@ -38,7 +40,8 @@ class StockerToolsController extends Controller
         ]);
     }
 
-    public function resetStockerForm(Request $request) {
+    public function resetStockerForm(Request $request)
+    {
         ini_set('max_execution_time', 3600);
 
         $validatedRequest = $request->validate([
@@ -117,6 +120,7 @@ class StockerToolsController extends Controller
                 DB::table("stocker_input")->whereIn('id', $stockerIds)->get(),
                 DB::table("dc_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
                 DB::table("secondary_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                DB::table("secondary_inhouse_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
                 DB::table("secondary_inhouse_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
                 DB::table("rack_detail_stocker")->whereIn('stocker_id', $stockerIds)->get(),
                 DB::table("trolley_stocker")->whereIn('stocker_id', $stockerIds)->get(),
@@ -126,6 +130,7 @@ class StockerToolsController extends Controller
             $deleteStocker = Stocker::whereIn('id', $stockerIds)->delete();
             $deleteDc = DCIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
             $deleteSecondaryIn = SecondaryIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+            $deleteSecondaryInHouseIn = SecondaryInHouseIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
             $deleteSecondaryInHouse = SecondaryInHouse::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
             $deleteRackDetailStocker = RackDetailStocker::whereIn('stocker_id', $stockerIds)->delete();
             $deleteTrolleyStocker = TrolleyStocker::whereIn('stocker_id', $stockerIds)->delete();
@@ -149,7 +154,8 @@ class StockerToolsController extends Controller
         );
     }
 
-    public function resetStockerId(Request $request) {
+    public function resetStockerId(Request $request)
+    {
         ini_set('max_execution_time', 3600);
 
         $validatedRequest = $request->validate([
@@ -191,8 +197,9 @@ class StockerToolsController extends Controller
                 "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
                 DB::table("stocker_input")->whereIn('id', $stockerIds)->get(),
                 DB::table("dc_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
-                DB::table("secondary_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                DB::table("secondary_inhouse_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
                 DB::table("secondary_inhouse_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                DB::table("secondary_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
                 DB::table("rack_detail_stocker")->whereIn('stocker_id', $stockerIds)->get(),
                 DB::table("trolley_stocker")->whereIn('stocker_id', $stockerIds)->get(),
                 DB::table("loading_line")->whereIn('stocker_id', $stockerIds)->get()
@@ -201,6 +208,7 @@ class StockerToolsController extends Controller
             $deleteStocker = Stocker::whereIn('id', $stockerIds)->delete();
             $deleteDc = DCIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
             $deleteSecondaryIn = SecondaryIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+            $deleteSecondaryInHouseIn = SecondaryInHouseIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
             $deleteSecondaryInHouse = SecondaryInHouse::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
             $deleteRackDetailStocker = RackDetailStocker::whereIn('stocker_id', $stockerIds)->delete();
             $deleteTrolleyStocker = TrolleyStocker::whereIn('stocker_id', $stockerIds)->delete();
@@ -224,7 +232,8 @@ class StockerToolsController extends Controller
         );
     }
 
-    public function resetRedundantStocker(Request $request) {
+    public function resetRedundantStocker(Request $request)
+    {
         ini_set('max_execution_time', 3600);
 
         $redundantStockers = collect(DB::select("
@@ -319,7 +328,7 @@ class StockerToolsController extends Controller
 
     public function importStockerManual(Request $request)
     {
-    // validasi
+        // validasi
         $this->validate($request, [
             'file' => 'required|mimes:csv,xls,xlsx'
         ]);
@@ -369,7 +378,8 @@ class StockerToolsController extends Controller
         return $formCutDetails;
     }
 
-    function recalculateStockerTransaction(Request $request, StockerService $stockerService) {
+    function recalculateStockerTransaction(Request $request, StockerService $stockerService)
+    {
         return $stockerService->recalculateStockerTransaction($request->formCutId);
     }
 
@@ -404,14 +414,14 @@ class StockerToolsController extends Controller
             return 'Parsed data does not contain items.';
         }
 
-        // 4. Rebuild a fresh collection
+        // 3. Rebuild a fresh collection
         $collection = collect($data['items']);
 
         if (! $collection instanceof Collection) {
             return 'Eval did not return a Collection.';
         }
 
-        // 3. Insert rows
+        // 4. Insert rows
         $inserted = 0;
 
         DB::transaction(function () use ($collection, $tableName, &$inserted) {
@@ -430,7 +440,8 @@ class StockerToolsController extends Controller
         return $inserted;
     }
 
-    function undoStockerAdditional(Request $request) {
+    function undoStockerAdditional(Request $request)
+    {
         $validatedRequest = $request->validate([
             "id" => "required"
         ]);
