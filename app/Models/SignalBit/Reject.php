@@ -17,9 +17,18 @@ class Reject extends Model
         'id',
         'master_plan_id',
         'so_det_id',
+        'kode_numbering',
+        'no_cut_size',
         'status',
+        'created_by',
         'created_at',
         'updated_at',
+        'defect_id',
+        'reject_type_id',
+        'reject_area_id',
+        'reject_area_x',
+        'reject_area_y',
+        'reject_status'
     ];
 
     public function masterPlan()

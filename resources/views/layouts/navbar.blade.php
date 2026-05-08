@@ -537,8 +537,8 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('report-packing') }}"
-                                    class="dropdown-item {{ $subPage == 'report-packing' ? 'active' : '' }}">
+                                <a href="{{ route('report-output-packing-line') }}"
+                                    class="dropdown-item {{ $subPage == 'report-output-packing-line' ? 'active' : '' }}">
                                     <i class="fas fa-file-upload fa-sm"></i> Output Packing Line
                                 </a>
                             </li>

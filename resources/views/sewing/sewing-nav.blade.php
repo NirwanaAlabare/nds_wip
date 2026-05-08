@@ -206,6 +206,12 @@
                     Report Finishing <i class="fas fa-file-excel"></i>
                 </a>
             </li>
+            <li>
+                <a href="{{ route('report-qc-reject') }}"
+                    class="dropdown-item {{ $subPage == 'report-qc-reject' ? 'active' : '' }}">
+                    Report QC Reject <i class="fas fa-file-excel"></i>
+                </a>
+            </li>
             {{-- <li>
                 <a href="{{ route('report-sewing.output.index') }}"
                     class="dropdown-item {{ $subPage == 'reportOutput' ? 'active' : '' }}">

@@ -15,11 +15,11 @@ class ReportFinishingProsesController extends Controller
     {
 
         $start_date = $request->input('start_date');
-        $end_date = $request->input('end_date'); 
+        $end_date = $request->input('end_date');
 
         $start = $start_date . ' 00:00:00';
         $end   = $end_date . ' 23:59:59';
-        
+
         if ($request->ajax()) {
             if ($start_date === null || $end_date === null) {
                 return response()->json(['data' => []]);
@@ -39,7 +39,7 @@ class ReportFinishingProsesController extends Controller
                             COUNT( DISTINCT CASE WHEN output_secondary_out.STATUS = 'defect' THEN output_secondary_out.id END ) AS defect,
                             COUNT( DISTINCT CASE WHEN output_secondary_out.STATUS = 'rework' THEN output_secondary_out.id END ) AS rework,
                             COUNT( DISTINCT CASE WHEN output_secondary_out.STATUS = 'reject' THEN output_secondary_out.id END ) AS reject,
-                            COUNT( DISTINCT CASE WHEN output_secondary_out.STATUS = 'rft' THEN output_secondary_out.id END ) AS output 
+                            COUNT( DISTINCT CASE WHEN output_secondary_out.STATUS = 'rft' THEN output_secondary_out.id END ) AS output
                         FROM
                             output_secondary_master
                             LEFT JOIN output_secondary_in ON output_secondary_in.secondary_id = output_secondary_master.id
@@ -50,10 +50,11 @@ class ReportFinishingProsesController extends Controller
                             LEFT JOIN act_costing ON act_costing.id = so.id_cost
                             LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts.created_by
                             LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
-                            LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer 
+                            LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
                         WHERE
                             output_secondary_in.updated_at BETWEEN ? AND ?
                             AND output_secondary_master.secondary = ?
+                            AND output_rfts.id is not null
                         GROUP BY
                             output_secondary_master.secondary,
                             userpassword.username,
@@ -79,7 +80,7 @@ class ReportFinishingProsesController extends Controller
                             COUNT( DISTINCT CASE WHEN output_secondary_out.STATUS = 'defect' THEN output_secondary_out.id END ) AS defect,
                             COUNT( DISTINCT CASE WHEN output_secondary_out.STATUS = 'rework' THEN output_secondary_out.id END ) AS rework,
                             COUNT( DISTINCT CASE WHEN output_secondary_out.STATUS = 'reject' THEN output_secondary_out.id END ) AS reject,
-                            COUNT( DISTINCT CASE WHEN output_secondary_out.STATUS = 'rft' THEN output_secondary_out.id END ) AS output 
+                            COUNT( DISTINCT CASE WHEN output_secondary_out.STATUS = 'rft' THEN output_secondary_out.id END ) AS output
                         FROM
                             output_secondary_master
                             LEFT JOIN output_secondary_in ON output_secondary_in.secondary_id = output_secondary_master.id
@@ -90,9 +91,10 @@ class ReportFinishingProsesController extends Controller
                             LEFT JOIN act_costing ON act_costing.id = so.id_cost
                             LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts.created_by
                             LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
-                            LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer 
+                            LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
                         WHERE
                             output_secondary_in.updated_at BETWEEN ? AND ?
+                            AND output_rfts.id is not null
                         GROUP BY
                             output_secondary_master.secondary,
                             userpassword.username,

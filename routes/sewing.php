@@ -17,8 +17,8 @@ use App\Http\Controllers\Sewing\ReportFinishingProsesController;
 use App\Http\Controllers\Sewing\ReportHourlyController;
 use App\Http\Controllers\Sewing\ReportMutasiOutputController;
 use App\Http\Controllers\Sewing\ReportOutputController;
-use App\Http\Controllers\Sewing\ReportPackingController;
 use App\Http\Controllers\Sewing\ReportProductionController;
+use App\Http\Controllers\Sewing\ReportQcRejectController;
 use App\Http\Controllers\Sewing\ReportRejectController;
 use App\Http\Controllers\Sewing\SewingSecondaryMasterController;
 use App\Http\Controllers\Sewing\SewingToolsController;
@@ -279,8 +279,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/export', 'export')->name('export-report-finishing');
     });
 
-    Route::controller(ReportPackingController::class)->prefix("report-packing")->middleware('role:sewing')->group(function () {
-        Route::get('/', 'index')->name('report-packing');
-        Route::post('/export', 'export')->name('export-report-packing');
+    Route::controller(ReportQcRejectController::class)->prefix("report-qc-reject")->middleware('role:sewing')->group(function () {
+        Route::get('/', 'index')->name('report-qc-reject');
+        Route::post('/export', 'export')->name('export-report-qc-reject');
     });
 });
