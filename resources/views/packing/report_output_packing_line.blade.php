@@ -54,7 +54,7 @@
                             Cari
                         </button>
 
-                        <button type="button" onclick="exportExcel()" id="exportExcel" class="btn btn-success btn-sm" disabled>
+                        <button type="button" onclick="exportExcel()" id="exportExcel" class="btn btn-success btn-sm">
                             <i class="fas fa-file-excel fa-sm"></i>
                             Export Excel
                         </button>
@@ -162,7 +162,7 @@
                         data: 'jumlah',
                         className: 'text-end',
                         render: function(data, type, row) {
-                            return parseFloat(data).toFixed(2);
+                            return parseFloat(data);
                         }
                     },
                 ],

@@ -13,7 +13,7 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-class ExportReportOutputPackingLine implements FromView, ShouldAutoSize, WithEvents, WithColumnFormatting
+class ExportReportOutputPackingLine implements FromView, ShouldAutoSize, WithEvents
 {
     use Exportable;
     protected $tglAwal, $tglAkhir, $buyer, $rowCount;
@@ -81,12 +81,12 @@ class ExportReportOutputPackingLine implements FromView, ShouldAutoSize, WithEve
         ]);
     }
 
-    public function columnFormats(): array
-    {
-        return [
-            'F' => NumberFormat::FORMAT_NUMBER_00,
-        ];
-    }
+    // public function columnFormats(): array
+    // {
+    //     return [
+    //         'F' => NumberFormat::FORMAT_NUMBER_00,
+    //     ];
+    // }
 
     public function registerEvents(): array
     {
