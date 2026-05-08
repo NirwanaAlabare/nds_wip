@@ -144,8 +144,7 @@ class ReportFinishingController extends Controller
                             a.reworked_at >= '{$tglAwal} 00:00:00'
                             AND a.reworked_at <= '{$tglAkhir} 23:59:59'
                             AND mp.cancel = 'N'
-                            AND a.status = 'reworked' 
-                            AND a.status = 'rejected'
+                            AND (a.status = 'reworked' OR a.status = 'rejected')
                         GROUP BY so_det_id, DATE(a.reworked_at)
                     ) as results
                 "))
