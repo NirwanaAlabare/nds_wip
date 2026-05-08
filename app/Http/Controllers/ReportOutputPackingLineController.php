@@ -1,16 +1,15 @@
 <?php
 
-namespace App\Http\Controllers\Sewing;
+namespace App\Http\Controllers;
 
-use App\Exports\Sewing\ExportReportPacking;
-use App\Http\Controllers\Controller;
+use App\Exports\Packing\ExportReportOutputPackingLine;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
-class ReportPackingController extends Controller
+class ReportOutputPackingLineController extends Controller
 {
     public function index(Request $request){
 
@@ -68,10 +67,10 @@ class ReportPackingController extends Controller
             ->orderBy('supplier', 'ASC')
             ->get();
 
-        return view("sewing.report.report_packing", [
+        return view("packing.report_output_packing_line", [
             'page' => 'dashboard-packing',
             "subPageGroup" => "packing-report",
-            "subPage" => "report-packing",
+            "subPage" => "report-output-packing-line",
             'containerFluid' => true,
             "buyer" => $buyer
         ]);
@@ -82,6 +81,6 @@ class ReportPackingController extends Controller
         $to = $request->to;
         $buyer = $request->buyer;
 
-        return Excel::download(new ExportReportPacking($from, $to, $buyer), 'report-finishing.xlsx');
+        return Excel::download(new ExportReportOutputPackingLine($from, $to, $buyer), 'report-output-packing-line.xlsx');
     }
 }

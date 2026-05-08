@@ -76,6 +76,7 @@ use App\Http\Controllers\PPICDashboardController;
 use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\PurchasingController;
 use App\Http\Controllers\PurchasingDashboardController;
+use App\Http\Controllers\PurchasingReportController;
 use App\Http\Controllers\QCInspectDashboardController;
 use App\Http\Controllers\QCInspectLaporanController;
 use App\Http\Controllers\QCInspectMasterController;
@@ -86,9 +87,33 @@ use App\Http\Controllers\QCInspectProsesPackingListController;
 use App\Http\Controllers\QCInspectShadeBandController;
 use App\Http\Controllers\QcPassController;
 use App\Http\Controllers\ReportDocController;
+use App\Http\Controllers\ReportOutputPackingLineController;
 use App\Http\Controllers\ReqMaterialController;
 use App\Http\Controllers\ReturInMaterialController;
 use App\Http\Controllers\ReturMaterialController;
+use App\Http\Controllers\Sewing\DefectMendingInReportController;
+use App\Http\Controllers\Sewing\DefectMendingOutReportController;
+use App\Http\Controllers\Sewing\DefectSewingInReportController;
+use App\Http\Controllers\Sewing\DefectSewingOutReportController;
+use App\Http\Controllers\Sewing\DefectSpotcleaningInReportController;
+use App\Http\Controllers\Sewing\DefectSpotcleaningOutReportController;
+use App\Http\Controllers\Sewing\FinishingDefectReportController;
+use App\Http\Controllers\Sewing\FinishingMendingReportController;
+use App\Http\Controllers\Sewing\FinishingOutputReportController;
+use App\Http\Controllers\Sewing\FinishingRejectReportController;
+use App\Http\Controllers\Sewing\FinishingReworkMendingReportController;
+use App\Http\Controllers\Sewing\FinishingReworkReportController;
+use App\Http\Controllers\Sewing\FinishingReworkSewingReportController;
+use App\Http\Controllers\Sewing\FinishingReworkSpotcleaningReportController;
+use App\Http\Controllers\Sewing\FinishingSpotcleaningReportController;
+use App\Http\Controllers\Sewing\SewingDefectReportController;
+use App\Http\Controllers\Sewing\SewingMendingReportController;
+use App\Http\Controllers\Sewing\SewingOutputReportController;
+use App\Http\Controllers\Sewing\SewingRejectReportController;
+use App\Http\Controllers\Sewing\SewingReworkMendingReportController;
+use App\Http\Controllers\Sewing\SewingReworkReportController;
+use App\Http\Controllers\Sewing\SewingReworkSpotcleaningReportController;
+use App\Http\Controllers\Sewing\SewingSpotcleaningReportController;
 use App\Http\Controllers\StockOpnameController;
 use App\Http\Controllers\TransferBpbController;
 use App\Http\Controllers\TransferMemoController;
@@ -105,30 +130,6 @@ use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanAccesoriesController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanFgController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PurchasingReportController;
-use App\Http\Controllers\Sewing\SewingOutputReportController;
-use App\Http\Controllers\Sewing\SewingDefectReportController;
-use App\Http\Controllers\Sewing\SewingMendingReportController;
-use App\Http\Controllers\Sewing\SewingSpotcleaningReportController;
-use App\Http\Controllers\Sewing\SewingReworkReportController;
-use App\Http\Controllers\Sewing\SewingReworkMendingReportController;
-use App\Http\Controllers\Sewing\SewingReworkSpotcleaningReportController;
-use App\Http\Controllers\Sewing\SewingRejectReportController;
-use App\Http\Controllers\Sewing\FinishingOutputReportController;
-use App\Http\Controllers\Sewing\FinishingDefectReportController;
-use App\Http\Controllers\Sewing\FinishingMendingReportController;
-use App\Http\Controllers\Sewing\FinishingReworkSewingReportController;
-use App\Http\Controllers\Sewing\FinishingReworkMendingReportController;
-use App\Http\Controllers\Sewing\FinishingReworkSpotcleaningReportController;
-use App\Http\Controllers\Sewing\FinishingSpotcleaningReportController;
-use App\Http\Controllers\Sewing\FinishingReworkReportController;
-use App\Http\Controllers\Sewing\FinishingRejectReportController;
-use App\Http\Controllers\Sewing\DefectSewingInReportController;
-use App\Http\Controllers\Sewing\DefectSewingOutReportController;
-use App\Http\Controllers\Sewing\DefectMendingInReportController;
-use App\Http\Controllers\Sewing\DefectMendingOutReportController;
-use App\Http\Controllers\Sewing\DefectSpotcleaningInReportController;
-use App\Http\Controllers\Sewing\DefectSpotcleaningOutReportController;
 
 
 
@@ -1488,6 +1489,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/simpanedit', 'simpanedit')->name('simpan-edit-master-lokasi-whs-soljer');
         Route::post('/print-lokasi/{id?}', 'printlokasi')->name('print-lokasi-master-lokasi-whs-soljer');
         Route::post('/print-lokasi-all', 'printLokasiAll')->name('print-lokasi-all-master-lokasi-whs-soljer');
+    });
+
+    Route::controller(ReportOutputPackingLineController::class)->prefix("report-output-packing-line")->middleware('packing')->group(function () {
+        Route::get('/', 'index')->name('report-output-packing-line');
+        Route::post('/export', 'export')->name('export-report-output-packing-line');
     });
 
     Route::middleware(['role:sewing'])->prefix('report-sewing')->group(function () {
