@@ -34,7 +34,7 @@ class FinishingMendingReportController extends Controller
                 sd.color,
                 sd.size,
                 COUNT(a.id) AS jumlah
-            FROM signalbit_erp.output_defects a
+            FROM signalbit_erp.output_defects_packing a
             INNER JOIN signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
             INNER JOIN signalbit_erp.so_det sd ON a.so_det_id = sd.id
             INNER JOIN signalbit_erp.so ON sd.id_so = so.id
