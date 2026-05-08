@@ -3800,12 +3800,6 @@ class SewingToolsController extends Controller
 
                 // REJECT
                 if ($restore->output_reject_id) {
-                    array_push($reject, [
-                        "master_plan_id" => $restore->master_plan_id,
-                        "so_det_id" => $restore->so_det_id,
-                        "created_at" => $restore->created_at,
-                        "updated_at" => $restore->updated_at,
-                    ]);
 
                     // With REJECT
                     $currentDefect = null;
@@ -3862,7 +3856,7 @@ class SewingToolsController extends Controller
                     array_push($reject, [
                         "master_plan_id" => $restore->master_plan_id,
                         "so_det_id" => $restore->so_det_id,
-                        'defect_id' => $currentDefect ? $currentDefect->id : '',
+                        'defect_id' => $currentDefect ? $currentDefect->id : null,
                         "kode_numbering" => $restore->kode_numbering,
                         "no_cut_size" => $restore->kode_numbering,
                         'status' => "NORMAL",

@@ -1329,7 +1329,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard-export-import', [ExportImportController::class, 'index'])->middleware('role:export_import')->name('dashboard-export-import');
 
     Route::controller(ExportImportController::class)->prefix("export-import")->middleware('role:export_import')->group(function () {
-        Route::get('/alert-detail/{po}', 'getDetail')->name('export-import.alert-detail');
+        Route::get('/alert-detail', 'getDetail')->name('export-import.alert-detail');
         Route::get('/report-rekonsiliasi-ceisa', 'ReportRekonsiliasi')->name('report-rekonsiliasi-ceisa');
         Route::get('/export-rekonsiliasi-ceisa', 'ExportReportRekonsiliasi')->name('export-rekonsiliasi-ceisa');
         Route::get('/report-ceisa-detail', 'ReportCeisaDetail')->name('report-ceisa-detail');
