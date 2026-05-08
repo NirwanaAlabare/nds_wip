@@ -206,12 +206,6 @@
                     Report Finishing <i class="fas fa-file-excel"></i>
                 </a>
             </li>
-            <li>
-                <a href="{{ route('report-packing') }}"
-                    class="dropdown-item {{ $subPage == 'report-packing' ? 'active' : '' }}">
-                    Report Packing <i class="fas fa-file-excel"></i>
-                </a>
-            </li>
             {{-- <li>
                 <a href="{{ route('report-sewing.output.index') }}"
                     class="dropdown-item {{ $subPage == 'reportOutput' ? 'active' : '' }}">

@@ -69,8 +69,8 @@ class ReportPackingController extends Controller
             ->get();
 
         return view("sewing.report.report_packing", [
-            'page' => 'dashboard-sewing-eff',
-            "subPageGroup" => "sewing-report",
+            'page' => 'dashboard-packing',
+            "subPageGroup" => "packing-report",
             "subPage" => "report-packing",
             'containerFluid' => true,
             "buyer" => $buyer
