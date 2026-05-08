@@ -39,7 +39,7 @@ class FinishingReworkSpotcleaningReportController extends Controller
             INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
             LEFT JOIN signalbit_erp.master_size_new msn ON sd.size = msn.size
             WHERE b.allocation = 'spotcleaning'
-              AND a.defect_status = 'REWORKED'
+              AND a.defect_status in ('REWORKED', 'REJECTED')
               AND a.updated_at >= ?
               AND a.updated_at <= ?
               $buyerFilter

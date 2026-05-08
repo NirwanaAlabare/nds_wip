@@ -423,10 +423,10 @@
                         data: 'qty_reject_in'
                     },
                     {
-                        data: 'qty_rejected'
+                        data: 'qty_reworked'
                     },
                     {
-                        data: 'qty_reworked'
+                        data: 'qty_rejected'
                     },
                     {
                         data: 'saldo_akhir_qc_reject'

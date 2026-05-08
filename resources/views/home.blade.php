@@ -8,7 +8,9 @@
     .home-hero {
         background: var(--hero-gradient, linear-gradient(135deg, var(--sb-color, #3a7bd5) 0%, #5b9cf6 100%));
         padding: 1.5rem 2rem 5rem;
-        position: relative;
+        position: sticky;
+        top: 0;
+        z-index: 10;
         overflow: hidden;
         transition: background .8s ease;
     }
@@ -107,15 +109,20 @@
     .home-content {
         max-width: 1140px;
         margin: -2.8rem auto 0;
-        padding: 0 1.5rem 3rem;
+        padding: 2.8rem 1.5rem 3rem;
         position: relative;
         z-index: 2;
     }
 
     /* ── Search bar ── */
     .search-wrap {
-        position: relative;
+        position: sticky;
+        top: 0;
+        z-index: 9;
         margin-bottom: 1.5rem;
+        background: #f0f4fc;
+        padding-top: .75rem;
+        padding-bottom: .75rem;
     }
 
     .search-wrap .search-icon {
@@ -600,6 +607,17 @@
     const empty = document.getElementById('search-empty');
     const kw    = document.getElementById('search-keyword');
     const cards = document.querySelectorAll('#menu-grid .menu-card');
+    const hero  = document.querySelector('.home-hero');
+    const searchWrap = document.querySelector('.search-wrap');
+
+    function updateSearchStickyTop() {
+        if (!hero || !searchWrap) return;
+        const heroHeight = Math.ceil(hero.getBoundingClientRect().height);
+        searchWrap.style.top = `${heroHeight}px`;
+    }
+
+    updateSearchStickyTop();
+    window.addEventListener('resize', updateSearchStickyTop);
 
     function filterMenu(q) {
         q = q.trim().toLowerCase();

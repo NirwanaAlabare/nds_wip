@@ -29,6 +29,7 @@ class PackingTransferGarmentController extends Controller
                 m.ws,
                 m.color,
                 m.size,
+                m.styleno,
                 a.qty,
                 if(a.qty - c.qty_in = '0','Full','-') status,
                 a.id,
@@ -54,6 +55,7 @@ class PackingTransferGarmentController extends Controller
                 a.po,
                 m.ws,
                 m.color,
+                m.styleno,
                 m.size,
                 a.qty,
                 if(a.qty - c.qty_in = '0','Full','-') status,
@@ -125,7 +127,7 @@ order by isi asc");
                 ) a
                         inner join master_sb_ws m on a.so_det_id = m.id_so_det
                 group by so_det_id
-        
+
         ) b on a.ws = b.ws and a.color = b.color and a.size = b.size
         group by po, styleno
         ");

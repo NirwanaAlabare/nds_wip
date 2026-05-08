@@ -85,6 +85,7 @@
                             <th>Barcode</th>
                             <th>PO</th>
                             <th>WS</th>
+                            <th>Style</th>
                             <th>Color</th>
                             <th>Size</th>
                             <th>Dest</th>
@@ -95,7 +96,7 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="9"></th>
+                            <th colspan="10"></th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_chk'> </th>
                             <th>PCS</th>
@@ -175,7 +176,7 @@
 
                 // computing column Total of the complete result
                 var sumTotal = api
-                    .column(9)
+                    .column(10)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -183,7 +184,7 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(9).footer()).html(sumTotal);
+                $(api.column(10).footer()).html(sumTotal);
             },
             ordering: false,
             processing: true,
@@ -220,6 +221,9 @@
                 },
                 {
                     data: 'ws'
+                },
+                {
+                    data: 'styleno'
                 },
                 {
                     data: 'color'
@@ -325,7 +329,7 @@
                     const worksheet = workbook.addWorksheet("Laporan Packing");
 
                     // Title
-                    worksheet.mergeCells('A1:M1');
+                    worksheet.mergeCells('A1:N1');
                     worksheet.getCell('A1').value = "Laporan Packing Scan";
                     worksheet.getCell('A1').font = {
                         size: 14,
@@ -335,7 +339,7 @@
                         horizontal: 'center'
                     };
 
-                    worksheet.mergeCells('A2:M2');
+                    worksheet.mergeCells('A2:N2');
                     worksheet.getCell('A2').value = `Tgl Transaksi: ${dateFrom} - ${dateTo}`;
                     worksheet.getCell('A2').alignment = {
                         horizontal: 'center'
@@ -346,7 +350,7 @@
                     // Header
                     const headers = [
                         "No", "Tgl. Trans", "No. Carton", "Barcode", "PO",
-                        "WS", "Color", "Size", "Dest", "Tgl. Shipment",
+                        "WS", "Style", "Color", "Size", "Dest", "Tgl. Shipment",
                         "Total", "User", "Tgl. Input"
                     ];
 
@@ -384,6 +388,7 @@
                             row.barcode,
                             row.po,
                             row.ws,
+                            row.styleno,
                             row.color,
                             row.size,
                             row.dest,

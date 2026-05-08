@@ -3,10 +3,10 @@
 
 <table class="table">
     <tr>
-        <td colspan='12'>Laporan Transfer Garment</td>
+        <td colspan='13'>Laporan Transfer Garment</td>
     </tr>
     <tr>
-        <td colspan='12'>{{ date('d-M-Y', strtotime($from)) }} - {{ date('d-M-Y', strtotime($to)) }}
+        <td colspan='13'>{{ date('d-M-Y', strtotime($from)) }} - {{ date('d-M-Y', strtotime($to)) }}
         </td>
     </tr>
     <tr>
@@ -20,6 +20,7 @@
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Line</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">PO</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">WS</th>
+            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Style</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Color</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Size</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Qty</th>
@@ -40,6 +41,7 @@
                 <td>{{ $item->line }}</td>
                 <td>{{ $item->po }}</td>
                 <td>{{ $item->ws }}</td>
+                <td>{{ $item->styleno }}</td>
                 <td>{{ $item->color }}</td>
                 <td>{{ $item->size }}</td>
                 <td>{{ $item->qty }}</td>
