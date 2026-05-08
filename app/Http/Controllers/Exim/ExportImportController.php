@@ -45,6 +45,7 @@ class ExportImportController extends Controller
             "page"         => "dashboard-export-import",
             "subPageGroup" => "export-import",
             "subPage"      => "export-import",
+            "containerFluid" => true,
             "data"         => $data,
             "tgl_awal"     => $tgl_awal,
             "tgl_akhir"    => $tgl_akhir
