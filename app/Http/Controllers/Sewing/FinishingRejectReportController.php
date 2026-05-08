@@ -32,7 +32,7 @@ class FinishingRejectReportController extends Controller
                 sd.color,
                 sd.size,
                 COUNT(a.id) AS jumlah
-            FROM signalbit_erp.output_rejects a
+            FROM signalbit_erp.output_rejects_packing a
             INNER JOIN signalbit_erp.so_det sd ON a.so_det_id = sd.id
             INNER JOIN signalbit_erp.so ON sd.id_so = so.id
             INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
