@@ -54,6 +54,7 @@ class ExportLaporanTrfGarment implements FromView, WithEvents, ShouldAutoSize
                 a.line,
                 a.po,
                 m.ws,
+                m.styleno,
                 m.color,
                 m.size,
                 a.qty,
@@ -96,7 +97,7 @@ class ExportLaporanTrfGarment implements FromView, WithEvents, ShouldAutoSize
     {
 
         $event->sheet->styleCells(
-            'A4:L' . $event->getConcernable()->rowCount,
+            'A4:M' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [
