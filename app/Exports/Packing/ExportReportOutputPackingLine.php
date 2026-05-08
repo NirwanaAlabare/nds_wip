@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Exports\Sewing;
+namespace App\Exports\Packing;
 
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
@@ -13,7 +13,7 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-class ExportReportPacking implements FromView, ShouldAutoSize, WithEvents, WithColumnFormatting
+class ExportReportOutputPackingLine implements FromView, ShouldAutoSize, WithEvents, WithColumnFormatting
 {
     use Exportable;
     protected $tglAwal, $tglAkhir, $buyer, $rowCount;
@@ -73,7 +73,7 @@ class ExportReportPacking implements FromView, ShouldAutoSize, WithEvents, WithC
 
         $this->rowCount = count($data) + 5; // 1 for header
 
-        return view('sewing.report.excel.export_report_packing', [
+        return view('packing.export.export_report_output_packing_line', [
             'data' => $data,
             'startDate' => $tglAwal,
             'endDate' => $tglAkhir,

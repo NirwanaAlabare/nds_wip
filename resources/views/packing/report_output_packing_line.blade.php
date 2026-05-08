@@ -15,9 +15,9 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"> <i class="fas fa-list"></i> Report Packing</h5>
+            <h5 class="card-title fw-bold mb-0"> <i class="fas fa-list"></i> Report Output Packing Line</h5>
         </div>
-        <div class="card-body" id="report-packing">
+        <div class="card-body" id="report-output-packing-line">
             <div class="row g-3 align-items-end mb-3">
                 <div class="col-12 col-md-3">
                     <label class="form-label">
@@ -54,7 +54,7 @@
                             Cari
                         </button>
 
-                        <button type="button" onclick="exportExcel()" id="exportExcel" class="btn btn-success btn-sm">
+                        <button type="button" onclick="exportExcel()" id="exportExcel" class="btn btn-success btn-sm" disabled>
                             <i class="fas fa-file-excel fa-sm"></i>
                             Export Excel
                         </button>
@@ -104,7 +104,7 @@
 
          $('.select2bs4base').select2({
             theme: 'bootstrap4',
-            dropdownParent: $("#report-packing")
+            dropdownParent: $("#report-output-packing-line")
         });
 
         // Now set height and font-size on the Select2 container after init
@@ -135,7 +135,7 @@
                 ordering: false,
                 deferLoading: 0,
                 ajax: {
-                    url: '{{ route('report-packing') }}',
+                    url: '{{ route('report-output-packing-line') }}',
                     data: d => {
                         d.dateFrom = $('#tgl-awal').val();
                         d.dateTo = $('#tgl-akhir').val();
@@ -170,11 +170,21 @@
         });
 
         function dataTableReload() {
-            $('#table').addClass('d-none');
-            $('#exportExcel').prop('disabled', false);
+            Swal.fire({
+                title: 'Loading...',
+                text: 'Please wait while data is loading.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
 
             $('#table').removeClass('d-none');
-            table.ajax.reload();
+            $('#exportExcel').prop('disabled', false);
+
+            table.ajax.reload(function () {
+                Swal.close();
+            });
         }
 
         async function exportExcel() {
@@ -188,7 +198,7 @@
             });
 
             await $.ajax({
-                url: "{{ route("export-report-packing") }}",
+                url: "{{ route("export-report-output-packing-line") }}",
                 type: "post",
                 data: {
                     from : $("#tgl-awal").val(),
@@ -208,7 +218,7 @@
                     var blob = new Blob([res]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Report Packing "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
+                    link.download = "Report Output Packing Line "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
                     link.click();
                 },
                 error: function (jqXHR) {

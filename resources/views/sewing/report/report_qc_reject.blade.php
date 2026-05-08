@@ -15,9 +15,9 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"> <i class="fas fa-list"></i> Report Finishing</h5>
+            <h5 class="card-title fw-bold mb-0"> <i class="fas fa-list"></i> Report QC Reject</h5>
         </div>
-        <div class="card-body" id="report-finishing">
+        <div class="card-body" id="report-qc-reject">
             <div class="row g-3 align-items-end mb-3">
                 <div class="col-12 col-md-2">
                     <label class="form-label">
@@ -26,10 +26,8 @@
                     <select class="form-select form-select-sm select2bs4base" id="kategori" name="kategori">
                         <option selected value="" disabled>Pilih Kategori</option>
                         <option value="TERIMA">TERIMA</option>
-                        <option value="DEFECT">DEFECT</option>
-                        <option value="REWORK">REWORK</option>
-                        <option value="REJECT">REJECT</option>
-                        <option value="OUTPUT">OUTPUT</option>
+                        <option value="KELUAR GOOD">KELUAR GOOD</option>
+                        <option value="KELUAR REJECT">KELUAR REJECT</option>
                     </select>
                 </div>
 
@@ -118,7 +116,7 @@
 
          $('.select2bs4base').select2({
             theme: 'bootstrap4',
-            dropdownParent: $("#report-finishing")
+            dropdownParent: $("#report-qc-reject")
         });
 
         // Now set height and font-size on the Select2 container after init
@@ -149,7 +147,7 @@
                 ordering: false,
                 deferLoading: 0,
                 ajax: {
-                    url: '{{ route('report-finishing') }}',
+                    url: '{{ route('report-qc-reject') }}',
                     data: d => {
                         d.dateFrom = $('#tgl-awal').val();
                         d.dateTo = $('#tgl-akhir').val();
@@ -213,7 +211,7 @@
             });
 
             await $.ajax({
-                url: "{{ route("export-report-finishing") }}",
+                url: "{{ route("export-report-qc-reject") }}",
                 type: "post",
                 data: {
                     from : $("#tgl-awal").val(),
@@ -234,7 +232,7 @@
                     var blob = new Blob([res]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Report Finishing "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
+                    link.download = "Report QC Reject "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
                     link.click();
                 },
                 error: function (jqXHR) {

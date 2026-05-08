@@ -25,8 +25,8 @@ class ExportImportController extends Controller
      */
     public function index(Request $request)
     {
-        $today = Carbon::now()->toDateString();
-        $targetDate = Carbon::now()->addDays(2)->toDateString();
+        $tgl_awal = $request->tgl_awal ?? Carbon::now()->toDateString();
+        $tgl_akhir = $request->tgl_akhir ?? Carbon::now()->addDays(7)->toDateString();
 
         $data = DB::table('ppic_master_so')
             ->select(
@@ -36,8 +36,8 @@ class ExportImportController extends Controller
                 'tgl_shipment',
                 DB::raw('SUM(qty_po) as total_qty')
             )
-            ->whereBetween('tgl_shipment', [$today, $targetDate])
-            ->groupBy('po', 'dest', 'tgl_shipment')
+            ->whereBetween('tgl_shipment', [$tgl_awal, $tgl_akhir])
+            ->groupBy('po', 'dest', 'desc', 'tgl_shipment')
             ->orderBy('tgl_shipment', 'asc')
             ->get();
 
@@ -45,7 +45,9 @@ class ExportImportController extends Controller
             "page"         => "dashboard-export-import",
             "subPageGroup" => "export-import",
             "subPage"      => "export-import",
-            "data"       => $data
+            "data"         => $data,
+            "tgl_awal"     => $tgl_awal,
+            "tgl_akhir"    => $tgl_akhir
         ]);
     }
 
