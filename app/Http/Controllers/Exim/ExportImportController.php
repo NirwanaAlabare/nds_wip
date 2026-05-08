@@ -49,19 +49,22 @@ class ExportImportController extends Controller
         ]);
     }
 
-    public function getDetail($po)
+
+    public function getDetail(Request $request)
     {
-       $details = DB::table('ppic_master_so')
-                ->select('ppic_master_so.id_so_det', 'ppic_master_so.qty_po', 'sd.color', 'ac.kpno', 'sd.size')
-                ->join('signalbit_erp.so_det as sd', 'ppic_master_so.id_so_det', '=', 'sd.id')
-                ->join('signalbit_erp.so as so', 'sd.id_so', '=', 'so.id')
-                ->join('signalbit_erp.act_costing as ac', 'so.id_cost', '=', 'ac.id')
-                ->where('ppic_master_so.po', $po)
-                ->get();
+        $po = $request->query('po');
+
+        $details = DB::table('ppic_master_so')
+            ->select('ppic_master_so.id_so_det', 'ppic_master_so.qty_po', 'sd.color', 'sd.size', 'ac.kpno')
+            ->join('signalbit_erp.so_det as sd', 'ppic_master_so.id_so_det', '=', 'sd.id')
+            ->join('signalbit_erp.so as so', 'sd.id_so', '=', 'so.id')
+            ->join('signalbit_erp.act_costing as ac', 'so.id_cost', '=', 'ac.id')
+            ->where('ppic_master_so.po', $po)
+            ->get();
 
         return response()->json([
             'status' => 'success',
-            'data'   => $details
+            'data' => $details
         ]);
     }
 

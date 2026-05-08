@@ -122,7 +122,7 @@
             $('#detailTableBody').html('<tr><td colspan="4" class="text-center"><div class="spinner-border text-primary spinner-border-sm" role="status"></div> Memuat data...</td></tr>');
             $('#detailModal').modal('show');
             $.ajax({
-                url: '{{ url("/export-import/alert-detail") }}/' + po,
+                url: '{{ url("/export-import/alert-detail") }}?po=' + encodeURIComponent(po),
                 type: 'GET',
                 success: function(response) {
                     let html = '';
