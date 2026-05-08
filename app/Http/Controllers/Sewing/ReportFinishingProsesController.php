@@ -25,8 +25,7 @@ class ReportFinishingProsesController extends Controller
                 return response()->json(['data' => []]);
             } else {
                 if (!empty($request->proses)) {
-                    $rawData = DB::connection('mysql_sb')->select("
-                        SELECT
+                    $rawData = DB::connection('mysql_sb')->select("SELECT
                             output_secondary_master.secondary AS proses,
                             userpassword.username AS line,
                             mastersupplier.supplier AS buyer,
@@ -34,40 +33,165 @@ class ReportFinishingProsesController extends Controller
                             act_costing.styleno AS style,
                             so_det.color,
                             so_det.size,
-                            COUNT( DISTINCT CASE WHEN NOT EXISTS ( SELECT 1 FROM output_secondary_out oso_check WHERE oso_check.secondary_in_id = output_secondary_in.id ) THEN output_secondary_in.id END ) AS wip,
-                            COUNT( DISTINCT output_secondary_in.id ) AS 'in',
-                            COUNT( DISTINCT CASE WHEN output_secondary_out.STATUS = 'defect' THEN output_secondary_out.id END ) AS defect,
-                            COUNT( DISTINCT CASE WHEN output_secondary_out.STATUS = 'rework' THEN output_secondary_out.id END ) AS rework,
-                            COUNT( DISTINCT CASE WHEN output_secondary_out.STATUS = 'reject' THEN output_secondary_out.id END ) AS reject,
-                            COUNT( DISTINCT CASE WHEN output_secondary_out.STATUS = 'rft' THEN output_secondary_out.id END ) AS output
+                            SUM(wip) wip,
+                            SUM(`in`) `in`,
+                            SUM(defect) defect,
+                            SUM(rework) rework,
+                            SUM(reject) reject,
+                            SUM(output) + SUM(rework) output
                         FROM
-                            output_secondary_master
-                            LEFT JOIN output_secondary_in ON output_secondary_in.secondary_id = output_secondary_master.id
-                            LEFT JOIN output_secondary_out ON output_secondary_out.secondary_in_id = output_secondary_in.id
-                            LEFT JOIN output_rfts ON output_rfts.id = output_secondary_in.rft_id
-                            LEFT JOIN so_det ON so_det.id = output_rfts.so_det_id
-                            LEFT JOIN so ON so.id = so_det.id_so
-                            LEFT JOIN act_costing ON act_costing.id = so.id_cost
-                            LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts.created_by
-                            LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
-                            LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                        (
+                                -- IN
+                                SELECT
+                                        output_rfts.so_det_id,
+                                        output_rfts.created_by,
+                                        output_secondary_in.secondary_id,
+                                        COUNT( DISTINCT CASE WHEN output_secondary_out.id IS NULL THEN output_secondary_in.id END ) AS wip,
+                                        COUNT( DISTINCT output_secondary_in.id ) AS 'in',
+                                        0 AS defect,
+                                        0 AS rework,
+                                        0 AS reject,
+                                        0 AS output
+                                FROM
+                                        output_secondary_in
+                                        LEFT JOIN output_secondary_out on output_secondary_out.secondary_in_id = output_secondary_in.id
+                                        LEFT JOIN output_rfts ON output_rfts.id = output_secondary_in.rft_id
+                                WHERE
+                                        output_secondary_in.updated_at BETWEEN ? and ?
+                                        AND output_rfts.id is not null
+                                GROUP BY
+                                        output_secondary_in.secondary_id,
+                                        output_rfts.so_det_id,
+                                        output_rfts.created_by
+                                UNION ALL
+
+                                -- DEFECT
+                                SELECT
+                                        output_rfts.so_det_id,
+                                        output_rfts.created_by,
+                                        output_secondary_in.secondary_id,
+                                        0 AS wip,
+                                        0 AS 'in',
+                                        COUNT( DISTINCT output_secondary_out_defect.id ) AS defect,
+                                        0 AS rework,
+                                        0 AS reject,
+                                        0 AS output
+                                FROM
+                                        output_secondary_out_defect
+                                        LEFT JOIN output_secondary_out ON output_secondary_out.id = output_secondary_out_defect.secondary_out_id
+                                        LEFT JOIN output_secondary_in ON output_secondary_in.id = output_secondary_out.secondary_in_id
+                                        LEFT JOIN output_rfts ON output_rfts.id = output_secondary_in.rft_id
+                                WHERE
+                                        output_secondary_out_defect.created_at BETWEEN ? and ?
+                                        AND output_rfts.id is not null
+                                GROUP BY
+                                        output_secondary_in.secondary_id,
+                                        output_rfts.so_det_id,
+                                        output_rfts.created_by
+                                UNION ALL
+
+                                -- REWORK
+                                SELECT
+                                        output_rfts.so_det_id,
+                                        output_rfts.created_by,
+                                        output_secondary_in.secondary_id,
+                                        0 AS wip,
+                                        0 AS 'in',
+                                        0 AS defect,
+                                        COUNT( DISTINCT output_secondary_out_defect.id ) AS rework,
+                                        0 AS reject,
+                                        0 AS output
+                                FROM
+                                        output_secondary_out_defect
+                                        LEFT JOIN output_secondary_out ON output_secondary_out.id = output_secondary_out_defect.secondary_out_id
+                                        LEFT JOIN output_secondary_in ON output_secondary_in.id = output_secondary_out.secondary_in_id
+                                        LEFT JOIN output_rfts ON output_rfts.id = output_secondary_in.rft_id
+                                WHERE
+                                        output_secondary_out_defect.updated_at BETWEEN ? and ?
+                                        AND output_secondary_out_defect.`status` = 'reworked'
+                                        AND output_rfts.id is not null
+                                GROUP BY
+                                        output_secondary_in.secondary_id,
+                                        output_rfts.so_det_id,
+                                        output_rfts.created_by
+                                UNION ALL
+
+                                -- REJECT
+                                SELECT
+                                        output_rfts.so_det_id,
+                                        output_rfts.created_by,
+                                        output_secondary_in.secondary_id,
+                                        0 AS wip,
+                                        0 AS 'in',
+                                        0 AS defect,
+                                        0 AS rework,
+                                        COUNT( DISTINCT output_secondary_out_reject.id ) AS reject,
+                                        0 AS output
+                                FROM
+                                        output_secondary_out_reject
+                                        LEFT JOIN output_secondary_out ON output_secondary_out.id = output_secondary_out_reject.secondary_out_id
+                                        LEFT JOIN output_secondary_in ON output_secondary_in.id = output_secondary_out.secondary_in_id
+                                        LEFT JOIN output_rfts ON output_rfts.id = output_secondary_in.rft_id
+                                WHERE
+                                        output_secondary_out.updated_at BETWEEN ? and ?
+                                        AND output_rfts.id is not null
+                                GROUP BY
+                                        output_secondary_in.secondary_id,
+                                        output_rfts.so_det_id,
+                                        output_rfts.created_by
+                                UNION ALL
+
+                                -- OUTPUT RFT & REWORK
+                                SELECT
+                                        output_rfts.so_det_id,
+                                        output_rfts.created_by,
+                                        output_secondary_in.secondary_id,
+                                        0 AS wip,
+                                        0 AS 'in',
+                                        0 AS defect,
+                                        0 AS rework,
+                                        0 AS reject,
+                                        COUNT(output_rfts.id) AS output
+                                FROM
+                                        output_secondary_out
+                                        LEFT JOIN output_secondary_in ON output_secondary_in.id = output_secondary_out.secondary_in_id
+                                        LEFT JOIN output_rfts ON output_rfts.id = output_secondary_in.rft_id
+                                WHERE
+                                        output_secondary_out.updated_at BETWEEN ? and ?
+                                        AND output_rfts.id is not null
+                                        AND output_secondary_out.`status` = 'rft'
+                                GROUP BY
+                                        output_secondary_in.secondary_id,
+                                        output_rfts.so_det_id,
+                                        output_rfts.created_by
+
+                        ) secondary_process
+                        LEFT JOIN output_secondary_master ON output_secondary_master.id = secondary_process.secondary_id
+                        LEFT JOIN so_det ON so_det.id = secondary_process.so_det_id
+                        LEFT JOIN so ON so.id = so_det.id_so
+                        LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                        LEFT JOIN user_sb_wip ON user_sb_wip.id = secondary_process.created_by
+                        LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                        LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
                         WHERE
-                            output_secondary_in.updated_at BETWEEN ? AND ?
-                            AND output_secondary_master.secondary = ?
-                            AND output_rfts.id is not null
-                        GROUP BY
-                            output_secondary_master.secondary,
-                            userpassword.username,
-                            act_costing.kpno,
-                            act_costing.styleno,
-                            so_det.color,
-                            so_det.size
+                            output_secondary_master.secondary = ?
+                        group by
+                            proses,
+                            line,
+                            no_ws,
+                            style,
+                            color,
+                            size
                     ", [
-                        $start, $end, $request->proses
+                        $start, $end,
+                        $start, $end,
+                        $start, $end,
+                        $start, $end,
+                        $start, $end,
+                        $request->proses
                     ]);
                 }else{
-                    $rawData = DB::connection('mysql_sb')->select("
-                        SELECT
+                    $rawData = DB::connection('mysql_sb')->select("SELECT
                             output_secondary_master.secondary AS proses,
                             userpassword.username AS line,
                             mastersupplier.supplier AS buyer,
@@ -75,35 +199,159 @@ class ReportFinishingProsesController extends Controller
                             act_costing.styleno AS style,
                             so_det.color,
                             so_det.size,
-                            COUNT( DISTINCT CASE WHEN NOT EXISTS ( SELECT 1 FROM output_secondary_out oso_check WHERE oso_check.secondary_in_id = output_secondary_in.id ) THEN output_secondary_in.id END ) AS wip,
-                            COUNT( DISTINCT output_secondary_in.id ) AS 'in',
-                            COUNT( DISTINCT CASE WHEN output_secondary_out.STATUS = 'defect' THEN output_secondary_out.id END ) AS defect,
-                            COUNT( DISTINCT CASE WHEN output_secondary_out.STATUS = 'rework' THEN output_secondary_out.id END ) AS rework,
-                            COUNT( DISTINCT CASE WHEN output_secondary_out.STATUS = 'reject' THEN output_secondary_out.id END ) AS reject,
-                            COUNT( DISTINCT CASE WHEN output_secondary_out.STATUS = 'rft' THEN output_secondary_out.id END ) AS output
+                            SUM(wip) wip,
+                            SUM(`in`) `in`,
+                            SUM(defect) defect,
+                            SUM(rework) rework,
+                            SUM(reject) reject,
+                            SUM(output) + SUM(rework) output
                         FROM
-                            output_secondary_master
-                            LEFT JOIN output_secondary_in ON output_secondary_in.secondary_id = output_secondary_master.id
-                            LEFT JOIN output_secondary_out ON output_secondary_out.secondary_in_id = output_secondary_in.id
-                            LEFT JOIN output_rfts ON output_rfts.id = output_secondary_in.rft_id
-                            LEFT JOIN so_det ON so_det.id = output_rfts.so_det_id
-                            LEFT JOIN so ON so.id = so_det.id_so
-                            LEFT JOIN act_costing ON act_costing.id = so.id_cost
-                            LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts.created_by
-                            LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
-                            LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
-                        WHERE
-                            output_secondary_in.updated_at BETWEEN ? AND ?
-                            AND output_rfts.id is not null
-                        GROUP BY
-                            output_secondary_master.secondary,
-                            userpassword.username,
-                            act_costing.kpno,
-                            act_costing.styleno,
-                            so_det.color,
-                            so_det.size
+                        (
+                                -- IN
+                                SELECT
+                                        output_rfts.so_det_id,
+                                        output_rfts.created_by,
+                                        output_secondary_in.secondary_id,
+                                        COUNT( DISTINCT CASE WHEN output_secondary_out.id IS NULL THEN output_secondary_in.id END ) AS wip,
+                                        COUNT( DISTINCT output_secondary_in.id ) AS 'in',
+                                        0 AS defect,
+                                        0 AS rework,
+                                        0 AS reject,
+                                        0 AS output
+                                FROM
+                                        output_secondary_in
+                                        LEFT JOIN output_secondary_out on output_secondary_out.secondary_in_id = output_secondary_in.id
+                                        LEFT JOIN output_rfts ON output_rfts.id = output_secondary_in.rft_id
+                                WHERE
+                                        output_secondary_in.updated_at BETWEEN ? and ?
+                                        AND output_rfts.id is not null
+                                GROUP BY
+                                        output_secondary_in.secondary_id,
+                                        output_rfts.so_det_id,
+                                        output_rfts.created_by
+                                UNION ALL
+
+                                -- DEFECT
+                                SELECT
+                                        output_rfts.so_det_id,
+                                        output_rfts.created_by,
+                                        output_secondary_in.secondary_id,
+                                        0 AS wip,
+                                        0 AS 'in',
+                                        COUNT( DISTINCT output_secondary_out_defect.id ) AS defect,
+                                        0 AS rework,
+                                        0 AS reject,
+                                        0 AS output
+                                FROM
+                                        output_secondary_out_defect
+                                        LEFT JOIN output_secondary_out ON output_secondary_out.id = output_secondary_out_defect.secondary_out_id
+                                        LEFT JOIN output_secondary_in ON output_secondary_in.id = output_secondary_out.secondary_in_id
+                                        LEFT JOIN output_rfts ON output_rfts.id = output_secondary_in.rft_id
+                                WHERE
+                                        output_secondary_out_defect.created_at BETWEEN ? and ?
+                                        AND output_rfts.id is not null
+                                GROUP BY
+                                        output_secondary_in.secondary_id,
+                                        output_rfts.so_det_id,
+                                        output_rfts.created_by
+                                UNION ALL
+
+                                -- REWORK
+                                SELECT
+                                        output_rfts.so_det_id,
+                                        output_rfts.created_by,
+                                        output_secondary_in.secondary_id,
+                                        0 AS wip,
+                                        0 AS 'in',
+                                        0 AS defect,
+                                        COUNT( DISTINCT output_secondary_out_defect.id ) AS rework,
+                                        0 AS reject,
+                                        0 AS output
+                                FROM
+                                        output_secondary_out_defect
+                                        LEFT JOIN output_secondary_out ON output_secondary_out.id = output_secondary_out_defect.secondary_out_id
+                                        LEFT JOIN output_secondary_in ON output_secondary_in.id = output_secondary_out.secondary_in_id
+                                        LEFT JOIN output_rfts ON output_rfts.id = output_secondary_in.rft_id
+                                WHERE
+                                        output_secondary_out_defect.updated_at BETWEEN ? and ?
+                                        AND output_secondary_out_defect.`status` = 'reworked'
+                                        AND output_rfts.id is not null
+                                GROUP BY
+                                        output_secondary_in.secondary_id,
+                                        output_rfts.so_det_id,
+                                        output_rfts.created_by
+                                UNION ALL
+
+                                -- REJECT
+                                SELECT
+                                        output_rfts.so_det_id,
+                                        output_rfts.created_by,
+                                        output_secondary_in.secondary_id,
+                                        0 AS wip,
+                                        0 AS 'in',
+                                        0 AS defect,
+                                        0 AS rework,
+                                        COUNT( DISTINCT output_secondary_out_reject.id ) AS reject,
+                                        0 AS output
+                                FROM
+                                        output_secondary_out_reject
+                                        LEFT JOIN output_secondary_out ON output_secondary_out.id = output_secondary_out_reject.secondary_out_id
+                                        LEFT JOIN output_secondary_in ON output_secondary_in.id = output_secondary_out.secondary_in_id
+                                        LEFT JOIN output_rfts ON output_rfts.id = output_secondary_in.rft_id
+                                WHERE
+                                        output_secondary_out.updated_at BETWEEN ? and ?
+                                        AND output_rfts.id is not null
+                                GROUP BY
+                                        output_secondary_in.secondary_id,
+                                        output_rfts.so_det_id,
+                                        output_rfts.created_by
+                                UNION ALL
+
+                                -- OUTPUT RFT & REWORK
+                                SELECT
+                                        output_rfts.so_det_id,
+                                        output_rfts.created_by,
+                                        output_secondary_in.secondary_id,
+                                        0 AS wip,
+                                        0 AS 'in',
+                                        0 AS defect,
+                                        0 AS rework,
+                                        0 AS reject,
+                                        COUNT(output_rfts.id) AS output
+                                FROM
+                                        output_secondary_out
+                                        LEFT JOIN output_secondary_in ON output_secondary_in.id = output_secondary_out.secondary_in_id
+                                        LEFT JOIN output_rfts ON output_rfts.id = output_secondary_in.rft_id
+                                WHERE
+                                        output_secondary_out.updated_at BETWEEN ? and ?
+                                        AND output_rfts.id is not null
+                                        AND output_secondary_out.`status` = 'rft'
+                                GROUP BY
+                                        output_secondary_in.secondary_id,
+                                        output_rfts.so_det_id,
+                                        output_rfts.created_by
+
+                        ) secondary_process
+                        LEFT JOIN output_secondary_master ON output_secondary_master.id = secondary_process.secondary_id
+                        LEFT JOIN so_det ON so_det.id = secondary_process.so_det_id
+                        LEFT JOIN so ON so.id = so_det.id_so
+                        LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                        LEFT JOIN user_sb_wip ON user_sb_wip.id = secondary_process.created_by
+                        LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id
+                        LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                        group by
+                            proses,
+                            line,
+                            no_ws,
+                            style,
+                            color,
+                            size
                     ", [
-                        $start, $end
+                        $start, $end,
+                        $start, $end,
+                        $start, $end,
+                        $start, $end,
+                        $start, $end,
                     ]);
                 }
 

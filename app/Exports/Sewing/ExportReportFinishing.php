@@ -13,7 +13,7 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-class ExportReportFinishing implements FromView, ShouldAutoSize, WithEvents, WithColumnFormatting
+class ExportReportFinishing implements FromView, ShouldAutoSize, WithEvents
 {
     use Exportable;
     protected $tglAwal, $tglAkhir, $kategori, $buyer, $rowCount;
@@ -251,6 +251,8 @@ class ExportReportFinishing implements FromView, ShouldAutoSize, WithEvents, Wit
             ->when($buyer, function ($query) use ($buyer) {
                 return $query->where('results.buyer', $buyer);
             })->get();
+        } else {
+            $data = DB::table(DB::raw("(SELECT 1 as dummy) as results"))->whereRaw('1 = 0')->get();
         }
 
         $this->rowCount = count($data) + 5; // 1 for header
@@ -264,12 +266,12 @@ class ExportReportFinishing implements FromView, ShouldAutoSize, WithEvents, Wit
         ]);
     }
 
-    public function columnFormats(): array
-    {
-        return [
-            'F' => NumberFormat::FORMAT_NUMBER_00,
-        ];
-    }
+    // public function columnFormats(): array
+    // {
+    //     return [
+    //         'F' => NumberFormat::FORMAT_NUMBER_00,
+    //     ];
+    // }
 
     public function registerEvents(): array
     {
