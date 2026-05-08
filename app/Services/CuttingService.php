@@ -489,9 +489,11 @@ class CuttingService
         if ($rollId) {
             $additionalQuery = "WHERE si.id_roll = '".$rollId."'";
             $additionalQuerySub = " and id_roll = '".$rollId."'";
+            $additionalQuerySubGr = " and barcode = '".$rollId."'";
         } else {
             $additionalQuery = "WHERE si.qty != sub.sisa_kain";
             $additionalQuerySub = "";
+            $additionalQuerySubGr = "";
         }
 
         // Roll Query
@@ -527,6 +529,18 @@ class CuttingService
                 FROM form_cut_piping
                 WHERE id_roll IS NOT NULL ".$additionalQuerySub."
             ),
+            latest_gr_panel AS (
+                SELECT
+                    barcode AS id_roll,
+                    sisa_kain,
+                    COALESCE(created_at, updated_at) AS ts,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY barcode
+                        ORDER BY COALESCE(created_at, updated_at) DESC
+                    ) AS rn
+                FROM form_cut_alokasi_gr_panel_barcode
+                WHERE barcode IS NOT NULL ".$additionalQuerySubGr."
+            ),
             agg AS (
                     SELECT id_roll, MAX(max_qty) max_qty, SUM(total_pakai_qty) total_pakai_qty FROM (
                         SELECT
@@ -546,6 +560,16 @@ class CuttingService
                         FROM form_cut_piping
                         WHERE id_roll IS NOT NULL ".$additionalQuerySub."
                         GROUP BY id_roll
+
+                        UNION ALL
+
+                        SELECT
+                                barcode AS id_roll,
+                                MAX(qty_roll) AS max_qty,
+                                SUM(qty_pakai) AS total_pakai_qty
+                        FROM form_cut_alokasi_gr_panel_barcode
+                        WHERE barcode IS NOT NULL ".$additionalQuerySubGr."
+                        GROUP BY barcode
                     ) form
                     group by id_roll
             ),
@@ -553,6 +577,8 @@ class CuttingService
                 SELECT id_roll, sisa_kain, ts FROM latest_input WHERE rn = 1
                 UNION ALL
                 SELECT id_roll, sisa_kain, ts FROM latest_piping WHERE rn = 1
+                UNION ALL
+                SELECT id_roll, sisa_kain, ts FROM latest_gr_panel WHERE rn = 1
             ),
             latest_sisa_overall AS (
                 SELECT id_roll, sisa_kain
@@ -646,6 +672,15 @@ class CuttingService
                                 created_at AS ts
                             FROM form_cut_piping
                             WHERE id_roll IS NOT NULL
+
+                            UNION ALL
+
+                            SELECT
+                                barcode AS id_roll,
+                                sisa_kain,
+                                COALESCE(created_at, updated_at) AS ts
+                            FROM form_cut_alokasi_gr_panel_barcode
+                            WHERE barcode IS NOT NULL
                         ) cand
                         JOIN (
                             SELECT id_roll, MAX(ts) AS ts
@@ -659,6 +694,12 @@ class CuttingService
                                 SELECT id_roll, created_at AS ts
                                 FROM form_cut_piping
                                 WHERE id_roll IS NOT NULL
+
+                                UNION ALL
+
+                                SELECT barcode AS id_roll, COALESCE(created_at, updated_at) AS ts
+                                FROM form_cut_alokasi_gr_panel_barcode
+                                WHERE barcode IS NOT NULL
                             ) all_ts
                             GROUP BY id_roll
                         ) last_ts ON cand.id_roll = last_ts.id_roll
@@ -702,6 +743,15 @@ class CuttingService
                                 created_at AS ts
                             FROM form_cut_piping
                             WHERE id_roll IS NOT NULL
+
+                            UNION ALL
+
+                            SELECT
+                                barcode AS id_roll,
+                                sisa_kain,
+                                COALESCE(created_at, updated_at) AS ts
+                            FROM form_cut_alokasi_gr_panel_barcode
+                            WHERE barcode IS NOT NULL
                         ) cand
                         JOIN (
                             SELECT id_roll, MAX(ts) AS ts
@@ -715,6 +765,12 @@ class CuttingService
                                 SELECT id_roll, created_at AS ts
                                 FROM form_cut_piping
                                 WHERE id_roll IS NOT NULL
+
+                                UNION ALL
+
+                                SELECT barcode AS id_roll, COALESCE(created_at, updated_at) AS ts
+                                FROM form_cut_alokasi_gr_panel_barcode
+                                WHERE barcode IS NOT NULL
                             ) all_ts
                             GROUP BY id_roll
                         ) last_ts ON cand.id_roll = last_ts.id_roll
