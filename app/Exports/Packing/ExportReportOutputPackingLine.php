@@ -16,12 +16,13 @@ use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 class ExportReportOutputPackingLine implements FromView, ShouldAutoSize, WithEvents
 {
     use Exportable;
-    protected $tglAwal, $tglAkhir, $buyer, $rowCount;
+    protected $tglAwal, $tglAkhir, $tipe, $buyer, $rowCount;
 
-    public function __construct($tglAwal, $tglAkhir, $buyer)
+    public function __construct($tglAwal, $tglAkhir, $tipe, $buyer)
     {
         $this->tglAwal = $tglAwal;
         $this->tglAkhir = $tglAkhir;
+        $this->tipe = $tipe;
         $this->buyer = $buyer;
     }
 
@@ -29,47 +30,57 @@ class ExportReportOutputPackingLine implements FromView, ShouldAutoSize, WithEve
     {
         $tglAwal = $this->tglAwal;
         $tglAkhir = $this->tglAkhir;
+        $tipe = strtolower($this->tipe);
         $buyer = $this->buyer;
 
-        $data = DB::table(DB::raw("
-            (
-                SELECT
-                    so_det_id,
-                    mb.buyer,
-                    mb.ws,
-                    mb.styleno,
-                    mb.color,
-                    mb.size,
-                    DATE(created_at) AS tgl,
-                    COUNT(*) AS jumlah
-                FROM signalbit_erp.output_rfts_packing_po a
-                INNER JOIN signalbit_erp.master_plan mp ON a.master_plan_id = mp.id
-                LEFT JOIN (
+        if($tipe != ''){
+            $data = DB::table(DB::raw("
+                (
                     SELECT
-                    sd.id as id_so_det,
-                    ac.kpno as ws,
-                    supplier as buyer,
-                    styleno,
-                    color,
-                    size,
-                    dest
-                    FROM signalbit_erp.so_det sd
-                    INNER JOIN signalbit_erp.so ON sd.id_so = so.id
-                    INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
-                    INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-                    INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                    WHERE jd.cancel = 'N'
-                ) mb on a.so_det_id = mb.id_so_det
-                WHERE
-                    created_at >= '{$tglAwal} 00:00:00'
-                    AND created_at <= '{$tglAkhir} 23:59:59'
-                    AND mp.cancel = 'N'
-                GROUP BY so_det_id, DATE(created_at)
-            ) as results
-        "))
-        ->when($buyer, function ($query) use ($buyer) {
-            return $query->where('results.buyer', $buyer);
-        })->get();
+                        so_det_id,
+                        mb.buyer,
+                        mb.ws,
+                        mb.styleno,
+                        mb.color,
+                        mb.size,
+                        a.type,
+                        DATE(created_at) AS tgl,
+                        COUNT(*) AS jumlah
+                    FROM signalbit_erp.output_rfts_packing_po a
+                    INNER JOIN signalbit_erp.master_plan mp ON a.master_plan_id = mp.id
+                    LEFT JOIN (
+                        SELECT
+                        sd.id as id_so_det,
+                        ac.kpno as ws,
+                        supplier as buyer,
+                        styleno,
+                        color,
+                        size,
+                        dest
+                        FROM signalbit_erp.so_det sd
+                        INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+                        INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
+                        INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                        INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+                        WHERE jd.cancel = 'N'
+                    ) mb on a.so_det_id = mb.id_so_det
+                    WHERE
+                        created_at >= '{$tglAwal} 00:00:00'
+                        AND created_at <= '{$tglAkhir} 23:59:59'
+                        AND mp.cancel = 'N'
+                    GROUP BY so_det_id, a.type, DATE(created_at)
+                ) as results
+            "))
+            ->when($tipe, function ($query) use ($tipe) {
+                return $query->where('results.type', $tipe);
+            })
+            ->when($buyer, function ($query) use ($buyer) {
+                return $query->where('results.buyer', $buyer);
+            })->get();
+
+        } else {
+            $data = DB::table(DB::raw("(SELECT 1 as dummy) as results"))->whereRaw('1 = 0')->get();
+        }
 
         $this->rowCount = count($data) + 5; // 1 for header
 
@@ -77,6 +88,7 @@ class ExportReportOutputPackingLine implements FromView, ShouldAutoSize, WithEve
             'data' => $data,
             'startDate' => $tglAwal,
             'endDate' => $tglAkhir,
+            'tipe' => $this->tipe,
             'buyer' => $buyer
         ]);
     }
@@ -102,7 +114,7 @@ class ExportReportOutputPackingLine implements FromView, ShouldAutoSize, WithEve
                 for ($i = 1; $i <= $columnIndex; $i++) {
                     $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
 
-                    foreach ([5] as $row) {
+                    foreach ([6] as $row) {
                         $cell = $colLetter . $row;
 
                         $sheet->getStyle($cell)->applyFromArray([
@@ -122,7 +134,7 @@ class ExportReportOutputPackingLine implements FromView, ShouldAutoSize, WithEve
                     }
                 }
                 // ===== 3. Apply border to whole table =====
-                $range = 'A5:' . $highestColumn . $highestRow;
+                $range = 'A6:' . $highestColumn . $highestRow;
                 $sheet->getStyle($range)->applyFromArray([
                     'borders' => [
                         'allBorders' => [
