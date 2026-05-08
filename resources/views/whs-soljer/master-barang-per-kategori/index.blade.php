@@ -592,7 +592,7 @@
                             let btnDetail = `
                                 <button 
                                     class="btn btn-primary btn-sm btn-detail"
-                                    data-barcode="${row.barcode}"
+                                    data-barcode="${row.id}"
                                 >
                                     <i class="fa-solid fa-list"></i>
                                 </button>

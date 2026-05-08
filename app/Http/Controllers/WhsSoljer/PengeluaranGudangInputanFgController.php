@@ -148,24 +148,27 @@ class PengeluaranGudangInputanFgController extends Controller
 
             $items = json_decode($request->items, true);
             foreach ($items as $row) {
-                PengeluaranGudangInputanFgDetail::create([
-                    'pengeluaran_gudang_inputan_fg_id' => $header->id,
-                    'barcode'                          => $row['barcode'],
-                    'qty_act'                          => $row['qty'],
-                    'qty_out'                          => $row['qty_out'],
-                    "created_by"                       => $user ? $user->id : null,
-                    "created_by_username"              => $user ? $user->username : null,
-                    "created_at"                       => $now,
+                $dataDetail = PengeluaranGudangInputanFgDetail::create([
+                    'pengeluaran_gudang_inputan_fg_id'       => $header->id,
+                    'penerimaan_gudang_inputan_fg_detail_id' => $row['penerimaan_gudang_inputan_fg_detail_id'],
+                    'barcode'                                => $row['barcode'],
+                    'qty_act'                                => $row['qty'],
+                    'qty_out'                                => $row['qty_out'],
+                    "created_by"                             => $user ? $user->id : null,
+                    "created_by_username"                    => $user ? $user->username : null,
+                    "created_at"                             => $now,
                 ]);
 
                 PengeluaranGudangInputanFgHistory::create([
-                    'pengeluaran_gudang_inputan_fg_id' => $header->id,
-                    'barcode'                          => $row['barcode'],
-                    'qty_act'                          => $row['qty'],
-                    'qty_out'                          => $row['qty_out'],
-                    "created_by"                       => $user ? $user->id : null,
-                    "created_by_username"              => $user ? $user->username : null,
-                    "created_at"                       => $now,
+                    'pengeluaran_gudang_inputan_fg_id'        => $header->id,
+                    'pengeluaran_gudang_inputan_fg_detail_id' => $dataDetail->id,
+                    'penerimaan_gudang_inputan_fg_detail_id'  => $row['penerimaan_gudang_inputan_fg_detail_id'],
+                    'barcode'                                 => $row['barcode'],
+                    'qty_act'                                 => $row['qty'],
+                    'qty_out'                                 => $row['qty_out'],
+                    "created_by"                              => $user ? $user->id : null,
+                    "created_by_username"                     => $user ? $user->username : null,
+                    "created_at"                              => $now,
                 ]);
             }
 
@@ -216,7 +219,7 @@ class PengeluaranGudangInputanFgController extends Controller
             penerimaan_gudang_inputan_fg_detail.lokasi,
             pengeluaran_gudang_inputan_fg_detail.qty_out
         ")
-        ->lefTJoin("penerimaan_gudang_inputan_fg_detail", "penerimaan_gudang_inputan_fg_detail.barcode", "=", "pengeluaran_gudang_inputan_fg_detail.barcode")
+        ->lefTJoin("penerimaan_gudang_inputan_fg_detail", "penerimaan_gudang_inputan_fg_detail.id", "=", "pengeluaran_gudang_inputan_fg_detail.penerimaan_gudang_inputan_fg_detail_id")
         ->where("pengeluaran_gudang_inputan_fg_id", $id)
         ->get();
 
@@ -256,6 +259,7 @@ class PengeluaranGudangInputanFgController extends Controller
             $deletedIds = array_diff($existingIds, $submittedIds);
 
             if (!empty($deletedIds)) {
+                PengeluaranGudangInputanFgHistory::whereIn('pengeluaran_gudang_inputan_fg_detail_id', $deletedIds)->delete();
                 PengeluaranGudangInputanFgDetail::whereIn('id', $deletedIds)->delete();
             }
 
@@ -268,13 +272,14 @@ class PengeluaranGudangInputanFgController extends Controller
 
                 if ($oldQty != $newQty) {
                     PengeluaranGudangInputanFgHistory::create([
-                        'pengeluaran_gudang_inputan_fg_id' => $dataDetail->pengeluaran_gudang_inputan_fg_id,
-                        'barcode'                          => $dataDetail->barcode,
-                        'qty_act'                          => $dataDetail->qty_act,
-                        'qty_out'                          => $row['qty_out'],
-                        "created_by"                       => $user ? $user->id : null,
-                        "created_by_username"              => $user ? $user->username : null,
-                        "created_at"                       => $now,
+                        'pengeluaran_gudang_inputan_fg_id'       => $dataDetail->pengeluaran_gudang_inputan_fg_id,
+                        'penerimaan_gudang_inputan_fg_detail_id' => $dataDetail->penerimaan_gudang_inputan_fg_detail_id,
+                        'barcode'                                => $dataDetail->barcode,
+                        'qty_act'                                => $dataDetail->qty_act,
+                        'qty_out'                                => $row['qty_out'],
+                        "created_by"                             => $user ? $user->id : null,
+                        "created_by_username"                    => $user ? $user->username : null,
+                        "created_at"                             => $now,
                     ]);
 
                     PengeluaranGudangInputanFgDetail::where('id', $row['id'])
@@ -365,6 +370,7 @@ class PengeluaranGudangInputanFgController extends Controller
         ->first();
 
         $dataDetail = PengeluaranGudangInputanFgDetail::selectRaw('
+            penerimaan_gudang_inputan_fg_detail.no_koli,
             penerimaan_gudang_inputan_fg_detail.buyer,
             penerimaan_gudang_inputan_fg_detail.no_ws,
             penerimaan_gudang_inputan_fg_detail.style,
@@ -394,29 +400,61 @@ class PengeluaranGudangInputanFgController extends Controller
     public function getDataBarcode(Request $request)
     {
         $data = PenerimaanGudangInputanFgDetail::select("penerimaan_gudang_inputan_fg_detail.*")
-            ->leftJoin("penerimaan_gudang_inputan_fg", "penerimaan_gudang_inputan_fg.id", "=", "penerimaan_gudang_inputan_fg_detail.penerimaan_gudang_inputan_fg_id")
+            ->leftJoin(
+                "penerimaan_gudang_inputan_fg",
+                "penerimaan_gudang_inputan_fg.id",
+                "=",
+                "penerimaan_gudang_inputan_fg_detail.penerimaan_gudang_inputan_fg_id"
+            )
             ->where('penerimaan_gudang_inputan_fg_detail.barcode', $request->barcode)
             ->where('penerimaan_gudang_inputan_fg.cancel', 0)
-            ->first();
+            ->get();
 
-        if (!$data) {
+        if ($data->isEmpty()) {
             return response()->json(['status' => 404]);
         }
 
-        $qty_out = PengeluaranGudangInputanFgDetail::selectRaw('COALESCE(SUM(pengeluaran_gudang_inputan_fg_detail.qty_out),0) as total')
-            ->leftJoin(
-                'pengeluaran_gudang_inputan_fg',
-                'pengeluaran_gudang_inputan_fg.id',
-                '=',
-                'pengeluaran_gudang_inputan_fg_detail.pengeluaran_gudang_inputan_fg_id'
-            )
-            ->where('pengeluaran_gudang_inputan_fg_detail.barcode', $request->barcode)
-            ->where('pengeluaran_gudang_inputan_fg.cancel', 0)
-            ->value('total');
+        $result = [];
 
-        $qty_sisa = max(0, $data->qty - $qty_out);
+        foreach ($data as $item) {
 
-        if ($qty_sisa <= 0) {
+            $qty_out = PengeluaranGudangInputanFgDetail::selectRaw('COALESCE(SUM(pengeluaran_gudang_inputan_fg_detail.qty_out),0) as total')
+                ->leftJoin(
+                    'pengeluaran_gudang_inputan_fg',
+                    'pengeluaran_gudang_inputan_fg.id',
+                    '=',
+                    'pengeluaran_gudang_inputan_fg_detail.pengeluaran_gudang_inputan_fg_id'
+                )
+                ->where('pengeluaran_gudang_inputan_fg_detail.penerimaan_gudang_inputan_fg_detail_id', $item->id)
+                ->where('pengeluaran_gudang_inputan_fg.cancel', 0)
+                ->value('total');
+
+            $qty_sisa = max(0, $item->qty - $qty_out);
+
+            // skip kalau sudah habis
+            if ($qty_sisa <= 0) {
+                continue;
+            }
+
+            $result[] = [
+                'id'            => $item->id,
+                'barcode'       => $item->barcode,
+                'no_koli'       => $item->no_koli,
+                'buyer'         => $item->buyer,
+                'no_ws'         => $item->no_ws,
+                'style'         => $item->style,
+                'product_item'  => $item->product_item,
+                'warna'         => $item->warna,
+                'size'          => $item->size,
+                'grade'         => $item->grade,
+                'qty'           => $qty_sisa,
+                'satuan'        => $item->satuan,
+                'lokasi'        => $item->lokasi,
+                'keterangan'    => $item->keterangan,
+            ];
+        }
+
+        if (empty($result)) {
             return response()->json([
                 'status' => 400,
                 'message' => 'Stok sudah habis'
@@ -424,20 +462,8 @@ class PengeluaranGudangInputanFgController extends Controller
         }
 
         return response()->json([
-            'id' => $data->id,
-            'barcode' => $data->barcode,
-            'no_koli' => $data->no_koli,
-            'buyer' => $data->buyer,
-            'no_ws' => $data->no_ws,
-            'style' => $data->style,
-            'product_item' => $data->product_item,
-            'warna' => $data->warna,
-            'size' => $data->size,
-            'grade' => $data->grade,
-            'qty' => $qty_sisa,
-            'satuan' => $data->satuan,
-            'lokasi' => $data->lokasi,
-            'keterangan' => $data->keterangan,
+            'status' => 200,
+            'data' => $result
         ]);
     }
 }

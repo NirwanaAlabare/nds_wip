@@ -217,6 +217,7 @@ class MasterBarangHistoryPerKategoriExport implements FromView, ShouldAutoSize, 
             $data = DB::table(DB::raw("
                 (
                     SELECT 
+                        penerimaan.id,
                         penerimaan.barcode,
                         penerimaan.no_koli,
                         penerimaan.buyer,
@@ -234,15 +235,16 @@ class MasterBarangHistoryPerKategoriExport implements FromView, ShouldAutoSize, 
                     LEFT JOIN penerimaan_gudang_inputan_fg h ON h.id = penerimaan.penerimaan_gudang_inputan_fg_id
                     LEFT JOIN (
                         SELECT 
+                            penerimaan_gudang_inputan_fg_detail_id,
                             barcode,
                             SUM(qty_out) AS total_keluar
                         FROM pengeluaran_gudang_inputan_fg_detail
                         LEFT JOIN pengeluaran_gudang_inputan_fg ON pengeluaran_gudang_inputan_fg.id = pengeluaran_gudang_inputan_fg_detail.pengeluaran_gudang_inputan_fg_id
                         WHERE pengeluaran_gudang_inputan_fg.cancel = '0'
-                        GROUP BY barcode
+                        GROUP BY penerimaan_gudang_inputan_fg_detail_id, barcode
                     ) pengeluaran 
-                    ON pengeluaran.barcode = penerimaan.barcode
-                    WHERE penerimaan.barcode = '{$this->barcode}' AND h.cancel = '0'
+                    ON pengeluaran.penerimaan_gudang_inputan_fg_detail_id = penerimaan.id
+                    WHERE penerimaan.id = '{$this->barcode}' AND h.cancel = '0'
                 ) as results
             "))->get();
 
@@ -268,7 +270,7 @@ class MasterBarangHistoryPerKategoriExport implements FromView, ShouldAutoSize, 
                     FROM
                         penerimaan_gudang_inputan_fg
                     LEFT JOIN penerimaan_gudang_inputan_fg_history ON penerimaan_gudang_inputan_fg_history.penerimaan_gudang_inputan_fg_id = penerimaan_gudang_inputan_fg.id
-                    WHERE barcode = '{$this->barcode}' AND penerimaan_gudang_inputan_fg.cancel = '0'
+                    WHERE penerimaan_gudang_inputan_fg_detail_id = '{$this->barcode}' AND penerimaan_gudang_inputan_fg.cancel = '0'
 
                     UNION ALL
 
@@ -292,8 +294,8 @@ class MasterBarangHistoryPerKategoriExport implements FromView, ShouldAutoSize, 
                     FROM
                         pengeluaran_gudang_inputan_fg
                     LEFT JOIN pengeluaran_gudang_inputan_fg_history ON pengeluaran_gudang_inputan_fg_history.pengeluaran_gudang_inputan_fg_id = pengeluaran_gudang_inputan_fg.id
-                    LEFT JOIN penerimaan_gudang_inputan_fg_history ON penerimaan_gudang_inputan_fg_history.barcode = pengeluaran_gudang_inputan_fg_history.barcode
-                    WHERE pengeluaran_gudang_inputan_fg_history.barcode = '{$this->barcode}' AND pengeluaran_gudang_inputan_fg.cancel = '0'
+                    LEFT JOIN penerimaan_gudang_inputan_fg_history ON penerimaan_gudang_inputan_fg_history.id = pengeluaran_gudang_inputan_fg_history.penerimaan_gudang_inputan_fg_detail_id
+                    WHERE pengeluaran_gudang_inputan_fg_history.penerimaan_gudang_inputan_fg_detail_id = '{$this->barcode}' AND pengeluaran_gudang_inputan_fg.cancel = '0'
                 ) as results
             "))->get();
 

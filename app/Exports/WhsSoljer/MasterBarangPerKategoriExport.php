@@ -98,6 +98,7 @@ class MasterBarangPerKategoriExport implements FromView, ShouldAutoSize, WithCol
             $data = DB::table(DB::raw("
                 (
                     SELECT 
+                        penerimaan.id,
                         penerimaan.barcode,
                         penerimaan.no_koli,
                         penerimaan.buyer,
@@ -115,14 +116,15 @@ class MasterBarangPerKategoriExport implements FromView, ShouldAutoSize, WithCol
                     LEFT JOIN penerimaan_gudang_inputan_fg h ON h.id = penerimaan.penerimaan_gudang_inputan_fg_id
                     LEFT JOIN (
                         SELECT 
-                            barcode,
-                            SUM(qty_out) AS total_keluar
+                                penerimaan_gudang_inputan_fg_detail_id,
+                                barcode,
+                                SUM(qty_out) AS total_keluar
                         FROM pengeluaran_gudang_inputan_fg_detail
                         LEFT JOIN pengeluaran_gudang_inputan_fg ON pengeluaran_gudang_inputan_fg.id = pengeluaran_gudang_inputan_fg_detail.pengeluaran_gudang_inputan_fg_id
-                        WHERE pengeluaran_gudang_inputan_fg.cancel = '0'
-                        GROUP BY barcode
+                    WHERE pengeluaran_gudang_inputan_fg.cancel = '0'
+                        GROUP BY penerimaan_gudang_inputan_fg_detail_id, barcode
                     ) pengeluaran 
-                    ON pengeluaran.barcode = penerimaan.barcode
+                    ON pengeluaran.penerimaan_gudang_inputan_fg_detail_id = penerimaan.id
                     WHERE h.cancel = '0'
                 ) as results
             "))->get();

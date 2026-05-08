@@ -198,7 +198,6 @@
                             <div class="d-flex gap-1 justify-content-center">
                                 ${btnEdit}
                                 ${btnPrint}
-                                ${btnBarcode}
                                 ${btnDelete}
                             </div>
                         `;
