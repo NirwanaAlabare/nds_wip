@@ -35,18 +35,18 @@ class export_excel_report_return_fabric_cutting implements FromView, ShouldAutoS
         $end_date = $this->end_date;
 
         $rawData = DB::connection('mysql_sb')->select("
-                    SELECT 
+                    SELECT
                         DATE_FORMAT(whs_inmaterial_fabric.tgl_dok, '%d-%m-%Y') AS tanggal_keluar,
                         whs_lokasi_inmaterial.no_barcode,
                         whs_lokasi_inmaterial.qty_aktual,
                         whs_lokasi_inmaterial.satuan,
-                        CASE 
-                            WHEN whs_lokasi_inmaterial.satuan IN ('YRD', 'YARD') 
+                        CASE
+                            WHEN whs_lokasi_inmaterial.satuan IN ('YRD', 'YARD')
                                     THEN ROUND(whs_lokasi_inmaterial.qty_aktual * 0.9144, 2)
                             ELSE whs_lokasi_inmaterial.qty_aktual
                         END AS qty_konv,
-                        CASE 
-                            WHEN whs_lokasi_inmaterial.satuan IN ('YRD', 'YARD') 
+                        CASE
+                            WHEN whs_lokasi_inmaterial.satuan IN ('YRD', 'YARD')
                                     THEN 'METER'
                             ELSE whs_lokasi_inmaterial.satuan
                         END AS satuan_konv,
@@ -64,11 +64,11 @@ class export_excel_report_return_fabric_cutting implements FromView, ShouldAutoS
                         whs_lokasi_inmaterial.no_roll_buyer,
                         whs_lokasi_inmaterial.created_by,
                         whs_lokasi_inmaterial.created_at
-                    FROM 
-                        whs_lokasi_inmaterial 
-                    LEFT JOIN whs_inmaterial_fabric 
+                    FROM
+                        whs_lokasi_inmaterial
+                    LEFT JOIN whs_inmaterial_fabric
                         ON whs_inmaterial_fabric.no_dok = whs_lokasi_inmaterial.no_dok
-                    LEFT JOIN masteritem 
+                    LEFT JOIN masteritem
                         ON masteritem.id_item = whs_lokasi_inmaterial.id_item
                     LEFT JOIN (
                         SELECT
@@ -77,29 +77,30 @@ class export_excel_report_return_fabric_cutting implements FromView, ShouldAutoS
                             ac.styleno,
                             ms.supplier AS buyer
                         FROM act_costing ac
-                        INNER JOIN mastersupplier ms 
+                        INNER JOIN mastersupplier ms
                             ON ms.id_supplier = ac.id_buyer
-                        INNER JOIN so 
+                        INNER JOIN so
                             ON ac.id = so.id_cost
-                        INNER JOIN jo_det jod 
+                        INNER JOIN jo_det jod
                             ON so.id = jod.id_so
                         GROUP BY jod.id_jo, ac.kpno, ac.styleno, ms.supplier
                     ) buyer_ws
                         ON buyer_ws.id_jo = whs_lokasi_inmaterial.id_jo
                     LEFT JOIN (
-                        SELECT 
-                            bppbno, 
-                            idws_act 
-                        FROM bppb_req 
-                        WHERE 
+                        SELECT
+                            bppbno,
+                            idws_act
+                        FROM bppb_req
+                        WHERE
                         bppbno LIKE '%RQ-F%'
                             AND idws_act IS NOT NULL
                         GROUP BY bppbno
-                    ) ws 
+                    ) ws
                         ON ws.bppbno = whs_inmaterial_fabric.no_invoice
-                    WHERE 
+                    WHERE
                         whs_lokasi_inmaterial.no_dok LIKE 'GK/RI%'
-                        AND DATE(whs_inmaterial_fabric.tgl_dok) 
+                        AND whs_inmaterial_fabric.supplier = 'Production - Cutting'
+                        AND DATE(whs_inmaterial_fabric.tgl_dok)
                             BETWEEN ? AND ?
                     ORDER BY whs_lokasi_inmaterial.created_at ASC
 

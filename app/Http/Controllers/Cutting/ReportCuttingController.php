@@ -5950,6 +5950,7 @@ order by a.tgl_trans asc
                         ON ws.bppbno = whs_inmaterial_fabric.no_invoice
                     WHERE
                         whs_lokasi_inmaterial.no_dok LIKE 'GK/RI%'
+                        AND whs_inmaterial_fabric.supplier = 'Production - Cutting'
                         AND DATE(whs_inmaterial_fabric.tgl_dok)
                             BETWEEN ? AND ?
                     ORDER BY whs_lokasi_inmaterial.created_at ASC
