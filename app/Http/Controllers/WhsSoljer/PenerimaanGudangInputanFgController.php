@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\WhsSoljer;
 
 use App\Http\Controllers\Controller;
+use App\Models\WhsSoljer\MasterKoli;
 use App\Models\WhsSoljer\PenerimaanGudangInputanFg;
 use App\Models\WhsSoljer\PenerimaanGudangInputanFgDetail;
 use App\Models\WhsSoljer\PenerimaanGudangInputanFgHistory;
@@ -35,7 +36,7 @@ class PenerimaanGudangInputanFgController extends Controller
                     SELECT 1
                     FROM penerimaan_gudang_inputan_fg_detail d
                     JOIN pengeluaran_gudang_inputan_fg_detail pd 
-                        ON pd.barcode = d.barcode
+                        ON pd.penerimaan_gudang_inputan_fg_detail_id = d.id
                     JOIN pengeluaran_gudang_inputan_fg p 
                         ON p.id = pd.pengeluaran_gudang_inputan_fg_id
                     WHERE d.penerimaan_gudang_inputan_fg_id = penerimaan_gudang_inputan_fg.id
@@ -157,8 +158,8 @@ class PenerimaanGudangInputanFgController extends Controller
         ]);
     }
 
-    public function store(Request $request){
-
+    public function store(Request $request)
+    {
         DB::beginTransaction();
 
         try {
@@ -176,26 +177,12 @@ class PenerimaanGudangInputanFgController extends Controller
 
             $items = json_decode($request->items, true);
 
-            $getLast = DB::selectOne("
-                SELECT 
-                    IF(
-                        MAX(barcode) IS NULL,
-                        1,
-                        MAX(RIGHT(barcode, 5)) + 1
-                    ) AS nomor
-                FROM penerimaan_gudang_inputan_fg_detail
-                WHERE 
-                    DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURRENT_DATE(), '%Y-%m')
-                    AND LEFT(barcode, 3) = 'WFG'
-            ");
-
-            $counter = $getLast->nomor;
-
             foreach ($items as $row) {
 
-                $barcode = 'WFG' . date('ym') . str_pad($counter, 5, '0', STR_PAD_LEFT);
+                $masterKoli = MasterKoli::where('no_koli', $row['no_koli'])->first();
+                $barcode = $masterKoli ? $masterKoli->kode_koli : null;
 
-                PenerimaanGudangInputanFgDetail::create([
+                $dataDetail = PenerimaanGudangInputanFgDetail::create([
                     'penerimaan_gudang_inputan_fg_id' => $header->id,
                     'barcode'              => $barcode,
                     'no_koli'              => $row['no_koli'],
@@ -217,6 +204,7 @@ class PenerimaanGudangInputanFgController extends Controller
 
                 PenerimaanGudangInputanFgHistory::create([
                     'penerimaan_gudang_inputan_fg_id' => $header->id,
+                    'penerimaan_gudang_inputan_fg_detail_id' => $dataDetail->id,
                     'barcode'              => $barcode,
                     'no_koli'              => $row['no_koli'],
                     'buyer'                => $row['buyer'],
@@ -234,26 +222,25 @@ class PenerimaanGudangInputanFgController extends Controller
                     "created_by_username"  => $user ? $user->username : null,
                     "created_at"           => $now,
                 ]);
-
-                $counter++;
             }
 
             DB::commit();
 
-            return array(
+            return [
                 "status" => 200,
                 "message" => "Data Penerimaan Gudang Inputan (FG) berhasil disimpan.",
                 "additional" => [],
-            );
+            ];
 
         } catch (Exception $e) {
+
             DB::rollBack();
 
-            return array(
+            return [
                 "status" => 400,
                 "message" => "Terjadi Kesalahan",
                 "additional" => [],
-            );
+            ];
         }
     }
 
@@ -306,6 +293,7 @@ class PenerimaanGudangInputanFgController extends Controller
             $deletedIds = array_diff($existingIds, $submittedIds);
 
             if (!empty($deletedIds)) {
+                PenerimaanGudangInputanFgHistory::whereIn('penerimaan_gudang_inputan_fg_detail_id', $deletedIds)->delete();
                 PenerimaanGudangInputanFgDetail::whereIn('id', $deletedIds)->delete();
             }
 
@@ -319,6 +307,7 @@ class PenerimaanGudangInputanFgController extends Controller
                 if ($oldQty != $newQty) {
                     PenerimaanGudangInputanFgHistory::create([
                         'penerimaan_gudang_inputan_fg_id' => $dataDetail->penerimaan_gudang_inputan_fg_id,
+                        'penerimaan_gudang_inputan_fg_detail_id' => $dataDetail->id,
                         'barcode'              => $dataDetail->barcode,
                         'no_koli'              => $dataDetail->no_koli,
                         'buyer'                => $dataDetail->buyer,
@@ -411,6 +400,7 @@ class PenerimaanGudangInputanFgController extends Controller
         ->first();
 
         $dataDetail = PenerimaanGudangInputanFgDetail::selectRaw('
+            no_koli,
             buyer,
             no_ws,
             style,
@@ -424,7 +414,7 @@ class PenerimaanGudangInputanFgController extends Controller
             lokasi
         ')
         ->where("penerimaan_gudang_inputan_fg_id", $id)
-        ->groupBy('buyer', 'no_ws', 'style', 'product_item', 'warna', 'size', 'grade', 'satuan', 'keterangan', 'lokasi')
+        ->groupBy('no_koli','buyer', 'no_ws', 'style', 'product_item', 'warna', 'size', 'grade', 'satuan', 'keterangan', 'lokasi')
         ->get();
 
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);

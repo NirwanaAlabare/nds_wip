@@ -93,6 +93,7 @@
     <table class="main" repeat_header="1" border="1" cellspacing="0" width="100%" style="border-collapse: collapse; width:100%; font-size: 11px;">
         <thead>
             <tr class="head">
+                <th align="center">No Koli</th>
                 <th align="center">Buyer</th>
                 <th align="center">No WS</th>
                 <th align="center">Style</th>
@@ -102,7 +103,6 @@
                 <th align="center">Grade</th>
                 <th align="center">Qty</th>
                 <th align="center">Satuan</th>
-                <th align="center">Keterangan</th>
                 <th align="center">Lokasi</th>
             </tr>
         </thead>
@@ -116,6 +116,7 @@
             @endphp
 
             <tr>
+                <td align="left">{{ $row->no_koli }}</td>
                 <td align="left">{{ $row->buyer }}</td>
                 <td align="left">{{ $row->no_ws }}</td>
                 <td align="left">{{ $row->style }}</td>
@@ -125,18 +126,17 @@
                 <td align="left">{{ $row->grade }}</td>
                 <td align="right">{{ number_format($row->qty, 2) }}</td>
                 <td align="left">{{ $row->satuan }}</td>
-                <td align="left">{{ $row->keterangan }}</td>
                 <td align="left">{{ $row->lokasi }}</td>
             </tr>
         @endforeach
         </tbody>
         <tfoot>
             <tr>
-                <th colspan="7" style="text-align:center;">TOTAL</th>
+                <th colspan="8" style="text-align:center;">TOTAL</th>
                 <th style="text-align:right;">
                     {{ number_format($totalQty, 2) }}
                 </th>
-                <th colspan="3"></th>
+                <th colspan="2"></th>
             </tr>
     </tfoot>
     </table>

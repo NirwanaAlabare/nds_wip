@@ -123,6 +123,7 @@
                         <table class="table table-bordered w-100 table" id="datatable">
                             <thead>
                                 <tr>
+                                    <th></th>
                                     <th>Barcode</th>
                                     <th>No Koli</th>
                                     <th>Buyer</th>
@@ -144,7 +145,7 @@
                             </thead>
                             <tfoot>
                                 <tr>
-                                    <th colspan="9" class="text-center">TOTAL</th>
+                                    <th colspan="10" class="text-center">TOTAL</th>
                                     <th id="total_qty" class="text-end">0</th>
                                     <th colspan="3"></th>
                                     <th id="total_qty_out" class="text-end">0</th>
@@ -199,6 +200,10 @@
                 serverSide: false,
                 data: [],
                 columns: [
+                    {
+    data: 'penerimaan_gudang_inputan_fg_detail_id',
+    visible: false
+},
                     { data: 'barcode' },
                     { data: 'no_koli' },
                     { data: 'buyer' },
@@ -274,6 +279,7 @@
                 let qty_out = rowNode.find('.qty_out_input').val();
 
                 result.push({
+                    penerimaan_gudang_inputan_fg_detail_id: rowData.penerimaan_gudang_inputan_fg_detail_id,
                     barcode: rowData.barcode,
                     no_roll: rowData.no_roll,
                     buyer: rowData.buyer,
@@ -329,11 +335,42 @@
             $('#total_qty_out').text(total_qty_out.toFixed(2));
         }
 
+        // function isDuplicate(resItem) {
+        //     let data = table_detail_item.rows().data().toArray();
+
+        //     return data.some(function(item) {
+        //         return (
+        //             item.barcode === resItem.barcode &&
+        //             item.no_koli === resItem.no_koli &&
+        //             item.buyer === resItem.buyer &&
+        //             item.no_ws === resItem.no_ws &&
+        //             item.style === resItem.style &&
+        //             item.product_item === resItem.product_item &&
+        //             item.warna === resItem.warna &&
+        //             item.size === resItem.size &&
+        //             item.grade === resItem.grade &&
+        //             parseFloat(item.qty) === parseFloat(resItem.qty) &&
+        //             item.satuan === resItem.satuan &&
+        //             item.keterangan === resItem.keterangan &&
+        //             item.lokasi === resItem.lokasi
+        //         );
+        //     });
+        // }
+
+        function isDuplicate(resItem) {
+            let data = table_detail_item.rows().data().toArray();
+
+            return data.some(function(item) {
+                return parseInt(item.penerimaan_gudang_inputan_fg_detail_id) === parseInt(resItem.id);
+            });
+        }
+
         function getDataBarcode(barcode) {
             $.ajax({
                 url: "{{ route('get-data-barcode-pengeluaran-gudang-inputan-fg') }}",
                 type: 'GET',
                 data: { barcode: barcode },
+
                 success: function(res) {
 
                     if (!res || res.status === 404) {
@@ -348,50 +385,62 @@
                         return;
                     }
 
-                    let isDuplicate = false;
-                    table_detail_item.rows().every(function () {
-                        let data = this.data();
-                        if (data.barcode === res.barcode) {
-                            isDuplicate = true;
-                        }
-                    });
+                    let items = res.data;
 
-                    if (isDuplicate) {
-                        $('#barcode_scan').val("").focus();
-                        Swal.fire('Error', 'Barcode sudah ada di tabel!', 'error');
+                    if (!items || items.length === 0) {
+                        Swal.fire('Error', 'Data kosong!', 'error');
                         return;
                     }
 
-                    table_detail_item.row.add({
-                        barcode: res.barcode,
-                        no_koli: res.no_koli,
-                        buyer: res.buyer,
-                        no_ws: res.no_ws,
-                        style: res.style,
-                        product_item: res.product_item,
-                        warna: res.warna,
-                        size: res.size,
-                        grade: res.grade,
-                        qty: res.qty,
-                        satuan: res.satuan,
-                        keterangan: res.keterangan,
-                        lokasi: res.lokasi,
-                        qty_out: `<input type="number" 
-                            class="form-control form-control-sm qty_out_input text-end" 
-                            value="${parseFloat(res.qty).toFixed(2)}" 
-                            min="1" 
-                            max="${res.qty}" 
-                            >`,
-                        action: `<button type="button" class="btn btn-danger btn-sm hapus">Hapus</button>`
-                    }).draw(false);
+                    let rows = [];
 
-                    updateTotalQty();
+                    items.forEach(function(resItem) {
+
+                        if (!isDuplicate(resItem)) {
+
+                            rows.push({
+                                penerimaan_gudang_inputan_fg_detail_id: resItem.id,
+                                barcode: resItem.barcode,
+                                no_koli: resItem.no_koli,
+                                buyer: resItem.buyer,
+                                no_ws: resItem.no_ws,
+                                style: resItem.style,
+                                product_item: resItem.product_item,
+                                warna: resItem.warna,
+                                size: resItem.size,
+                                grade: resItem.grade,
+                                qty: resItem.qty,
+                                satuan: resItem.satuan,
+                                keterangan: resItem.keterangan,
+                                lokasi: resItem.lokasi,
+
+                                qty_out: `<input type="number"
+                                    class="form-control form-control-sm qty_out_input text-end"
+                                    value="${parseFloat(resItem.qty).toFixed(2)}"
+                                    min="1"
+                                    max="${resItem.qty}"
+                                >`,
+
+                                action: `<button type="button" class="btn btn-danger btn-sm hapus">Hapus</button>`
+                            });
+
+                        }
+                    });
+
+                    if (rows.length > 0) {
+                        table_detail_item.rows.add(rows).draw(false);
+                        updateTotalQty();
+                    } else {
+                        Swal.fire('Info', 'Data sudah ada di tabel!', 'info');
+                    }
 
                     $('#barcode_scan').val("").focus();
                 },
+
                 error: function() {
                     Swal.fire('Error', 'Gagal ambil data!', 'error');
                 },
+
                 complete: function() {
                     $('#loading').addClass('d-none');
                 }

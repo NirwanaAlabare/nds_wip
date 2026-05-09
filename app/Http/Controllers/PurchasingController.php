@@ -159,7 +159,7 @@ class PurchasingController extends Controller
         ]);
     }
 
-    public function edit($id)
+    public function edit(Request $request,$id)
     {
         $mysql_sb = DB::connection('mysql_sb');
 
@@ -210,6 +210,8 @@ class PurchasingController extends Controller
             ->limit(500)
             ->get();
 
+        $isView = $request->query('mode') === 'view';
+
         return view('purchasing.po.edit', [
             'page'           => 'dashboard-purchasing',
             'subPageGroup'   => 'purchasing',
@@ -227,6 +229,7 @@ class PurchasingController extends Controller
             'kategori_biaya' => $kategori_biaya,
             'style'          => $style,
             'units'          => $units,
+            'isView'         => $isView,
             'containerFluid' => true
         ]);
     }

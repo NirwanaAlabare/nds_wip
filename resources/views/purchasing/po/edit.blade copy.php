@@ -19,8 +19,6 @@
 @endsection
 
 @section('content')
-@php $isView = $isView ?? false; @endphp
-
 <div class="card card-sb">
 
     <div class="card-header bg-sb">
@@ -39,11 +37,11 @@
             <div class="row">
                 <div class="col-md-3 form-group">
                     <label><small class="fw-bold">PO Date</small></label>
-                    <input type="date" name="po_date" id="po_date" class="form-control form-control-sm" value="{{ $po_header->podate }}" {{ $isView ? 'readonly' : '' }}>
+                    <input type="date" name="po_date" id="po_date" class="form-control form-control-sm" value="{{ $po_header->podate }}">
                 </div>
                 <div class="col-md-3 form-group">
                     <label><small class="fw-bold">Tax</small></label>
-                    <select name="tax" id="tax" class="form-control select2bs4" {{ $isView ? 'disabled' : '' }}>
+                    <select name="tax" id="tax" class="form-control select2bs4">
                         <option value="">Pilih Tax</option>
                         @foreach ($tax as $t)
                             <option value="{{ $t->id ?? $t->Id }}" {{ $po_header->tax == ($t->id ?? $t->Id) ? 'selected' : '' }}>{{ $t->tampil ?? $t->Tampil }}</option>
@@ -52,7 +50,7 @@
                 </div>
                 <div class="col-md-3 form-group">
                     <label><small class="fw-bold">Payment Terms</small></label>
-                   <select name="payment_term" id="payment_term" class="form-control select2bs4" {{ $isView ? 'disabled' : '' }}>
+                   <select name="payment_term" id="payment_term" class="form-control select2bs4">
                         <option value="">Pilih Payment Terms</option>
                         @foreach ($payment_term as $pt)
                             <option value="{{ $pt->id ?? $pt->Id }}" {{ $po_header->id_terms == ($pt->id ?? $pt->Id) ? 'selected' : '' }}>{{ $pt->tampil ?? $pt->Tampil }}</option>
@@ -61,7 +59,7 @@
                 </div>
                 <div class="col-md-3 form-group">
                     <label><small class="fw-bold">Tipe Commercial</small></label>
-                    <select name="tipe_commercial" id="tipe_commercial" class="form-control select2bs4" {{ $isView ? 'disabled' : '' }}>
+                    <select name="tipe_commercial" id="tipe_commercial" class="form-control select2bs4">
                         <option value="">--- Pilih Tipe Commersial PO ---</option>
                         <option value="REGULAR" {{ $po_header->tipe_commercial == 'REGULAR' ? 'selected' : '' }}>REGULAR</option>
                         <option value="FOC" {{ $po_header->tipe_commercial == 'FOC' ? 'selected' : '' }}>FOC</option>
@@ -73,7 +71,7 @@
             <div class="row">
                 <div class="col-md-3 form-group">
                     <label><small class="fw-bold">Jenis Item</small></label>
-                    <select name="jenis_item" id="jenis_item" class="form-control select2bs4" {{ $isView ? 'disabled' : '' }}>
+                    <select name="jenis_item" id="jenis_item" class="form-control select2bs4">
                         <option value="">Pilih Jenis Item</option>
                         <option value="Material" {{ $po_header->jenis == 'Material' ? 'selected' : '' }}>Material</option>
                         <option value="Manufacturing" {{ $po_header->jenis == 'Manufacturing' ? 'selected' : '' }}>Manufacturing</option>
@@ -83,11 +81,11 @@
                     <div class="row">
                         <div class="col-6">
                             <label><small class="fw-bold">Days</small></label>
-                            <input type="text" name="days" id="days" class="form-control form-control-sm text-end numbers-only" value="{{ $po_header->jml_pterms }}" {{ $isView ? 'readonly' : '' }}>
+                            <input type="text" name="days" id="days" class="form-control form-control-sm text-end numbers-only" value="{{ $po_header->jml_pterms }}">
                         </div>
                         <div class="col-6">
                             <label><small class="fw-bold">Day Terms</small></label>
-                            <select name="day_terms" id="day_terms" class="form-control select2bs4" {{ $isView ? 'disabled' : '' }}>
+                            <select name="day_terms" id="day_terms" class="form-control select2bs4">
                                 <option value="">Pilih Day Terms</option>
                                 @foreach ($day_terms as $dt)
                                     <option value="{{ $dt->id ?? $dt->Id }}" {{ $po_header->id_dayterms == ($dt->id ?? $dt->Id) ? 'selected' : '' }}>{{ $dt->tampil ?? $dt->Tampil }}</option>
@@ -98,7 +96,7 @@
                 </div>
                 <div class="col-md-3 form-group">
                     <label><small class="fw-bold">Currency</small></label>
-                    <select name="currency" id="currency" class="form-control select2bs4" {{ $isView ? 'disabled' : '' }}>
+                    <select name="currency" id="currency" class="form-control select2bs4">
                         <option value="">Pilih Currency</option>
                         @php $currentCurr = $po_items->first()->curr ?? ''; @endphp
                         @foreach ($currency as $c)
@@ -108,14 +106,14 @@
                 </div>
                 <div class="col-md-3 form-group">
                     <label><small class="fw-bold">Kurs</small></label>
-                    <input type="text" name="kurs" id="kurs" class="form-control form-control-sm input-decimal text-end" value="{{ rtrim(rtrim(number_format($po_header->n_kurs, 2, '.', ''), '0'), '.') }}" {{ $isView ? 'readonly' : '' }}>
+                    <input type="text" name="kurs" id="kurs" class="form-control form-control-sm input-decimal text-end" value="{{ rtrim(rtrim(number_format($po_header->n_kurs, 2, '.', ''), '0'), '.') }}">
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-md-6 form-group">
                     <label><small class="fw-bold">Supplier</small></label>
-                    <select name="id_supplier" id="id_supplier" class="form-control select2bs4" {{ $isView ? 'disabled' : '' }}>
+                    <select name="id_supplier" id="id_supplier" class="form-control select2bs4">
                         <option value="">Pilih Supplier</option>
                         @foreach ($suppliers as $s)
                             <option value="{{ $s->id_supplier ?? $s->Id_Supplier }}" {{ $po_header->id_supplier == ($s->id_supplier ?? $s->Id_Supplier) ? 'selected' : '' }}>{{ $s->supplier ?? $s->Supplier }}</option>
@@ -124,7 +122,7 @@
                 </div>
                 <div class="col-md-6 form-group">
                     <label><small class="fw-bold">Notes</small></label>
-                    <textarea name="notes_po" id="notes_po" class="form-control" rows="2" {{ $isView ? 'readonly' : '' }}>{{ $notes_po }}</textarea>
+                    <textarea name="notes_po" id="notes_po" class="form-control" rows="2">{{ $notes_po }}</textarea>
                 </div>
             </div>
 
@@ -139,16 +137,12 @@
                         </div>
                         <input type="text" id="search_po_table" class="form-control" placeholder="Cari Style / Item...">
                     </div>
-
-                    @if(!$isView)
                     <button type="button" class="btn btn-sm btn-danger fw-bold mr-2" id="btn-delete-batch" style="display: none;">
                         <i class="fas fa-trash-alt"></i> Hapus Terpilih
                     </button>
                     <button type="button" class="btn btn-sm btn-info fw-bold" data-bs-toggle="modal" data-bs-target="#modalPilihItem">
                         <i class="fas fa-search-plus"></i> Tambah Item
                     </button>
-                    @endif
-
                 </div>
             </div>
 
@@ -156,7 +150,7 @@
                 <table class="table table-bordered table-custom" id="table-po-items">
                     <thead>
                         <tr>
-                            <th width="3%" class="text-center"><input type="checkbox" id="check-all-po-items" {{ $isView ? 'disabled' : '' }}></th>
+                            <th width="3%" class="text-center"><input type="checkbox" id="check-all-po-items"></th>
                             <th style="min-width: 150px;">Style</th>
                             <th style="min-width: 300px;">Item</th>
                             <th>Stok Item</th>
@@ -172,7 +166,7 @@
                             <th>Price Costing</th>
                             <th>Price Costing Conv</th>
                             <th>Price PR/Unit</th>
-                            @if(!$isView) <th>Action</th> @endif
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -183,7 +177,7 @@
                             @endphp
                             <tr class="po-item-row" data-id="{{ $item->id_gen }}" data-set="{{ $item->product_set }}" data-cons-asli="{{ $consAsli }}">
                                 <td class="text-center align-middle">
-                                    <input type="checkbox" class="check-po-item" {{ $isView ? 'disabled' : '' }}>
+                                    <input type="checkbox" class="check-po-item">
                                 </td>
                                 <td class="align-middle">
                                     <input type="hidden" name="style_item[]" value="{{ $item->id_bom }}">
@@ -194,15 +188,15 @@
                                     <input type="hidden" name="product_set[]" value="{{ $item->product_set }}">
                                     <span class="item-name-text font-weight-bold">{{ $item->itemdesc }}</span> {!! $displaySet !!}
                                 </td>
-                                <td class="align-middle"><input type="text" name="stok_item[]" class="input-table val-stok input-decimal text-center" value="{{ rtrim(rtrim(number_format($item->stok_item, 4, '.', ''), '0'), '.') }}" {{ $isView ? 'readonly' : '' }}></td>
+                                <td class="align-middle"><input type="text" name="stok_item[]" class="input-table val-stok input-decimal text-center" value="{{ rtrim(rtrim(number_format($item->stok_item, 4, '.', ''), '0'), '.') }}"></td>
                                 <td class="align-middle"><input type="text" name="qty_bom[]" class="input-table val-bom text-center" value="{{ rtrim(rtrim(number_format($item->qty_bom, 4, '.', ''), '0'), '.') }}" readonly></td>
                                 <td class="align-middle"><input type="text" name="qty_need[]" class="input-table val-need text-center" value="{{ rtrim(rtrim(number_format($item->qty_need, 4, '.', ''), '0'), '.') }}" readonly></td>
                                 <td class="align-middle"><input type="text" name="blc_pr[]" class="input-table val-blc text-center" value="{{ rtrim(rtrim(number_format($item->blc_pr, 4, '.', ''), '0'), '.') }}" readonly></td>
-                                <td class="align-middle"><input type="text" name="qty_pr[]" class="input-table input-decimal text-center" value="{{ rtrim(rtrim(number_format($item->qty_pr_awal, 4, '.', ''), '0'), '.') }}" {{ $isView ? 'readonly' : '' }}></td>
+                                <td class="align-middle"><input type="text" name="qty_pr[]" class="input-table input-decimal text-center" value="{{ rtrim(rtrim(number_format($item->qty_pr_awal, 4, '.', ''), '0'), '.') }}"></td>
                                 <td class="align-middle"><input type="text" name="unit_pr[]" class="input-table text-center" value="{{ $item->unit_pr_awal }}" readonly></td>
-                                <td class="align-middle"><input type="text" name="convert[]" class="input-table input-decimal text-center" value="{{ rtrim(rtrim(number_format($item->convert_val, 6, '.', ''), '0'), '.') }}" {{ $isView ? 'readonly' : '' }}></td>
+                                <td class="align-middle"><input type="text" name="convert[]" class="input-table input-decimal text-center" value="{{ rtrim(rtrim(number_format($item->convert_val, 6, '.', ''), '0'), '.') }}"></td>
                                 <td class="align-middle">
-                                    <select name="unit_convert[]" class="input-table select-unit-convert" {{ $isView ? 'disabled' : '' }}>
+                                    <select name="unit_convert[]" class="input-table select-unit-convert">
                                         <option value="{{ $item->unit_pr_awal }}">{{ $item->unit_pr_awal }} (BOM)</option>
                                         @foreach($units as $u)
                                             <option value="{{ $u->nama_pilihan }}" {{ $item->unit_convert == $u->nama_pilihan ? 'selected' : '' }}>{{ $u->nama_pilihan }}</option>
@@ -211,19 +205,16 @@
                                 </td>
                                 <td class="align-middle"><input type="text" name="qty_pr_conv[]" class="input-table text-center" value="{{ rtrim(rtrim(number_format($item->qty, 4, '.', ''), '0'), '.') }}" readonly></td>
                                 <td class="align-middle"><input type="text" name="unit_pr_conv[]" class="input-table text-center" value="{{ $item->unit }}" readonly></td>
-                                <td class="align-middle"><input type="text" name="price_costing[]" class="input-table text-right input-decimal" value="{{ rtrim(rtrim(number_format($item->price_costing, 4, '.', ''), '0'), '.') }}" {{ $isView ? 'readonly' : '' }}></td>
+                                <td class="align-middle"><input type="text" name="price_costing[]" class="input-table text-right input-decimal" value="{{ rtrim(rtrim(number_format($item->price_costing, 4, '.', ''), '0'), '.') }}"></td>
                                 <td class="align-middle"><input type="text" name="price_costing_conv[]" class="input-table text-right input-decimal" value="{{ rtrim(rtrim(number_format($item->price_costing_conv, 4, '.', ''), '0'), '.') }}" readonly></td>
-                                <td class="align-middle"><input type="text" name="price_pr[]" class="input-table input-decimal text-right" value="{{ rtrim(rtrim(number_format($item->price, 4, '.', ''), '0'), '.') }}" {{ $isView ? 'readonly' : '' }}></td>
-
-                                @if(!$isView)
+                                <td class="align-middle"><input type="text" name="price_pr[]" class="input-table input-decimal text-right" value="{{ rtrim(rtrim(number_format($item->price, 4, '.', ''), '0'), '.') }}"></td>
                                 <td class="text-center align-middle">
                                     <button type="button" class="btn btn-sm btn-danger btn-remove-item"><i class="fas fa-trash"></i></button>
                                 </td>
-                                @endif
                             </tr>
                         @empty
                             <tr id="empty-row-item">
-                                <td colspan="17" class="text-center font-italic text-muted">Tidak ada Item.</td>
+                                <td colspan="17" class="text-center font-italic text-muted">Tidak ada Item. Silakan klik "Pilih Item".</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -243,9 +234,10 @@
                             <td class="text-right align-middle" id="tot-price-costing">0.00</td>
                             <td class="text-right align-middle" id="tot-price-costing-conv">0.00</td>
                             <td class="text-right align-middle" id="tot-price-pr">0.00</td>
-                            @if(!$isView) <td class="align-middle"></td> @endif
+                            <td class="align-middle"></td>
                         </tr>
                     </tfoot>
+                </table>
                 </table>
             </div>
 
@@ -255,7 +247,6 @@
                 <h6 class="fw-bold text-sb mb-0"><i class="fas fa-money-bill-wave"></i> Rincian Biaya Lain - Lain</h6>
             </div>
 
-            @if(!$isView)
             <div class="row align-items-end mb-3 bg-light p-3 rounded border mx-0">
                 <div class="col-md-3 form-group mb-0">
                     <label><small class="fw-bold">Kategori :</small></label>
@@ -284,7 +275,6 @@
                     <button type="button" class="btn btn-primary fw-bold w-100" id="btn-tambah-biaya">Tambah</button>
                 </div>
             </div>
-            @endif
 
             <div class="table-responsive">
                 <table class="table table-bordered table-sm" id="table-biaya-lain">
@@ -296,7 +286,7 @@
                             <th width="15%" class="border-top-0 border-left-0 border-right-0">PPN</th>
                             <th width="15%" class="border-top-0 border-left-0 border-right-0">Total</th>
                             <th width="20%" class="border-top-0 border-left-0 border-right-0">Description</th>
-                            @if(!$isView) <th width="10%" class="border-top-0 border-left-0 border-right-0">Action</th> @endif
+                            <th width="10%" class="border-top-0 border-left-0 border-right-0">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -324,11 +314,9 @@
                                 <input type="hidden" name="desc_biaya[]" value="{{ $b->keterangan }}">
                                 {{ $b->keterangan }}
                             </td>
-                            @if(!$isView)
                             <td class="text-center align-middle">
                                 <button type="button" class="btn btn-sm btn-danger btn-remove-biaya px-3"><i class="fas fa-trash"></i></button>
                             </td>
-                            @endif
                         </tr>
                         @endforeach
                     </tbody>
@@ -338,7 +326,7 @@
                             <td class="text-right align-middle border-0" id="footer-subtotal">0.00</td>
                             <td class="text-right align-middle border-0" id="footer-ppn">0.00</td>
                             <td class="text-right align-middle border-0" id="footer-total">0.00</td>
-                            <td colspan="{{ $isView ? '1' : '2' }}" class="border-0"></td>
+                            <td colspan="2" class="border-0"></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -346,15 +334,12 @@
 
         </div>
 
-        @if(!$isView)
         <div class="card-footer text-right">
             <button type="submit" class="btn btn-success fw-bold"><i class="fas fa-save"></i> Update Data PO</button>
         </div>
-        @endif
     </form>
 </div>
 
-@if(!$isView)
 <div class="modal fade" id="modalPilihItem" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
@@ -409,7 +394,6 @@
         </div>
     </div>
 </div>
-@endif
 
 @endsection
 
@@ -426,14 +410,12 @@
 
 
         $('.select2bs4').select2({ theme: 'bootstrap4', width: '100%' });
+        $('.select2bs4-modal').select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            dropdownParent: $('#modalPilihItem')
+        });
 
-        if($('#modalPilihItem').length > 0) {
-            $('.select2bs4-modal').select2({
-                theme: 'bootstrap4',
-                width: '100%',
-                dropdownParent: $('#modalPilihItem')
-            });
-        }
 
         $('.numbers-only').on('input', function() {
             this.value = this.value.replace(/[^0-9]/g, '');
@@ -444,6 +426,9 @@
             if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
             $(this).val(val);
         });
+
+
+
 
         function hitungTotalBiaya() {
             let sumSubtotal = 0, sumPpn = 0, sumTotal = 0;
@@ -457,6 +442,7 @@
             $('#footer-ppn').text(formatIDR(sumPpn));
             $('#footer-total').text(formatIDR(sumTotal));
         }
+
 
         hitungTotalBiaya();
 
@@ -758,6 +744,7 @@
             let qtyPrConv = isConverted ? (qtyPr * convert) : qtyPr;
             let finalUnit = isConverted ? unitConvert : unitAsli;
             let priceCostingConv = isConverted ? ((priceCosting / consAsli) * convert) : priceCosting;
+
 
             tr.find('input[name="qty_pr_conv[]"]').val(parseFloat(qtyPrConv.toFixed(4)));
             tr.find('input[name="unit_pr_conv[]"]').val(finalUnit);

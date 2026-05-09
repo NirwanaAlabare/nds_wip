@@ -89,6 +89,7 @@ class MasterBarangPerKategoriController extends Controller
                 $data = DB::table(DB::raw("
                     (
                         SELECT 
+                            penerimaan.id,
                             penerimaan.barcode,
                             penerimaan.no_koli,
                             penerimaan.buyer,
@@ -106,14 +107,15 @@ class MasterBarangPerKategoriController extends Controller
                         LEFT JOIN penerimaan_gudang_inputan_fg h ON h.id = penerimaan.penerimaan_gudang_inputan_fg_id
                         LEFT JOIN (
                             SELECT 
-                                barcode,
-                                SUM(qty_out) AS total_keluar
+                                    penerimaan_gudang_inputan_fg_detail_id,
+                                    barcode,
+                                    SUM(qty_out) AS total_keluar
                             FROM pengeluaran_gudang_inputan_fg_detail
                             LEFT JOIN pengeluaran_gudang_inputan_fg ON pengeluaran_gudang_inputan_fg.id = pengeluaran_gudang_inputan_fg_detail.pengeluaran_gudang_inputan_fg_id
-		                    WHERE pengeluaran_gudang_inputan_fg.cancel = '0'
-                            GROUP BY barcode
+                        WHERE pengeluaran_gudang_inputan_fg.cancel = '0'
+                            GROUP BY penerimaan_gudang_inputan_fg_detail_id, barcode
                         ) pengeluaran 
-                        ON pengeluaran.barcode = penerimaan.barcode
+                        ON pengeluaran.penerimaan_gudang_inputan_fg_detail_id = penerimaan.id
                         WHERE h.cancel = '0'
                     ) as results
                 "));
@@ -329,7 +331,8 @@ class MasterBarangPerKategoriController extends Controller
     public function historyFg(Request $request){
         $data = DB::table(DB::raw("
             (
-                 SELECT 
+                SELECT 
+                    penerimaan.id,
                     penerimaan.barcode,
                     penerimaan.no_koli,
                     penerimaan.buyer,
@@ -347,15 +350,16 @@ class MasterBarangPerKategoriController extends Controller
                 LEFT JOIN penerimaan_gudang_inputan_fg h ON h.id = penerimaan.penerimaan_gudang_inputan_fg_id
                 LEFT JOIN (
                     SELECT 
+                        penerimaan_gudang_inputan_fg_detail_id,
                         barcode,
                         SUM(qty_out) AS total_keluar
                     FROM pengeluaran_gudang_inputan_fg_detail
                     LEFT JOIN pengeluaran_gudang_inputan_fg ON pengeluaran_gudang_inputan_fg.id = pengeluaran_gudang_inputan_fg_detail.pengeluaran_gudang_inputan_fg_id
                     WHERE pengeluaran_gudang_inputan_fg.cancel = '0'
-                    GROUP BY barcode
+                    GROUP BY penerimaan_gudang_inputan_fg_detail_id, barcode
                 ) pengeluaran 
-                ON pengeluaran.barcode = penerimaan.barcode
-                WHERE penerimaan.barcode = '{$request->barcode}' AND h.cancel = '0'
+                ON pengeluaran.penerimaan_gudang_inputan_fg_detail_id = penerimaan.id
+                WHERE penerimaan.id = '{$request->barcode}' AND h.cancel = '0'
             ) as results
         "));
 
@@ -385,7 +389,7 @@ class MasterBarangPerKategoriController extends Controller
                 FROM
                     penerimaan_gudang_inputan_fg
                 LEFT JOIN penerimaan_gudang_inputan_fg_history ON penerimaan_gudang_inputan_fg_history.penerimaan_gudang_inputan_fg_id = penerimaan_gudang_inputan_fg.id
-                WHERE barcode = '{$request->barcode}' AND penerimaan_gudang_inputan_fg.cancel = '0'
+                WHERE penerimaan_gudang_inputan_fg_detail_id = '{$request->barcode}' AND penerimaan_gudang_inputan_fg.cancel = '0'
 
                 UNION ALL
 
@@ -409,8 +413,8 @@ class MasterBarangPerKategoriController extends Controller
                 FROM
                     pengeluaran_gudang_inputan_fg
                 LEFT JOIN pengeluaran_gudang_inputan_fg_history ON pengeluaran_gudang_inputan_fg_history.pengeluaran_gudang_inputan_fg_id = pengeluaran_gudang_inputan_fg.id
-                LEFT JOIN penerimaan_gudang_inputan_fg_history ON penerimaan_gudang_inputan_fg_history.barcode = pengeluaran_gudang_inputan_fg_history.barcode
-                WHERE pengeluaran_gudang_inputan_fg_history.barcode = '{$request->barcode}' AND pengeluaran_gudang_inputan_fg.cancel = '0'
+                LEFT JOIN penerimaan_gudang_inputan_fg_history ON penerimaan_gudang_inputan_fg_history.id = pengeluaran_gudang_inputan_fg_history.penerimaan_gudang_inputan_fg_detail_id
+                WHERE pengeluaran_gudang_inputan_fg_history.penerimaan_gudang_inputan_fg_detail_id = '{$request->barcode}' AND pengeluaran_gudang_inputan_fg.cancel = '0'
             ) as results
         "));
 
