@@ -240,6 +240,14 @@ class LaporanMutasiPerKategoriExport implements FromView, ShouldAutoSize, WithCo
                 "to" => $this->to,
                 "data" => $data,
             ]);
+        }else{
+            $data = DB::table(DB::raw("(SELECT 1 as dummy) as results"))->whereRaw('1 = 0')->get();
+            
+            return view("whs-soljer.laporan-mutasi-per-kategori.export-fabric", [
+                "from" => $this->from,
+                "to" => $this->to,
+                "data" => $data,
+            ]);
         }
     }
 

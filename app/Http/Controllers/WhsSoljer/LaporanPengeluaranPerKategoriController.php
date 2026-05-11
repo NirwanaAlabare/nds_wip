@@ -86,7 +86,7 @@ class LaporanPengeluaranPerKategoriController extends Controller
                     penerimaan_gudang_inputan_fg_detail.keterangan,
                     pengeluaran_gudang_inputan_fg_detail.qty_out
                 ")
-                ->leftJoin("pengeluaran_gudang_inputan_fg_detail", "pengeluaran_gudang_inputan_fg_detail.barcode", "=", "penerimaan_gudang_inputan_fg_detail.barcode")
+                ->leftJoin("pengeluaran_gudang_inputan_fg_detail", "pengeluaran_gudang_inputan_fg_detail.penerimaan_gudang_inputan_fg_detail_id", "=", "penerimaan_gudang_inputan_fg_detail.id")
                 ->leftJoin("pengeluaran_gudang_inputan_fg", "pengeluaran_gudang_inputan_fg.id", "=", "pengeluaran_gudang_inputan_fg_detail.pengeluaran_gudang_inputan_fg_id")
                 ->where("pengeluaran_gudang_inputan_fg.cancel", 0);
             }else{

@@ -42,7 +42,7 @@
                 </div>
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div class="mb-3">
-                        <button class="btn btn-success btn-sm" id="exportExcel" data-bs-toggle="tooltip" data-bs-title="Export Excel" onclick="exportExcel()" disabled><i class="fa fa-file-excel"></i></button>
+                        <button class="btn btn-success btn-sm" id="exportExcel" data-bs-toggle="tooltip" data-bs-title="Export Excel" onclick="exportExcel()"><i class="fa fa-file-excel"></i></button>
                     </div>
                 </div>
             </div>

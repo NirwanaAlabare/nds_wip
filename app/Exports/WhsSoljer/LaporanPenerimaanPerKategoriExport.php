@@ -10,8 +10,10 @@ use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-class LaporanPenerimaanPerKategoriExport implements FromView, ShouldAutoSize
+class LaporanPenerimaanPerKategoriExport implements FromView, ShouldAutoSize, WithColumnFormatting
 {
     use Exportable;
 
@@ -121,6 +123,37 @@ class LaporanPenerimaanPerKategoriExport implements FromView, ShouldAutoSize
                 "to" => $this->to,
                 "data" => $data,
             ]);
+        }else{
+            $data = PenerimaanGudangInputanFgDetail::whereRaw('1=0')->get();
+
+             return view("whs-soljer.laporan-penerimaan-per-kategori.export-fabric", [
+                "from" => $this->from,
+                "to" => $this->to,
+                "data" => $data,
+            ]);
+        }
+    }
+
+    public function columnFormats(): array
+    {
+        switch ($this->kategori) {
+            case 'FABRIC':
+                return [
+                    'K' => NumberFormat::FORMAT_NUMBER_00,
+                ];
+
+            case 'ACCESORIES':
+                return [
+                    'K' => NumberFormat::FORMAT_NUMBER_00,
+                ];
+
+            case 'FG':
+                return [
+                    'L' => NumberFormat::FORMAT_NUMBER_00,
+                ];
+
+            default:
+                return [];
         }
     }
 }
