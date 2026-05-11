@@ -29,12 +29,12 @@
         }
 
         .btn-primary {
-            background-color: #5A67D8;
+            background-color: #082149;
             border: none;
         }
 
         .btn-primary:hover {
-            background-color: #434190;
+            background-color: #0d2d63;
         }
 
         table thead th {
@@ -52,16 +52,31 @@
                 <hr style="color: #222">
             </div>
             @foreach ($data as $row)
-                <div class="col-md-4 col-lg-3 mb-4">
-                    <div class="card shadow-sm border-0 h-100">
-                        <div class="card-body text-center">
-                            <div class="d-flex justify-content-between align-items-center h-100 gap-3">
-                                <h5 class="card-title fw-bold">{{ $row->kode_lok }}</h5>
-                                <a href="{{ url('dashboard-rak/detail/' . $row->kode_lok) }}" class="btn btn-primary btn-sm" target="_blank">Details</a>
-                            </div>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body text-center">
+
+                        <h5 class="card-title fw-bold mt-1">
+                            {{ $row->kode_lok }}
+                        </h5>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url('dashboard-rak/detail/' . $row->kode_lok) }}"
+                            class="btn btn-primary btn-sm"
+                            target="_blank">
+                                FABRIC
+                            </a>
+
+                            <a href="{{ url('dashboard-rak/detail-fg/' . $row->kode_lok) }}"
+                            class="btn btn-primary btn-sm"
+                            target="_blank">
+                                FG
+                            </a>
                         </div>
+
                     </div>
                 </div>
+            </div>
             @endforeach
         </div>
     </div>
