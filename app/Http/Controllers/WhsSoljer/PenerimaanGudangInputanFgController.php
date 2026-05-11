@@ -180,6 +180,18 @@ class PenerimaanGudangInputanFgController extends Controller
             foreach ($items as $row) {
 
                 $masterKoli = MasterKoli::where('no_koli', $row['no_koli'])->first();
+                
+                if (!$masterKoli) {
+
+                    DB::rollBack();
+
+                    return [
+                        "status" => 400,
+                        "message" => "No Koli {$row['no_koli']} tidak ada, wajib tambah di Master Koli.",
+                        "additional" => [],
+                    ];
+                }
+
                 $barcode = $masterKoli ? $masterKoli->kode_koli : null;
 
                 $dataDetail = PenerimaanGudangInputanFgDetail::create([
