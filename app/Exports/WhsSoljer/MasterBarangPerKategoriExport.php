@@ -132,6 +132,12 @@ class MasterBarangPerKategoriExport implements FromView, ShouldAutoSize, WithCol
             return view("whs-soljer.master-barang-per-kategori.export-fg", [
                 "data" => $data,
             ]);
+        }else{
+            $data = DB::table(DB::raw("(SELECT 1 as dummy) as results"))->whereRaw('1 = 0')->get();
+
+            return view("whs-soljer.master-barang-per-kategori.export-fabric", [
+                "data" => $data,
+            ]);
         }
     }
 

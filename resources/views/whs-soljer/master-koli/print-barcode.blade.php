@@ -41,7 +41,7 @@
             </td>
         </tr> --}}
         <tr style="line-height: 25px;">
-            <td colspan="3" style="height: 5px;"></td>
+            <td colspan="3" style="height: 50px;"></td>
         </tr>
 
         <tr style="line-height: 30px;">
@@ -58,6 +58,10 @@
             <td style="width:20%;border-top: 1px solid;"></td>
         </tr>
 
+        <tr style="line-height: 25px;">
+            <td colspan="3" style="height: 5px;"></td>
+        </tr>
+
         <tr style="line-height:20%">
             <td style="width:20%"></td>
             <td style="vertical-align: middle; text-align: center;width:60%;margin-bottom: 10px;"></td>
@@ -65,15 +69,13 @@
         </tr>
         <tr>
             <td style="width:15%"></td>
-            <td style="vertical-align: middle; text-align: center;width:70%">
-             <img style="width: 60%" src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate('http://nag.ddns.net:8003/nds_wip/public/index.php/dashboard-rak/detail/'.$data->kode_koli)) !!}">
+            <td style="vertical-align: middle; text-align: center;width:70%;">
+                <img src="data:image/png;base64,{!! DNS1D::getBarcodePNG($data->kode_koli, 'C128', 2, 80) !!}" style="width: 220px;">
             </td>
             <td style="width:15%"></td>
         </tr>
-        <tr style="line-height: 30px;">
-            <td style="width:20%;"></td>
-            <td style="width:60%;text-align: center;font-size: 18px;">[Scan for Stock Info]</td>
-            <td style="width:20%"></td>
+        <tr style="line-height: 25px;">
+            <td colspan="3" style="height: 5px;"></td>
         </tr>
         <tr style="line-height: 25px;">
             <td style="width:20%;"></td>
