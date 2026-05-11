@@ -1479,6 +1479,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/updatestatus', 'updatestatus')->name('updatestatus-master-lokasi-whs-soljer');
         Route::get('/simpanedit', 'simpanedit')->name('simpan-edit-master-lokasi-whs-soljer');
         Route::post('/print-lokasi/{id?}', 'printlokasi')->name('print-lokasi-master-lokasi-whs-soljer');
+        Route::post('/print-lokasi-fg/{id?}', 'printlokasifg')->name('print-lokasi-fg-master-lokasi-whs-soljer');
         Route::post('/print-lokasi-all', 'printLokasiAll')->name('print-lokasi-all-master-lokasi-whs-soljer');
     });
 
