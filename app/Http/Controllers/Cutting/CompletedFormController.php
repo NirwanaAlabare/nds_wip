@@ -861,6 +861,11 @@ class CompletedFormController extends Controller
                     $formCutInput->waktu_selesai = $request->finish;
                 }
 
+                $formCutInput->edited = 1;
+                $formCutInput->edited_by = Auth::user()->id;
+                $formCutInput->edited_by_username = Auth::user()->username;
+                $formCutInput->edited_at = Carbon::now();
+                $formCutInput->edit_notes .= ($formCutInput->edit_notes ? " | " : "")."Edit Waktu Mulai to ".$formCutInput->waktu_mulai."  |  Edit Waktu Selesai to ".$formCutInput->waktu_selesai."  |  Edit Meja to ".$formCutInput->no_meja." by ".Auth::user()->username." on ".Carbon::now()->format("d/m/Y H:i:s");
                 $formCutInput->save();
             }
 
