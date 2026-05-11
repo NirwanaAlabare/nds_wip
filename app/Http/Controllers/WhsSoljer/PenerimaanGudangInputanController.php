@@ -168,7 +168,7 @@ class PenerimaanGudangInputanController extends Controller
 
             $header = PenerimaanGudangInputan::create([
                 'no_bpb'                => $request->no_bpb,
-                'tgl_bpb'               => date('Y-m-d'),
+                'tgl_bpb'               => $request->tgl_bpb,
                 "created_by"            => $user ? $user->id : null,
                 "created_by_username"   => $user ? $user->username : null,
                 "created_at"            => $now,
