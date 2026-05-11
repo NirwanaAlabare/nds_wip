@@ -529,7 +529,7 @@ class export_excel_report_mut_wip_cutting_detail implements FromView, ShouldAuto
                                     where
                                     (s.cancel IS NULL OR s.cancel != 'Y') and
                                     (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
-                                    s.created_at >= '$start_date 00:00:00' and s.created_at < '$start_date 00:00:00'
+                                    s.created_at >= '$tgl_saldo 00:00:00' and s.created_at < '$start_date 00:00:00'
                                 ) cutting
                                 group by
                                     no_form,
