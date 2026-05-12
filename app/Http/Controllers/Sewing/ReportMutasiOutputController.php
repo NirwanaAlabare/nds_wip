@@ -102,8 +102,8 @@ class ReportMutasiOutputController extends Controller
                             SUM(saldo_akhir_mending) as saldo_akhir_mending,
                             SUM(saldo_awal_reject) as saldo_awal_reject,
                             SUM(qty_reject_in) as qty_reject_in,
-                            SUM(qty_rejected) as qty_rejected,
                             SUM(qty_reworked) as qty_reworked,
+                            SUM(qty_rejected) as qty_rejected,
                             SUM(saldo_akhir_qc_reject) as saldo_akhir_qc_reject
                         FROM (
                             WITH
@@ -1061,8 +1061,8 @@ class ReportMutasiOutputController extends Controller
                                     COALESCE(total_input_rework_mending, 0)) saldo_akhir_mending,
                                     SUM(COALESCE(saldo_awal_reject, 0)) as saldo_awal_reject,
                                     SUM(COALESCE(qty_reject_in, 0)) as qty_reject_in,
-                                    SUM(COALESCE(qty_rejected, 0)) as qty_rejected,
                                     SUM(COALESCE(qty_reworked, 0)) as qty_reworked,
+                                    SUM(COALESCE(qty_rejected, 0)) as qty_rejected,
                                     SUM(COALESCE(saldo_awal_reject, 0)
                                     + COALESCE(qty_reject_in, 0)
                                     - COALESCE(qty_rejected, 0)
@@ -2116,8 +2116,8 @@ class ReportMutasiOutputController extends Controller
                             COALESCE(total_input_rework_mending, 0)) saldo_akhir_mending,
                             SUM(COALESCE(saldo_awal_reject, 0)) as saldo_awal_reject,
                             SUM(COALESCE(qty_reject_in, 0)) as qty_reject_in,
-                            SUM(COALESCE(qty_rejected, 0)) as qty_rejected,
                             SUM(COALESCE(qty_reworked, 0)) as qty_reworked,
+                            SUM(COALESCE(qty_rejected, 0)) as qty_rejected,
                             SUM(COALESCE(saldo_awal_reject, 0)
                             + COALESCE(qty_reject_in, 0)
                             - COALESCE(qty_rejected, 0)
