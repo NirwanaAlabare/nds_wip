@@ -123,6 +123,7 @@ class ReportMutasiOutputController extends Controller
                                         WHERE
                                                 b.form_cut_id > 0 and tanggal_loading >= '$start_date'and  tanggal_loading <= '$end_date'
                                                 and (b.cancel IS NULL OR b.cancel != 'Y')
+                                                and stocker_reject is null
                                         GROUP BY
                                                 b.so_det_id,
                                                 b.form_cut_id,
@@ -141,6 +142,7 @@ class ReportMutasiOutputController extends Controller
                                                 form_reject_id IS NOT NULL
                                                 and tanggal_loading >= '$start_date' and tanggal_loading <= '$end_date'
                                                 and (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
+                                                and stocker_reject is null
                                         GROUP BY
                                                 so_det_id,
                                                 form_reject_id,
@@ -157,6 +159,7 @@ class ReportMutasiOutputController extends Controller
                                                 form_piece_id IS NOT NULL
                                                 and tanggal_loading >= '$start_date' and tanggal_loading <= '$end_date'
                                                 and (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
+                                                and stocker_reject is null
                                         GROUP BY
                                                 so_det_id,
                                                 form_piece_id,
@@ -1178,6 +1181,7 @@ class ReportMutasiOutputController extends Controller
                                 WHERE
                                         b.form_cut_id > 0 and tanggal_loading >= '$start_date'and  tanggal_loading <= '$end_date'
                                         and (b.cancel IS NULL OR b.cancel != 'Y')
+                                        and stocker_reject is null
                                 GROUP BY
                                         b.so_det_id,
                                         b.form_cut_id,
@@ -1196,6 +1200,7 @@ class ReportMutasiOutputController extends Controller
                                         form_reject_id IS NOT NULL
                                         and tanggal_loading >= '$start_date' and tanggal_loading <= '$end_date'
                                         and (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
+                                        and stocker_reject is null
                                 GROUP BY
                                         so_det_id,
                                         form_reject_id,
@@ -1212,6 +1217,7 @@ class ReportMutasiOutputController extends Controller
                                         form_piece_id IS NOT NULL
                                         and tanggal_loading >= '$start_date' and tanggal_loading <= '$end_date'
                                         and (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
+                                        and stocker_reject is null
                                 GROUP BY
                                         so_det_id,
                                         form_piece_id,
