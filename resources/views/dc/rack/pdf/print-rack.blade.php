@@ -19,11 +19,12 @@
         }
 
         * {
-            font-size: 50px;
+            font-size: 80px;
         }
 
         img {
             width: 450px;
+            margin: 30px;
         }
 
         table {
