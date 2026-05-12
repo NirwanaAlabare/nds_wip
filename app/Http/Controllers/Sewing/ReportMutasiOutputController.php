@@ -1013,7 +1013,7 @@ class ReportMutasiOutputController extends Controller
                                     SUM(COALESCE(qty_fin_reject, 0)) as qty_fin_reject,
                                     SUM(COALESCE(qty_finishing, 0)) as qty_finishing,
                                     -- FINISHING AKHIR
-                                    SUM((saldo_awal_finishing) +
+                                    SUM(COALESCE(saldo_awal_finishing, 0) +
                                     COALESCE(qty_sewing, 0) +
                                     COALESCE(input_rework_sewing_f, 0) +
                                     COALESCE(input_rework_spotcleaning_f, 0) +
@@ -2068,7 +2068,7 @@ class ReportMutasiOutputController extends Controller
                             SUM(COALESCE(qty_fin_reject, 0)) as qty_fin_reject,
                             SUM(COALESCE(qty_finishing, 0)) as qty_finishing,
                             -- FINISHING AKHIR
-                            SUM((saldo_awal_finishing) +
+                            SUM(COALESCE(saldo_awal_finishing, 0) +
                             COALESCE(qty_sewing, 0) +
                             COALESCE(input_rework_sewing_f, 0) +
                             COALESCE(input_rework_spotcleaning_f, 0) +
