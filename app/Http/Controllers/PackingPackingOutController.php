@@ -28,54 +28,102 @@ class PackingPackingOutController extends Controller
         $user = Auth::user()->name;
         if ($request->ajax()) {
             $additionalQuery = '';
-            $data_input = DB::select("WITH o as (
-select
-count(*) as tot,
-tgl_trans,
-id_ppic,
-no_carton,
-max(created_by) as created_by,
-max(updated_at) as tgl_akt_input
-from packing_packing_out_scan
-where tgl_trans >= '$tgl_awal' and tgl_trans <=  '$tgl_akhir' and id_ppic is not null
-group by tgl_trans, no_carton, id_ppic
-),
+            $data_input = DB::select("WITH
+                o as (
+                    select
+                    count(*) as tot,
+                    tgl_trans,
+                    id_ppic,
+                    no_carton,
+                    max(created_by) as created_by,
+                    max(updated_at) as tgl_akt_input
+                    from packing_packing_out_scan
+                    where tgl_trans >= '$tgl_awal' and tgl_trans <=  '$tgl_akhir' and id_ppic is not null
+                    group by tgl_trans, no_carton, id_ppic
+                ),
 
-sb as (
-select sd.id id_so_det, supplier as buyer, kpno, styleno, color, size,dest, reff_no
-from signalbit_erp.so_det sd
-inner join signalbit_erp.so on sd.id_so = so.id
-inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
-inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-where sd.cancel = 'N' and so.cancel_h = 'N'
-)
+                sb as (
+                    select sd.id id_so_det, supplier as buyer, kpno, styleno, color, size,dest, reff_no
+                    from signalbit_erp.so_det sd
+                    inner join signalbit_erp.so on sd.id_so = so.id
+                    inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
+                    inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
+                    where sd.cancel = 'N' and so.cancel_h = 'N'
+                )
 
+                SELECT
+                    tot,
+                    tgl_trans_fix,
+                    tgl_akt_input,
+                    po,
+                    barcode,
+                    color,
+                    size,
+                    no_carton,
+                    ws,
+                    styleno,
+                    reff_no,
+                    dest,
+                    tgl_shipment,
+                    created_by
+                FROM (
+                    select
+                        o.tot ,
+                        DATE_FORMAT(o.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
+                        DATE_FORMAT(o.tgl_akt_input, '%d-%m-%Y %H:%i:%s') AS tgl_akt_input,
+                        p.po,
+                        p.barcode,
+                        sb.color,
+                        sb.size,
+                        no_carton,
+                        sb.kpno as ws,
+                        sb.styleno,
+                        sb.reff_no,
+                        sb.dest,
+                        DATE_FORMAT(p.tgl_shipment, '%d-%m-%Y') AS tgl_shipment,
+                        o.created_by
+                    from o
+                    left join ppic_master_so p on o.id_ppic = p.id
+                    left join sb on p.id_so_det = sb.id_so_det
+                    $po_text
 
-select
-o.tot,
-DATE_FORMAT(o.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
-DATE_FORMAT(o.tgl_akt_input, '%d-%m-%Y %H:%i:%s') AS tgl_akt_input,
-p.po,
-p.barcode,
-sb.color,
-sb.size,
-no_carton,
-sb.kpno as ws,
-sb.styleno,
-sb.reff_no,
-sb.dest,
-DATE_FORMAT(p.tgl_shipment, '%d-%m-%Y') AS tgl_shipment,
-o.created_by
-from o
-left join ppic_master_so p on o.id_ppic = p.id
-left join sb on p.id_so_det = sb.id_so_det
-$po_text
-order by o.tgl_trans desc, po asc, no_carton asc
+                    UNION ALL
 
+                    select
+                        SUM(COALESCE(pc_packing_scan, 0)) tot,
+                        DATE_FORMAT(tgl_saldo, '%d-%m-%Y') tgl_trans_fix,
+                        DATE_FORMAT(tgl_saldo, '%d-%m-%Y %H:%i:%s') AS tgl_akt_input,
+                        '-' po,
+                        '-' barcode,
+                        color,
+                        size,
+                        '-' no_carton,
+                        ws,
+                        styleno,
+                        styleno reff_no,
+                        '-' dest,
+                        DATE_FORMAT(tgl_saldo, '%d-%m-%Y') AS tgl_shipment,
+                        'INJECT' created_by
+                    from
+                        signalbit_erp.inject_mutasi_sewing
+                    where
+                        tgl_saldo >= '$tgl_awal' and tgl_saldo <= '$tgl_akhir'
+                        and pc_packing_scan > 0
+                    GROUP BY
+                        ws,
+                        color,
+                        size
+                ) packing_out
+                $po_text
+                order by
+                    tgl_trans_fix desc,
+                    po asc,
+                    no_carton asc
             ");
 
             return DataTables::of($data_input)->toJson();
         }
+
         return view(
             'packing.packing_out',
             [
@@ -581,50 +629,97 @@ group by a.po, a.dest
             $po_text = "where po = '$po'";
         }
         // return Excel::download(new ExportLaporanPackingOut($request->from, $request->to), 'Laporan_Hasil_Scan.xlsx');
-        $data = DB::select("WITH o as (
-select
-count(*) as tot,
-tgl_trans,
-id_ppic,
-no_carton,
-max(created_by) as created_by,
-max(updated_at) as tgl_akt_input
-from packing_packing_out_scan
-where tgl_trans >= '$tgl_awal' and tgl_trans <=  '$tgl_akhir' and id_ppic is not null
-group by tgl_trans, no_carton, id_ppic
-),
+        $data = DB::select("WITH
+            o as (
+                select
+                count(*) as tot,
+                tgl_trans,
+                id_ppic,
+                no_carton,
+                max(created_by) as created_by,
+                max(updated_at) as tgl_akt_input
+                from packing_packing_out_scan
+                where tgl_trans >= '$tgl_awal' and tgl_trans <=  '$tgl_akhir' and id_ppic is not null
+                group by tgl_trans, no_carton, id_ppic
+            ),
 
-sb as (
-select sd.id id_so_det, supplier as buyer, kpno, styleno, color, size,dest, reff_no
-from signalbit_erp.so_det sd
-inner join signalbit_erp.so on sd.id_so = so.id
-inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
-inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
-where sd.cancel = 'N' and so.cancel_h = 'N'
-)
+            sb as (
+                select sd.id id_so_det, supplier as buyer, kpno, styleno, color, size,dest, reff_no
+                from signalbit_erp.so_det sd
+                inner join signalbit_erp.so on sd.id_so = so.id
+                inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
+                inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.Id_Supplier
+                where sd.cancel = 'N' and so.cancel_h = 'N'
+            )
 
+            SELECT
+                tot,
+                tgl_trans_fix,
+                tgl_akt_input,
+                po,
+                barcode,
+                color,
+                size,
+                no_carton,
+                ws,
+                styleno,
+                reff_no,
+                dest,
+                tgl_shipment,
+                created_by
+            FROM (
+                select
+                    o.tot ,
+                    DATE_FORMAT(o.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
+                    DATE_FORMAT(o.tgl_akt_input, '%d-%m-%Y %H:%i:%s') AS tgl_akt_input,
+                    p.po,
+                    p.barcode,
+                    sb.color,
+                    sb.size,
+                    no_carton,
+                    sb.kpno as ws,
+                    sb.styleno,
+                    sb.reff_no,
+                    sb.dest,
+                    DATE_FORMAT(p.tgl_shipment, '%d-%m-%Y') AS tgl_shipment,
+                    o.created_by
+                from o
+                left join ppic_master_so p on o.id_ppic = p.id
+                left join sb on p.id_so_det = sb.id_so_det
+                $po_text
 
-select
-o.tot,
-DATE_FORMAT(o.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
-DATE_FORMAT(o.tgl_akt_input, '%d-%m-%Y %H:%i:%s') AS tgl_akt_input,
-p.po,
-p.barcode,
-sb.color,
-sb.size,
-no_carton,
-sb.kpno as ws,
-sb.styleno,
-sb.reff_no,
-sb.dest,
-DATE_FORMAT(p.tgl_shipment, '%d-%m-%Y') AS tgl_shipment,
-o.created_by
-from o
-left join ppic_master_so p on o.id_ppic = p.id
-left join sb on p.id_so_det = sb.id_so_det
-$po_text
-order by o.tgl_trans desc, po asc, no_carton asc
+                UNION ALL
 
+                select
+                    SUM(COALESCE(pc_packing_scan, 0)) tot,
+                    DATE_FORMAT(tgl_saldo, '%d-%m-%Y') tgl_trans_fix,
+                    DATE_FORMAT(tgl_saldo, '%d-%m-%Y %H:%i:%s') AS tgl_akt_input,
+                    '-' po,
+                    '-' barcode,
+                    color,
+                    size,
+                    '-' no_carton,
+                    ws,
+                    styleno,
+                    styleno reff_no,
+                    '-' dest,
+                    DATE_FORMAT(tgl_saldo, '%d-%m-%Y') AS tgl_shipment,
+                    'INJECT' created_by
+                from
+                    signalbit_erp.inject_mutasi_sewing
+                where
+                    tgl_saldo >= '$tgl_awal' and tgl_saldo <= '$tgl_akhir'
+                    and pc_packing_scan > 0
+                GROUP BY
+                    ws,
+                    color,
+                    size
+            ) packing_out
+            $po_text
+            order by
+                tgl_trans_fix desc,
+                po asc,
+                no_carton asc
         ");
 
         return response()->json($data);
