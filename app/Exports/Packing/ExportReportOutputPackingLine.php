@@ -36,40 +36,43 @@ class ExportReportOutputPackingLine implements FromView, ShouldAutoSize, WithEve
         if($tipe != ''){
             $data = DB::table(DB::raw("
                 (
-                    SELECT
-                        so_det_id,
-                        mb.buyer,
-                        mb.ws,
-                        mb.styleno,
-                        mb.color,
-                        mb.size,
-                        a.type,
-                        DATE(created_at) AS tgl,
-                        COUNT(*) AS jumlah
-                    FROM signalbit_erp.output_rfts_packing_po a
-                    INNER JOIN signalbit_erp.master_plan mp ON a.master_plan_id = mp.id
-                    LEFT JOIN (
-                        SELECT
-                        sd.id as id_so_det,
-                        ac.kpno as ws,
-                        supplier as buyer,
-                        styleno,
-                        color,
-                        size,
-                        dest
-                        FROM signalbit_erp.so_det sd
-                        INNER JOIN signalbit_erp.so ON sd.id_so = so.id
-                        INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
-                        INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-                        INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                        WHERE jd.cancel = 'N'
-                    ) mb on a.so_det_id = mb.id_so_det
-                    WHERE
-                        created_at >= '{$tglAwal} 00:00:00'
-                        AND created_at <= '{$tglAkhir} 23:59:59'
-                        AND mp.cancel = 'N'
-                    GROUP BY so_det_id, a.type, DATE(created_at)
-                ) as results
+                        select so_det_id, buyer, ws, styleno, color, size, type, tgl, SUM(jumlah) jumlah from (SELECT
+                            so_det_id,
+                            mb.buyer,
+                            mb.ws,
+                            mb.styleno,
+                            mb.color,
+                            mb.size,
+                            a.type,
+                            DATE(created_at) AS tgl,
+                            COUNT(*) AS jumlah
+                        FROM signalbit_erp.output_rfts_packing_po a
+                        INNER JOIN signalbit_erp.master_plan mp ON a.master_plan_id = mp.id
+                        LEFT JOIN (
+                            SELECT
+                            sd.id as id_so_det,
+                            ac.kpno as ws,
+                            supplier as buyer,
+                            styleno,
+                            color,
+                            size,
+                            dest
+                            FROM signalbit_erp.so_det sd
+                            INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+                            INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
+                            INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                            INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+                            WHERE jd.cancel = 'N'
+                        ) mb on a.so_det_id = mb.id_so_det
+                        WHERE
+                            created_at >= '{$tglAwal} 00:00:00'
+                            AND created_at <= '{$tglAkhir} 23:59:59'
+                            AND mp.cancel = 'N'
+                        GROUP BY so_det_id, a.type, DATE(created_at)
+                                                
+                                                UNION ALL
+                                                select '-' so_det_id, buyer, ws, styleno, color, size, 'rft' type, tgl_saldo tgl, COALESCE(packing_rft,0) jumlah from signalbit_erp.inject_mutasi_sewing where type_saldo = 'PACKING' and tgl_saldo >= '{$tglAwal} 00:00:00' AND tgl_saldo <= '{$tglAkhir} 23:59:59') a GROUP BY buyer, ws, styleno, color, size, type, tgl
+                    ) as results
             "))
             ->when($tipe, function ($query) use ($tipe) {
                 return $query->where('results.type', $tipe);

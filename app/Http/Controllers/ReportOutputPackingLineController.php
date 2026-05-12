@@ -22,7 +22,7 @@ class ReportOutputPackingLineController extends Controller
             if($tipe != ''){
                 $data = DB::table(DB::raw("
                     (
-                        SELECT
+                        select so_det_id, buyer, ws, styleno, color, size, type, tgl, SUM(jumlah) jumlah from (SELECT
                             so_det_id,
                             mb.buyer,
                             mb.ws,
@@ -55,6 +55,9 @@ class ReportOutputPackingLineController extends Controller
                             AND created_at <= '{$tglAkhir} 23:59:59'
                             AND mp.cancel = 'N'
                         GROUP BY so_det_id, a.type, DATE(created_at)
+                                                
+                                                UNION ALL
+                                                select '-' so_det_id, buyer, ws, styleno, color, size, 'rft' type, tgl_saldo tgl, COALESCE(packing_rft,0) jumlah from signalbit_erp.inject_mutasi_sewing where type_saldo = 'PACKING' and tgl_saldo >= '{$tglAwal} 00:00:00' AND tgl_saldo <= '{$tglAkhir} 23:59:59') a GROUP BY buyer, ws, styleno, color, size, type, tgl
                     ) as results
                 "))
                 ->when($tipe, function ($query) use ($tipe) {
