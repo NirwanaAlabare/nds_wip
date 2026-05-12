@@ -158,7 +158,7 @@ class ReportQcRejectController extends Controller
 
                             SELECT
                                 null so_det_id,
-                                null buyer,
+                                buyer,
                                 ws,
                                 styleno,
                                 color,
