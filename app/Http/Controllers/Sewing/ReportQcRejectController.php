@@ -166,7 +166,7 @@ class ReportQcRejectController extends Controller
                                 tgl_saldo AS tgl,
                                 SUM(COALESCE(qty_rejected, 0)) AS jumlah
                             FROM signalbit_erp.inject_mutasi_sewing
-                            WHERE buyer != '-' AND tgl_saldo >= '{$tglAwal}' AND tgl_saldo <= '{$tglAkhir}'
+                            WHERE buyer != '-' AND tgl_saldo >= '{$tglAwal}' AND tgl_saldo <= '{$tglAkhir}' and qty_rejected > 0
                             GROUP BY
                                 ws,
                                 color,
