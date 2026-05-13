@@ -85,7 +85,7 @@ class Marketing_BomController extends Controller
         $selectedColors = $bom->colors ? json_decode($bom->colors, true) : [];
         $selectedSizes  = $bom->sizes ? json_decode($bom->sizes, true) : [];
 
-       
+
 
         $master_items_other = $mysql_sb->table('masterothers')
             ->select('id as isi', DB::raw("CONCAT(otherscode,' ',othersdesc) as tampil"))
@@ -419,68 +419,33 @@ class Marketing_BomController extends Controller
                 ->select(
                     'd.*',
                     'mp.nama_panel',
-                    $mysql_sb->raw("
-                        CASE
-                            WHEN d.category = 'Manufacturing'
-                            THEN CONCAT(i.itemdesc, ' ', i.color, ' ', i.size, ' ', i.add_info)
-                            ELSE CONCAT(i.id_item, ' ', i.itemdesc)
-                        END as item_name
-                    "),
-                    $mysql_sb->raw("
-                        CASE
-                            WHEN d.category = 'Manufacturing'
-                            THEN CONCAT(mfg.cfdesc, IF(d.item_desc IS NOT NULL AND d.item_desc != '', CONCAT(' [', d.item_desc, ']'), ''), IF(st.nama IS NOT NULL, CONCAT(' [', st.nama, ']'), ''))
-                            ELSE CONCAT(a.nama_group, ' ', s_grp.nama_sub_group, ' ', d2.nama_type, ' ', e.nama_contents, IF(d.item_desc IS NOT NULL AND d.item_desc != '', CONCAT(' [', d.item_desc, ']'), ''), IF(st.nama IS NOT NULL, CONCAT(' [', st.nama, ']'), ''))
-                        END as content_name
-                    "),
-                    $mysql_sb->raw("
-                        CASE
-                            WHEN d.category = 'Manufacturing'
-                            THEN mfg.cfcode
-                            ELSE e.id
-                        END as id_content
-                    "),
                     'c.name as color_name',
                     's.size as size_name',
                     'u.nama_pilihan as unit_name',
-                    'cur.nama_pilihan as currency'
+                    'cur.nama_pilihan as currency',
+                    $mysql_sb->raw("(CASE WHEN d.category = 'Manufacturing' THEN CONCAT(i.itemdesc, ' ', i.color, ' ', i.size, ' ', i.add_info) ELSE CONCAT(i.id_item, ' ', i.itemdesc) END) as item_name"),
+                    $mysql_sb->raw("(CASE WHEN d.category = 'Manufacturing' THEN CONCAT(mfg.cfdesc, IF(d.item_desc IS NOT NULL AND d.item_desc != '', CONCAT(' [', d.item_desc, ']'), ''), IF(st.nama IS NOT NULL, CONCAT(' [', st.nama, ']'), '')) ELSE CONCAT(a.nama_group, ' ', s_grp.nama_sub_group, ' ', d2.nama_type, ' ', e.nama_contents, IF(d.item_desc IS NOT NULL AND d.item_desc != '', CONCAT(' [', d.item_desc, ']'), ''), IF(st.nama IS NOT NULL, CONCAT(' [', st.nama, ']'), '')) END) as content_name"),
+                    $mysql_sb->raw("(CASE WHEN d.category = 'Manufacturing' THEN mfg.cfcode ELSE e.id END) as id_content")
                 )
                 ->where('d.id_bom_marketing', $id)
-                ->orderByRaw("
-                    CASE
-                        WHEN d.category = 'Manufacturing' THEN 999
-                        WHEN a.root_group IS NULL THEN 998
-                        ELSE a.root_group
-                    END ASC
-                ")
+                ->orderByRaw("(CASE WHEN d.category = 'Manufacturing' THEN 999 WHEN a.root_group IS NULL THEN 998 ELSE a.root_group END) ASC")
                 ->orderBy('d.id', 'asc');
 
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->filterColumn('item_name', function($query, $keyword) {
-                    $sql = "CASE
-                                WHEN d.category = 'Manufacturing'
-                                THEN CONCAT(i.itemdesc, ' ', i.color, ' ', i.size, ' ', i.add_info)
-                                ELSE CONCAT(i.id_item, ' ', i.itemdesc)
-                            END like ?";
+                    $sql = "(CASE WHEN d.category = 'Manufacturing' THEN CONCAT(i.itemdesc, ' ', i.color, ' ', i.size, ' ', i.add_info) ELSE CONCAT(i.id_item, ' ', i.itemdesc) END) like ?";
                     $query->whereRaw($sql, ["%{$keyword}%"]);
                 })
                 ->filterColumn('content_name', function($query, $keyword) {
-                    $sql = "CASE
-                                WHEN d.category = 'Manufacturing'
-                                THEN CONCAT(mfg.cfcode, ' ', mfg.cfdesc, IF(d.item_desc IS NOT NULL AND d.item_desc != '', CONCAT(' [', d.item_desc, ']'), ''), IF(st.nama IS NOT NULL, CONCAT(' [', st.nama, ']'), ''))
-                                ELSE CONCAT(e.id, ' ', a.nama_group, ' ', s_grp.nama_sub_group, ' ', d2.nama_type, ' ', e.nama_contents, IF(d.item_desc IS NOT NULL AND d.item_desc != '', CONCAT(' [', d.item_desc, ']'), ''), IF(st.nama IS NOT NULL, CONCAT(' [', st.nama, ']'), ''))
-                            END like ?";
+                    $sql = "(CASE WHEN d.category = 'Manufacturing' THEN CONCAT(mfg.cfcode, ' ', mfg.cfdesc, IF(d.item_desc IS NOT NULL AND d.item_desc != '', CONCAT(' [', d.item_desc, ']'), ''), IF(st.nama IS NOT NULL, CONCAT(' [', st.nama, ']'), '')) ELSE CONCAT(e.id, ' ', a.nama_group, ' ', s_grp.nama_sub_group, ' ', d2.nama_type, ' ', e.nama_contents, IF(d.item_desc IS NOT NULL AND d.item_desc != '', CONCAT(' [', d.item_desc, ']'), ''), IF(st.nama IS NOT NULL, CONCAT(' [', st.nama, ']'), '')) END) like ?";
                     $query->whereRaw($sql, ["%{$keyword}%"]);
                 })
                 ->filterColumn('id_content', function($query, $keyword) {
-                    $sql = "CASE
-                                WHEN d.category = 'Manufacturing' THEN mfg.cfcode
-                                ELSE e.id
-                            END like ?";
+                    $sql = "(CASE WHEN d.category = 'Manufacturing' THEN mfg.cfcode ELSE e.id END) like ?";
                     $query->whereRaw($sql, ["%{$keyword}%"]);
                 })
-                ->filterColumn('shell', function($query, $keyword) {
+                ->filterColumn('nama_panel', function($query, $keyword) {
                     $query->whereRaw("mp.nama_panel like ?", ["%{$keyword}%"]);
                 })
                 ->filterColumn('currency', function($query, $keyword) {

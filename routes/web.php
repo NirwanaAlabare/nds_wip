@@ -131,6 +131,8 @@ use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanFgController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanAccesoriesController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanFgController;
+use App\Http\Controllers\CeisaAPIController;
+use App\Http\Controllers\Exim\DokumenPabeanController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -1338,6 +1340,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/export-ceisa-detail', 'ExportReportCeisaDetail')->name('export-ceisa-detail');
         Route::get('/report-signalbit-bc', 'ReportSignalbitBC')->name('report-signalbit-bc');
         Route::get('/export-excel-report-signalbit-bc', 'ExportReportSignalbitBC')->name('export-excel-report-signalbit-bc');
+
+        Route::get('/dokumen-pabean', [DokumenPabeanController::class, 'index'])->name('dokumen.pabean.index');
+        Route::get('/dokumen-pabean/{id}/edit', [DokumenPabeanController::class, 'edit'])->name('dokumen.pabean.edit');
+        Route::post('/dokumen-pabean/kirim/{id}', [DokumenPabeanController::class, 'kirimCeisa'])->name('dokumen.pabean.kirim');
     });
 
     // WHS Soljer
@@ -1775,3 +1781,8 @@ Route::get('/validation-form', function () {
 Route::get('/bon-mutasi', function () {
     return view('bon-mutasi');
 })->middleware('auth');
+
+
+Route::get('/tes-ceisa-status', [CeisaAPIController::class, 'testStatus']);
+Route::get('/tes-ceisa-kurs/{kode}', [CeisaAPIController::class, 'testKurs']);
+

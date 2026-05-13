@@ -167,8 +167,10 @@
             <div class="row mb-3 bg-light pt-3 pb-2 rounded border mx-0 mt-3">
                 <div class="col-md-5">
                     <div class="form-group mb-3">
-                        <label class="fw-bold"><i class="fas fa-image"></i> Upload Gambar SO <span class="text-danger">*</span></label>
-                        <input type="file" name="images" id="images" class="form-control p-1" accept="image/*">
+                        <label class="fw-bold"><i class="fas fa-image"></i> Gambar SO</label>
+                        <br>
+                        <span class="badge badge-info px-2 py-1"><i class="fas fa-magic"></i></span>
+                        <input type="hidden" name="image_costing_path" id="image_costing_path" value="">
                     </div>
 
                     <div class="form-group mb-0 mt-4 pt-2 border-top border-secondary">
@@ -183,10 +185,10 @@
                 </div>
 
                 <div class="col-md-7 form-group text-center d-flex flex-column mb-0">
-                    <label class="fw-bold text-secondary text-left mb-2">Preview Gambar</label>
+                    <label class="fw-bold text-secondary text-left mb-2">Preview Gambar Costing</label>
                     <div class="border border-secondary border-dashed rounded d-flex justify-content-center align-items-center bg-white flex-grow-1" style="min-height: 180px; overflow: hidden;">
                         <img id="preview_images" src="" alt="Preview Gambar" class="img-thumbnail shadow-sm border-0" style="max-height: 180px; object-fit: contain; display: none;">
-                        <span id="text_preview" class="text-muted font-italic">Belum ada gambar terpilih</span>
+                        <span id="text_preview" class="text-muted font-italic">Pilih No Katalog BOM terlebih dahulu</span>
                     </div>
                 </div>
             </div>
@@ -685,21 +687,21 @@
             $(this).val(val);
         });
 
-        $('#images').on('change', function(e) {
-            let file = e.target.files[0];
-            let reader = new FileReader();
-            if (file) {
-                if (!file.type.match('image.*')) {
-                    Swal.fire('Peringatan!', 'File harus berupa gambar.', 'warning');
-                    $(this).val(''); return;
-                }
-                reader.onload = function(e) {
-                    $('#preview_images').attr('src', e.target.result).show();
-                    $('#text_preview').hide();
-                }
-                reader.readAsDataURL(file);
-            }
-        });
+        // $('#images').on('change', function(e) {
+        //     let file = e.target.files[0];
+        //     let reader = new FileReader();
+        //     if (file) {
+        //         if (!file.type.match('image.*')) {
+        //             Swal.fire('Peringatan!', 'File harus berupa gambar.', 'warning');
+        //             $(this).val(''); return;
+        //         }
+        //         reader.onload = function(e) {
+        //             $('#preview_images').attr('src', e.target.result).show();
+        //             $('#text_preview').hide();
+        //         }
+        //         reader.readAsDataURL(file);
+        //     }
+        // });
 
         $('#id_bom').on('change', function() {
             let id_bom = $(this).val();
@@ -852,6 +854,16 @@
                             $('#id_buyer').val(data.id_buyer).trigger('change');
                             $('#marketing_order').val(data.marketing_order).trigger('change');
                             $('#id_currency').val(data.id_currency).trigger('change');
+
+                            if (data.image_url) {
+                                $('#preview_images').attr('src', data.image_url).show();
+                                $('#text_preview').hide();
+                                $('#image_costing_path').val(data.image_url);
+                            } else {
+                                $('#preview_images').hide().attr('src', '');
+                                $('#text_preview').text('Gambar Costing tidak tersedia.').show();
+                                $('#image_costing_path').val('');
+                            }
 
                             if (data.nama_product_item) {
                                 $('#id_product_item').attr('data-auto-select', data.nama_product_item);

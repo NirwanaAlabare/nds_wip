@@ -112,10 +112,10 @@
                 </table>
             </td>
             <td style="width: 25%; text-align: right; vertical-align: top; padding: 0;">
-                @if(!empty($header->nm_file))
-                    <img src="{{ public_path('uploads/so/' . $header->nm_file) }}" class="img-so" alt="Gambar SO">
+                @if(!empty($header->image_base64))
+                    <img src="{{ $header->image_base64 }}" class="img-so" alt="Gambar SO" style="max-height: 150px; object-fit: contain;">
                 @else
-                    <div class="no-image">No Image</div>
+                    <div class="no-image" style="border: 1px dashed #999; padding: 50px 0; text-align: center; color: #999;">No Image</div>
                 @endif
             </td>
         </tr>
@@ -314,7 +314,7 @@
     @endforeach
 
     @php
-        $has_mfg_data = isset($materials_manufacturing) && count($materials_manufacturing) > 0;
+        $has_mfg_data = isset($materials_mfg) && count($materials_mfg) > 0;
         $avoid_break_mfg = !$has_mfg_data ? 'page-break-inside: avoid;' : '';
     @endphp
     <table class="table-data" style="margin-bottom: 20px; {{ $avoid_break_mfg }}">
@@ -338,7 +338,7 @@
             </tr>
         </thead>
         @if($has_mfg_data)
-            @foreach($materials_manufacturing as $color_name => $items)
+            @foreach($materials_mfg as $color_name => $items)
                 @php
                     $row_count = count($items);
                     $mid_idx = (int) floor(($row_count - 1) / 2);
