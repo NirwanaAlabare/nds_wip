@@ -867,6 +867,298 @@ class ReportMutasiOutputController extends Controller
                                 qty_reworked = 0 AND
                                 saldo_akhir_qc_reject = 0
                             )
+                        ),
+                        saldo_awal_inject as (
+                            SELECT
+                                buyer,
+                                ws,
+                                styleno,
+                                color,
+                                size,
+                                -- SEWING AKHIR
+                                SUM(COALESCE(saldo_awal_sewing, 0) +
+                                COALESCE(qty_loading, 0) +
+                                COALESCE(input_rework_sewing, 0) +
+                                COALESCE(input_rework_mending, 0) +
+                                COALESCE(input_rework_spotcleaning, 0) -
+                                COALESCE(defect_sewing, 0) -
+                                COALESCE(defect_spotcleaning, 0) -
+                                COALESCE(defect_mending, 0) -
+                                COALESCE(qty_sew_reject, 0) -
+                                COALESCE(qty_sewing, 0)) as saldo_awal_sewing,
+                                0 qty_loading,
+                                0 input_rework_sewing,
+                                0 input_rework_spotcleaning,
+                                0 input_rework_mending,
+                                0 defect_sewing,
+                                0 defect_spotcleaning,
+                                0 defect_mending,
+                                0 qty_sew_reject,
+                                0 qty_sewing,
+                                0 saldo_akhir_sewing,
+                                -- FINISHING AKHIR
+                                SUM(COALESCE(saldo_awal_finishing, 0) +
+                                COALESCE(qty_sewing, 0) +
+                                COALESCE(input_rework_sewing_f, 0) +
+                                COALESCE(input_rework_spotcleaning_f, 0) +
+                                COALESCE(input_rework_mending_f, 0) -
+                                COALESCE(defect_sewing_f, 0) -
+                                COALESCE(defect_spotcleaning_f, 0) -
+                                COALESCE(defect_mending_f, 0) -
+                                COALESCE(qty_fin_reject, 0) -
+                                COALESCE(qty_finishing, 0)) as saldo_awal_finishing,
+                                0 input_rework_sewing_f,
+                                0 input_rework_spotcleaning_f,
+                                0 input_rework_mending_f,
+                                0 defect_sewing_f,
+                                0 defect_spotcleaning_f,
+                                0 defect_mending_f,
+                                0 qty_fin_reject,
+                                0 qty_finishing,
+                                0 saldo_akhir_finishing,
+                                 -- SECONDARY PROCESS AKHIR
+                                SUM(COALESCE(total_in_sp, 0) +
+                                COALESCE(rework_sp, 0) -
+                                COALESCE(defect_sp, 0) -
+                                COALESCE(reject_sp, 0) -
+                                COALESCE(rft_sp, 0)) as saldo_awal_secondary_proses,
+                                0 total_in_sp,
+                                0 rework_sp,
+                                0 defect_sp,
+                                0 reject_sp,
+                                0 rft_sp,
+                                0 saldo_akhir_secondary_proses,
+                                -- DEFECT AKHIR
+                                SUM(COALESCE(saldo_awal_defect_sewing, 0) +
+                                COALESCE(total_defect_sewing, 0) -
+                                COALESCE(total_input_rework_sewing, 0)) as saldo_awal_defect_sewing,
+                                0 total_defect_sewing,
+                                0 total_input_rework_sewing,
+                                0 saldo_akhir_defect_sewing,
+                                -- SPOTCLEANING AKHIR
+                                SUM(COALESCE(saldo_awal_defect_spotcleaning, 0) +
+                                COALESCE(total_defect_spotcleaning, 0) -
+                                COALESCE(total_input_rework_spotcleaning, 0)) as saldo_awal_defect_spotcleaning,
+                                0 total_defect_spotcleaning,
+                                0 total_input_rework_spotcleaning,
+                                0 saldo_akhir_defect_spotcleaning,
+                                -- MENDING AKHIR
+                                SUM(COALESCE(saldo_awal_defect_mending, 0) +
+                                COALESCE(total_defect_mending, 0) -
+                                COALESCE(total_input_rework_mending, 0)) as saldo_awal_defect_mending,
+                                0 total_defect_mending,
+                                0 total_input_rework_mending,
+                                0 saldo_akhir_mending,
+                                -- REJECT AKHIR
+                                SUM(COALESCE(saldo_awal_reject, 0)
+                                + COALESCE(qty_reject_in, 0)
+                                - COALESCE(qty_rejected, 0)
+                                - COALESCE(qty_reworked, 0)) as saldo_awal_reject,
+                                0 qty_reject_in,
+                                0 qty_reworked,
+                                0 qty_rejected,
+                                0 saldo_akhir_qc_reject
+                            FROM
+                                inject_mutasi_sewing
+                            WHERE
+                                tgl_saldo < '$start_date'
+                            GROUP BY
+                                buyer, ws, styleno, color, size
+                            HAVING NOT (
+                                saldo_awal_sewing = 0 AND
+                                qty_loading = 0 AND
+                                input_rework_sewing = 0 AND
+                                input_rework_spotcleaning = 0 AND
+                                input_rework_mending = 0 AND
+                                defect_sewing = 0 AND
+                                defect_spotcleaning = 0 AND
+                                defect_mending = 0 AND
+                                qty_sew_reject = 0 AND
+                                qty_sewing = 0 AND
+                                saldo_akhir_sewing = 0 AND
+                                saldo_awal_finishing = 0 AND
+                                input_rework_sewing_f = 0 AND
+                                input_rework_spotcleaning_f = 0 AND
+                                input_rework_mending_f = 0 AND
+                                defect_sewing_f = 0 AND
+                                defect_spotcleaning_f = 0 AND
+                                defect_mending_f = 0 AND
+                                qty_fin_reject = 0 AND
+                                qty_finishing = 0 AND
+                                saldo_akhir_finishing = 0 AND
+                                saldo_awal_secondary_proses = 0 AND
+                                total_in_sp = 0 AND
+                                rework_sp = 0 AND
+                                defect_sp = 0 AND
+                                reject_sp = 0 AND
+                                rft_sp = 0 AND
+                                saldo_akhir_secondary_proses = 0 AND
+                                saldo_awal_defect_sewing = 0 AND
+                                total_defect_sewing = 0 AND
+                                total_input_rework_sewing = 0 AND
+                                saldo_akhir_defect_sewing = 0 AND
+                                saldo_awal_defect_spotcleaning = 0 AND
+                                total_defect_spotcleaning = 0 AND
+                                total_input_rework_spotcleaning = 0 AND
+                                saldo_akhir_defect_spotcleaning = 0 AND
+                                saldo_awal_defect_mending = 0 AND
+                                total_defect_mending = 0 AND
+                                total_input_rework_mending = 0 AND
+                                saldo_akhir_mending = 0 AND
+                                saldo_awal_reject = 0 AND
+                                qty_reject_in = 0 AND
+                                qty_rejected = 0 AND
+                                qty_reworked = 0 AND
+                                saldo_akhir_qc_reject = 0
+                            )
+                        ),
+                        current_inject as (
+                            SELECT
+                                buyer,
+                                ws,
+                                styleno,
+                                color,
+                                size,
+                                SUM(COALESCE(saldo_awal_sewing, 0)) as saldo_awal_sewing,
+                                SUM(COALESCE(qty_loading, 0)) as qty_loading,
+                                SUM(COALESCE(input_rework_sewing, 0)) as input_rework_sewing,
+                                SUM(COALESCE(input_rework_spotcleaning, 0)) as input_rework_spotcleaning,
+                                SUM(COALESCE(input_rework_mending, 0)) as input_rework_mending,
+                                SUM(COALESCE(defect_sewing, 0)) as defect_sewing,
+                                SUM(COALESCE(defect_spotcleaning, 0)) as defect_spotcleaning,
+                                SUM(COALESCE(defect_mending, 0)) as defect_mending,
+                                SUM(COALESCE(qty_sew_reject, 0)) as qty_sew_reject,
+                                SUM(COALESCE(qty_sewing, 0)) as qty_sewing,
+                                -- SEWING AKHIR
+                                SUM(COALESCE(saldo_awal_sewing, 0) +
+                                COALESCE(qty_loading, 0) +
+                                COALESCE(input_rework_sewing, 0) +
+                                COALESCE(input_rework_mending, 0) +
+                                COALESCE(input_rework_spotcleaning, 0) -
+                                COALESCE(defect_sewing, 0) -
+                                COALESCE(defect_spotcleaning, 0) -
+                                COALESCE(defect_mending, 0) -
+                                COALESCE(qty_sew_reject, 0) -
+                                COALESCE(qty_sewing, 0))
+                                AS saldo_akhir_sewing,
+                                -- FINISHING AWAL
+                                SUM(COALESCE(saldo_awal_finishing, 0)) as saldo_awal_finishing,
+                                SUM(COALESCE(input_rework_sewing_f, 0)) as input_rework_sewing_f,
+                                SUM(COALESCE(input_rework_spotcleaning_f, 0)) as input_rework_spotcleaning_f,
+                                SUM(COALESCE(input_rework_mending_f, 0)) as input_rework_mending_f,
+                                SUM(COALESCE(defect_sewing_f, 0)) as defect_sewing_f,
+                                SUM(COALESCE(defect_spotcleaning_f, 0)) as defect_spotcleaning_f,
+                                SUM(COALESCE(defect_mending_f, 0)) as defect_mending_f,
+                                SUM(COALESCE(qty_fin_reject, 0)) as qty_fin_reject,
+                                SUM(COALESCE(qty_finishing, 0)) as qty_finishing,
+                                -- FINISHING AKHIR
+                                SUM(COALESCE(saldo_awal_finishing, 0) +
+                                COALESCE(qty_sewing, 0) +
+                                COALESCE(input_rework_sewing_f, 0) +
+                                COALESCE(input_rework_spotcleaning_f, 0) +
+                                COALESCE(input_rework_mending_f, 0) -
+                                COALESCE(defect_sewing_f, 0) -
+                                COALESCE(defect_spotcleaning_f, 0) -
+                                COALESCE(defect_mending_f, 0) -
+                                COALESCE(qty_fin_reject, 0) -
+                                COALESCE(qty_finishing, 0)) as saldo_akhir_finishing,
+                                -- SECONDARY PROCESS AWAL
+                                SUM(COALESCE(saldo_awal_secondary_proses, 0)) as saldo_awal_secondary_proses,
+                                SUM(COALESCE(total_in_sp, 0)) as total_in_sp,
+                                SUM(COALESCE(rework_sp, 0)) as rework_sp,
+                                SUM(COALESCE(defect_sp, 0)) as defect_sp,
+                                SUM(COALESCE(reject_sp, 0)) as reject_sp,
+                                SUM(COALESCE(rft_sp, 0)) as rft_sp,
+                                -- SECONDARY PROCESS AKHIR
+                                SUM(COALESCE(total_in_sp, 0) +
+                                COALESCE(rework_sp, 0) -
+                                COALESCE(defect_sp, 0) -
+                                COALESCE(reject_sp, 0) -
+                                COALESCE(rft_sp, 0)) as saldo_akhir_secondary_proses,
+                                -- DEFECT AWAL
+                                SUM(COALESCE(saldo_awal_defect_sewing, 0)) as saldo_awal_defect_sewing,
+                                SUM(COALESCE(total_defect_sewing, 0)) as total_defect_sewing,
+                                SUM(COALESCE(total_input_rework_sewing, 0)) as total_input_rework_sewing,
+                                -- DEFECT AKHIR
+                                SUM(COALESCE(saldo_awal_defect_sewing, 0) +
+                                COALESCE(total_defect_sewing, 0) -
+                                COALESCE(total_input_rework_sewing, 0)) as saldo_akhir_defect_sewing,
+                                -- SPOTCLEANING AWAL
+                                SUM(COALESCE(saldo_awal_defect_spotcleaning, 0)) as saldo_awal_defect_spotcleaning,
+                                SUM(COALESCE(total_defect_spotcleaning, 0)) as total_defect_spotcleaning,
+                                SUM(COALESCE(total_input_rework_spotcleaning, 0)) as total_input_rework_spotcleaning,
+                                -- SPOTCLEANING AKHIR
+                                SUM(COALESCE(saldo_awal_defect_spotcleaning, 0) +
+                                COALESCE(total_defect_spotcleaning, 0) -
+                                COALESCE(total_input_rework_spotcleaning, 0)) as saldo_akhir_defect_spotcleaning,
+                                -- MENDING AWAL
+                                SUM(COALESCE(saldo_awal_defect_mending, 0)) as saldo_awal_defect_mending,
+                                SUM(COALESCE(total_defect_mending, 0)) as total_defect_mending,
+                                SUM(COALESCE(total_input_rework_mending, 0)) as total_input_rework_mending,
+                                SUM(COALESCE(saldo_awal_defect_mending, 0) +
+                                COALESCE(total_defect_mending, 0) -
+                                COALESCE(total_input_rework_mending, 0)) saldo_akhir_mending,
+                                SUM(COALESCE(saldo_awal_reject, 0)) as saldo_awal_reject,
+                                SUM(COALESCE(qty_reject_in, 0)) as qty_reject_in,
+                                SUM(COALESCE(qty_reworked, 0)) as qty_reworked,
+                                SUM(COALESCE(qty_rejected, 0)) as qty_rejected,
+                                SUM(COALESCE(saldo_awal_reject, 0)
+                                + COALESCE(qty_reject_in, 0)
+                                - COALESCE(qty_rejected, 0)
+                                - COALESCE(qty_reworked, 0))  as saldo_akhir_qc_reject
+                            FROM
+                                inject_mutasi_sewing
+                            WHERE
+                                tgl_saldo >= '$start_date' AND tgl_saldo <= '$end_date'
+                            GROUP BY
+                                buyer, ws, styleno, color, size
+                            HAVING NOT (
+                                saldo_awal_sewing = 0 AND
+                                qty_loading = 0 AND
+                                input_rework_sewing = 0 AND
+                                input_rework_spotcleaning = 0 AND
+                                input_rework_mending = 0 AND
+                                defect_sewing = 0 AND
+                                defect_spotcleaning = 0 AND
+                                defect_mending = 0 AND
+                                qty_sew_reject = 0 AND
+                                qty_sewing = 0 AND
+                                saldo_akhir_sewing = 0 AND
+                                saldo_awal_finishing = 0 AND
+                                input_rework_sewing_f = 0 AND
+                                input_rework_spotcleaning_f = 0 AND
+                                input_rework_mending_f = 0 AND
+                                defect_sewing_f = 0 AND
+                                defect_spotcleaning_f = 0 AND
+                                defect_mending_f = 0 AND
+                                qty_fin_reject = 0 AND
+                                qty_finishing = 0 AND
+                                saldo_akhir_finishing = 0 AND
+                                saldo_awal_secondary_proses = 0 AND
+                                total_in_sp = 0 AND
+                                rework_sp = 0 AND
+                                defect_sp = 0 AND
+                                reject_sp = 0 AND
+                                rft_sp = 0 AND
+                                saldo_akhir_secondary_proses = 0 AND
+                                saldo_awal_defect_sewing = 0 AND
+                                total_defect_sewing = 0 AND
+                                total_input_rework_sewing = 0 AND
+                                saldo_akhir_defect_sewing = 0 AND
+                                saldo_awal_defect_spotcleaning = 0 AND
+                                total_defect_spotcleaning = 0 AND
+                                total_input_rework_spotcleaning = 0 AND
+                                saldo_akhir_defect_spotcleaning = 0 AND
+                                saldo_awal_defect_mending = 0 AND
+                                total_defect_mending = 0 AND
+                                total_input_rework_mending = 0 AND
+                                saldo_akhir_mending = 0 AND
+                                saldo_awal_reject = 0 AND
+                                qty_reject_in = 0 AND
+                                qty_rejected = 0 AND
+                                qty_reworked = 0 AND
+                                saldo_akhir_qc_reject = 0
+                            )
                         )
 
                         SELECT
@@ -979,7 +1271,7 @@ class ReportMutasiOutputController extends Controller
 
                             UNION ALL
 
-                            SELECT
+                            select
                                 buyer,
                                 ws,
                                 styleno,
@@ -1072,10 +1364,18 @@ class ReportMutasiOutputController extends Controller
                                 + COALESCE(qty_reject_in, 0)
                                 - COALESCE(qty_rejected, 0)
                                 - COALESCE(qty_reworked, 0))  as saldo_akhir_qc_reject
-                            FROM
-                                inject_mutasi_sewing
-                            WHERE
-                                tgl_saldo >= '$start_date' AND tgl_saldo <= '$end_date'
+                            from
+                            (
+                                SELECT
+                                    *
+                                FROM
+                                    current_inject
+                                UNION ALL
+                                SELECT
+                                    *
+                                FROM
+                                    saldo_awal_inject
+                            ) inject
                             GROUP BY
                                 buyer, ws, styleno, color, size
                         ) data
@@ -1927,6 +2227,298 @@ class ReportMutasiOutputController extends Controller
                                 qty_reworked = 0 AND
                                 saldo_akhir_qc_reject = 0
                             )
+                        ),
+                        saldo_awal_inject as (
+                            SELECT
+                                buyer,
+                                ws,
+                                styleno,
+                                color,
+                                size,
+                                -- SEWING AKHIR
+                                SUM(COALESCE(saldo_awal_sewing, 0) +
+                                COALESCE(qty_loading, 0) +
+                                COALESCE(input_rework_sewing, 0) +
+                                COALESCE(input_rework_mending, 0) +
+                                COALESCE(input_rework_spotcleaning, 0) -
+                                COALESCE(defect_sewing, 0) -
+                                COALESCE(defect_spotcleaning, 0) -
+                                COALESCE(defect_mending, 0) -
+                                COALESCE(qty_sew_reject, 0) -
+                                COALESCE(qty_sewing, 0)) as saldo_awal_sewing,
+                                0 qty_loading,
+                                0 input_rework_sewing,
+                                0 input_rework_spotcleaning,
+                                0 input_rework_mending,
+                                0 defect_sewing,
+                                0 defect_spotcleaning,
+                                0 defect_mending,
+                                0 qty_sew_reject,
+                                0 qty_sewing,
+                                0 saldo_akhir_sewing,
+                                -- FINISHING AKHIR
+                                SUM(COALESCE(saldo_awal_finishing, 0) +
+                                COALESCE(qty_sewing, 0) +
+                                COALESCE(input_rework_sewing_f, 0) +
+                                COALESCE(input_rework_spotcleaning_f, 0) +
+                                COALESCE(input_rework_mending_f, 0) -
+                                COALESCE(defect_sewing_f, 0) -
+                                COALESCE(defect_spotcleaning_f, 0) -
+                                COALESCE(defect_mending_f, 0) -
+                                COALESCE(qty_fin_reject, 0) -
+                                COALESCE(qty_finishing, 0)) as saldo_awal_finishing,
+                                0 input_rework_sewing_f,
+                                0 input_rework_spotcleaning_f,
+                                0 input_rework_mending_f,
+                                0 defect_sewing_f,
+                                0 defect_spotcleaning_f,
+                                0 defect_mending_f,
+                                0 qty_fin_reject,
+                                0 qty_finishing,
+                                0 saldo_akhir_finishing,
+                                 -- SECONDARY PROCESS AKHIR
+                                SUM(COALESCE(total_in_sp, 0) +
+                                COALESCE(rework_sp, 0) -
+                                COALESCE(defect_sp, 0) -
+                                COALESCE(reject_sp, 0) -
+                                COALESCE(rft_sp, 0)) as saldo_awal_secondary_proses,
+                                0 total_in_sp,
+                                0 rework_sp,
+                                0 defect_sp,
+                                0 reject_sp,
+                                0 rft_sp,
+                                0 saldo_akhir_secondary_proses,
+                                -- DEFECT AKHIR
+                                SUM(COALESCE(saldo_awal_defect_sewing, 0) +
+                                COALESCE(total_defect_sewing, 0) -
+                                COALESCE(total_input_rework_sewing, 0)) as saldo_awal_defect_sewing,
+                                0 total_defect_sewing,
+                                0 total_input_rework_sewing,
+                                0 saldo_akhir_defect_sewing,
+                                -- SPOTCLEANING AKHIR
+                                SUM(COALESCE(saldo_awal_defect_spotcleaning, 0) +
+                                COALESCE(total_defect_spotcleaning, 0) -
+                                COALESCE(total_input_rework_spotcleaning, 0)) as saldo_awal_defect_spotcleaning,
+                                0 total_defect_spotcleaning,
+                                0 total_input_rework_spotcleaning,
+                                0 saldo_akhir_defect_spotcleaning,
+                                -- MENDING AKHIR
+                                SUM(COALESCE(saldo_awal_defect_mending, 0) +
+                                COALESCE(total_defect_mending, 0) -
+                                COALESCE(total_input_rework_mending, 0)) as saldo_awal_defect_mending,
+                                0 total_defect_mending,
+                                0 total_input_rework_mending,
+                                0 saldo_akhir_mending,
+                                -- REJECT AKHIR
+                                SUM(COALESCE(saldo_awal_reject, 0)
+                                + COALESCE(qty_reject_in, 0)
+                                - COALESCE(qty_rejected, 0)
+                                - COALESCE(qty_reworked, 0)) as saldo_awal_reject,
+                                0 qty_reject_in,
+                                0 qty_reworked,
+                                0 qty_rejected,
+                                0 saldo_akhir_qc_reject
+                            FROM
+                                inject_mutasi_sewing
+                            WHERE
+                                tgl_saldo < '$start_date'
+                            GROUP BY
+                                buyer, ws, styleno, color, size
+                            HAVING NOT (
+                                saldo_awal_sewing = 0 AND
+                                qty_loading = 0 AND
+                                input_rework_sewing = 0 AND
+                                input_rework_spotcleaning = 0 AND
+                                input_rework_mending = 0 AND
+                                defect_sewing = 0 AND
+                                defect_spotcleaning = 0 AND
+                                defect_mending = 0 AND
+                                qty_sew_reject = 0 AND
+                                qty_sewing = 0 AND
+                                saldo_akhir_sewing = 0 AND
+                                saldo_awal_finishing = 0 AND
+                                input_rework_sewing_f = 0 AND
+                                input_rework_spotcleaning_f = 0 AND
+                                input_rework_mending_f = 0 AND
+                                defect_sewing_f = 0 AND
+                                defect_spotcleaning_f = 0 AND
+                                defect_mending_f = 0 AND
+                                qty_fin_reject = 0 AND
+                                qty_finishing = 0 AND
+                                saldo_akhir_finishing = 0 AND
+                                saldo_awal_secondary_proses = 0 AND
+                                total_in_sp = 0 AND
+                                rework_sp = 0 AND
+                                defect_sp = 0 AND
+                                reject_sp = 0 AND
+                                rft_sp = 0 AND
+                                saldo_akhir_secondary_proses = 0 AND
+                                saldo_awal_defect_sewing = 0 AND
+                                total_defect_sewing = 0 AND
+                                total_input_rework_sewing = 0 AND
+                                saldo_akhir_defect_sewing = 0 AND
+                                saldo_awal_defect_spotcleaning = 0 AND
+                                total_defect_spotcleaning = 0 AND
+                                total_input_rework_spotcleaning = 0 AND
+                                saldo_akhir_defect_spotcleaning = 0 AND
+                                saldo_awal_defect_mending = 0 AND
+                                total_defect_mending = 0 AND
+                                total_input_rework_mending = 0 AND
+                                saldo_akhir_mending = 0 AND
+                                saldo_awal_reject = 0 AND
+                                qty_reject_in = 0 AND
+                                qty_rejected = 0 AND
+                                qty_reworked = 0 AND
+                                saldo_akhir_qc_reject = 0
+                            )
+                        ),
+                        current_inject as (
+                            SELECT
+                                buyer,
+                                ws,
+                                styleno,
+                                color,
+                                size,
+                                SUM(COALESCE(saldo_awal_sewing, 0)) as saldo_awal_sewing,
+                                SUM(COALESCE(qty_loading, 0)) as qty_loading,
+                                SUM(COALESCE(input_rework_sewing, 0)) as input_rework_sewing,
+                                SUM(COALESCE(input_rework_spotcleaning, 0)) as input_rework_spotcleaning,
+                                SUM(COALESCE(input_rework_mending, 0)) as input_rework_mending,
+                                SUM(COALESCE(defect_sewing, 0)) as defect_sewing,
+                                SUM(COALESCE(defect_spotcleaning, 0)) as defect_spotcleaning,
+                                SUM(COALESCE(defect_mending, 0)) as defect_mending,
+                                SUM(COALESCE(qty_sew_reject, 0)) as qty_sew_reject,
+                                SUM(COALESCE(qty_sewing, 0)) as qty_sewing,
+                                -- SEWING AKHIR
+                                SUM(COALESCE(saldo_awal_sewing, 0) +
+                                COALESCE(qty_loading, 0) +
+                                COALESCE(input_rework_sewing, 0) +
+                                COALESCE(input_rework_mending, 0) +
+                                COALESCE(input_rework_spotcleaning, 0) -
+                                COALESCE(defect_sewing, 0) -
+                                COALESCE(defect_spotcleaning, 0) -
+                                COALESCE(defect_mending, 0) -
+                                COALESCE(qty_sew_reject, 0) -
+                                COALESCE(qty_sewing, 0))
+                                AS saldo_akhir_sewing,
+                                -- FINISHING AWAL
+                                SUM(COALESCE(saldo_awal_finishing, 0)) as saldo_awal_finishing,
+                                SUM(COALESCE(input_rework_sewing_f, 0)) as input_rework_sewing_f,
+                                SUM(COALESCE(input_rework_spotcleaning_f, 0)) as input_rework_spotcleaning_f,
+                                SUM(COALESCE(input_rework_mending_f, 0)) as input_rework_mending_f,
+                                SUM(COALESCE(defect_sewing_f, 0)) as defect_sewing_f,
+                                SUM(COALESCE(defect_spotcleaning_f, 0)) as defect_spotcleaning_f,
+                                SUM(COALESCE(defect_mending_f, 0)) as defect_mending_f,
+                                SUM(COALESCE(qty_fin_reject, 0)) as qty_fin_reject,
+                                SUM(COALESCE(qty_finishing, 0)) as qty_finishing,
+                                -- FINISHING AKHIR
+                                SUM(COALESCE(saldo_awal_finishing, 0) +
+                                COALESCE(qty_sewing, 0) +
+                                COALESCE(input_rework_sewing_f, 0) +
+                                COALESCE(input_rework_spotcleaning_f, 0) +
+                                COALESCE(input_rework_mending_f, 0) -
+                                COALESCE(defect_sewing_f, 0) -
+                                COALESCE(defect_spotcleaning_f, 0) -
+                                COALESCE(defect_mending_f, 0) -
+                                COALESCE(qty_fin_reject, 0) -
+                                COALESCE(qty_finishing, 0)) as saldo_akhir_finishing,
+                                -- SECONDARY PROCESS AWAL
+                                SUM(COALESCE(saldo_awal_secondary_proses, 0)) as saldo_awal_secondary_proses,
+                                SUM(COALESCE(total_in_sp, 0)) as total_in_sp,
+                                SUM(COALESCE(rework_sp, 0)) as rework_sp,
+                                SUM(COALESCE(defect_sp, 0)) as defect_sp,
+                                SUM(COALESCE(reject_sp, 0)) as reject_sp,
+                                SUM(COALESCE(rft_sp, 0)) as rft_sp,
+                                -- SECONDARY PROCESS AKHIR
+                                SUM(COALESCE(total_in_sp, 0) +
+                                COALESCE(rework_sp, 0) -
+                                COALESCE(defect_sp, 0) -
+                                COALESCE(reject_sp, 0) -
+                                COALESCE(rft_sp, 0)) as saldo_akhir_secondary_proses,
+                                -- DEFECT AWAL
+                                SUM(COALESCE(saldo_awal_defect_sewing, 0)) as saldo_awal_defect_sewing,
+                                SUM(COALESCE(total_defect_sewing, 0)) as total_defect_sewing,
+                                SUM(COALESCE(total_input_rework_sewing, 0)) as total_input_rework_sewing,
+                                -- DEFECT AKHIR
+                                SUM(COALESCE(saldo_awal_defect_sewing, 0) +
+                                COALESCE(total_defect_sewing, 0) -
+                                COALESCE(total_input_rework_sewing, 0)) as saldo_akhir_defect_sewing,
+                                -- SPOTCLEANING AWAL
+                                SUM(COALESCE(saldo_awal_defect_spotcleaning, 0)) as saldo_awal_defect_spotcleaning,
+                                SUM(COALESCE(total_defect_spotcleaning, 0)) as total_defect_spotcleaning,
+                                SUM(COALESCE(total_input_rework_spotcleaning, 0)) as total_input_rework_spotcleaning,
+                                -- SPOTCLEANING AKHIR
+                                SUM(COALESCE(saldo_awal_defect_spotcleaning, 0) +
+                                COALESCE(total_defect_spotcleaning, 0) -
+                                COALESCE(total_input_rework_spotcleaning, 0)) as saldo_akhir_defect_spotcleaning,
+                                -- MENDING AWAL
+                                SUM(COALESCE(saldo_awal_defect_mending, 0)) as saldo_awal_defect_mending,
+                                SUM(COALESCE(total_defect_mending, 0)) as total_defect_mending,
+                                SUM(COALESCE(total_input_rework_mending, 0)) as total_input_rework_mending,
+                                SUM(COALESCE(saldo_awal_defect_mending, 0) +
+                                COALESCE(total_defect_mending, 0) -
+                                COALESCE(total_input_rework_mending, 0)) saldo_akhir_mending,
+                                SUM(COALESCE(saldo_awal_reject, 0)) as saldo_awal_reject,
+                                SUM(COALESCE(qty_reject_in, 0)) as qty_reject_in,
+                                SUM(COALESCE(qty_reworked, 0)) as qty_reworked,
+                                SUM(COALESCE(qty_rejected, 0)) as qty_rejected,
+                                SUM(COALESCE(saldo_awal_reject, 0)
+                                + COALESCE(qty_reject_in, 0)
+                                - COALESCE(qty_rejected, 0)
+                                - COALESCE(qty_reworked, 0))  as saldo_akhir_qc_reject
+                            FROM
+                                inject_mutasi_sewing
+                            WHERE
+                                tgl_saldo >= '$start_date' AND tgl_saldo <= '$end_date'
+                            GROUP BY
+                                buyer, ws, styleno, color, size
+                            HAVING NOT (
+                                saldo_awal_sewing = 0 AND
+                                qty_loading = 0 AND
+                                input_rework_sewing = 0 AND
+                                input_rework_spotcleaning = 0 AND
+                                input_rework_mending = 0 AND
+                                defect_sewing = 0 AND
+                                defect_spotcleaning = 0 AND
+                                defect_mending = 0 AND
+                                qty_sew_reject = 0 AND
+                                qty_sewing = 0 AND
+                                saldo_akhir_sewing = 0 AND
+                                saldo_awal_finishing = 0 AND
+                                input_rework_sewing_f = 0 AND
+                                input_rework_spotcleaning_f = 0 AND
+                                input_rework_mending_f = 0 AND
+                                defect_sewing_f = 0 AND
+                                defect_spotcleaning_f = 0 AND
+                                defect_mending_f = 0 AND
+                                qty_fin_reject = 0 AND
+                                qty_finishing = 0 AND
+                                saldo_akhir_finishing = 0 AND
+                                saldo_awal_secondary_proses = 0 AND
+                                total_in_sp = 0 AND
+                                rework_sp = 0 AND
+                                defect_sp = 0 AND
+                                reject_sp = 0 AND
+                                rft_sp = 0 AND
+                                saldo_akhir_secondary_proses = 0 AND
+                                saldo_awal_defect_sewing = 0 AND
+                                total_defect_sewing = 0 AND
+                                total_input_rework_sewing = 0 AND
+                                saldo_akhir_defect_sewing = 0 AND
+                                saldo_awal_defect_spotcleaning = 0 AND
+                                total_defect_spotcleaning = 0 AND
+                                total_input_rework_spotcleaning = 0 AND
+                                saldo_akhir_defect_spotcleaning = 0 AND
+                                saldo_awal_defect_mending = 0 AND
+                                total_defect_mending = 0 AND
+                                total_input_rework_mending = 0 AND
+                                saldo_akhir_mending = 0 AND
+                                saldo_awal_reject = 0 AND
+                                qty_reject_in = 0 AND
+                                qty_rejected = 0 AND
+                                qty_reworked = 0 AND
+                                saldo_akhir_qc_reject = 0
+                            )
                         )
 
                         SELECT
@@ -2039,7 +2631,7 @@ class ReportMutasiOutputController extends Controller
 
                             UNION ALL
 
-                            SELECT
+                            select
                                 buyer,
                                 ws,
                                 styleno,
@@ -2132,10 +2724,18 @@ class ReportMutasiOutputController extends Controller
                                 + COALESCE(qty_reject_in, 0)
                                 - COALESCE(qty_rejected, 0)
                                 - COALESCE(qty_reworked, 0))  as saldo_akhir_qc_reject
-                            FROM
-                                inject_mutasi_sewing
-                            WHERE
-                                tgl_saldo >= '$start_date' AND tgl_saldo <= '$end_date'
+                            from
+                            (
+                                SELECT
+                                    *
+                                FROM
+                                    current_inject
+                                UNION ALL
+                                SELECT
+                                    *
+                                FROM
+                                    saldo_awal_inject
+                            ) inject
                             GROUP BY
                                 buyer, ws, styleno, color, size
                         ) data

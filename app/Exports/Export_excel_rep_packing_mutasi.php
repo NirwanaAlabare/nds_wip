@@ -950,14 +950,15 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                     (
                         select * from final_query
                         UNION ALL
-                        select msn.urutan, ws, color, styleno style, a.size, buyer, 0 pl_saldo_awal, COALESCE(packing_rft,0) pl_rft, 0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir, COALESCE(pc_saldo_awal, 0) pc_saldo_awal, 0 pc_terima, COALESCE(pc_packing_scan,0) pc_packing_scan, 0 pc_saldo_akhir from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+                        select msn.urutan, ws, color, styleno style, a.size, buyer, COALESCE(packing_saldo_awal, 0) pl_saldo_awal, COALESCE(packing_rft,0) pl_rft, 0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir, COALESCE( pc_saldo_awal, 0) pc_saldo_awal, 0 pc_terima, COALESCE(pc_packing_scan, 0) pc_packing_scan, 0 pc_saldo_akhir from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+                        UNION ALL
+                        select msn.urutan, ws, color, styleno style, a.size, buyer, (COALESCE(packing_saldo_awal, 0)+COALESCE(packing_rft, 0)+COALESCE(packing_reject, 0)-COALESCE(packing_keluar, 0)) pl_saldo_awal, 0 pl_rft, 0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir, (COALESCE(pc_saldo_awal, 0)+COALESCE(pc_terima, 0)-COALESCE(pc_packing_scan, 0)) pc_saldo_awal, 0 pc_terima, 0 pc_packing_scan, 0 pc_saldo_akhir from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo < '{$tgl_awal}'
                     ) a
                     GROUP BY urutan, ws, color, style, size, buyer ORDER BY ws, color, buyer, urutan
             ");
 
 
         $this->rowCount = count($data_mut) + 2;
-
 
         return view('packing.export_excel_rep_packing_mutasi', [
             "from" => $this->from,
