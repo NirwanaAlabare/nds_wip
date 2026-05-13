@@ -523,9 +523,19 @@
     });
 
     function get_rule(el) {
-
         let unit = $(el).find(':selected').data('unit');
         $("#unit").val(unit).trigger('change');
+
+        let contentText = $(el).find(':selected').text().toLowerCase();
+        console.log(contentText);
+        let isAccessories = contentText.includes('acces') || contentText.includes('aksesor');
+        let category = $('#category').val();
+
+        if (isAccessories || category === 'Manufacturing') {
+            $('#shell').val('').trigger('change').prop('disabled', true);
+        } else {
+            $('#shell').prop('disabled', false);
+        }
 
         let id_contents = $('#item_contents').val();
         if (!id_contents) return $('#rule_bom').html('<option value="">Pilih Rule</option>');
@@ -678,9 +688,9 @@
 
     function submit_form(form) {
         let content = $('#item_contents').val();
+        let contentText = $('#item_contents option:selected').text().toLowerCase(); // Ambil teks item content
         let rule = $('#rule_bom').val();
-        let supplier = $('select[name="id_supplier"]').val();
-
+        let category = $('#category').val();
         let shell = $('#shell').val();
 
         if (!content || !rule) {
@@ -688,9 +698,11 @@
             return false;
         }
 
+        let isAccessories = contentText.includes('acces') || contentText.includes('aksesor');
+
         if (!shell) {
-            if($('#category').val() === 'Material') {
-                Swal.fire({ icon: 'warning', title: 'Data Belum Lengkap!', text: 'Shell wajib diisi untuk category Material.' });
+            if(category === 'Material' && !isAccessories) {
+                Swal.fire({ icon: 'warning', title: 'Data Belum Lengkap!', text: 'Shell wajib diisi untuk category Material (Selain Accessories).' });
                 return false;
             }
         }

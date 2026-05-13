@@ -2006,15 +2006,38 @@ class Marketing_SOController extends Controller
     {
         $mysql_sb = DB::connection('mysql_sb');
 
-        // 1. Tarik Header SO
         $header = $mysql_sb->table('so')
-            ->select('so.*', 'so.so_no as kpno', 'so.style', 'ms.Supplier as buyer', 'mp.product_group', 'mp.product_item')
-            ->leftJoin('mastersupplier as ms', 'so.buyerno', '=', 'ms.Id_Supplier')
-            ->leftJoin('masterproduct as mp', 'so.id_product', '=', 'mp.id')
-            ->where('so.id', $id)
-            ->first();
+                ->select(
+                    'so.*',
+                    'so.so_no as kpno',
+                    'so.style',
+                    'ms.Supplier as buyer',
+                    'mp.product_group',
+                    'mp.product_item',
+                    'acn.foto as costing_image'
+                )
+                ->leftJoin('mastersupplier as ms', 'so.buyerno', '=', 'ms.Id_Supplier')
+                ->leftJoin('masterproduct as mp', 'so.id_product', '=', 'mp.id')
+                ->leftJoin('bom_marketing as bm', 'so.id_bom', '=', 'bm.id')
+                ->leftJoin('act_costing_new as acn', 'bm.id_costing', '=', 'acn.id')
+                ->where('so.id', $id)
+                ->first();
 
-        if (!$header) return abort(404, 'Data SO tidak ditemukan');
+            if (!$header) return abort(404, 'Data SO tidak ditemukan');
+
+            if (!empty($header->costing_image)) {
+                $url = basename($header->costing_image);
+                $file_path = public_path('uploads/costing/' . $url);
+                if (file_exists($file_path)) {
+                    $type = pathinfo($file_path, PATHINFO_EXTENSION);
+                    $data_img = file_get_contents($file_path);
+                    $header->image_base64 = 'data:image/' . $type . ';base64,' . base64_encode($data_img);
+                } else {
+                    $header->image_base64 = null;
+                }
+            } else {
+                $header->image_base64 = null;
+            }
 
         // 2. Tarik Detail SO
         $details = $mysql_sb->table('so_det')
@@ -2127,6 +2150,7 @@ class Marketing_SOController extends Controller
         }
         ksort($materials_mfg);
 
+
         $view_data = [
             'header'        => $header,
             'details'       => array_values($item_qty), // Reset index biar gampang di loop di Blade
@@ -2145,7 +2169,6 @@ class Marketing_SOController extends Controller
 
     public function getBomCostingData(Request $request)
     {
-
         $id_bom = $request->id_bom;
 
         if (empty($id_bom)) {
@@ -2170,15 +2193,22 @@ class Marketing_SOController extends Controller
                 'c.curr as id_currency',
                 'c.type',
                 'c.product_set',
+                'c.foto as gambar'
             )
             ->first();
-
         if ($data) {
+           if (!empty($data->gambar)) {
+                $url = url('uploads/costing/' . $data->gambar);
+                $data->image_url = str_replace('index.php/', '', $url);
+            } else {
+                $data->image_url = null;
+            }
             return response()->json([
                 'status' => 200,
                 'data' => $data
             ]);
         }
+
 
         return response()->json(['status' => 404, 'message' => 'Data BOM tidak ditemukan']);
     }
