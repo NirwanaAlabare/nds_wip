@@ -411,8 +411,14 @@ function padZero(el) {
                     `;
 
                     let btnPrint = `
-                        <button type="button" class="btn btn-sm btn-info"
+                        <button type="button" class="btn btn-sm btn-info"  data-bs-toggle="tooltip" data-bs-title="Lokasi FABRIC"
                             onclick="printlokasi('${row.id}')">
+                            <i class="fa fa-file-pdf"></i>
+                        </button>
+                    `;
+                    let btnPrintFg = `
+                        <button type="button" class="btn btn-sm btn-info" data-bs-toggle="tooltip" data-bs-title="Lokasi FG"
+                            onclick="printlokasifg('${row.id}')">
                             <i class="fa fa-file-pdf"></i>
                         </button>
                     `;
@@ -435,6 +441,7 @@ function padZero(el) {
                         return `
                             <div class="d-flex gap-1 justify-content-center">
                                 ${btnPrint}
+                                ${btnPrintFg}
                             </div>
                         `;
                     } else {
@@ -534,24 +541,44 @@ select.dispatchEvent(new Event('change'));
 
 <script type="text/javascript">
     function printlokasi(id) {
-  $.ajax({
-    url: '{{ route('print-lokasi-master-lokasi-whs-soljer') }}/' + id,
-    type: 'post',
-    processData: false,
-    contentType: false,
-    xhrFields: {
-      responseType: 'blob'
-    },
-    success: function(res) {
-      if (res) {
-        const blob = new Blob([res], { type: 'application/pdf' });
-        const url = window.URL.createObjectURL(blob);
-        // buka di tab/jendela baru
-        window.open(url, '_blank');
-      }
+      $.ajax({
+        url: '{{ route('print-lokasi-master-lokasi-whs-soljer') }}/' + id,
+        type: 'post',
+        processData: false,
+        contentType: false,
+        xhrFields: {
+          responseType: 'blob'
+        },
+        success: function(res) {
+          if (res) {
+            const blob = new Blob([res], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            // buka di tab/jendela baru
+            window.open(url, '_blank');
+          }
+        }
+      });
     }
-  });
-}
+
+    function printlokasifg(id) {
+      $.ajax({
+        url: '{{ route('print-lokasi-fg-master-lokasi-whs-soljer') }}/' + id,
+        type: 'post',
+        processData: false,
+        contentType: false,
+        xhrFields: {
+          responseType: 'blob'
+        },
+        success: function(res) {
+          if (res) {
+            const blob = new Blob([res], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            // buka di tab/jendela baru
+            window.open(url, '_blank');
+          }
+        }
+      });
+    }
 
 function printAllLokasi() {
   Swal.fire({

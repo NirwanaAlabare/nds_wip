@@ -335,6 +335,26 @@ class MasterLokasiWhsSoljerController extends Controller
         return $pdf->stream(str_replace("/", "_", $fileName));
     }
 
+    public function printlokasifg(Request $request, $id)
+    {
+        $dataLokasi = MasterLokasi::selectRaw("
+                CONCAT(inisial_lok,baris_lok,level_lok,no_lok) kode_lok,
+                kode_lok kode,
+                id
+            ")->
+            where("id", $id)->
+            first();
+
+        // PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
+        $pdf = PDF::loadView('whs-soljer.master-lokasi.print-lokasi-fg', ["dataLokasi" => $dataLokasi])->setPaper('a7', 'landscape');
+
+        // $pdf = PDF::loadView('master.pdf.print-lokasi', ["dataLokasi" => $dataLokasi]);
+
+        $fileName = 'Lokasi-FG'.$dataLokasi->kode_lok.'.pdf';
+
+        return $pdf->stream(str_replace("/", "_", $fileName));
+    }
+
 
     public function printLokasiAll()
 {

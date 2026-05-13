@@ -105,7 +105,7 @@
 
 
                             <th class="text-center align-middle" style="background-color: pink;">Saldo Awal</th>
-                            <th class="text-center align-middle" style="background-color: pink;">Terima</th>
+                            <th class="text-center align-middle" style="background-color: pink;">Terima Sewing</th>
                             <th class="text-center align-middle" style="background-color: pink;">Output Rework Sewing
                             </th>
                             <th class="text-center align-middle" style="background-color: pink;">Output Rework

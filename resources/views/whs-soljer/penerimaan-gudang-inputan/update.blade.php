@@ -82,11 +82,13 @@
                                     <td>{{ $row->buyer }}</td>
                                     <td>{{ $row->keterangan }}</td>
                                     <td>{{ $row->jenis_item }}</td>
-                                    <td>{{ $row->warna }}</td>
+                                    <td>
+                                        <input type="text" class="form-control form-control-sm warna" style="text-transform: uppercase; color: unset;" oninput="this.value = this.value.toUpperCase()" value="{{ $row->warna }}">
+                                    </td>
                                     <td>{{ $row->lot }}</td>
                                     <td>{{ $row->no_roll }}</td>
                                     <td>
-                                        <input type="number" step="any" class="form-control form-control-sm text-end qty" value="{{ number_format($row->qty, 2) }}">
+                                        <input type="number" step="any" class="form-control form-control-sm text-end qty" style="color: unset;" value="{{ number_format($row->qty, 2) }}">
                                     </td>
                                     <td>{{ $row->satuan }}</td>
                                     <td class="text-center">
@@ -99,7 +101,7 @@
                                 <tr>
                                     <th colspan="7" class="text-center">TOTAL</th>
                                     <th id="total_qty" class="text-end">0</th>
-                                    <th></th>
+                                    <th colspan="2"></th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -170,6 +172,7 @@
 
                 data.push({
                     id: row.attr('data-id'),
+                    warna: row.find('.warna').val(),
                     qty: row.find('.qty').val()
                 });
 

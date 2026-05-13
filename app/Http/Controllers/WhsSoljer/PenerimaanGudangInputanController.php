@@ -168,7 +168,7 @@ class PenerimaanGudangInputanController extends Controller
 
             $header = PenerimaanGudangInputan::create([
                 'no_bpb'                => $request->no_bpb,
-                'tgl_bpb'               => date('Y-m-d'),
+                'tgl_bpb'               => $request->tgl_bpb,
                 "created_by"            => $user ? $user->id : null,
                 "created_by_username"   => $user ? $user->username : null,
                 "created_at"            => $now,
@@ -311,14 +311,17 @@ class PenerimaanGudangInputanController extends Controller
                 $oldQty = (float) $dataDetail->qty;
                 $newQty = (float) $row['qty'];
 
-                if ($oldQty != $newQty) {
+                $oldWarna = $dataDetail->warna;
+                $newWarna = $row['warna'];
+
+                if ($oldQty != $newQty || $oldWarna != $newWarna) {
                     PenerimaanGudangInputanHistory::create([
                         'penerimaan_gudang_inputan_id'  => $dataDetail->penerimaan_gudang_inputan_id,
                         'barcode'                       => $dataDetail->barcode,
                         'no_roll'                       => $dataDetail->no_roll,
                         'buyer'                         => $dataDetail->buyer,
                         'jenis_item'                    => $dataDetail->jenis_item,
-                        'warna'                         => $dataDetail->warna,
+                        'warna'                         => $row['warna'],
                         'lot'                           => $dataDetail->lot,
                         'qty'                           => $row['qty'],
                         'satuan'                        => $dataDetail->satuan,
@@ -331,6 +334,7 @@ class PenerimaanGudangInputanController extends Controller
                     
                     PenerimaanGudangInputanDetail::where('id', $row['id'])
                         ->update([
+                            'warna' => $row['warna'],
                             'qty' => $row['qty'],
                             'updated_at' => now(),
                             'updated_by' => auth()->id(),

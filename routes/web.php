@@ -124,6 +124,7 @@ use App\Http\Controllers\WhsSoljer\LaporanPengeluaranPerKategoriController;
 use App\Http\Controllers\WhsSoljer\MasterBarangPerKategoriController;
 use App\Http\Controllers\WhsSoljer\MasterKoliWhsSoljerController;
 use App\Http\Controllers\WhsSoljer\MasterLokasiWhsSoljerController;
+use App\Http\Controllers\WhsSoljer\MutasiRakController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanAccesoriesController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanController;
 use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanFgController;
@@ -1479,6 +1480,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/updatestatus', 'updatestatus')->name('updatestatus-master-lokasi-whs-soljer');
         Route::get('/simpanedit', 'simpanedit')->name('simpan-edit-master-lokasi-whs-soljer');
         Route::post('/print-lokasi/{id?}', 'printlokasi')->name('print-lokasi-master-lokasi-whs-soljer');
+        Route::post('/print-lokasi-fg/{id?}', 'printlokasifg')->name('print-lokasi-fg-master-lokasi-whs-soljer');
         Route::post('/print-lokasi-all', 'printLokasiAll')->name('print-lokasi-all-master-lokasi-whs-soljer');
     });
 
@@ -1492,6 +1494,18 @@ Route::middleware('auth')->group(function () {
     Route::controller(ReportOutputPackingLineController::class)->prefix("report-output-packing-line")->middleware('packing')->group(function () {
         Route::get('/', 'index')->name('report-output-packing-line');
         Route::post('/export', 'export')->name('export-report-output-packing-line');
+    });
+
+    Route::controller(MutasiRakController::class)->prefix("mutasi-rak")->middleware('role:warehouse')->group(function () {
+        Route::get('/', 'index')->name('mutasi-rak');
+        Route::get('/create', 'create')->name('create-mutasi-rak');
+        Route::post('/store', 'store')->name('store-mutasi-rak');
+        Route::get('/edit/{id}', 'edit')->name('edit-mutasi-rak');
+        Route::put('/update/{id}', 'update')->name('update-mutasi-rak');
+        Route::put('/cancel/{id}', 'cancel')->name('cancel-mutasi-rak');
+        Route::get('/print-sj/{id}', 'printSj')->name('print-sj-mutasi-rak');
+        Route::get('/print-barcode/{id}', 'printBarcode')->name('print-barcode-mutasi-rak');
+        Route::get('/get-data-barcode', 'getDataBarcode')->name('get-data-barcode-mutasi-rak');
     });
 
     Route::middleware(['role:sewing'])->prefix('report-sewing')->group(function () {

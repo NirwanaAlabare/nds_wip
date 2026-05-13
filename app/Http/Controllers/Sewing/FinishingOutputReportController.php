@@ -50,7 +50,7 @@ class FinishingOutputReportController extends Controller
             $bindings[] = $buyer;
         }
         $sql = "
-            SELECT
+            select * from (SELECT
                 ms.supplier AS buyer,
                 ac.kpno AS ws,
                 ac.styleno AS style,
@@ -67,9 +67,11 @@ class FinishingOutputReportController extends Controller
             WHERE a.updated_at >= ?
               AND a.updated_at <= ?
               AND mp.cancel = 'N'
-              $buyerFilter
+                            $buyerFilter
             GROUP BY ms.supplier, ac.kpno, ac.styleno, sd.color, sd.size, msn.urutan
-            ORDER BY buyer ASC, ws ASC, color ASC, msn.urutan ASC
+            ORDER BY buyer ASC, ws ASC, color ASC, msn.urutan ASC) a 
+                        UNION ALL
+                        select buyer, ws, styleno style, color, size, COALESCE(qty_finishing,0) jumlah from signalbit_erp.inject_mutasi_sewing where type_saldo = 'FINISHING' AND tgl_saldo >= '$startDate' AND tgl_saldo <= '$endDate'
         ";
 
         return DB::connection('mysql_sb')->select($sql, $bindings);

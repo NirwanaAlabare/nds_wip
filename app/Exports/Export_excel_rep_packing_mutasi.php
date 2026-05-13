@@ -907,10 +907,10 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                         total_keluar AS pc_keluar
                     FROM
                         pos_periode_agg
-                )
+                ),
 
                 /* ================= FINAL RESULT ================= */
-                SELECT
+                final_query as (SELECT
                     msn.urutan,
                     msw.ws,
                     msw.color,
@@ -941,7 +941,18 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                     msw.ws,
                     msw.color,
                     msw.buyer,
-                    msn.urutan
+                    msn.urutan)
+
+                    select
+                    urutan, ws, color, style, a.size, buyer,
+                    sum(pl_saldo_awal) pl_saldo_awal, sum(pl_rft) pl_rft, sum(pl_reject) pl_reject, sum(pl_keluar) pl_keluar, (SUM(pl_saldo_awal) + SUM(pl_rft) + SUM(pl_reject) - SUM(pl_keluar)) pl_saldo_akhir, sum(pc_saldo_awal) pc_saldo_awal, sum(pc_terima) pc_terima, sum(pc_packing_scan) pc_packing_scan, (sum(pc_saldo_awal) + SUM(pc_terima) - SUM(pc_packing_scan)) pc_saldo_akhir
+                    from
+                    (
+                        select * from final_query
+                        UNION ALL
+                        select msn.urutan, ws, color, styleno style, a.size, buyer, 0 pl_saldo_awal, COALESCE(packing_rft,0) pl_rft, 0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir, COALESCE(pc_saldo_awal, 0) pc_saldo_awal, 0 pc_terima, COALESCE(pc_packing_scan,0) pc_packing_scan, 0 pc_saldo_akhir from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+                    ) a
+                    GROUP BY urutan, ws, color, style, size, buyer ORDER BY ws, color, buyer, urutan
             ");
 
 

@@ -70,4 +70,7 @@ Route::get('/dashboard-export-import', [DashboardController::class, 'exportImpor
 Route::get('/dashboard-whs-soljer', [DashboardController::class, 'whsSoljer'])->middleware('auth')->name('dashboard-whs-soljer');
 Route::get('/dashboard-rak', [DashboardRakController::class, 'index'])->middleware('auth')->name('dashboard-rak');
 Route::get('/dashboard-rak/detail/{id?}', [DashboardRakController::class, 'detail'])->name('dashboard-rak-detail');
+Route::get('/dashboard-rak/detail-fg/{id?}', [DashboardRakController::class, 'detailFg'])->name('dashboard-rak-detail-fg');
 Route::get('/dashboard-rak/getDataRak', [DashboardRakController::class, 'getDataRak'])->name('dashboard-rak-detail-get-data-rak');
+Route::get('/dashboard-rak/getDataRakFg', [DashboardRakController::class, 'getDataRakFg'])->name('dashboard-rak-detail-get-data-rak-fg');
+Route::get('/dashboard-rak/getDataRakFgDetail', [DashboardRakController::class, 'getDataRakFgDetail'])->name('dashboard-rak-detail-get-data-rak-fg-detail');

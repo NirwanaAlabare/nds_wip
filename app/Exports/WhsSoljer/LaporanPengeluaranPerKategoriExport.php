@@ -10,8 +10,10 @@ use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-class LaporanPengeluaranPerKategoriExport implements FromView, ShouldAutoSize
+class LaporanPengeluaranPerKategoriExport implements FromView, ShouldAutoSize, WithColumnFormatting
 {
     use Exportable;
 
@@ -114,7 +116,7 @@ class LaporanPengeluaranPerKategoriExport implements FromView, ShouldAutoSize
                 penerimaan_gudang_inputan_fg_detail.keterangan,
                 pengeluaran_gudang_inputan_fg_detail.qty_out
             ")
-            ->leftJoin("pengeluaran_gudang_inputan_fg_detail", "pengeluaran_gudang_inputan_fg_detail.barcode", "=", "penerimaan_gudang_inputan_fg_detail.barcode")
+            ->leftJoin("pengeluaran_gudang_inputan_fg_detail", "pengeluaran_gudang_inputan_fg_detail.penerimaan_gudang_inputan_fg_detail_id", "=", "penerimaan_gudang_inputan_fg_detail.id")
             ->leftJoin("pengeluaran_gudang_inputan_fg", "pengeluaran_gudang_inputan_fg.id", "=", "pengeluaran_gudang_inputan_fg_detail.pengeluaran_gudang_inputan_fg_id")
             ->where("pengeluaran_gudang_inputan_fg.cancel", 0)
             ->whereBetween('pengeluaran_gudang_inputan_fg.created_at', [
@@ -128,6 +130,42 @@ class LaporanPengeluaranPerKategoriExport implements FromView, ShouldAutoSize
                 "to" => $this->to,
                 "data" => $data,
             ]);
+        }else{
+            $data = DB::table(DB::raw("(SELECT 1 as dummy) as results"))->whereRaw('1 = 0')->get();
+
+            return view("whs-soljer.laporan-pengeluaran-per-kategori.export-fabric", [
+                "from" => $this->from,
+                "to" => $this->to,
+                "data" => $data,
+            ]);
+        }
+    }
+
+    public function columnFormats(): array
+    {
+        switch ($this->kategori) {
+            case 'FABRIC':
+                return [
+                    'K' => NumberFormat::FORMAT_NUMBER_00,
+                    'M' => NumberFormat::FORMAT_NUMBER_00,
+                ];
+
+            case 'ACCESORIES':
+                return [
+                    'K' => NumberFormat::FORMAT_NUMBER_00,
+                    'M' => NumberFormat::FORMAT_NUMBER_00,
+                    'P' => NumberFormat::FORMAT_NUMBER_00,
+                    'Q' => NumberFormat::FORMAT_NUMBER_00,
+                ];
+
+            case 'FG':
+                return [
+                    'L' => NumberFormat::FORMAT_NUMBER_00,
+                    'P' => NumberFormat::FORMAT_NUMBER_00,
+                ];
+
+            default:
+                return [];
         }
     }
 }
