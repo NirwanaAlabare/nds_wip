@@ -170,7 +170,7 @@
         $(document).ready(async () => {
             // $('#rack').val("").trigger("change");
             // $('#kode_stocker').val("").trigger("change");
-            // $('#rack').focus();
+            $('#rack').focus();
 
             await initRackScan();
             // await initStockerScan();
@@ -679,6 +679,8 @@
                             icon: 'error',
                             title: 'Rak tidak ditemukan',
                             text: 'Rak tidak ada di daftar',
+                            timer: 1000,
+                            showCancelButton: false,
                             showConfirmButton: true,
                         });
 
