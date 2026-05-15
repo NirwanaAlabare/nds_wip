@@ -283,6 +283,7 @@ class RackStockerController extends Controller
                 "nm_rak"         => $rackDetail->nama_detail_rak,
                 "qty_in"         => $qty_stocker,
                 "status"         => "active",
+                "updated_at"     => now(), 
             ]
         );
 
