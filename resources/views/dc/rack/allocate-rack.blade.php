@@ -34,7 +34,7 @@
                     <datalist id="list_lokasi">
                         @foreach ($racks as $rack)
                             @foreach ($rack->rackDetails as $rackDetail)
-                                <option 
+                                <option
                                     value="{{ $rackDetail->nama_detail_rak }}"
                                     data-id="{{ $rackDetail->id }}">
                                 </option>
@@ -43,7 +43,7 @@
                     </datalist>
 
                     <input type="hidden" id="rack_id">
-                            
+
                     {{-- <select class="form-select select2bs4" name="rack" id="rack">
                         <option value="">Pilih Rak</option>
                         @foreach ($racks as $rack)
@@ -209,15 +209,15 @@
                                         getScannedRack(breakDecodedText[0]);
 
                                         clearRackScan();
-                                        
+
                                         // $('#scan-stocker').CardWidget('expand');
                                         // $('#stock-rack').CardWidget('expand');
 
-                                        // setTimeout(() => {
+                                        setTimeout(() => {
                                             $('#kode_stocker').val('').focus();
 
                                             initStockerScan();
-                                        // }, 500);
+                                        }, 500);
                                     };
                                     const rackScanConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
 
@@ -265,10 +265,10 @@
 
                                         clearStockerScan();
 
-                                        // setTimeout(() => {
+                                        setTimeout(() => {
                                             $('#kode_stocker').val('').focus();
                                             initStockerScan();
-                                        // }, 500);
+                                        }, 500);
                                     };
                                     const stockerScanConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
 

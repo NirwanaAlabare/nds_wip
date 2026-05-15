@@ -3,7 +3,7 @@
 <head>
     <title>Rack</title>
     <style>
-        @page { margin: 15px; }
+        @page { margin: 15px; size: 500pt 560pt; }
 
         @font-face {
             font-family: 'Open Sans';
