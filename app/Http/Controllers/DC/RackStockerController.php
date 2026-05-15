@@ -27,7 +27,7 @@ class RackStockerController extends Controller
      */
     public function index(Request $request)
     {
-        $racks = Rack::with('rackDetails')->get();
+        $racks = Rack::with('rackDetails')->limit(2)->get();
 
         $stockers = Stocker::selectRaw("
             stocker_input.id_qr_stocker as stockers,
