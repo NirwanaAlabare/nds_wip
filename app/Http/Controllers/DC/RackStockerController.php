@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
+use Rap2hpoutre\FastExcel\FastExcel;
 
 class RackStockerController extends Controller
 {
@@ -547,10 +548,72 @@ class RackStockerController extends Controller
         return Excel::download(new ExportDataRack($from, $to), 'laporan-data-rack.xlsx');
     }
 
-    public function exportDataRackStockOpname(Request $request) {
+    // public function exportDataRackStockOpname(Request $request) {
+    //     $from = $request->from;
+    //     $to = $request->to;
+
+    //     return Excel::download(new ExportDataRackStockOpname($from, $to), 'laporan-data-rack.xlsx');
+    // }
+
+    public function exportDataRackStockOpname(Request $request)
+    {
         $from = $request->from;
         $to = $request->to;
 
-        return Excel::download(new ExportDataRackStockOpname($from, $to), 'laporan-data-rack.xlsx');
+        $data = DB::table('rack_detail')
+            ->leftJoin('rack_detail_stocker','rack_detail_stocker.detail_rack_id','=','rack_detail.id')
+            ->leftJoin('stocker_input','stocker_input.id_qr_stocker','=','rack_detail_stocker.stocker_id')
+            ->leftJoin('form_cut_input','form_cut_input.id','=','stocker_input.form_cut_id')
+            ->leftJoin('marker_input','marker_input.kode','=','form_cut_input.id_marker')
+            ->leftJoin('part_detail','part_detail.id','=','stocker_input.part_detail_id')
+            ->leftJoin('master_part','master_part.id','=','part_detail.master_part_id')
+            ->leftJoin('master_sb_ws','master_sb_ws.id_so_det','=','stocker_input.so_det_id')
+            ->where('rack_detail_stocker.status', 'active')
+            ->select([
+                'rack_detail.nama_detail_rak as no_rak',
+                'stocker_input.id_qr_stocker as no_stocker',
+                'marker_input.act_costing_ws as no_ws',
+                'form_cut_input.no_cut',
+                'marker_input.style',
+                'marker_input.color',
+                'master_part.nama_part as part',
+                DB::raw('COALESCE(master_sb_ws.size, stocker_input.size) as size'),
+                'rack_detail_stocker.qty_in',
+                'rack_detail_stocker.updated_at'
+            ])
+            ->orderBy('rack_detail.nama_detail_rak')
+            ->get() 
+            ->map(function ($row) {
+                return (object) [
+                    'no_rak' => $row->no_rak,
+                    'no_stocker' => $row->no_stocker,
+                    'no_ws' => $row->no_ws,
+                    'no_cut' => $row->no_cut,
+                    'style' => $row->style,
+                    'color' => $row->color,
+                    'part' => $row->part,
+                    'size' => $row->size,
+                    'qty_in' => (float) $row->qty_in,
+                    'updated_at' => $row->updated_at,
+                ];
+            });
+
+        return (new FastExcel($data))->download(
+            'laporan-data-rack.xlsx',
+            function ($row) {
+                return [
+                    'No Rak' => $row->no_rak,
+                    'No Stocker' => $row->no_stocker,
+                    'No WS' => $row->no_ws,
+                    'No Cut' => $row->no_cut,
+                    'Style' => $row->style,
+                    'Color' => $row->color,
+                    'Part' => $row->part,
+                    'Size' => $row->size,
+                    'Qty' => number_format($row->qty_in, 2),
+                    'Tgl Scan' => date('d-m-Y', strtotime($row->updated_at)),
+                ];
+            }
+        );
     }
 }
