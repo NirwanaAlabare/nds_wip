@@ -13,10 +13,16 @@
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-plus-square fa-sm"></i> Master Rak</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-rack') }}" type="button" class="btn btn-success btn-sm mb-3">
-                <i class="fas fa-plus"></i>
-                Baru
-            </a>
+            <div class="d-flex gap-2 mb-3">
+                <a href="{{ route('create-rack') }}" type="button" class="btn btn-success btn-sm">
+                    <i class="fas fa-plus"></i>
+                    Baru
+                </a>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="printAllRack()">
+                    <i class="fas fa-print"></i>
+                    Print Selected
+                </button>
+            </div>
             {{-- <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Awal</small></label>
@@ -34,6 +40,7 @@
                 <table id="datatable-rack" class="table table-bordered table w-100">
                     <thead>
                         <tr>
+                            <th><input type="checkbox" id="check-all-rack"></th>
                             <th>Kode Rak</th>
                             <th>Nama Rak</th>
                             <th>Nama Detail Rak</th>
@@ -92,6 +99,8 @@
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
 
     <script>
+        let checkedRackIds = [];
+
         let datatableRak = $("#datatable-rack").DataTable({
             ordering: false,
             processing: true,
@@ -100,6 +109,11 @@
                 url: '{{ route('rack') }}',
             },
             columns: [
+                {
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                },
                 {
                     data: 'kode',
                 },
@@ -117,9 +131,23 @@
                     data: 'id'
                 },
             ],
+            drawCallback: function () {
+                $('#datatable-rack tbody .rack-check').each(function () {
+                    if (checkedRackIds.includes(this.value)) {
+                        $(this).prop('checked', true);
+                    }
+                });
+            },
             columnDefs: [
                 {
-                    targets: [4],
+                    targets: [0],
+                    className: "align-middle text-center",
+                    render: (data, type, row, meta) => {
+                        return `<input type="checkbox" class="rack-check" value="${row['id']}">`;
+                    }
+                },
+                {
+                    targets: [5],
                     className: "align-middle",
                     render: (data, type, row, meta) => {
                         return `
@@ -139,6 +167,64 @@
                 }
             ],
         });
+
+        function checkAllRack(checked) {
+            if (checked) {
+                $.get('{{ route('get-all-rack-ids') }}', function (ids) {
+                    checkedRackIds = ids.map(String);
+                    $('#datatable-rack tbody .rack-check').prop('checked', true);
+                });
+            } else {
+                checkedRackIds = [];
+                $('#datatable-rack tbody .rack-check').prop('checked', false);
+            }
+        }
+
+        $('#check-all-rack').on('change', function () {
+            checkAllRack(this.checked);
+        });
+
+        $('#datatable-rack tbody').on('change', '.rack-check', function () {
+            const val = this.value;
+            if (this.checked) {
+                if (!checkedRackIds.includes(val)) checkedRackIds.push(val);
+            } else {
+                checkedRackIds = checkedRackIds.filter(v => v !== val);
+                $('#check-all-rack').prop('checked', false);
+            }
+        });
+
+        function printAllRack() {
+            if (checkedRackIds.length === 0) {
+                Swal.fire('Perhatian', 'Pilih minimal satu rak terlebih dahulu.', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => { Swal.showLoading(); },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                url: '{{ route('print-all-rack') }}',
+                type: 'post',
+                data: { ids: checkedRackIds, _token: '{{ csrf_token() }}' },
+                xhrFields: { responseType: 'blob' },
+                success: function (res) {
+                    var blob = new Blob([res], { type: 'application/pdf' });
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = 'rack-selected.pdf';
+                    link.click();
+                    Swal.close();
+                },
+                error: function () {
+                    Swal.fire('Error', 'Gagal mengunduh PDF.', 'error');
+                }
+            });
+        }
 
         function datatableRakReload() {
             datatableRak.ajax.reload()
