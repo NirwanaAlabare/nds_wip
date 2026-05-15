@@ -159,7 +159,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/destroy/{id?}', 'destroy')->name('destroy-rack-stock');
         Route::post('/print-bon-mutasi/{id?}', 'printBonMutasi')->name('print-rack-stock');
         Route::post('/export-data-rack', 'exportDataRack')->name('export-data-rack');
-        Route::post('/export-data-rack-all', 'exportDataRackAll')->name('export-data-rack-all');
+        Route::post('/export-data-rack-stock-opname', 'exportDataRackStockOpname')->name('export-data-rack-stock-opname');
     });
 
     // Trolley

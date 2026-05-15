@@ -3,7 +3,7 @@
 
 <table>
     <tr>
-        <th colspan="10">Laporan Data Rack</th>
+        <th colspan="10">Laporan Data Stock Opname</th>
     </tr>
     <tr></tr>
     <tr>
