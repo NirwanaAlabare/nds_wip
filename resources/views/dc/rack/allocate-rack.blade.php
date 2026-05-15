@@ -584,16 +584,34 @@
             //     console.log($("#rack").val())
             // });
 
-            $('#kode_stocker').on('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
+            // $('#kode_stocker').on('keypress', function(e) {
+            //     if (e.key === 'Enter') {
+            //         e.preventDefault();
 
-                    let value = $(this).val().trim();
+            //         let value = $(this).val().trim();
+
+            //         if (!value) return;
+
+            //         $('#loading').removeClass('d-none');
+            //         $('#kode_stocker').val('').focus();
+
+            //         addRackStockerScan(value);
+            //         rackStockTableReload();
+            //     }
+            // });
+
+            document.getElementById('kode_stocker').addEventListener('keydown', function(evt) {
+                if (evt.keyCode === 13) {
+                    evt.preventDefault();
+
+                    let value = this.value.trim();
 
                     if (!value) return;
 
-                    $('#loading').removeClass('d-none');
-                    $('#kode_stocker').val('').focus();
+                    document.getElementById('loading').classList.remove('d-none');
+
+                    this.value = '';
+                    this.focus();
 
                     addRackStockerScan(value);
                     rackStockTableReload();
@@ -615,11 +633,41 @@
                 return id;
             }
 
-            $('#rack').on('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
+            // $('#rack').on('keypress', function(e) {
+            //     if (e.key === 'Enter') {
+            //         e.preventDefault();
 
-                    let value = $(this).val().trim();
+            //         let value = $(this).val().trim();
+
+            //         if (!value) return;
+
+            //         let rackId = setRackId();
+
+            //         if (!rackId) {
+
+            //             Swal.fire({
+            //                 icon: 'error',
+            //                 title: 'Rak tidak ditemukan',
+            //                 text: 'Rak tidak ada di daftar',
+            //                 showConfirmButton: true,
+            //             });
+
+            //             $('#rack').val('').focus();
+
+            //             return;
+            //         }
+
+            //         $('#kode_stocker').focus();
+
+            //         rackStockTableReload();
+            //     }
+            // });
+
+            document.getElementById('rack').addEventListener('keydown', function(evt) {
+                if (evt.keyCode === 13) {
+                    evt.preventDefault();
+
+                    let value = this.value.trim();
 
                     if (!value) return;
 
@@ -634,12 +682,13 @@
                             showConfirmButton: true,
                         });
 
-                        $('#rack').val('').focus();
+                        this.value = '';
+                        this.focus();
 
                         return;
                     }
 
-                    $('#kode_stocker').focus();
+                    document.getElementById('kode_stocker').focus();
 
                     rackStockTableReload();
                 }
