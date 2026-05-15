@@ -26,7 +26,7 @@ class RackController extends Controller
                     rack.id,
                     rack.kode,
                     rack.nama_rak,
-                    GROUP_CONCAT(rack_detail.nama_detail_rak) as nama_detail_rak,
+                    GROUP_CONCAT(rack_detail.nama_detail_rak SEPARATOR ' | ') as nama_detail_rak,
                     COUNT(DISTINCT rack_detail.id) total_ruang
                 ")->
                 leftJoin("rack_detail", "rack_detail.rack_id", "=", "rack.id")->
