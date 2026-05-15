@@ -111,7 +111,7 @@ class RackStockerController extends Controller
     public function currentRackStock(Request $request)
     {
         $racks = RackDetail::selectRaw("
-                rack_detail_stocker_mutasi.id as id,
+                rack_detail_stocker.id as id,
                 rack_detail.nama_detail_rak no_rak,
                 stocker_input.id_qr_stocker no_stocker,
                 marker_input.act_costing_ws no_ws,
@@ -120,22 +120,22 @@ class RackStockerController extends Controller
                 marker_input.color,
                 master_part.nama_part part,
                 COALESCE(master_sb_ws.size, stocker_input.size) size,
-                rack_detail_stocker_mutasi.updated_at
+                rack_detail_stocker.updated_at
             ")->
-            leftJoin("rack_detail_stocker_mutasi", "rack_detail_stocker_mutasi.detail_rack_id", "=", "rack_detail.id")->
-            leftJoin("stocker_input", "stocker_input.id_qr_stocker", "=", "rack_detail_stocker_mutasi.stocker_id")->
+            leftJoin("rack_detail_stocker", "rack_detail_stocker.detail_rack_id", "=", "rack_detail.id")->
+            leftJoin("stocker_input", "stocker_input.id_qr_stocker", "=", "rack_detail_stocker.stocker_id")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
             whereRaw("
-                rack_detail_stocker_mutasi.status = 'active' and
-                rack_detail_stocker_mutasi.updated_at >= '".(date('Y-m-d', strtotime('-7 days')))." 00:00:00'
+                rack_detail_stocker.status = 'active' and
+                rack_detail_stocker.updated_at >= '".(date('Y-m-d', strtotime('-7 days')))." 00:00:00'
             ")->
             where("rack_detail.id", $request->id)->
-            groupBy("rack_detail_stocker_mutasi.detail_rack_id", "stocker_input.form_cut_id", "stocker_input.so_det_id", "stocker_input.group_stocker", "stocker_input.ratio", "stocker_input.part_detail_id", "stocker_input.stocker_reject")->
-            orderBy("rack_detail_stocker_mutasi.updated_at", "desc")->
+            groupBy("rack_detail_stocker.detail_rack_id", "stocker_input.form_cut_id", "stocker_input.so_det_id", "stocker_input.group_stocker", "stocker_input.ratio", "stocker_input.part_detail_id", "stocker_input.stocker_reject")->
+            orderBy("rack_detail_stocker.updated_at", "desc")->
             get();
 
         return DataTables::of($racks)->toJson();

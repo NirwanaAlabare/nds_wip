@@ -614,7 +614,7 @@
             }
 
             $('#rack').on('keypress', function(e) {
-                if (e.which === 13) {
+                if (e.key === 'Enter') {
                     e.preventDefault();
 
                     let value = $(this).val().trim();
