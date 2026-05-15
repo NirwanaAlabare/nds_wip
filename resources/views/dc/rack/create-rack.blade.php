@@ -29,7 +29,7 @@
                     <div class="col-3">
                         <div class="mb-3">
                             <label>Jumlah Baris</label>
-                            <input type="number" class="form-control" name="jumlah_baris" id="jumlah_baris" onchange="buildRackTable()" onkeyup="buildRackTable()">
+                            <input type="number" class="form-control" name="jumlah_baris" id="jumlah_baris" value="1" onchange="buildRackTable()" onkeyup="buildRackTable()">
                         </div>
                     </div>
                     <div class="col-3">
@@ -39,10 +39,12 @@
                         </div>
                     </div>
                 </div>
-                <table class="table table-bordered" id="rack-table">
-                    <tbody>
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="rack-table">
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
                 <button type="submit" class="btn btn-sb btn-block">Simpan</button>
             </form>
         </div>
@@ -59,7 +61,7 @@
     <script>
         $(document).ready(() => {
             document.getElementById('nama_rak').value = "";
-            document.getElementById('jumlah_baris').value = 0;
+            document.getElementById('jumlah_baris').value = 1;
             document.getElementById('jumlah_ruang').value = 0;
         });
 
@@ -80,6 +82,7 @@
             rackTableTbody.innerHTML = "";
 
             if (rackRow > 0 && rackNumber > 0) {
+                let currentNumber = 0;
                 for (let n = 0; n < rackRow; n++) {
                     let tr1 = document.createElement('tr');
                     let tr2 = document.createElement('tr');
@@ -88,7 +91,8 @@
                         let th1 = document.createElement('th');
                         let th2 = document.createElement('th');
 
-                        th1.innerHTML = rackName+'.'+(n+1)+'.'+(i+1);
+                        // th1.innerHTML = rackName+'.'+(n+1)+'.'+(i+1);
+                        th1.innerHTML = rackName+'.'+(Number(currentNumber)+(i+1));
                         th2.innerHTML = "&nbsp;";
 
                         tr1.appendChild(th1);
@@ -97,6 +101,8 @@
                         rackTableTbody.appendChild(tr1);
                         rackTableTbody.appendChild(tr2);
                     }
+
+                    currentNumber += Number(rackNumber);
                 }
             }
         }
