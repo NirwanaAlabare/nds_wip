@@ -175,10 +175,8 @@
             await initRackScan();
             // await initStockerScan();
 
-            // $('#scan-stocker').CardWidget("collapse")
-            // $('#stock-rack').CardWidget("collapse")
-            $('#scan-stocker').CardWidget('collapse');
-            $('#stock-rack').CardWidget('collapse');
+            // $('#scan-stocker').CardWidget('collapse');
+            // $('#stock-rack').CardWidget('collapse');
         });
 
         var step = "";
@@ -212,14 +210,14 @@
 
                                         clearRackScan();
                                         
-                                        $('#scan-stocker').CardWidget('expand');
-                                        $('#stock-rack').CardWidget('expand');
+                                        // $('#scan-stocker').CardWidget('expand');
+                                        // $('#stock-rack').CardWidget('expand');
 
-                                        setTimeout(() => {
+                                        // setTimeout(() => {
                                             $('#kode_stocker').val('').focus();
 
                                             initStockerScan();
-                                        }, 500);
+                                        // }, 500);
                                     };
                                     const rackScanConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
 
