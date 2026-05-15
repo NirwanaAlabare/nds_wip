@@ -26,6 +26,7 @@ class RackController extends Controller
                     rack.id,
                     rack.kode,
                     rack.nama_rak,
+                    GROUP_CONCAT(rack_detail.nama_detail_rak) as nama_detail_rak,
                     COUNT(DISTINCT rack_detail.id) total_ruang
                 ")->
                 leftJoin("rack_detail", "rack_detail.rack_id", "=", "rack.id")->
@@ -33,9 +34,11 @@ class RackController extends Controller
 
             return DataTables::eloquent($rackQuery)->
                 filterColumn('kode', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(kode) LIKE LOWER('%" . $keyword . "%')");
+                    $query->whereRaw("LOWER(rack.kode) LIKE LOWER('%" . $keyword . "%')");
                 })->filterColumn('nama_rak', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(nama_rak) LIKE LOWER('%" . $keyword . "%')");
+                    $query->whereRaw("LOWER(rack.nama_rak) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('nama_detail_rak', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(rack_detail.nama_detail_rak) LIKE LOWER('%" . $keyword . "%')");
                 })->order(function ($query) {
                     $query->
                         orderBy('rack.kode', 'desc')->
@@ -73,13 +76,15 @@ class RackController extends Controller
         $lastRack = Rack::select('kode')->orderBy('id', 'desc')->first();
         $rackNumber = $lastRack ? intval(substr($lastRack->kode, -5)) + 1 : 1;
 
-        if ($validatedRequest['jumlah_baris'] > 0 && $validatedRequest['jumlah_ruang'] > 0) {
+        if (/*$validatedRequest['jumlah_baris'] > 0 &&*/ $validatedRequest['jumlah_ruang'] > 0) {
+            $currentNumber = 0;
             for ($n = 0; $n < $validatedRequest['jumlah_baris']; $n++) {
                 $rackCode = 'RAK' . sprintf('%05s', $rackNumber + $n);
 
                 $storeRack = Rack::create([
                     "kode" => $rackCode,
-                    "nama_rak" => $validatedRequest['nama_rak'].".".($n+1),
+                    // "nama_rak" => $validatedRequest['nama_rak'].".".($n+1),
+                    "nama_rak" => $validatedRequest['nama_rak'],
                 ]);
 
                 $lastRackDetail = RackDetail::select('kode')->orderBy('id', 'desc')->first();
@@ -90,13 +95,16 @@ class RackController extends Controller
                     array_push($rackDetailData, [
                         "kode" => 'DRK' . sprintf('%05s', $rackDetailNumber + $i),
                         "rack_id" => $storeRack->id,
-                        "nama_detail_rak" => $validatedRequest['nama_rak'].".".($n+1).".".($i+1),
+                        // "nama_detail_rak" => $validatedRequest['nama_rak'].".".($n+1).".".($i+1),
+                        "nama_detail_rak" => $validatedRequest['nama_rak'].".".(($currentNumber)+($i+1)),
                         "created_at" => Carbon::now(),
                         "updated_at" => Carbon::now(),
                     ]);
                 }
 
                 $storeRackDetail = RackDetail::insert($rackDetailData);
+
+                $currentNumber += $validatedRequest['jumlah_ruang'];
             }
 
             return array(

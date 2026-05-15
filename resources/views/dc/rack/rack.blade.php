@@ -36,6 +36,7 @@
                         <tr>
                             <th>Kode Rak</th>
                             <th>Nama Rak</th>
+                            <th>Nama Detail Rak</th>
                             <th>Jumlah Ruang</th>
                             <th class="text-center align-bottom">Action</th>
                         </tr>
@@ -106,7 +107,11 @@
                     data: 'nama_rak',
                 },
                 {
-                    data: 'total_ruang'
+                    data: 'nama_detail_rak',
+                },
+                {
+                    data: 'total_ruang',
+                    searchable: false,
                 },
                 {
                     data: 'id'
@@ -114,7 +119,7 @@
             ],
             columnDefs: [
                 {
-                    targets: [3],
+                    targets: [4],
                     className: "align-middle",
                     render: (data, type, row, meta) => {
                         return `
