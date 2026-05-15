@@ -775,7 +775,7 @@
                     this.focus();
 
                     addRackStockerScan(value);
-                    rackStockTableReload();
+                    // rackStockTableReload();
                 }
             });
 
@@ -871,7 +871,8 @@
             var rackStockTable = $("#rack-stock-datatable").DataTable({
                 ordering: false,
                 processing: true,
-                serverSide: true,
+                serverSide: false,
+                deferRender: true,
                 ajax: {
                     url: '{{ route('current-rack-stock') }}',
                     data: function (d) {
