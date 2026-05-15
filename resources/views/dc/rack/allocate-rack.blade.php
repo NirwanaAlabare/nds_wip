@@ -491,6 +491,8 @@
                                 Swal.fire({
                                     icon: 'error',
                                     title: response.message,
+                                    timer: 1000,
+                                    showCancelButton: false,
                                     showConfirmButton: true,
                                 });
                             }
@@ -583,7 +585,7 @@
             // });
 
             $('#kode_stocker').on('keypress', function(e) {
-                if (e.which === 13) {
+                if (e.key === 'Enter') {
                     e.preventDefault();
 
                     let value = $(this).val().trim();
