@@ -32,7 +32,7 @@
                 </div>
                 <div class="d-flex align-items-end gap-2">
                     <div class="mb-3">
-                        <button class="btn btn-success btn-sm" id="exportExcelAll" data-bs-toggle="tooltip" data-bs-title="Export Excel" onclick="exportExcelAll()"><i class="fa fa-file-excel"></i> Export Excel Stoker</button>
+                        <button class="btn btn-success btn-sm" id="exportExcelStockOpname" data-bs-toggle="tooltip" data-bs-title="Export Excel" onclick="exportExcelStockOpname()"><i class="fa fa-file-excel"></i> Export Excel Stock Opname</button>
                     </div>
                     <div class="mb-3">
                         <button class="btn btn-success btn-sm" id="exportExcel" data-bs-toggle="tooltip" data-bs-title="Export Excel" onclick="exportExcel()"><i class="fa fa-file-excel"></i> Export Excel</button>
@@ -285,7 +285,7 @@
             Swal.close();
         }
 
-        async function exportExcelAll() {
+        async function exportExcelStockOpname() {
             Swal.fire({
                 title: "Exporting",
                 html: "Please Wait...",
@@ -296,7 +296,7 @@
             });
 
             await $.ajax({
-                url: "{{ route("export-data-rack-all") }}",
+                url: "{{ route("export-data-rack-stock-opname") }}",
                 type: "post",
                 data: {
                     from : $("#tgl-awal").val(),
