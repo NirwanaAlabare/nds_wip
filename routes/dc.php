@@ -145,6 +145,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/print-rack/{id?}', 'printRack')->name('print-rack');
 
         Route::get('/get-scanned-rack-detail/{id?}', 'getScannedRackDetail')->name('get-scanned-rack-detail');
+        Route::get('/get-all-ids', 'getAllIds')->name('get-all-rack-ids');
+        Route::post('/print-all', 'printAllRack')->name('print-all-rack');
     });
 
     // Rack Stocker
