@@ -49,6 +49,23 @@ class RackController extends Controller
         return view("dc.rack.rack", ["page" => "dashboard-dc", "subPageGroup" => "rak-dc", "subPage" => "rack"]);
     }
 
+    public function getAllIds()
+    {
+        return response()->json(Rack::pluck('id'));
+    }
+
+    public function printAllRack(Request $request)
+    {
+        $ids = $request->input('ids', []);
+
+        $dataRacks = Rack::whereIn('id', $ids)->get();
+
+        PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
+        $pdf = PDF::loadView('dc.rack.pdf.print-rack-all', ['dataRacks' => $dataRacks]);
+
+        return $pdf->download('rack-selected.pdf');
+    }
+
     /**
      * Show the form for creating a new resource.
      *
@@ -287,7 +304,7 @@ class RackController extends Controller
 
         if ($dataRack) {
             PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
-            $pdf = PDF::loadView('dc.rack.pdf.print-rack', ["dataRack" => $dataRack])->setPaper('a4', 'landscape');
+            $pdf = PDF::loadView('dc.rack.pdf.print-rack', ["dataRack" => $dataRack]);
 
             $fileName = 'rack-'.$dataRack->nama_rak.'.pdf';
 
@@ -305,4 +322,6 @@ class RackController extends Controller
 
         return null;
     }
+
+
 }
