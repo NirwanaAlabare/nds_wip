@@ -239,18 +239,18 @@ class RackStockerController extends Controller
             );
         }
 
-        $exists = RackDetailStocker::where("detail_rack_id", $rackDetail->id)
-            ->where("stocker_id", $stockerData->id_qr_stocker)
-            ->where("status", "active")
-            ->exists();
+        // $exists = RackDetailStocker::where("detail_rack_id", $rackDetail->id)
+        //     ->where("stocker_id", $stockerData->id_qr_stocker)
+        //     ->where("status", "active")
+        //     ->exists();
 
-        if ($exists) {
-            return array(
-                'status' => 400,
-                'message' => 'Stocker ' . $stockerData->id_qr_stocker . ' Duplicate Sudah Ada di Rack Ini',
-                'table' => 'rack-stock-datatable',
-            );
-        }
+        // if ($exists) {
+        //     return array(
+        //         'status' => 400,
+        //         'message' => 'Stocker ' . $stockerData->id_qr_stocker . ' Duplicate Sudah Ada di Rack Ini',
+        //         'table' => 'rack-stock-datatable',
+        //     );
+        // }
 
         Stocker::where("id_qr_stocker", $stockerData->id_qr_stocker)
             ->update([
