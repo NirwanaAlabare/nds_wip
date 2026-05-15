@@ -14,8 +14,110 @@
         </div>
 
         <div class="card-body">
-            <a href="{{ route('allocate-rack') }}" class="btn btn-success btn-sm mb-3"><i class="fa fa-plus"></i> Alokasi</a>
-            <div class="accordion" id="accordionPanelsStayOpenExample">
+            <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
+                <div class="d-flex align-items-end gap-3 mb-3">
+                    <div>
+                        <label class="form-label"><small>Tanggal Awal</small></label>
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}">
+                    </div>
+                    <div>
+                        <label class="form-label"><small>Tanggal Akhir</small></label>
+                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
+                    </div>
+                    {{-- <div>
+                        <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
+                    </div> --}}
+                    <a href="{{ route('allocate-rack') }}" class="btn btn-success btn-sm"><i class="fa fa-plus"></i> Alokasi</a>
+
+                </div>
+                <div class="d-flex align-items-end gap-3">
+                    <div class="mb-3">
+                        <button class="btn btn-success btn-sm" id="exportExcel" data-bs-toggle="tooltip" data-bs-title="Export Excel" onclick="exportExcel()"><i class="fa fa-file-excel"></i> Export Excel</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container mt-4">
+                <div class="row g-4">
+                    @foreach ($racks as $rack)
+                        @php
+                            $rackDetails = $rack->rackDetails;
+                        @endphp
+
+                        <div class="col-12 col-md-6">
+                            <div class="card shadow border-0 rounded-4 h-100">
+                                <div class="card-header bg-sb text-white rounded-top-4">
+                                    <div class="d-flex justify-content-between align-items-center w-100">
+                                        <div>
+                                            <h5 class="mb-0 fw-bold">
+                                                {{ $rack->nama_rak }}
+                                            </h5>
+                                            <small>
+                                                Total Detail Rak : {{ $rackDetails->count() }}
+                                            </small>
+                                        </div>
+
+                                        <div>
+                                            <i class="fas fa-warehouse fs-4 fs-md-3 opacity-75"></i>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card-body bg-light rounded-bottom-4">
+                                    <div class="row g-3">
+                                        @foreach ($rackDetails as $rackDetail)
+                                            @php
+                                                $stockerData = $stockers->where('detail_rack_id', $rackDetail->id);
+
+                                                $totalQty = $stockerData->sum('qty_ply');
+                                            @endphp
+
+                                            <div class="col-12 col-sm-6">
+                                                <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                                                    <div class="card-body">
+                                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                                            <div>
+                                                                <small class="text-muted">
+                                                                    Nama Rak
+                                                                </small>
+
+                                                                <h6 class="fw-bold mb-0">
+                                                                    {{ $rackDetail->nama_detail_rak }}
+                                                                </h6>
+                                                            </div>
+
+                                                            <span class="badge bg-sb px-3 py-2">
+                                                                {{ $stockerData->count() }}
+                                                            </span>
+                                                        </div>
+
+                                                        <div class="mt-3">
+                                                            <small class="text-muted">
+                                                                Total Qty
+                                                            </small>
+                                                            <h2 class="fw-bold text-sb mb-0">
+                                                                {{ number_format($totalQty) }}
+                                                            </h2>
+                                                        </div>
+
+                                                        <div class="mt-3 border-top pt-2">
+                                                            <small class="text-muted">
+                                                                {{ $stockerData->count() }} Stocker Tersimpan
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- <div class="accordion mt-5" id="accordionPanelsStayOpenExample">
                 @foreach ($racks as $rack)
                     @php
                         $rackDetails = $rack->rackDetails;
@@ -84,7 +186,7 @@
                         </div>
                     </div>
                 @endforeach
-            </div>
+            </div> --}}
         </div>
     </div>
 @endsection
@@ -137,6 +239,47 @@
 
         function datatableRackReload() {
             datatableRack.ajax.reload()
+        }
+
+        async function exportExcel() {
+            Swal.fire({
+                title: "Exporting",
+                html: "Please Wait...",
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+            });
+
+            await $.ajax({
+                url: "{{ route("export-data-rack") }}",
+                type: "post",
+                data: {
+                    from : $("#tgl-awal").val(),
+                    to : $("#tgl-akhir").val(),
+                },
+                xhrFields: { responseType : 'blob' },
+                success: function (res) {
+                    Swal.close();
+
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Success',
+                        position: 'topCenter'
+                    });
+
+                    var blob = new Blob([res]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Laporan Data Rack "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
+                    link.click();
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
+                }
+            });
+
+            Swal.close();
         }
     </script>
 @endsection

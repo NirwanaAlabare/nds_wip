@@ -6,14 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Models\Dc\Rack;
 use App\Models\Dc\RackDetail;
 use App\Models\Dc\RackDetailStocker;
-use App\Models\Stocker\Stocker;
+use App\Models\Dc\RackDetailStockerMutasi;
+use App\Exports\Dc\ExportDataRack;
 use App\Models\SignalBit\UserLine;
+use App\Models\Stocker\Stocker;
+use Carbon\Carbon;
+use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
-use Carbon\Carbon;
-use DB;
 
 class RackStockerController extends Controller
 {
@@ -27,7 +30,7 @@ class RackStockerController extends Controller
         $racks = Rack::with('rackDetails')->get();
 
         $stockers = Stocker::selectRaw("
-            GROUP_CONCAT(stocker_input.id_qr_stocker) stockers,
+            stocker_input.id_qr_stocker as stockers,
             rack_detail_stocker.detail_rack_id,
             stocker_input.act_costing_ws,
             marker_input.buyer,
@@ -42,19 +45,48 @@ class RackStockerController extends Controller
             stocker_input.ratio,
             stocker_input.qty_ply,
             CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir) as full_range
-        ")->
-        leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")->
-        leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
-        leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-        leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
-        leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-        leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
-        whereRaw("
-            rack_detail_stocker.status = 'active' and
-            rack_detail_stocker.updated_at >= '".(date('Y-m-d', strtotime('-7 days')))." 00:00:00'
-        ")->
-        groupBy("rack_detail_stocker.detail_rack_id", "stocker_input.form_cut_id", "stocker_input.so_det_id", "stocker_input.group_stocker", "stocker_input.stocker_reject",)->
-        get();
+        ")
+        ->leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")
+        ->leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")
+        ->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")
+        ->leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")
+        ->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")
+        ->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")
+        ->whereRaw("
+            rack_detail_stocker.status = 'active' AND
+            rack_detail_stocker.updated_at >= '".date('Y-m-d', strtotime('-7 days'))." 00:00:00'
+        ")
+        ->get();
+
+        // $stockers = Stocker::selectRaw("
+        //     GROUP_CONCAT(stocker_input.id_qr_stocker) stockers,
+        //     rack_detail_stocker.detail_rack_id,
+        //     stocker_input.act_costing_ws,
+        //     marker_input.buyer,
+        //     marker_input.style,
+        //     stocker_input.form_cut_id,
+        //     stocker_input.color,
+        //     COALESCE(master_sb_ws.size, stocker_input.size) size,
+        //     stocker_input.so_det_id,
+        //     form_cut_input.no_cut,
+        //     stocker_input.shade,
+        //     stocker_input.group_stocker,
+        //     stocker_input.ratio,
+        //     stocker_input.qty_ply,
+        //     CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir) as full_range
+        // ")->
+        // leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")->
+        // leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+        // leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+        // leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+        // leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+        // leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
+        // whereRaw("
+        //     rack_detail_stocker.status = 'active' and
+        //     rack_detail_stocker.updated_at >= '".(date('Y-m-d', strtotime('-7 days')))." 00:00:00'
+        // ")->
+        // groupBy("rack_detail_stocker.detail_rack_id", "stocker_input.form_cut_id", "stocker_input.so_det_id", "stocker_input.group_stocker", "stocker_input.stocker_reject",)->
+        // get();
 
         return view('dc.rack.stock-rack', ['page' => 'dashboard-dc', "subPageGroup" => "rak-dc", "subPage" => "stock-rack", 'racks' => $racks, 'stockers' => $stockers]);
     }
@@ -79,7 +111,7 @@ class RackStockerController extends Controller
     public function currentRackStock(Request $request)
     {
         $racks = RackDetail::selectRaw("
-                rack_detail_stocker.id as id,
+                rack_detail_stocker_mutasi.id as id,
                 rack_detail.nama_detail_rak no_rak,
                 stocker_input.id_qr_stocker no_stocker,
                 marker_input.act_costing_ws no_ws,
@@ -87,22 +119,23 @@ class RackStockerController extends Controller
                 marker_input.style,
                 marker_input.color,
                 master_part.nama_part part,
-                COALESCE(master_sb_ws.size, stocker_input.size) size
+                COALESCE(master_sb_ws.size, stocker_input.size) size,
+                rack_detail_stocker_mutasi.updated_at
             ")->
-            leftJoin("rack_detail_stocker", "rack_detail_stocker.detail_rack_id", "=", "rack_detail.id")->
-            leftJoin("stocker_input", "stocker_input.id_qr_stocker", "=", "rack_detail_stocker.stocker_id")->
+            leftJoin("rack_detail_stocker_mutasi", "rack_detail_stocker_mutasi.detail_rack_id", "=", "rack_detail.id")->
+            leftJoin("stocker_input", "stocker_input.id_qr_stocker", "=", "rack_detail_stocker_mutasi.stocker_id")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
             whereRaw("
-                rack_detail_stocker.status = 'active' and
-                rack_detail_stocker.updated_at >= '".(date('Y-m-d', strtotime('-7 days')))." 00:00:00'
+                rack_detail_stocker_mutasi.status = 'active' and
+                rack_detail_stocker_mutasi.updated_at >= '".(date('Y-m-d', strtotime('-7 days')))." 00:00:00'
             ")->
             where("rack_detail.id", $request->id)->
-            groupBy("rack_detail_stocker.detail_rack_id", "stocker_input.form_cut_id", "stocker_input.so_det_id", "stocker_input.group_stocker", "stocker_input.ratio", "stocker_input.part_detail_id", "stocker_input.stocker_reject")->
-            orderBy("rack_detail_stocker.updated_at", "desc")->
+            groupBy("rack_detail_stocker_mutasi.detail_rack_id", "stocker_input.form_cut_id", "stocker_input.so_det_id", "stocker_input.group_stocker", "stocker_input.ratio", "stocker_input.part_detail_id", "stocker_input.stocker_reject")->
+            orderBy("rack_detail_stocker_mutasi.updated_at", "desc")->
             get();
 
         return DataTables::of($racks)->toJson();
@@ -114,6 +147,72 @@ class RackStockerController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+    // public function store(Request $request)
+    // {
+    //     $validatedRequest = $request->validate([
+    //         "rack_detail_id" => "required",
+    //         "stocker_kode" => "required",
+    //         "qty_in" => "required|gt:0"
+    //     ]);
+
+    //     $rackDetail = RackDetail::where("id", $validatedRequest['rack_detail_id'])->first();
+
+    //     $stockerData = Stocker::where("id_qr_stocker", $validatedRequest["stocker_kode"])->first();
+    //     $similarStockerData = Stocker::where("form_cut_id", $stockerData->form_cut_id)->
+    //         where("so_det_id", $stockerData->so_det_id)->
+    //         where("group_stocker", $stockerData->group_stocker)->
+    //         where("ratio", $stockerData->ratio)->
+    //         get();
+
+    //     $oldRackStockArr = [];
+    //     $rackStockArr = [];
+
+    //     $i = 0;
+    //     foreach ($similarStockerData as $stocker) {
+    //         $oldRackDetailStocker = Stocker::where("id_qr_stocker", $stocker->id_qr_stocker)->first();
+
+    //         if ($oldRackDetailStocker) {
+    //             array_push($oldRackStockArr, $oldRackDetailStocker->id_qr_stocker);
+    //         }
+
+    //         array_push($rackStockArr, [
+    //             "detail_rack_id" => $rackDetail->id,
+    //             "nm_rak" => $rackDetail->nama_detail_rak,
+    //             "stocker_id" => $stocker['id_qr_stocker'],
+    //             "qty_in" => $validatedRequest['qty_in'],
+    //             "status" => "active",
+    //             "created_at" => Carbon::now(),
+    //             "updated_at" => Carbon::now(),
+    //         ]);
+
+    //         $i++;
+    //     }
+
+    //     $updateOldRackStock = RackDetailStocker::whereIn("stocker_id", $oldRackStockArr)->update(["status" => "not active"]);
+    //     $updateStocker = Stocker::whereIn("id_qr_stocker", $oldRackStockArr)->update(["tempat" => "RAK", "lokasi" => $rackDetail->nama_detail_rak, "latest_alokasi" => Carbon::now(), "status" => "non secondary"]);
+    //     $storeRackStock = RackDetailStocker::insert($rackStockArr);
+
+    //     if (count($rackStockArr)) {
+    //         return array(
+    //             'status' => 200,
+    //             'message' => 'Stocker berhasil dialokasi',
+    //             'redirect' => '',
+    //             'table' => 'rack-stock-datatable',
+    //             'callback' => 'clearAll()',
+    //             'additional' => [],
+    //         );
+    //     }
+
+    //     return array(
+    //         'status' => 400,
+    //         'message' => 'Stocker gagal dialokasi',
+    //         'redirect' => '',
+    //         'table' => 'rack-stock-datatable',
+    //         'callback' => 'clearAll()',
+    //         'additional' => [],
+    //     );
+    // }
+
     public function store(Request $request)
     {
         $validatedRequest = $request->validate([
@@ -124,42 +223,71 @@ class RackStockerController extends Controller
 
         $rackDetail = RackDetail::where("id", $validatedRequest['rack_detail_id'])->first();
 
-        $stockerData = Stocker::where("id_qr_stocker", $validatedRequest["stocker_kode"])->first();
-        $similarStockerData = Stocker::where("form_cut_id", $stockerData->form_cut_id)->
-            where("so_det_id", $stockerData->so_det_id)->
-            where("group_stocker", $stockerData->group_stocker)->
-            where("ratio", $stockerData->ratio)->
-            get();
-
-        $oldRackStockArr = [];
-        $rackStockArr = [];
-
-        $i = 0;
-        foreach ($similarStockerData as $stocker) {
-            $oldRackDetailStocker = Stocker::where("id_qr_stocker", $stocker->id_qr_stocker)->first();
-
-            if ($oldRackDetailStocker) {
-                array_push($oldRackStockArr, $oldRackDetailStocker->id_qr_stocker);
-            }
-
-            array_push($rackStockArr, [
-                "detail_rack_id" => $rackDetail->id,
-                "nm_rak" => $rackDetail->nama_detail_rak,
-                "stocker_id" => $stocker['id_qr_stocker'],
-                "qty_in" => $validatedRequest['qty_in'],
-                "status" => "active",
-                "created_at" => Carbon::now(),
-                "updated_at" => Carbon::now(),
-            ]);
-
-            $i++;
+        if (!$rackDetail) {
+            return array(
+                'status' => 400,
+                'message' => 'Detail rack tidak ditemukan',
+            );
         }
 
-        $updateOldRackStock = RackDetailStocker::whereIn("stocker_id", $oldRackStockArr)->update(["status" => "not active"]);
-        $updateStocker = Stocker::whereIn("id_qr_stocker", $oldRackStockArr)->update(["tempat" => "RAK", "lokasi" => $rackDetail->nama_detail_rak, "latest_alokasi" => Carbon::now(), "status" => "non secondary"]);
-        $storeRackStock = RackDetailStocker::insert($rackStockArr);
+        $stockerData = Stocker::where("id_qr_stocker", $validatedRequest["stocker_kode"])->first();
 
-        if (count($rackStockArr)) {
+        if (!$stockerData) {
+            return array(
+                'status' => 400,
+                'message' => 'Stocker tidak ditemukan',
+            );
+        }
+
+        $exists = RackDetailStocker::where("detail_rack_id", $rackDetail->id)
+            ->where("stocker_id", $stockerData->id_qr_stocker)
+            ->where("status", "active")
+            ->exists();
+
+        if ($exists) {
+            return array(
+                'status' => 400,
+                'message' => 'Stocker ' . $stockerData->id_qr_stocker . ' Duplicate Sudah Ada di Rack Ini',
+                'table' => 'rack-stock-datatable',
+            );
+        }
+
+        Stocker::where("id_qr_stocker", $stockerData->id_qr_stocker)
+            ->update([
+                "tempat" => "RAK",
+                "lokasi" => $rackDetail->nama_detail_rak,
+                "latest_alokasi" => Carbon::now(),
+                "status" => "non secondary"
+            ]);
+
+        $storeRackStock = RackDetailStocker::updateOrCreate(
+            [
+                "stocker_id" => $stockerData->id_qr_stocker,
+            ],
+            [
+                "detail_rack_id" => $rackDetail->id,
+                "nm_rak"         => $rackDetail->nama_detail_rak,
+                "qty_in"         => $validatedRequest['qty_in'],
+                "status"         => "active",
+            ]
+        );
+
+        RackDetailStockerMutasi::where("stocker_id", $stockerData->id_qr_stocker)
+            ->where("status", "active")
+            ->update([
+                "status" => "not active"
+            ]);
+
+        RackDetailStockerMutasi::create([
+            "detail_rack_id" => $rackDetail->id,
+            "nm_rak" => $rackDetail->nama_detail_rak,
+            "stocker_id" => $stockerData->id_qr_stocker,
+            "qty_in" => $validatedRequest['qty_in'],
+            "status" => "active",
+        ]);
+
+
+        if ($storeRackStock) {
             return array(
                 'status' => 200,
                 'message' => 'Stocker berhasil dialokasi',
@@ -298,5 +426,12 @@ class RackStockerController extends Controller
             'callback' => '',
             'additional' => [],
         );
+    }
+
+    public function exportDataRack(Request $request) {
+        $from = $request->from;
+        $to = $request->to;
+
+        return Excel::download(new ExportDataRack($from, $to), 'laporan-data-rack.xlsx');
     }
 }
