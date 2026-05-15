@@ -434,10 +434,101 @@
             }
         }
 
+        // function addRackStockerScan(kode_stocker = null) {
+
+        //     if (!kode_stocker) {
+        //         kode_stocker = $('#kode_stocker').val();
+        //     }
+
+        //     if (!kode_stocker) {
+        //         Swal.fire({
+        //             icon: 'error',
+        //             title: 'Stocker kosong',
+        //             showConfirmButton: true,
+        //         });
+
+        //         return;
+        //     }
+
+        //     $.ajax({
+        //         url: "{{ route('get-stocker') }}",
+        //         type: "get",
+        //         data: {
+        //             stocker: kode_stocker
+        //         },
+        //         dataType: "json",
+        //         success: function(stockerResponse) {
+
+        //             $.ajax({
+        //                 url: "{{ route('store-rack-stock') }}",
+        //                 type: "post",
+        //                 data: {
+        //                     rack_detail_id: $("#rack_id").val(),
+        //                     stocker_kode: stockerResponse.id_qr_stocker,
+        //                     qty_in: stockerResponse.qty,
+        //                 },
+        //                 dataType: "json",
+        //                 success: function(response) {
+        //                     console.log(response)
+
+        //                     if (response.status == 200) {
+
+        //                         Swal.fire({
+        //                             icon: 'success',
+        //                             title: response.message,
+        //                             timer: 1000,
+        //                             showCancelButton: false,
+        //                             showConfirmButton: true,
+        //                             confirmButtonText: 'Oke',
+        //                         }).then(() => {
+        //                             $('#kode_stocker').val('').focus();
+        //                         });
+
+        //                         $('#kode_stocker').val('').focus();
+
+        //                     } else {
+
+        //                         Swal.fire({
+        //                             icon: 'error',
+        //                             title: response.message,
+        //                             timer: 1000,
+        //                             showCancelButton: false,
+        //                             showConfirmButton: true,
+        //                         });
+        //                     }
+
+        //                     if (response.table != '') {
+        //                         $('#' + response.table).DataTable().ajax.reload();
+        //                     }
+
+        //                     rackStockTableReload();
+        //                     $('#loading').addClass('d-none');
+        //                 },
+        //                 error: function(jqXHR) {
+        //                     console.error(jqXHR);
+        //                     Swal.fire({
+        //                             icon: 'error',
+        //                             title: 'Stocker ' + kode_stocker +' tidak valid',
+        //                             showConfirmButton: true,
+        //                         });
+
+        //                     $('#loading').addClass('d-none');
+        //                 }
+        //             });
+
+        //         },
+        //         error: function(jqXHR) {
+        //             console.error(jqXHR);
+
+        //             $('#loading').addClass('d-none');
+        //         }
+        //     });
+        // }
+
         function addRackStockerScan(kode_stocker = null) {
 
             if (!kode_stocker) {
-                kode_stocker = $('#kode_stocker').val();
+                kode_stocker = $('#kode_stocker').val().trim();
             }
 
             if (!kode_stocker) {
@@ -450,76 +541,62 @@
                 return;
             }
 
+            $('#loading').removeClass('d-none');
+
             $.ajax({
-                url: "{{ route('get-stocker') }}",
-                type: "get",
+                url: "{{ route('store-rack-stock') }}",
+                type: "POST",
                 data: {
-                    stocker: kode_stocker
+                    rack_detail_id: $('#rack_id').val(),
+                    stocker_kode: kode_stocker,
                 },
                 dataType: "json",
-                success: function(stockerResponse) {
+                success: function(response) {
 
-                    $.ajax({
-                        url: "{{ route('store-rack-stock') }}",
-                        type: "post",
-                        data: {
-                            rack_detail_id: $("#rack_id").val(),
-                            stocker_kode: stockerResponse.id_qr_stocker,
-                            qty_in: stockerResponse.qty,
-                        },
-                        dataType: "json",
-                        success: function(response) {
-                            console.log(response)
+                    if (response.status == 200) {
 
-                            if (response.status == 200) {
+                        $('#kode_stocker').val('').focus();
 
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: response.message,
-                                    timer: 1000,
-                                    showCancelButton: false,
-                                    showConfirmButton: true,
-                                    confirmButtonText: 'Oke',
-                                }).then(() => {
-                                    $('#kode_stocker').val('').focus();
-                                });
+                        Swal.fire({
+                            icon: 'success',
+                            title: response.message,
+                            timer: 800,
+                            showConfirmButton: false,
+                        });
 
-                                $('#kode_stocker').val('').focus();
+                    } else {
 
-                            } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: response.message,
+                            showConfirmButton: true,
+                        });
+                    }
 
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: response.message,
-                                    timer: 1000,
-                                    showCancelButton: false,
-                                    showConfirmButton: true,
-                                });
-                            }
+                    if (response.table) {
+                        $('#' + response.table)
+                            .DataTable()
+                            .ajax.reload(null, false);
+                    }
 
-                            if (response.table != '') {
-                                $('#' + response.table).DataTable().ajax.reload();
-                            }
-
-                            rackStockTableReload();
-                            $('#loading').addClass('d-none');
-                        },
-                        error: function(jqXHR) {
-                            console.error(jqXHR);
-                            Swal.fire({
-                                    icon: 'error',
-                                    title: 'Stocker tidak valid',
-                                    showConfirmButton: true,
-                                });
-
-                            $('#loading').addClass('d-none');
-                        }
-                    });
-
+                    rackStockTableReload();
                 },
                 error: function(jqXHR) {
-                    console.error(jqXHR);
+                    let message = 'Terjadi kesalahan';
 
+                    if (jqXHR.responseJSON?.errors) {
+                        const errors = jqXHR.responseJSON.errors;
+                        message = Object.values(errors)[0][0];
+                    }
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: message,
+                        timer: 800,
+                        showConfirmButton: true,
+                    });
+                },
+                complete: function() {
                     $('#loading').addClass('d-none');
                 }
             });
@@ -677,8 +754,7 @@
 
                         Swal.fire({
                             icon: 'error',
-                            title: 'Rak tidak ditemukan',
-                            text: 'Rak tidak ada di daftar',
+                            title: 'Rak '+ value + ' Tidak ditemukan',
                             timer: 1000,
                             showCancelButton: false,
                             showConfirmButton: true,

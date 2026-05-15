@@ -218,47 +218,59 @@ class RackStockerController extends Controller
         $validatedRequest = $request->validate([
             "rack_detail_id" => "required",
             "stocker_kode" => "required",
-            "qty_in" => "required|gt:0"
+        ], [
+            "rack_detail_id.required" => "Rack wajib diisi",
+            "stocker_kode.required" => "Stocker wajib diisi",
         ]);
 
-        $rackDetail = RackDetail::where("id", $validatedRequest['rack_detail_id'])->first();
+        $rackDetail = RackDetail::find($validatedRequest['rack_detail_id']);
 
         if (!$rackDetail) {
-            return array(
+            return [
                 'status' => 400,
                 'message' => 'Detail rack tidak ditemukan',
-            );
+            ];
         }
 
-        $stockerData = Stocker::where("id_qr_stocker", $validatedRequest["stocker_kode"])->first();
+        $stockerData = Stocker::where(
+            "id_qr_stocker",
+            $validatedRequest["stocker_kode"]
+        )->first();
 
         if (!$stockerData) {
-            return array(
+            return [
                 'status' => 400,
-                'message' => 'Stocker tidak ditemukan',
-            );
+                'message' => 'Stocker ' . $validatedRequest["stocker_kode"] .' Tidak ditemukan',
+            ];
         }
 
-        // $exists = RackDetailStocker::where("detail_rack_id", $rackDetail->id)
-        //     ->where("stocker_id", $stockerData->id_qr_stocker)
-        //     ->where("status", "active")
-        //     ->exists();
+        $qty_stocker = Stocker::selectRaw("
+            (
+                (
+                    COALESCE(dc_in_input.qty_awal,
+                    stocker_input.qty_ply_mod,
+                    stocker_input.qty_ply)
+                ) -
+                (COALESCE(MAX(dc_in_input.qty_reject), 0)) +
+                (COALESCE(MAX(dc_in_input.qty_replace), 0)) -
+                (COALESCE(MAX(secondary_in_input.qty_reject), 0)) +
+                (COALESCE(MAX(secondary_in_input.qty_replace), 0)) -
+                (COALESCE(MAX(secondary_inhouse_input.qty_reject), 0)) +
+                (COALESCE(MAX(secondary_inhouse_input.qty_replace), 0))
+            ) qty
+        ")
+        ->leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")
+        ->leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")
+        ->leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")
+        ->where("stocker_input.id_qr_stocker", $validatedRequest["stocker_kode"])
+        ->value('qty');
 
-        // if ($exists) {
-        //     return array(
-        //         'status' => 400,
-        //         'message' => 'Stocker ' . $stockerData->id_qr_stocker . ' Duplicate Sudah Ada di Rack Ini',
-        //         'table' => 'rack-stock-datatable',
-        //     );
-        // }
-
-        Stocker::where("id_qr_stocker", $stockerData->id_qr_stocker)
-            ->update([
-                "tempat" => "RAK",
-                "lokasi" => $rackDetail->nama_detail_rak,
-                "latest_alokasi" => Carbon::now(),
-                "status" => "non secondary"
-            ]);
+        $stockerData->update([
+            "tempat" => "RAK",
+            "lokasi" => $rackDetail->nama_detail_rak,
+            "latest_alokasi" => now(),
+            "status" => "non secondary"
+        ]);
 
         $storeRackStock = RackDetailStocker::updateOrCreate(
             [
@@ -267,45 +279,41 @@ class RackStockerController extends Controller
             [
                 "detail_rack_id" => $rackDetail->id,
                 "nm_rak"         => $rackDetail->nama_detail_rak,
-                "qty_in"         => $validatedRequest['qty_in'],
+                "qty_in"         => $qty_stocker,
                 "status"         => "active",
             ]
         );
 
-        RackDetailStockerMutasi::where("stocker_id", $stockerData->id_qr_stocker)
-            ->where("status", "active")
-            ->update([
-                "status" => "not active"
-            ]);
+        RackDetailStockerMutasi::where(
+            "stocker_id",
+            $stockerData->id_qr_stocker
+        )
+        ->where("status", "active")
+        ->update([
+            "status" => "not active"
+        ]);
 
         RackDetailStockerMutasi::create([
             "detail_rack_id" => $rackDetail->id,
-            "nm_rak" => $rackDetail->nama_detail_rak,
-            "stocker_id" => $stockerData->id_qr_stocker,
-            "qty_in" => $validatedRequest['qty_in'],
-            "status" => "active",
+            "nm_rak"         => $rackDetail->nama_detail_rak,
+            "stocker_id"     => $stockerData->id_qr_stocker,
+            "qty_in"         => $qty_stocker,
+            "status"         => "active",
         ]);
 
-
         if ($storeRackStock) {
-            return array(
+            return [
                 'status' => 200,
                 'message' => 'Stocker berhasil dialokasi',
-                'redirect' => '',
                 'table' => 'rack-stock-datatable',
-                'callback' => 'clearAll()',
-                'additional' => [],
-            );
+            ];
         }
 
-        return array(
+        return [
             'status' => 400,
             'message' => 'Stocker gagal dialokasi',
-            'redirect' => '',
             'table' => 'rack-stock-datatable',
-            'callback' => 'clearAll()',
-            'additional' => [],
-        );
+        ];
     }
 
     /**
