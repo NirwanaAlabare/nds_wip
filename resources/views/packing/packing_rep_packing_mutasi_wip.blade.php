@@ -109,10 +109,7 @@
                         <tr style='text-align:center; vertical-align:middle'>
                             <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
                             <th colspan="5" style="background-color: lightgreen; text-align:center;">Packing Line</th>
-                            {{-- <th colspan="4" style="background-color: lightsteelblue; text-align:center;">Transfer Garment
-                            </th> --}}
-                            <th colspan="4" style="background-color: lightgoldenrodyellow; text-align:center;">Packing
-                                Central</th>
+                            <th colspan="5" style="background-color: lightgoldenrodyellow; text-align:center;">Packing Central</th>
                         </tr>
                         <tr style='text-align:center; vertical-align:middle'>
                             <th style="background-color: lightblue;">WS</th>
@@ -120,18 +117,17 @@
                             <th style="background-color: lightblue;">Style</th>
                             <th style="background-color: lightblue;">Color</th>
                             <th style="background-color: lightblue;">Size</th>
+
                             <th style="background-color: lightgreen;">Saldo Awal</th>
                             <th style="background-color: lightgreen;">Terima RFT</th>
                             <th style="background-color: lightgreen;">Terima Reject</th>
                             <th style="background-color: lightgreen;">Keluar</th>
                             <th style="background-color: lightgreen;">Saldo Akhir</th>
-                            {{-- <th style="background-color: lightsteelblue;">Saldo Awal</th>
-                            <th style="background-color: lightsteelblue;">Terima</th>
-                            <th style="background-color: lightsteelblue;">Keluar</th>
-                            <th style="background-color: lightsteelblue;">Saldo Akhir</th> --}}
+
                             <th style="background-color: lightgoldenrodyellow;">Saldo Awal</th>
                             <th style="background-color: lightgoldenrodyellow;">Terima</th>
-                            <th style="background-color: lightgoldenrodyellow;">Packing Scan</th>
+                            <th style="background-color: lightgoldenrodyellow;">Terima Return</th>
+                            <th style="background-color: lightgoldenrodyellow;">Packing Scan FG In</th>
                             <th style="background-color: lightgoldenrodyellow;">Saldo Akhir</th>
                         </tr>
                     </thead>
@@ -282,13 +278,13 @@
         // }
 
         function dataTableReload() {
-
             if ($.fn.DataTable.isDataTable('#datatable')) {
                 $('#datatable').DataTable().destroy();
             }
 
             let tglawal = $('#tgl-awal').val();
             let tglakhir = $('#tgl-akhir').val();
+
             datatable = $("#datatable").DataTable({
                 processing: true,
                 serverSide: false,
@@ -304,7 +300,7 @@
                     [10, 25, 50, 100, "All"]
                 ],
                 fixedColumns: {
-                    leftColumns: 5 // Fix the first three columns
+                    leftColumns: 5
                 },
                 ajax: {
                     url: '{{ route('packing_rep_packing_mutasi_wip') }}',
@@ -313,67 +309,27 @@
                         d.dateTo = tglakhir;
                     },
                 },
-                columns: [{
-                        data: 'ws'
-                    },
-                    {
-                        data: 'buyer'
-                    },
-                    {
-                        data: 'style'
-                    },
-                    {
-                        data: 'color'
-                    },
-                    {
-                        data: 'size'
-                    },
-                    {
-                        data: 'pl_saldo_awal'
-                    },
-                    {
-                        data: 'pl_rft'
-                    },
-                    {
-                        data: 'pl_reject'
-                    },
-                    {
-                        data: 'pl_keluar'
-                    },
-                    {
-                        data: 'pl_saldo_akhir'
-                    },
-                    // {
-                    //     data: 'tg_saldo_awal'
-                    // },
-                    // {
-                    //     data: 'tg_masuk'
-                    // },
-                    // {
-                    //     data: 'tg_keluar'
-                    // },
-                    // {
-                    //     data: 'tg_saldo_akhir'
-                    // },
-                    {
-                        data: 'pc_saldo_awal'
-                    },
-                    {
-                        data: 'pc_terima'
-                    },
-                    {
-                        data: 'pc_packing_scan'
-                    },
-                    {
-                        data: 'pc_saldo_akhir'
-                    },
-
+                columns: [
+                    { data: 'ws' },
+                    { data: 'buyer' },
+                    { data: 'style' },
+                    { data: 'color' },
+                    { data: 'size' },
+                    { data: 'pl_saldo_awal' },
+                    { data: 'pl_rft' },
+                    { data: 'pl_reject' },
+                    { data: 'pl_keluar' },
+                    { data: 'pl_saldo_akhir' },
+                    { data: 'pc_saldo_awal' },
+                    { data: 'pc_terima' },
+                    { data: 'pc_terima_return' },
+                    { data: 'pc_fg_in' },
+                    { data: 'pc_saldo_akhir' }
                 ],
                 columnDefs: [{
                     "className": "align-middle",
                     "targets": "_all"
                 }],
-
             });
         }
 
