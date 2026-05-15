@@ -10,7 +10,7 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-class ExportDataRack implements FromView, ShouldAutoSize, WithColumnFormatting
+class ExportDataRackAll implements FromView, ShouldAutoSize, WithColumnFormatting
 {
     use Exportable;
 
@@ -56,7 +56,6 @@ class ExportDataRack implements FromView, ShouldAutoSize, WithColumnFormatting
                     ON master_sb_ws.id_so_det = stocker_input.so_det_id
                 WHERE
                     rack_detail_stocker.status = 'active'
-                    AND DATE(rack_detail_stocker.updated_at) BETWEEN '{$this->from}' AND '{$this->to}'
                 GROUP BY
                     rack_detail_stocker.id,
                     rack_detail.nama_detail_rak,
@@ -73,9 +72,9 @@ class ExportDataRack implements FromView, ShouldAutoSize, WithColumnFormatting
             ) as results
         "))->get();
 
-        return view("dc.rack.export-rack", [
-            "from" => $this->from,
-            "to" => $this->to,
+        return view("dc.rack.export-rack-all", [
+            // "from" => $this->from,
+            // "to" => $this->to,
             "data" => $data,
         ]);
     }

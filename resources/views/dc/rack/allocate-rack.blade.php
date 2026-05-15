@@ -265,10 +265,10 @@
 
                                         clearStockerScan();
 
-                                        setTimeout(() => {
+                                        // setTimeout(() => {
                                             $('#kode_stocker').val('').focus();
                                             initStockerScan();
-                                        }, 500);
+                                        // }, 500);
                                     };
                                     const stockerScanConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
 
@@ -523,81 +523,167 @@
         //     });
         // }
 
-        function addRackStockerScan(kode_stocker = null) {
+        // function addRackStockerScan(kode_stocker = null) {
 
-            if (!kode_stocker) {
-                kode_stocker = $('#kode_stocker').val().trim();
-            }
+        //     if (!kode_stocker) {
+        //         kode_stocker = $('#kode_stocker').val().trim();
+        //     }
 
-            if (!kode_stocker) {
-                Swal.fire({
+        //     if (!kode_stocker) {
+        //         Swal.fire({
+        //             icon: 'error',
+        //             title: 'Stocker kosong',
+        //             showConfirmButton: true,
+        //         });
+
+        //         return;
+        //     }
+
+        //     $('#loading').removeClass('d-none');
+
+        //     $.ajax({
+        //         url: "{{ route('store-rack-stock') }}",
+        //         type: "POST",
+        //         data: {
+        //             rack_detail_id: $('#rack_id').val(),
+        //             stocker_kode: kode_stocker,
+        //         },
+        //         dataType: "json",
+        //         success: function(response) {
+
+        //             if (response.status == 200) {
+
+        //                 $('#kode_stocker').val('').focus();
+
+        //                 Swal.fire({
+        //                     icon: 'success',
+        //                     title: response.message,
+        //                     timer: 800,
+        //                     showConfirmButton: false,
+        //                 });
+
+        //             } else {
+
+        //                 Swal.fire({
+        //                     icon: 'error',
+        //                     title: response.message,
+        //                     showConfirmButton: true,
+        //                 });
+        //             }
+
+        //             if (response.table) {
+        //                 $('#' + response.table)
+        //                     .DataTable()
+        //                     .ajax.reload(null, false);
+        //             }
+
+        //             rackStockTableReload();
+        //         },
+        //         error: function(jqXHR) {
+        //             let message = 'Terjadi kesalahan';
+
+        //             if (jqXHR.responseJSON?.errors) {
+        //                 const errors = jqXHR.responseJSON.errors;
+        //                 message = Object.values(errors)[0][0];
+        //             }
+
+        //             Swal.fire({
+        //                 icon: 'error',
+        //                 title: message,
+        //                 timer: 800,
+        //                 showConfirmButton: true,
+        //             });
+        //         },
+        //         complete: function() {
+        //             $('#loading').addClass('d-none');
+        //         }
+        //     });
+        // }
+
+        async function addRackStockerScan(kodeStocker = '') {
+
+            kodeStocker = kodeStocker || $('#kode_stocker').val().trim();
+
+            if (!kodeStocker) {
+                return Swal.fire({
                     icon: 'error',
                     title: 'Stocker kosong',
-                    showConfirmButton: true,
                 });
+            }
 
-                return;
+            const rackId = $('#rack_id').val();
+
+            if (!rackId) {
+                return Swal.fire({
+                    icon: 'error',
+                    title: 'Rack belum dipilih',
+                });
             }
 
             $('#loading').removeClass('d-none');
 
-            $.ajax({
-                url: "{{ route('store-rack-stock') }}",
-                type: "POST",
-                data: {
-                    rack_detail_id: $('#rack_id').val(),
-                    stocker_kode: kode_stocker,
-                },
-                dataType: "json",
-                success: function(response) {
+            try {
 
-                    if (response.status == 200) {
-
-                        $('#kode_stocker').val('').focus();
-
-                        Swal.fire({
-                            icon: 'success',
-                            title: response.message,
-                            timer: 800,
-                            showConfirmButton: false,
-                        });
-
-                    } else {
-
-                        Swal.fire({
-                            icon: 'error',
-                            title: response.message,
-                            showConfirmButton: true,
-                        });
+                const response = await $.ajax({
+                    url: "{{ route('store-rack-stock') }}",
+                    type: "POST",
+                    dataType: "json",
+                    data: {
+                        rack_detail_id: rackId,
+                        stocker_kode: kodeStocker,
                     }
+                });
 
-                    if (response.table) {
-                        $('#' + response.table)
-                            .DataTable()
-                            .ajax.reload(null, false);
-                    }
+                if (response.status === 200) {
 
-                    rackStockTableReload();
-                },
-                error: function(jqXHR) {
-                    let message = 'Terjadi kesalahan';
+                    $('#kode_stocker')
+                        .val('')
+                        .focus();
 
-                    if (jqXHR.responseJSON?.errors) {
-                        const errors = jqXHR.responseJSON.errors;
-                        message = Object.values(errors)[0][0];
-                    }
+                    Swal.fire({
+                        icon: 'success',
+                        title: response.message,
+                        timer: 800,
+                        showConfirmButton: false,
+                    });
+
+                } else {
 
                     Swal.fire({
                         icon: 'error',
-                        title: message,
-                        timer: 800,
-                        showConfirmButton: true,
+                        title: response.message,
                     });
-                },
-                complete: function() {
-                    $('#loading').addClass('d-none');
                 }
-            });
+
+                if (response.table) {
+                    $('#' + response.table)
+                        .DataTable()
+                        .ajax.reload(null, false);
+                }
+
+                rackStockTableReload();
+
+            } catch (jqXHR) {
+
+                let message = 'Terjadi kesalahan';
+
+                if (jqXHR.responseJSON?.message) {
+                    message = jqXHR.responseJSON.message;
+                }
+
+                if (jqXHR.responseJSON?.errors) {
+                    message = Object.values(jqXHR.responseJSON.errors)[0][0];
+                }
+
+                Swal.fire({
+                    icon: 'error',
+                    title: message,
+                });
+
+            } finally {
+
+                $('#loading').addClass('d-none');
+            }
         }
 
         function deleteRackStocker(id) {

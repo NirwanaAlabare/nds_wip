@@ -30,7 +30,10 @@
                     <a href="{{ route('allocate-rack') }}" class="btn btn-success btn-sm"><i class="fa fa-plus"></i> Alokasi</a>
 
                 </div>
-                <div class="d-flex align-items-end gap-3">
+                <div class="d-flex align-items-end gap-2">
+                    <div class="mb-3">
+                        <button class="btn btn-success btn-sm" id="exportExcelAll" data-bs-toggle="tooltip" data-bs-title="Export Excel" onclick="exportExcelAll()"><i class="fa fa-file-excel"></i> Export Excel Stoker</button>
+                    </div>
                     <div class="mb-3">
                         <button class="btn btn-success btn-sm" id="exportExcel" data-bs-toggle="tooltip" data-bs-title="Export Excel" onclick="exportExcel()"><i class="fa fa-file-excel"></i> Export Excel</button>
                     </div>
@@ -253,6 +256,47 @@
 
             await $.ajax({
                 url: "{{ route("export-data-rack") }}",
+                type: "post",
+                data: {
+                    from : $("#tgl-awal").val(),
+                    to : $("#tgl-akhir").val(),
+                },
+                xhrFields: { responseType : 'blob' },
+                success: function (res) {
+                    Swal.close();
+
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Success',
+                        position: 'topCenter'
+                    });
+
+                    var blob = new Blob([res]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Laporan Data Rack "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
+                    link.click();
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
+                }
+            });
+
+            Swal.close();
+        }
+
+        async function exportExcelAll() {
+            Swal.fire({
+                title: "Exporting",
+                html: "Please Wait...",
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+            });
+
+            await $.ajax({
+                url: "{{ route("export-data-rack-all") }}",
                 type: "post",
                 data: {
                     from : $("#tgl-awal").val(),
