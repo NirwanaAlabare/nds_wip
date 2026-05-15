@@ -3,7 +3,7 @@
 <head>
     <title>Rack</title>
     <style>
-        @page { margin: 15px; size: 450pt 520pt; }
+        @page { margin: 15px; size: 500pt 560pt; }
 
         @font-face {
             font-family: 'Open Sans';
@@ -36,7 +36,7 @@
         table td, table th{
             text-align: left;
             vertical-align: middle;
-            padding: 15px 30px;
+            padding: 15px 10px;
             border: 1px solid;
             width: auto;
         }
@@ -52,18 +52,14 @@
         @foreach ($dataRack->rackDetails as $rackDetail)
             <table class="{{ $first ? '' : 'page-break' }}">
                 @php $first = false; @endphp
-                <thead>
-                    <tr>
-                        <th style="text-align: center;">{{ $rackDetail->nama_detail_rak }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="text-align: center;">
-                            <img src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate($rackDetail->nama_detail_rak)) !!}">
-                        </td>
-                    </tr>
-                </tbody>
+                <tr>
+                    <th style="text-align: center;">{{ $rackDetail->nama_detail_rak }}</th>
+                </tr>
+                <tr>
+                    <td style="text-align: center;">
+                        <img src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate($rackDetail->nama_detail_rak)) !!}">
+                    </td>
+                </tr>
             </table>
         @endforeach
     @endforeach

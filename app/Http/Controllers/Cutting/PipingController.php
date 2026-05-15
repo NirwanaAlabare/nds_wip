@@ -211,7 +211,7 @@ class PipingController extends Controller
                 $sambunganRoll = $formCutDetail->formCutInputDetailSambungan ? $formCutDetail->formCutInputDetailSambungan->sum("sambungan_roll") : 0;
                 $shortRoll = (($pAct * $formCutDetail->lembar_gelaran) + $formCutDetail->sambungan + $formCutDetail->sisa_gelaran + $formCutDetail->kepala_kain + $formCutDetail->sisa_tidak_bisa + $formCutDetail->reject + $formCutDetail->piping + $formCutDetail->sisa_kain + $sambunganRoll) - $qty;
 
-                $formCutDetail->shortRoll = $shortRoll;
+                $formCutDetail->short_roll = $shortRoll;
                 $formCutDetail->save();
             } else {
 
