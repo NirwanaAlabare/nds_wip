@@ -19,6 +19,12 @@ use Illuminate\Support\Facades\Redirect;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 use Rap2hpoutre\FastExcel\FastExcel;
+use OpenSpout\Common\Entity\Style\Border;
+use OpenSpout\Common\Entity\Style\Color;
+use OpenSpout\Writer\Common\Creator\Style\BorderBuilder;
+use OpenSpout\Writer\Common\Creator\Style\StyleBuilder;
+use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
+use OpenSpout\Common\Entity\Style\CellAlignment;
 
 class RackStockerController extends Controller
 {
@@ -543,19 +549,93 @@ class RackStockerController extends Controller
     //     return Excel::download(new ExportDataRackStockOpname($from, $to), 'laporan-data-rack.xlsx');
     // }
 
+    // Pake STYLE tapi tetep lama
+    // public function exportDataRackStockOpname(Request $request)
+    // {
+    //     $data = DB::table('rack_detail')
+    //         ->leftJoin('rack_detail_stocker', 'rack_detail_stocker.detail_rack_id', '=', 'rack_detail.id')
+    //         ->leftJoin('stocker_input', 'stocker_input.id_qr_stocker', '=', 'rack_detail_stocker.stocker_id')
+    //         ->leftJoin('form_cut_input', 'form_cut_input.id', '=', 'stocker_input.form_cut_id')
+    //         ->leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')
+    //         ->leftJoin('part_detail', 'part_detail.id', '=', 'stocker_input.part_detail_id')
+    //         ->leftJoin('master_part', 'master_part.id', '=', 'part_detail.master_part_id')
+    //         ->leftJoin('master_sb_ws', 'master_sb_ws.id_so_det', '=', 'stocker_input.so_det_id')
+    //         ->where('rack_detail_stocker.status', 'active')
+    //         ->select([
+    //             'rack_detail.nama_detail_rak as no_rak',
+    //             'stocker_input.id_qr_stocker as no_stocker',
+    //             'marker_input.act_costing_ws as no_ws',
+    //             'form_cut_input.no_cut',
+    //             'marker_input.style',
+    //             'marker_input.color',
+    //             'master_part.nama_part as part',
+    //             DB::raw('COALESCE(master_sb_ws.size, stocker_input.size) as size'),
+    //             'rack_detail_stocker.qty_in',
+    //             'rack_detail_stocker.updated_at'
+    //         ])
+    //         ->orderBy('rack_detail.nama_detail_rak')
+    //         ->get();
+
+    //     $rows = $data->map(function ($row) {
+    //         return [
+    //             'No Rak'      => $row->no_rak,
+    //             'No Stocker'  => $row->no_stocker,
+    //             'No WS'       => $row->no_ws,
+    //             'No Cut'      => $row->no_cut,
+    //             'Style'       => $row->style,
+    //             'Color'       => $row->color,
+    //             'Part'        => $row->part,
+    //             'Size'        => $row->size,
+    //             'Qty'         => $row->qty_in,
+    //             'Tgl Scan'    => date('d-m-Y', strtotime($row->updated_at)),
+    //         ];
+    //     });
+
+    //     $filePath = storage_path('app/laporan-data-rack.xlsx');
+
+    //     (new FastExcel($rows))->export($filePath);
+
+    //     $spreadsheet = IOFactory::load($filePath);
+    //     $sheet = $spreadsheet->getActiveSheet();
+
+    //     $sheet->insertNewRowBefore(1, 2);
+
+    //     $highestRow = $sheet->getHighestRow();
+    //     $highestColumn = $sheet->getHighestColumn();
+
+    //     $sheet->setCellValue('A1', 'Laporan Data Stock Opname');
+    //     $sheet->mergeCells("A1:{$highestColumn}1");
+
+    //     $sheet->getStyle("A1")->getFont()->setBold(true)->setSize(14);
+    //     $sheet->getStyle("A1")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+    //     $sheet->getStyle("A3:{$highestColumn}3")->getFont()->setBold(true);
+    //     $sheet->getStyle("A3:{$highestColumn}3")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+    //     $sheet->getStyle("A3:{$highestColumn}{$highestRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+    //     $sheet->getStyle("I4:I{$highestRow}")->getNumberFormat()->setFormatCode('#,##0.00');
+
+    //     foreach (range('A', $highestColumn) as $column) {
+    //         $sheet->getColumnDimension($column)->setAutoSize(true);
+    //     }
+
+    //     $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+    //     $writer->save($filePath);
+
+    //     return response()->download($filePath)->deleteFileAfterSend(true);
+    // }
+
     public function exportDataRackStockOpname(Request $request)
     {
-        $from = $request->from;
-        $to = $request->to;
-
         $data = DB::table('rack_detail')
-            ->leftJoin('rack_detail_stocker','rack_detail_stocker.detail_rack_id','=','rack_detail.id')
-            ->leftJoin('stocker_input','stocker_input.id_qr_stocker','=','rack_detail_stocker.stocker_id')
-            ->leftJoin('form_cut_input','form_cut_input.id','=','stocker_input.form_cut_id')
-            ->leftJoin('marker_input','marker_input.kode','=','form_cut_input.id_marker')
-            ->leftJoin('part_detail','part_detail.id','=','stocker_input.part_detail_id')
-            ->leftJoin('master_part','master_part.id','=','part_detail.master_part_id')
-            ->leftJoin('master_sb_ws','master_sb_ws.id_so_det','=','stocker_input.so_det_id')
+            ->leftJoin('rack_detail_stocker', 'rack_detail_stocker.detail_rack_id', '=', 'rack_detail.id')
+            ->leftJoin('stocker_input', 'stocker_input.id_qr_stocker', '=', 'rack_detail_stocker.stocker_id')
+            ->leftJoin('form_cut_input', 'form_cut_input.id', '=', 'stocker_input.form_cut_id')
+            ->leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')
+            ->leftJoin('part_detail', 'part_detail.id', '=', 'stocker_input.part_detail_id')
+            ->leftJoin('master_part', 'master_part.id', '=', 'part_detail.master_part_id')
+            ->leftJoin('master_sb_ws', 'master_sb_ws.id_so_det', '=', 'stocker_input.so_det_id')
             ->where('rack_detail_stocker.status', 'active')
             ->select([
                 'rack_detail.nama_detail_rak as no_rak',
@@ -570,38 +650,96 @@ class RackStockerController extends Controller
                 'rack_detail_stocker.updated_at'
             ])
             ->orderBy('rack_detail.nama_detail_rak')
-            ->get() 
-            ->map(function ($row) {
-                return (object) [
-                    'no_rak' => $row->no_rak,
-                    'no_stocker' => $row->no_stocker,
-                    'no_ws' => $row->no_ws,
-                    'no_cut' => $row->no_cut,
-                    'style' => $row->style,
-                    'color' => $row->color,
-                    'part' => $row->part,
-                    'size' => $row->size,
-                    'qty_in' => (float) $row->qty_in,
-                    'updated_at' => $row->updated_at,
-                ];
-            });
+            ->get();
 
-        return (new FastExcel($data))->download(
-            'laporan-data-rack.xlsx',
-            function ($row) {
-                return [
-                    'No Rak' => $row->no_rak,
-                    'No Stocker' => $row->no_stocker,
-                    'No WS' => $row->no_ws,
-                    'No Cut' => $row->no_cut,
-                    'Style' => $row->style,
-                    'Color' => $row->color,
-                    'Part' => $row->part,
-                    'Size' => $row->size,
-                    'Qty' => number_format($row->qty_in, 2),
-                    'Tgl Scan' => date('d-m-Y', strtotime($row->updated_at)),
-                ];
-            }
+        $fileName = 'laporan-data-rack.xlsx';
+
+        $border = (new BorderBuilder())
+            ->setBorderBottom(Color::BLACK, Border::WIDTH_THIN)
+            ->setBorderTop(Color::BLACK, Border::WIDTH_THIN)
+            ->setBorderLeft(Color::BLACK, Border::WIDTH_THIN)
+            ->setBorderRight(Color::BLACK, Border::WIDTH_THIN)
+            ->build();
+
+        $titleStyle = (new StyleBuilder())
+            ->setFontBold()
+            ->setFontSize(14)
+            ->build();
+
+        $headerStyle = (new StyleBuilder())
+            ->setFontBold()
+            ->setBorder($border)
+            ->build();
+
+        $rowStyle = (new StyleBuilder())
+            ->setBorder($border)
+            ->build();
+
+        $qtyStyle = (new StyleBuilder())
+            ->setBorder($border)
+            ->setCellAlignment(CellAlignment::RIGHT)
+            ->build();
+
+        $writer = WriterEntityFactory::createXLSXWriter();
+
+        $writer->openToBrowser($fileName);
+
+        $writer->addRow(
+            WriterEntityFactory::createRowFromArray(
+                ['Laporan Data Stock Opname'],
+                $titleStyle
+            )
         );
+
+        $writer->addRow(
+            WriterEntityFactory::createRowFromArray([])
+        );
+
+        $writer->addRow(
+            WriterEntityFactory::createRowFromArray([
+                'No Rak',
+                'No Stocker',
+                'No WS',
+                'No Cut',
+                'Style',
+                'Color',
+                'Part',
+                'Size',
+                'Qty',
+                'Tgl Scan'
+            ], $headerStyle)
+        );
+
+        foreach ($data as $row) {
+
+            $cells = [
+                WriterEntityFactory::createCell($row->no_rak, $rowStyle),
+                WriterEntityFactory::createCell($row->no_stocker, $rowStyle),
+                WriterEntityFactory::createCell($row->no_ws, $rowStyle),
+                WriterEntityFactory::createCell($row->no_cut, $rowStyle),
+                WriterEntityFactory::createCell($row->style, $rowStyle),
+                WriterEntityFactory::createCell($row->color, $rowStyle),
+                WriterEntityFactory::createCell($row->part, $rowStyle),
+                WriterEntityFactory::createCell($row->size, $rowStyle),
+
+                WriterEntityFactory::createCell(
+                    number_format((float) $row->qty_in, 2, '.', ''),
+                    $qtyStyle
+                ),
+
+                WriterEntityFactory::createCell(
+                    date('d-m-Y', strtotime($row->updated_at)),
+                    $rowStyle
+                ),
+            ];
+
+            $writer->addRow(
+                WriterEntityFactory::createRow($cells)
+            );
+        }
+
+        $writer->close();
+
+        exit;
     }
 }
