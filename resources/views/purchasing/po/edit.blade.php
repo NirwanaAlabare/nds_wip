@@ -419,11 +419,10 @@
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
 <script>
+    const parseNum = (val) => parseFloat(val) || 0;
+    const formatIDR = (num) => num.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
     $(document).ready(function() {
-
-        const parseNum = (val) => parseFloat(val) || 0;
-        const formatIDR = (num) => num.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
 
         $('.select2bs4').select2({ theme: 'bootstrap4', width: '100%' });
 
@@ -435,9 +434,16 @@
             });
         }
 
+        $('#table-po-items tbody .select-unit-convert').select2({
+            theme: 'bootstrap4',
+            width: '100%'
+        });
+        // -----------------------------------------------------------------------------
+
         $('.numbers-only').on('input', function() {
             this.value = this.value.replace(/[^0-9]/g, '');
         });
+
         $(document).on('input', '.input-decimal', function() {
             let val = $(this).val().replace(/[^0-9.]/g, '');
             let parts = val.split('.');
@@ -518,17 +524,14 @@
         $('#search_style').on('change', function() {
             let idBom = $(this).val();
             let jenisItem = $('#jenis_item').val();
-
             let tbody = $('#table-modal-items tbody');
             $('#check-all-items').prop('checked', false);
-
 
             if (idBom && !jenisItem) {
                 Swal.fire('Peringatan!', 'Silakan pilih Jenis Item (Material / Manufacturing) di form utama terlebih dahulu.', 'warning');
                 $(this).val('').trigger('change.select2');
                 return;
             }
-
             if (!idBom) {
                 tbody.html('<tr><td colspan="6" class="text-center font-italic text-muted">Silakan pilih Style terlebih dahulu</td></tr>');
                 return;
@@ -539,10 +542,7 @@
             $.ajax({
                 url: '{{ route("get-items-by-bom") }}',
                 type: 'GET',
-                data: {
-                    id_bom: idBom,
-                    jenis_item: jenisItem
-                },
+                data: { id_bom: idBom, jenis_item: jenisItem },
                 success: function(response) {
                     tbody.empty();
                     if(response && response.length > 0) {
@@ -557,7 +557,8 @@
                                             data-cons="${data.cons_bom}"
                                             data-cons-asli="${data.cons_asli || 1}"
                                             data-unit="${data.unit}"
-                                            data-set="${prodSet}">
+                                            data-set="${prodSet}"
+                                            data-price="${data.costing_price || 0}">
                                     </td>
                                     <td class="align-middle text-center item-id">${data.id_item}</td>
                                     <td class="align-middle item-desc fw-bold">${data.itemdesc}</td>
@@ -610,6 +611,7 @@
                 let consAsli = parseNum($(this).attr('data-cons-asli')) || 1;
                 let unit = $(this).attr('data-unit');
                 let prodSet = $(this).attr('data-set') || '';
+                let priceCosting = parseNum($(this).attr('data-price'));
 
                 let isDuplicate = false;
                 $('#table-po-items tbody .po-item-row').each(function() {
@@ -639,7 +641,7 @@
                         <td class="align-middle"><input type="text" name="qty_bom[]" class="input-table val-bom text-center" value="${consBom}" readonly></td>
                         <td class="align-middle"><input type="text" name="qty_need[]" class="input-table val-need text-center" value="${qtyNeed}" readonly></td>
                         <td class="align-middle"><input type="text" name="blc_pr[]" class="input-table val-blc text-center" value="${qtyNeed}" readonly></td>
-                        <td class="align-middle"><input type="text" name="qty_pr[]" class="input-table input-decimal text-center" value="0"></td>
+                        <td class="align-middle"><input type="text" name="qty_pr[]" class="input-table input-decimal text-center" value="${qtyNeed}"></td>
                         <td class="align-middle"><input type="text" name="unit_pr[]" class="input-table text-center" value="${unit}" readonly></td>
                         <td class="align-middle"><input type="text" name="convert[]" class="input-table input-decimal text-center" value="0"></td>
                         <td class="align-middle">
@@ -650,7 +652,7 @@
                         </td>
                         <td class="align-middle"><input type="text" name="qty_pr_conv[]" class="input-table text-center" value="0" readonly></td>
                         <td class="align-middle"><input type="text" name="unit_pr_conv[]" class="input-table text-center" value="${unit}" readonly></td>
-                        <td class="align-middle"><input type="text" name="price_costing[]" class="input-table text-right" value="0"></td>
+                        <td class="align-middle"><input type="text" name="price_costing[]" class="input-table text-right" value="${priceCosting}"></td>
                         <td class="align-middle"><input type="text" name="price_costing_conv[]" class="input-table text-right" value="0" readonly></td>
                         <td class="align-middle"><input type="text" name="price_pr[]" class="input-table input-decimal text-right" value="0"></td>
                         <td class="text-center align-middle">
@@ -659,6 +661,14 @@
                     </tr>
                 `;
                 $('#table-po-items tbody').append(newRow);
+
+                let lastRow = $('#table-po-items tbody tr').last();
+                lastRow.find('.select-unit-convert').select2({
+                    theme: 'bootstrap4',
+                    width: '100%'
+                });
+
+                calculatePoRow(lastRow);
             });
 
             $('#modalPilihItem').modal('hide');
@@ -716,7 +726,6 @@
                         $('#table-po-items tbody').append(`<tr id="empty-row-item"><td colspan="17" class="text-center font-italic text-muted">Belum ada item yang dipilih. Silakan klik "Pilih Item".</td></tr>`);
                     }
                     Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Item berhasil dihapus.', showConfirmButton: false, timer: 1500 });
-
                     hitungTotalPOItems();
                 }
             });
@@ -773,7 +782,6 @@
 
         $('#form-edit-po').on('submit', function(e) {
             e.preventDefault();
-
             let actionUrl = '{{ route("update-purchase-order", $po_header->id) }}';
             let formData = $(this).serialize();
 
@@ -819,8 +827,6 @@
             $('#table-modal-items tbody').html('<tr><td colspan="6" class="text-center font-italic text-muted">Silakan pilih Style terlebih dahulu</td></tr>');
             $('#search_item_filter').val('');
             $('#check-all-items').prop('checked', false);
-
-            console.log('Modal clear');
         });
 
         function hitungTotalPOItems() {

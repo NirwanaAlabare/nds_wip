@@ -523,117 +523,196 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
         );
 
         // $data_mut = DB::select("
-        //     WITH pos_periode_agg AS (
-        //         SELECT
-        //             p.id_so_det,
-        //             SUM( a.total_scan ) AS total_keluar
-        //         FROM
-        //             ( SELECT id_ppic, COUNT(*) AS total_scan FROM laravel_nds.packing_packing_out_scan WHERE tgl_trans BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59' GROUP BY id_ppic ) a
-        //             JOIN ppic_master_so p ON p.id = a.id_ppic
-        //         WHERE
-        //             p.id_so_det IS NOT NULL
-        //         GROUP BY
-        //             p.id_so_det
-        //     ),
-        //     /* PERHATIKAN: Kolom dipisah jadi pl_saldo_awal_masuk dan pl_saldo_awal_keluar */
-        //     trx_union ( so_det_id, pl_saldo_awal_masuk, pl_saldo_awal_keluar, pl_rft, pl_reject, pc_saldo_awal, pc_terima, pc_keluar ) AS (
-
-        //     /* ================= SALDO AWAL ================= */
-        //         SELECT
-        //             id_so_det AS so_det_id,
-        //             CASE WHEN type = 'packing_line' THEN saldo ELSE 0 END AS pl_saldo_awal_masuk,
-        //             0 AS pl_saldo_awal_keluar,
-        //             0 AS pl_rft,
-        //             0 AS pl_reject,
-        //             CASE WHEN type = 'packing_center' THEN saldo ELSE 0 END AS pc_saldo_awal,
-        //             0 AS pc_terima,
-        //             0 AS pc_keluar
-        //         FROM
-        //             sa_report_pck
-        //         WHERE
-        //             tgl_saldo = '{$tanggal_saldo_awal}'
-
-        //         UNION ALL
-
-        //     /* ================= PACKING LINE SALDO AWAL ================= */
-        //         SELECT
-        //             so_det_id,
-        //             COUNT(*) AS pl_saldo_awal_masuk,
-        //             0 AS pl_saldo_awal_keluar,
-        //             0 AS pl_rft,
-        //             0 AS pl_reject,
-        //             0 AS pc_saldo_awal,
-        //             0 AS pc_terima,
-        //             0 AS pc_keluar
-        //         FROM
-        //             signalbit_erp.output_rfts_packing_po
-        //         WHERE
-        //             so_det_id IS NOT NULL
-        //             AND updated_at >= '{$tanggal_saldo_awal} 00:00:00'
-        //             AND updated_at < '{$tgl_awal} 00:00:00'
-        //         GROUP BY
-        //             so_det_id
-
-        //         UNION ALL
-
-        //     /* ================= PACKING LINE PERIODE ================= */
-        //         SELECT
-        //             so_det_id,
-        //             0 AS pl_saldo_awal_masuk,
-        //             0 AS pl_saldo_awal_keluar,
-        //             SUM( type = 'RFT' ) AS pl_rft,
-        //             SUM( type = 'REJECT' ) AS pl_reject,
-        //             0 AS pc_saldo_awal,
-        //             0 AS pc_terima,
-        //             0 AS pc_keluar
-        //         FROM
-        //             signalbit_erp.output_rfts_packing_po
-        //         WHERE
-        //             so_det_id IS NOT NULL
-        //             AND updated_at BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
-        //         GROUP BY
-        //             so_det_id
-
-        //         UNION ALL
-
-        //     /* ================= PACKING CENTRAL SALDO AWAL ================= */
-        //         SELECT
-        //             pms.id_so_det AS so_det_id,
-        //             0 AS pl_saldo_awal_masuk,
-        //             SUM( pi.qty ) AS pl_saldo_awal_keluar,
-        //             0 AS pl_rft,
-        //             0 AS pl_reject,
-        //             SUM( pi.qty ) AS pc_saldo_awal,
-        //             0 AS pc_terima,
-        //             0 AS pc_keluar
-        //         FROM
-        //             laravel_nds.packing_packing_in pi
-        //             JOIN ppic_master_so pms ON pms.id = pi.id_ppic_master_so
-        //         WHERE
-        //             pms.id_so_det IS NOT NULL
-        //             AND pi.tgl_penerimaan >= '{$tanggal_saldo_awal} 00:00:00'
-        //             AND pi.tgl_penerimaan < '{$tgl_awal} 00:00:00'
-        //         GROUP BY
-        //             pms.id_so_det
-
-        //         UNION ALL
-
-        //     /* ================= PACKING CENTRAL PERIODE ================= */
-        //         SELECT
-        //             x.id_so_det AS so_det_id,
-        //             0 AS pl_saldo_awal_masuk,
-        //             0 AS pl_saldo_awal_keluar,
-        //             0 AS pl_rft,
-        //             0 AS pl_reject,
-        //             0 AS pc_saldo_awal,
-        //             SUM( x.masuk ) AS pc_terima,
-        //             SUM( x.keluar ) AS pc_keluar
-        //         FROM
-        //             (
+        //         WITH pos_saldo_agg AS (
         //             SELECT
-        //                 pms.id_so_det,
-        //                 SUM( qty ) AS masuk,
-        //                 0 AS keluar
+        //                 p.id_so_det,
+        //                 SUM( a.total_scan ) AS total_keluar
+        //             FROM
+        //                 ( SELECT id_ppic, COUNT(*) AS total_scan FROM laravel_nds.packing_packing_out_scan WHERE tgl_trans >= '{$tanggal_saldo_awal} 00:00:00' AND tgl_trans < '{$tgl_awal} 00:00:00' GROUP BY id_ppic ) a
+        //                 JOIN ppic_master_so p ON p.id = a.id_ppic
+        //             WHERE
+        //                 p.id_so_det IS NOT NULL
+        //             GROUP BY
+        //                 p.id_so_det
+        //         ),
+        //         pos_periode_agg AS (
+        //             SELECT
+        //                 p.id_so_det,
+        //                 SUM( a.total_scan ) AS total_keluar
+        //             FROM
+        //                 ( SELECT id_ppic, COUNT(*) AS total_scan FROM laravel_nds.packing_packing_out_scan WHERE tgl_trans BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59' GROUP BY id_ppic ) a
+        //                 JOIN ppic_master_so p ON p.id = a.id_ppic
+        //             WHERE
+        //                 p.id_so_det IS NOT NULL
+        //             GROUP BY
+        //                 p.id_so_det
+        //         ),
+        //         trx_union ( so_det_id, pl_saldo_awal_masuk, pl_saldo_awal_keluar, pl_rft, pl_reject, pl_keluar, pc_saldo_awal_masuk, pc_saldo_awal_keluar, pc_terima, pc_keluar ) AS (
+
+        //         /* ================= SALDO AWAL (INJECT) ================= */
+        //             SELECT
+        //                 id_so_det AS so_det_id,
+        //                 CASE WHEN type = 'packing_line' THEN saldo ELSE 0 END AS pl_saldo_awal_masuk,
+        //                 0 AS pl_saldo_awal_keluar,
+        //                 0 AS pl_rft,
+        //                 0 AS pl_reject,
+        //                 0 AS pl_keluar,
+        //                 CASE WHEN type = 'packing_center' THEN saldo ELSE 0 END AS pc_saldo_awal_masuk,
+        //                 0 AS pc_saldo_awal_keluar,
+        //                 0 AS pc_terima,
+        //                 0 AS pc_keluar
+        //             FROM
+        //                 sa_report_pck
+        //             WHERE
+        //                 tgl_saldo = '{$tanggal_saldo_awal}'
+
+        //             UNION ALL
+
+        //         /* ================= PACKING LINE SALDO AWAL MASUK (HISTORIS) ================= */
+        //             SELECT
+        //                 so_det_id,
+        //                 COUNT(*) AS pl_saldo_awal_masuk,
+        //                 0 AS pl_saldo_awal_keluar,
+        //                 0 AS pl_rft,
+        //                 0 AS pl_reject,
+        //                 0 AS pl_keluar,
+        //                 0 AS pc_saldo_awal_masuk,
+        //                 0 AS pc_saldo_awal_keluar,
+        //                 0 AS pc_terima,
+        //                 0 AS pc_keluar
+        //             FROM
+        //                 signalbit_erp.output_rfts_packing_po
+        //             WHERE
+        //                 so_det_id IS NOT NULL
+        //                 AND updated_at >= '{$tanggal_saldo_awal} 00:00:00'
+        //                 AND updated_at < '{$tgl_awal} 00:00:00'
+        //             GROUP BY
+        //                 so_det_id
+
+        //             UNION ALL
+
+        //         /* ================= PACKING LINE SALDO AWAL KELUAR (HISTORIS TRANSFER GARMENT) ================= */
+        //             SELECT
+        //                 pms.id_so_det AS so_det_id,
+        //                 0 AS pl_saldo_awal_masuk,
+        //                 SUM( tg.qty ) AS pl_saldo_awal_keluar,
+        //                 0 AS pl_rft,
+        //                 0 AS pl_reject,
+        //                 0 AS pl_keluar,
+        //                 0 AS pc_saldo_awal_masuk,
+        //                 0 AS pc_saldo_awal_keluar,
+        //                 0 AS pc_terima,
+        //                 0 AS pc_keluar
+        //             FROM
+        //                 laravel_nds.packing_trf_garment tg
+        //                 JOIN ppic_master_so pms ON pms.id = tg.id_ppic_master_so
+        //             WHERE
+        //                 pms.id_so_det IS NOT NULL
+        //                 AND tg.tgl_trans >= '{$tanggal_saldo_awal} 00:00:00'
+        //                 AND tg.tgl_trans < '{$tgl_awal} 00:00:00'
+        //             GROUP BY
+        //                 pms.id_so_det
+
+        //             UNION ALL
+
+        //         /* ================= PACKING LINE PERIODE MASUK ================= */
+        //             SELECT
+        //                 so_det_id,
+        //                 0 AS pl_saldo_awal_masuk,
+        //                 0 AS pl_saldo_awal_keluar,
+        //                 SUM( type = 'RFT' ) AS pl_rft,
+        //                 SUM( type = 'REJECT' ) AS pl_reject,
+        //                 0 AS pl_keluar,
+        //                 0 AS pc_saldo_awal_masuk,
+        //                 0 AS pc_saldo_awal_keluar,
+        //                 0 AS pc_terima,
+        //                 0 AS pc_keluar
+        //             FROM
+        //                 signalbit_erp.output_rfts_packing_po
+        //             WHERE
+        //                 so_det_id IS NOT NULL
+        //                 AND updated_at BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+        //             GROUP BY
+        //                 so_det_id
+
+        //             UNION ALL
+
+        //         /* ================= PACKING LINE PERIODE KELUAR (TRANSFER GARMENT) ================= */
+        //             SELECT
+        //                 pms.id_so_det AS so_det_id,
+        //                 0 AS pl_saldo_awal_masuk,
+        //                 0 AS pl_saldo_awal_keluar,
+        //                 0 AS pl_rft,
+        //                 0 AS pl_reject,
+        //                 SUM( tg.qty ) AS pl_keluar,
+        //                 0 AS pc_saldo_awal_masuk,
+        //                 0 AS pc_saldo_awal_keluar,
+        //                 0 AS pc_terima,
+        //                 0 AS pc_keluar
+        //             FROM
+        //                 laravel_nds.packing_trf_garment tg
+        //                 JOIN ppic_master_so pms ON pms.id = tg.id_ppic_master_so
+        //             WHERE
+        //                 pms.id_so_det IS NOT NULL
+        //                 AND tg.tgl_trans BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+        //             GROUP BY
+        //                 pms.id_so_det
+
+        //             UNION ALL
+
+        //         /* ================= PACKING CENTRAL SALDO AWAL MASUK (HISTORIS) ================= */
+        //             SELECT
+        //                 pms.id_so_det AS so_det_id,
+        //                 0 AS pl_saldo_awal_masuk,
+        //                 0 AS pl_saldo_awal_keluar,
+        //                 0 AS pl_rft,
+        //                 0 AS pl_reject,
+        //                 0 AS pl_keluar,
+        //                 SUM( pi.qty ) AS pc_saldo_awal_masuk,
+        //                 0 AS pc_saldo_awal_keluar,
+        //                 0 AS pc_terima,
+        //                 0 AS pc_keluar
+        //             FROM
+        //                 laravel_nds.packing_packing_in pi
+        //                 JOIN ppic_master_so pms ON pms.id = pi.id_ppic_master_so
+        //             WHERE
+        //                 pms.id_so_det IS NOT NULL
+        //                 AND pi.tgl_penerimaan >= '{$tanggal_saldo_awal} 00:00:00'
+        //                 AND pi.tgl_penerimaan < '{$tgl_awal} 00:00:00'
+        //             GROUP BY
+        //                 pms.id_so_det
+
+        //             UNION ALL
+
+        //         /* ================= PACKING CENTRAL SALDO AWAL KELUAR (HISTORIS POS SCAN) ================= */
+        //             SELECT
+        //                 id_so_det AS so_det_id,
+        //                 0 AS pl_saldo_awal_masuk,
+        //                 0 AS pl_saldo_awal_keluar,
+        //                 0 AS pl_rft,
+        //                 0 AS pl_reject,
+        //                 0 AS pl_keluar,
+        //                 0 AS pc_saldo_awal_masuk,
+        //                 total_keluar AS pc_saldo_awal_keluar,
+        //                 0 AS pc_terima,
+        //                 0 AS pc_keluar
+        //             FROM
+        //                 pos_saldo_agg
+
+        //             UNION ALL
+
+        //         /* ================= PACKING CENTRAL PERIODE MASUK ================= */
+        //             SELECT
+        //                 pms.id_so_det AS so_det_id,
+        //                 0 AS pl_saldo_awal_masuk,
+        //                 0 AS pl_saldo_awal_keluar,
+        //                 0 AS pl_rft,
+        //                 0 AS pl_reject,
+        //                 0 AS pl_keluar,
+        //                 0 AS pc_saldo_awal_masuk,
+        //                 0 AS pc_saldo_awal_keluar,
+        //                 SUM( pi.qty ) AS pc_terima,
+        //                 0 AS pc_keluar
         //             FROM
         //                 laravel_nds.packing_packing_in pi
         //                 JOIN ppic_master_so pms ON pms.id = pi.id_ppic_master_so
@@ -645,78 +724,73 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
 
         //             UNION ALL
 
+        //         /* ================= PACKING CENTRAL PERIODE KELUAR (POS SCAN) ================= */
         //             SELECT
-        //                 id_so_det,
-        //                 0 AS masuk,
-        //                 total_keluar AS keluar
+        //                 id_so_det AS so_det_id,
+        //                 0 AS pl_saldo_awal_masuk,
+        //                 0 AS pl_saldo_awal_keluar,
+        //                 0 AS pl_rft,
+        //                 0 AS pl_reject,
+        //                 0 AS pl_keluar,
+        //                 0 AS pc_saldo_awal_masuk,
+        //                 0 AS pc_saldo_awal_keluar,
+        //                 0 AS pc_terima,
+        //                 total_keluar AS pc_keluar
         //             FROM
         //                 pos_periode_agg
-        //             ) x
-        //         GROUP BY
-        //             x.id_so_det
-        //     )
+        //         ),
 
-        //     /* ================= FINAL RESULT ================= */
-        //     SELECT
-        //         msn.urutan,
-        //         msw.ws,
-        //         msw.color,
-        //         msw.styleno AS style,
-        //         msw.size,
-        //         msw.buyer,
-        //         (SUM( pl_saldo_awal_masuk ) - SUM( pl_saldo_awal_keluar )) AS pl_saldo_awal,
-        //         SUM( pl_rft ) AS pl_rft,
-        //         SUM( pl_reject ) AS pl_reject,
-        //         SUM( pc_terima ) AS pl_keluar,
-        //         ((SUM( pl_saldo_awal_masuk ) - SUM( pl_saldo_awal_keluar )) + SUM( pl_rft ) + SUM( pl_reject ) - SUM( pc_terima )) AS pl_saldo_akhir,
-        //         SUM( pc_saldo_awal ) AS pc_saldo_awal,
-        //         SUM( pc_terima ) AS pc_terima,
-        //         SUM( pc_keluar ) AS pc_packing_scan,
-        //         SUM( pc_saldo_awal ) + SUM( pc_terima ) - SUM( pc_keluar ) AS pc_saldo_akhir
-        //     FROM
-        //         trx_union t
-        //         LEFT JOIN master_sb_ws msw ON msw.id_so_det = t.so_det_id
-        //         LEFT JOIN master_size_new msn ON msn.size = msw.size
-        //     GROUP BY
-        //         msn.urutan,
-        //         msw.ws,
-        //         msw.color,
-        //         msw.styleno,
-        //         msw.size,
-        //         msw.buyer
-        //     ORDER BY
-        //         msw.ws,
-        //         msw.color,
-        //         msw.buyer,
-        //         msn.urutan
-        // ");
+        //         /* ================= FINAL RESULT ================= */
+        //         final_query as (SELECT
+        //             msn.urutan,
+        //             msw.ws,
+        //             msw.color,
+        //             msw.styleno AS style,
+        //             msw.size,
+        //             msw.buyer,
+        //             (SUM( pl_saldo_awal_masuk ) - SUM( pl_saldo_awal_keluar )) AS pl_saldo_awal,
+        //             SUM( pl_rft ) AS pl_rft,
+        //             SUM( pl_reject ) AS pl_reject,
+        //             SUM( pl_keluar ) AS pl_keluar,
+        //             ((SUM( pl_saldo_awal_masuk ) - SUM( pl_saldo_awal_keluar )) + SUM( pl_rft ) + SUM( pl_reject ) - SUM( pl_keluar )) AS pl_saldo_akhir,
+        //             (SUM( pc_saldo_awal_masuk ) - SUM( pc_saldo_awal_keluar )) AS pc_saldo_awal,
+        //             SUM( pc_terima ) AS pc_terima,
+        //             SUM( pc_keluar ) AS pc_packing_scan,
+        //             ((SUM( pc_saldo_awal_masuk ) - SUM( pc_saldo_awal_keluar )) + SUM( pc_terima ) - SUM( pc_keluar )) AS pc_saldo_akhir
+        //         FROM
+        //             trx_union t
+        //             LEFT JOIN master_sb_ws msw ON msw.id_so_det = t.so_det_id
+        //             LEFT JOIN master_size_new msn ON msn.size = msw.size
+        //         GROUP BY
+        //             msn.urutan,
+        //             msw.ws,
+        //             msw.color,
+        //             msw.styleno,
+        //             msw.size,
+        //             msw.buyer
+        //         ORDER BY
+        //             msw.ws,
+        //             msw.color,
+        //             msw.buyer,
+        //             msn.urutan)
+
+        //             select
+        //             urutan, ws, color, style, a.size, buyer,
+        //             sum(pl_saldo_awal) pl_saldo_awal, sum(pl_rft) pl_rft, sum(pl_reject) pl_reject, sum(pl_keluar) pl_keluar, (SUM(pl_saldo_awal) + SUM(pl_rft) + SUM(pl_reject) - SUM(pl_keluar)) pl_saldo_akhir, sum(pc_saldo_awal) pc_saldo_awal, sum(pc_terima) pc_terima, sum(pc_packing_scan) pc_packing_scan, (sum(pc_saldo_awal) + SUM(pc_terima) - SUM(pc_packing_scan)) pc_saldo_akhir
+        //             from
+        //             (
+        //                 select * from final_query
+        //                 UNION ALL
+        //                 select msn.urutan, ws, color, styleno style, a.size, buyer, COALESCE(packing_saldo_awal, 0) pl_saldo_awal, COALESCE(packing_rft,0) pl_rft, 0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir, COALESCE( pc_saldo_awal, 0) pc_saldo_awal, 0 pc_terima, COALESCE(pc_packing_scan, 0) pc_packing_scan, 0 pc_saldo_akhir from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+        //                 UNION ALL
+        //                 select msn.urutan, ws, color, styleno style, a.size, buyer, (COALESCE(packing_saldo_awal, 0)+COALESCE(packing_rft, 0)+COALESCE(packing_reject, 0)-COALESCE(packing_keluar, 0)) pl_saldo_awal, 0 pl_rft, 0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir, (COALESCE(pc_saldo_awal, 0)+COALESCE(pc_terima, 0)-COALESCE(pc_packing_scan, 0)) pc_saldo_awal, 0 pc_terima, 0 pc_packing_scan, 0 pc_saldo_akhir from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo < '{$tgl_awal}'
+        //             ) a
+        //             GROUP BY urutan, ws, color, style, size, buyer ORDER BY ws, color, buyer, urutan
+        //     ");
 
         $data_mut = DB::select("
-                WITH pos_saldo_agg AS (
-                    SELECT
-                        p.id_so_det,
-                        SUM( a.total_scan ) AS total_keluar
-                    FROM
-                        ( SELECT id_ppic, COUNT(*) AS total_scan FROM laravel_nds.packing_packing_out_scan WHERE tgl_trans >= '{$tanggal_saldo_awal} 00:00:00' AND tgl_trans < '{$tgl_awal} 00:00:00' GROUP BY id_ppic ) a
-                        JOIN ppic_master_so p ON p.id = a.id_ppic
-                    WHERE
-                        p.id_so_det IS NOT NULL
-                    GROUP BY
-                        p.id_so_det
-                ),
-                pos_periode_agg AS (
-                    SELECT
-                        p.id_so_det,
-                        SUM( a.total_scan ) AS total_keluar
-                    FROM
-                        ( SELECT id_ppic, COUNT(*) AS total_scan FROM laravel_nds.packing_packing_out_scan WHERE tgl_trans BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59' GROUP BY id_ppic ) a
-                        JOIN ppic_master_so p ON p.id = a.id_ppic
-                    WHERE
-                        p.id_so_det IS NOT NULL
-                    GROUP BY
-                        p.id_so_det
-                ),
-                trx_union ( so_det_id, pl_saldo_awal_masuk, pl_saldo_awal_keluar, pl_rft, pl_reject, pl_keluar, pc_saldo_awal_masuk, pc_saldo_awal_keluar, pc_terima, pc_keluar ) AS (
+
+                WITH trx_union ( so_det_id, pl_saldo_awal_masuk, pl_saldo_awal_keluar, pl_rft, pl_reject, pl_keluar, pc_saldo_awal_masuk, pc_saldo_awal_keluar, pc_terima, pc_terima_return, pc_fg_in ) AS (
 
                 /* ================= SALDO AWAL (INJECT) ================= */
                     SELECT
@@ -729,7 +803,8 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                         CASE WHEN type = 'packing_center' THEN saldo ELSE 0 END AS pc_saldo_awal_masuk,
                         0 AS pc_saldo_awal_keluar,
                         0 AS pc_terima,
-                        0 AS pc_keluar
+                        0 AS pc_terima_return,
+                        0 AS pc_fg_in
                     FROM
                         sa_report_pck
                     WHERE
@@ -737,18 +812,11 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
 
                     UNION ALL
 
-                /* ================= PACKING LINE SALDO AWAL MASUK (HISTORIS) ================= */
+                /* ================= PACKING LINE SALDO AWAL MASUK (HISTORY) ================= */
                     SELECT
                         so_det_id,
                         COUNT(*) AS pl_saldo_awal_masuk,
-                        0 AS pl_saldo_awal_keluar,
-                        0 AS pl_rft,
-                        0 AS pl_reject,
-                        0 AS pl_keluar,
-                        0 AS pc_saldo_awal_masuk,
-                        0 AS pc_saldo_awal_keluar,
-                        0 AS pc_terima,
-                        0 AS pc_keluar
+                        0, 0, 0, 0, 0, 0, 0, 0, 0
                     FROM
                         signalbit_erp.output_rfts_packing_po
                     WHERE
@@ -760,18 +828,12 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
 
                     UNION ALL
 
-                /* ================= PACKING LINE SALDO AWAL KELUAR (HISTORIS TRANSFER GARMENT) ================= */
+                /* ================= PACKING LINE SALDO AWAL KELUAR (HISTORY TRF GARMENT) ================= */
                     SELECT
                         pms.id_so_det AS so_det_id,
                         0 AS pl_saldo_awal_masuk,
                         SUM( tg.qty ) AS pl_saldo_awal_keluar,
-                        0 AS pl_rft,
-                        0 AS pl_reject,
-                        0 AS pl_keluar,
-                        0 AS pc_saldo_awal_masuk,
-                        0 AS pc_saldo_awal_keluar,
-                        0 AS pc_terima,
-                        0 AS pc_keluar
+                        0, 0, 0, 0, 0, 0, 0, 0
                     FROM
                         laravel_nds.packing_trf_garment tg
                         JOIN ppic_master_so pms ON pms.id = tg.id_ppic_master_so
@@ -787,15 +849,10 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                 /* ================= PACKING LINE PERIODE MASUK ================= */
                     SELECT
                         so_det_id,
-                        0 AS pl_saldo_awal_masuk,
-                        0 AS pl_saldo_awal_keluar,
+                        0, 0,
                         SUM( type = 'RFT' ) AS pl_rft,
                         SUM( type = 'REJECT' ) AS pl_reject,
-                        0 AS pl_keluar,
-                        0 AS pc_saldo_awal_masuk,
-                        0 AS pc_saldo_awal_keluar,
-                        0 AS pc_terima,
-                        0 AS pc_keluar
+                        0, 0, 0, 0, 0, 0
                     FROM
                         signalbit_erp.output_rfts_packing_po
                     WHERE
@@ -806,18 +863,12 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
 
                     UNION ALL
 
-                /* ================= PACKING LINE PERIODE KELUAR (TRANSFER GARMENT) ================= */
+                /* ================= PACKING LINE PERIODE KELUAR (TRF GARMENT) ================= */
                     SELECT
                         pms.id_so_det AS so_det_id,
-                        0 AS pl_saldo_awal_masuk,
-                        0 AS pl_saldo_awal_keluar,
-                        0 AS pl_rft,
-                        0 AS pl_reject,
+                        0, 0, 0, 0,
                         SUM( tg.qty ) AS pl_keluar,
-                        0 AS pc_saldo_awal_masuk,
-                        0 AS pc_saldo_awal_keluar,
-                        0 AS pc_terima,
-                        0 AS pc_keluar
+                        0, 0, 0, 0, 0
                     FROM
                         laravel_nds.packing_trf_garment tg
                         JOIN ppic_master_so pms ON pms.id = tg.id_ppic_master_so
@@ -829,18 +880,12 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
 
                     UNION ALL
 
-                /* ================= PACKING CENTRAL SALDO AWAL MASUK (HISTORIS) ================= */
+                /* ================= PACKING CENTRAL SALDO AWAL MASUK (HISTORY TERIMA) ================= */
                     SELECT
                         pms.id_so_det AS so_det_id,
-                        0 AS pl_saldo_awal_masuk,
-                        0 AS pl_saldo_awal_keluar,
-                        0 AS pl_rft,
-                        0 AS pl_reject,
-                        0 AS pl_keluar,
+                        0, 0, 0, 0, 0,
                         SUM( pi.qty ) AS pc_saldo_awal_masuk,
-                        0 AS pc_saldo_awal_keluar,
-                        0 AS pc_terima,
-                        0 AS pc_keluar
+                        0, 0, 0, 0
                     FROM
                         laravel_nds.packing_packing_in pi
                         JOIN ppic_master_so pms ON pms.id = pi.id_ppic_master_so
@@ -853,35 +898,48 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
 
                     UNION ALL
 
-                /* ================= PACKING CENTRAL SALDO AWAL KELUAR (HISTORIS POS SCAN) ================= */
+                /* ================= PACKING CENTRAL SALDO AWAL MASUK (HISTORY TERIMA RETURN - BPPB) ================= */
                     SELECT
                         id_so_det AS so_det_id,
-                        0 AS pl_saldo_awal_masuk,
-                        0 AS pl_saldo_awal_keluar,
-                        0 AS pl_rft,
-                        0 AS pl_reject,
-                        0 AS pl_keluar,
-                        0 AS pc_saldo_awal_masuk,
-                        total_keluar AS pc_saldo_awal_keluar,
-                        0 AS pc_terima,
-                        0 AS pc_keluar
+                        0, 0, 0, 0, 0,
+                        SUM( qty ) AS pc_saldo_awal_masuk,
+                        0, 0, 0, 0
                     FROM
-                        pos_saldo_agg
+                        signalbit_erp.bppb
+                    WHERE
+                        id_so_det IS NOT NULL
+                        AND bppbno_int LIKE '%FG/RO%'
+                        AND bppbdate >= '{$tanggal_saldo_awal} 00:00:00'
+                        AND bppbdate < '{$tgl_awal} 00:00:00'
+                    GROUP BY
+                        id_so_det
+
+                    UNION ALL
+
+                /* ================= PACKING CENTRAL SALDO AWAL KELUAR (HISTORY FG IN - BPB) ================= */
+                    SELECT
+                        id_so_det AS so_det_id,
+                        0, 0, 0, 0, 0, 0,
+                        SUM( qty ) AS pc_saldo_awal_keluar,
+                        0, 0, 0
+                    FROM
+                        signalbit_erp.bpb
+                    WHERE
+                        id_so_det IS NOT NULL
+                        AND bpbno_int LIKE '%FG%'
+                        AND bpbdate >= '{$tanggal_saldo_awal} 00:00:00'
+                        AND bpbdate < '{$tgl_awal} 00:00:00'
+                    GROUP BY
+                        id_so_det
 
                     UNION ALL
 
                 /* ================= PACKING CENTRAL PERIODE MASUK ================= */
                     SELECT
                         pms.id_so_det AS so_det_id,
-                        0 AS pl_saldo_awal_masuk,
-                        0 AS pl_saldo_awal_keluar,
-                        0 AS pl_rft,
-                        0 AS pl_reject,
-                        0 AS pl_keluar,
-                        0 AS pc_saldo_awal_masuk,
-                        0 AS pc_saldo_awal_keluar,
+                        0, 0, 0, 0, 0, 0, 0,
                         SUM( pi.qty ) AS pc_terima,
-                        0 AS pc_keluar
+                        0, 0
                     FROM
                         laravel_nds.packing_packing_in pi
                         JOIN ppic_master_so pms ON pms.id = pi.id_ppic_master_so
@@ -893,23 +951,39 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
 
                     UNION ALL
 
-                /* ================= PACKING CENTRAL PERIODE KELUAR (POS SCAN) ================= */
+                /* ================= PACKING CENTRAL PERIODE TERIMA RETURN (BPPB) ================= */
                     SELECT
                         id_so_det AS so_det_id,
-                        0 AS pl_saldo_awal_masuk,
-                        0 AS pl_saldo_awal_keluar,
-                        0 AS pl_rft,
-                        0 AS pl_reject,
-                        0 AS pl_keluar,
-                        0 AS pc_saldo_awal_masuk,
-                        0 AS pc_saldo_awal_keluar,
-                        0 AS pc_terima,
-                        total_keluar AS pc_keluar
+                        0, 0, 0, 0, 0, 0, 0, 0,
+                        SUM( qty ) AS pc_terima_return,
+                        0
                     FROM
-                        pos_periode_agg
+                        signalbit_erp.bppb
+                    WHERE
+                        id_so_det IS NOT NULL
+                        AND bppbno_int LIKE '%FG/RO%'
+                        AND bppbdate BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+                    GROUP BY
+                        id_so_det
+
+                    UNION ALL
+
+                /* ================= PACKING CENTRAL PERIODE FG IN KELUAR (BPB) ================= */
+                    SELECT
+                        id_so_det AS so_det_id,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        SUM( qty ) AS pc_fg_in
+                    FROM
+                        signalbit_erp.bpb
+                    WHERE
+                        id_so_det IS NOT NULL
+                        AND bpbno_int LIKE '%FG%'
+                        AND bpbdate BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+                    GROUP BY
+                        id_so_det
                 ),
 
-                /* ================= FINAL RESULT ================= */
+                /* ================= FINAL RESULT CTE ================= */
                 final_query as (SELECT
                     msn.urutan,
                     msw.ws,
@@ -922,10 +996,13 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                     SUM( pl_reject ) AS pl_reject,
                     SUM( pl_keluar ) AS pl_keluar,
                     ((SUM( pl_saldo_awal_masuk ) - SUM( pl_saldo_awal_keluar )) + SUM( pl_rft ) + SUM( pl_reject ) - SUM( pl_keluar )) AS pl_saldo_akhir,
+
                     (SUM( pc_saldo_awal_masuk ) - SUM( pc_saldo_awal_keluar )) AS pc_saldo_awal,
                     SUM( pc_terima ) AS pc_terima,
-                    SUM( pc_keluar ) AS pc_packing_scan,
-                    ((SUM( pc_saldo_awal_masuk ) - SUM( pc_saldo_awal_keluar )) + SUM( pc_terima ) - SUM( pc_keluar )) AS pc_saldo_akhir
+                    SUM( pc_terima_return ) AS pc_terima_return,
+                    SUM( pc_fg_in ) AS pc_fg_in,
+
+                    ((SUM( pc_saldo_awal_masuk ) - SUM( pc_saldo_awal_keluar )) + SUM( pc_terima ) + SUM( pc_terima_return ) - SUM( pc_fg_in )) AS pc_saldo_akhir
                 FROM
                     trx_union t
                     LEFT JOIN master_sb_ws msw ON msw.id_so_det = t.so_det_id
@@ -937,22 +1014,36 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                     msw.styleno,
                     msw.size,
                     msw.buyer
-                ORDER BY
-                    msw.ws,
-                    msw.color,
-                    msw.buyer,
-                    msn.urutan)
+                )
 
+                /* ================= MAIN SELECT ================= */
                     select
                     urutan, ws, color, style, a.size, buyer,
-                    sum(pl_saldo_awal) pl_saldo_awal, sum(pl_rft) pl_rft, sum(pl_reject) pl_reject, sum(pl_keluar) pl_keluar, (SUM(pl_saldo_awal) + SUM(pl_rft) + SUM(pl_reject) - SUM(pl_keluar)) pl_saldo_akhir, sum(pc_saldo_awal) pc_saldo_awal, sum(pc_terima) pc_terima, sum(pc_packing_scan) pc_packing_scan, (sum(pc_saldo_awal) + SUM(pc_terima) - SUM(pc_packing_scan)) pc_saldo_akhir
+                    sum(pl_saldo_awal) pl_saldo_awal, sum(pl_rft) pl_rft, sum(pl_reject) pl_reject, sum(pl_keluar) pl_keluar,
+                    (SUM(pl_saldo_awal) + SUM(pl_rft) + SUM(pl_reject) - SUM(pl_keluar)) pl_saldo_akhir,
+                    sum(pc_saldo_awal) pc_saldo_awal, sum(pc_terima) pc_terima,
+                    sum(pc_terima_return) pc_terima_return,
+                    sum(pc_fg_in) pc_fg_in,
+                    (sum(pc_saldo_awal) + SUM(pc_terima) + SUM(pc_terima_return) - SUM(pc_fg_in)) pc_saldo_akhir
                     from
                     (
                         select * from final_query
+
                         UNION ALL
-                        select msn.urutan, ws, color, styleno style, a.size, buyer, COALESCE(packing_saldo_awal, 0) pl_saldo_awal, COALESCE(packing_rft,0) pl_rft, 0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir, COALESCE( pc_saldo_awal, 0) pc_saldo_awal, 0 pc_terima, COALESCE(pc_packing_scan, 0) pc_packing_scan, 0 pc_saldo_akhir from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+
+                        select msn.urutan, ws, color, styleno style, a.size, buyer,
+                        COALESCE(packing_saldo_awal, 0) pl_saldo_awal, COALESCE(packing_rft,0) pl_rft, 0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir,
+                        COALESCE( pc_saldo_awal, 0) pc_saldo_awal, 0 pc_terima, 0 pc_terima_return, 0 pc_fg_in, 0 pc_saldo_akhir
+                        from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+
                         UNION ALL
-                        select msn.urutan, ws, color, styleno style, a.size, buyer, (COALESCE(packing_saldo_awal, 0)+COALESCE(packing_rft, 0)+COALESCE(packing_reject, 0)-COALESCE(packing_keluar, 0)) pl_saldo_awal, 0 pl_rft, 0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir, (COALESCE(pc_saldo_awal, 0)+COALESCE(pc_terima, 0)-COALESCE(pc_packing_scan, 0)) pc_saldo_awal, 0 pc_terima, 0 pc_packing_scan, 0 pc_saldo_akhir from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo < '{$tgl_awal}'
+
+                        select msn.urutan, ws, color, styleno style, a.size, buyer,
+                        (COALESCE(packing_saldo_awal, 0)+COALESCE(packing_rft, 0)+COALESCE(packing_reject, 0)-COALESCE(packing_keluar, 0)) pl_saldo_awal,
+                        0 pl_rft,
+                        0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir,
+                        (COALESCE(pc_saldo_awal, 0)+COALESCE(pc_terima, 0)) pc_saldo_awal, 0 pc_terima, 0 pc_terima_return, 0 pc_fg_in, 0 pc_saldo_akhir
+                        from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo < '{$tgl_awal}'
                     ) a
                     GROUP BY urutan, ws, color, style, size, buyer ORDER BY ws, color, buyer, urutan
             ");
@@ -994,7 +1085,7 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
     {
         $sheet = $event->sheet->getDelegate();
 
-        $sheet->mergeCells('A1:N2');
+        $sheet->mergeCells('A1:O2');
 
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(
             \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
@@ -1006,7 +1097,7 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
         $sheet->getStyle('A1')->getFont()->setBold(true);
 
         $event->sheet->styleCells(
-            'A3:N' . ($event->getConcernable()->rowCount + 2),
+            'A3:O' . ($event->getConcernable()->rowCount + 2),
             [
                 'borders' => [
                     'allBorders' => [

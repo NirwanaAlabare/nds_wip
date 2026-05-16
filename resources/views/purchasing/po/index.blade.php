@@ -641,5 +641,53 @@
             }
         });
     });
+
+    $(document).on('click', '.btn-export-excel', function(e) {
+        e.preventDefault();
+        let url = $(this).attr('href');
+
+        Swal.fire({
+            title: 'Export Excel...',
+            text: 'Mohon tunggu sebentar.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            xhrFields: {
+                responseType: 'blob'
+            },
+            success: function(data, status, xhr) {
+
+                let filename = "Export_Excel.xlsx";
+                let disposition = xhr.getResponseHeader('Content-Disposition');
+                if (disposition && disposition.indexOf('attachment') !== -1) {
+                    let filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                    let matches = filenameRegex.exec(disposition);
+                    if (matches != null && matches[1]) {
+                        filename = matches[1].replace(/['"]/g, '');
+                    }
+                }
+                let blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                let downloadUrl = window.URL.createObjectURL(blob);
+                let a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+
+                window.URL.revokeObjectURL(downloadUrl);
+                a.remove();
+                Swal.close();
+            },
+            error: function() {
+                Swal.fire('Gagal!', 'Terjadi kesalahan saat mengunduh Excel.', 'error');
+            }
+        });
+    });
 </script>
 @endsection

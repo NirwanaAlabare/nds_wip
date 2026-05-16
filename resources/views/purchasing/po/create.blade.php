@@ -32,10 +32,7 @@
             border-color: #80bdff;
             box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
         }
-        .input-table[readonly] {
-            background-color: #e9ecef;
-            pointer-events: none;
-        }
+
         .select2-container--bootstrap4 .select2-selection--single {
             height: calc(1.5em + .5rem + 2px) !important;
         }
@@ -50,6 +47,7 @@
             background-color: var(--sb-color);
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
+
     </style>
 @endsection
 
@@ -362,10 +360,11 @@
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
 <script>
-    $(document).ready(function() {
 
-        const parseNum = (val) => parseFloat(val) || 0;
-        const formatIDR = (num) => num.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const parseNum = (val) => parseFloat(val) || 0;
+    const formatIDR = (num) => num.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    $(document).ready(function() {
 
         $('.select2bs4').select2({ theme: 'bootstrap4', width: '100%' });
         $('.select2bs4-modal').select2({
@@ -498,8 +497,8 @@
                                             data-cons="${data.cons_bom}"
                                             data-cons-asli="${data.cons_asli || 1}"
                                             data-unit="${data.unit}"
-                                            data-set="${prodSet}">
-                                    </td>
+                                            data-set="${prodSet}"
+                                            data-price="${data.costing_price || 0}"> </td>
                                     <td class="align-middle text-center item-id">${data.id_item}</td>
                                     <td class="align-middle item-desc fw-bold">${data.itemdesc}</td>
                                     <td class="align-middle text-center fw-bold">${prodSet}</td>
@@ -540,13 +539,9 @@
             let styleText = $('#search_style option:selected').text().split(' - ')[0].trim();
             let checkedItems = $('.check-item:checked');
 
-            if(!styleVal){
-                return Swal.fire('Peringatan!', 'Silakan pilih Style terlebih dahulu.', 'warning');
-            }
+            if(!styleVal){ return Swal.fire('Peringatan!', 'Silakan pilih Style terlebih dahulu.', 'warning'); }
+            if(checkedItems.length === 0){ return Swal.fire('Peringatan!', 'Silakan pilih minimal 1 item.', 'warning'); }
 
-            if(checkedItems.length === 0){
-                    return Swal.fire('Peringatan!', 'Silakan pilih minimal 1 item.', 'warning');
-                }
             $('#empty-row-item').remove();
 
             checkedItems.each(function() {
@@ -556,7 +551,7 @@
                 let consAsli = parseNum($(this).attr('data-cons-asli')) || 1;
                 let unit = $(this).attr('data-unit');
                 let prodSet = $(this).attr('data-set') || '';
-
+                let priceCosting = parseNum($(this).attr('data-price'));
 
                 let isDuplicate = false;
                 $('#table-po-items tbody .po-item-row').each(function() {
@@ -573,9 +568,7 @@
 
                 let newRow = `
                     <tr class="po-item-row" data-id="${idItem}" data-set="${prodSet}" data-cons-asli="${consAsli}">
-                        <td class="text-center align-middle">
-                            <input type="checkbox" class="check-po-item">
-                        </td>
+                        <td class="text-center align-middle"><input type="checkbox" class="check-po-item"></td>
                         <td class="align-middle"><input type="hidden" name="style_item[]" value="${styleVal}">${styleText}</td>
                         <td class="align-middle">
                             <input type="hidden" name="id_item[]" value="${idItem}">
@@ -586,18 +579,18 @@
                         <td class="align-middle"><input type="text" name="qty_bom[]" class="input-table val-bom text-center" value="${consBom}" readonly></td>
                         <td class="align-middle"><input type="text" name="qty_need[]" class="input-table val-need text-center" value="${qtyNeed}" readonly></td>
                         <td class="align-middle"><input type="text" name="blc_pr[]" class="input-table val-blc text-center" value="${qtyNeed}" readonly></td>
-                        <td class="align-middle"><input type="text" name="qty_pr[]" class="input-table input-decimal text-center" value="0"></td>
+                        <td class="align-middle"><input type="text" name="qty_pr[]" class="input-table input-decimal text-center" value="${qtyNeed}"></td>
                         <td class="align-middle"><input type="text" name="unit_pr[]" class="input-table text-center" value="${unit}" readonly></td>
                         <td class="align-middle"><input type="text" name="convert[]" class="input-table input-decimal text-center" value="0"></td>
                         <td class="align-middle">
-                            <select name="unit_convert[]" class="input-table select-unit-convert">
+                            <select name="unit_convert[]" class="select-unit-convert">
                                 <option value="${unit}">${unit} (BOM)</option>
                                 ${optionUnits}
                             </select>
                         </td>
                         <td class="align-middle"><input type="text" name="qty_pr_conv[]" class="input-table text-center" value="0" readonly></td>
                         <td class="align-middle"><input type="text" name="unit_pr_conv[]" class="input-table text-center" value="${unit}" readonly></td>
-                        <td class="align-middle"><input type="text" name="price_costing[]" class="input-table text-right" value="0"></td>
+                        <td class="align-middle"><input type="text" name="price_costing[]" class="input-table text-right" value="${priceCosting}"></td>
                         <td class="align-middle"><input type="text" name="price_costing_conv[]" class="input-table text-right" value="0" readonly></td>
                         <td class="align-middle"><input type="text" name="price_pr[]" class="input-table input-decimal text-right" value="0"></td>
                         <td class="text-center align-middle">
@@ -606,13 +599,21 @@
                     </tr>
                 `;
                 $('#table-po-items tbody').append(newRow);
+
+                let lastRow = $('#table-po-items tbody tr').last();
+                lastRow.find('.select-unit-convert').select2({
+                    theme: 'bootstrap4',
+                    width: '100%'
+                });
+
+                calculatePoRow(lastRow);
             });
 
             $('#modalPilihItem').modal('hide');
             $('.check-item, #check-all-items').prop('checked', false);
             $('#search_item_filter').val('').trigger('keyup');
             Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Item berhasil ditambahkan.', showConfirmButton: false, timer: 1500 });
-            hitungTotalPOItems
+            hitungTotalPOItems();
         });
 
         $('#search_po_table').on('keyup', function() {
