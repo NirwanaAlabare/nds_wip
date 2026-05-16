@@ -24,6 +24,25 @@
                         <label class="form-label"><small>Tanggal Akhir</small></label>
                         <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
                     </div>
+
+                    <div>
+                        <label class="form-label"><small>Group Rak</small></label>
+                        <select class="form-control form-control-sm" id="group-rak">
+
+                            <option value="ALL"
+                                {{ ($selectedGroup ?? 'A') == 'ALL' ? 'selected' : '' }}>
+                                Semua Group
+                            </option>
+
+                            @foreach ($groups as $group)
+                                <option value="{{ $group }}"
+                                    {{ ($selectedGroup ?? 'A') == $group ? 'selected' : '' }}>
+                                    {{ $group }}
+                                </option>
+                            @endforeach
+
+                        </select>
+                    </div>
                     {{-- <div>
                         <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
                     </div> --}}
@@ -325,5 +344,14 @@
 
             Swal.close();
         }
+
+        document.getElementById('group-rak').addEventListener('change', function () {
+            let group = this.value;
+
+            let url = new URL(window.location.href);
+            url.searchParams.set('group', group);
+
+            window.location.href = url.toString();
+        });
     </script>
 @endsection

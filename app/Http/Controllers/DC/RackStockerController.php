@@ -29,7 +29,19 @@ class RackStockerController extends Controller
      */
     public function index(Request $request)
     {
-        $racks = Rack::with('rackDetails')->limit(2)->get();
+        $group = $request->group ?? 'A';
+
+        $racksQuery = Rack::with('rackDetails');
+
+        if ($group !== 'ALL') {
+            $racksQuery->where('grup', $group);
+        }
+
+        $racks = $racksQuery->get();
+
+        $groups = Rack::select('grup')
+            ->distinct()
+            ->pluck('grup');
 
         $stockers = Stocker::selectRaw("
             stocker_input.id_qr_stocker as stockers,
@@ -54,43 +66,18 @@ class RackStockerController extends Controller
         ->leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")
         ->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")
         ->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")
-        ->whereRaw("
-            rack_detail_stocker.status = 'active' AND
-            rack_detail_stocker.updated_at >= '".date('Y-m-d', strtotime('-7 days'))." 00:00:00'
-        ")
+        ->whereRaw("rack_detail_stocker.status = 'active'")
         ->get();
 
-        // $stockers = Stocker::selectRaw("
-        //     GROUP_CONCAT(stocker_input.id_qr_stocker) stockers,
-        //     rack_detail_stocker.detail_rack_id,
-        //     stocker_input.act_costing_ws,
-        //     marker_input.buyer,
-        //     marker_input.style,
-        //     stocker_input.form_cut_id,
-        //     stocker_input.color,
-        //     COALESCE(master_sb_ws.size, stocker_input.size) size,
-        //     stocker_input.so_det_id,
-        //     form_cut_input.no_cut,
-        //     stocker_input.shade,
-        //     stocker_input.group_stocker,
-        //     stocker_input.ratio,
-        //     stocker_input.qty_ply,
-        //     CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir) as full_range
-        // ")->
-        // leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")->
-        // leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
-        // leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-        // leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
-        // leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-        // leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
-        // whereRaw("
-        //     rack_detail_stocker.status = 'active' and
-        //     rack_detail_stocker.updated_at >= '".(date('Y-m-d', strtotime('-7 days')))." 00:00:00'
-        // ")->
-        // groupBy("rack_detail_stocker.detail_rack_id", "stocker_input.form_cut_id", "stocker_input.so_det_id", "stocker_input.group_stocker", "stocker_input.stocker_reject",)->
-        // get();
-
-        return view('dc.rack.stock-rack', ['page' => 'dashboard-dc', "subPageGroup" => "rak-dc", "subPage" => "stock-rack", 'racks' => $racks, 'stockers' => $stockers]);
+        return view('dc.rack.stock-rack', [
+            'page' => 'dashboard-dc',
+            'subPageGroup' => 'rak-dc',
+            'subPage' => 'stock-rack',
+            'racks' => $racks,
+            'stockers' => $stockers,
+            'groups' => $groups,
+            'selectedGroup' => $group,
+        ]);
     }
 
     /**
