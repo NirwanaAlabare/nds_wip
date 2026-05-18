@@ -1063,7 +1063,6 @@ class Marketing_CostingController extends Controller
 
         $rate_from_idr = $costing->rate_from_idr > 0 ? $costing->rate_from_idr : 15000;
 
-        // AMBIL SET DINAMIS DARI HEADER (Seperti Logika di Blade)
         $saved_sets = $costing->product_set ? explode(',', $costing->product_set) : [];
         $saved_sets = array_map('trim', $saved_sets);
         $master_set = $db->table('master_set')->get();
@@ -1076,7 +1075,6 @@ class Marketing_CostingController extends Controller
         }
         sort($active_sets);
 
-        // Inisialisasi angka 0 agar Set-nya tetap ke-print di Excel walau isinya kosong
         $cat_set_totals = [];
         $grand_set_totals = ['bom' => 0, 'val' => 0, 'sets' => []];
         foreach(['Fabric', 'Accessories Sewing', 'Accessories Packing', 'Manufacturing'] as $k) {
@@ -1144,8 +1142,8 @@ class Marketing_CostingController extends Controller
             }
         }
 
-        $base_overhead_idr = $base_material_idr + $sum_oth_norm_idr;
-        $base_overhead_usd = $base_material_usd + $sum_oth_norm_usd;
+        $base_overhead_idr = $base_material_idr;
+        $base_overhead_usd = $base_material_usd;
 
         $overhead_idr = 0; $overhead_usd = 0;
         if ($overhead_row) {
@@ -1270,7 +1268,6 @@ class Marketing_CostingController extends Controller
                               ->setCellValue("O$row", $tot_val);
 
                         $sheet->getStyle("A$row:O$row")->applyFromArray($styleBorder);
-                        // Font Hitam Normal
                         $sheet->getStyle("M$row")->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_PERCENTAGE_00);
                         $row++;
                     }
@@ -1330,7 +1327,6 @@ class Marketing_CostingController extends Controller
                 $sheet->getStyle("F$row")->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_PERCENTAGE_00);
                 $row++;
 
-                // === TAMBAHAN G&A PINDAH KESINI ===
                 $ga_pct = $pembagi_persen > 0 ? ($ga_idr / $pembagi_persen) : 0;
                 $sheet->mergeCells("A$row:C$row"); $sheet->setCellValue("A$row", "G&A (3%)")->getStyle("A$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
                 $sheet->setCellValue("D$row", $ga_idr)->setCellValue("E$row", $ga_usd)->setCellValue("F$row", $ga_pct);
@@ -1340,7 +1336,7 @@ class Marketing_CostingController extends Controller
             }
         }
 
-        // CETAK GRAND TOTAL BOM & VALUE TABEL (Dinamis Sesuai Set)
+        // CETAK GRAND TOTAL BOM & VALUE TABEL
         $sheet->setCellValue("M$row", "TOTAL QTY BOM")->setCellValue("N$row", "TOTAL VALUE")->getStyle("M$row:N$row")->applyFromArray($styleHead); $row++;
 
         $sheet->mergeCells("K$row:L$row"); $sheet->setCellValue("K$row", "GRAND TOTAL")->getStyle("K$row")->applyFromArray($styleBoldCenter)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
