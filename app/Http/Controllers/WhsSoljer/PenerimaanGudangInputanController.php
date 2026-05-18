@@ -31,16 +31,33 @@ class PenerimaanGudangInputanController extends Controller
                     WHEN penerimaan_gudang_inputan.cancel = 1 THEN 'Cancel'
                     ELSE 'Draft'
                 END as status,
+                (
+                    SELECT 
+                        CASE 
+                            WHEN NOT EXISTS (
+                                SELECT 1
+                                FROM penerimaan_gudang_inputan_detail d
+                                WHERE d.penerimaan_gudang_inputan_id = penerimaan_gudang_inputan.id
+                                AND NOT EXISTS (
+                                    SELECT 1
+                                    FROM pengeluaran_gudang_inputan_detail pd
+                                    JOIN pengeluaran_gudang_inputan p 
+                                        ON p.id = pd.pengeluaran_gudang_inputan_id
+                                    WHERE pd.barcode = d.barcode
+                                    AND p.cancel = 0
+                                )
+                            )
+                            THEN 1 ELSE 0
+                        END
+                ) as is_used,
+                EXISTS ( SELECT 1 FROM penerimaan_gudang_inputan_detail d JOIN pengeluaran_gudang_inputan_detail pd ON pd.barcode = d.barcode JOIN pengeluaran_gudang_inputan p ON p.id = pd.pengeluaran_gudang_inputan_id WHERE d.penerimaan_gudang_inputan_id = penerimaan_gudang_inputan.id AND p.cancel = 0 )
+                as is_used_pengeluaran,
                 EXISTS (
                     SELECT 1
                     FROM penerimaan_gudang_inputan_detail d
-                    JOIN pengeluaran_gudang_inputan_detail pd 
-                        ON pd.barcode = d.barcode
-                    JOIN pengeluaran_gudang_inputan p 
-                        ON p.id = pd.pengeluaran_gudang_inputan_id
                     WHERE d.penerimaan_gudang_inputan_id = penerimaan_gudang_inputan.id
-                    AND p.cancel = 0
-                ) as is_used
+                    AND d.mutasi_rak_detail_id IS NOT NULL
+                ) as is_mutasi
             ")
             ->leftJoin("penerimaan_gudang_inputan_detail", "penerimaan_gudang_inputan_detail.penerimaan_gudang_inputan_id", "=", "penerimaan_gudang_inputan.id")
             ->groupBy(
@@ -262,7 +279,20 @@ class PenerimaanGudangInputanController extends Controller
         ->where("penerimaan_gudang_inputan.id", $id)
         ->first();
 
-        $data_detail = PenerimaanGudangInputanDetail::where("penerimaan_gudang_inputan_id", $id)->get();
+        // $data_detail = PenerimaanGudangInputanDetail::where("penerimaan_gudang_inputan_id", $id)->get();
+        $data_detail = PenerimaanGudangInputanDetail::selectRaw("
+            penerimaan_gudang_inputan_detail.*,
+            EXISTS (
+                SELECT 1
+                FROM pengeluaran_gudang_inputan_detail pd
+                JOIN pengeluaran_gudang_inputan p 
+                    ON p.id = pd.pengeluaran_gudang_inputan_id
+                WHERE pd.barcode = penerimaan_gudang_inputan_detail.barcode
+                AND p.cancel = 0
+            ) as is_used
+        ")
+        ->where("penerimaan_gudang_inputan_id", $id)
+        ->get();
 
         return view("whs-soljer.penerimaan-gudang-inputan.update", [
             "page" => "dashboard-whs-soljer",

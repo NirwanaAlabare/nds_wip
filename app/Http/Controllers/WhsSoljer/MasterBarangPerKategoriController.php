@@ -23,30 +23,47 @@ class MasterBarangPerKategoriController extends Controller
                 $data = DB::table(DB::raw("
                     (
                         SELECT 
-                            penerimaan.barcode,
-                            penerimaan.lokasi,
-                            penerimaan.buyer,
-                            penerimaan.keterangan,
-                            penerimaan.jenis_item,
-                            penerimaan.warna,
-                            penerimaan.lot,
-                            penerimaan.no_roll,
-                            penerimaan.satuan,
-                            penerimaan.qty,
-                            ROUND((penerimaan.qty - COALESCE(pengeluaran.total_keluar, 0)), 2) AS qty_saat_ini
-                        FROM penerimaan_gudang_inputan_detail penerimaan
-                        LEFT JOIN penerimaan_gudang_inputan h ON h.id = penerimaan.penerimaan_gudang_inputan_id
+                            p.barcode,
+                            p.lokasi,
+                            p.buyer,
+                            p.keterangan,
+                            p.jenis_item,
+                            p.warna,
+                            p.lot,
+                            p.no_roll,
+                            p.satuan,
+                            p.qty,
+                            ROUND((p.qty - COALESCE(pg.total_keluar, 0)), 2) AS qty_saat_ini
+                        FROM (
+                            SELECT p.*
+                            FROM penerimaan_gudang_inputan_detail p
+                            INNER JOIN penerimaan_gudang_inputan h
+                                ON h.id = p.penerimaan_gudang_inputan_id
+                            INNER JOIN (
+                                SELECT p2.barcode, MAX(p2.created_at) AS max_created
+                                FROM penerimaan_gudang_inputan_detail p2
+                                INNER JOIN penerimaan_gudang_inputan h2
+                                    ON h2.id = p2.penerimaan_gudang_inputan_id
+                                WHERE h2.cancel = '0'
+                                GROUP BY p2.barcode
+                            ) x 
+                                ON x.barcode = p.barcode
+                            AND x.max_created = p.created_at
+                            WHERE h.cancel = '0'
+                        ) p
                         LEFT JOIN (
                             SELECT 
                                 barcode,
+                                lokasi,
                                 SUM(qty_out) AS total_keluar
                             FROM pengeluaran_gudang_inputan_detail
-                            LEFT JOIN pengeluaran_gudang_inputan ON pengeluaran_gudang_inputan.id = pengeluaran_gudang_inputan_detail.pengeluaran_gudang_inputan_id
-		                    WHERE pengeluaran_gudang_inputan.cancel = '0'
-                            GROUP BY barcode
-                        ) pengeluaran 
-                        ON pengeluaran.barcode = penerimaan.barcode
-                        WHERE h.cancel = '0'
+                            INNER JOIN pengeluaran_gudang_inputan 
+                                ON pengeluaran_gudang_inputan.id = pengeluaran_gudang_inputan_detail.pengeluaran_gudang_inputan_id
+                            WHERE pengeluaran_gudang_inputan.cancel = '0'
+                            GROUP BY barcode, lokasi
+                        ) pg 
+                        ON pg.barcode = p.barcode 
+                        AND pg.lokasi = p.lokasi
                     ) as results
                 "));
 
@@ -138,31 +155,47 @@ class MasterBarangPerKategoriController extends Controller
         $data = DB::table(DB::raw("
             (
                 SELECT 
-                    penerimaan.barcode,
-                    penerimaan.lokasi,
-                    penerimaan.buyer,
-                    penerimaan.keterangan,
-                    penerimaan.jenis_item,
-                    penerimaan.warna,
-                    penerimaan.lot,
-                    penerimaan.no_roll,
-                    penerimaan.satuan,
-                    penerimaan.qty,
-                    ROUND((penerimaan.qty - COALESCE(pengeluaran.total_keluar, 0)), 2) AS qty_saat_ini,
-                    'FABRIC' AS kategori
-                FROM penerimaan_gudang_inputan_detail penerimaan
-                LEFT JOIN penerimaan_gudang_inputan h ON h.id = penerimaan.penerimaan_gudang_inputan_id
+                    p.barcode,
+                    p.lokasi,
+                    p.buyer,
+                    p.keterangan,
+                    p.jenis_item,
+                    p.warna,
+                    p.lot,
+                    p.no_roll,
+                    p.satuan,
+                    p.qty,
+                    ROUND((p.qty - COALESCE(pg.total_keluar, 0)), 2) AS qty_saat_ini
+                FROM (
+                    SELECT p.*
+                    FROM penerimaan_gudang_inputan_detail p
+                    INNER JOIN penerimaan_gudang_inputan h
+                        ON h.id = p.penerimaan_gudang_inputan_id
+                    INNER JOIN (
+                        SELECT p2.barcode, MAX(p2.created_at) AS max_created
+                        FROM penerimaan_gudang_inputan_detail p2
+                        INNER JOIN penerimaan_gudang_inputan h2
+                            ON h2.id = p2.penerimaan_gudang_inputan_id
+                        WHERE h2.cancel = '0'
+                        GROUP BY p2.barcode
+                    ) x 
+                        ON x.barcode = p.barcode
+                    AND x.max_created = p.created_at
+                    WHERE h.cancel = '0'
+                ) p
                 LEFT JOIN (
                     SELECT 
                         barcode,
+                        lokasi,
                         SUM(qty_out) AS total_keluar
                     FROM pengeluaran_gudang_inputan_detail
-                    LEFT JOIN pengeluaran_gudang_inputan ON pengeluaran_gudang_inputan.id = pengeluaran_gudang_inputan_detail.pengeluaran_gudang_inputan_id
+                    INNER JOIN pengeluaran_gudang_inputan 
+                        ON pengeluaran_gudang_inputan.id = pengeluaran_gudang_inputan_detail.pengeluaran_gudang_inputan_id
                     WHERE pengeluaran_gudang_inputan.cancel = '0'
-                    GROUP BY barcode
-                ) pengeluaran 
-                ON pengeluaran.barcode = penerimaan.barcode
-                WHERE penerimaan.barcode = '{$request->barcode}' AND h.cancel = '0'
+                    GROUP BY barcode, lokasi
+                ) pg 
+                ON pg.barcode = p.barcode AND pg.lokasi = p.lokasi
+                WHERE p.barcode = '{$request->barcode}'
             ) as results
         "));
 
@@ -207,7 +240,7 @@ class MasterBarangPerKategoriController extends Controller
                     no_bpb,
                     DATE_FORMAT(tgl_bpb, '%d-%m-%Y') AS tgl_bpb,
                     pengeluaran_gudang_inputan_history.barcode,
-                    lokasi,
+                    penerimaan_gudang_inputan_detail.lokasi,
                     buyer,
                     keterangan,
                     jenis_item,
@@ -220,7 +253,7 @@ class MasterBarangPerKategoriController extends Controller
                 FROM
                     pengeluaran_gudang_inputan
                 LEFT JOIN pengeluaran_gudang_inputan_history ON pengeluaran_gudang_inputan_history.pengeluaran_gudang_inputan_id = pengeluaran_gudang_inputan.id
-                LEFT JOIN penerimaan_gudang_inputan_detail ON penerimaan_gudang_inputan_detail.barcode = pengeluaran_gudang_inputan_history.barcode
+                LEFT JOIN penerimaan_gudang_inputan_detail ON penerimaan_gudang_inputan_detail.barcode = pengeluaran_gudang_inputan_history.barcode AND penerimaan_gudang_inputan_detail.lokasi = pengeluaran_gudang_inputan_history.lokasi
                 WHERE pengeluaran_gudang_inputan_history.barcode = '{$request->barcode}' 
                 AND pengeluaran_gudang_inputan.cancel = '0'
                 AND EXISTS (

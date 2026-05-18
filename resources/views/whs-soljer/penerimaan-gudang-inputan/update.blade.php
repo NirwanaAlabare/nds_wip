@@ -83,16 +83,19 @@
                                     <td>{{ $row->keterangan }}</td>
                                     <td>{{ $row->jenis_item }}</td>
                                     <td>
-                                        <input type="text" class="form-control form-control-sm warna" style="text-transform: uppercase; color: unset;" oninput="this.value = this.value.toUpperCase()" value="{{ $row->warna }}">
+                                        {{-- <input type="text" class="form-control form-control-sm warna" style="text-transform: uppercase; color: unset;" oninput="this.value = this.value.toUpperCase()" value="{{ $row->warna }}"> --}}
+                                        <input type="text" class="form-control form-control-sm warna" style="text-transform: uppercase; color: unset;" oninput="this.value = this.value.toUpperCase()" value="{{ $row->warna }}" {{ $row->is_used ? 'readonly' : '' }}>
                                     </td>
                                     <td>{{ $row->lot }}</td>
                                     <td>{{ $row->no_roll }}</td>
                                     <td>
-                                        <input type="number" step="any" class="form-control form-control-sm text-end qty" style="color: unset;" value="{{ number_format($row->qty, 2) }}">
+                                        {{-- <input type="number" step="any" class="form-control form-control-sm text-end qty" style="color: unset;" value="{{ number_format($row->qty, 2) }}"> --}}
+                                        <input type="number" step="any" class="form-control form-control-sm text-end qty" style="color: unset;" value="{{ number_format($row->qty, 2) }}" {{ $row->is_used ? 'readonly' : '' }}>
                                     </td>
                                     <td>{{ $row->satuan }}</td>
                                     <td class="text-center">
-                                        <input type="checkbox" class="row-check">
+                                        {{-- <input type="checkbox" class="row-check"> --}}
+                                        <input type="checkbox" class="row-check" {{ $row->is_used ? 'disabled' : '' }}>
                                     </td>
                                 </tr>
                                 @endforeach

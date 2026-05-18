@@ -39,7 +39,7 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-hover table w-100">
+                <table id="datatable" class="table table-bordered table-hover table w-100">
                     <thead>
                         <tr>
                             <th>No. BPB</th>
@@ -147,6 +147,14 @@
                     data: 'id'
                 },
             ],
+            createdRow: function(row, data, dataIndex) {
+                if (data.is_mutasi == 1) {
+                    $(row).css({
+                        'background-color': '#fff3cd', 
+                        // 'color': '#664d03'
+                    });
+                }
+            },
             columnDefs: [
                 {
                     targets: [5],
@@ -158,21 +166,6 @@
                         let btnBarcode = '';
 
                         if (row.cancel != 1) {
-                            btnEdit = `
-                                <a href="{{ url('pengeluaran-gudang-inputan/edit') }}/${row.id}">
-                                    <button type="button" class="btn btn-sm btn-primary">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </button>
-                                </a>
-                            `;
-
-                            btnDelete = `
-                                <button type="button" class="btn btn-sm btn-danger btn-delete"
-                                    data-id="${row.id}">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                            `;
-
                             btnPrint = `
                                 <a 
                                     href="{{ url('pengeluaran-gudang-inputan/print-sj') }}/${row.id}" 
@@ -191,6 +184,23 @@
                                 >
                                     <i class="fa-solid fa-barcode"></i>
                                 </a>
+                            `;
+                        }
+
+                        if (row.cancel != 1 && row.is_mutasi != 1) {
+                            btnEdit = `
+                                <a href="{{ url('pengeluaran-gudang-inputan/edit') }}/${row.id}">
+                                    <button type="button" class="btn btn-sm btn-primary">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                </a>
+                            `;
+
+                            btnDelete = `
+                                <button type="button" class="btn btn-sm btn-danger btn-delete"
+                                    data-id="${row.id}">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
                             `;
                         }
 

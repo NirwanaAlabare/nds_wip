@@ -45,6 +45,12 @@
                     Penerimaan Gudang Inputan (FG)
                 </a>
             </li>
+            <li>
+                <a href="{{ route('mutasi-rak') }}"
+                    class="dropdown-item {{ $routeName == 'mutasi-rak' ? 'active' : '' }}">
+                    Mutasi Rak (FABRIC)
+                </a>
+            </li>
         </ul>
     </li>
     <li class="nav-item dropdown">
