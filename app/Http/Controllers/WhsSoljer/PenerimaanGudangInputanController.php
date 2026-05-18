@@ -358,10 +358,18 @@ class PenerimaanGudangInputanController extends Controller
                 $isChanged = false;
 
                 foreach ($fieldsToCheck as $field) {
-                    $oldValue = (string) ($dataDetail->$field ?? '');
-                    $newValue = (string) ($row[$field] ?? '');
+                    $oldValue = $dataDetail->$field ?? '';
+                    $newValue = $row[$field] ?? '';
 
-                    if ($oldValue !== $newValue) {
+                    if ($field == 'qty') {
+                        $oldValue = (float) $oldValue;
+                        $newValue = (float) $newValue;
+                    } else {
+                        $oldValue = trim((string) $oldValue);
+                        $newValue = trim((string) $newValue);
+                    }
+
+                    if ($oldValue != $newValue) {
                         $isChanged = true;
                         break;
                     }
