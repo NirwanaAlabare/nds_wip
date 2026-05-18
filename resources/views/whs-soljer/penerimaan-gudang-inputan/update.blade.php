@@ -80,21 +80,26 @@
                                 <tr data-id="{{ $row->id }}">
                                     <td>{{ $row->lokasi }}</td>
                                     <td>{{ $row->buyer }}</td>
-                                    <td>{{ $row->keterangan }}</td>
-                                    <td>{{ $row->jenis_item }}</td>
                                     <td>
-                                        {{-- <input type="text" class="form-control form-control-sm warna" style="text-transform: uppercase; color: unset;" oninput="this.value = this.value.toUpperCase()" value="{{ $row->warna }}"> --}}
+                                        <input type="text" class="form-control form-control-sm keterangan" style="text-transform: uppercase; color: unset;" oninput="this.value = this.value.toUpperCase()" value="{{ $row->keterangan }}" {{ $row->is_used ? 'readonly' : '' }}>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control form-control-sm jenis_item" style="text-transform: uppercase; color: unset;" oninput="this.value = this.value.toUpperCase()" value="{{ $row->jenis_item }}" {{ $row->is_used ? 'readonly' : '' }}>
+                                    </td>
+                                    <td>
                                         <input type="text" class="form-control form-control-sm warna" style="text-transform: uppercase; color: unset;" oninput="this.value = this.value.toUpperCase()" value="{{ $row->warna }}" {{ $row->is_used ? 'readonly' : '' }}>
                                     </td>
-                                    <td>{{ $row->lot }}</td>
-                                    <td>{{ $row->no_roll }}</td>
                                     <td>
-                                        {{-- <input type="number" step="any" class="form-control form-control-sm text-end qty" style="color: unset;" value="{{ number_format($row->qty, 2) }}"> --}}
+                                        <input type="text" class="form-control form-control-sm lot" style="text-transform: uppercase; color: unset;" oninput="this.value = this.value.toUpperCase()" value="{{ $row->lot }}" {{ $row->is_used ? 'readonly' : '' }}>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control form-control-sm no_roll" style="text-transform: uppercase; color: unset;" oninput="this.value = this.value.toUpperCase()" value="{{ $row->no_roll }}" {{ $row->is_used ? 'readonly' : '' }}>
+                                    </td>
+                                    <td>
                                         <input type="number" step="any" class="form-control form-control-sm text-end qty" style="color: unset;" value="{{ number_format($row->qty, 2) }}" {{ $row->is_used ? 'readonly' : '' }}>
                                     </td>
                                     <td>{{ $row->satuan }}</td>
                                     <td class="text-center">
-                                        {{-- <input type="checkbox" class="row-check"> --}}
                                         <input type="checkbox" class="row-check" {{ $row->is_used ? 'disabled' : '' }}>
                                     </td>
                                 </tr>
@@ -175,7 +180,11 @@
 
                 data.push({
                     id: row.attr('data-id'),
+                    keterangan: row.find('.keterangan').val(),
+                    jenis_item: row.find('.jenis_item').val(),
                     warna: row.find('.warna').val(),
+                    lot: row.find('.lot').val(),
+                    no_roll: row.find('.no_roll').val(),
                     qty: row.find('.qty').val()
                 });
 

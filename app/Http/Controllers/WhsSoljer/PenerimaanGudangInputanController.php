@@ -346,39 +346,57 @@ class PenerimaanGudangInputanController extends Controller
             foreach ($items as $row) {
                 $dataDetail = PenerimaanGudangInputanDetail::find($row['id']);
 
-                $oldQty = (float) $dataDetail->qty;
-                $newQty = (float) $row['qty'];
+                $fieldsToCheck = [
+                    'keterangan',
+                    'jenis_item',
+                    'warna',
+                    'lot',
+                    'no_roll',
+                    'qty',
+                ];
 
-                $oldWarna = $dataDetail->warna;
-                $newWarna = $row['warna'];
+                $isChanged = false;
 
-                if ($oldQty != $newQty || $oldWarna != $newWarna) {
+                foreach ($fieldsToCheck as $field) {
+                    $oldValue = (string) ($dataDetail->$field ?? '');
+                    $newValue = (string) ($row[$field] ?? '');
+
+                    if ($oldValue !== $newValue) {
+                        $isChanged = true;
+                        break;
+                    }
+                }
+
+                if ($isChanged) {
                     PenerimaanGudangInputanHistory::create([
                         'penerimaan_gudang_inputan_id'  => $dataDetail->penerimaan_gudang_inputan_id,
                         'barcode'                       => $dataDetail->barcode,
-                        'no_roll'                       => $dataDetail->no_roll,
+                        'no_roll'                       => $row['no_roll'],
                         'buyer'                         => $dataDetail->buyer,
-                        'jenis_item'                    => $dataDetail->jenis_item,
+                        'jenis_item'                    => $row['jenis_item'],
                         'warna'                         => $row['warna'],
-                        'lot'                           => $dataDetail->lot,
+                        'lot'                           => $row['lot'],
                         'qty'                           => $row['qty'],
                         'satuan'                        => $dataDetail->satuan,
                         'lokasi'                        => $dataDetail->lokasi,
-                        'keterangan'                    => $dataDetail->keterangan,
-                        "created_by"                    => $user ? $user->id : null,
-                        "created_by_username"           => $user ? $user->username : null,
-                        "created_at"                    => $now,
+                        'keterangan'                    => $row['keterangan'],
+                        'created_by'                    => $user ? $user->id : null,
+                        'created_by_username'           => $user ? $user->username : null,
+                        'created_at'                    => $now,
                     ]);
 
                     PenerimaanGudangInputanDetail::where('id', $row['id'])
                         ->update([
+                            'keterangan' => $row['keterangan'],
+                            'jenis_item' => $row['jenis_item'],
                             'warna' => $row['warna'],
+                            'lot' => $row['lot'],
+                            'no_roll' => $row['no_roll'],
                             'qty' => $row['qty'],
                             'updated_at' => now(),
                             'updated_by' => auth()->id(),
                         ]);
                 }
-
             }
 
             DB::commit();
