@@ -30,12 +30,12 @@ list_po
 from
 (
 select created_by,so_det_id,count(so_det_id) qty_p_line from output_rfts_packing
-where created_at >= '$tgl_filter'
+where created_at >= '$tgl_filter 00:00:00' and created_at <= '$tgl_filter 23:59:59'
 group by created_by, so_det_id
 ) a
 left join master_sb_ws m on a.so_det_id = m.id_so_det
 left join master_size_new msn on m.size = msn.size
-left join (select id_so_det, group_concat(distinct(po)) list_po from ppic_master_so where tgl_shipment >= '$tgl_shipment' group by id_so_det) b on a.so_det_id = b.id_so_det
+left join (select id_so_det, group_concat(distinct(po)) list_po from ppic_master_so where tgl_shipment >= '$tgl_shipment' and tgl_shipment <= '$tgl_shipment' group by id_so_det) b on a.so_det_id = b.id_so_det
 group by a.created_by, m.ws, m.color, m.size, m.dest
 order by a.created_by asc, ws asc, color asc, dest asc, urutan asc
             ");

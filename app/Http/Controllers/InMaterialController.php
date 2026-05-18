@@ -1167,7 +1167,7 @@ public function barcodeinmaterial(Request $request, $id)
 public function pdfinmaterial(Request $request, $id)
 {
     $dataHeader = DB::connection('mysql_sb')->select("select * from whs_inmaterial_fabric where id = '$id' limit 1");
-    $dataDetail = DB::connection('mysql_sb')->select("select a.no_dok,a.no_ws,a.desc_item,ROUND(a.qty_good,2) qty ,a.unit,b.deskripsi from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y'");
+    $dataDetail = DB::connection('mysql_sb')->select("select a.no_dok,a.no_ws,mi.itemdesc desc_item,ROUND(a.qty_good,2) qty ,a.unit,b.deskripsi from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok INNER JOIN masteritem mi on mi.id_item = a.id_item where b.id = '$id' and a.status = 'Y'");
     $dataSum = DB::connection('mysql_sb')->select("select sum(qty) qty_all from (select a.no_dok,a.no_ws,a.desc_item,ROUND(a.qty_good,2) qty ,a.unit from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y') a");
     $dataUser = DB::connection('mysql_sb')->select("select created_by,created_at,approved_by,approved_date from whs_inmaterial_fabric where id = '$id' limit 1");
     $dataHead = DB::connection('mysql_sb')->select("select CONCAT('Bandung, ',DATE_FORMAT(a.tgl_dok,'%d %b %Y')) tgl_dok,a.supplier,b.alamat, CURRENT_TIMESTAMP() tgl_cetak from whs_inmaterial_fabric a inner join mastersupplier b on b.supplier = a.supplier where id = '$id' limit 1");
