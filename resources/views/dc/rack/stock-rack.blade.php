@@ -5,6 +5,25 @@
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
+
+    <style>
+        .modal-full-custom {
+            width: 100vw;
+            max-width: 100vw;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .modal-full-custom .modal-content {
+            height: 100vh;
+            border-radius: 0;
+            border: 0;
+        }
+
+        .modal-full-custom .modal-body {
+            overflow-y: auto;
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -95,7 +114,13 @@
                                             @endphp
 
                                             <div class="col-12 col-sm-6">
-                                                <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                                                <div 
+                                                    class="card border-0 shadow-sm rounded-4 h-100 bg-white cursor-pointer rack-card"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-placement="top"
+                                                    title="Klik untuk melihat detail rack"
+                                                    data-id="{{ $rackDetail->id }}"
+                                                >
                                                     <div class="card-body">
                                                         <div class="d-flex justify-content-between align-items-start mb-2">
                                                             <div>
@@ -209,6 +234,38 @@
                     </div>
                 @endforeach
             </div> --}}
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalRack" tabindex="-1">
+        <div class="modal-dialog modal-full-custom">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        Detail Rak
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="table" class="table-responsive">
+                        <table id="datatable" class="table table-bordered table-striped table-hover table w-100">
+                            <thead class="bg-sb">
+                                <tr>
+                                    <th>No Rack</th>
+                                    <th>Stocker</th>
+                                    <th>No WS</th>
+                                    <th>No Cut</th>
+                                    <th>Style</th>
+                                    <th>Color</th>
+                                    <th>Part</th>
+                                    <th>Size</th>
+                                    <th>Qty</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
@@ -353,5 +410,48 @@
 
             window.location.href = url.toString();
         });
+
+        $(document).on('click', '.rack-card', function () {
+            let rackId = $(this).data('id');
+            showModalRack(rackId);
+        });
+
+        function showModalRack(rackId) {
+
+            $('#modalRack').modal('show');
+
+            if ($.fn.DataTable.isDataTable('#datatable')) {
+                $('#datatable').DataTable().destroy();
+            }
+
+            let table = $('#datatable').DataTable({
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                ajax: {
+                    url: "{{ route('get-data-stocker-per-rak') }}",
+                    data: function (d) {
+                        d.rack_id = rackId;
+                    }
+                },
+                columns: [
+                    { data: 'no_rak' },
+                    { data: 'no_stocker' },
+                    { data: 'no_ws' },
+                    { data: 'no_cut' },
+                    { data: 'style' },
+                    { data: 'color' },
+                    { data: 'part' },
+                    { data: 'size' },
+                    {
+                        data: 'qty_in',
+                        className: 'text-end',
+                        render: function(data) {
+                            return parseFloat(data || 0).toFixed(2);
+                        }
+                    },
+                ]
+            });
+        }
     </script>
 @endsection
