@@ -667,8 +667,8 @@
 
     function getStateForHour(hour) {
         if (hour >= 5 && hour < 8) return 'morning';
-        if (hour >= 8 && hour < 15) return 'day';
-        if (hour >= 15 && hour < 18) return 'afternoon';
+        if (hour >= 8 && hour < 12) return 'day';
+        if (hour >= 12 && hour < 15) return 'afternoon';
         return 'night';
     }
 
