@@ -31,7 +31,13 @@ class PengeluaranGudangInputanController extends Controller
                 CASE 
                     WHEN pengeluaran_gudang_inputan.cancel = 1 THEN 'Cancel'
                     ELSE 'Draft'
-                END as status
+                END as status,
+                EXISTS (
+                    SELECT 1
+                    FROM pengeluaran_gudang_inputan_detail d
+                    WHERE d.pengeluaran_gudang_inputan_id = pengeluaran_gudang_inputan.id
+                    AND d.mutasi_rak_detail_id IS NOT NULL
+                ) as is_mutasi
             ")
             ->leftJoin("pengeluaran_gudang_inputan_detail", "pengeluaran_gudang_inputan_detail.pengeluaran_gudang_inputan_id", "=", "pengeluaran_gudang_inputan.id")
             ->groupBy(
@@ -145,7 +151,6 @@ class PengeluaranGudangInputanController extends Controller
                 "created_at"            => $now,
             ]);
 
-
             $items = json_decode($request->items, true);
             foreach ($items as $row) {
                 PengeluaranGudangInputanDetail::create([
@@ -153,6 +158,7 @@ class PengeluaranGudangInputanController extends Controller
                     'barcode'                       => $row['barcode'],
                     'qty_act'                       => $row['qty'],
                     'qty_out'                       => $row['qty_out'],
+                    'lokasi'                        => $row['lokasi'],
                     'tujuan'                        => $row['tujuan'],
                     "created_by"                    => $user ? $user->id : null,
                     "created_by_username"           => $user ? $user->username : null,
@@ -164,6 +170,7 @@ class PengeluaranGudangInputanController extends Controller
                     'barcode'                       => $row['barcode'],
                     'qty_act'                       => $row['qty'],
                     'qty_out'                       => $row['qty_out'],
+                    'lokasi'                        => $row['lokasi'],
                     'tujuan'                        => $row['tujuan'],
                     "created_by"                    => $user ? $user->id : null,
                     "created_by_username"           => $user ? $user->username : null,
@@ -204,19 +211,31 @@ class PengeluaranGudangInputanController extends Controller
         $data_detail = PengeluaranGudangInputanDetail::selectRaw("
             pengeluaran_gudang_inputan_detail.id,
             pengeluaran_gudang_inputan_detail.barcode,
-            penerimaan_gudang_inputan_detail.lokasi,
-            penerimaan_gudang_inputan_detail.buyer,
-            penerimaan_gudang_inputan_detail.keterangan,
-            penerimaan_gudang_inputan_detail.jenis_item,
-            penerimaan_gudang_inputan_detail.warna,
-            penerimaan_gudang_inputan_detail.lot,
-            penerimaan_gudang_inputan_detail.no_roll,
+            pengeluaran_gudang_inputan_detail.lokasi,
+            penerimaan.buyer,
+            penerimaan.keterangan,
+            penerimaan.jenis_item,
+            penerimaan.warna,
+            penerimaan.lot,
+            penerimaan.no_roll,
             pengeluaran_gudang_inputan_detail.qty_act,
-            penerimaan_gudang_inputan_detail.satuan,
+            penerimaan.satuan,
             pengeluaran_gudang_inputan_detail.qty_out,
             pengeluaran_gudang_inputan_detail.tujuan
         ")
-        ->lefTJoin("penerimaan_gudang_inputan_detail", "penerimaan_gudang_inputan_detail.barcode", "=", "pengeluaran_gudang_inputan_detail.barcode")
+        ->leftJoin('penerimaan_gudang_inputan_detail as penerimaan', function ($join) {
+            $join->on(
+                'penerimaan.barcode',
+                '=',
+                'pengeluaran_gudang_inputan_detail.barcode'
+            );
+
+            $join->whereRaw("
+                COALESCE(penerimaan.mutasi_rak_detail_id, 0)
+                =
+                COALESCE(pengeluaran_gudang_inputan_detail.mutasi_rak_detail_id, 0)
+            ");
+        })
         ->where("pengeluaran_gudang_inputan_id", $id)
         ->get();
 
@@ -272,6 +291,7 @@ class PengeluaranGudangInputanController extends Controller
                         'barcode'                       => $dataDetail->barcode,
                         'qty_act'                       => $dataDetail->qty_act,
                         'qty_out'                       => $row['qty_out'],
+                        'lokasi'                        => $dataDetail->lokasi,
                         'tujuan'                        => $row['tujuan'],
                         "created_by"                    => $user ? $user->id : null,
                         "created_by_username"           => $user ? $user->username : null,
@@ -326,21 +346,32 @@ class PengeluaranGudangInputanController extends Controller
             pengeluaran_gudang_inputan.id,
             pengeluaran_gudang_inputan.no_bpb,
             DATE_FORMAT(pengeluaran_gudang_inputan.tgl_bpb, '%d-%m-%Y') AS tgl_bpb,
-            penerimaan_gudang_inputan_detail.barcode,
-            penerimaan_gudang_inputan_detail.lokasi,
-            penerimaan_gudang_inputan_detail.buyer,
-            penerimaan_gudang_inputan_detail.keterangan,
-            penerimaan_gudang_inputan_detail.jenis_item,
-            penerimaan_gudang_inputan_detail.warna,
-            penerimaan_gudang_inputan_detail.lot,
-            penerimaan_gudang_inputan_detail.no_roll,
+            penerimaan.barcode,
+            pengeluaran_gudang_inputan_detail.lokasi,
+            penerimaan.buyer,
+            penerimaan.keterangan,
+            penerimaan.jenis_item,
+            penerimaan.warna,
+            penerimaan.lot,
+            penerimaan.no_roll,
             pengeluaran_gudang_inputan_detail.qty_act,
-            penerimaan_gudang_inputan_detail.satuan,
+            penerimaan.satuan,
             pengeluaran_gudang_inputan_detail.qty_out,
             pengeluaran_gudang_inputan_detail.tujuan
         ")
         ->leftJoin('pengeluaran_gudang_inputan_detail', 'pengeluaran_gudang_inputan.id', '=', 'pengeluaran_gudang_inputan_detail.pengeluaran_gudang_inputan_id')
-        ->leftJoin('penerimaan_gudang_inputan_detail', 'penerimaan_gudang_inputan_detail.barcode', '=', 'pengeluaran_gudang_inputan_detail.barcode')
+        ->leftJoin('penerimaan_gudang_inputan_detail as penerimaan', function ($join) {
+            $join->on(
+                'penerimaan.barcode',
+                '=',
+                'pengeluaran_gudang_inputan_detail.barcode'
+            );
+            $join->whereRaw("
+                COALESCE(penerimaan.mutasi_rak_detail_id, 0)
+                =
+                COALESCE(pengeluaran_gudang_inputan_detail.mutasi_rak_detail_id, 0)
+            ");
+        })
         ->where("pengeluaran_gudang_inputan.id", $id)
         ->get();
 
@@ -365,18 +396,29 @@ class PengeluaranGudangInputanController extends Controller
         ->first();
 
         $dataDetail = PengeluaranGudangInputanDetail::selectRaw('
-            penerimaan_gudang_inputan_detail.buyer,
-            penerimaan_gudang_inputan_detail.jenis_item,
-            penerimaan_gudang_inputan_detail.warna,
-            penerimaan_gudang_inputan_detail.lot,
+            penerimaan.buyer,
+            penerimaan.jenis_item,
+            penerimaan.warna,
+            penerimaan.lot,
             SUM(pengeluaran_gudang_inputan_detail.qty_act) as qty_act,
             SUM(pengeluaran_gudang_inputan_detail.qty_out) as qty_out,
-            penerimaan_gudang_inputan_detail.satuan,
-            penerimaan_gudang_inputan_detail.keterangan,
-            penerimaan_gudang_inputan_detail.lokasi,
+            penerimaan.satuan,
+            penerimaan.keterangan,
+            pengeluaran_gudang_inputan_detail.lokasi,
             pengeluaran_gudang_inputan_detail.tujuan
         ')
-        ->leftJoin("penerimaan_gudang_inputan_detail", "penerimaan_gudang_inputan_detail.barcode", "=", "pengeluaran_gudang_inputan_detail.barcode")
+        ->leftJoin('penerimaan_gudang_inputan_detail as penerimaan', function ($join) {
+            $join->on(
+                'penerimaan.barcode',
+                '=',
+                'pengeluaran_gudang_inputan_detail.barcode'
+            );
+            $join->whereRaw("
+                COALESCE(penerimaan.mutasi_rak_detail_id, 0)
+                =
+                COALESCE(pengeluaran_gudang_inputan_detail.mutasi_rak_detail_id, 0)
+            ");
+        })
         ->where("pengeluaran_gudang_inputan_id", $id)
         ->groupBy('buyer', 'jenis_item', 'warna', 'lot', 'satuan', 'keterangan', 'lokasi')
         ->get();
@@ -395,6 +437,7 @@ class PengeluaranGudangInputanController extends Controller
             ->leftJoin("penerimaan_gudang_inputan", "penerimaan_gudang_inputan.id", "=", "penerimaan_gudang_inputan_detail.penerimaan_gudang_inputan_id")
             ->where('penerimaan_gudang_inputan_detail.barcode', $request->barcode)
             ->where('penerimaan_gudang_inputan.cancel', 0)
+            ->orderBy('penerimaan_gudang_inputan_detail.id', 'desc')
             ->first();
 
         if (!$data) {
@@ -402,17 +445,13 @@ class PengeluaranGudangInputanController extends Controller
         }
 
         $qty_out = PengeluaranGudangInputanDetail::selectRaw('COALESCE(SUM(pengeluaran_gudang_inputan_detail.qty_out),0) as total')
-            ->leftJoin(
-                'pengeluaran_gudang_inputan',
-                'pengeluaran_gudang_inputan.id',
-                '=',
-                'pengeluaran_gudang_inputan_detail.pengeluaran_gudang_inputan_id'
-            )
+            ->leftJoin( 'pengeluaran_gudang_inputan', 'pengeluaran_gudang_inputan.id', '=', 'pengeluaran_gudang_inputan_detail.pengeluaran_gudang_inputan_id')
             ->where('pengeluaran_gudang_inputan_detail.barcode', $request->barcode)
+            ->where('pengeluaran_gudang_inputan_detail.lokasi', $data->lokasi)
             ->where('pengeluaran_gudang_inputan.cancel', 0)
             ->value('total');
 
-        $qty_sisa = max(0, $data->qty - $qty_out);
+        $qty_sisa = round($data->qty - $qty_out, 2);
 
         if ($qty_sisa <= 0) {
             return response()->json([

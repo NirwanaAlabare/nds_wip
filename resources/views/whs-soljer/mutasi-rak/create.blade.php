@@ -62,46 +62,93 @@
 
 @section('content')
     <div class="d-flex justify-content-between mb-3">
-        <h5 class="fw-bold text-sb"><i class="fa fa-plus fa-sm"></i> Tambah Pengeluaran Gudang Inputan (FABRIC)</h5>
-        <a href="{{ route('pengeluaran-gudang-inputan') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali List Pengeluaran Gudang Inputan (FABRIC)</a>
+        <h5 class="fw-bold text-sb"><i class="fa fa-plus fa-sm"></i> Tambah Mutasi Rak (FABRIC)</h5>
+        <a href="{{ route('mutasi-rak') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali List Mutasi Rak (FABRIC)</a>
     </div>
-    <form action="{{ route('store-pengeluaran-gudang-inputan') }}" method="post" id="store-pengeluaran-gudang-inputan" onsubmit="submitForm(this, event)">
+    <form action="{{ route('store-mutasi-rak') }}" method="post" id="store-mutasi-rak" onsubmit="submitForm(this, event)">
         @csrf
         <div class="card card-sb">
             <div class="card-header">
                 <h5 class="card-title fw-bold">
-                    Header Penginputan
+                    Mutasi Rak
                 </h5>
             </div>
             <div class="card-body">
                 <div class="row align-items-end">
-                    <div class="col-6 col-md-3">
+                    <div class="col-3 col-md-3">
                         <div class="mb-1">
-                            <label class="form-label"><small>No. BPB</small></label>
-                            <input type="text" class="form-control" id="no_bpb" name="no_bpb"
-                                value="{{ $no_bpb->kode }}" readonly>
+                            <label class="form-label"><small>No. Mutasi</small></label>
+                            <input type="text" class="form-control" id="no_mutasi" name="no_mutasi"
+                                value="{{ $no_mutasi->kode }}" readonly>
                         </div>
                     </div>
-                    <div class="col-6 col-md-3">
+                    <div class="col-3 col-md-3">
                         <div class="mb-1">
-                            <label class="form-label"><small>Tgl BPB</small></label>
-                            <input type="date" class="form-control" id="tgl_bpb" name="tgl_bpb" 
+                            <label class="form-label"><small>Tgl Mutasi</small></label>
+                            <input type="date" class="form-control" id="tgl_mutasi" name="tgl_mutasi" 
                                 value="{{ date('Y-m-d') }}">
+                        </div>
+                    </div>
+
+                    <div class="col-3 col-md-3">
+                        <div class="mb-1">
+                            <label class="form-label">
+                                <small>Lokasi Tujuan</small>
+                            </label>
+
+                            <input type="text" class="form-control" id="lokasi_tujuan" name="lokasi_tujuan" list="list_lokasi" autocomplete="off">
+                            <datalist id="list_lokasi">
+                                @foreach($lokasi as $row)
+                                    <option value="{{ $row->lokasi }}">
+                                @endforeach
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <div class="col-3 col-md-3">
+                        <div class="mb-1">
+                            <label class="form-label"><small>Keterangan</small></label>
+                            <input type="text" class="form-control" id="keterangan" name="keterangan" value="">
                         </div>
                     </div>
                 </div>
 
                 <div class="row mt-3">
-                    <div class="col-6 col-md-3">
+                    <div class="col-2 col-md-2">
                         <div class="mb-1">
-                            <label class="form-label"><small>Barcode</small></label>
-                            <input type="text" class="form-control"
-                                style="text-transform: uppercase;"
-                                oninput="this.value = this.value.toUpperCase()"
-                                id="barcode_scan"
-                                name="barcode_scan">
+                            <label class="form-label"><small>Total Roll</small></label>
+                            <input type="text" class="form-control text-end" id="total_roll" name="total_roll" value="" readonly>
                         </div>
                     </div>
+                    <div class="col-2 col-md-2">
+                        <div class="mb-1">
+                            <label class="form-label"><small>Total Qty</small></label>
+                            <input type="text" class="form-control text-end" id="total_qty" name="total_qty" value="" readonly>
+                        </div>
+                    </div>
+                    <div class="col-2 col-md-2">
+                        <div class="mb-1">
+                            <label class="form-label"><small>Scan Barcode</small></label>
+                            <input type="text" class="form-control" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" id="barcode_scan" name="barcode_scan">
+                        </div>
+                    </div>
+
+                    <div class="col-3 col-md-3">
+                        <div class="mb-1">
+                            <label class="form-label"><small>Multi Barcode</small></label>
+                            <textarea class="form-control" id="multi_barcode" name="multi_barcode" rows="5" placeholder="Scan/masukkan banyak barcode (1 baris 1 barcode)"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="col-3 col-lg-3 d-flex align-items-start">
+                        <button 
+                            type="button"
+                            class="btn btn-success w-100 w-lg-50 fw-bold mt-4" 
+                            id="scan_multi_barcode">
+                            Scan Multi Barcode
+                        </button>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -123,9 +170,7 @@
                         <table class="table table-bordered w-100 table" id="datatable">
                             <thead>
                                 <tr>
-                                    <th>id</th>
                                     <th>Barcode</th>
-                                    <th>Lokasi</th>
                                     <th>Buyer</th>
                                     <th>Keterangan</th>
                                     <th>Jenis Item</th>
@@ -134,22 +179,14 @@
                                     <th>No Roll</th>
                                     <th>Qty</th>
                                     <th>Satuan</th>
-                                    <th>Qty Out</th>
                                     <th>Tujuan</th>
+                                    <th>Lokasi Barcode</th>
+                                    <th>Lokasi Tujuan</th>
                                     <th class="text-center">
                                         <input type="checkbox" id="check_all">
                                     </th>
                                 </tr>
                             </thead>
-                            <tfoot>
-                                <tr>
-                                    <th colspan="9" class="text-center">TOTAL</th>
-                                    <th id="total_qty" class="text-end">0</th>
-                                    <th></th>
-                                    <th id="total_qty_out" class="text-end">0</th>
-                                    <th colspan="2"></th>
-                                </tr>
-                            </tfoot>
                         </table>
                     </div>
                     <input type="hidden" name="items" id="items">
@@ -178,6 +215,20 @@
         let table_detail_item;
 
         $(document).ready(async function () {
+
+            $('#lokasi_tujuan').on('input', function () {
+                let lokasi = $(this).val();
+
+                table_detail_item.rows().every(function () {
+                    let data = this.data();
+
+                    data.lokasi_tujuan = lokasi;
+                    this.data(data);
+                });
+
+                table_detail_item.draw(false);
+            });
+
             $('#barcode_scan').focus();
 
             $('#barcode_scan').on('keypress', function(e) {
@@ -185,6 +236,13 @@
                     e.preventDefault();
 
                     let barcode = $(this).val().trim();
+                    let lokasi_tujuan = $('#lokasi_tujuan').val().trim();
+
+                    if (!lokasi_tujuan) {
+                        Swal.fire('Warning', 'Lokasi tujuan wajib diisi!', 'warning');
+                        $('#lokasi_tujuan').focus();
+                        return;
+                    }
 
                     if (!barcode) return;
 
@@ -192,18 +250,44 @@
                     getDataBarcode(barcode);
                 }
             });
+
+            $('#scan_multi_barcode').on('click', function () {
+                let multiBarcode = $('#multi_barcode').val();
+                let lokasi_tujuan = $('#lokasi_tujuan').val().trim();
+
+                if (!lokasi_tujuan) {
+                    Swal.fire('Warning', 'Lokasi tujuan wajib diisi!', 'warning');
+                    $('#lokasi_tujuan').focus();
+                    return;
+                }
+
+                if (!multiBarcode.trim()) {
+                    Swal.fire('Warning', 'Barcode masih kosong!', 'warning');
+                    return;
+                }
+
+                $('#loading').removeClass('d-none');
+
+                let barcodes = multiBarcode
+                    .split('\n')
+                    .map(item => item.trim())
+                    .filter(item => item !== '');
+
+                barcodes = [...new Set(barcodes)];
+
+                barcodes.forEach(function(barcode) {
+                    getDataBarcode(barcode);
+                });
+
+                $('#multi_barcode').val('');
+            });
             
             table_detail_item = $('#datatable').DataTable({
                 processing: true,
                 serverSide: false,
                 data: [],
                 columns: [
-                    {
-                        data: 'id',
-                        visible: false
-                    },
                     { data: 'barcode' },
-                    { data: 'lokasi' },
                     { data: 'buyer' },
                     { data: 'keterangan' },
                     { data: 'jenis_item' },
@@ -224,8 +308,9 @@
                         }
                     },
                     { data: 'satuan' },
-                    { data: 'qty_out', className: 'text-end' },
                     { data: 'tujuan' },
+                    { data: 'lokasi_asal' },
+                    { data: 'lokasi_tujuan' },
                     { 
                         data: null,
                         className: 'text-center',
@@ -272,11 +357,7 @@
                 let rowData = this.data();
                 let rowNode = $(this.node());
 
-                let qty_out = rowNode.find('.qty_out_input').val();
-                let tujuan = rowNode.find('.tujuan_input').val();
-
                 result.push({
-                    id: rowData.id,
                     barcode: rowData.barcode,
                     no_roll: rowData.no_roll,
                     buyer: rowData.buyer,
@@ -285,10 +366,10 @@
                     lot: rowData.lot,
                     qty: rowData.qty,
                     satuan: rowData.satuan,
-                    lokasi: rowData.lokasi,
+                    tujuan: rowData.tujuan,
+                    lokasi_asal: rowData.lokasi_asal,
+                    lokasi_tujuan: rowData.lokasi_tujuan,
                     keterangan: rowData.keterangan,
-                    qty_out: parseFloat(qty_out) || 0,
-                    tujuan: tujuan || '',
                 });
             });
 
@@ -298,7 +379,7 @@
             }
 
             $('#items').val(JSON.stringify(result));
-            $('#store-pengeluaran-gudang-inputan').submit();
+            $('#store-mutasi-rak').submit();
         });
             
         // Select2 Autofocus
@@ -315,27 +396,24 @@
         })
 
         function updateTotalQty() {
-            let total = 0;
-            let total_qty_out = 0;
+            let totalQty = 0;
+            let totalRoll = 0;
 
             table_detail_item.rows().every(function () {
+
                 let rowData = this.data();
-                let rowNode = $(this.node());
 
-                let qty = parseFloat(rowData.qty) || 0;
-                let qty_out = parseFloat(rowNode.find('.qty_out_input').val()) || 0;
-
-                total += qty;
-                total_qty_out += qty_out;
+                totalQty += parseFloat(rowData.qty) || 0;
+                totalRoll++;
             });
 
-            $('#total_qty').text(total.toFixed(2));
-            $('#total_qty_out').text(total_qty_out.toFixed(2));
+            $('#total_qty').val(totalQty.toFixed(2));
+            $('#total_roll').val(totalRoll);
         }
 
         function getDataBarcode(barcode) {
             $.ajax({
-                url: "{{ route('get-data-barcode-pengeluaran-gudang-inputan') }}",
+                url: "{{ route('get-data-barcode-mutasi-rak') }}",
                 type: 'GET',
                 data: { barcode: barcode },
                 success: function(res) {
@@ -367,7 +445,6 @@
                     }
 
                     table_detail_item.row.add({
-                        id: res.id,
                         barcode: res.barcode,
                         no_roll: res.no_roll,
                         buyer: res.buyer,
@@ -376,17 +453,10 @@
                         lot: res.lot,
                         qty: res.qty,
                         satuan: res.satuan,
-                        lokasi: res.lokasi,
+                        tujuan: res.tujuan,
+                        lokasi_asal: res.lokasi,
                         keterangan: res.keterangan,
-                        qty_out: `<input type="number" 
-                            class="form-control form-control-sm qty_out_input text-end" 
-                            value="${parseFloat(res.qty).toFixed(2)}" 
-                            min="1" 
-                            max="${res.qty}" 
-                            >`,
-                        tujuan: `<input type="text"
-                            class="form-control form-control-sm tujuan_input"
-                            >`,
+                        lokasi_tujuan: $("#lokasi_tujuan").val(),
                         action: `<button type="button" class="btn btn-danger btn-sm hapus">Hapus</button>`
                     }).draw(false);
 
@@ -402,40 +472,6 @@
                 }
             });
         }
-
-        $(document).on('blur', '.qty_out_input', function () {
-            let input = $(this);
-            let val = parseFloat(input.val());
-
-            if (!isNaN(val)) {
-                input.val(val.toFixed(2));
-            } else {
-                input.val('0.00');
-            }
-        });
-
-        $(document).on('input', '.qty_out_input', function () {
-            let input = $(this);
-            let value = parseFloat(input.val());
-
-            // ambil data row
-            let row = table_detail_item.row(input.closest('tr'));
-            let data = row.data();
-
-            let maxQty = parseFloat(data.qty);
-
-            if (value > maxQty) {
-                Swal.fire('Warning', 'Qty Out tidak boleh lebih besar dari Qty!', 'warning');
-                input.val(parseFloat(maxQty).toFixed(2));
-                value = maxQty;
-            }
-
-            if (value <= 0 || isNaN(value)) {
-                input.val(1);
-            }
-
-            updateTotalQty();
-        });
 
         $('#check_all').on('change', function () {
             $('.row-check').prop('checked', $(this).prop('checked'));

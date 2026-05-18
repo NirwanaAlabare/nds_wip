@@ -12,16 +12,16 @@
 
 @section('content')
     <div class="d-flex justify-content-between mb-3">
-        <h5 class="fw-bold text-sb"><i class="fa fa-plus fa-sm"></i> Edit Pengeluaran Gudang Inputan (FABRIC)</h5>
-        <a href="{{ route('pengeluaran-gudang-inputan') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali List Pengeluaran Gudang Inputan (FABRIC)</a>
+        <h5 class="fw-bold text-sb"><i class="fa fa-plus fa-sm"></i> Edit Mutasi Rak (FABRIC)</h5>
+        <a href="{{ route('mutasi-rak') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali List Mutasi Rak (FABRIC)</a>
     </div>
-    <form action="{{ route('update-pengeluaran-gudang-inputan', $data->id) }}" method="post" id="store-pengeluaran-gudang-inputan" onsubmit="setItemsBeforeSubmit(this, event)">
+    <form action="{{ route('update-mutasi-rak', $data->id) }}" method="post" id="store-mutasi-rak" onsubmit="setItemsBeforeSubmit(this, event)">
         @csrf
         @method('PUT')
         <div class="card card-sb">
             <div class="card-header">
                 <h5 class="card-title fw-bold">
-                    Header Penginputan
+                    Mutasi Rak
                 </h5>
             </div>
             <div class="card-body">
@@ -29,14 +29,51 @@
                     <div class="row">
                         <div class="col-3 col-md-3">
                             <div class="mb-1">
-                                <label class="form-label"><small>No. BPB</small></label>
-                                <input type="text" class="form-control" id="no_bpb" name="no_bpb" value="{{ $data->no_bpb }}" readonly>
+                                <label class="form-label"><small>No. Mutasi</small></label>
+                                <input type="text" class="form-control" id="no_mutasi" name="no_mutasi" value="{{ $data->no_mutasi }}" readonly>
                             </div>
                         </div>
                         <div class="col-3 col-md-3">
                             <div class="mb-1">
-                                <label class="form-label"><small>Tgl BPB</small></label>
-                                <input type="text" class="form-control" id="tgl_bpb" name="tgl_bpb" value="{{ $data->tgl_bpb }}" readonly>
+                                <label class="form-label"><small>Tgl Mutasi</small></label>
+                                <input type="text" class="form-control" id="tgl_mutasi" name="tgl_mutasi" value="{{ $data->tgl_mutasi }}" readonly>
+                            </div>
+                        </div>
+
+                        <div class="col-3 col-md-3">
+                            <div class="mb-1">
+                                <label class="form-label">
+                                    <small>Lokasi Tujuan</small>
+                                </label>
+
+                                <input type="text" class="form-control" id="lokasi_tujuan" name="lokasi_tujuan" list="list_lokasi" autocomplete="off" value="{{ $data->lokasi_tujuan }}">
+                                <datalist id="list_lokasi">
+                                    @foreach($lokasi as $row)
+                                        <option value="{{ $row->lokasi }}">
+                                    @endforeach
+                                </datalist>
+                            </div>
+                        </div>
+
+                        <div class="col-3 col-md-3">
+                            <div class="mb-1">
+                                <label class="form-label"><small>Keterangan</small></label>
+                                <input type="text" class="form-control" id="keterangan" name="keterangan" value="{{ $data->keterangan }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-2 col-md-2">
+                            <div class="mb-1">
+                                <label class="form-label"><small>Total Roll</small></label>
+                                <input type="text" class="form-control text-end" id="total_roll" name="total_roll" value="" readonly>
+                            </div>
+                        </div>
+                        <div class="col-2 col-md-2">
+                            <div class="mb-1">
+                                <label class="form-label"><small>Total Qty</small></label>
+                                <input type="text" class="form-control text-end" id="total_qty" name="total_qty" value="" readonly>
                             </div>
                         </div>
                     </div>
@@ -62,7 +99,6 @@
                             <thead>
                                 <tr>
                                     <th>Barcode</th>
-                                    <th>Lokasi</th>
                                     <th>Buyer</th>
                                     <th>Keterangan</th>
                                     <th>Jenis Item</th>
@@ -71,53 +107,33 @@
                                     <th>No Roll</th>
                                     <th>Qty</th>
                                     <th>Satuan</th>
-                                    <th>Qty Out</th>
-                                    <th>Tujuan</th>
+                                    <th>Lokasi Barcode</th>
+                                    <th>Lokasi Tujuan</th>
                                     <th class="text-center">
                                         <input type="checkbox" id="check_all">
                                     </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @php
-                                    $totalQtyAct = 0;
-                                @endphp
                                 @foreach($data_detail as $row)
-                                    @php
-                                        $totalQtyAct += $row->qty_act;
-                                    @endphp
                                     <tr data-id="{{ $row->id }}">
                                         <td>{{ $row->barcode }}</td>
-                                        <td class="lokasi">{{ $row->lokasi }}</td>
                                         <td>{{ $row->buyer }}</td>
                                         <td>{{ $row->keterangan }}</td>
                                         <td>{{ $row->jenis_item }}</td>
                                         <td>{{ $row->warna }}</td>
                                         <td>{{ $row->lot }}</td>
                                         <td>{{ $row->no_roll }}</td>
-                                        <td class="text-end qty_act">{{ number_format($row->qty_act, 2) }}</td>
+                                        <td class="text-end qty">{{ number_format($row->qty, 2) }}</td>
                                         <td>{{ $row->satuan }}</td>
-                                        <td>
-                                            <input type="number" step="any" class="form-control form-control-sm text-end qty_out" value="{{ number_format($row->qty_out, 2, '.', '') }}">
-                                        </td>
-                                        <td>
-                                            <input type="text" class="form-control form-control-sm tujuan" value="{{ $row->tujuan }}">
-                                        </td>
+                                        <td>{{ $row->lokasi_asal }}</td>
+                                        <td class="lokasi_tujuan">{{ $row->lokasi_tujuan }}</td>
                                         <td class="text-center">
                                             <input type="checkbox" class="row-check">
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
-                            <tfoot>
-                                <tr>
-                                    <th colspan="8" class="text-center">TOTAL</th>
-                                    <th id="total_qty_act" class="text-end">0</th>
-                                    <th></th>
-                                    <th id="total_qty_out" class="text-end">0</th>
-                                    <th></th>
-                                </tr>
-                            </tfoot>
                         </table>
                     </div>
                     <input type="hidden" name="items" id="items">
@@ -142,9 +158,11 @@
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <!-- Page specific script -->
     <script>
+        let table_detail_item;
+
         $(document).ready(function () {
 
-            $('#datatable').DataTable({
+            table_detail_item = $('#datatable').DataTable({
                 processing: true,
                 serverSide: false,
                 columnDefs: [
@@ -158,32 +176,42 @@
 
             updateTotalQty();
 
+            $('#lokasi_tujuan').on('input', function () {
+
+                let lokasi = $(this).val();
+
+                $('#datatable tbody tr').each(function () {
+                    $(this).find('.lokasi_tujuan').text(lokasi);
+                });
+
+            });
+
         });
 
-        $(document).on('input', '.qty_out', function () {
-            let input = $(this);
-            let val = parseFloat(input.val()) || 0;
+        // $(document).on('input', '.qty_out', function () {
+        //     let input = $(this);
+        //     let val = parseFloat(input.val()) || 0;
 
-            let row = input.closest('tr');
-            let qty_act = parseFloat(row.find('td:eq(8)').text().replace(/,/g, '')) || 0;
+        //     let row = input.closest('tr');
+        //     let qty_act = parseFloat(row.find('td:eq(8)').text().replace(/,/g, '')) || 0;
 
-            if (val > qty_act) {
-                Swal.fire('Warning', 'Qty Out tidak boleh lebih dari Qty!', 'warning');
-                input.val("0"); 
-            }
+        //     if (val > qty_act) {
+        //         Swal.fire('Warning', 'Qty Out tidak boleh lebih dari Qty!', 'warning');
+        //         input.val("0"); 
+        //     }
 
-            updateTotalQty();
-        });
+        //     updateTotalQty();
+        // });
 
-        $(document).on('blur', '.qty_out', function () {
-            let val = parseFloat($(this).val());
+        // $(document).on('blur', '.qty_out', function () {
+        //     let val = parseFloat($(this).val());
 
-            if (!isNaN(val)) {
-                $(this).val(val.toFixed(2));
-            } else {
-                $(this).val('0.00');
-            }
-        });
+        //     if (!isNaN(val)) {
+        //         $(this).val(val.toFixed(2));
+        //     } else {
+        //         $(this).val('0.00');
+        //     }
+        // });
 
         function setItemsBeforeSubmit(form, e) {
             e.preventDefault();
@@ -197,9 +225,7 @@
 
                 data.push({
                     id: row.attr('data-id'),
-                    qty_out: row.find('.qty_out').val(),
-                    tujuan: row.find('.tujuan').val(),
-                    lokasi: row.find('.lokasi').text().trim(),
+                    lokasi_tujuan: row.find('.lokasi_tujuan').text().trim(),
                 });
 
             });
@@ -209,12 +235,12 @@
                 return;
             }
 
-            let invalid = data.some(item => !item.qty_out || item.qty_out <= 0);
+            // let invalid = data.some(item => !item.qty_out || item.qty_out <= 0);
 
-            if (invalid) {
-                Swal.fire('Warning', 'Qty Out tidak boleh kosong atau 0!', 'warning');
-                return;
-            }
+            // if (invalid) {
+            //     Swal.fire('Warning', 'Qty Out tidak boleh kosong atau 0!', 'warning');
+            //     return;
+            // }
 
             $('#items').val(JSON.stringify(data));
 
@@ -233,18 +259,20 @@
         });
 
         function updateTotalQty() {
-            let total_qty_out = 0;
-            let total_qty_act = 0;
+            let totalQty = 0;
+            let totalRoll = 0;
 
-            $('#datatable tbody .qty_out').each(function () {
-                total_qty_out += parseFloat($(this).val() || 0);
-            });
-            $('#datatable tbody .qty_act').each(function () {
-                total_qty_act += parseFloat($(this).text().replace(/,/g, '') || 0);
+            table_detail_item.rows().every(function () {
+
+                let row = $(this.node());
+                let qty = parseFloat(row.find('.qty').text().replace(/,/g, '')) || 0;
+
+                totalQty += qty;
+                totalRoll++;
             });
 
-            $('#total_qty_out').text(total_qty_out.toFixed(2));
-            $('#total_qty_act').text(total_qty_act.toFixed(2));
+            $('#total_qty').val(totalQty.toFixed(2));
+            $('#total_roll').val(totalRoll);
         }
 
         $('#check_all').on('change', function () {

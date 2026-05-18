@@ -14,7 +14,7 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"> Pengeluaran Gudang Inputan (FABRIC)</h5>
+            <h5 class="card-title fw-bold mb-0"> Mutasi Rak (FABRIC)</h5>
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
@@ -32,19 +32,20 @@
                     </div>
                 </div>
                 <div class="d-flex align-items-end gap-3 mb-3">
-                    <a href="{{ route('create-pengeluaran-gudang-inputan') }}" class="btn btn-success btn-sm mb-3"><i class="fa fa-plus"></i> New</a>
+                    <a href="{{ route('create-mutasi-rak') }}" class="btn btn-success btn-sm mb-3"><i class="fa fa-plus"></i> New</a>
                     {{-- <div class="mb-3">
                         <button class="btn btn-success btn-sm" onclick="exportExcel()"><i class="fa fa-file-excel"></i></button>
                     </div> --}}
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-hover table w-100">
+                <table id="datatable" class="table table-bordered table-striped table-hover table w-100">
                     <thead>
                         <tr>
-                            <th>No. BPB</th>
-                            <th>Tgl BPB</th>
-                            <th>Qty Out</th>
+                            <th>No. Mutasi</th>
+                            <th>Tgl Mutasi</th>
+                            <th>Lokasi Tujuan</th>
+                            <th>Keterangan</th>
                             <th>Status</th>
                             <th>Created By</th>
                             <th>Action</th>
@@ -94,7 +95,7 @@
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i != 5) {
+            if (i != 6) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm"/>');
 
@@ -117,7 +118,7 @@
             ordering: false,
             pageLength: 10,
             ajax: {
-                url: '{{ route('pengeluaran-gudang-inputan') }}',
+                url: '{{ route('mutasi-rak') }}',
                 data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
@@ -125,17 +126,16 @@
             },
             columns: [
                 {
-                    data: 'no_bpb'
+                    data: 'no_mutasi'
                 },
                 {
-                    data: 'tgl_bpb'
+                    data: 'tgl_mutasi'
                 },
                 {
-                    data: 'total_qty',
-                    className: 'text-end',
-                    render: function(data, type, row) {
-                        return parseFloat(data).toFixed(2);
-                    }
+                    data: 'lokasi_tujuan'
+                },
+                {
+                    data: 'keterangan'
                 },
                 {
                     data: 'status'
@@ -147,17 +147,9 @@
                     data: 'id'
                 },
             ],
-            createdRow: function(row, data, dataIndex) {
-                if (data.is_mutasi == 1) {
-                    $(row).css({
-                        'background-color': '#fff3cd', 
-                        // 'color': '#664d03'
-                    });
-                }
-            },
             columnDefs: [
                 {
-                    targets: [5],
+                    targets: [6],
                     render: (data, type, row, meta) => {
 
                         let btnEdit = '';
@@ -168,7 +160,7 @@
                         if (row.cancel != 1) {
                             btnPrint = `
                                 <a 
-                                    href="{{ url('pengeluaran-gudang-inputan/print-sj') }}/${row.id}" 
+                                    href="{{ url('mutasi-rak/print-sj') }}/${row.id}" 
                                     target="_blank"
                                     class="btn btn-warning btn-sm"
                                 >
@@ -178,7 +170,7 @@
     
                             btnBarcode = `
                                 <a 
-                                    href="{{ url('pengeluaran-gudang-inputan/print-barcode') }}/${row.id}" 
+                                    href="{{ url('mutasi-rak/print-barcode') }}/${row.id}" 
                                     target="_blank"
                                     class="btn btn-success btn-sm"
                                 >
@@ -187,9 +179,9 @@
                             `;
                         }
 
-                        if (row.cancel != 1 && row.is_mutasi != 1) {
+                        if (row.cancel != 1 && row.is_used != 1) {
                             btnEdit = `
-                                <a href="{{ url('pengeluaran-gudang-inputan/edit') }}/${row.id}">
+                                <a href="{{ url('mutasi-rak/edit') }}/${row.id}">
                                     <button type="button" class="btn btn-sm btn-primary">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
@@ -227,7 +219,7 @@
 
         $(document).on('click', '.btn-delete', function () {
             let id = $(this).data('id');
-            let url = "{{ url('pengeluaran-gudang-inputan/cancel') }}/" + id;
+            let url = "{{ url('mutasi-rak/cancel') }}/" + id;
 
             Swal.fire({
                 title: 'Yakin cancel data ini?',
