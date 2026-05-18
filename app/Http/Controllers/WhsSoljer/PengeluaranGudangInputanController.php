@@ -257,7 +257,6 @@ class PengeluaranGudangInputanController extends Controller
             $now = Carbon::now();
 
             $items = json_decode($request->items, true);
-            dd($items);
 
             if (!$items || !is_array($items)) {
                 return response()->json([
