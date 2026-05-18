@@ -9615,6 +9615,12 @@ order by a.tgl_trans asc
             ->setCellAlignment(CellAlignment::RIGHT)
             ->build();
 
+        $qtyStyle = (new StyleBuilder())
+            ->setBorder($border)
+            ->setCellAlignment(CellAlignment::RIGHT)
+            ->setFormat('0.00')
+            ->build();
+
         $writer = WriterEntityFactory::createXLSXWriter();
 
         $writer->openToBrowser($fileName);
@@ -9670,7 +9676,7 @@ order by a.tgl_trans asc
                 WriterEntityFactory::createCell($row->panel_status, $rowStyle),
                 WriterEntityFactory::createCell($row->nama_part, $rowStyle),
                 WriterEntityFactory::createCell($row->part_status, $rowStyle),
-                WriterEntityFactory::createCell(number_format((float) $row->qty_dc, 2, '.', ''), $rightStyle),
+                WriterEntityFactory::createCell((float) $row->qty_dc, $qtyStyle),
             ];
 
             $writer->addRow(
