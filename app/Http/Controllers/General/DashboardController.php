@@ -1823,8 +1823,9 @@ class DashboardController extends Controller
                     leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
                     leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
                     leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
-                    whereRaw("(MONTH(form_cut_input.waktu_selesai) = '".$month."' OR MONTH(form_cut_reject.updated_at) = '".$month."' OR MONTH(form_cut_piece.waktu_selesai) = '".$month."')")->
-                    whereRaw("(YEAR(form_cut_input.waktu_selesai) = '".$year."' OR YEAR(form_cut_reject.updated_at) = '".$year."' OR YEAR(form_cut_piece.waktu_selesai) = '".$year."')")->
+                    whereRaw("(form_cut_input.waktu_selesai BETWEEN CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01 00:00:00') AND CONCAT(DATE(LAST_DAY(CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01'))), ' 23:59:59')
+                    OR form_cut_reject.updated_at BETWEEN CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01 00:00:00') AND CONCAT(DATE(LAST_DAY(CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01'))), ' 23:59:59')
+                    OR form_cut_piece.waktu_selesai BETWEEN CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01 00:00:00') AND CONCAT(DATE(LAST_DAY(CONCAT('".$year."', '-', LPAD('".$month."', 2, '0'), '-01'))), ' 23:59:59'))")->
                     whereRaw("(form_cut_input.tgl_form_cut >= DATE(NOW()-INTERVAL 6 MONTH) OR form_cut_reject.tanggal >= DATE(NOW()-INTERVAL 6 MONTH) OR form_cut_piece.tanggal >= DATE(NOW()-INTERVAL 6 MONTH))")->
                     orderBy("stocker_input.act_costing_ws", "asc")->
                     orderBy("stocker_input.color", "asc")->
