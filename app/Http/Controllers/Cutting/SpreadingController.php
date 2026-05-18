@@ -767,7 +767,7 @@ class SpreadingController extends Controller
                 marker_input_detail.id
             UNION ALL
             SELECT
-                DATE(form_cut_piece.tanggal) tanggal,
+                DATE(form_cut_piece.waktu_selesai) tanggal,
                 '-' meja,
                 form_cut_piece.act_costing_ws worksheet,
                 form_cut_piece.buyer,
@@ -794,7 +794,7 @@ class SpreadingController extends Controller
                 LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
             WHERE
-                DATE(form_cut_piece.tanggal) between '".$dateFrom."' and '".$dateTo."' and
+                DATE(form_cut_piece.waktu_selesai) between '".$dateFrom."' and '".$dateTo."' and
                 form_cut_piece_detail.status = 'complete' and
                 form_cut_piece.status = 'complete'
             GROUP BY
