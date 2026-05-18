@@ -16,7 +16,7 @@
             <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
             <th colspan="5" style="background-color: #90EE90; text-align:center;">Packing Line</th>
             {{-- <th colspan="4" style="background-color: lightsteelblue; text-align:center;">Transfer Garment</th> --}}
-            <th colspan="4" style="background-color: lightgoldenrodyellow; text-align:center;">Packing
+            <th colspan="5" style="background-color: lightgoldenrodyellow; text-align:center;">Packing
                 Central</th>
         </tr>
         <tr style='text-align:center; vertical-align:middle'>
@@ -36,7 +36,8 @@
             <th style="background-color: lightsteelblue;">Saldo Akhir</th> --}}
             <th style="background-color: lightgoldenrodyellow;">Saldo Awal</th>
             <th style="background-color: lightgoldenrodyellow;">Terima</th>
-            <th style="background-color: lightgoldenrodyellow;">Packing Scan</th>
+            <th style="background-color: lightgoldenrodyellow;">Terima Return</th>
+            <th style="background-color: lightgoldenrodyellow;">Packing Scan FG In</th>
             <th style="background-color: lightgoldenrodyellow;">Saldo Akhir</th>
         </tr>
     </thead>
@@ -62,7 +63,9 @@
                 <td>{{ $item->tg_saldo_akhir }}</td> --}}
                 <td>{{ $item->pc_saldo_awal }}</td>
                 <td>{{ $item->pc_terima }}</td>
-                <td>{{ $item->pc_packing_scan }}</td>
+                 <td>{{ $item->pc_terima_return }}</td>
+                 <td>{{ $item->pc_fg_in }}</td>
+                {{-- <td>{{ $item->pc_packing_scan }}</td> --}}
                 <td>{{ $item->pc_saldo_akhir }}</td>
             </tr>
         @endforeach

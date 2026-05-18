@@ -18,6 +18,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
+use Rap2hpoutre\FastExcel\FastExcel;
+use OpenSpout\Common\Entity\Style\Border;
+use OpenSpout\Common\Entity\Style\Color;
+use OpenSpout\Writer\Common\Creator\Style\BorderBuilder;
+use OpenSpout\Writer\Common\Creator\Style\StyleBuilder;
+use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
+use OpenSpout\Common\Entity\Style\CellAlignment;
 
 class RackStockerController extends Controller
 {
@@ -28,7 +35,19 @@ class RackStockerController extends Controller
      */
     public function index(Request $request)
     {
-        $racks = Rack::with('rackDetails')->limit(2)->get();
+        $group = $request->group ?? 'A';
+
+        $racksQuery = Rack::with('rackDetails');
+
+        if ($group !== 'ALL') {
+            $racksQuery->where('grup', $group);
+        }
+
+        $racks = $racksQuery->get();
+
+        $groups = Rack::select('grup')
+            ->distinct()
+            ->pluck('grup');
 
         $stockers = Stocker::selectRaw("
             stocker_input.id_qr_stocker as stockers,
@@ -53,43 +72,18 @@ class RackStockerController extends Controller
         ->leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")
         ->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")
         ->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")
-        ->whereRaw("
-            rack_detail_stocker.status = 'active' AND
-            rack_detail_stocker.updated_at >= '".date('Y-m-d', strtotime('-7 days'))." 00:00:00'
-        ")
+        ->whereRaw("rack_detail_stocker.status = 'active'")
         ->get();
 
-        // $stockers = Stocker::selectRaw("
-        //     GROUP_CONCAT(stocker_input.id_qr_stocker) stockers,
-        //     rack_detail_stocker.detail_rack_id,
-        //     stocker_input.act_costing_ws,
-        //     marker_input.buyer,
-        //     marker_input.style,
-        //     stocker_input.form_cut_id,
-        //     stocker_input.color,
-        //     COALESCE(master_sb_ws.size, stocker_input.size) size,
-        //     stocker_input.so_det_id,
-        //     form_cut_input.no_cut,
-        //     stocker_input.shade,
-        //     stocker_input.group_stocker,
-        //     stocker_input.ratio,
-        //     stocker_input.qty_ply,
-        //     CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir) as full_range
-        // ")->
-        // leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")->
-        // leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
-        // leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-        // leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
-        // leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-        // leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
-        // whereRaw("
-        //     rack_detail_stocker.status = 'active' and
-        //     rack_detail_stocker.updated_at >= '".(date('Y-m-d', strtotime('-7 days')))." 00:00:00'
-        // ")->
-        // groupBy("rack_detail_stocker.detail_rack_id", "stocker_input.form_cut_id", "stocker_input.so_det_id", "stocker_input.group_stocker", "stocker_input.stocker_reject",)->
-        // get();
-
-        return view('dc.rack.stock-rack', ['page' => 'dashboard-dc', "subPageGroup" => "rak-dc", "subPage" => "stock-rack", 'racks' => $racks, 'stockers' => $stockers]);
+        return view('dc.rack.stock-rack', [
+            'page' => 'dashboard-dc',
+            'subPageGroup' => 'rak-dc',
+            'subPage' => 'stock-rack',
+            'racks' => $racks,
+            'stockers' => $stockers,
+            'groups' => $groups,
+            'selectedGroup' => $group,
+        ]);
     }
 
     /**
@@ -282,6 +276,7 @@ class RackStockerController extends Controller
                 "nm_rak"         => $rackDetail->nama_detail_rak,
                 "qty_in"         => $qty_stocker,
                 "status"         => "active",
+                "updated_at"     => now(), 
             ]
         );
 
@@ -547,10 +542,204 @@ class RackStockerController extends Controller
         return Excel::download(new ExportDataRack($from, $to), 'laporan-data-rack.xlsx');
     }
 
-    public function exportDataRackStockOpname(Request $request) {
-        $from = $request->from;
-        $to = $request->to;
+    // public function exportDataRackStockOpname(Request $request) {
+    //     $from = $request->from;
+    //     $to = $request->to;
 
-        return Excel::download(new ExportDataRackStockOpname($from, $to), 'laporan-data-rack.xlsx');
+    //     return Excel::download(new ExportDataRackStockOpname($from, $to), 'laporan-data-rack.xlsx');
+    // }
+
+    // Pake STYLE tapi tetep lama
+    // public function exportDataRackStockOpname(Request $request)
+    // {
+    //     $data = DB::table('rack_detail')
+    //         ->leftJoin('rack_detail_stocker', 'rack_detail_stocker.detail_rack_id', '=', 'rack_detail.id')
+    //         ->leftJoin('stocker_input', 'stocker_input.id_qr_stocker', '=', 'rack_detail_stocker.stocker_id')
+    //         ->leftJoin('form_cut_input', 'form_cut_input.id', '=', 'stocker_input.form_cut_id')
+    //         ->leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')
+    //         ->leftJoin('part_detail', 'part_detail.id', '=', 'stocker_input.part_detail_id')
+    //         ->leftJoin('master_part', 'master_part.id', '=', 'part_detail.master_part_id')
+    //         ->leftJoin('master_sb_ws', 'master_sb_ws.id_so_det', '=', 'stocker_input.so_det_id')
+    //         ->where('rack_detail_stocker.status', 'active')
+    //         ->select([
+    //             'rack_detail.nama_detail_rak as no_rak',
+    //             'stocker_input.id_qr_stocker as no_stocker',
+    //             'marker_input.act_costing_ws as no_ws',
+    //             'form_cut_input.no_cut',
+    //             'marker_input.style',
+    //             'marker_input.color',
+    //             'master_part.nama_part as part',
+    //             DB::raw('COALESCE(master_sb_ws.size, stocker_input.size) as size'),
+    //             'rack_detail_stocker.qty_in',
+    //             'rack_detail_stocker.updated_at'
+    //         ])
+    //         ->orderBy('rack_detail.nama_detail_rak')
+    //         ->get();
+
+    //     $rows = $data->map(function ($row) {
+    //         return [
+    //             'No Rak'      => $row->no_rak,
+    //             'No Stocker'  => $row->no_stocker,
+    //             'No WS'       => $row->no_ws,
+    //             'No Cut'      => $row->no_cut,
+    //             'Style'       => $row->style,
+    //             'Color'       => $row->color,
+    //             'Part'        => $row->part,
+    //             'Size'        => $row->size,
+    //             'Qty'         => $row->qty_in,
+    //             'Tgl Scan'    => date('d-m-Y', strtotime($row->updated_at)),
+    //         ];
+    //     });
+
+    //     $filePath = storage_path('app/laporan-data-rack.xlsx');
+
+    //     (new FastExcel($rows))->export($filePath);
+
+    //     $spreadsheet = IOFactory::load($filePath);
+    //     $sheet = $spreadsheet->getActiveSheet();
+
+    //     $sheet->insertNewRowBefore(1, 2);
+
+    //     $highestRow = $sheet->getHighestRow();
+    //     $highestColumn = $sheet->getHighestColumn();
+
+    //     $sheet->setCellValue('A1', 'Laporan Data Stock Opname');
+    //     $sheet->mergeCells("A1:{$highestColumn}1");
+
+    //     $sheet->getStyle("A1")->getFont()->setBold(true)->setSize(14);
+    //     $sheet->getStyle("A1")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+    //     $sheet->getStyle("A3:{$highestColumn}3")->getFont()->setBold(true);
+    //     $sheet->getStyle("A3:{$highestColumn}3")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+    //     $sheet->getStyle("A3:{$highestColumn}{$highestRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+    //     $sheet->getStyle("I4:I{$highestRow}")->getNumberFormat()->setFormatCode('#,##0.00');
+
+    //     foreach (range('A', $highestColumn) as $column) {
+    //         $sheet->getColumnDimension($column)->setAutoSize(true);
+    //     }
+
+    //     $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+    //     $writer->save($filePath);
+
+    //     return response()->download($filePath)->deleteFileAfterSend(true);
+    // }
+
+    public function exportDataRackStockOpname(Request $request)
+    {
+        $data = DB::table('rack_detail')
+            ->leftJoin('rack_detail_stocker', 'rack_detail_stocker.detail_rack_id', '=', 'rack_detail.id')
+            ->leftJoin('stocker_input', 'stocker_input.id_qr_stocker', '=', 'rack_detail_stocker.stocker_id')
+            ->leftJoin('form_cut_input', 'form_cut_input.id', '=', 'stocker_input.form_cut_id')
+            ->leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')
+            ->leftJoin('part_detail', 'part_detail.id', '=', 'stocker_input.part_detail_id')
+            ->leftJoin('master_part', 'master_part.id', '=', 'part_detail.master_part_id')
+            ->leftJoin('master_sb_ws', 'master_sb_ws.id_so_det', '=', 'stocker_input.so_det_id')
+            ->where('rack_detail_stocker.status', 'active')
+            ->select([
+                'rack_detail.nama_detail_rak as no_rak',
+                'stocker_input.id_qr_stocker as no_stocker',
+                'marker_input.act_costing_ws as no_ws',
+                'form_cut_input.no_cut',
+                'marker_input.style',
+                'marker_input.color',
+                'master_part.nama_part as part',
+                DB::raw('COALESCE(master_sb_ws.size, stocker_input.size) as size'),
+                'rack_detail_stocker.qty_in',
+                'rack_detail_stocker.updated_at'
+            ])
+            ->orderBy('rack_detail.nama_detail_rak')
+            ->get();
+
+        $fileName = 'laporan-data-rack.xlsx';
+
+        $border = (new BorderBuilder())
+            ->setBorderBottom(Color::BLACK, Border::WIDTH_THIN)
+            ->setBorderTop(Color::BLACK, Border::WIDTH_THIN)
+            ->setBorderLeft(Color::BLACK, Border::WIDTH_THIN)
+            ->setBorderRight(Color::BLACK, Border::WIDTH_THIN)
+            ->build();
+
+        $titleStyle = (new StyleBuilder())
+            ->setFontBold()
+            ->setFontSize(14)
+            ->build();
+
+        $headerStyle = (new StyleBuilder())
+            ->setFontBold()
+            ->setBorder($border)
+            ->build();
+
+        $rowStyle = (new StyleBuilder())
+            ->setBorder($border)
+            ->build();
+
+        $qtyStyle = (new StyleBuilder())
+            ->setBorder($border)
+            ->setCellAlignment(CellAlignment::RIGHT)
+            ->build();
+
+        $writer = WriterEntityFactory::createXLSXWriter();
+
+        $writer->openToBrowser($fileName);
+
+        $writer->addRow(
+            WriterEntityFactory::createRowFromArray(
+                ['Laporan Data Stock Opname'],
+                $titleStyle
+            )
+        );
+
+        $writer->addRow(
+            WriterEntityFactory::createRowFromArray([])
+        );
+
+        $writer->addRow(
+            WriterEntityFactory::createRowFromArray([
+                'No Rak',
+                'No Stocker',
+                'No WS',
+                'No Cut',
+                'Style',
+                'Color',
+                'Part',
+                'Size',
+                'Qty',
+                'Tgl Scan'
+            ], $headerStyle)
+        );
+
+        foreach ($data as $row) {
+
+            $cells = [
+                WriterEntityFactory::createCell($row->no_rak, $rowStyle),
+                WriterEntityFactory::createCell($row->no_stocker, $rowStyle),
+                WriterEntityFactory::createCell($row->no_ws, $rowStyle),
+                WriterEntityFactory::createCell($row->no_cut, $rowStyle),
+                WriterEntityFactory::createCell($row->style, $rowStyle),
+                WriterEntityFactory::createCell($row->color, $rowStyle),
+                WriterEntityFactory::createCell($row->part, $rowStyle),
+                WriterEntityFactory::createCell($row->size, $rowStyle),
+
+                WriterEntityFactory::createCell(
+                    number_format((float) $row->qty_in, 2, '.', ''),
+                    $qtyStyle
+                ),
+
+                WriterEntityFactory::createCell(
+                    date('d-m-Y', strtotime($row->updated_at)),
+                    $rowStyle
+                ),
+            ];
+
+            $writer->addRow(
+                WriterEntityFactory::createRow($cells)
+            );
+        }
+
+        $writer->close();
+
+        exit;
     }
 }

@@ -61,7 +61,7 @@ class PurchasingController extends Controller
                                         <button type="button" class="btn btn-sm btn-success mr-1 btn-restore" data-id="'.$row->id.'" title="Restore ke Draft"><i class="fas fa-undo"></i></button>
                                         <button type="button" class="btn btn-sm btn-primary mr-1 btn-view" data-id="'.$row->id.'" title="View"><i class="fas fa-eye"></i></button>
                                         <a href="' . $url_pdf . '" class="btn btn-sm btn-secondary mr-1" title="Print" target="_blank"><i class="fas fa-print"></i></a>
-                                        <a href="' . $urlExcel . '" class="btn btn-sm btn-success" title="Export Excel"><i class="fas fa-file-excel"></i></a>
+                                        <a href="' . $urlExcel . '" class="btn btn-sm btn-success btn-export-excel" title="Export Excel"><i class="fas fa-file-excel"></i></a>
                                     </div>';
                         } else {
                             return '<div class="d-flex justify-content-center">
@@ -69,7 +69,7 @@ class PurchasingController extends Controller
                                         <button type="button" class="btn btn-sm btn-danger mr-1 btn-cancel" data-id="'.$row->id.'" title="Cancel PO"><i class="fas fa-times"></i></button>
                                         <button type="button" class="btn btn-sm btn-primary mr-1 btn-view" data-id="'.$row->id.'" title="View"><i class="fas fa-eye"></i></button>
                                         <a href="' . $url_pdf . '" class="btn btn-sm btn-secondary mr-1" title="Print" target="_blank"><i class="fas fa-print"></i></a>
-                                        <a href="' . $urlExcel . '" class="btn btn-sm btn-success" title="Export Excel"><i class="fas fa-file-excel"></i></a>
+                                        <a href="' . $urlExcel . '" class="btn btn-sm btn-success btn-export-excel" title="Export Excel"><i class="fas fa-file-excel"></i></a>
                                     </div>';
                         }
                     } else {
@@ -77,7 +77,7 @@ class PurchasingController extends Controller
                                     <button type="button" class="btn btn-sm btn-primary mr-1 btn-view" data-id="'.$row->id.'" title="View"><i class="fas fa-eye"></i></button>
                                     <a href="' . $url_pdf . '" class="btn btn-sm btn-secondary mr-1" title="Print" target="_blank"><i class="fas fa-print"></i></a>
                                     <button type="button" class="btn btn-sm btn-warning mr-1 btn-edit-date" data-id="'.$row->id.'" data-etd="'.$row->etd.'" data-eta="'.$row->eta.'" title="Update ETD & ETA"><i class="fas fa-calendar-alt"></i></button>
-                                    <a href="' . $urlExcel . '" class="btn btn-sm btn-success" title="Export Excel"><i class="fas fa-file-excel"></i></a>
+                                    <a href="' . $urlExcel . '" class="btn btn-sm btn-success btn-export-excel" title="Export Excel"><i class="fas fa-file-excel"></i></a>
                                 </div>';
                     }
                 })
@@ -245,6 +245,16 @@ class PurchasingController extends Controller
 
         if (!$so) return response()->json([]);
 
+        $bom_header = $mysql_sb->table('bom_marketing')->where('id', $id_bom)->first();
+        $costing_prices = [];
+
+        if ($bom_header && $bom_header->id_costing) {
+            $costing_prices = $mysql_sb->table('act_costing_detail_new')
+                ->where('id_costing', $bom_header->id_costing)
+                ->pluck('price', 'item_id')
+                ->toArray();
+        }
+
         $so_details = $mysql_sb->table('so_det as sd')
             ->leftJoin('master_colors_gmt as c', 'sd.id_color', '=', 'c.id')
             ->leftJoin('master_size_new as s', 'sd.id_size', '=', 's.id')
@@ -335,14 +345,18 @@ class PurchasingController extends Controller
                         elseif (strpos($nama_group, 'PACKING') !== false) $sort_val = 3;
                         elseif ($bom->category === 'Manufacturing') $sort_val = 4;
 
+
+                        $harga_costing = $costing_prices[$bom->id_contents] ?? 0;
+
                         $grouped_data[$key] = [
-                            'id_item'     => $bom->id_item,
-                            'itemdesc'    => $bom->item_desc_formatted,
-                            'cons_bom'    => 0,
-                            'cons_asli'   => (float) $bom->cons,
-                            'unit'        => $bom->unit,
-                            'product_set' => $display_set,
-                            'sort_group'  => $sort_val
+                            'id_item'       => $bom->id_item,
+                            'itemdesc'      => $bom->item_desc_formatted,
+                            'cons_bom'      => 0,
+                            'cons_asli'     => (float) $bom->cons,
+                            'unit'          => $bom->unit,
+                            'product_set'   => $display_set,
+                            'sort_group'    => $sort_val,
+                            'costing_price' => (float) $harga_costing
                         ];
                     }
 
@@ -928,7 +942,7 @@ class PurchasingController extends Controller
         }
     }
 
-   public function exportExcel($id)
+    public function exportExcel($id)
     {
         $header = DB::connection('mysql_sb')->table('po_header as h')
             ->leftJoin('mastersupplier as s', 'h.id_supplier', '=', 's.Id_Supplier')
@@ -942,7 +956,7 @@ class PurchasingController extends Controller
         $po_no = str_replace('/', '_', $header->pono);
         $file_name = 'PO_' . $po_no . '.xlsx';
 
-        return Excel::download(new class($id, $header) implements FromCollection, WithHeadings, WithMapping, WithStyles {
+        $exportData = new class($id, $header) implements \Maatwebsite\Excel\Concerns\FromCollection, \Maatwebsite\Excel\Concerns\WithHeadings, \Maatwebsite\Excel\Concerns\WithMapping, \Maatwebsite\Excel\Concerns\WithStyles {
             protected $id_po;
             protected $header;
 
@@ -959,9 +973,23 @@ class PurchasingController extends Controller
                     ->leftJoin('bom_marketing as bm', 'pi.id_bom', '=', 'bm.id')
                     ->leftJoin('act_costing_new as acn', 'bm.id_costing', '=', 'acn.id')
                     ->select(
-                        'h.podate', 'h.pono', 'h.jenis', 's.Supplier as nama_supplier',
-                        'acn.style', 'mi.itemdesc', 'pi.product_set', 'pi.qty_pr_awal', 'pi.unit_pr_awal',
-                        'pi.convert_val', 'pi.qty', 'pi.unit', 'pi.price', 'h.n_kurs', 'h.notes'
+                        'h.podate',
+                        'h.pono',
+                        'h.jenis',
+                        's.Supplier as nama_supplier',
+                        'acn.style',
+                        'mi.itemdesc',
+                        'pi.product_set',
+                        'pi.qty_pr_awal',
+                        'pi.unit_pr_awal',
+                        'pi.convert_val',
+                        'pi.qty',
+                        'pi.unit',
+                        'pi.price',
+                        'h.n_kurs',
+                        'h.notes',
+                        'h.etd',
+                        'h.eta'
                     )
                     ->where('pi.id_po', $this->id_po)
                     ->get();
@@ -977,7 +1005,6 @@ class PurchasingController extends Controller
                     ['NIRWANA ALABARE GARMENT'],
                     ['PURCHASE ORDER (' . $po_no_tampil . ')'],
                     [''],
-
                     ['INFO PO'],
                     ['No PO:', $po_no_tampil, '', 'Tanggal PO:', (date('d-m-Y', strtotime($this->header->podate))), '', 'Supplier:', $this->header->nama_supplier, '', 'Jenis Item:', $jenis_item],
                     ['P Terms (Days):', $p_terms, '', 'Tax:', $this->header->tax ?? '-', '', 'Kurs:', $kurs, '', 'Tipe Comm:', $this->header->tipe_commercial ?? '-'],
@@ -1000,16 +1027,25 @@ class PurchasingController extends Controller
                         'Price',
                         'Kurs',
                         'Total (Price * Qty)',
-                        'Notes'
+                        'Notes',
+                        'ETD',
+                        'ETA'
                     ]
                 ];
             }
 
             public function map($row): array {
+                $jenis_item = match($row->jenis) {
+                    'M' => 'Manufacturing',
+                    'P' => 'Material',
+                    'N' => 'General',
+                    default => '-'
+                };
+
                 return [
                     $row->podate,
                     $row->pono ?: '-',
-                    $row->jenis,
+                    $jenis_item,
                     $row->nama_supplier,
                     $row->style ?: '-',
                     $row->itemdesc,
@@ -1022,18 +1058,16 @@ class PurchasingController extends Controller
                     $row->price,
                     $row->n_kurs,
                     $row->qty * $row->price,
-                    $row->notes
+                    $row->notes,
+                    $row->etd ?? '-',
+                    $row->eta ?? '-',
                 ];
             }
 
-            public function styles(Worksheet $sheet)
-            {
-                $sheet->mergeCells('A1:P1');
-                $sheet->mergeCells('A2:P2');
-                $sheet->mergeCells('A4:P4');
-                $sheet->mergeCells('A9:P9');
-
-                $sheet->mergeCells('B7:P7');
+            public function styles(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet) {
+                $sheet->mergeCells('A1:R1'); $sheet->mergeCells('A2:R2');
+                $sheet->mergeCells('A4:R4'); $sheet->mergeCells('A9:R9');
+                $sheet->mergeCells('B7:R7');
 
                 $cellsToBold = ['A5', 'D5', 'G5', 'J5', 'A6', 'D6', 'G6', 'J6', 'A7'];
                 foreach ($cellsToBold as $cell) {
@@ -1041,20 +1075,21 @@ class PurchasingController extends Controller
                 }
 
                 return [
-                    1 => [
-                        'font' => ['bold' => true, 'size' => 14],
-                        'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]
-                    ],
-                    2 => [
-                        'font' => ['bold' => true, 'size' => 12],
-                        'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]
-                    ],
+                    1 => ['font' => ['bold' => true, 'size' => 14], 'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER]],
+                    2 => ['font' => ['bold' => true, 'size' => 12], 'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER]],
                     4 => ['font' => ['bold' => true, 'size' => 12]],
                     9 => ['font' => ['bold' => true, 'size' => 12]],
                     10 => ['font' => ['bold' => true]],
                 ];
             }
-        }, $file_name);
+        };
+
+        $rawExcel = \Maatwebsite\Excel\Facades\Excel::raw($exportData, \Maatwebsite\Excel\Excel::XLSX);
+
+        return response($rawExcel)
+            ->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            ->header('Content-Disposition', 'attachment; filename="' . $file_name . '"')
+            ->header('Cache-Control', 'max-age=0');
     }
 
     public function cancel(Request $request, $id)

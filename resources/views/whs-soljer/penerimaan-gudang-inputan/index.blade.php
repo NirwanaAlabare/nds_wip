@@ -39,7 +39,7 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-hover table w-100">
+                <table id="datatable" class="table table-bordered table-hover table w-100">
                     <thead>
                         <tr>
                             <th>No. BPB</th>
@@ -147,6 +147,14 @@
                     data: 'id'
                 },
             ],
+            createdRow: function(row, data, dataIndex) {
+                if (data.is_mutasi == 1) {
+                    $(row).css({
+                        'background-color': '#fff3cd', 
+                        // 'color': '#664d03'
+                    });
+                }
+            },
             columnDefs: [
                 {
                     targets: [5],
@@ -159,8 +167,8 @@
 
                         if (row.cancel != 1) {
                             btnPrint = `
-                                <a 
-                                    href="{{ url('penerimaan-gudang-inputan/print-sj') }}/${row.id}" 
+                                <a
+                                    href="{{ url('penerimaan-gudang-inputan/print-sj') }}/${row.id}"
                                     target="_blank"
                                     class="btn btn-warning btn-sm"
                                 >
@@ -169,8 +177,8 @@
                             `;
 
                             btnBarcode = `
-                                <a 
-                                    href="{{ url('penerimaan-gudang-inputan/print-barcode') }}/${row.id}" 
+                                <a
+                                    href="{{ url('penerimaan-gudang-inputan/print-barcode') }}/${row.id}"
                                     target="_blank"
                                     class="btn btn-success btn-sm"
                                 >
@@ -179,7 +187,7 @@
                             `;
                         }
 
-                        if (row.cancel != 1 && row.is_used != 1) {
+                        if (row.cancel != 1 && row.is_used != 1 && row.is_mutasi != 1) {
                             btnEdit = `
                                 <a href="{{ url('penerimaan-gudang-inputan/edit') }}/${row.id}">
                                     <button type="button" class="btn btn-sm btn-primary">
@@ -188,12 +196,14 @@
                                 </a>
                             `;
 
-                            btnDelete = `
-                                <button type="button" class="btn btn-sm btn-danger btn-delete"
-                                    data-id="${row.id}">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                            `;
+                            if(row.is_used_pengeluaran != 1){
+                                btnDelete = `
+                                    <button type="button" class="btn btn-sm btn-danger btn-delete"
+                                        data-id="${row.id}">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                `;
+                            }
                         }
 
                         return `
