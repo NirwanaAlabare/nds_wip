@@ -362,6 +362,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/report_pengeluaran_cutting', 'report_pengeluaran_cutting')->name('report_pengeluaran_cutting');
             Route::get('/report_pengeluaran_cutting_panel', 'report_pengeluaran_cutting_panel')->name('report_pengeluaran_cutting_panel');
             Route::get('/report_return_fabric_cutting', 'report_return_fabric_cutting')->name('report_return_fabric_cutting');
+            Route::get('/roll_fabric_cutting_in', 'roll_fabric_cutting_in')->name('roll_fabric_cutting_in');
+
 
             // export excel
             Route::post('/cutting/export', 'export')->name('report-cutting-export');
@@ -377,6 +379,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/export_excel_report_pengeluaran_cutting', 'export_excel_report_pengeluaran_cutting')->name('export_excel_report_pengeluaran_cutting');
             Route::get('/export_excel_report_pengeluaran_cutting_panel', 'export_excel_report_pengeluaran_cutting_panel')->name('export_excel_report_pengeluaran_cutting_panel');
             Route::get('/export_excel_report_return_fabric_cutting', 'export_excel_report_return_fabric_cutting')->name('export_excel_report_return_fabric_cutting');
+            Route::get('/export_roll_fabric_cutting_in', 'export_roll_fabric_cutting_in')->name('export_roll_fabric_cutting_in');
         });
 
         // Roll
@@ -399,9 +402,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/alokasi_fabric_gr_panel', 'alokasi_fabric_gr_panel')->name('alokasi_fabric_gr_panel');
             Route::get('/create_alokasi_fabric_gr_panel', 'create_alokasi_fabric_gr_panel')->name('create_alokasi_fabric_gr_panel');
             Route::post('/save_alokasi_fabric_gr_panel', 'save_alokasi_fabric_gr_panel')->name('save_alokasi_fabric_gr_panel');
-            // Penerimaan Fabric Cutting
-            Route::get('/roll_fabric_cutting_in', 'roll_fabric_cutting_in')->name('roll_fabric_cutting_in');
-            Route::get('/export_roll_fabric_cutting_in', 'export_roll_fabric_cutting_in')->name('export_roll_fabric_cutting_in');
+            
         });
 
         // Ganti Reject GR
