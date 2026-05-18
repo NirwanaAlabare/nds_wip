@@ -852,14 +852,14 @@ class export_excel_report_mut_wip_cutting_detail implements FromView, ShouldAuto
                     ) k on a.id_so_det = k.id_so_det
                     LEFT JOIN signalbit_erp.master_size_new msn on k.size = msn.size
                     group by
-                        ws, color, size, a.panel, master_part_id
+                        ws, color, size, a.panel, nama_part
                     HAVING
                         (SUM(qty_cut_awal) - SUM(qty_dc_awal)) <> 0
                         OR SUM(qty_cut) <> 0
                         OR SUM(qty_dc) <> 0
                         OR ( (SUM(qty_cut_awal) - SUM(qty_dc_awal) ) + SUM(qty_cut) - SUM(qty_dc) ) <> 0
                     ORDER BY
-                        ws asc, color asc, size asc, panel, part_detail_id, urutan asc
+                        ws asc, color asc, size asc, panel, nama_part, urutan asc
         ");
 
         $this->rowCount = count($rawData) + 1; // 1 for header
