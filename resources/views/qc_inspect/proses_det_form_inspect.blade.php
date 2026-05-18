@@ -55,12 +55,13 @@
                             </label>
                             <div class="input-group">
                                 <input type="text" class="form-control  border-input" name="txtqr_operator"
-                                    id="txtqr_operator" autocomplete="off" enterkeyhint="go" autofocus>
+                                    id="txtqr_operator" autocomplete="off" enterkeyhint="go" autofocus
+                                    onkeydown="if(event.key==='Enter'){event.preventDefault();start_form();}">
 
-                                <!-- Scan label aligned properly with input -->
-                                <span class="input-group-text  bg-light text-muted py-0 px-2">
+                                <!-- Scan button triggers start_form -->
+                                <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" onclick="start_form()">
                                     <small>Scan</small>
-                                </span>
+                                </button>
                             </div>
                         </div>
                         <div class="col-md-12 mt-3">
@@ -90,6 +91,14 @@
                         onclick="stopScannerFabric()"></button>
                 </div>
                 <div class="modal-body text-center">
+                    <div class="input-group mb-3 px-2">
+                        <input type="text" class="form-control border-input" id="txtmanual_fabric"
+                            placeholder="Ketik / scan barcode..." autocomplete="off" enterkeyhint="go"
+                            onkeydown="if(event.key==='Enter'){event.preventDefault();submitManualFabric();}">
+                        <button type="button" class="btn btn-outline-primary" onclick="submitManualFabric()">
+                            <small>Scan</small>
+                        </button>
+                    </div>
                     <div id="reader_fabric" style="width: 300px; height: 300px; margin: auto;"></div>
                 </div>
             </div>
@@ -757,6 +766,11 @@
             stopScannerOperator();
         });
 
+        // Autofocus txtqr_operator when modal is fully shown
+        document.getElementById('startFormModal').addEventListener('shown.bs.modal', function() {
+            document.getElementById('txtqr_operator').focus();
+        });
+
 
         let html5QrcodeScanner = null;
 
@@ -846,6 +860,8 @@
                             icon: 'error',
                             title: 'Data Tidak Ditemukan',
                             text: 'Operator tidak terdaftar di HRIS.'
+                        }).then(() => {
+                            $('#txtqr_operator').val('').focus();
                         });
                         return;
                     }
@@ -893,6 +909,8 @@
                                     });
                                 }
                             });
+                        } else {
+                            $('#txtqr_operator').val('').focus();
                         }
                     });
                 },
@@ -902,6 +920,8 @@
                         icon: 'error',
                         title: 'Error',
                         text: 'Terjadi kesalahan saat mengambil data operator.'
+                    }).then(() => {
+                        $('#txtqr_operator').val('').focus();
                     });
                 }
             });
@@ -913,11 +933,36 @@
 
         function openScannerModalFabric() {
             isProcessingScan = false;
+            $('#txtmanual_fabric').val('');
 
             const modal = new bootstrap.Modal(document.getElementById('qrScannerModalFabric'));
             modal.show();
 
             initScanFabric();
+        }
+
+        // Autofocus manual input when fabric modal opens
+        document.getElementById('qrScannerModalFabric').addEventListener('shown.bs.modal', function() {
+            document.getElementById('txtmanual_fabric').focus();
+        });
+
+        function submitManualFabric() {
+            const barcode = $('#txtmanual_fabric').val().trim();
+            if (!barcode) return;
+
+            if (isProcessingScan) return;
+            isProcessingScan = true;
+
+            check_barcode(barcode, function(confirmed) {
+                isProcessingScan = false;
+                if (confirmed) {
+                    stopScannerFabric();
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('qrScannerModalFabric'));
+                    if (modal) modal.hide();
+                } else {
+                    $('#txtmanual_fabric').val('').focus();
+                }
+            });
         }
 
 
