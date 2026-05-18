@@ -700,44 +700,6 @@
         });
     }
 
-    // $('#product_set').on('select2:unselect', function (e) {
-    //     // 1. Ambil data Set yang barusan diklik tanda silang (X)
-    //     let removedSetId = e.params.data.id;
-    //     let removedSetText = e.params.data.text.toUpperCase().trim();
-
-    //     // 2. Lakukan pengecekan ke tabel detail (.row-costing)
-    //     let foundCount = 0;
-    //     $('.row-costing').each(function() {
-    //         // Ambil teks dari kolom Set di tiap baris
-    //         let rowSet = $(this).find('.set-td').text().toUpperCase().trim();
-
-    //         if (rowSet === removedSetText) {
-    //             foundCount++;
-    //         }
-    //     });
-
-    //     // 3. Jika ditemukan baris yang menggunakan Set tersebut, blokir penghapusan
-    //     if (foundCount > 0) {
-    //         Swal.fire({
-    //             icon: 'warning',
-    //             title: 'Gagal Menghapus Set!',
-    //             html: `Masih ada <b>${foundCount} baris</b> di tabel detail yang menggunakan Set <b>${removedSetText}</b>.<br><br>Silakan hapus semua baris tersebut terlebih dahulu!`,
-    //             confirmButtonColor: '#3085d6',
-    //         });
-
-    //         // Batalkan penghapusan di UI Select2 (masukkan kembali valuenya)
-    //         let currentValues = $(this).val() || [];
-    //         if (!currentValues.includes(removedSetId)) {
-    //             currentValues.push(removedSetId);
-    //             $(this).val(currentValues).trigger('change');
-    //         }
-
-    //         return false;
-    //     }
-
-    //     console.log(`Set ${removedSetText} berhasil dihapus dari header.`);
-    // });
-
     function autosave_header() {
         let form = $('#form-header');
         $.ajax({
@@ -804,34 +766,6 @@
         autosave_header();
     });
 
-    // function sync_set_dropdowns() {
-    //     let type = $('#type').val();
-    //     let optionsHtml = '<option value="">-- Set --</option>';
-
-    //     if (type === 'multiple') {
-    //         $('#product_set option:selected').each(function() {
-    //             let id = $(this).val();
-    //             let text = $(this).text().trim();
-    //             optionsHtml += `<option value="${id}">${text}</option>`;
-    //         });
-    //     }
-
-    //     let current_txt_set = $('#txt_set').val();
-    //     let current_m_set = $('#m_set').val();
-
-    //     $('#txt_set').html(optionsHtml);
-    //     $('#m_set').html(optionsHtml);
-
-    //     if ($('#txt_set option[value="'+current_txt_set+'"]').length > 0) {
-    //         $('#txt_set').val(current_txt_set);
-    //     }
-    //     if ($('#m_set option[value="'+current_m_set+'"]').length > 0) {
-    //         $('#m_set').val(current_m_set);
-    //     }
-    // }
-
-    // sync_set_dropdowns();
-
     $(document).ready(function() {
         $('.select2bs4').select2({ theme: 'bootstrap4', width: '100%' });
 
@@ -870,7 +804,7 @@
 
         $('#shipment_type').on('change', function() {
             check_shipment_type();
-     });
+        });
 
         $('#shipment_type').on('change', function() {
             let shipment_type = $(this).val();
@@ -919,36 +853,6 @@
         if ($('#product_group').val() !== '') {
             loadProductItems($('#product_group').val());
         }
-
-        // $('#category').on('change', function() {
-        //     let cat = $(this).val();
-        //     let select_item = $('#txt_item');
-
-        //     if (select_item.data("select2")) {
-        //         select_item.select2('destroy');
-        //     }
-
-        //     select_item.html('<option value="" disabled selected>Sedang Menarik Data Item...</option>');
-        //     select_item.select2({ theme: 'bootstrap4', width: '100%' });
-
-        //     if (cat) {
-        //         let cat_query = cat;
-
-        //         $.ajax({
-        //             url: "{{ route('get-item-contents') }}",
-        //             type: "GET",
-        //             data: { kategori: cat_query },
-        //             success: function(res) {
-        //                 if (select_item.data("select2")) {
-        //                     select_item.select2('destroy');
-        //                 }
-        //                 select_item.html(res);
-        //                 select_item.select2({ theme: 'bootstrap4', width: '100%' });
-        //             },
-        //             error: function() { alert('Gagal mengambil data item dari server.'); }
-        //         });
-        //     }
-        // });
 
         $('#category').on('change', function() {
             let cat = $(this).val();
@@ -1014,28 +918,14 @@
             prev_dest_count = curr_count;
         });
 
-    //    $('#product_set').on('change', function() {
-    //         // sync_set_dropdowns();
-    //         calculate_summary();
-    //     });
-
         $('#type').on('change', function() {
             lock_type_dropdown();
-            // sync_set_dropdowns();
         });
-
-        // sync_set_dropdowns();
 
         $('#txt_item, #txt_set').on('change', function() {
             let cat = $('#category').val();
             let selected_item = $('#txt_item').val();
             let selected_set = $('#txt_set').val() || '';
-            // if (cat && selected_item) {
-            //     if (check_duplicate(cat, selected_item, selected_set)) {
-            //         Swal.fire('Peringatan!', 'Item dan Set ini <b>sudah ada</b> di tabel. Silakan pilih yang berbeda.', 'error');
-            //         $(this).val('').trigger('change');
-            //     }
-            // }
         });
 
         $('#m_item, #m_set').on('change', function() {
@@ -1043,64 +933,8 @@
             let selected_item = $('#m_item').val();
             let selected_set = $('#m_set').val() || '';
             let current_row_id = 'row-' + $('#m_id_detail').val();
-
-            // if (cat && selected_item) {
-            //     if (check_duplicate(cat, selected_item, selected_set, current_row_id)) {
-            //         Swal.fire('Peringatan!', 'Item dan Set ini <b>sudah ada</b> di baris lain. Silakan pilih yang berbeda.', 'error');
-            //         $(this).val('').trigger('change');
-            //     }
-            // }
         });
     });
-
-    // function calculate_template() {
-    //     let rate_to_idr = parseFloat($('#rate_to_idr').val()) || 0;
-    //     let rate_from_idr = parseFloat($('#rate_from_idr').val()) || 0;
-
-    //     let cat = $('#category').val();
-    //     let curr = $('#txt_curr option:selected').text().trim().toUpperCase();
-    //     let price = parseFloat($('#txt_price').val()) || 0;
-    //     let cons = parseFloat($('#txt_cons').val()) || 0;
-    //     let allow_pct = parseFloat($('#txt_allowance').val()) || 0;
-    //     let item_text = $('#txt_item option:selected').text().toUpperCase();
-
-    //     if (cat === 'Other Cost') {
-    //         if (item_text.includes('OVERHEAD')) {
-    //             $('#txt_allowance').val('6').prop('readonly', true).addClass('bg-light');
-    //             $('#txt_val_idr, #txt_val_usd').prop('readonly', true).addClass('bg-white');
-
-    //             $('#txt_px_idr, #txt_px_usd').val('0').data('raw', 0);
-    //             $('#txt_val_idr, #txt_val_usd').val('0').data('raw', 0);
-    //         } else {
-    //             $('#txt_allowance').prop('readonly', false).removeClass('bg-light');
-    //             $('#txt_val_idr').prop('readonly', false).removeClass('bg-white');
-    //             $('#txt_val_usd').prop('readonly', true).addClass('bg-light');
-
-    //             let val_idr = parseFloat(String($('#txt_val_idr').val()).replace(/,/g, '')) || 0;
-    //             let val_usd = val_idr / rate_from_idr;
-
-    //             $('#txt_px_idr, #txt_px_usd').val('0').data('raw', 0);
-    //             $('#txt_val_idr').data('raw', val_idr);
-    //             $('#txt_val_usd').val(val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', val_usd);
-    //         }
-    //     } else {
-    //         $('#txt_allowance').prop('readonly', false).removeClass('bg-light');
-    //         $('#txt_val_idr, #txt_val_usd').prop('readonly', true).addClass('bg-white');
-
-    //         let px_idr = 0; let px_usd = 0;
-    //         if (curr === 'IDR') { px_idr = price; px_usd = price / rate_from_idr; }
-    //         else { px_usd = price; px_idr = price * rate_to_idr; }
-
-    //         let allow = 1 + (allow_pct / 100);
-    //         let val_idr = Math.round(px_idr * cons * allow);
-    //         let val_usd = px_usd * cons * allow;
-
-    //         $('#txt_px_idr').val(px_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', px_idr);
-    //         $('#txt_px_usd').val(px_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', px_usd);
-    //         $('#txt_val_idr').val(val_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', val_idr);
-    //         $('#txt_val_usd').val(val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', val_usd);
-    //     }
-    // }
 
     function calculate_template() {
         let rate_to_idr = parseFloat($('#rate_to_idr').val()) || 0;
@@ -1114,24 +948,20 @@
         let item_text = $('#txt_item option:selected').text().toUpperCase();
 
         if (cat === 'Other Cost') {
-            // JIKA OTHER COST: KUNCI SEMUA KOLOM KECUALI ITEM, ALLOW, VALUE IDR
             $('#txt_set, #txt_supplier, #txt_curr, #txt_unit').prop('disabled', true);
             $('#txt_desc, #txt_price, #txt_cons').prop('readonly', true);
 
             if (item_text.includes('OVERHEAD')) {
-                // Khusus Overhead dikunci total
                 $('#txt_allowance').val('6').prop('readonly', true).addClass('bg-light');
                 $('#txt_val_idr, #txt_val_usd').prop('readonly', true).addClass('bg-light').removeClass('bg-white');
 
                 $('#txt_px_idr, #txt_px_usd').val('0').data('raw', 0);
                 $('#txt_val_idr, #txt_val_usd').val('0').data('raw', 0);
             } else {
-                // BUKA KUNCI KHUSUS ALLOW & VALUE IDR (Value USD Readonly)
                 $('#txt_allowance').prop('readonly', false).removeClass('bg-light');
                 $('#txt_val_idr').prop('readonly', false).removeClass('bg-light').addClass('bg-white');
                 $('#txt_val_usd').prop('readonly', true).addClass('bg-light').removeClass('bg-white');
 
-                // RUMUS VALUE USD: VALUE IDR / RATE FROM IDR
                 let val_idr = parseFloat(String($('#txt_val_idr').val()).replace(/,/g, '')) || 0;
                 let val_usd = val_idr / rate_from_idr;
 
@@ -1140,10 +970,9 @@
                 $('#txt_val_usd').val(val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', val_usd);
             }
         } else {
-            // JIKA BUKAN OTHER COST: BUKA SEMUA KOLOM NORMAL KEMBALI
             $('#txt_supplier, #txt_curr, #txt_unit').prop('disabled', false);
             $('#txt_desc, #txt_price, #txt_cons').prop('readonly', false);
-            lock_type_dropdown(); // Menyesuaikan kembali status dropdown Set
+            lock_type_dropdown();
 
             $('#txt_allowance').prop('readonly', false).removeClass('bg-light');
             $('#txt_val_idr, #txt_val_usd').prop('readonly', true).addClass('bg-light').removeClass('bg-white');
@@ -1162,100 +991,6 @@
             $('#txt_val_usd').val(val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', val_usd);
         }
     }
-    // function calculate_modal() {
-    //     let rate_to_idr = parseFloat($('#rate_to_idr').val()) || 0;
-    //     let rate_from_idr = parseFloat($('#rate_from_idr').val()) || 0;
-
-    //     let cat = $('#m_category').val();
-    //     let allow_pct = parseFloat($('#m_allowance').val()) || 0;
-    //     let item_text = $('#m_item option:selected').text().toUpperCase();
-
-    //     if (cat === 'Other Cost') {
-    //         let sum_fab_idr = 0, sum_sew_idr = 0, sum_pack_idr = 0, sum_oth_norm_idr = 0;
-    //         let sum_fab_usd = 0, sum_sew_usd = 0, sum_pack_usd = 0, sum_oth_norm_usd = 0;
-
-    //         $('.row-costing').each(function() {
-    //             let row_cat = $(this).data('category');
-    //             let val_idr = parseFloat($(this).find('.val-idr-td').data('val')) || 0;
-    //             let val_usd = parseFloat($(this).find('.val-usd-td').data('val')) || 0;
-
-    //             if(row_cat === 'Fabric') { sum_fab_idr += val_idr; sum_fab_usd += val_usd; }
-    //             else if(row_cat === 'Accessories Sewing') { sum_sew_idr += val_idr; sum_sew_usd += val_usd; }
-    //             else if(row_cat === 'Accessories Packing') { sum_pack_idr += val_idr; sum_pack_usd += val_usd; }
-    //             else if(row_cat === 'Other Cost') {
-    //                 let name = $(this).find('.item-name').text().toUpperCase();
-    //                 if (!name.includes('OVERHEAD') && $(this).attr('id') !== 'row-' + $('#m_id_detail').val()) {
-    //                     sum_oth_norm_idr += val_idr;
-    //                     sum_oth_norm_usd += val_usd;
-    //                 }
-    //             }
-    //         });
-
-    //         let base_material_idr = sum_fab_idr + sum_sew_idr + sum_pack_idr;
-    //         let base_material_usd = sum_fab_usd + sum_sew_usd + sum_pack_usd;
-
-    //         if (item_text.includes('OVERHEAD')) {
-    //             $('#m_allowance').val('6').prop('readonly', true).addClass('bg-light');
-    //             $('#m_val_idr, #m_val_usd').prop('readonly', true).addClass('bg-white');
-    //             allow_pct = 6;
-
-    //             let base_overhead_idr = base_material_idr + sum_oth_norm_idr;
-    //             let base_overhead_usd = base_material_usd + sum_oth_norm_usd;
-
-    //             let val_idr = base_overhead_idr * (allow_pct / 100);
-    //             let val_usd = base_overhead_usd * (allow_pct / 100);
-
-    //             $('#m_val_idr').val(val_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', val_idr);
-    //             $('#m_val_usd').val(val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', val_usd);
-    //             $('#m_price').data('raw_idr', 0).data('raw_usd', 0);
-    //         }
-    //         else {
-    //             // $('#m_allowance').prop('readonly', false).removeClass('bg-light');
-    //             // $('#m_val_idr, #m_val_usd').prop('readonly', false).removeClass('bg-white text-success');
-
-    //             // let current_val_idr = parseFloat(String($('#m_val_idr').val()).replace(/,/g,'')) || 0;
-    //             // let current_val_usd = parseFloat(String($('#m_val_usd').val()).replace(/,/g,'')) || 0;
-
-    //             // $('#m_val_idr').data('raw', current_val_idr);
-    //             // $('#m_val_usd').data('raw', current_val_usd);
-    //             // $('#m_price').data('raw_idr', 0).data('raw_usd', 0);
-
-    //             $('#m_val_idr').prop('readonly', false).removeClass('bg-light');
-    //             $('#m_val_usd').prop('readonly', true).addClass('bg-light');
-
-    //             let val_idr = parseFloat(String($('#m_val_idr').val()).replace(/,/g, '')) || 0;
-    //             let val_usd = val_idr / rate_from_idr;
-
-    //             $('#m_val_idr').data('raw', val_idr);
-    //             $('#m_val_usd').val(val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', val_usd);
-    //         }
-
-    //     }
-    //     else {
-    //         $('#m_allowance').prop('readonly', false).removeClass('bg-light');
-    //         $('#m_val_idr, #m_val_usd').prop('readonly', true).addClass('bg-white text-success');
-
-    //         let curr = $('#m_curr').val().toUpperCase();
-    //         let price = parseFloat($('#m_price').val()) || 0;
-    //         let cons = parseFloat($('#m_cons').val()) || 0;
-
-    //         let px_idr = 0; let px_usd = 0;
-
-    //         if (curr === 'IDR') {
-    //             px_idr = price; px_usd = price / rate_from_idr;
-    //         } else {
-    //             px_usd = price; px_idr = price * rate_to_idr;
-    //         }
-
-    //         let allow = 1 + (allow_pct / 100);
-    //         let val_idr = Math.round(px_idr * cons * allow);
-    //         let val_usd = px_usd * cons * allow;
-
-    //         $('#m_val_idr').val(val_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', val_idr);
-    //         $('#m_val_usd').val(val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', val_usd);
-    //         $('#m_price').data('raw_idr', px_idr).data('raw_usd', px_usd);
-    //     }
-    // }
 
     function calculate_modal() {
         let rate_to_idr = parseFloat($('#rate_to_idr').val()) || 0;
@@ -1266,12 +1001,11 @@
         let item_text = $('#m_item option:selected').text().toUpperCase();
 
         if (cat === 'Other Cost') {
-            // JIKA OTHER COST: KUNCI SEMUA KOLOM KECUALI ITEM, ALLOW, VALUE IDR
             $('#m_set, #m_supplier, #m_curr, #m_unit').prop('disabled', true);
             $('#m_desc, #m_price, #m_cons').prop('readonly', true);
 
-            let sum_fab_idr = 0, sum_sew_idr = 0, sum_pack_idr = 0, sum_oth_norm_idr = 0;
-            let sum_fab_usd = 0, sum_sew_usd = 0, sum_pack_usd = 0, sum_oth_norm_usd = 0;
+            let sum_fab_idr = 0, sum_sew_idr = 0, sum_pack_idr = 0;
+            let sum_fab_usd = 0, sum_sew_usd = 0, sum_pack_usd = 0;
 
             $('.row-costing').each(function() {
                 let row_cat = $(this).data('category');
@@ -1281,26 +1015,19 @@
                 if (row_cat === 'Fabric') { sum_fab_idr += val_idr; sum_fab_usd += val_usd; }
                 else if (row_cat === 'Accessories Sewing') { sum_sew_idr += val_idr; sum_sew_usd += val_usd; }
                 else if (row_cat === 'Accessories Packing') { sum_pack_idr += val_idr; sum_pack_usd += val_usd; }
-                else if (row_cat === 'Other Cost') {
-                    let name = $(this).find('.item-name').text().toUpperCase();
-                    if (!name.includes('OVERHEAD') && $(this).attr('id') !== 'row-' + $('#m_id_detail').val()) {
-                        sum_oth_norm_idr += val_idr;
-                        sum_oth_norm_usd += val_usd;
-                    }
-                }
             });
 
             let base_material_idr = sum_fab_idr + sum_sew_idr + sum_pack_idr;
             let base_material_usd = sum_fab_usd + sum_sew_usd + sum_pack_usd;
 
             if (item_text.includes('OVERHEAD')) {
-                // Khusus Overhead dikunci total
                 $('#m_allowance').val('6').prop('readonly', true).addClass('bg-light');
                 $('#m_val_idr, #m_val_usd').prop('readonly', true).addClass('bg-light').removeClass('bg-white');
                 allow_pct = 6;
 
-                let base_overhead_idr = base_material_idr + sum_oth_norm_idr;
-                let base_overhead_usd = base_material_usd + sum_oth_norm_usd;
+                // FIX OVERHEAD: MURNI HANYA DARI BASE MATERIAL SAJA
+                let base_overhead_idr = base_material_idr;
+                let base_overhead_usd = base_material_usd;
 
                 let val_idr = base_overhead_idr * (allow_pct / 100);
                 let val_usd = base_overhead_usd * (allow_pct / 100);
@@ -1310,12 +1037,10 @@
                 $('#m_price').data('raw_idr', 0).data('raw_usd', 0);
             }
             else {
-                // BUKA KUNCI KHUSUS ALLOW & VALUE IDR (Value USD Readonly)
                 $('#m_allowance').prop('readonly', false).removeClass('bg-light');
                 $('#m_val_idr').prop('readonly', false).removeClass('bg-light text-success').addClass('bg-white');
                 $('#m_val_usd').prop('readonly', true).addClass('bg-light text-success').removeClass('bg-white');
 
-                // RUMUS VALUE USD: VALUE IDR / RATE FROM IDR
                 let current_val_idr = parseFloat(String($('#m_val_idr').val()).replace(/,/g,'')) || 0;
                 let current_val_usd = current_val_idr / rate_from_idr;
 
@@ -1326,10 +1051,9 @@
 
         }
         else {
-            // JIKA BUKAN OTHER COST: BUKA SEMUA KOLOM NORMAL KEMBALI
             $('#m_supplier, #m_curr, #m_unit').prop('disabled', false);
             $('#m_desc, #m_price, #m_cons').prop('readonly', false);
-            lock_type_dropdown(); // Menyesuaikan kembali status dropdown Set
+            lock_type_dropdown();
 
             $('#m_allowance').prop('readonly', false).removeClass('bg-light');
             $('#m_val_idr, #m_val_usd').prop('readonly', true).addClass('bg-white text-success').removeClass('bg-light');
@@ -1813,7 +1537,6 @@
         let order_qty = parseFloat($('#qty').val().replace(/,/g, '')) || 0;
         let rate_from_idr = parseFloat($('#rate_from_idr').val()) || 0;
 
-        // 1. SETUP VARIABEL DINAMIS
         let cat_totals = {
             'Fabric': { idr: 0, usd: 0, val: 0, bom: 0, prefix: 'fab', sets: {} },
             'Accessories Sewing': { idr: 0, usd: 0, val: 0, bom: 0, prefix: 'sew', sets: {} },
@@ -1821,14 +1544,6 @@
             'Manufacturing': { idr: 0, usd: 0, val: 0, bom: 0, prefix: 'mfg', sets: {} }
         };
         let grand_totals = { val: 0, bom: 0, sets: {} };
-
-        // let active_sets = new Set();
-        // if ($('#type').val() === 'multiple') {
-        //     $('#product_set option:selected').each(function() {
-        //         let txt = $(this).text().toUpperCase().trim();
-        //         if(txt) active_sets.add(txt);
-        //     });
-        // }
 
         let active_sets = new Set();
         if ($('#type').val() === 'multiple') {
@@ -1838,29 +1553,17 @@
             });
         }
 
-        // Urutkan set berdasarkan angka urutan masterSetOrder, BUKAN alfabet (.sort() dihapus)
-
-
-        // $('.row-costing').not('[data-category="Other Cost"]').each(function() {
-        //     let set_name = $(this).find('.set-td').text().toUpperCase().trim();
-        //     if (set_name && set_name !== '' && set_name !== '-- SET --') {
-        //         active_sets.add(set_name);
-        //     }
-        // });
-
         let sets_arr = Array.from(active_sets).sort(function(a, b) {
             let orderA = masterSetOrder[a] !== undefined ? masterSetOrder[a] : 999;
             let orderB = masterSetOrder[b] !== undefined ? masterSetOrder[b] : 999;
             return orderA - orderB;
         });
 
-        // Inisialisasi angka 0 untuk semua Set yang aktif
         sets_arr.forEach(s => {
             for(let c in cat_totals) { cat_totals[c].sets[s] = { idr: 0, usd: 0, val: 0, bom: 0 }; }
             grand_totals.sets[s] = { val: 0, bom: 0 };
         });
 
-        // 2. HITUNG MATERIAL UTAMA
         $('.row-costing').each(function() {
             let cat = $(this).data('category');
 
@@ -1879,7 +1582,6 @@
                 $(this).find('.qty-bom-td').data('val', qty_bom).text(qty_bom.toLocaleString('en-US'));
                 $(this).find('.tot-val-td').data('val', tot_val).text(tot_val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
 
-                // Tambah ke Total Kategori
                 cat_totals[cat].idr += val_idr;
                 cat_totals[cat].usd += val_usd;
                 cat_totals[cat].val += tot_val;
@@ -1888,7 +1590,6 @@
                 grand_totals.val += tot_val;
                 grand_totals.bom += qty_bom;
 
-                // Tambah ke Total Khusus per Set
                 if (set_name && cat_totals[cat].sets[set_name]) {
                     cat_totals[cat].sets[set_name].idr += val_idr;
                     cat_totals[cat].sets[set_name].usd += val_usd;
@@ -1901,22 +1602,11 @@
             }
         });
 
-        // 3. HITUNG OTHER COST
         let base_material_idr = cat_totals['Fabric'].idr + cat_totals['Accessories Sewing'].idr + cat_totals['Accessories Packing'].idr;
         let base_material_usd = cat_totals['Fabric'].usd + cat_totals['Accessories Sewing'].usd + cat_totals['Accessories Packing'].usd;
 
         let sum_oth_norm_idr = 0, sum_oth_norm_usd = 0;
         let overhead_row = null;
-
-        // $('#tbody-other-cost tr').each(function() {
-        //     let name = $(this).find('.item-name').text().toUpperCase();
-        //     if (name.includes('OVERHEAD')) {
-        //         overhead_row = $(this);
-        //     } else {
-        //         sum_oth_norm_idr += parseFloat($(this).find('.val-idr-td').data('val')) || 0;
-        //         sum_oth_norm_usd += parseFloat($(this).find('.val-usd-td').data('val')) || 0;
-        //     }
-        // });
 
         $('#tbody-other-cost tr').each(function() {
             let name = $(this).find('.item-name').text().toUpperCase();
@@ -1929,6 +1619,7 @@
                 let val_usd = val_idr / rate_from_idr;
                 $(this).find('.val-usd-td-other').data('val', val_usd).text(val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4}));
                 $(this).find('.allow-td').text(allow_val > 0 ? allow_val.toFixed(2) + '%' : '');
+
                 sum_oth_norm_idr += val_idr;
                 sum_oth_norm_usd += val_usd;
             }
@@ -1944,8 +1635,9 @@
                 overhead_row.find('.allow-td').text(oh_allow > 0 ? oh_allow.toFixed(2) + '%' : '');
             }
 
-            let base_overhead_idr = base_material_idr + sum_oth_norm_idr;
-            let base_overhead_usd = base_material_usd + sum_oth_norm_usd;
+            // FIX OVERHEAD: MURNI HANYA DARI BASE MATERIAL SAJA
+            let base_overhead_idr = base_material_idr;
+            let base_overhead_usd = base_material_usd;
 
             overhead_idr = base_overhead_idr * (oh_allow / 100);
             overhead_usd = base_overhead_usd * (oh_allow / 100);
@@ -1960,7 +1652,6 @@
         $('#tot-other-idr').text(tot_other_idr.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
         $('#tot-other-usd').text(tot_other_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4}));
 
-        // 4. GRAND TOTAL AKHIR
         let base_ga_idr = base_material_idr + cat_totals['Manufacturing'].idr + tot_other_idr;
         let base_ga_usd = base_material_usd + cat_totals['Manufacturing'].usd + tot_other_usd;
 
@@ -1973,7 +1664,6 @@
         $('#val-ga-idr').text(ga_idr.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
         $('#val-ga-usd').text(ga_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4}));
 
-        // 5. UPDATE PERSENTASE DI SEMUA BARIS
         let ga_pct = (grand_idr > 0) ? (ga_idr / grand_idr) * 100 : 0;
         $('.pct-ga').text(ga_pct.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '%');
         let pct_other = (grand_idr > 0) ? (tot_other_idr / grand_idr) * 100 : 0;
@@ -1985,7 +1675,6 @@
             $(this).find('.pct-td').text(pct.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '%');
         });
 
-        // 6. MENGGAMBAR TFOOT KATEGORI DINAMIS
         for (let c in cat_totals) {
             let obj = cat_totals[c];
             let pfx = obj.prefix;
@@ -1993,7 +1682,6 @@
 
             let tfoot_html = '';
 
-            // Loop khusus Set
             sets_arr.forEach(s => {
                 let d = obj.sets[s];
                 tfoot_html += `
@@ -2009,7 +1697,6 @@
                 `;
             });
 
-            // Baris Total Utama
             let cat_pct = (grand_idr > 0) ? (obj.idr / grand_idr) * 100 : 0;
             tfoot_html += `
                 <tr class="bg-warning text-dark">
@@ -2023,12 +1710,9 @@
                 </tr>
             `;
 
-            // <td class="text-center">${cat_pct.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}%</td>
-
             $('#tfoot-' + pfx).html(tfoot_html);
         }
 
-        // 7. MENGGAMBAR TABEL GRAND TOTAL BAWAH DINAMIS
         let grand_set_html = '';
         sets_arr.forEach(s => {
             let d = grand_totals.sets[s];
@@ -2056,26 +1740,6 @@
             </tr>
         `);
 
-        // 8. UPDATE ALL BAWAH
-        // let input_vat = parseFloat($('input[name="vat"]').val()) || 0;
-        // let shipment_type = $('#shipment_type').val();
-        // let actual_vat_pct = (shipment_type === 'export') ? 0 : input_vat;
-        // $('#vat-label-pct').text(actual_vat_pct + '%');
-
-        // let vat_multiplier = 1 + (actual_vat_pct / 100);
-        // let vat_idr = grand_idr * vat_multiplier;
-        // let vat_usd = grand_usd * vat_multiplier;
-        // let profit_idr = vat_idr * 1.06;
-        // let profit_usd = vat_usd * 1.06;
-
-        // $('#grand-tot-idr').text(grand_idr.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
-        // $('#grand-tot-usd').text(grand_usd.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
-        // $('#val-vat-idr').text(vat_idr.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
-        // $('#val-vat-usd').text(vat_usd.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
-        // $('#val-profit-idr').text(profit_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-        // $('#val-profit-usd').text(profit_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4}));
-
-        // 8. UPDATE ALL BAWAH
         let input_vat = parseFloat($('input[name="vat"]').val()) || 0;
         let shipment_type = $('#shipment_type').val();
         let actual_vat_pct = (shipment_type === 'export') ? 0 : input_vat;
@@ -2087,7 +1751,6 @@
         let profit_idr = vat_idr * 1.06;
         let profit_usd = vat_usd * 1.06;
 
-        // --- RUMUS MENCARI SUGGESTION BALANCE ---
         let confirm_price = parseFloat($('#confirm_price').val()) || 0;
         let suggest_idr = 0;
         let suggest_usd = 0;
@@ -2110,7 +1773,6 @@
         $('#val-vat-idr').text(vat_idr.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
         $('#val-vat-usd').text(vat_usd.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
 
-        // Render Sugest
         $('#val-suggest-idr').text(suggest_idr.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
         $('#val-suggest-usd').text(suggest_usd.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
 

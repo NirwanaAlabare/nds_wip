@@ -214,8 +214,8 @@
         }
 
         // 4. Base Overhead (Base Material + Other Cost Normal)
-        $base_overhead_idr = $base_material_idr + $sum_oth_norm_idr;
-        $base_overhead_usd = $base_material_usd + $sum_oth_norm_usd;
+        $base_overhead_idr = $base_material_idr;
+        $base_overhead_usd = $base_material_usd;
 
         $overhead_idr = 0; $overhead_usd = 0;
         if ($overhead_row) {
@@ -224,7 +224,6 @@
             $overhead_idr = $base_overhead_idr * ($oh_allow / 100);
             $overhead_usd = $base_overhead_usd * ($oh_allow / 100);
 
-            // Update row obj agar di tabel HTML tercetak benar
             $overhead_row->value_idr = $overhead_idr;
             $overhead_row->value_usd = $overhead_usd;
         }
