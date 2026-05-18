@@ -3484,14 +3484,14 @@ order by  ws asc, color asc
                 WriterEntityFactory::createCell($row->id_item, $rightStyle),
                 WriterEntityFactory::createCell($row->itemdesc, $rowStyle),
                 WriterEntityFactory::createCell($row->satuan, $rowStyle),
-                WriterEntityFactory::createCell((float) $row->saldo_awal, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->penerimaan, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->pemakaian, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->short_roll, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->gr_set, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->gr_panel, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->retur, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->saldo_akhir, $qtyStyle),
+                WriterEntityFactory::createCell((float) $row->saldo_awal, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->penerimaan, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->pemakaian, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->short_roll, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->gr_set, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->gr_panel, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->retur, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->saldo_akhir, $rightStyle),
             ]);
 
             $writer->addRow(
@@ -3837,14 +3837,14 @@ HAVING
                 WriterEntityFactory::createCell($row->id_item, $rightStyle),
                 WriterEntityFactory::createCell($row->itemdesc, $rowStyle),
                 WriterEntityFactory::createCell($row->satuan, $rowStyle),
-                WriterEntityFactory::createCell((float) $row->saldo_awal, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->penerimaan, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->pemakaian, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->short_roll, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->gr_set, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->gr_panel, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->retur, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->saldo_akhir, $qtyStyle),
+                WriterEntityFactory::createCell((float) $row->saldo_awal, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->penerimaan, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->pemakaian, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->short_roll, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->gr_set, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->gr_panel, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->retur, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->saldo_akhir, $rightStyle),
             ]);
 
             $writer->addRow(
@@ -4085,9 +4085,9 @@ where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Produc
                 WriterEntityFactory::createCell($row->styleno, $rowStyle),
                 WriterEntityFactory::createCell($row->itemdesc, $rowStyle),
                 WriterEntityFactory::createCell($row->color, $rowStyle),
-                WriterEntityFactory::createCell((float) $row->qty_out, $qtyStyle),
+                WriterEntityFactory::createCell((float) $row->qty_out, $rightStyle),
                 WriterEntityFactory::createCell($row->satuan, $rowStyle),
-                WriterEntityFactory::createCell((float) $row->qty_out_konversi, $qtyStyle),
+                WriterEntityFactory::createCell((float) $row->qty_out_konversi, $rightStyle),
                 WriterEntityFactory::createCell($row->satuan_konversi, $rowStyle),
             ];
 
@@ -4288,7 +4288,7 @@ order by tanggal asc, no_form asc
                 WriterEntityFactory::createCell($row->barcode, $rowStyle),
                 WriterEntityFactory::createCell($row->id_item, $rightStyle),
                 WriterEntityFactory::createCell($row->itemdesc, $rowStyle),
-                WriterEntityFactory::createCell((float) $row->qty_pakai, $qtyStyle),
+                WriterEntityFactory::createCell((float) $row->qty_pakai, $rightStyle),
                 WriterEntityFactory::createCell($row->satuan, $rowStyle),
             ];
 
@@ -4505,7 +4505,7 @@ order by a.tgl_trans asc
                 WriterEntityFactory::createCell($row->barcode, $rowStyle),
                 WriterEntityFactory::createCell($row->id_item, $rightStyle),
                 WriterEntityFactory::createCell($row->itemdesc, $rowStyle),
-                WriterEntityFactory::createCell((float) $row->qty_pakai, $qtyStyle),
+                WriterEntityFactory::createCell((float) $row->qty_pakai, $rightStyle),
                 WriterEntityFactory::createCell($row->satuan, $rowStyle),
             ];
 
@@ -7652,11 +7652,11 @@ order by a.tgl_trans asc
                 WriterEntityFactory::createCell($row->color, $rowStyle),
                 WriterEntityFactory::createCell($row->size, $rowStyle),
                 WriterEntityFactory::createCell($row->panel, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->saldo_awal, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->qty_cut, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->qty_replace, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->qty_dc, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->saldo_akhir, $qtyStyle),
+                WriterEntityFactory::createCell((float) $row->saldo_awal, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->qty_cut, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->qty_replace, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->qty_dc, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->saldo_akhir, $rightStyle),
             ];
 
             $writer->addRow(
@@ -8594,11 +8594,11 @@ order by a.tgl_trans asc
                 WriterEntityFactory::createCell($row->size, $rowStyle),
                 WriterEntityFactory::createCell($row->panel, $rowStyle),
                 WriterEntityFactory::createCell($row->nama_part, $rowStyle),
-                WriterEntityFactory::createCell((float) $row->saldo_awal, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->qty_cut, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->qty_replace, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->qty_dc, $qtyStyle),
-                WriterEntityFactory::createCell((float) $row->saldo_akhir, $qtyStyle),
+                WriterEntityFactory::createCell((float) $row->saldo_awal, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->qty_cut, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->qty_replace, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->qty_dc, $rightStyle),
+                WriterEntityFactory::createCell((float) $row->saldo_akhir, $rightStyle),
             ];
 
             $writer->addRow(
@@ -9979,7 +9979,7 @@ order by a.tgl_trans asc
                 WriterEntityFactory::createCell($row->size, $rowStyle),
                 WriterEntityFactory::createCell($row->panel, $rowStyle),
                 WriterEntityFactory::createCell($row->panel_status, $rowStyle),
-                WriterEntityFactory::createCell(number_format((float) $row->qty_dc, 2, '.', ''), $rightStyle),
+                WriterEntityFactory::createCell((float) $row->qty_dc, $rightStyle),
             ];
 
             $writer->addRow(
@@ -10258,9 +10258,9 @@ order by a.tgl_trans asc
             $cells = [
                 WriterEntityFactory::createCell($row->tanggal_keluar, $rowStyle),
                 WriterEntityFactory::createCell($row->no_barcode, $rowStyle),
-                WriterEntityFactory::createCell(number_format((float) $row->qty_aktual, 2, '.', ''), $rightStyle),
+                WriterEntityFactory::createCell((float) $row->qty_aktual, $rightStyle),
                 WriterEntityFactory::createCell($row->satuan, $rowStyle),
-                WriterEntityFactory::createCell(number_format((float) $row->qty_konv, 2, '.', ''), $rightStyle),
+                WriterEntityFactory::createCell((float) $row->qty_konv, $rightStyle),
                 WriterEntityFactory::createCell($row->satuan_konv, $rowStyle),
                 WriterEntityFactory::createCell($row->rak, $rowStyle),
                 WriterEntityFactory::createCell($row->no_dok, $rowStyle),
