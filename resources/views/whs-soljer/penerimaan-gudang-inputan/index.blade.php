@@ -167,8 +167,8 @@
 
                         if (row.cancel != 1) {
                             btnPrint = `
-                                <a 
-                                    href="{{ url('penerimaan-gudang-inputan/print-sj') }}/${row.id}" 
+                                <a
+                                    href="{{ url('penerimaan-gudang-inputan/print-sj') }}/${row.id}"
                                     target="_blank"
                                     class="btn btn-warning btn-sm"
                                 >
@@ -177,8 +177,8 @@
                             `;
 
                             btnBarcode = `
-                                <a 
-                                    href="{{ url('penerimaan-gudang-inputan/print-barcode') }}/${row.id}" 
+                                <a
+                                    href="{{ url('penerimaan-gudang-inputan/print-barcode') }}/${row.id}"
                                     target="_blank"
                                     class="btn btn-success btn-sm"
                                 >
