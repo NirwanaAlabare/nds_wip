@@ -27,20 +27,39 @@ class PenerimaanGudangInputanController extends Controller
                 COALESCE(SUM(penerimaan_gudang_inputan_detail.qty),0) as total_qty,
                 penerimaan_gudang_inputan.created_by_username,
                 penerimaan_gudang_inputan.cancel,
-                CASE 
+                CASE
                     WHEN penerimaan_gudang_inputan.cancel = 1 THEN 'Cancel'
                     ELSE 'Draft'
                 END as status,
+                (
+                    SELECT
+                        CASE
+                            WHEN NOT EXISTS (
+                                SELECT 1
+                                FROM penerimaan_gudang_inputan_detail d
+                                WHERE d.penerimaan_gudang_inputan_id = penerimaan_gudang_inputan.id
+                                AND NOT EXISTS (
+                                    SELECT 1
+                                    FROM pengeluaran_gudang_inputan_detail pd
+                                    JOIN pengeluaran_gudang_inputan p
+                                        ON p.id = pd.pengeluaran_gudang_inputan_id
+                                    WHERE pd.barcode = d.barcode
+                                    AND p.cancel = 0
+                                )
+                            )
+                            THEN 1 ELSE 0
+                        END
+                ) as is_used,
                 EXISTS (
                     SELECT 1
                     FROM penerimaan_gudang_inputan_detail d
-                    JOIN pengeluaran_gudang_inputan_detail pd 
+                    JOIN pengeluaran_gudang_inputan_detail pd
                         ON pd.barcode = d.barcode
-                    JOIN pengeluaran_gudang_inputan p 
+                    JOIN pengeluaran_gudang_inputan p
                         ON p.id = pd.pengeluaran_gudang_inputan_id
                     WHERE d.penerimaan_gudang_inputan_id = penerimaan_gudang_inputan.id
                     AND p.cancel = 0
-                ) as is_used
+                ) as is_used_pengeluaran
             ")
             ->leftJoin("penerimaan_gudang_inputan_detail", "penerimaan_gudang_inputan_detail.penerimaan_gudang_inputan_id", "=", "penerimaan_gudang_inputan.id")
             ->groupBy(
@@ -70,7 +89,7 @@ class PenerimaanGudangInputanController extends Controller
             })
             ->filterColumn('status', function($query, $keyword) {
                 $query->whereRaw("
-                    CASE 
+                    CASE
                         WHEN penerimaan_gudang_inputan.cancel = 1 THEN 'Cancel'
                         ELSE 'Draft'
                     END LIKE ?
@@ -101,7 +120,7 @@ class PenerimaanGudangInputanController extends Controller
     public function create(){
 
         $no_bpb = DB::selectOne("
-            SELECT 
+            SELECT
                 CONCAT('WHS/F/IN/', DATE_FORMAT(CURRENT_DATE(), '%Y')) AS Mattype,
 
                 IF(
@@ -123,7 +142,7 @@ class PenerimaanGudangInputanController extends Controller
                 ) AS kode
 
             FROM penerimaan_gudang_inputan
-            WHERE 
+            WHERE
                 MONTH(tgl_bpb) = MONTH(CURRENT_DATE())
                 AND YEAR(tgl_bpb) = YEAR(CURRENT_DATE())
                 AND LEFT(no_bpb, 3) = 'WHS'
@@ -133,7 +152,7 @@ class PenerimaanGudangInputanController extends Controller
             SELECT
                 id,
                 nama_pilihan
-            FROM 
+            FROM
                 masterpilihan
             WHERE
                 kode_pilihan = 'Satuan'
@@ -143,7 +162,7 @@ class PenerimaanGudangInputanController extends Controller
             SELECT
                 idx,
                 lokasi
-            FROM 
+            FROM
                 masterlokasi
         ");
 
@@ -178,14 +197,14 @@ class PenerimaanGudangInputanController extends Controller
             $items = json_decode($request->items, true);
 
             $getLast = DB::selectOne("
-                SELECT 
+                SELECT
                     IF(
                         MAX(barcode) IS NULL,
                         1,
                         MAX(RIGHT(barcode, 5)) + 1
                     ) AS nomor
                 FROM penerimaan_gudang_inputan_detail
-                WHERE 
+                WHERE
                     DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURRENT_DATE(), '%Y-%m')
                     AND LEFT(barcode, 2) = 'WF'
             ");
@@ -262,7 +281,20 @@ class PenerimaanGudangInputanController extends Controller
         ->where("penerimaan_gudang_inputan.id", $id)
         ->first();
 
-        $data_detail = PenerimaanGudangInputanDetail::where("penerimaan_gudang_inputan_id", $id)->get();
+        // $data_detail = PenerimaanGudangInputanDetail::where("penerimaan_gudang_inputan_id", $id)->get();
+        $data_detail = PenerimaanGudangInputanDetail::selectRaw("
+            penerimaan_gudang_inputan_detail.*,
+            EXISTS (
+                SELECT 1
+                FROM pengeluaran_gudang_inputan_detail pd
+                JOIN pengeluaran_gudang_inputan p
+                    ON p.id = pd.pengeluaran_gudang_inputan_id
+                WHERE pd.barcode = penerimaan_gudang_inputan_detail.barcode
+                AND p.cancel = 0
+            ) as is_used
+        ")
+        ->where("penerimaan_gudang_inputan_id", $id)
+        ->get();
 
         return view("whs-soljer.penerimaan-gudang-inputan.update", [
             "page" => "dashboard-whs-soljer",
@@ -331,7 +363,7 @@ class PenerimaanGudangInputanController extends Controller
                         "created_by_username"           => $user ? $user->username : null,
                         "created_at"                    => $now,
                     ]);
-                    
+
                     PenerimaanGudangInputanDetail::where('id', $row['id'])
                         ->update([
                             'warna' => $row['warna'],
@@ -444,7 +476,7 @@ class PenerimaanGudangInputanController extends Controller
         $data = [];
 
         foreach ($rows as $i => $row) {
-            if ($i == 0) continue; 
+            if ($i == 0) continue;
 
             $data[] = [
                 'lokasi'      => $row[0],

@@ -159,8 +159,8 @@
 
                         if (row.cancel != 1) {
                             btnPrint = `
-                                <a 
-                                    href="{{ url('penerimaan-gudang-inputan/print-sj') }}/${row.id}" 
+                                <a
+                                    href="{{ url('penerimaan-gudang-inputan/print-sj') }}/${row.id}"
                                     target="_blank"
                                     class="btn btn-warning btn-sm"
                                 >
@@ -169,8 +169,8 @@
                             `;
 
                             btnBarcode = `
-                                <a 
-                                    href="{{ url('penerimaan-gudang-inputan/print-barcode') }}/${row.id}" 
+                                <a
+                                    href="{{ url('penerimaan-gudang-inputan/print-barcode') }}/${row.id}"
                                     target="_blank"
                                     class="btn btn-success btn-sm"
                                 >
@@ -188,12 +188,14 @@
                                 </a>
                             `;
 
-                            btnDelete = `
-                                <button type="button" class="btn btn-sm btn-danger btn-delete"
-                                    data-id="${row.id}">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                            `;
+                            if(row.is_used_pengeluaran != 1){
+                                btnDelete = `
+                                    <button type="button" class="btn btn-sm btn-danger btn-delete"
+                                        data-id="${row.id}">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                `;
+                            }
                         }
 
                         return `
