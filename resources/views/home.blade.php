@@ -405,7 +405,7 @@
 
         @role('dc')
         <a href="{{ route('dashboard-dc') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/distribution.jpeg') }}" alt="dc"></div>
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/distribution.png') }}" alt="dc"></div>
             <span class="menu-label">DC</span>
         </a>
         @endrole
