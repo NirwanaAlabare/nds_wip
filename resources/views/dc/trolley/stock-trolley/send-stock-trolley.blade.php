@@ -140,7 +140,7 @@
                                         <td>{{ $trolleyStock->no_cut }}</td>
                                         <td>{{ $trolleyStock->style }}</td>
                                         <td>{{ $trolleyStock->color }}</td>
-                                        <td>{{ $trolleyStock->panel }}</td>
+                                        <td><span>{!! str_replace(",", "<br>", e($trolleyStock->panel)) !!}</span></td>
                                         <td>{{ $trolleyStock->nama_part }}</td>
                                         <td>{{ $trolleyStock->size }}</td>
                                         <td>{{ $trolleyStock->qty }}</td>
