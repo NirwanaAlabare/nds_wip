@@ -186,7 +186,7 @@ class TrolleyStockerController extends Controller
                 )
 
                 SELECT
-                    trolley_stock_group.trolley_id as id,
+                    trolley.id as id,
                     trolley_stock_group.tanggal_alokasi,
                     trolley_stock_group.act_costing_ws,
                     msb.styleno style,
@@ -194,40 +194,43 @@ class TrolleyStockerController extends Controller
                     trolley.nama_trolley,
                     GROUP_CONCAT(DISTINCT trolley_stock_group.id_qr_stocker) id_qr_stocker,
                     SUM(trolley_stock_group.qty) qty
-                from (
-                    select
-                        trolley_id,
-                        GROUP_CONCAT(id) id,
-                        GROUP_CONCAT(id_qr_stocker) id_qr_stocker,
-                        tanggal_alokasi,
-                        act_costing_ws,
-                        GROUP_CONCAT(DISTINCT panel) panel,
-                        no_cut,
-                        style,
-                        tipe,
-                        color,
-                        user,
-                        GROUP_CONCAT(DISTINCT nama_part) nama_part,
-                        size,
-                        GROUP_CONCAT(qty_main),
-                        GROUP_CONCAT(qty),
-                        COALESCE (MAX(qty_main), MIN(qty), 0) as qty,
-                        rangeAwalAkhir
-                    from
-                        (
-                            SELECT * FROM trolley_stock_main
-                            UNION ALL
-                            SELECT * FROM trolley_stock
-                        ) trolley_stock
-                    group by
-                        trolley_id, `no_cut`, `form_cut_id`, `form_piece_id`, `form_reject_id`, `so_det_id`, `group_stocker`, `ratio`, `stocker_reject`
-                ) as trolley_stock_group
-                left join (
-                    select * from master_sb_ws group by ws
-                ) msb on msb.ws = trolley_stock_group.act_costing_ws
-                left join trolley on trolley.id = trolley_stock_group.trolley_id
-                where trolley.id is not null
+                from
+                    trolley
+                left join
+                    (
+                            select
+                                trolley_id,
+                                GROUP_CONCAT(id) id,
+                                GROUP_CONCAT(id_qr_stocker) id_qr_stocker,
+                                tanggal_alokasi,
+                                act_costing_ws,
+                                GROUP_CONCAT(DISTINCT panel) panel,
+                                no_cut,
+                                style,
+                                tipe,
+                                color,
+                                user,
+                                GROUP_CONCAT(DISTINCT nama_part) nama_part,
+                                size,
+                                GROUP_CONCAT(qty_main),
+                                GROUP_CONCAT(qty),
+                                COALESCE (MAX(qty_main), MIN(qty), 0) as qty,
+                                rangeAwalAkhir
+                            from
+                                (
+                                    SELECT * FROM trolley_stock_main
+                                    UNION ALL
+                                    SELECT * FROM trolley_stock
+                                ) trolley_stock
+                            group by
+                                trolley_id, `no_cut`, `form_cut_id`, `form_piece_id`, `form_reject_id`, `so_det_id`, `group_stocker`, `ratio`, `stocker_reject`
+                    ) as trolley_stock_group on trolley_stock_group.trolley_id = trolley.id
+                left join
+                    (
+                        select * from master_sb_ws group by ws
+                    ) msb on msb.ws = trolley_stock_group.act_costing_ws
                 group by
+                    trolley.id,
                     trolley_stock_group.trolley_id,
                     trolley_stock_group.act_costing_ws,
                     trolley_stock_group.color
