@@ -133,6 +133,7 @@ use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanFgController;
 use App\Http\Controllers\CeisaAPIController;
 use App\Http\Controllers\Exim\DokumenPabeanController;
+use App\Http\Controllers\Purchasing\BookingStockController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -1341,9 +1342,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/report-signalbit-bc', 'ReportSignalbitBC')->name('report-signalbit-bc');
         Route::get('/export-excel-report-signalbit-bc', 'ExportReportSignalbitBC')->name('export-excel-report-signalbit-bc');
 
-        Route::get('/dokumen-pabean', [DokumenPabeanController::class, 'index'])->name('dokumen.pabean.index');
-        Route::get('/dokumen-pabean/{id}/edit', [DokumenPabeanController::class, 'edit'])->name('dokumen.pabean.edit');
-        Route::post('/dokumen-pabean/kirim/{id}', [DokumenPabeanController::class, 'kirimCeisa'])->name('dokumen.pabean.kirim');
+    });
+
+    Route::controller(DokumenPabeanController::class)->prefix("dokumen-pabean")->middleware('role:export_import')->group(function () {
+        Route::get('/', 'index')->name('dokumen-pabean-index');
+        Route::get('/{id}/edit', 'edit')->name('dokumen-pabean-edit')->where('id', '.*');
+        Route::post('/send/{id}', 'sendCeisa')->name('dokumen-pabean-send')->where('id', '.*');
+        Route::put('/update-draft/{id}', 'updateDraft')->name('dokumen-pabean-update_draft')->where('id', '.*');
     });
 
     // WHS Soljer
@@ -1415,6 +1420,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/export-excel/{id}', 'exportExcel')->name('export-purchase-order');
         Route::post('/cancel/{id}', 'cancel')->name('cancel-purchase-order');
         Route::post('restore/{id}', 'restore')->name('restore-purchase-order');
+    });
+
+    Route::controller(BookingStockController::class)->prefix("booking-stock")->middleware('role:purchasing')->group(function () {
+        Route::get('/', 'index')->name('booking-stock');
+        Route::get('/create', 'create')->name('booking-stock-create');
+        Route::post('/store', 'store')->name('booking-stock-store');
+        Route::get('/get-items/{jenis}', 'getItems')->name('booking-stock-get-items');
+        Route::delete('/delete/{id}', 'delete')->name('booking-stock-delete');
     });
 
     Route::controller(PurchasingDashboardController::class)->middleware('role:purchasing')->group(function () {

@@ -100,7 +100,7 @@
             processing: true,
             serverSide: true,
             ajax: {
-                url: '{{ route("dokumen.pabean.index") }}',
+                url: '{{ route("dokumen-pabean-index") }}',
                 data: function (d) {
                     d.jenis = $('#jenis').val();
                     d.tanggal_awal = $('#filter_tanggal_awal').val();
@@ -148,13 +148,12 @@
 
     $(document).on('click', '.btn-kirim', function() {
         let trxNo = $(this).data('id');
-
-        let actionUrl = '{{ route("dokumen.pabean.kirim", ":id") }}';
+        let actionUrl = '{{ route("dokumen-pabean-send", ":id") }}';
         actionUrl = actionUrl.replace(':id', trxNo);
 
         Swal.fire({
             title: 'Kirim ke CEISA?',
-            text: "Dokumen " + trxNo + " akan diproses dan dikirim ke server Bea Cukai sebagai Draft.",
+            text: "Dokumen " + trxNo + " akan diproses dan dikirim ke server Bea Cukai. Nomor Aju akan dibuat otomatis.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#28a745',
@@ -179,30 +178,76 @@
                     },
                     success: function(res) {
                         if(res.status === 200) {
-                            Swal.fire({
-                                title: 'Berhasil!',
-                                text: res.message,
-                                icon: 'success'
-                            });
-
+                            Swal.fire({ title: 'Berhasil!', text: res.message, icon: 'success' });
                             console.log("Response CEISA:", res.ceisa_response);
-
                             refreshTable();
                         } else {
-                            let errorMsg = res.ceisa_error ? JSON.stringify(res.ceisa_error) : res.message;
-                            Swal.fire('Gagal!', errorMsg, 'error');
+                            showErrorSwal(res);
                         }
                     },
                     error: function(xhr) {
-                        let errMsg = 'Terjadi Kesalahan Sistem';
-                        if(xhr.responseJSON && xhr.responseJSON.message) {
-                            errMsg = xhr.responseJSON.message;
-                        }
-                        Swal.fire('Error!', errMsg, 'error');
+                        let res = xhr.responseJSON || { message: 'Terjadi Kesalahan Sistem' };
+                        showErrorSwal(res);
                     }
                 });
             }
         });
     });
+
+    function showErrorSwal(res) {
+        let errorHtml = res.message || 'Terjadi Kesalahan Sistem';
+        if (res.ceisa_error) {
+            if (Array.isArray(res.ceisa_error)) {
+                let listError = res.ceisa_error.map(err => `<li>${err}</li>`).join('');
+                errorHtml = `<div style="text-align: left; font-size: 14px;"><ul style="padding-left: 20px; margin-top: 5px; color: #d33;">${listError}</ul></div>`;
+            } else if (typeof res.ceisa_error === 'object') {
+                if (res.ceisa_error.message) {
+                    if (Array.isArray(res.ceisa_error.message)) {
+                        let listError = res.ceisa_error.message.map(err => `<li>${err}</li>`).join('');
+                        errorHtml = `<div style="text-align: left; font-size: 14px;"><ul style="padding-left: 20px; margin-top: 5px; color: #d33;">${listError}</ul></div>`;
+                    } else {
+                        errorHtml = `<div style="color: #d33; font-weight: bold; font-size: 15px;">${res.ceisa_error.message}</div>`;
+                    }
+                } else {
+                    errorHtml = `<pre style="text-align: left; font-size: 13px; color: #d33;">${JSON.stringify(res.ceisa_error, null, 2)}</pre>`;
+                }
+            } else {
+                errorHtml = `<div style="color: #d33; font-weight: bold; font-size: 15px;">${res.ceisa_error}</div>`;
+            }
+        }
+        Swal.fire({ title: 'gagal mengirim ke CEISA!', html: errorHtml, icon: 'error' });
+    }
+
+    function showErrorSwal(res) {
+        let errorHtml = res.message || 'Terjadi Kesalahan Sistem';
+
+        if (res.ceisa_error) {
+            if (Array.isArray(res.ceisa_error)) {
+                let listError = res.ceisa_error.map(err => `<li>${err}</li>`).join('');
+                errorHtml = `<div style="text-align: left; font-size: 14px;">
+                                <ul style="padding-left: 20px; margin-top: 5px; color: #d33;">${listError}</ul>
+                             </div>`;
+            } else if (typeof res.ceisa_error === 'object') {
+                if (res.ceisa_error.message) {
+                    if (Array.isArray(res.ceisa_error.message)) {
+                        let listError = res.ceisa_error.message.map(err => `<li>${err}</li>`).join('');
+                        errorHtml = `<div style="text-align: left; font-size: 14px;">
+                                        <ul style="padding-left: 20px; margin-top: 5px; color: #d33;">${listError}</ul>
+                                     </div>`;
+                    } else {
+                        errorHtml = `<div style="color: #d33; font-weight: bold; font-size: 15px;">
+                                        ${res.ceisa_error.message}
+                                     </div>`;
+                    }
+                } else {
+                    errorHtml = `<pre style="text-align: left; font-size: 13px; color: #d33;">${JSON.stringify(res.ceisa_error, null, 2)}</pre>`;
+                }
+            } else {
+                errorHtml = `<div style="color: #d33; font-weight: bold; font-size: 15px;">${res.ceisa_error}</div>`;
+            }
+        }
+
+        Swal.fire({ title: 'gagal mengirim ke CEISA!', html: errorHtml, icon: 'error' });
+    }
 </script>
 @endsection

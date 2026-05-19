@@ -15,11 +15,11 @@ class CeisaService
 
     public function __construct()
     {
-        $this->baseUrl      = config('ceisa.base_url');
-        $this->username     = config('ceisa.username');
-        $this->password     = config('ceisa.password');
-        $this->apiKey       = config('ceisa.api_key');
-        $this->idPerusahaan = config('ceisa.id_perusahaan');
+        $this->baseUrl      = config('ceisa.base_url_dev');
+        $this->username     = config('ceisa.username_dev');
+        $this->password     = config('ceisa.password_dev');
+        $this->apiKey       = config('ceisa.api_key_dev');
+        $this->idPerusahaan = config('ceisa.id_perusahaan_dev');
     }
 
     public function getToken()

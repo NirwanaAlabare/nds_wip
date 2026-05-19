@@ -7,7 +7,7 @@
         </a>
         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
             <li>
-                <a href="{{ route('dokumen.pabean.index') }}"
+                <a href="{{ route('dokumen-pabean-index') }}"
                     class="dropdown-item {{ (isset($subPage) && $subPage == 'dokumen-pabean-list') ? 'active' : '' }}">
                     Dokumen Pabean
                 </a>
