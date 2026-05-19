@@ -42,21 +42,21 @@ class GeneralController extends Controller
         // Get No. Form Cutting List
         $formCuts = collect(
             DB::select("
-                    SELECT id, no_form, updated_at, 'normal' AS type
+                    SELECT id as form_cut_id, no_form, updated_at, 'normal' AS type
                     FROM form_cut_input
-                    WHERE updated_at >= CURDATE() - INTERVAL 6 MONTH
+                    WHERE updated_at >= CONCAT(CURDATE() - INTERVAL 6 MONTH, ' 00:00:00')
 
                 UNION ALL
 
-                    SELECT id, no_form, updated_at, 'reject' AS type
+                    SELECT id as form_cut_id, no_form, updated_at, 'reject' AS type
                     FROM form_cut_reject
-                    WHERE updated_at >= CURDATE() - INTERVAL 6 MONTH
+                    WHERE updated_at >= CONCAT(CURDATE() - INTERVAL 6 MONTH, ' 00:00:00')
 
                 UNION ALL
 
-                    SELECT id, no_form, updated_at, 'piece' AS type
+                    SELECT id as form_cut_id, no_form, updated_at, 'piece' AS type
                     FROM form_cut_piece
-                    WHERE updated_at >= CURDATE() - INTERVAL 6 MONTH
+                    WHERE updated_at >= CONCAT(CURDATE() - INTERVAL 6 MONTH, ' 00:00:00')
                 ORDER BY
                     updated_at ASC
             "));
