@@ -1201,6 +1201,12 @@
                                     Approval PO <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('booking-stock') }}"
+                                    class="dropdown-item {{ $subPage == 'booking-stock' ? 'active' : '' }}">
+                                    Booking Stock <i class="fa-solid fa-list-ul fa-sm"></i>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
