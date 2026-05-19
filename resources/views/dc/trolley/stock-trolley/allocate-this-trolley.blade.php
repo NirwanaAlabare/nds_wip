@@ -245,6 +245,12 @@
                     }
                 },
                 {
+                    targets: [7],
+                    render: (data, type, row, meta) => {
+                        return `<span class="text-nowrap">`+ (data ? data.replace(/,/g, ", <br>") : '') +`</span>`;
+                    }
+                },
+                {
                     targets: "_all",
                     className: "text-nowrap"
                 },
