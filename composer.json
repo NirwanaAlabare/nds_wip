@@ -25,6 +25,7 @@
         "maatwebsite/excel": "^3.1",
         "milon/barcode": "^10.0",
         "predis/predis": "^2.3",
+        "rap2hpoutre/fast-excel": "^4.1",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-activitylog": "^3.0",
         "weidner/goutte": "^2.3",
