@@ -384,6 +384,7 @@ class CuttingFormPieceController extends Controller
                 // Update Form Cut Piece
                 $updateCuttingPiece = $cuttingPieceModel->update([
                     "process" => 3,
+                    "waktu_selesai" => Carbon::now(),
                     "status" => 'complete',
                 ]);
 
@@ -450,6 +451,7 @@ class CuttingFormPieceController extends Controller
             // update form
             $currentForm->no_cut = $formCutPieceSimilarLatest+1;
             $currentForm->waktu_selesai = Carbon::now();
+            $currentForm->status = "complete";
             $currentForm->save();
 
             return true;
@@ -509,7 +511,7 @@ class CuttingFormPieceController extends Controller
     public function update(Request $request, FormCutPiece $formCutPiece)
     {
         // Check Stocker
-        $checkStocker = Stocker::where("form_piece_id", $validatedRequest["id"])->first();
+        $checkStocker = Stocker::where("form_piece_id", $request["id"])->first();
         if ($checkStocker) {
             return array(
                 "status" => 400,
