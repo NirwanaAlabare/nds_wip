@@ -1429,7 +1429,8 @@ class TrolleyStockerController extends Controller
                             ]);
                         }
                     } else {
-                        array_push($exist, ['stocker' => $thisStockerData['id']]);
+                        $currentLoadingLine = LoadingLine::where("stocker_id", $stockerIds[$i])->first();
+                        array_push($exist, ['stocker' => $thisStockerData['id'], "line" => $currentLoadingLine->nama_line, "additional" => "BON : ".$currentLoadingLine->no_bon." | Pada : ".$currentLoadingLine->created_at." | Oleh : ".$currentLoadingLine->created_by_username]);
                     }
                 }
 

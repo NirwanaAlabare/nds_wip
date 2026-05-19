@@ -463,7 +463,7 @@
 
                                 if (res.additional['exist'].length > 0) {
                                     res.additional['exist'].forEach(element => {
-                                        message += element['stocker'] + " - Sudah Ada <br>";
+                                        message += element['stocker'] + " - Sudah Ada di '" + element["line"] + "' ( " + element["additional"] + " ) <br>";
                                     });
                                 }
 
