@@ -501,7 +501,7 @@
 
         @role('export_import')
         <a href="{{ route('dashboard-export-import') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/exim_img.jpeg') }}" alt="export import"></div>
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/exim_img.png') }}" alt="export import"></div>
             <span class="menu-label">Export Import</span>
         </a>
         @endrole
