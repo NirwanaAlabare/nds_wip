@@ -742,4 +742,41 @@ class RackStockerController extends Controller
 
         exit;
     }
+
+    public function getDataStockerPerRack(Request $request){
+        $data = DB::table(DB::raw("
+            (
+                SELECT 
+                    rack_detail.nama_detail_rak AS no_rak,
+                    stocker_input.id_qr_stocker AS no_stocker,
+                    marker_input.act_costing_ws AS no_ws,
+                    form_cut_input.no_cut,
+                    marker_input.style,
+                    marker_input.color,
+                    master_part.nama_part AS part,
+                    COALESCE(master_sb_ws.size, stocker_input.size) AS size,
+                    rack_detail_stocker.qty_in,
+                    rack_detail_stocker.updated_at
+                FROM rack_detail
+                LEFT JOIN rack_detail_stocker 
+                    ON rack_detail_stocker.detail_rack_id = rack_detail.id
+                LEFT JOIN stocker_input 
+                    ON stocker_input.id_qr_stocker = rack_detail_stocker.stocker_id
+                LEFT JOIN form_cut_input 
+                    ON form_cut_input.id = stocker_input.form_cut_id
+                LEFT JOIN marker_input 
+                    ON marker_input.kode = form_cut_input.id_marker
+                LEFT JOIN part_detail 
+                    ON part_detail.id = stocker_input.part_detail_id
+                LEFT JOIN master_part 
+                    ON master_part.id = part_detail.master_part_id
+                LEFT JOIN master_sb_ws 
+                    ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                WHERE rack_detail_stocker.status = 'active' AND rack_detail_stocker.detail_rack_id = '{$request->rack_id}'
+                ORDER BY rack_detail.nama_detail_rak
+            ) as results
+        "));
+
+        return DataTables::queryBuilder($data)->make(true);
+    }
 }

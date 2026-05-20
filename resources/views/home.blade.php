@@ -405,7 +405,7 @@
 
         @role('dc')
         <a href="{{ route('dashboard-dc') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/distribution.jpeg') }}" alt="dc"></div>
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/distribution.png') }}" alt="dc"></div>
             <span class="menu-label">DC</span>
         </a>
         @endrole
@@ -501,7 +501,7 @@
 
         @role('export_import')
         <a href="{{ route('dashboard-export-import') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/exim_img.jpeg') }}" alt="export import"></div>
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/exim_img.png') }}" alt="export import"></div>
             <span class="menu-label">Export Import</span>
         </a>
         @endrole
@@ -666,9 +666,9 @@
     }
 
     function getStateForHour(hour) {
-        if (hour >= 5 && hour < 8) return 'morning';
-        if (hour >= 8 && hour < 15) return 'day';
-        if (hour >= 15 && hour < 18) return 'afternoon';
+        if (hour >= 5 && hour < 10) return 'morning';
+        if (hour >= 10 && hour < 12) return 'day';
+        if (hour >= 12 && hour < 15) return 'afternoon';
         return 'night';
     }
 
