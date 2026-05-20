@@ -706,6 +706,11 @@ class TrolleyStockerController extends Controller
             );
         }
 
+        // Get trolley_id from the earliest existing TrolleyStocker of this bundle
+        $existingTrolleyStockers = TrolleyStocker::whereIn('stocker_id', $similarStockerData->pluck('id'))->get();
+        $earliestTrolleyStocker = $existingTrolleyStockers->sortBy('created_at')->first();
+        $trolleyId = $earliestTrolleyStocker ? $earliestTrolleyStocker->trolley_id : $validatedRequest['trolley_id'];
+
         // Allocate Stocker (Bundle) to Trolley
         $trolleyStockArr = [];
         $idQrStocker = [];
@@ -714,7 +719,7 @@ class TrolleyStockerController extends Controller
             // Generate Trolley Stock
             array_push($trolleyStockArr, [
                 "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
-                "trolley_id" => $validatedRequest['trolley_id'],
+                "trolley_id" => $trolleyId,
                 "stocker_id" => $stocker['id'],
                 "status" => "active",
                 "tanggal_alokasi" => date('Y-m-d'),
@@ -749,9 +754,11 @@ class TrolleyStockerController extends Controller
             ]);
 
             if ($updateStocker) {
+                $trolley = Trolley::where()->where('id', $trolleyId)->first();
+
                 return array(
                     'status' => 202,
-                    'message' => 'Stocker berhasil dialokasi',
+                    'message' => 'Stocker berhasil dialokasi ke ' . $trolley->nama_trolley . ($earliestTrolleyStocker ? " ( berdasarkan alokasi ".$earliestTrolleyStocker->stocker->id_qr_stocker." )" : ""),
                     'redirect' => '',
                     'table' => 'trolley-stock-datatable',
                     'callback' => 'clearStockerId();',
@@ -864,6 +871,11 @@ class TrolleyStockerController extends Controller
             );
         }
 
+        // Get trolley_id from the earliest existing TrolleyStocker of this bundle
+        $existingTrolleyStockers = TrolleyStocker::whereIn('stocker_id', $similarStockerData->pluck('id'))->get();
+        $earliestTrolleyStocker = $existingTrolleyStockers->sortBy('created_at')->first();
+        $trolleyId = $earliestTrolleyStocker ? $earliestTrolleyStocker->trolley_id : $validatedRequest['trolley_id'];
+
         // Allocate Stocker (Bundle) to Trolley
         $trolleyStockArr = [];
         $idQrStocker = [];
@@ -872,7 +884,7 @@ class TrolleyStockerController extends Controller
             // Generate Trolley Stock
             array_push($trolleyStockArr, [
                 "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
-                "trolley_id" => $validatedRequest['trolley_id'],
+                "trolley_id" => $trolleyId,
                 "stocker_id" => $stocker['id'],
                 "status" => "active",
                 "tanggal_alokasi" => date('Y-m-d'),
@@ -906,9 +918,11 @@ class TrolleyStockerController extends Controller
             ]);
 
             if ($updateStocker) {
+                $trolley = Trolley::where('id', $trolleyId)->first();
+
                 return array(
                     'status' => 202,
-                    'message' => 'Stocker berhasil dialokasi',
+                    'message' => 'Stocker berhasil dialokasi ke ' . $trolley->nama_trolley . ($earliestTrolleyStocker ? " ( berdasarkan alokasi ".$earliestTrolleyStocker->stocker->id_qr_stocker." )" : ""),
                     'redirect' => '',
                     'table' => 'trolley-stock-datatable',
                     'callback' => 'trolleyStockDatatableReload(); clearStockerId();',
@@ -931,7 +945,7 @@ class TrolleyStockerController extends Controller
             'message' => 'Stocker gagal dialokasi',
             'redirect' => '',
             'table' => 'trolley-stock-datatable',
-            'callback' => 'trolleyStockDatatableReload(); clearStockerId',
+            'callback' => 'trolleyStockDatatableReload(); clearStockerId();',
             'additional' => [],
         );
     }
@@ -1253,6 +1267,7 @@ class TrolleyStockerController extends Controller
                 $stockerIds = explode(',', $req['stocker_ids']);
                 $stockerIdsStr = addQuotesAround(str_replace(', ', ' \n ', $req['stocker_ids']));
 
+                // Current Selected Stockers
                 $stockerData = Stocker::selectRaw("stocker_input.*, COALESCE(multi_secondary.tujuan, master_secondary.tujuan) as tujuan, dc_in_input.id dc_id, secondary_in_input.id secondary_id, secondary_inhouse_input.id secondary_inhouse_id, multi_secondary.max_urutan, multi_secondary.last_in_id as last_in_id")->
                     leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
                     leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
@@ -1295,11 +1310,48 @@ class TrolleyStockerController extends Controller
                     groupBy("stocker_input.id")->
                     get();
 
+                // Get similar stockers
+                $similarStockerData = Stocker::selectRaw("stocker_input.*, COALESCE(master_secondary.tujuan, master_secondary_multi.tujuan) as tujuan, dc_in_input.id dc_id, secondary_in_input.id secondary_id, secondary_inhouse_input.id secondary_inhouse_id, loading_line.id as loading_line_id, loading_line.nama_line as loading_line_name")->
+                    where(($stockerData->first()->form_piece_id > 0 ? "form_piece_id" : ($stockerData->first()->form_reject_id > 0 ? "form_reject_id" : "form_cut_id")), ($stockerData->first()->form_piece_id > 0 ? $stockerData->first()->form_piece_id : ($stockerData->first()->form_reject_id > 0 ? $stockerData->first()->form_reject_id : $stockerData->first()->form_cut_id)))->
+                    leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+                    leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
+                    leftJoin(DB::raw("
+                        (
+                            SELECT
+                                stocker_input.id_qr_stocker,
+                                MAX( part_detail_secondary.urutan ) AS max_urutan
+                            FROM
+                                stocker_input
+                                LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                                LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id
+                                LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
+                            GROUP BY
+                                id_qr_stocker
+                            HAVING
+                                MAX( part_detail_secondary.urutan ) IS NOT NULL
+                        ) as pds
+                    "), "pds.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                    leftJoin("part_detail_secondary", function ($join) {
+                        $join->on("part_detail_secondary.part_detail_id", "=", "stocker_input.part_detail_id");
+                        $join->on("part_detail_secondary.urutan", "=", "pds.max_urutan");
+                    })->
+                    leftJoin(DB::raw("master_secondary as master_secondary_multi"), "master_secondary_multi.id", "=", "part_detail_secondary.master_secondary_id")->
+                    leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                    leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                    leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                    leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
+                    where("so_det_id", $stockerData->first()->so_det_id)->
+                    where("group_stocker", $stockerData->first()->group_stocker)->
+                    where("ratio", $stockerData->first()->ratio)->
+                    where("stocker_reject", $stockerData->first()->stocker_reject)->
+                    whereRaw("(part_detail.status IS NULL OR part_detail.status = 'active')")->
+                    get();
+
                 // Check Stocker Processes
                 $incompleteNonSecondary = collect([]);
                 $incompleteSecondary = collect([]);
                 $incompleteMultiMsg = "";
-                foreach($stockerData as $stocker) {
+                foreach($similarStockerData as $stocker) {
                     if ($stocker->max_urutan == null) {
                         if (($stocker->tujuan == "NON SECONDARY" || $stocker->tujuan == NULL) && $stocker->dc_id == null) {
                             $incompleteNonSecondary->push($stocker);
