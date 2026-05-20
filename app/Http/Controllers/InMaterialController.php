@@ -1333,6 +1333,7 @@ public function updateAllLokasi(Request $request)
         DB::connection('mysql_sb')
             ->table('whs_lokasi_inmaterial')
             ->where('no_barcode', $row['no_barcode'])
+            ->where('no_dok', $row['m_gr_dok'])
             ->update([
                 'no_roll' => $row['no_roll'],
                 'no_roll_buyer' => $row['no_roll_buyer'],
