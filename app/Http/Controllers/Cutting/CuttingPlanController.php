@@ -786,11 +786,11 @@ class CuttingPlanController extends Controller
                 $markerInfo = "<ul class='list-group'>";
                 $markerInfo = $markerInfo . "<li class='list-group-item'>Panjang : <br><b>" . ($markerData ? $markerData->panjang_marker . " " . $markerData->unit_panjang_marker . " " . $markerData->comma_marker . " " . $markerData->unit_comma_marker : "-") . "</b></li>";
                 $markerInfo = $markerInfo . "<li class='list-group-item'>Lebar : <br><b>" . ($markerData ? $markerData->lebar_marker . " " . $markerData->unit_lebar_marker : "-") . "</b></li>";
-                $markerInfo = $markerInfo . "<li class='list-group-item'>Gelar Qty : <br> <b>" . ($markerData ? $markerData->gelar_qty : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Gelar Qty : <br> <b>" . ($markerData ? $markerData->gelar_qty." PLY" : "-") . "</b></li>";
                 $markerInfo = $markerInfo . "<li class='list-group-item'>Urutan : <br><b>" . ($markerData ? $markerData->urutan_marker : "-") . "</b></li>";
-                $markerInfo = $markerInfo . "<li class='list-group-item'>Cons WS : <br><b>" . ($markerData ? $markerData->cons_ws : "-") . "</b></li>";
-                $markerInfo = $markerInfo . "<li class='list-group-item'>Cons Marker : <br><b>" . ($markerData ? $markerData->cons_marker : "-") . "</b></li>";
-                $markerInfo = $markerInfo . "<li class='list-group-item'>Cons Piping : <br><b>" . ($markerData ? $markerData->cons_piping : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Cons WS : <br><b>" . ($markerData ? (round($markerData->cons_ws, 3)." ".$markerData->unit_cons_ws) : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Cons Marker : <br><b>" . ($markerData ? (round($markerData->cons_marker, 3)." ".$markerData->unit_cons_marker) : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Cons Piping : <br><b>" . ($markerData ? (round($markerData->cons_piping, 3)." ".$markerData->unit_cons_piping) : "-") . "</b></li>";
                 $markerInfo = $markerInfo . "<li class='list-group-item'>Gramasi : <br><b>" . ($markerData ? $markerData->gramasi : "-") . "</b></li>";
                 $markerInfo = $markerInfo . "</ul>";
                 return $markerInfo;
@@ -798,7 +798,7 @@ class CuttingPlanController extends Controller
                 $markerDetailData = $row->formCutInput && $row->formCutInput->marker ? $row->formCutInput->marker->markerDetails->where("ratio", ">", "0") : null;
 
                 $markerDetailInfo = "
-                        <table class='table table-bordered table w-auto'>
+                        <table class='table table-bordered table w-100'>
                             <thead>
                                 <tr>
                                     <th>Size</th>
@@ -837,7 +837,7 @@ class CuttingPlanController extends Controller
                 $meja = User::where('type', 'meja')->get();
 
                 $input = "
-                        <select class='form-select select2bs4' id='no_meja_" . $row->id . "' name='no_meja[" . $row->id . "]'>
+                        <select class='form-select select2bs4 w-100' id='no_meja_" . $row->id . "' name='no_meja[" . $row->id . "]'>
                             <option value=''>Pilih Meja</option>
                     ";
 
@@ -859,7 +859,7 @@ class CuttingPlanController extends Controller
                 return $input;
             })->addColumn('approve', function ($row) {
                 $input = "
-                        <div class='form-check w-100 text-center'><input type='checkbox' class='form-check-input border-success' id='approve_" . $row->id . "' name='approve[" . $row->id . "]' value='Y' " . ($row->app == 'Y' ? 'checked' : '') . " " . ($row->formCutInput ? ($row->formCutInput->status != 'SPREADING' ? 'disabled' : '') : '') . "></div>
+                        <div class='form-check w-100 text-center'><input type='checkbox' class='form-check-input border-success' style='transform: scale(2) translateX(25%) translateY(50%);' id='approve_" . $row->id . "' name='approve[" . $row->id . "]' value='Y' " . ($row->app == 'Y' ? 'checked' : '') . " " . ($row->formCutInput ? ($row->formCutInput->status != 'SPREADING' ? 'disabled' : '') : '') . "></div>
                         " . ($row->formCutInput ? ($row->formCutInput->status != 'SPREADING' ? '<input type="hidden" class="form-control" id="approve_' . $row->id . '" name="approve[' . $row->id . ']" value="' . $row->formCutInput->app . '">' : '') : '');
 
                 return $input;
