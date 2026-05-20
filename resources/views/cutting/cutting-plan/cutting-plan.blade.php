@@ -67,47 +67,49 @@
                     </div>
                     <div class="modal-body">
                         <div class='row'>
-                            <div class='col-sm-6'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Tgl. Plan</small></label>
-                                    <input type='text' class='form-control' id='manage_tgl_plan' name='manage_tgl_plan' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-6'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>No. Cut Plan</small></label>
-                                    <input type='text' class='form-control' id='manage_no_cut_plan' name='manage_no_cut_plan' onchange="datatableManageFormReload();" readonly>
-                                </div>
-                            </div>
-                        </div>
-                        <div class='row'>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
-                                    <label class='form-label'><small>Total Form</small></label>
-                                    <input type='text' class='form-control' id='manage_total_form' name='manage_total_form' value = '' readonly>
+                                    <label class='form-label small'>Tgl. Plan</label>
+                                    <input type='text' class='form-control form-control-sm' id='manage_tgl_plan' name='manage_tgl_plan' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
-                                    <label class='form-label'><small>Form Tersedia</small></label>
-                                    <input type='text' class='form-control' id='manage_total_belum' name='manage_total_belum' value = '' readonly>
+                                    <label class='form-label small'>No. Cut Plan</label>
+                                    <input type='text' class='form-control form-control-sm' id='manage_no_cut_plan' name='manage_no_cut_plan' onchange="datatableManageFormReload();" readonly>
                                 </div>
                             </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Form On Progress</small></label>
-                                    <input type='text' class='form-control' id='manage_total_on_progress' name='manage_total_on_progress' value = '' readonly>
-                                </div>
-                            </div>
-                            <div class='col-sm-3'>
-                                <div class='form-group'>
-                                    <label class='form-label'><small>Form Selesai</small></label>
-                                    <input type='text' class='form-control' id='manage_total_beres' name='manage_total_beres' value = '' readonly>
+                            <div class="col-sm-6">
+                                <div class="row justify-content-center">
+                                    <div class='col-sm-3'>
+                                        <div class='form-group'>
+                                            <label class='form-label small'>Total Form</label>
+                                            <input type='text' class='form-control form-control-sm' id='manage_total_form' name='manage_total_form' value = '' readonly>
+                                        </div>
+                                    </div>
+                                    <div class='col-sm-3'>
+                                        <div class='form-group'>
+                                            <label class='form-label small'>Form Tersedia</label>
+                                            <input type='text' class='form-control form-control-sm' id='manage_total_belum' name='manage_total_belum' value = '' readonly>
+                                        </div>
+                                    </div>
+                                    <div class='col-sm-3'>
+                                        <div class='form-group'>
+                                            <label class='form-label small'>Form On Progress</label>
+                                            <input type='text' class='form-control form-control-sm' id='manage_total_on_progress' name='manage_total_on_progress' value = '' readonly>
+                                        </div>
+                                    </div>
+                                    <div class='col-sm-3'>
+                                        <div class='form-group'>
+                                            <label class='form-label small'>Form Selesai</label>
+                                            <input type='text' class='form-control form-control-sm' id='manage_total_beres' name='manage_total_beres' value = '' readonly>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         <div class="mt-3 table-responsive">
-                            <table class="table table-bordered w-100" id="manage-form-datatable">
+                            <table class="table table-bordered table-sm w-100" id="manage-form-datatable">
                                 <thead>
                                     <tr>
                                         <th>Form Cut Data</th>
@@ -125,9 +127,9 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <div class="d-flex w-100 justify-content-between">
+                        <div class="d-flex gap-1 justify-content-end">
+                            <button type="button" class="btn btn-yes fw-bold" onclick="submitManageForm();"><i class="fa fa-save"></i> SIMPAN</button>
                             <button type="button" class="btn btn-no fw-bold" data-bs-dismiss="modal"><i class="fa fa-times"></i> BATAL</button>
-                            <button type="button" class="btn btn-success fw-bold" onclick="submitManageForm();"><i class="fa fa-check"></i> SIMPAN</button>
                         </div>
                     </div>
                 </div>
@@ -141,28 +143,25 @@
             <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-calendar-days"></i> Daily Cutting Plan</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-cut-plan') }}" class="btn btn-success btn-sm mb-3">
-                <i class="fa fa-cog"></i>
-                Plan
-            </a>
             <div class="d-flex justify-content-between">
                 <div class="d-flex align-items-end gap-3 mb-3">
-                    <div class="mb-3">
-                        <label class="form-label"><small>Tanggal Awal</small></label>
+                    <div>
+                        <label class="form-label small">Tanggal Awal</label>
                         <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="filterTable()">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label"><small>Tanggal Akhir</small></label>
+                    <div>
+                        <label class="form-label small">Tanggal Akhir</label>
                         <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="filterTable()">
                     </div>
-                    <div class="mb-3">
+                    <div>
                         <button class="btn btn-primary btn-sm" onclick="filterTable()"><i class="fa fa-search"></i></button>
                     </div>
                 </div>
-                <div class="d-flex align-items-end gap-3 mb-3">
-                    <div class="mb-3">
-                        <button class="btn btn-success btn-sm" onclick="exportExcel()"><i class="fa fa-file-excel"></i></button>
-                    </div>
+                <div class="d-flex align-items-end gap-1 mb-3">
+                    <a href="{{ route('create-cut-plan') }}" data-bs-toggle="tooltip" data-bs-title="Atur Cutting Plan" class="btn btn-sb btn-sm">
+                        <i class="fa fa-cog"></i>
+                    </a>
+                    <button class="btn btn-success btn-sm" data-bs-toggle="tooltip" data-bs-title="Export Excel Cutting Plan" onclick="exportExcel()"><i class="fa fa-file-excel"></i></button>
                 </div>
             </div>
             <div class="table-responsive">
@@ -260,10 +259,10 @@
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-sb btn-sm' onclick='editData(` + JSON.stringify(row) + `, \"cutPlanDetailModal\", [{\"function\" : \"datatableFormReload()\"}]);'>
+                                <a class='btn btn-sb btn-sm' data-bs-toggle='tooltip' data-bs-title='Detail Cutting Plan' onclick='editData(` + JSON.stringify(row) + `, \"cutPlanDetailModal\", [{\"function\" : \"datatableFormReload()\"}]);'>
                                     <i class='fa fa-search'></i>
                                 </a>
-                                <a class='btn btn-sb-secondary btn-sm' onclick='manageCutPlan(` + JSON.stringify(row) + `);'>
+                                <a class='btn btn-sb-secondary btn-sm' data-bs-toggle='tooltip' data-bs-title='Ubah Cutting Plan' onclick='manageCutPlan(` + JSON.stringify(row) + `);'>
                                     <i class='fa fa-edit'></i>
                                 </a>
                             </div>
@@ -443,6 +442,7 @@
         };
 
         let manageFormDatatable = $("#manage-form-datatable").DataTable({
+            searching: false,
             processing: true,
             serverSide: true,
             paging: false,
@@ -494,11 +494,11 @@
             columnDefs: [
                 {
                     targets: [0, 1, 2, 3, 5, 6],
-                    className: 'w-auto limit',
+                    className: 'w-auto',
                 },
                 {
                     targets: [4],
-                    className: 'd-none limit',
+                    className: 'd-none',
                 },
             ],
             rowCallback: function( row, data, index ) {

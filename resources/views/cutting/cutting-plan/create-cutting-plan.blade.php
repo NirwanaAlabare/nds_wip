@@ -54,16 +54,6 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="row justify-content-between mb-3">
-                        <div class="col-6">
-                            <p>Selected Form : <span class="fw-bold" id="selected-row-count-1">0</span></p>
-                        </div>
-                        <div class="col-6">
-                            <button class="btn btn-success btn-sm float-end" onclick="addToCutPlan(this)">
-                                <i class="fa fa-plus fa-sm"></i> Tambahkan ke Cut Plan
-                            </button>
-                        </div>
-                    </div>
                     <div class="table-responsive">
                         <table id="datatable-select" class="table table-bordered table w-100">
                             <thead>
@@ -85,6 +75,16 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="row justify-content-between my-3">
+                        <div class="col-6">
+                            <p>Form Terpilih : <span class="fw-bold" id="selected-row-count-1">0</span></p>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-success btn-sm float-end fw-bold" onclick="addToCutPlan(this)">
+                                <i class="fa fa-plus fa-sm"></i> Tambahkan ke Cut Plan
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -96,14 +96,6 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <p>Selected Form : <span class="fw-bold" id="selected-row-count-2">0</span></p>
-                        </div>
-                        <div class="col-6">
-                            <button class="btn btn-danger btn-sm float-end" onclick="removeCutPlan(this)"><i class="fa fa-minus fa-sm"></i> Singkirkan dari Cut Plan</button>
-                        </div>
-                    </div>
                     <div class="table-responsive">
                         <table id="datatable-selected" class="table table-bordered table w-100">
                             <thead>
@@ -125,6 +117,14 @@
                             <tbody>
                             </tbody>
                         </table>
+                    </div>
+                    <div class="row my-3">
+                        <div class="col-6">
+                            <p>Form Terpilih : <span class="fw-bold" id="selected-row-count-2">0</span></p>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-danger btn-sm float-end fw-bold" onclick="removeCutPlan(this)"><i class="fa fa-minus fa-sm"></i> Singkirkan dari Cut Plan</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -401,6 +401,8 @@
             }
 
             if (tglPlan && formCutPlan.length > 0) {
+                document.getElementById("loading").classList.remove("d-none");
+
                 element.setAttribute('disabled', true);
 
                 $.ajax({
@@ -411,6 +413,8 @@
                         formCutPlan: formCutPlan
                     },
                     success: function(res) {
+                        document.getElementById("loading").classList.add("d-none");
+
                         element.removeAttribute('disabled');
 
                         if (res.status == 200) {
@@ -474,6 +478,8 @@
                         formArr = [];
                     },
                     error: function(jqXHR) {
+                        document.getElementById("loading").classList.add("d-none");
+
                         element.removeAttribute('disabled');
 
                         let res = jqXHR.responseJSON;

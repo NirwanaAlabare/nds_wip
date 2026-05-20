@@ -491,17 +491,17 @@ class LoadingLineController extends Controller
 
         $loadingLines = collect(DB::select("
             SELECT
-                COALESCE( loading_line.tanggal_loading, DATE ( loading_line.updated_at ) ) tanggal_loading,
+                COALESCE(loading_line.tanggal_loading, DATE(loading_line.updated_at)) tanggal_loading,
                 loading_line.loading_plan_id,
                 loading_line.nama_line,
                 (
-                    (COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply )) -
-                    (COALESCE ( MAX(dc_in_input.qty_reject), 0 )) +
-                    (COALESCE ( MAX(dc_in_input.qty_replace), 0 )) -
-                    (COALESCE ( MAX(secondary_in_input.qty_reject), 0 )) +
-                    (COALESCE ( MAX(secondary_in_input.qty_replace), 0 )) -
-                    (COALESCE ( MAX(secondary_inhouse_input.qty_reject), 0 )) +
-                    (COALESCE ( MAX(secondary_inhouse_input.qty_replace), 0 ))
+                    (COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply)) -
+                    (COALESCE(MAX(dc_in_input.qty_reject), 0)) +
+                    (COALESCE(MAX(dc_in_input.qty_replace), 0)) -
+                    (COALESCE(MAX(secondary_in_input.qty_reject), 0)) +
+                    (COALESCE(MAX(secondary_in_input.qty_replace), 0)) -
+                    (COALESCE(MAX(secondary_inhouse_input.qty_reject), 0)) +
+                    (COALESCE(MAX(secondary_inhouse_input.qty_replace), 0))
                 ) qty_old,
                 COALESCE(loading_qty.loading_qty, loading_line.qty) qty,
                 trolley.id trolley_id,
@@ -526,18 +526,19 @@ class LoadingLineController extends Controller
                 part_detail.part_status,
                 COALESCE(loading_line.no_bon, '-') no_bon,
                 COALESCE(form_cut_input.no_form, form_cut_piece.no_form, form_cut_reject.no_form) no_form,
-                COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut,  '-') no_cut,
+                COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut, '-') no_cut,
                 DATE_FORMAT(loading_line.updated_at, '%H:%i:%s') waktu_loading,
-                users.username as user
+                users.username AS user
             FROM
                 loading_line
                 LEFT JOIN loading_line_plan ON loading_line_plan.id = loading_line.loading_plan_id
                 LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
-                left join part_detail on stocker_input.part_detail_id = part_detail.id
-                left join part on part.id = part_detail.part_id
-                left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
-                left join part part_com on part_com.id = part_detail_com.part_id
-                LEFT JOIN `master_part` ON `master_part`.`id` = `part_detail`.`master_part_id`
+                LEFT JOIN part_detail ON stocker_input.part_detail_id = part_detail.id
+                LEFT JOIN part ON part.id = part_detail.part_id
+                LEFT JOIN part_detail part_detail_com ON part_detail_com.id = part_detail.from_part_detail
+                    AND part_detail.part_status = 'complement'
+                LEFT JOIN part part_com ON part_com.id = part_detail_com.part_id
+                LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
                 LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
                 LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
                 LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
@@ -550,47 +551,37 @@ class LoadingLineController extends Controller
                 LEFT JOIN master_size_new ON master_size_new.size = master_sb_ws.size
                 LEFT JOIN users ON users.id = loading_line.created_by
                 LEFT JOIN (
-                    select
-						COALESCE(p_com.panel, p.panel) panel,
-						s.form_cut_id,
-						s.form_reject_id,
-						s.form_piece_id,
-						s.so_det_id,
-						s.group_stocker,
-						s.ratio,
-						s.stocker_reject,
-						GROUP_CONCAT(ll.stocker_id) stocker_id,
-						MIN(ll.qty) loading_qty
-                    from
-                        loading_line ll
-                        left join stocker_input s on s.id = ll.stocker_id
-                        left join part_detail pd on pd.id = s.part_detail_id
-                        left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
-                        left join part p on p.id = pd.part_id
-                        left join part p_com on p_com.id = pd_com.part_id
-                    where
-                        ll.tanggal_loading between '".$dateFrom."' AND '".$dateTo."' AND
-                        (s.cancel IS NULL OR s.cancel != 'y')
-                    group by
-                        COALESCE(p_com.panel, p.panel),
-                        s.form_cut_id,
-                        s.form_reject_id,
-                        s.form_piece_id,
-                        s.so_det_id,
-                        s.group_stocker,
-                        s.ratio,
-                        s.stocker_reject
-                ) as loading_qty on loading_qty.panel = COALESCE(part_com.panel, part.panel)
-                AND loading_qty.form_cut_id    <=> stocker_input.form_cut_id
-                AND loading_qty.form_reject_id <=> stocker_input.form_reject_id
-                AND loading_qty.form_piece_id  <=> stocker_input.form_piece_id
-                AND loading_qty.so_det_id      <=> stocker_input.so_det_id
-                AND loading_qty.group_stocker  <=> stocker_input.group_stocker
-                AND loading_qty.ratio          <=> stocker_input.ratio
-                AND loading_qty.stocker_reject <=> stocker_input.stocker_reject
+                    SELECT
+                        s.id_qr_stocker,
+                        COALESCE(
+                            MIN(ll.qty) OVER (
+                                PARTITION BY
+                                    COALESCE(p_com.panel, p.panel),
+                                    s.form_cut_id,
+                                    s.form_reject_id,
+                                    s.form_piece_id,
+                                    s.so_det_id,
+                                    s.group_stocker,
+                                    s.ratio,
+                                    s.stocker_reject
+                            ),
+                            ll.qty
+                        ) AS loading_qty
+                    FROM loading_line ll
+                    JOIN stocker_input s ON s.id = ll.stocker_id
+                    LEFT JOIN part_detail pd ON pd.id = s.part_detail_id
+                    LEFT JOIN part p ON p.id = pd.part_id
+                    LEFT JOIN part_detail pd_com ON pd_com.id = pd.from_part_detail
+                        AND pd.part_status = 'complement'
+                    LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                    WHERE
+                        ll.tanggal_loading BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                        AND COALESCE(s.cancel, 'n') != 'y'
+                        AND (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
+                ) AS loading_qty ON loading_qty.id_qr_stocker = stocker_input.id_qr_stocker
             WHERE
-                loading_line_plan.id = '".$id."' and
-                (loading_line.tanggal_loading between '".$dateFrom."' and '".$dateTo."')
+                loading_line_plan.id = '".$id."'
+                AND (loading_line.tanggal_loading BETWEEN '".$dateFrom."' AND '".$dateTo."')
             GROUP BY
                 stocker_input.id_qr_stocker
             ORDER BY
@@ -879,17 +870,17 @@ class LoadingLineController extends Controller
 
         $data = DB::select("
             SELECT
-                COALESCE( loading_line.tanggal_loading, DATE ( loading_line.updated_at ) ) tanggal_loading,
+                COALESCE(loading_line.tanggal_loading, DATE(loading_line.updated_at)) tanggal_loading,
                 loading_line.loading_plan_id,
                 loading_line.nama_line,
                 (
-                    (COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply )) -
-                    (COALESCE ( MAX(dc_in_input.qty_reject), 0 )) +
-                    (COALESCE ( MAX(dc_in_input.qty_replace), 0 )) -
-                    (COALESCE ( MAX(secondary_in_input.qty_reject), 0 )) +
-                    (COALESCE ( MAX(secondary_in_input.qty_replace), 0 )) -
-                    (COALESCE ( MAX(secondary_inhouse_input.qty_reject), 0 )) +
-                    (COALESCE ( MAX(secondary_inhouse_input.qty_replace), 0 ))
+                    (COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply)) -
+                    (COALESCE(MAX(dc_in_input.qty_reject), 0)) +
+                    (COALESCE(MAX(dc_in_input.qty_replace), 0)) -
+                    (COALESCE(MAX(secondary_in_input.qty_reject), 0)) +
+                    (COALESCE(MAX(secondary_in_input.qty_replace), 0)) -
+                    (COALESCE(MAX(secondary_inhouse_input.qty_reject), 0)) +
+                    (COALESCE(MAX(secondary_inhouse_input.qty_replace), 0))
                 ) qty_old,
                 loading_line.qty qty_old_1,
                 COALESCE(loading_qty.loading_qty, loading_line.qty) qty,
@@ -918,17 +909,18 @@ class LoadingLineController extends Controller
                 part_detail.part_status part_status,
                 loading_line.no_bon,
                 DATE_FORMAT(loading_line.updated_at, '%H:%i:%s') waktu_loading,
-                users.username as user,
+                users.username AS user,
                 part_detail.part_status,
                 stocker_input.notes
             FROM
                 loading_line
                 LEFT JOIN loading_line_plan ON loading_line_plan.id = loading_line.loading_plan_id
                 LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
-                left join part_detail on stocker_input.part_detail_id = part_detail.id
-                left join part on part.id = part_detail.part_id
-                left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
-                left join part part_com on part_com.id = part_detail_com.part_id
+                LEFT JOIN part_detail ON stocker_input.part_detail_id = part_detail.id
+                LEFT JOIN part ON part.id = part_detail.part_id
+                LEFT JOIN part_detail part_detail_com ON part_detail_com.id = part_detail.from_part_detail
+                    AND part_detail.part_status = 'complement'
+                LEFT JOIN part part_com ON part_com.id = part_detail_com.part_id
                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
                 LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
                 LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
@@ -942,47 +934,37 @@ class LoadingLineController extends Controller
                 LEFT JOIN master_size_new ON master_size_new.size = master_sb_ws.size
                 LEFT JOIN users ON users.id = loading_line.created_by
                 LEFT JOIN (
-                    select
-						COALESCE(p_com.panel, p.panel) panel,
-						s.form_cut_id,
-						s.form_reject_id,
-						s.form_piece_id,
-						s.so_det_id,
-						s.group_stocker,
-						s.ratio,
-						s.stocker_reject,
-						GROUP_CONCAT(ll.stocker_id) stocker_id,
-						MIN(ll.qty) loading_qty
-                    from
-                        loading_line ll
-                        left join stocker_input s on s.id = ll.stocker_id
-                        left join part_detail pd on pd.id = s.part_detail_id
-                        left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
-                        left join part p on p.id = pd.part_id
-                        left join part p_com on p_com.id = pd_com.part_id
-                    where
-                        ll.tanggal_loading between '".$from."' AND '".$to."' AND
-                        (s.cancel IS NULL OR s.cancel != 'y')
-                    group by
-                        COALESCE(p_com.panel, p.panel),
-                        s.form_cut_id,
-                        s.form_reject_id,
-                        s.form_piece_id,
-                        s.so_det_id,
-                        s.group_stocker,
-                        s.ratio,
-                        s.stocker_reject
-                ) as loading_qty on loading_qty.panel = COALESCE(part_com.panel, part.panel)
-                AND loading_qty.form_cut_id    <=> stocker_input.form_cut_id
-                AND loading_qty.form_reject_id <=> stocker_input.form_reject_id
-                AND loading_qty.form_piece_id  <=> stocker_input.form_piece_id
-                AND loading_qty.so_det_id      <=> stocker_input.so_det_id
-                AND loading_qty.group_stocker  <=> stocker_input.group_stocker
-                AND loading_qty.ratio          <=> stocker_input.ratio
-                AND loading_qty.stocker_reject <=> stocker_input.stocker_reject
+                    SELECT
+                        s.id_qr_stocker,
+                        COALESCE(
+                            MIN(ll.qty) OVER (
+                                PARTITION BY
+                                    COALESCE(p_com.panel, p.panel),
+                                    s.form_cut_id,
+                                    s.form_reject_id,
+                                    s.form_piece_id,
+                                    s.so_det_id,
+                                    s.group_stocker,
+                                    s.ratio,
+                                    s.stocker_reject
+                            ),
+                            ll.qty
+                        ) AS loading_qty
+                    FROM loading_line ll
+                    JOIN stocker_input s ON s.id = ll.stocker_id
+                    LEFT JOIN part_detail pd ON pd.id = s.part_detail_id
+                    LEFT JOIN part p ON p.id = pd.part_id
+                    LEFT JOIN part_detail pd_com ON pd_com.id = pd.from_part_detail
+                        AND pd.part_status = 'complement'
+                    LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                    WHERE
+                        ll.tanggal_loading BETWEEN '".$from."' AND '".$to."'
+                        AND COALESCE(s.cancel, 'n') != 'y'
+                        AND (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
+                ) AS loading_qty ON loading_qty.id_qr_stocker = stocker_input.id_qr_stocker
             WHERE
-                (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y') and
-                loading_line_plan.id in ".$loadingPlanIds."
+                (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
+                AND loading_line_plan.id IN ".$loadingPlanIds."
                 ".$innerDetailDateFilter."
             GROUP BY
                 stocker_input.id_qr_stocker
