@@ -125,8 +125,8 @@
                                 <td align="left">{{ $ddetail->itemdesc }}</td>
                                 <td align="left">{{ $ddetail->color }}</td>
                                 <td align="left">{{ $ddetail->location }}</td>
-                                <td align="right">{{ $ddetail->qty_request }}</td>
-                                <td align="right">{{ $ddetail->out_qty }}</td>
+                                <td align="right">{{ number_format($ddetail->qty_request, 2) }}</td>
+                                <td align="right">{{ $ddetail->out_qty ? number_format($ddetail->out_qty, 2) : '' }}</td>
                                 <td align="right">{{ $ddetail->out_unit }}</td>
                                 <td align="left">{{ $ddetail->check_picker }}</td>
                                 <td align="right">{{ $ddetail->check_loader }}</td>
@@ -138,7 +138,7 @@
                         @foreach ($dataSum as $dsum)
                             <tr>
                                 <td align="center" colspan="4">Total</td>
-                                <td align="right">{{ $dsum->total_req }}</td>
+                                <td align="right">{{ number_format($dsum->total_req, 2) }}</td>
                                 <td align="right" colspan="6"></td>
                             </tr>
                         @endforeach
