@@ -141,6 +141,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/check-output-detail-list', 'checkOutputDetailList')->name("check-output-detail-list");
         Route::post('/check-output-detail-export', 'checkOutputDetailExport')->name("check-output-detail-export");
 
+        // Check Output vs Master Plan
+        Route::get('/check-output-master-plan', 'checkOutputMasterPlan')->name("check-output-master-plan");
+        Route::post('/check-output-master-plan-list', 'checkOutputMasterPlanList')->name("check-output-master-plan-list");
+        Route::post('/fix-output-master-plan', 'fixOutputMasterPlan')->name("fix-output-master-plan");
+
         // Output Line Migration
         Route::get('/line-migration', 'lineMigration')->name("line-migration");
         Route::post('/line-migration-submit', 'lineMigrationSubmit')->name("line-migration-submit");

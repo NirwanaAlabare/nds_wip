@@ -4207,4 +4207,314 @@ class SewingToolsController extends Controller
             "message" => "Packing PO gagal dihapus"
         );
     }
+
+    // Check Output vs Master Plan
+    public function checkOutputMasterPlan() {
+        $lines = DB::connection("mysql_sb")->table("userpassword")
+            ->select('line_id', 'username')
+            ->where('Groupp', 'SEWING')
+            ->whereRaw("(Locked != 1 OR Locked IS NULL)")
+            ->orderBy('line_id', 'asc')
+            ->get();
+
+        return view("sewing.tools.check-output-master-plan", [
+            "lines"   => $lines,
+            "page"    => "dashboard-sewing-eff",
+        ]);
+    }
+
+    private function buildMissMasterPlanSql(string $dateFrom, string $dateTo, string $lineFilter): string {
+        $outerSelect = "
+                'RFT' AS tipe,
+                output.id,
+                output.line,
+                output.tgl_plan,
+                output.actual_color          AS color,
+                output.actual_act_costing_id AS actual_act_costing_id,
+                output.size,
+                output.dest,
+                ac_actual.kpno  AS ws_actual,
+                ac_plan.kpno    AS ws_plan,
+                output.plan_color,
+                actual.id       AS correct_plan_id,
+                ac_correct.kpno AS ws_correct,
+                actual.color    AS color_correct
+        ";
+
+        $rftSql = "
+            SELECT " . str_replace("'RFT'", "'RFT'", $outerSelect) . "
+            FROM (
+                SELECT
+                    output_rfts.id,
+                    master_plan.id                                      AS plan_id,
+                    master_plan.color                                   AS plan_color,
+                    master_plan.id_ws                                   AS plan_act_costing_id,
+                    TRIM(so_det.color)                                  AS actual_color,
+                    act_costing.id                                      AS actual_act_costing_id,
+                    so_det.size,
+                    so_det.dest,
+                    userpassword.username                               AS line,
+                    COALESCE(master_plan.tgl_plan, DATE(output_rfts.updated_at)) AS tgl_plan
+                FROM output_rfts
+                LEFT JOIN user_sb_wip   ON user_sb_wip.id        = output_rfts.created_by
+                LEFT JOIN userpassword  ON userpassword.line_id   = user_sb_wip.line_id
+                LEFT JOIN so_det        ON so_det.id              = output_rfts.so_det_id
+                LEFT JOIN so            ON so.id                  = so_det.id_so
+                LEFT JOIN act_costing   ON act_costing.id         = so.id_cost
+                LEFT JOIN master_plan   ON master_plan.id         = output_rfts.master_plan_id
+                WHERE output_rfts.updated_at BETWEEN '$dateFrom 00:00:00' AND '$dateTo 23:59:59'
+                    AND (master_plan.id_ws != act_costing.id OR master_plan.color != TRIM(so_det.color) OR master_plan.id IS NULL)
+                    $lineFilter
+                GROUP BY output_rfts.id
+            ) output
+            LEFT JOIN master_plan actual ON actual.id_ws = output.actual_act_costing_id AND actual.color = output.actual_color AND actual.sewing_line = output.line AND actual.tgl_plan = output.tgl_plan
+            LEFT JOIN act_costing ac_actual  ON ac_actual.id  = output.actual_act_costing_id
+            LEFT JOIN act_costing ac_plan    ON ac_plan.id    = output.plan_act_costing_id
+            LEFT JOIN act_costing ac_correct ON ac_correct.id = actual.id_ws
+            WHERE actual.id IS NULL OR output.plan_id IS NULL OR actual.id != output.plan_id
+            GROUP BY output.id
+        ";
+
+        $defectSql = "
+            SELECT " . str_replace("'RFT'", "'Defect'", $outerSelect) . "
+            FROM (
+                SELECT
+                    output_defects.id,
+                    master_plan.id                                       AS plan_id,
+                    master_plan.color                                    AS plan_color,
+                    master_plan.id_ws                                    AS plan_act_costing_id,
+                    TRIM(so_det.color)                                   AS actual_color,
+                    act_costing.id                                       AS actual_act_costing_id,
+                    so_det.size,
+                    so_det.dest,
+                    userpassword.username                                AS line,
+                    COALESCE(master_plan.tgl_plan, DATE(output_defects.updated_at)) AS tgl_plan
+                FROM output_defects
+                LEFT JOIN user_sb_wip   ON user_sb_wip.id        = output_defects.created_by
+                LEFT JOIN userpassword  ON userpassword.line_id   = user_sb_wip.line_id
+                LEFT JOIN so_det        ON so_det.id              = output_defects.so_det_id
+                LEFT JOIN so            ON so.id                  = so_det.id_so
+                LEFT JOIN act_costing   ON act_costing.id         = so.id_cost
+                LEFT JOIN master_plan   ON master_plan.id         = output_defects.master_plan_id
+                WHERE output_defects.updated_at BETWEEN '$dateFrom 00:00:00' AND '$dateTo 23:59:59'
+                    AND (master_plan.id_ws != act_costing.id OR master_plan.color != TRIM(so_det.color) OR master_plan.id IS NULL)
+                    $lineFilter
+                GROUP BY output_defects.id
+            ) output
+            LEFT JOIN master_plan actual ON actual.id_ws = output.actual_act_costing_id AND actual.color = output.actual_color AND actual.sewing_line = output.line AND actual.tgl_plan = output.tgl_plan
+            LEFT JOIN act_costing ac_actual  ON ac_actual.id  = output.actual_act_costing_id
+            LEFT JOIN act_costing ac_plan    ON ac_plan.id    = output.plan_act_costing_id
+            LEFT JOIN act_costing ac_correct ON ac_correct.id = actual.id_ws
+            WHERE actual.id IS NULL OR output.plan_id IS NULL OR actual.id != output.plan_id
+            GROUP BY output.id
+        ";
+
+        $rejectSql = "
+            SELECT " . str_replace("'RFT'", "'Reject'", $outerSelect) . "
+            FROM (
+                SELECT
+                    output_rejects.id,
+                    master_plan.id                                       AS plan_id,
+                    master_plan.color                                    AS plan_color,
+                    master_plan.id_ws                                    AS plan_act_costing_id,
+                    TRIM(so_det.color)                                   AS actual_color,
+                    act_costing.id                                       AS actual_act_costing_id,
+                    so_det.size,
+                    so_det.dest,
+                    userpassword.username                                AS line,
+                    COALESCE(master_plan.tgl_plan, DATE(output_rejects.updated_at)) AS tgl_plan
+                FROM output_rejects
+                LEFT JOIN user_sb_wip   ON user_sb_wip.id        = output_rejects.created_by
+                LEFT JOIN userpassword  ON userpassword.line_id   = user_sb_wip.line_id
+                LEFT JOIN so_det        ON so_det.id              = output_rejects.so_det_id
+                LEFT JOIN so            ON so.id                  = so_det.id_so
+                LEFT JOIN act_costing   ON act_costing.id         = so.id_cost
+                LEFT JOIN master_plan   ON master_plan.id         = output_rejects.master_plan_id
+                WHERE output_rejects.updated_at BETWEEN '$dateFrom 00:00:00' AND '$dateTo 23:59:59'
+                    AND (master_plan.id_ws != act_costing.id OR master_plan.color != TRIM(so_det.color) OR master_plan.id IS NULL)
+                    $lineFilter
+                GROUP BY output_rejects.id
+            ) output
+            LEFT JOIN master_plan actual ON actual.id_ws = output.actual_act_costing_id AND actual.color = output.actual_color AND actual.sewing_line = output.line AND actual.tgl_plan = output.tgl_plan
+            LEFT JOIN act_costing ac_actual  ON ac_actual.id  = output.actual_act_costing_id
+            LEFT JOIN act_costing ac_plan    ON ac_plan.id    = output.plan_act_costing_id
+            LEFT JOIN act_costing ac_correct ON ac_correct.id = actual.id_ws
+            WHERE actual.id IS NULL OR output.plan_id IS NULL OR actual.id != output.plan_id
+            GROUP BY output.id
+        ";
+
+        return "$rftSql UNION ALL $defectSql UNION ALL $rejectSql";
+    }
+
+    public function checkOutputMasterPlanList(Request $request) {
+        $dateFrom   = $request->date_from ?? date("Y-m-d", strtotime("-30 days"));
+        $dateTo     = $request->date_to   ?? date("Y-m-d");
+        $lineFilter = $request->line ? "AND userpassword.username = '" . addslashes($request->line) . "'" : "";
+
+        $data = collect(DB::connection("mysql_sb")->select($this->buildMissMasterPlanSql($dateFrom, $dateTo, $lineFilter)));
+
+        return DataTables::of($data)
+            ->addColumn('keterangan', function ($row) {
+                if (!$row->ws_plan && !$row->plan_color) {
+                    return '<span class="badge bg-secondary">Tidak ada plan</span>';
+                }
+                if ($row->correct_plan_id) {
+                    return '<span class="badge bg-warning text-dark">Plan tidak sesuai</span>';
+                }
+                return '<span class="badge bg-danger">Tidak ada plan yang cocok</span>';
+            })
+            ->rawColumns(['keterangan'])
+            ->make(true);
+    }
+
+    public function fixOutputMasterPlan(Request $request) {
+        ini_set('max_execution_time', 3600);
+
+        $dateFrom   = $request->date_from ?? date("Y-m-d", strtotime("-30 days"));
+        $dateTo     = $request->date_to   ?? date("Y-m-d");
+        $lineFilter = $request->line ? "AND userpassword.username = '" . addslashes($request->line) . "'" : "";
+
+        $data = collect(DB::connection("mysql_sb")->select($this->buildMissMasterPlanSql($dateFrom, $dateTo, $lineFilter)));
+
+        if ($data->count() < 1) {
+            return array(
+                'status'  => 400,
+                'message' => 'Tidak ada data yang perlu diperbaiki.',
+            );
+        }
+
+        $fixed   = 0;
+        $created = 0;
+        $failed  = 0;
+        $logs    = [];
+
+        // Cache new plans created in this run to avoid duplicates: key = id_ws_color_line_tglplan
+        $newPlanCache = [];
+
+        foreach ($data as $row) {
+            $targetPlanId  = null;
+            $planAction    = null;
+
+            if ($row->correct_plan_id) {
+                // Correct plan already exists — just point to it
+                $targetPlanId = $row->correct_plan_id;
+                $planAction   = 'use_existing';
+            } else {
+                // Try to find or create a plan for actual ws+color+line+date
+                $cacheKey = $row->actual_act_costing_id . '|' . $row->color . '|' . $row->line . '|' . $row->tgl_plan;
+
+                if (isset($newPlanCache[$cacheKey])) {
+                    $targetPlanId = $newPlanCache[$cacheKey];
+                    $planAction   = 'use_cached';
+                } else {
+                    // Check if an active plan already exists (possibly created by a previous fix run)
+                    $existing = DB::connection("mysql_sb")->table("master_plan")
+                        ->where("id_ws",       $row->actual_act_costing_id)
+                        ->where("color",       $row->color)
+                        ->where("sewing_line", $row->line)
+                        ->where("tgl_plan",    $row->tgl_plan)
+                        ->where("cancel",      "N")
+                        ->first();
+
+                    if ($existing) {
+                        $targetPlanId = $existing->id;
+                        $planAction   = 'use_existing';
+                    } else {
+                        // Create a new master_plan with jam_kerja = 0
+                        $newPlan = MasterPlan::create([
+                            "id_plan"      => str_replace("-", "", $row->tgl_plan),
+                            "id_ws"        => $row->actual_act_costing_id,
+                            "color"        => $row->color,
+                            "sewing_line"  => $row->line,
+                            "tgl_plan"     => $row->tgl_plan,
+                            "tgl_input"    => Carbon::now(),
+                            "jam_kerja"    => 0,
+                            "smv"          => 0,
+                            "man_power"    => 0,
+                            "plan_target"  => 0,
+                            "target_effy"  => 0,
+                            "create_by"    => Auth::user()->username,
+                            "cancel"       => "N",
+                        ]);
+
+                        if ($newPlan) {
+                            $targetPlanId = $newPlan->id;
+                            $planAction   = 'created_new';
+                            $newPlanCache[$cacheKey] = $newPlan->id;
+                            $created++;
+                        }
+                    }
+
+                    if ($targetPlanId) {
+                        $newPlanCache[$cacheKey] = $targetPlanId;
+                    }
+                }
+            }
+
+            if ($targetPlanId) {
+                $outputTable = match($row->tipe) {
+                    'RFT'    => 'output_rfts',
+                    'Defect' => 'output_defects',
+                    default  => 'output_rejects',
+                };
+
+                $updated = DB::connection("mysql_sb")->table($outputTable)
+                    ->where('id', $row->id)
+                    ->update(['master_plan_id' => $targetPlanId]);
+
+                if ($updated) {
+                    $fixed++;
+                    $logs[] = [
+                        'status'          => 'fixed',
+                        'tipe'            => $row->tipe,
+                        'output_id'       => $row->id,
+                        'line'            => $row->line,
+                        'tgl_plan'        => $row->tgl_plan,
+                        'ws_actual'       => $row->ws_actual,
+                        'color'           => $row->color,
+                        'ws_plan_lama'    => $row->ws_plan   ?? '-',
+                        'color_plan_lama' => $row->plan_color ?? '-',
+                        'master_plan_id_baru' => $targetPlanId,
+                        'plan_action'     => $planAction,
+                        'fixed_by'        => Auth::user()->username,
+                        'fixed_at'        => Carbon::now()->toDateTimeString(),
+                    ];
+                } else {
+                    $failed++;
+                    $logs[] = [
+                        'status'    => 'failed',
+                        'tipe'      => $row->tipe,
+                        'output_id' => $row->id,
+                        'reason'    => 'update query returned 0 rows',
+                    ];
+                }
+            } else {
+                $failed++;
+                $logs[] = [
+                    'status'    => 'failed',
+                    'tipe'      => $row->tipe,
+                    'output_id' => $row->id,
+                    'line'      => $row->line,
+                    'tgl_plan'  => $row->tgl_plan,
+                    'ws_actual' => $row->ws_actual,
+                    'color'     => $row->color,
+                    'reason'    => 'no target plan id resolved',
+                ];
+            }
+        }
+
+        Log::channel('daily')->info('fixOutputMasterPlan', [
+            'executed_by' => Auth::user()->username,
+            'date_from'   => $dateFrom,
+            'date_to'     => $dateTo,
+            'line_filter' => $request->line ?? 'all',
+            'summary'     => ['fixed' => $fixed, 'created' => $created, 'failed' => $failed],
+            'detail'      => $logs,
+        ]);
+
+        return array(
+            'status'  => 200,
+            'message' => "Fix selesai.<br><b>$fixed</b> output berhasil diperbaiki &mdash; <b>$created</b> master plan baru dibuat &mdash; <b>$failed</b> output gagal.",
+        );
+    }
 }
