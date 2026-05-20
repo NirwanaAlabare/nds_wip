@@ -1681,16 +1681,17 @@ class SecondaryInController extends Controller
             groupBy("stocker_input.id")->
             value("urutan");
 
+        $additionalMessage = "";
         // Update Rak/Trolley (One Step Before Loading) On Last Step/No Step at all
         if (!$lastStep || $lastStep <= $request->txturutan) {
 
             // Update Rak
             if ($request['cborak']) {
                 $rak = DB::table('rack_detail')
-                ->select('id')
+                ->select('id', 'nama_detail_rak')
                 ->where('nama_detail_rak', '=', $request['cborak'])
-                ->get();
-                $rak_data = $rak ? $rak[0]->id : null;
+                ->first();
+                $rak_data = $rak ? $rak->id : null;
 
                 $insert_rak = RackDetailStocker::create([
                     'nm_rak' => $request['cborak'],
@@ -1701,10 +1702,13 @@ class SecondaryInController extends Controller
                     'created_at' => $timestamp,
                     'updated_at' => $timestamp,
                 ]);
+
+                $additionalMessage .= "Stocker dialokasikan ke Rak " . ($rak ? $rak->nama_detail_rak : $request['cborak']);
             }
 
             // Update Trolley
             if ($request['cbotrolley']) {
+
                 $lastTrolleyStock = TrolleyStocker::select('kode')->orderBy('id', 'desc')->first();
                 $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
 
@@ -1714,12 +1718,26 @@ class SecondaryInController extends Controller
                 $thisTrolley = Trolley::where("nama_trolley", $request['cbotrolley'])->first();
                 if ($thisTrolley && $thisStocker) {
 
+                    // Get trolley_id from the earliest existing TrolleyStocker of similar stockers
+                    $similarStockerData = Stocker::where(
+                            ($thisStocker->form_piece_id > 0 ? "form_piece_id" : ($thisStocker->form_reject_id > 0 ? "form_reject_id" : "form_cut_id")),
+                            ($thisStocker->form_piece_id > 0 ? $thisStocker->form_piece_id : ($thisStocker->form_reject_id > 0 ? $thisStocker->form_reject_id : $thisStocker->form_cut_id))
+                        )->where("so_det_id", $thisStocker->so_det_id)
+                        ->where("group_stocker", $thisStocker->group_stocker)
+                        ->where("ratio", $thisStocker->ratio)
+                        ->where("stocker_reject", $thisStocker->stocker_reject)
+                        ->get();
+
+                    $existingTrolleyStockers = TrolleyStocker::whereIn('stocker_id', $similarStockerData->pluck('id'))->get();
+                    $earliestTrolleyStocker = $existingTrolleyStockers->sortBy('created_at')->first();
+                    $trolleyId = $earliestTrolleyStocker ? $earliestTrolleyStocker->trolley_id : $thisTrolley->id;
+
                     // Create Trolley Stock
                     $trolleyCheck = TrolleyStocker::where('stocker_id', $thisStocker->id)->first();
                     if (!$trolleyCheck) {
                         TrolleyStocker::create([
                             "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber)),
-                            "trolley_id" => $thisTrolley->id,
+                            "trolley_id" => $trolleyId,
                             "stocker_id" => $thisStocker->id,
                             "status" => "active",
                             "tanggal_alokasi" => date('Y-m-d'),
@@ -1737,6 +1755,10 @@ class SecondaryInController extends Controller
                     RackDetailStocker::where("stocker_id", $thisStocker->id_qr_stocker)->update([
                         "status" => "not active"
                     ]);
+
+                    $trolley = Trolley::where("id", $trolleyId)->first();
+
+                    $additionalMessage .= "Stocker dialokasikan ke trolley ." . $trolley->nama_trolley;
                 }
             }
         }
@@ -1767,7 +1789,7 @@ class SecondaryInController extends Controller
 
         return array(
             'status' => 300,
-            'message' => 'Data Sudah Disimpan',
+            'message' => 'Data Berhasil Disimpan' . ($additionalMessage ? "<br>" . $additionalMessage : ""),
             'redirect' => '',
             'table' => 'datatable-input',
             'additional' => [],
