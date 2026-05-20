@@ -1065,7 +1065,7 @@ det_kirim as (select a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, s
 
 det_terima as (select a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_in, sum(b.qty_reject) qty_in_reject from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where b.status = 'Y' ".$additionalQuery." GROUP BY a.no_po, supplier, buyer, kpno, styleno, b.color, b.size)
 
-select a.*, COALESCE(qty_in,0) qty_in, COALESCE(qty_in_reject,0) qty_in_reject, (qty_out - COALESCE(qty_in,0) - COALESCE(qty_in_reject,0)) qty_sisa from det_kirim a LEFT JOIN det_terima b on b.no_po = a.no_po and b.kpno = a.kpno and b.styleno = a.styleno and b.color = a.color and b.size = a.size");
+select a.*, COALESCE(qty_in,0) qty_in, (COALESCE(qty_in,0) - COALESCE(qty_in_reject,0)) qty_good, COALESCE(qty_in_reject,0) qty_in_reject, (qty_out - COALESCE(qty_in,0)) qty_sisa from det_kirim a LEFT JOIN det_terima b on b.no_po = a.no_po and b.kpno = a.kpno and b.styleno = a.styleno and b.color = a.color and b.size = a.size");
 
 
             return DataTables::of($data)->toJson();
@@ -1099,7 +1099,7 @@ det_kirim as (select a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, s
 
 det_terima as (select a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_in, sum(b.qty_reject) qty_in_reject from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where b.status = 'Y' ".$additionalQuery." GROUP BY a.no_po, supplier, buyer, kpno, styleno, b.color, b.size)
 
-select a.*, COALESCE(qty_in,0) qty_in, COALESCE(qty_in_reject,0) qty_in_reject, (qty_out - COALESCE(qty_in,0) - COALESCE(qty_in_reject,0)) qty_sisa from det_kirim a LEFT JOIN det_terima b on b.no_po = a.no_po and b.kpno = a.kpno and b.styleno = a.styleno and b.color = a.color and b.size = a.size";
+select a.*, COALESCE(qty_in,0) qty_in, (COALESCE(qty_in,0) - COALESCE(qty_in_reject,0)) qty_good, COALESCE(qty_in_reject,0) qty_in_reject, (qty_out - COALESCE(qty_in,0)) qty_sisa from det_kirim a LEFT JOIN det_terima b on b.no_po = a.no_po and b.kpno = a.kpno and b.styleno = a.styleno and b.color = a.color and b.size = a.size";
 
     $data = DB::connection('mysql_sb')->select($sql);
 
@@ -1124,7 +1124,7 @@ $sheet->writeRow(['']);
 
     $headers = [
     'No PO', 'Supplier', 'Buyer', 'WS', 'Style',
-    'Color', 'Size', 'Qty Out', 'Qty In', 'Qty In Reject', 'Balance'
+    'Color', 'Size', 'Qty Out', 'Qty In', 'Qty In Good', 'Qty In Reject', 'Balance'
 ];
 
 $sheet->writeRow($headers)
@@ -1148,6 +1148,7 @@ foreach ($rows as $r) {
         $r['size'] ?? '',
         round($r['qty_out'] ?? 0, 2),
         round($r['qty_in'] ?? 0, 2),
+        round($r['qty_good'] ?? 0, 2),
         round($r['qty_in_reject'] ?? 0, 2),
         round($r['qty_sisa'] ?? 0, 2),
     ];
@@ -1183,11 +1184,11 @@ saldo_awal as (select a.id_item, itemdesc, no_po, supplier, buyer, kpno, styleno
 
 out_before as (select b.id_item, itemdesc, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_out from packing_out_h a INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo INNER JOIN masteritem mi on mi.id_item = b.id_item where a.tgl_bppb < '".$request->dateFrom."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
 
-in_before as (select b.id_item, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty + b.qty_reject) qty_in from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where a.tgl_bpb < '".$request->dateFrom."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
+in_before as (select b.id_item, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_in from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where a.tgl_bpb < '".$request->dateFrom."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
 
 out_trx as (select b.id_item, itemdesc, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_out from packing_out_h a INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo INNER JOIN masteritem mi on mi.id_item = b.id_item where a.tgl_bppb BETWEEN '".$request->dateFrom."' and '".$request->dateTo."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
 
-in_trx as (select b.id_item, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty + b.qty_reject) qty_in from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where a.tgl_bpb BETWEEN '".$request->dateFrom."' and '".$request->dateTo."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
+in_trx as (select b.id_item, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_in from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where a.tgl_bpb BETWEEN '".$request->dateFrom."' and '".$request->dateTo."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
 
 saldo_out as (select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  sum(sal_awal) sal_awal, sum(qty_out) qty_out from (
 select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  qty sal_awal, 0 qty_out from saldo_awal
@@ -1218,11 +1219,11 @@ saldo_awal as (select a.id_item, itemdesc, no_po, supplier, buyer, kpno, styleno
 
 out_before as (select b.id_item, itemdesc, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_out from packing_out_h a INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo INNER JOIN masteritem mi on mi.id_item = b.id_item where a.tgl_bppb < '".$request->from."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
 
-in_before as (select b.id_item, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty + b.qty_reject) qty_in from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where a.tgl_bpb < '".$request->from."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
+in_before as (select b.id_item, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_in from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where a.tgl_bpb < '".$request->from."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
 
 out_trx as (select b.id_item, itemdesc, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_out from packing_out_h a INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo INNER JOIN masteritem mi on mi.id_item = b.id_item where a.tgl_bppb BETWEEN '".$request->from."' and '".$request->to."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
 
-in_trx as (select b.id_item, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty + b.qty_reject) qty_in from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where a.tgl_bpb BETWEEN '".$request->from."' and '".$request->to."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
+in_trx as (select b.id_item, a.no_po, supplier, buyer, kpno, styleno, b.color, b.size, sum(b.qty) qty_in from packing_in_h a INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier left join (select id_jo,kpno,styleno, supplier buyer from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer group by id_jo) d on d.id_jo=b.id_jo where a.tgl_bpb BETWEEN '".$request->from."' and '".$request->to."' and b.status = 'Y' GROUP BY a.no_po, kpno, b.color, b.size, b.id_item),
 
 saldo_out as (select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  sum(sal_awal) sal_awal, sum(qty_out) qty_out from (
 select id_item, itemdesc, no_po, supplier, buyer, kpno, styleno, color, size,  qty sal_awal, 0 qty_out from saldo_awal

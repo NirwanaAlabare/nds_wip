@@ -48,7 +48,7 @@ class ReqMaterialController extends Controller
                     inner join act_costing ac on so.id_cost=ac.id
                     inner join mastersupplier ms on ac.id_buyer=ms.id_supplier
                     left join (select bppbno,bppbno_int,bppbno_req, id_item, id_jo, sum(qty) qty, unit from bppb group by bppbno) bppb on a.id_item = bppb.id_item and a.id_jo = bppb.id_jo and a.bppbno = bppb.bppbno_req
-                    where a.bppbdate >='".$request->tgl_awal."' and a.bppbdate <='".$request->tgl_akhir."'
+                    where a.bppbdate >='".$request->tgl_awal."' and a.bppbdate <='".$request->tgl_akhir."' and a.bppbno like '%F%'
                     group by a.bppbno, a.id_item, a.id_jo
                     order by a.bppbdate desc) a GROUP BY bppbno");
             }else{
@@ -60,7 +60,7 @@ class ReqMaterialController extends Controller
                     inner join act_costing ac on so.id_cost=ac.id
                     inner join mastersupplier ms on ac.id_buyer=ms.id_supplier
                     left join (select bppbno,bppbno_int,bppbno_req, id_item, id_jo, sum(qty) qty, unit from bppb group by bppbno) bppb on a.id_item = bppb.id_item and a.id_jo = bppb.id_jo and a.bppbno = bppb.bppbno_req
-                    where a.bppbdate >='".$request->tgl_awal."' and a.bppbdate <='".$request->tgl_akhir."'
+                    where a.bppbdate >='".$request->tgl_awal."' and a.bppbdate <='".$request->tgl_akhir."' and a.bppbno like '%F%'
                     group by a.bppbno, a.id_item, a.id_jo
                     order by a.bppbdate desc");
             }
@@ -498,11 +498,11 @@ select a.*, b.qty qty_br, b.qty_out qty_br_out, (b.qty - b.qty_out) sisa_req, (q
     public function pdfreqmaterial(Request $request, $bppbno)
     {
 
-
+        // dd($bppbno);
         $dataHeader = DB::connection('mysql_sb')->select("select DISTINCT b.username,b.bppbno,b.bppbdate,ac.kpno,ac.styleno,b.tanggal_aju,supplier tujuan,b.idws_act,so.mindeldate as del_date FROM bppb_req b INNER JOIN masteritem mi on b.id_item = mi.id_item INNER JOIN mastersupplier msup on b.id_supplier=msup.id_supplier INNER JOIN (select id_so,id_jo from jo_det group by id_jo) jod on b.id_jo=jod.id_jo inner join (select so.id,id_cost,min(sod.deldate_det) mindeldate from so inner join so_det sod on so.id=sod.id_so group by so.id) so on jod.id_so=so.id inner join act_costing ac on so.id_cost=ac.id WHERE 1=1 AND bppbno = '$bppbno'");
         $dataDetail = DB::connection('mysql_sb')->select("select b.username,b.bppbno,b.bppbdate,ac.kpno,ac.styleno,b.tanggal_aju,supplier tujuan,so.mindeldate as del_date,concat(mi.goods_code,' ',mi.itemdesc) itemdesc,mi.color,no_rak as location,qtyloc as loc_qty,unitloc as loc_unit,b.qty as qty_request,qtysdhout as out_qty,unitsdhout as out_unit,'' as check_picker,'' as check_loader,'' as check_penerima,b.remark,b.idws_act FROM bppb_req b INNER JOIN masteritem mi on b.id_item = mi.id_item INNER JOIN mastersupplier msup on b.id_supplier=msup.id_supplier INNER JOIN (select id_so,id_jo from jo_det group by id_jo)  jod on b.id_jo=jod.id_jo inner join (select so.id,id_cost,min(sod.deldate_det) mindeldate from so inner join so_det sod on so.id=sod.id_so group by so.id) so on jod.id_so=so.id inner join act_costing ac on so.id_cost=ac.id
-            left join (select id_item,id_jo,group_concat(kode_lok,' (',qty,' ',satuan,')' SEPARATOR ', ') no_rak,0 qtyloc,'' unitloc from (select id_item, id_jo, kode_lok, satuan, sum(sal_akhir) qty from data_stock_fabric GROUP BY id_item, id_jo, kode_lok, satuan) tmplok group by id_item,id_jo) tbllok on b.id_item=tbllok.id_item and b.id_jo=tbllok.id_jo left join (select bppbno_req,id_item,id_jo,sum(qty) qtysdhout,unit unitsdhout from bppb where bppbno_req='$bppbno' group by id_item,id_jo) tblsdhout on b.bppbno=tblsdhout.bppbno_req and b.id_item=tblsdhout.id_item WHERE 1=1 AND bppbno = '$bppbno'");
-        $dataSum = DB::connection('mysql_sb')->select("select sum(qty) total_req FROM bppb_req where bppbno = '$bppbno'");
+            left join (select id_item,id_jo,group_concat(kode_lok,' (',qty,' ',satuan,')' SEPARATOR ', ') no_rak,0 qtyloc,'' unitloc from (select id_item, id_jo, kode_lok, satuan, round(sum(sal_akhir),2) qty from data_stock_fabric GROUP BY id_item, id_jo, kode_lok, satuan) tmplok group by id_item,id_jo) tbllok on b.id_item=tbllok.id_item and b.id_jo=tbllok.id_jo left join (select bppbno_req,id_item,id_jo,round(sum(qty),2) qtysdhout,unit unitsdhout from bppb where bppbno_req='$bppbno' group by id_item,id_jo) tblsdhout on b.bppbno=tblsdhout.bppbno_req and b.id_item=tblsdhout.id_item WHERE 1=1 AND bppbno = '$bppbno'");
+        $dataSum = DB::connection('mysql_sb')->select("select round(sum(qty),2) total_req FROM bppb_req where bppbno = '$bppbno'");
         $dataUser = DB::connection('mysql_sb')->select("select created_by,created_at,approved_by,approved_date from whs_inmaterial_fabric where id = '$bppbno' limit 1");
 
 

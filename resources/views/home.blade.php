@@ -244,8 +244,8 @@
 
     /* ── Image wrap ── */
     .menu-img-wrap {
-        width: 88px; height: 88px;
-        border-radius: 20px;
+        width: 90px; height: 90px;
+        border-radius: 18px;
         background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
         display: flex; align-items: center; justify-content: center;
         transition: background .25s ease, transform .25s cubic-bezier(.34,1.56,.64,1);
@@ -258,7 +258,7 @@
     }
 
     .menu-img-wrap img {
-        width: 58px; height: 58px;
+        width: 84px; height: 84px;
         object-fit: contain;
         transition: filter .25s ease;
     }
@@ -331,8 +331,8 @@
         .home-hero { padding: 1.2rem 1rem 4.5rem; }
         .menu-grid { grid-template-columns: repeat(3, 1fr); gap: .75rem; }
         .menu-card { padding: 1.2rem .5rem 1rem; }
-        .menu-img-wrap { width: 68px; height: 68px; border-radius: 16px; }
-        .menu-img-wrap img { width: 44px; height: 44px; }
+        .menu-img-wrap { width: 72px; height: 72px; border-radius: 14px; }
+        .menu-img-wrap img { width: 68px; height: 68px; }
         .hero-time { display: none; }
         .whs-menu-grid { grid-template-columns: repeat(2, 1fr); }
     }

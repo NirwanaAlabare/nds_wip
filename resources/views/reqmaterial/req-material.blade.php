@@ -289,7 +289,7 @@
                         if (row.cancel != 'Y') {       
                       return `<div class='d-flex gap-1 justify-content-center'>
                       <a href="{{ route('edit-reqmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-warning'><i class="fa-solid fa-pen-to-square"></i></button></a>
-                      <button type='button' class='btn btn-sm btn-success onclick='printpdf("` + row.bppbno + `")'><i class="fa-solid fa-print "></i></button>
+                      <button type='button' class='btn btn-sm btn-success' onclick='printpdf("` + row.bppbno + `")'><i class="fa-solid fa-print "></i></button>
                       <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='Cancel_Request("` + row.bppbno + `")'><i class="fa-solid fa-trash"></i></i></button>
                       </div>`;
                         }else{
