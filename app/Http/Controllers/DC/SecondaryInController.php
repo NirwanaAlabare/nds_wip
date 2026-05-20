@@ -1570,11 +1570,11 @@ class SecondaryInController extends Controller
                     return $cekdata && $cekdata[0] ? json_encode( $cekdata[0]) : null;
                 }
             } else {
-                return "No Part Detail Found.";
+                return "Part Detail tidak ditemukan.";
             }
         }
 
-        return "No Stocker Data Found.";
+        return "Stocker tidak ditemukan.";
     }
 
     public function cek_data_stocker_in_edit(Request $request)
@@ -1723,6 +1723,8 @@ class SecondaryInController extends Controller
                             "stocker_id" => $thisStocker->id,
                             "status" => "active",
                             "tanggal_alokasi" => date('Y-m-d'),
+                            "created_by" => Auth::user()->id,
+                            "created_by_username" => Auth::user()->username,
                         ]);
                     }
 
