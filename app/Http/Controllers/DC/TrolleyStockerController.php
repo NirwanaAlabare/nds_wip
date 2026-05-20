@@ -706,6 +706,11 @@ class TrolleyStockerController extends Controller
             );
         }
 
+        // Get trolley_id from the earliest existing TrolleyStocker of this bundle
+        $existingTrolleyStockers = TrolleyStocker::whereIn('stocker_id', $similarStockerData->pluck('id'))->get();
+        $earliestTrolleyStocker = $existingTrolleyStockers->sortBy('created_at')->first();
+        $trolleyId = $earliestTrolleyStocker ? $earliestTrolleyStocker->trolley_id : $validatedRequest['trolley_id'];
+
         // Allocate Stocker (Bundle) to Trolley
         $trolleyStockArr = [];
         $idQrStocker = [];
@@ -714,7 +719,7 @@ class TrolleyStockerController extends Controller
             // Generate Trolley Stock
             array_push($trolleyStockArr, [
                 "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
-                "trolley_id" => $validatedRequest['trolley_id'],
+                "trolley_id" => $trolleyId,
                 "stocker_id" => $stocker['id'],
                 "status" => "active",
                 "tanggal_alokasi" => date('Y-m-d'),
@@ -749,9 +754,11 @@ class TrolleyStockerController extends Controller
             ]);
 
             if ($updateStocker) {
+                $trolley = Trolley::where()->where('id', $trolleyId)->first();
+
                 return array(
                     'status' => 202,
-                    'message' => 'Stocker berhasil dialokasi',
+                    'message' => 'Stocker berhasil dialokasi ke ' . $trolley->nama_trolley . ($earliestTrolleyStocker ? " ( berdasarkan alokasi ".$earliestTrolleyStocker->stocker->id_qr_stocker." )" : ""),
                     'redirect' => '',
                     'table' => 'trolley-stock-datatable',
                     'callback' => 'clearStockerId();',
@@ -864,6 +871,11 @@ class TrolleyStockerController extends Controller
             );
         }
 
+        // Get trolley_id from the earliest existing TrolleyStocker of this bundle
+        $existingTrolleyStockers = TrolleyStocker::whereIn('stocker_id', $similarStockerData->pluck('id'))->get();
+        $earliestTrolleyStocker = $existingTrolleyStockers->sortBy('created_at')->first();
+        $trolleyId = $earliestTrolleyStocker ? $earliestTrolleyStocker->trolley_id : $validatedRequest['trolley_id'];
+
         // Allocate Stocker (Bundle) to Trolley
         $trolleyStockArr = [];
         $idQrStocker = [];
@@ -872,7 +884,7 @@ class TrolleyStockerController extends Controller
             // Generate Trolley Stock
             array_push($trolleyStockArr, [
                 "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
-                "trolley_id" => $validatedRequest['trolley_id'],
+                "trolley_id" => $trolleyId,
                 "stocker_id" => $stocker['id'],
                 "status" => "active",
                 "tanggal_alokasi" => date('Y-m-d'),
@@ -906,9 +918,11 @@ class TrolleyStockerController extends Controller
             ]);
 
             if ($updateStocker) {
+                $trolley = Trolley::where('id', $trolleyId)->first();
+
                 return array(
                     'status' => 202,
-                    'message' => 'Stocker berhasil dialokasi',
+                    'message' => 'Stocker berhasil dialokasi ke ' . $trolley->nama_trolley . ($earliestTrolleyStocker ? " ( berdasarkan alokasi ".$earliestTrolleyStocker->stocker->id_qr_stocker." )" : ""),
                     'redirect' => '',
                     'table' => 'trolley-stock-datatable',
                     'callback' => 'trolleyStockDatatableReload(); clearStockerId();',
@@ -931,7 +945,7 @@ class TrolleyStockerController extends Controller
             'message' => 'Stocker gagal dialokasi',
             'redirect' => '',
             'table' => 'trolley-stock-datatable',
-            'callback' => 'trolleyStockDatatableReload(); clearStockerId',
+            'callback' => 'trolleyStockDatatableReload(); clearStockerId();',
             'additional' => [],
         );
     }
