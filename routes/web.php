@@ -3,14 +3,17 @@
 use App\Events\TestEvent;
 use App\Http\Controllers\AccountingController;
 use App\Http\Controllers\BarcodePackingController;
+use App\Http\Controllers\CeisaAPIController;
 use App\Http\Controllers\DashboardFabricController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\Exim\DokumenPabeanController;
 use App\Http\Controllers\Exim\ExportImportController;
 use App\Http\Controllers\FGStokBPBController;
 use App\Http\Controllers\FGStokBPPBController;
 use App\Http\Controllers\FGStokLaporanController;
 use App\Http\Controllers\FGStokMasterController;
 use App\Http\Controllers\FGStokMutasiController;
+use App\Http\Controllers\FGStokScanBPBController;
 use App\Http\Controllers\FinishGoodAlokasiKartonController;
 use App\Http\Controllers\FinishGoodDashboardController;
 use App\Http\Controllers\FinishGoodMasterLokasiController;
@@ -131,8 +134,6 @@ use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanFgController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanAccesoriesController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanFgController;
-use App\Http\Controllers\CeisaAPIController;
-use App\Http\Controllers\Exim\DokumenPabeanController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -591,6 +592,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/getdet_carton', 'getdet_carton')->name('getdet_carton');
         Route::get('/export_excel_bpb_fg_stok', 'export_excel_bpb_fg_stok')->name('export_excel_bpb_fg_stok');
         Route::post('/hapus_data_temp_bpb_fg_stok', 'hapus_data_temp_bpb_fg_stok')->name('hapus-data-temp-bpb-fg-stok');
+    });
+
+    Route::controller(FGStokScanBPBController::class)->prefix("bpb-fg-stock-scan")->middleware('fg-stock')->group(function () {
+        Route::get('/', 'index')->name('bpb-fg-stock-scan');
+        Route::post('/store', 'store')->name('store-bpb-fg-stock-scan');
+        Route::get('/getDataBarcode', 'getDataBarcode')->name('get-data-barcode-bpb-fg-stock-scan');
     });
 
     Route::controller(FGStokBPPBController::class)->prefix("bppb-fg-stock")->middleware('fg-stock')->group(function () {
