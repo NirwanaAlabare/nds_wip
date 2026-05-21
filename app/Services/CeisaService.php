@@ -82,4 +82,21 @@ class CeisaService
             'successful'  => $response->successful()
         ];
     }
+
+    public function getStatusDraft($nomorAju)
+    {
+        $token = $this->getToken();
+        try {
+            $response = Http::withHeaders([
+                'Authorization'    => 'Bearer ' . $token,
+                'Beacukai-Api-Key' => $this->apiKey,
+                'Content-Type'     => 'application/json',
+            ])->get($this->baseUrl . '/v1/temp/' . $nomorAju);
+
+            return $response->json();
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('CEISA API Get Status Error: ' . $e->getMessage());
+            return null;
+        }
+    }
 }

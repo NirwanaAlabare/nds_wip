@@ -35,13 +35,28 @@
     <div class="card-body">
 
         <div class="row align-items-end mb-4">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="small fw-bold">Jenis Transaksi</label>
                 <select id="jenis" class="form-control form-control-sm select2bs4">
                     <option value="Pemasukan" {{ $jenis == 'Pemasukan' ? 'selected' : '' }}>Pemasukan</option>
                     <option value="Pengeluaran" {{ $jenis == 'Pengeluaran' ? 'selected' : '' }}>Pengeluaran</option>
                 </select>
             </div>
+
+            <div class="col-md-2">
+                <label class="small fw-bold">Tipe BC</label>
+                <select id="jenis_bc" class="form-control form-control-sm select2bs4">
+                    <option value="" {{ $jenis_bc == '' ? 'selected' : '' }}>Semua Tipe</option>
+                    <option value="BC 4.0" {{ $jenis_bc == 'BC 4.0' ? 'selected' : '' }}>BC 4.0</option>
+                    <option value="BC 4.1" {{ $jenis_bc == 'BC 4.1' ? 'selected' : '' }}>BC 4.1</option>
+                    <option value="BC 2.7" {{ $jenis_bc == 'BC 2.7' ? 'selected' : '' }}>BC 2.7</option>
+                    <option value="BC 2.6.2" {{ $jenis_bc == 'BC 2.6.2' ? 'selected' : '' }}>BC 2.6.2</option>
+                    <option value="BC 2.5" {{ $jenis_bc == 'BC 2.5' ? 'selected' : '' }}>BC 2.5</option>
+                    <option value="BC 2.3" {{ $jenis_bc == 'BC 2.3' ? 'selected' : '' }}>BC 2.3</option>
+                    <option value="INHOUSE" {{ $jenis_bc == 'INHOUSE' ? 'selected' : '' }}>INHOUSE</option>
+                </select>
+            </div>
+
             <div class="col-md-3">
                 <label class="small fw-bold">Dari Tanggal</label>
                 <input type="date" id="filter_tanggal_awal" class="form-control form-control-sm" value="{{ $tgl_awal }}">
@@ -103,6 +118,7 @@
                 url: '{{ route("dokumen-pabean-index") }}',
                 data: function (d) {
                     d.jenis = $('#jenis').val();
+                    d.jenis_bc = $('#jenis_bc').val();
                     d.tanggal_awal = $('#filter_tanggal_awal').val();
                     d.tanggal_akhir = $('#filter_tanggal_akhir').val();
                 }
@@ -153,7 +169,7 @@
 
         Swal.fire({
             title: 'Kirim ke CEISA?',
-            text: "Dokumen " + trxNo + " akan diproses dan dikirim ke server Bea Cukai. Nomor Aju akan dibuat otomatis.",
+            text: "Dokumen " + trxNo + " akan diproses dan dikirim ke server Bea Cukai.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#28a745',
@@ -196,30 +212,6 @@
 
     function showErrorSwal(res) {
         let errorHtml = res.message || 'Terjadi Kesalahan Sistem';
-        if (res.ceisa_error) {
-            if (Array.isArray(res.ceisa_error)) {
-                let listError = res.ceisa_error.map(err => `<li>${err}</li>`).join('');
-                errorHtml = `<div style="text-align: left; font-size: 14px;"><ul style="padding-left: 20px; margin-top: 5px; color: #d33;">${listError}</ul></div>`;
-            } else if (typeof res.ceisa_error === 'object') {
-                if (res.ceisa_error.message) {
-                    if (Array.isArray(res.ceisa_error.message)) {
-                        let listError = res.ceisa_error.message.map(err => `<li>${err}</li>`).join('');
-                        errorHtml = `<div style="text-align: left; font-size: 14px;"><ul style="padding-left: 20px; margin-top: 5px; color: #d33;">${listError}</ul></div>`;
-                    } else {
-                        errorHtml = `<div style="color: #d33; font-weight: bold; font-size: 15px;">${res.ceisa_error.message}</div>`;
-                    }
-                } else {
-                    errorHtml = `<pre style="text-align: left; font-size: 13px; color: #d33;">${JSON.stringify(res.ceisa_error, null, 2)}</pre>`;
-                }
-            } else {
-                errorHtml = `<div style="color: #d33; font-weight: bold; font-size: 15px;">${res.ceisa_error}</div>`;
-            }
-        }
-        Swal.fire({ title: 'gagal mengirim ke CEISA!', html: errorHtml, icon: 'error' });
-    }
-
-    function showErrorSwal(res) {
-        let errorHtml = res.message || 'Terjadi Kesalahan Sistem';
 
         if (res.ceisa_error) {
             if (Array.isArray(res.ceisa_error)) {
@@ -249,5 +241,31 @@
 
         Swal.fire({ title: 'gagal mengirim ke CEISA!', html: errorHtml, icon: 'error' });
     }
+
+    $(document).on('click', '.btn-sync', function() {
+        let noAju = $(this).data('id');
+        let actionUrl = '{{ route("dokumen-pabean-sync", ":noAju") }}';
+        actionUrl = actionUrl.replace(':noAju', noAju);
+
+        $.ajax({
+            url: actionUrl,
+            type: 'GET',
+            data: {
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(res) {
+                if(res.status === 200) {
+                    Swal.fire({ title: 'Berhasil!', text: res.message, icon: 'success' });
+                    console.log("Response CEISA:", res.ceisa_response);
+                } else {
+                    showErrorSwal(res);
+                }
+            },
+            error: function(xhr) {
+                let res = xhr.responseJSON || { message: 'Terjadi Kesalahan Sistem' };
+                showErrorSwal(res);
+            }
+        });
+    });
 </script>
 @endsection
