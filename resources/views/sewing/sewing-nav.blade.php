@@ -298,7 +298,7 @@
         </ul>
     </li>
     <li class="nav-item dropdown">
-        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-packing-out' ? 'active' : '' }}">Sewing Out</a>
+        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ in_array($subPageGroup, ['sewing-packing-out','sewing-out']) ? 'active' : '' }}">Sewing Out</a>
         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
             <li>
                 <a href="{{ route('sewing-out-subcont') }}"
@@ -310,6 +310,13 @@
                 <a href="{{ route('approve-sewing-out-subcont') }}"
                     class="dropdown-item {{ $subPage == 'approve-sewing-out-subcont' ? 'active' : '' }}">
                     Approval Sewing Out Subcont <i class="fas fa-thumbs-up"></i>
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a href="{{ route('sewing-out') }}"
+                    class="dropdown-item {{ $subPage == 'sewing-out' ? 'active' : '' }}">
+                    Sewing Out <i class="fas fa-sign-out-alt"></i>
                 </a>
             </li>
         </ul>
