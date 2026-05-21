@@ -1071,6 +1071,20 @@
                     cloneCardButton.classList.remove("btn-sb");
                     cloneCardButton.classList.add("btn-success");
                     cloneCardButton.classList.add("fw-bold");
+
+                    let deleteButton = document.createElement("button");
+                    deleteButton.type = "button";
+                    deleteButton.className = "btn btn-danger fw-bold w-100 mt-2";
+                    deleteButton.innerHTML = "<i class='fa fa-trash'></i> DELETE";
+
+                    deleteButton.onclick = function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        deleteDetail(item.id, cloneCard);
+                    };
+
+                    cloneCard.querySelector(".card-footer").appendChild(deleteButton);
                 }
 
                 // Append Cloned Card to Form
@@ -1492,5 +1506,62 @@
                 }
             });
         // END
+
+        function deleteDetail(id, cardElement) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Hapus Data?',
+                text: 'Data yang dihapus tidak bisa dikembalikan.',
+                showCancelButton: true,
+                confirmButtonText: 'Hapus',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#d33'
+            }).then((result) => {
+                if (result.isConfirmed) {
+
+                    document.getElementById("loading").classList.remove("d-none");
+
+                    $.ajax({
+                        url: "{{ route('delete-cutting-piece-detail') }}", // <-- bikin route ini
+                        type: "delete",
+                        data: {
+                            id: id,
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function (res) {
+
+                            document.getElementById("loading").classList.add("d-none");
+
+                            if (res.status == 200) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    text: res.message ?? 'Data berhasil dihapus'
+                                });
+
+                                // remove card dari DOM
+                                cardElement.remove();
+
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: res.message ?? 'Gagal menghapus data'
+                                });
+                            }
+                        },
+                        error: function (xhr) {
+                            document.getElementById("loading").classList.add("d-none");
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Terjadi kesalahan server'
+                            });
+                        }
+                    });
+                }
+            });
+        }
     </script>
 @endsection

@@ -377,6 +377,12 @@
                     }
                 },
                 {
+                    targets: [9],
+                    render: (data, type, row, meta) => {
+                        return `<span class="text-nowrap">`+ (data + (row.diff_qty != 0 ? " (" + row.diff_qty + ")" : "")) +`</span>`;
+                    }
+                },
+                {
                     targets: "_all",
                     className: "text-nowrap"
                 }
