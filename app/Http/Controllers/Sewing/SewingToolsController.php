@@ -4452,11 +4452,17 @@ class SewingToolsController extends Controller
             }
 
             if ($targetPlanId) {
-                $outputTable = match($row->tipe) {
-                    'RFT'    => 'output_rfts',
-                    'Defect' => 'output_defects',
-                    default  => 'output_rejects',
-                };
+                switch ($row->tipe) {
+                    case 'RFT':
+                        $outputTable = 'output_rfts';
+                        break;
+                    case 'Defect':
+                        $outputTable = 'output_defects';
+                        break;
+                    default:
+                        $outputTable = 'output_rejects';
+                        break;
+                }
 
                 $updated = DB::connection("mysql_sb")->table($outputTable)
                     ->where('id', $row->id)

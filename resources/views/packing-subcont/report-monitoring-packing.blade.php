@@ -72,6 +72,7 @@
                     <th>Size</th>
                     <th>Qty Out</th>
                     <th>Qty In</th>
+                    <th>Qty In Good</th>
                     <th>Qty In Reject</th>
                     <th>Balance</th>
                 </tr>
@@ -132,6 +133,7 @@
         { data: 'size' },
         { data: 'qty_out' },
         { data: 'qty_in' },
+        { data: 'qty_good' },
         { data: 'qty_in_reject' },
         { data: 'qty_sisa' }
     ],
