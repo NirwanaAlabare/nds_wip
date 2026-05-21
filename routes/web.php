@@ -65,6 +65,7 @@ use App\Http\Controllers\PackingPackingListController;
 use App\Http\Controllers\PackingPackingOutController;
 use App\Http\Controllers\PackingReportController;
 use App\Http\Controllers\PackingSubcontController;
+use App\Http\Controllers\SewingOutController;
 use App\Http\Controllers\PackingTransferGarmentController;
 use App\Http\Controllers\PPIC_LaporanTrackingController;
 use App\Http\Controllers\PPIC_MasterSOController;
@@ -719,6 +720,26 @@ Route::middleware('auth')->group(function () {
         Route::get('/save-approve-packing-in', 'SaveApprovePackingIn')->name('save-approve-sewing-in');
         Route::post('/cancel-packing-in-subcont', 'CancelPackingInSubcont')->name('cancel-sewing-in-subcont');
         Route::post('/cancel-packing-out-subcont', 'CancelPackingOutSubcont')->name('cancel-sewing-out-subcont');
+    });
+
+    // Sewing Out
+    Route::controller(SewingOutController::class)->prefix("sewing-out")->middleware('role:sewing,packing')->group(function () {
+        Route::get('/', 'index')->name('sewing-out');
+        Route::get('/create', 'create')->name('create-sewing-out');
+        Route::get('/get-detail-item', 'getDetailList')->name('get-detail-item-sewing-out');
+        Route::get('/show-detail-so', 'showdetailitem')->name('show-detail-so-sewing-out');
+        Route::post('/save-out-detail-temp', 'SaveOutDetailTemp')->name('save-out-detail-temp-sewing');
+        Route::get('/delete-out-detail-temp', 'DeleteOutDetailTemp')->name('delete-out-detail-temp-sewing');
+        Route::post('/store', 'store')->name('store-sewing-out');
+        Route::get('/edit/{id}', 'editSewingOut')->name('edit-sewing-out');
+        Route::put('/update/{id}', 'updateSewingOut')->name('update-sewing-out');
+        Route::get('/detail/{id}', 'DetailSewingOut')->name('detail-sewing-out');
+        Route::get('/print-pdf/{id}', 'PrintPdfSewingOut')->name('print-pdf-sewing-out');
+        Route::get('/export-excel', 'ExportExcelSewingOut')->name('export-excel-sewing-out');
+        Route::get('/export-excel-detail/{id}', 'ExportExcelSewingOut')->name('export-excel-sewing-out-detail');
+        Route::get('/report', 'ReportSewingOut')->name('report-sewing-out');
+        Route::post('/cancel', 'CancelSewingOut')->name('cancel-sewing-out');
+        Route::get('/delete-det/{id}', 'DeleteSewingOutDet')->name('delete-sewing-out-det');
     });
 
     // Needle Check

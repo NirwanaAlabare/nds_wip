@@ -67,7 +67,7 @@
                     <thead>
                         <tr style='text-align:center; vertical-align:middle'>
                             <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
-                            <th colspan="11" style="background-color: lightyellow; text-align:center;">Sewing</th>
+                            <th colspan="13" style="background-color: lightyellow; text-align:center;">Sewing</th>
                             <th colspan="11" style="background-color: pink; text-align:center;">QC Finishing</th>
                             <th colspan="7" style="background-color: lightsteelblue; text-align:center;">Finishing
                             </th>
@@ -88,6 +88,7 @@
 
                             <th class="text-center align-middle" style="background-color: lightyellow;">Saldo Awal</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Terima Loading</th>
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Subcont In</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Output Rework Sewing
                             </th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Output Rework
@@ -101,6 +102,7 @@
                             <th class="text-center align-middle" style="background-color: lightyellow;">Defect Mending</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Reject</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Output</th>
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Subcont Out Production</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Saldo Akhir</th>
 
 
@@ -161,7 +163,7 @@
                     <tfoot>
                         <tr>
                             <th class="text-center" colspan="5">Total</th>
-                            @for ($i = 1; $i <= 46; $i++)
+                            @for ($i = 1; $i <= 48; $i++)
                                 <th></th>
                             @endfor
                         </tr>
@@ -288,6 +290,9 @@
                         data: 'qty_loading'
                     },
                     {
+                        data: 'qty_in_subcont'
+                    },
+                    {
                         data: 'input_rework_sewing'
                     },
                     {
@@ -310,6 +315,9 @@
                     },
                     {
                         data: 'qty_sewing'
+                    },
+                    {
+                        data: 'qty_out_subcont'
                     },
                     {
                         data: 'saldo_akhir_sewing'
@@ -444,7 +452,7 @@
                     };
 
                     // mulai kolom ke-5
-                    for (let col = 5; col <= 50; col++) {
+                    for (let col = 5; col <= 52; col++) {
                         let total = api
                             .column(col, {
                                 search: 'applied'
