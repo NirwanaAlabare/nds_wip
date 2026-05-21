@@ -1025,6 +1025,26 @@ class CuttingFormPieceController extends Controller
         ]);
     }
 
+    public function deleteDetail(Request $request, CuttingPieceService $cuttingPieceService)
+    {
+        try {
+
+            $result = $cuttingPieceService->deleteFormCutPieceDetail($request);
+
+            return [
+                "status" => 200,
+                "message" => $result
+            ];
+
+        } catch (\Exception $e) {
+
+            return [
+                "status" => 400,
+                "message" => $e->getMessage()
+            ];
+        }
+    }
+
     public function exportExcel(Request $request) {
         return Excel::download(new ExportCuttingFormReject($request->dateFrom, $request->dateTo), 'Report Cutting.xlsx');
     }
