@@ -288,6 +288,7 @@ Route::middleware('auth')->group(function () {
 
             // get sizes
             Route::get('/get-sizes', 'getSizeList')->name('get-form-piece-sizes');
+            Route::get('/get-data-ws', 'getDataWs')->name('get-data-ws-cutting-piece');
 
             // export piece
             Route::post('/export-excel', 'exportExcel')->name('export-form-piece');
