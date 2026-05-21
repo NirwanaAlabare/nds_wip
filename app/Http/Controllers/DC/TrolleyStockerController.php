@@ -408,6 +408,7 @@ class TrolleyStockerController extends Controller
                     GROUP_CONCAT(qty_main),
                     GROUP_CONCAT(qty),
                     COALESCE(LEAST(COALESCE(MAX(qty_main), MIN(qty)), MIN(qty)), 0) as qty,
+                    ( MIN(qty) - COALESCE(MAX(qty_main), MIN(qty)) ) diff_qty,
                     rangeAwalAkhir
                 from
                     (
@@ -556,6 +557,7 @@ class TrolleyStockerController extends Controller
                     GROUP_CONCAT(qty_main),
                     GROUP_CONCAT(qty),
                     COALESCE(LEAST(COALESCE(MAX(qty_main), MIN(qty)), MIN(qty)), 0) as qty,
+                    ( MIN(qty) - COALESCE(MAX(qty_main), MIN(qty)) ) diff_qty,
                     rangeAwalAkhir
                 from
                     (
@@ -1077,6 +1079,7 @@ class TrolleyStockerController extends Controller
                 GROUP_CONCAT( DISTINCT nama_part SEPARATOR ', ' ) nama_part,
                 size,
                 COALESCE(LEAST(COALESCE(MAX(qty_main), MIN(qty)), MIN(qty)), 0) as qty,
+                ( MIN(qty) - COALESCE(MAX(qty_main), MIN(qty)) ) diff_qty,
                 rangeAwalAkhir,
                 MAX( user ) as user
             FROM
