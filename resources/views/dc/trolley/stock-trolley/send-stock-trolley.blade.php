@@ -143,8 +143,8 @@
                                         <td><span>{!! str_replace(",", "<br>", e($trolleyStock->panel)) !!}</span></td>
                                         <td>{{ $trolleyStock->nama_part }}</td>
                                         <td>{{ $trolleyStock->size }}</td>
-                                        <td>{{ $trolleyStock->qty . ($trolleyStock->diff_qty != 0 ? " (" . $trolleyStock->diff_qty . ")" : "") }}</td>
-                                        <td>{{ $trolleyStock->rangeAwalAkhir }}</td>
+                                        <td>{{ $trolleyStock->qty }}</td>
+                                        <td>{{ $trolleyStock->rangeAwalAkhir . ($trolleyStock->diff_qty != 0 ? " (" . $trolleyStock->diff_qty . ")" : "")  }}</td>
                                         <td>{{ $trolleyStock->user }}</td>
                                     </tr>
                                     @php
