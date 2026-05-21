@@ -6,6 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Contracts\View\View;
+use Maatwebsite\Excel\Concerns\FromView;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
 class BookingStockController extends Controller
 {
@@ -161,9 +165,16 @@ class BookingStockController extends Controller
         $keyword = ($jenis == 'Accessories') ? 'ACCESORIES' : $jenis;
 
         $items = DB::connection('mysql_sb')
-            ->table('masteritem')
-            ->select('id_item as id', 'itemdesc as itemdesc')
-            ->where('matclass', 'LIKE', '%' . $keyword . '%')
+            ->table('data_stock_fabric')
+            ->select(
+                'id_item as id',
+                'itemdesc',
+                'satuan',
+                'kpno',
+                DB::raw('SUM(sal_awal) as total_qty')
+            )
+            ->where('itemdesc', 'LIKE', '%' . $keyword . '%')
+            ->groupBy('id_item', 'itemdesc', 'satuan')
             ->get();
 
         return response()->json($items);
@@ -184,5 +195,69 @@ class BookingStockController extends Controller
                 'message' => 'Gagal menghapus data: ' . $e->getMessage()
             ]);
         }
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $tgl_awal  = $request->tgl_awal;
+        $tgl_akhir = $request->tgl_akhir;
+        $status    = $request->status;
+        $jenis     = $request->jenis;
+        $search    = $request->search_text;
+
+        $query = DB::connection('mysql_sb')->table('booking_stock_detail as bsd')
+            ->join('booking_stock as bs', 'bsd.id_booking', '=', 'bs.id')
+            ->select(
+                'bs.no_booking',
+                'bs.tanggal_booking',
+                'bs.jenis',
+                'bs.status',
+                'bs.created_by',
+                'bs.keterangan',
+                'bsd.nama_barang',
+                'bsd.satuan',
+                'bsd.qty',
+                'bsd.ws'
+            );
+
+        if ($tgl_awal && $tgl_akhir) {
+            $query->whereBetween('bs.tanggal_booking', [$tgl_awal, $tgl_akhir]);
+        }
+        if ($status) {
+            $query->where('bs.status', ucfirst($status));
+        }
+        if ($jenis) {
+            $query->where('bs.jenis', $jenis);
+        }
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('bs.no_booking', 'like', '%' . $search . '%')
+                  ->orWhere('bsd.nama_barang', 'like', '%' . $search . '%')
+                  ->orWhere('bs.created_by', 'like', '%' . $search . '%');
+            });
+        }
+
+        $data = $query->orderBy('bs.id', 'desc')->get();
+
+        $export = new class($data, $tgl_awal, $tgl_akhir) implements FromView, ShouldAutoSize {
+            protected $data, $tgl_awal, $tgl_akhir;
+
+            public function __construct($data, $tgl_awal, $tgl_akhir) {
+                $this->data = $data;
+                $this->tgl_awal = $tgl_awal;
+                $this->tgl_akhir = $tgl_akhir;
+            }
+
+            public function view(): View {
+                return view('purchasing.booking_stock.export', [
+                    'data' => $this->data,
+                    'tgl_awal' => $this->tgl_awal,
+                    'tgl_akhir' => $this->tgl_akhir
+                ]);
+            }
+        };
+
+        $nama_file = 'Laporan_Booking_Stock_' . date('Ymd_His') . '.xlsx';
+        return Excel::download($export, $nama_file);
     }
 }

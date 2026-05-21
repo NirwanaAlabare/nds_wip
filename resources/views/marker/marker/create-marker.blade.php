@@ -552,7 +552,7 @@
                         let readonly = remain < 1 ? "" : "";
 
                         // Hidden Ratio Input
-                        return '<input type="number" id="ratio-' + meta.row + '" name="ratio[' + meta.row + ']" onchange="calculateRatio(' + meta.row + ');" onkeyup="calculateRatio(' + meta.row + ');" '+readonly+' />';
+                        return '<input type="number" min="0" id="ratio-' + meta.row + '" name="ratio[' + meta.row + ']" onchange="calculateRatio(' + meta.row + ');" onkeyup="calculateRatio(' + meta.row + ');" '+readonly+' />';
                     }
                 },
                 {
