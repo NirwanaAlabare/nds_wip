@@ -160,7 +160,7 @@
                         Swal.close();
                         if(res.length > 0) {
                             $.each(res, function(index, item) {
-                                selectItem.append(`<option value="${item.id}" data-unit="${item.satuan}">${item.itemdesc}</option>`);
+                                selectItem.append(`<option value="${item.id}" data-unit="${item.satuan}" data-kpno="${item.kpno}" data-qty="${item.total_qty}">${item.itemdesc}</option>`);
                             });
                             selectItem.trigger('change');
                         } else {
@@ -176,26 +176,27 @@
         });
 
         $('#id_item').on('change', function() {
-            let id_item = $(this).val();
             let unit = $(this).find(':selected').data('unit');
-
+            let kpno = $(this).find(':selected').data('kpno');
+            let stok = $(this).find(':selected').data('qty');
+            console.log('Selected item unit:', unit);
+            console.log('Selected item kpno:', kpno);
+            console.log('Selected item stok:', stok);
             if(unit) {
-                $('#satuan').val(unit);
+                $('#satuan').val(unit).change();
             } else {
-                $('#satuan').val('');
+                $('#satuan').val('').change();
             }
 
-            if(id_item) {
-                $.ajax({
-                    url: "{{ url('booking-stock/get-stock') }}/" + id_item,
-                    type: "GET",
-                    success: function(res) {
-                        $('#qty').val(res.stok);
-                    },
-                    error: function() {
-                        console.log('Gagal mengambil data stok gudang.');
-                    }
-                });
+            if(kpno) {
+                $('#ws').val(kpno).change();
+            } else {
+                $('#ws').val('').change();
+            }
+
+            if(stok !== undefined && stok !== null) {
+
+                $('#qty').val(parseFloat(stok));
             } else {
                 $('#qty').val('');
             }
