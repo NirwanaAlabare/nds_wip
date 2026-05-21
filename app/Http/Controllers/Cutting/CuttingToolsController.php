@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
 use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\FormCutPiece;
+use App\Models\Cutting\FormCutPieceDetail;
+use App\Models\Cutting\FormCutPieceDetailSize;
 use App\Models\Cutting\ScannedItem;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\MutasiCuttingPcsSaldoTmp;
@@ -19,6 +22,7 @@ use App\Models\Stocker\Stocker;
 use App\Models\SignalBit\ActCosting;
 use App\Services\StockerService;
 use App\Services\CuttingService;
+use App\Services\CuttingPieceService;
 use App\Imports\ImportCuttingManual;
 use App\Imports\ImportSaldoAwalCutting;
 use App\Imports\ImportSaldoAwalCuttingDetail;
@@ -1243,5 +1247,116 @@ class CuttingToolsController extends Controller
             "status" => 400,
             "message" => "Gagal menghapus mutasi",
         );
+    }
+
+    // Check FormCutPieceDetail with no FormCutPieceDetailSize
+    public function checkEmptyPieceDetail()
+    {
+        return view('cutting.tools.check-empty-piece-detail', [
+            'page' => 'dashboard-cutting',
+        ]);
+    }
+
+    public function checkEmptyPieceDetailList(Request $request)
+    {
+        $data = FormCutPieceDetail::selectRaw("
+                form_cut_piece_detail.id,
+                form_cut_piece_detail.form_id,
+                form_cut_piece.no_form,
+                form_cut_piece_detail.id_roll,
+                form_cut_piece_detail.lot,
+                form_cut_piece_detail.group_roll,
+                form_cut_piece_detail.group_stocker,
+                form_cut_piece_detail.qty,
+                form_cut_piece_detail.qty_pemakaian,
+                form_cut_piece_detail.qty_sisa,
+                form_cut_piece_detail.status,
+                form_cut_piece_detail.created_at
+            ")
+            ->leftJoin('form_cut_piece', 'form_cut_piece.id', '=', 'form_cut_piece_detail.form_id')
+            ->whereNotExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('form_cut_piece_detail_size')
+                    ->whereColumn('form_cut_piece_detail_size.form_detail_id', 'form_cut_piece_detail.id');
+            })
+            ->where('form_cut_piece_detail.qty_pemakaian', '>', 0)
+            ->where('form_cut_piece_detail.status', 'complete')
+            ->orderBy('form_cut_piece_detail.created_at', 'desc');
+
+        return DataTables::eloquent($data)->make(true);
+    }
+
+    public function deleteEmptyPieceDetail(Request $request, CuttingPieceService $cuttingPieceService)
+    {
+        try {
+            DB::transaction(function () use ($cuttingPieceService) {
+                $records = FormCutPieceDetail::selectRaw("
+                        form_cut_piece_detail.*,
+                        form_cut_piece.no_form
+                    ")
+                    ->leftJoin('form_cut_piece', 'form_cut_piece.id', '=', 'form_cut_piece_detail.form_id')
+                    ->whereNotExists(function ($query) {
+                        $query->select(DB::raw(1))
+                            ->from('form_cut_piece_detail_size')
+                            ->whereColumn('form_cut_piece_detail_size.form_detail_id', 'form_cut_piece_detail.id');
+                    })
+                    ->where('form_cut_piece_detail.qty_pemakaian', '>', 0)
+                    ->where('form_cut_piece_detail.status', 'complete')
+                    ->lockForUpdate()
+                    ->get();
+
+                if ($records->isEmpty()) {
+                    throw new \Exception("Tidak ada data yang perlu dihapus.");
+                }
+
+                // Log before delete
+                Log::channel('daily')->info('deleteEmptyPieceDetail', [
+                    'executed_by' => Auth::user()->username,
+                    'total'       => $records->count(),
+                    'records'     => $records->map(fn($r) => [
+                        'id'            => $r->id,
+                        'no_form'       => $r->no_form,
+                        'id_roll'       => $r->id_roll,
+                        'lot'           => $r->lot,
+                        'group_roll'    => $r->group_roll,
+                        'group_stocker' => $r->group_stocker,
+                        'qty'           => $r->qty,
+                        'qty_pemakaian' => $r->qty_pemakaian,
+                        'qty_sisa'      => $r->qty_sisa,
+                        'status'        => $r->status,
+                        'created_at'    => $r->created_at,
+                    ])->toArray(),
+                ]);
+
+                foreach ($records as $detail) {
+                    $qtyUsageBefore = $detail->qty_pemakaian;
+
+                    // Zero out pemakaian before fixing chain
+                    $detail->update([
+                        'qty_pemakaian'      => 0,
+                        'qty_sisa'           => $detail->qty,
+                        'edited_by'          => Auth::id(),
+                        'edited_by_username' => Auth::user()->username,
+                        'edited_at'          => now(),
+                        'edited_notes'       => 'Reset qty_pemakaian to 0 before delete (deleteEmptyPieceDetail)',
+                    ]);
+
+                    // Fix chained qty downstream
+                    $cuttingPieceService->fixChainedQty($detail->id, $qtyUsageBefore);
+
+                    $detail->delete();
+                }
+            });
+
+            return [
+                'status'  => 200,
+                'message' => 'Form Cut Piece Detail berhasil dihapus.',
+            ];
+        } catch (\Exception $e) {
+            return [
+                'status'  => 400,
+                'message' => $e->getMessage(),
+            ];
+        }
     }
 }

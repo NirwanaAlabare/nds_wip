@@ -44,8 +44,10 @@ class ReportMutasiOutputController extends Controller
 
         if (!empty($buyer)) {
             $filter = "WHERE buyer = '$buyer'";
+            $filter_subcont = " AND buyer = '$buyer'";
         } else {
             $filter = '';
+            $filter_subcont = '';
         }
 
         if ($request->ajax()) {
@@ -1159,9 +1161,9 @@ class ReportMutasiOutputController extends Controller
                                 qty_reworked = 0 AND
                                 saldo_akhir_qc_reject = 0
                             )
-                        )
+                        ),
 
-                        SELECT
+                        query_fix as (SELECT
                             buyer,
                             ws,
                             styleno,
@@ -1380,7 +1382,415 @@ class ReportMutasiOutputController extends Controller
                                 buyer, ws, styleno, color, size
                         ) data
                         group by buyer, ws, styleno, color, size
-                        order by buyer asc, ws asc, color asc, size asc
+                        order by buyer asc, ws asc, color asc, size asc),
+
+                        in_subcont_before as (
+    select
+        b.id_item,
+        a.no_po,
+        supplier,
+        buyer,
+        kpno,
+        styleno,
+        b.color,
+        b.size,
+        sum(
+        COALESCE ( b.qty, 0 )) qty_in 
+    from
+        packing_in_h a
+        INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb
+        INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier
+        left join (
+        select
+            id_jo,
+            kpno,
+            styleno,
+            supplier buyer 
+        from
+            act_costing ac
+            inner join so on ac.id = so.id_cost
+            inner join jo_det jod on so.id = jod.id_so
+            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer 
+        group by
+            id_jo 
+        ) d on d.id_jo = b.id_jo 
+    where
+        a.tgl_bpb < '$start_date' 
+        and b.status = 'Y' $filter_subcont
+    GROUP BY
+        a.no_po,
+        kpno,
+        b.color,
+        b.size,
+        b.id_item 
+    ),
+    out_subcont_before as (
+    select
+        b.id_item,
+        itemdesc,
+        a.no_po,
+        supplier,
+        buyer,
+        kpno,
+        styleno,
+        b.color,
+        b.size,
+        sum(
+        COALESCE ( b.qty, 0 )) qty_out 
+    from
+        sewing_out_h a
+        INNER JOIN sewing_out_det b on b.no_bppb = a.no_bppb
+        INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier
+        left join (
+        select
+            id_jo,
+            kpno,
+            styleno,
+            supplier buyer 
+        from
+            act_costing ac
+            inner join so on ac.id = so.id_cost
+            inner join jo_det jod on so.id = jod.id_so
+            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer 
+        group by
+            id_jo 
+        ) d on d.id_jo = b.id_jo
+        INNER JOIN masteritem mi on mi.id_item = b.id_item 
+    where
+        a.tgl_bppb < '$start_date' 
+        and b.status = 'Y' $filter_subcont
+    GROUP BY
+        a.no_po,
+        kpno,
+        b.color,
+        b.size,
+        b.id_item 
+    ),
+    in_subcont_trx as (
+    select
+        b.id_item,
+        a.no_po,
+        supplier,
+        buyer,
+        kpno,
+        styleno,
+        b.color,
+        b.size,
+        sum(
+        COALESCE ( b.qty, 0 )) qty_in 
+    from
+        packing_in_h a
+        INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb
+        INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier
+        left join (
+        select
+            id_jo,
+            kpno,
+            styleno,
+            supplier buyer 
+        from
+            act_costing ac
+            inner join so on ac.id = so.id_cost
+            inner join jo_det jod on so.id = jod.id_so
+            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer 
+        group by
+            id_jo 
+        ) d on d.id_jo = b.id_jo 
+    where
+        a.tgl_bpb BETWEEN '$start_date' 
+        and '$end_date' 
+        and b.status = 'Y' $filter_subcont
+    GROUP BY
+        a.no_po,
+        kpno,
+        b.color,
+        b.size,
+        b.id_item 
+    ),
+    out_subcont_trx as (
+    select
+        b.id_item,
+        itemdesc,
+        a.no_po,
+        supplier,
+        buyer,
+        kpno,
+        styleno,
+        b.color,
+        b.size,
+        sum(
+        COALESCE ( b.qty, 0 )) qty_out 
+    from
+        sewing_out_h a
+        INNER JOIN sewing_out_det b on b.no_bppb = a.no_bppb
+        INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier
+        left join (
+        select
+            id_jo,
+            kpno,
+            styleno,
+            supplier buyer 
+        from
+            act_costing ac
+            inner join so on ac.id = so.id_cost
+            inner join jo_det jod on so.id = jod.id_so
+            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer 
+        group by
+            id_jo 
+        ) d on d.id_jo = b.id_jo
+        INNER JOIN masteritem mi on mi.id_item = b.id_item 
+    where
+        a.tgl_bppb BETWEEN '$start_date' 
+        and '$end_date' 
+        and b.status = 'Y' $filter_subcont
+    GROUP BY
+        a.no_po,
+        kpno,
+        b.color,
+        b.size,
+        b.id_item 
+    ),
+    query_fix_subcont as (
+    select
+        buyer,
+        ws,
+        styleno,
+        color,
+        size,
+        SUM( qty_in_before ) qty_in_before,
+        SUM( qty_in ) qty_in,
+        SUM( qty_out_before ) qty_out_before,
+        SUM( qty_out ) qty_out,
+        0 saldo_awal_sewing,
+        0 qty_loading,
+        0 input_rework_sewing,
+        0 input_rework_spotcleaning,
+        0 input_rework_mending,
+        0 defect_sewing,
+        0 defect_spotcleaning,
+        0 defect_mending,
+        0 qty_sew_reject,
+        0 qty_sewing,
+        0 saldo_akhir_sewing,
+        0 saldo_awal_finishing,
+        0 input_rework_sewing_f,
+        0 input_rework_spotcleaning_f,
+        0 input_rework_mending_f,
+        0 defect_sewing_f,
+        0 defect_spotcleaning_f,
+        0 defect_mending_f,
+        0 qty_fin_reject,
+        0 qty_finishing,
+        0 saldo_akhir_finishing,
+        0 saldo_awal_secondary_proses,
+        0 total_in_sp,
+        0 rework_sp,
+        0 defect_sp,
+        0 reject_sp,
+        0 rft_sp,
+        0 saldo_akhir_secondary_proses,
+        0 saldo_awal_defect_sewing,
+        0 total_defect_sewing,
+        0 total_input_rework_sewing,
+        0 saldo_akhir_defect_sewing,
+        0 saldo_awal_defect_spotcleaning,
+        0 total_defect_spotcleaning,
+        0 total_input_rework_spotcleaning,
+        0 saldo_akhir_defect_spotcleaning,
+        0 saldo_awal_defect_mending,
+        0 total_defect_mending,
+        0 total_input_rework_mending,
+        0 saldo_akhir_mending,
+        0 saldo_awal_reject,
+        0 qty_reject_in,
+        0 qty_reworked,
+        0 qty_rejected,
+        0 saldo_akhir_qc_reject 
+    from
+        (
+        select
+            buyer,
+            kpno ws,
+            styleno,
+            color,
+            size,
+            qty_in qty_in_before,
+            0 qty_in,
+            0 qty_out_before,
+            0 qty_out 
+        from
+            in_subcont_before UNION ALL
+        select
+            buyer,
+            kpno ws,
+            styleno,
+            color,
+            size,
+            0 qty_in_before,
+            qty_in,
+            0 qty_out_before,
+            0 qty_out 
+        from
+            in_subcont_trx UNION ALL
+        select
+            buyer,
+            kpno ws,
+            styleno,
+            color,
+            size,
+            0 qty_in_before,
+            0 qty_in,
+            qty_out qty_out_before,
+            0 qty_out 
+        from
+            out_subcont_before UNION ALL
+        select
+            buyer,
+            kpno ws,
+            styleno,
+            color,
+            size,
+            0 qty_in_before,
+            0 qty_in,
+            0 qty_out_before,
+            qty_out 
+        from
+            out_subcont_trx 
+        ) a 
+    GROUP BY
+        buyer,
+        ws,
+        styleno,
+        color,
+        size 
+    ) select
+    buyer,
+    ws,
+    styleno,
+    color,
+    size,
+    SUM( saldo_awal_sewing + (qty_in_before - qty_out_before)) saldo_awal_sewing,
+    SUM( qty_loading ) qty_loading,
+    SUM( qty_in ) qty_in_subcont,
+    SUM( input_rework_sewing ) input_rework_sewing,
+    SUM( input_rework_spotcleaning ) input_rework_spotcleaning,
+    SUM( input_rework_mending ) input_rework_mending,
+    SUM( defect_sewing ) defect_sewing,
+    SUM( defect_spotcleaning ) defect_spotcleaning,
+    SUM( defect_mending ) defect_mending,
+    SUM( qty_sew_reject ) qty_sew_reject,
+    SUM( qty_sewing ) qty_sewing,
+    ROUND(SUM( qty_out ),0) qty_out_subcont,
+    SUM( saldo_akhir_sewing + (qty_in_before - qty_out_before) + qty_in - qty_out) saldo_akhir_sewing,
+    SUM( saldo_awal_finishing ) saldo_awal_finishing,
+    SUM( input_rework_sewing_f ) input_rework_sewing_f,
+    SUM( input_rework_spotcleaning_f ) input_rework_spotcleaning_f,
+    SUM( input_rework_mending_f ) input_rework_mending_f,
+    SUM( defect_sewing_f ) defect_sewing_f,
+    SUM( defect_spotcleaning_f ) defect_spotcleaning_f,
+    SUM( defect_mending_f ) defect_mending_f,
+    SUM( qty_fin_reject ) qty_fin_reject,
+    SUM( qty_finishing ) qty_finishing,
+    SUM( saldo_akhir_finishing ) saldo_akhir_finishing,
+    SUM( saldo_awal_secondary_proses ) saldo_awal_secondary_proses,
+    SUM( total_in_sp ) total_in_sp,
+    SUM( rework_sp ) rework_sp,
+    SUM( defect_sp ) defect_sp,
+    SUM( reject_sp ) reject_sp,
+    SUM( rft_sp ) rft_sp,
+    SUM( saldo_akhir_secondary_proses ) saldo_akhir_secondary_proses,
+    SUM( saldo_awal_defect_sewing ) saldo_awal_defect_sewing,
+    SUM( total_defect_sewing ) total_defect_sewing,
+    SUM( total_input_rework_sewing ) total_input_rework_sewing,
+    SUM( saldo_akhir_defect_sewing ) saldo_akhir_defect_sewing,
+    SUM( saldo_awal_defect_spotcleaning ) saldo_awal_defect_spotcleaning,
+    SUM( total_defect_spotcleaning ) total_defect_spotcleaning,
+    SUM( total_input_rework_spotcleaning ) total_input_rework_spotcleaning,
+    SUM( saldo_akhir_defect_spotcleaning ) saldo_akhir_defect_spotcleaning,
+    SUM( saldo_awal_defect_mending ) saldo_awal_defect_mending,
+    SUM( total_defect_mending ) total_defect_mending,
+    SUM( total_input_rework_mending ) total_input_rework_mending,
+    SUM( saldo_akhir_mending ) saldo_akhir_mending,
+    SUM( saldo_awal_reject ) saldo_awal_reject,
+    SUM( qty_reject_in ) qty_reject_in,
+    SUM( qty_reworked ) qty_reworked,
+    SUM( qty_rejected ) qty_rejected,
+    SUM( saldo_akhir_qc_reject ) saldo_akhir_qc_reject 
+from
+    (
+    select
+        buyer,
+        ws,
+        styleno,
+        color,
+        size,
+        0 qty_in_before,
+        0 qty_in,
+        0 qty_out_before,
+        0 qty_out,
+        saldo_awal_sewing,
+        qty_loading,
+        input_rework_sewing,
+        input_rework_spotcleaning,
+        input_rework_mending,
+        defect_sewing,
+        defect_spotcleaning,
+        defect_mending,
+        qty_sew_reject,
+        qty_sewing,
+        saldo_akhir_sewing,
+        saldo_awal_finishing,
+        input_rework_sewing_f,
+        input_rework_spotcleaning_f,
+        input_rework_mending_f,
+        defect_sewing_f,
+        defect_spotcleaning_f,
+        defect_mending_f,
+        qty_fin_reject,
+        qty_finishing,
+        saldo_akhir_finishing,
+        saldo_awal_secondary_proses,
+        total_in_sp,
+        rework_sp,
+        defect_sp,
+        reject_sp,
+        rft_sp,
+        saldo_akhir_secondary_proses,
+        saldo_awal_defect_sewing,
+        total_defect_sewing,
+        total_input_rework_sewing,
+        saldo_akhir_defect_sewing,
+        saldo_awal_defect_spotcleaning,
+        total_defect_spotcleaning,
+        total_input_rework_spotcleaning,
+        saldo_akhir_defect_spotcleaning,
+        saldo_awal_defect_mending,
+        total_defect_mending,
+        total_input_rework_mending,
+        saldo_akhir_mending,
+        saldo_awal_reject,
+        qty_reject_in,
+        qty_reworked,
+        qty_rejected,
+        saldo_akhir_qc_reject 
+    from
+        query_fix UNION ALL
+    select
+        * 
+    from
+        query_fix_subcont 
+    ) a 
+group by
+    buyer,
+    ws,
+    styleno,
+    color,
+    size 
+order by
+    buyer asc,
+    ws asc,
+    color asc,
+    size asc
                     ");
                 }
                 return response()->json([
@@ -1410,8 +1820,10 @@ class ReportMutasiOutputController extends Controller
 
         if (!empty($buyer)) {
             $filter = "WHERE buyer = '$buyer'";
+            $filter_subcont = " AND buyer = '$buyer'";
         } else {
             $filter = '';
+            $filter_subcont = '';
         }
 
         $data = DB::connection('mysql_sb')->select("WITH
@@ -2519,9 +2931,9 @@ class ReportMutasiOutputController extends Controller
                                 qty_reworked = 0 AND
                                 saldo_akhir_qc_reject = 0
                             )
-                        )
+                        ),
 
-                        SELECT
+                        query_fix as (SELECT
                             buyer,
                             ws,
                             styleno,
@@ -2740,7 +3152,415 @@ class ReportMutasiOutputController extends Controller
                                 buyer, ws, styleno, color, size
                         ) data
                         group by buyer, ws, styleno, color, size
-                        order by buyer asc, ws asc, color asc, size asc
+                        order by buyer asc, ws asc, color asc, size asc),
+
+                        in_subcont_before as (
+    select
+        b.id_item,
+        a.no_po,
+        supplier,
+        buyer,
+        kpno,
+        styleno,
+        b.color,
+        b.size,
+        sum(
+        COALESCE ( b.qty, 0 )) qty_in 
+    from
+        packing_in_h a
+        INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb
+        INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier
+        left join (
+        select
+            id_jo,
+            kpno,
+            styleno,
+            supplier buyer 
+        from
+            act_costing ac
+            inner join so on ac.id = so.id_cost
+            inner join jo_det jod on so.id = jod.id_so
+            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer 
+        group by
+            id_jo 
+        ) d on d.id_jo = b.id_jo 
+    where
+        a.tgl_bpb < '$start_date' 
+        and b.status = 'Y' $filter_subcont
+    GROUP BY
+        a.no_po,
+        kpno,
+        b.color,
+        b.size,
+        b.id_item 
+    ),
+    out_subcont_before as (
+    select
+        b.id_item,
+        itemdesc,
+        a.no_po,
+        supplier,
+        buyer,
+        kpno,
+        styleno,
+        b.color,
+        b.size,
+        sum(
+        COALESCE ( b.qty, 0 )) qty_out 
+    from
+        sewing_out_h a
+        INNER JOIN sewing_out_det b on b.no_bppb = a.no_bppb
+        INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier
+        left join (
+        select
+            id_jo,
+            kpno,
+            styleno,
+            supplier buyer 
+        from
+            act_costing ac
+            inner join so on ac.id = so.id_cost
+            inner join jo_det jod on so.id = jod.id_so
+            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer 
+        group by
+            id_jo 
+        ) d on d.id_jo = b.id_jo
+        INNER JOIN masteritem mi on mi.id_item = b.id_item 
+    where
+        a.tgl_bppb < '$start_date' 
+        and b.status = 'Y' $filter_subcont
+    GROUP BY
+        a.no_po,
+        kpno,
+        b.color,
+        b.size,
+        b.id_item 
+    ),
+    in_subcont_trx as (
+    select
+        b.id_item,
+        a.no_po,
+        supplier,
+        buyer,
+        kpno,
+        styleno,
+        b.color,
+        b.size,
+        sum(
+        COALESCE ( b.qty, 0 )) qty_in 
+    from
+        packing_in_h a
+        INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb
+        INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier
+        left join (
+        select
+            id_jo,
+            kpno,
+            styleno,
+            supplier buyer 
+        from
+            act_costing ac
+            inner join so on ac.id = so.id_cost
+            inner join jo_det jod on so.id = jod.id_so
+            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer 
+        group by
+            id_jo 
+        ) d on d.id_jo = b.id_jo 
+    where
+        a.tgl_bpb BETWEEN '$start_date' 
+        and '$end_date' 
+        and b.status = 'Y' $filter_subcont
+    GROUP BY
+        a.no_po,
+        kpno,
+        b.color,
+        b.size,
+        b.id_item 
+    ),
+    out_subcont_trx as (
+    select
+        b.id_item,
+        itemdesc,
+        a.no_po,
+        supplier,
+        buyer,
+        kpno,
+        styleno,
+        b.color,
+        b.size,
+        sum(
+        COALESCE ( b.qty, 0 )) qty_out 
+    from
+        sewing_out_h a
+        INNER JOIN sewing_out_det b on b.no_bppb = a.no_bppb
+        INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier
+        left join (
+        select
+            id_jo,
+            kpno,
+            styleno,
+            supplier buyer 
+        from
+            act_costing ac
+            inner join so on ac.id = so.id_cost
+            inner join jo_det jod on so.id = jod.id_so
+            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer 
+        group by
+            id_jo 
+        ) d on d.id_jo = b.id_jo
+        INNER JOIN masteritem mi on mi.id_item = b.id_item 
+    where
+        a.tgl_bppb BETWEEN '$start_date' 
+        and '$end_date' 
+        and b.status = 'Y' $filter_subcont
+    GROUP BY
+        a.no_po,
+        kpno,
+        b.color,
+        b.size,
+        b.id_item 
+    ),
+    query_fix_subcont as (
+    select
+        buyer,
+        ws,
+        styleno,
+        color,
+        size,
+        SUM( qty_in_before ) qty_in_before,
+        SUM( qty_in ) qty_in,
+        SUM( qty_out_before ) qty_out_before,
+        SUM( qty_out ) qty_out,
+        0 saldo_awal_sewing,
+        0 qty_loading,
+        0 input_rework_sewing,
+        0 input_rework_spotcleaning,
+        0 input_rework_mending,
+        0 defect_sewing,
+        0 defect_spotcleaning,
+        0 defect_mending,
+        0 qty_sew_reject,
+        0 qty_sewing,
+        0 saldo_akhir_sewing,
+        0 saldo_awal_finishing,
+        0 input_rework_sewing_f,
+        0 input_rework_spotcleaning_f,
+        0 input_rework_mending_f,
+        0 defect_sewing_f,
+        0 defect_spotcleaning_f,
+        0 defect_mending_f,
+        0 qty_fin_reject,
+        0 qty_finishing,
+        0 saldo_akhir_finishing,
+        0 saldo_awal_secondary_proses,
+        0 total_in_sp,
+        0 rework_sp,
+        0 defect_sp,
+        0 reject_sp,
+        0 rft_sp,
+        0 saldo_akhir_secondary_proses,
+        0 saldo_awal_defect_sewing,
+        0 total_defect_sewing,
+        0 total_input_rework_sewing,
+        0 saldo_akhir_defect_sewing,
+        0 saldo_awal_defect_spotcleaning,
+        0 total_defect_spotcleaning,
+        0 total_input_rework_spotcleaning,
+        0 saldo_akhir_defect_spotcleaning,
+        0 saldo_awal_defect_mending,
+        0 total_defect_mending,
+        0 total_input_rework_mending,
+        0 saldo_akhir_mending,
+        0 saldo_awal_reject,
+        0 qty_reject_in,
+        0 qty_reworked,
+        0 qty_rejected,
+        0 saldo_akhir_qc_reject 
+    from
+        (
+        select
+            buyer,
+            kpno ws,
+            styleno,
+            color,
+            size,
+            qty_in qty_in_before,
+            0 qty_in,
+            0 qty_out_before,
+            0 qty_out 
+        from
+            in_subcont_before UNION ALL
+        select
+            buyer,
+            kpno ws,
+            styleno,
+            color,
+            size,
+            0 qty_in_before,
+            qty_in,
+            0 qty_out_before,
+            0 qty_out 
+        from
+            in_subcont_trx UNION ALL
+        select
+            buyer,
+            kpno ws,
+            styleno,
+            color,
+            size,
+            0 qty_in_before,
+            0 qty_in,
+            qty_out qty_out_before,
+            0 qty_out 
+        from
+            out_subcont_before UNION ALL
+        select
+            buyer,
+            kpno ws,
+            styleno,
+            color,
+            size,
+            0 qty_in_before,
+            0 qty_in,
+            0 qty_out_before,
+            qty_out 
+        from
+            out_subcont_trx 
+        ) a 
+    GROUP BY
+        buyer,
+        ws,
+        styleno,
+        color,
+        size 
+    ) select
+    buyer,
+    ws,
+    styleno,
+    color,
+    size,
+    SUM( saldo_awal_sewing + (qty_in_before - qty_out_before)) saldo_awal_sewing,
+    SUM( qty_loading ) qty_loading,
+    SUM( qty_in ) qty_in_subcont,
+    SUM( input_rework_sewing ) input_rework_sewing,
+    SUM( input_rework_spotcleaning ) input_rework_spotcleaning,
+    SUM( input_rework_mending ) input_rework_mending,
+    SUM( defect_sewing ) defect_sewing,
+    SUM( defect_spotcleaning ) defect_spotcleaning,
+    SUM( defect_mending ) defect_mending,
+    SUM( qty_sew_reject ) qty_sew_reject,
+    SUM( qty_sewing ) qty_sewing,
+    ROUND(SUM( qty_out ),0) qty_out_subcont,
+    SUM( saldo_akhir_sewing + (qty_in_before - qty_out_before) + qty_in - qty_out) saldo_akhir_sewing,
+    SUM( saldo_awal_finishing ) saldo_awal_finishing,
+    SUM( input_rework_sewing_f ) input_rework_sewing_f,
+    SUM( input_rework_spotcleaning_f ) input_rework_spotcleaning_f,
+    SUM( input_rework_mending_f ) input_rework_mending_f,
+    SUM( defect_sewing_f ) defect_sewing_f,
+    SUM( defect_spotcleaning_f ) defect_spotcleaning_f,
+    SUM( defect_mending_f ) defect_mending_f,
+    SUM( qty_fin_reject ) qty_fin_reject,
+    SUM( qty_finishing ) qty_finishing,
+    SUM( saldo_akhir_finishing ) saldo_akhir_finishing,
+    SUM( saldo_awal_secondary_proses ) saldo_awal_secondary_proses,
+    SUM( total_in_sp ) total_in_sp,
+    SUM( rework_sp ) rework_sp,
+    SUM( defect_sp ) defect_sp,
+    SUM( reject_sp ) reject_sp,
+    SUM( rft_sp ) rft_sp,
+    SUM( saldo_akhir_secondary_proses ) saldo_akhir_secondary_proses,
+    SUM( saldo_awal_defect_sewing ) saldo_awal_defect_sewing,
+    SUM( total_defect_sewing ) total_defect_sewing,
+    SUM( total_input_rework_sewing ) total_input_rework_sewing,
+    SUM( saldo_akhir_defect_sewing ) saldo_akhir_defect_sewing,
+    SUM( saldo_awal_defect_spotcleaning ) saldo_awal_defect_spotcleaning,
+    SUM( total_defect_spotcleaning ) total_defect_spotcleaning,
+    SUM( total_input_rework_spotcleaning ) total_input_rework_spotcleaning,
+    SUM( saldo_akhir_defect_spotcleaning ) saldo_akhir_defect_spotcleaning,
+    SUM( saldo_awal_defect_mending ) saldo_awal_defect_mending,
+    SUM( total_defect_mending ) total_defect_mending,
+    SUM( total_input_rework_mending ) total_input_rework_mending,
+    SUM( saldo_akhir_mending ) saldo_akhir_mending,
+    SUM( saldo_awal_reject ) saldo_awal_reject,
+    SUM( qty_reject_in ) qty_reject_in,
+    SUM( qty_reworked ) qty_reworked,
+    SUM( qty_rejected ) qty_rejected,
+    SUM( saldo_akhir_qc_reject ) saldo_akhir_qc_reject 
+from
+    (
+    select
+        buyer,
+        ws,
+        styleno,
+        color,
+        size,
+        0 qty_in_before,
+        0 qty_in,
+        0 qty_out_before,
+        0 qty_out,
+        saldo_awal_sewing,
+        qty_loading,
+        input_rework_sewing,
+        input_rework_spotcleaning,
+        input_rework_mending,
+        defect_sewing,
+        defect_spotcleaning,
+        defect_mending,
+        qty_sew_reject,
+        qty_sewing,
+        saldo_akhir_sewing,
+        saldo_awal_finishing,
+        input_rework_sewing_f,
+        input_rework_spotcleaning_f,
+        input_rework_mending_f,
+        defect_sewing_f,
+        defect_spotcleaning_f,
+        defect_mending_f,
+        qty_fin_reject,
+        qty_finishing,
+        saldo_akhir_finishing,
+        saldo_awal_secondary_proses,
+        total_in_sp,
+        rework_sp,
+        defect_sp,
+        reject_sp,
+        rft_sp,
+        saldo_akhir_secondary_proses,
+        saldo_awal_defect_sewing,
+        total_defect_sewing,
+        total_input_rework_sewing,
+        saldo_akhir_defect_sewing,
+        saldo_awal_defect_spotcleaning,
+        total_defect_spotcleaning,
+        total_input_rework_spotcleaning,
+        saldo_akhir_defect_spotcleaning,
+        saldo_awal_defect_mending,
+        total_defect_mending,
+        total_input_rework_mending,
+        saldo_akhir_mending,
+        saldo_awal_reject,
+        qty_reject_in,
+        qty_reworked,
+        qty_rejected,
+        saldo_akhir_qc_reject 
+    from
+        query_fix UNION ALL
+    select
+        * 
+    from
+        query_fix_subcont 
+    ) a 
+group by
+    buyer,
+    ws,
+    styleno,
+    color,
+    size 
+order by
+    buyer asc,
+    ws asc,
+    color asc,
+    size asc
         ");
 
         // Create Excel file using FastExcel
@@ -2749,29 +3569,29 @@ class ReportMutasiOutputController extends Controller
 
         // Title
         $sheet->writeTo('A1', 'Report Mutasi WIP Sewing ' . Carbon::parse($start_date)->format('d-m-Y') . ' - ' . Carbon::parse($end_date)->format('d-m-Y'), ['font-size' => 12]);
-        $sheet->mergeCells('A1:AY1');
+        $sheet->mergeCells('A1:BA1');
 
         // Headers
         // Merge cell
         $sheet->mergeCells('A2:E2');
-        $sheet->mergeCells('F2:P2');
-        $sheet->mergeCells('Q2:AA2');
-        $sheet->mergeCells('AB2:AH2');
-        $sheet->mergeCells('AI2:AL2');
-        $sheet->mergeCells('AM2:AP2');
-        $sheet->mergeCells('AQ2:AT2');
-        $sheet->mergeCells('AU2:AY2');
+        $sheet->mergeCells('F2:R2');
+        $sheet->mergeCells('S2:AC2');
+        $sheet->mergeCells('AD2:AJ2');
+        $sheet->mergeCells('AK2:AN2');
+        $sheet->mergeCells('AO2:AR2');
+        $sheet->mergeCells('AS2:AV2');
+        $sheet->mergeCells('AW2:BA2');
 
         // Isi value + apply bold + border
         $headers = [
-            'A2:E2'  => 'Jenis Produk',
-            'F2:P2'  => 'Sewing',
-            'Q2:AA2' => 'QC Finishing',
-            'AB2:AH2' => 'Finishing',
-            'AI2:AL2' => 'Defect Sewing',
-            'AM2:AP2' => 'Defect Spotcleaning',
-            'AQ2:AT2' => 'Defect Mending',
-            'AU2:AY2' => 'QC Reject',
+            'A2:E2'   => 'Jenis Produk',
+            'F2:R2'   => 'Sewing',
+            'S2:AC2'  => 'QC Finishing',
+            'AD2:AJ2' => 'Finishing',
+            'AK2:AN2' => 'Defect Sewing',
+            'AO2:AR2' => 'Defect Spotcleaning',
+            'AS2:AV2' => 'Defect Mending',
+            'AW2:BA2' => 'QC Reject',
         ];
 
         foreach ($headers as $range => $value) {
@@ -2846,58 +3666,67 @@ class ReportMutasiOutputController extends Controller
         $sheet->writeTo('D3', 'Color')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('E3', 'Size')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
+        // SEWING (F:R = 13 kolom)
         $sheet->writeTo('F3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('G3', 'Terima Loading')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('H3', 'Output Rework Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('I3', 'Output Rework Spotcleaning')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('J3', 'Output Rework Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('K3', 'Defect Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('L3', 'Defect Spotcleaning')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('M3', 'Defect Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('N3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('O3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('P3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('H3', 'In Subcont')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('I3', 'Output Rework Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('J3', 'Output Rework Spotcleaning')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('K3', 'Output Rework Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('L3', 'Defect Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('M3', 'Defect Spotcleaning')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('N3', 'Defect Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('O3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('P3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Q3', 'Out Subcont')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('R3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        $sheet->writeTo('Q3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('R3', 'Terima Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('S3', 'Output Rework Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('T3', 'Output Rework Spotcleaning')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('U3', 'Output Rework Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('V3', 'Defect Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('W3', 'Defect Spotcleaning')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('X3', 'Defect Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('Y3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('Z3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AA3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // QC FINISHING (S:AC = 11 kolom)
+        $sheet->writeTo('S3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('T3', 'Terima Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('U3', 'Output Rework Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('V3', 'Output Rework Spotcleaning')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('W3', 'Output Rework Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('X3', 'Defect Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Y3', 'Defect Spotcleaning')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Z3', 'Defect Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AA3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AB3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AC3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        $sheet->writeTo('AB3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AC3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AD3', 'Rework')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AE3', 'Defect')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AF3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AG3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AH3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // FINISHING (AD:AJ = 7 kolom)
+        $sheet->writeTo('AD3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AE3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AF3', 'Rework')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AG3', 'Defect')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AH3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AI3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AJ3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        $sheet->writeTo('AI3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AJ3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AK3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AL3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // DEFECT SEWING (AK:AN = 4 kolom)
+        $sheet->writeTo('AK3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AL3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AM3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AN3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        $sheet->writeTo('AM3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AN3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AO3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AP3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // DEFECT SPOTCLEANING (AO:AR = 4 kolom)
+        $sheet->writeTo('AO3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AP3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AQ3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AR3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        $sheet->writeTo('AQ3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AR3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AS3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AT3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // DEFECT MENDING (AS:AV = 4 kolom)
+        $sheet->writeTo('AS3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AT3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AU3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AV3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        $sheet->writeTo('AU3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AV3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AW3', 'Keluar Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AX3', 'Keluar Gudang Stok')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AY3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // QC REJECT (AW:BA = 5 kolom)
+        $sheet->writeTo('AW3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AX3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AY3', 'Keluar Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AZ3', 'Keluar Gudang Stok')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BA3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         $rowNumber = 4;
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$rowNumber) {
@@ -2913,6 +3742,7 @@ class ReportMutasiOutputController extends Controller
 
                     $row->saldo_awal_sewing ?? 0,
                     $row->qty_loading ?? 0,
+                    $row->qty_in_subcont ?? 0,
                     $row->input_rework_sewing ?? 0,
                     $row->input_rework_spotcleaning ?? 0,
                     $row->input_rework_mending ?? 0,
@@ -2921,6 +3751,7 @@ class ReportMutasiOutputController extends Controller
                     $row->defect_mending ?? 0,
                     $row->qty_sew_reject ?? 0,
                     $row->qty_sewing ?? 0,
+                    $row->qty_out_subcont ?? 0,
                     $row->saldo_akhir_sewing ?? 0,
 
                     $row->saldo_awal_finishing ?? 0,

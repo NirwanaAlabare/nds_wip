@@ -120,6 +120,25 @@ class CuttingPieceService
                 throw new \Exception("Form detail tidak ditemukan");
             }
 
+            // If no so_det_id provided, zero out pemakaian, fix chained qty, then delete
+            if (empty($request->so_det_id)) {
+                $qtyUsageBefore = $formDetail->qty_pemakaian - 0;
+
+                $formDetail->update([
+                    "qty_pemakaian" => 0,
+                    "qty_sisa"      => $formDetail->qty,
+                    "edited_by"          => auth()->id(),
+                    "edited_by_username" => auth()->user()->username,
+                    "edited_at"          => now(),
+                    "edited_notes"       => "Reset qty_pemakaian to 0 before delete",
+                ]);
+
+                $this->fixChainedQty($formDetail->id, $qtyUsageBefore);
+
+                $formDetail->delete();
+                return "Form detail pada form {$form->no_form} berhasil dihapus";
+            }
+
             // Lock all similar form detail
             FormCutPieceDetail::where("id_roll", $formDetail->id_roll)
                 ->lockForUpdate()
@@ -209,6 +228,49 @@ class CuttingPieceService
         }
 
         return [$qtyUsage, $updateMessage];
+    }
+
+    public function deleteFormCutPieceDetail($request)
+    {
+        return DB::transaction(function () use ($request) {
+
+            $formDetail = FormCutPieceDetail::where("id", $request->id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$formDetail) {
+                throw new \Exception("Data detail tidak ditemukan");
+            }
+
+            $form = FormCutPiece::find($formDetail->form_id);
+
+            if (!$form) {
+                throw new \Exception("Form tidak ditemukan");
+            }
+
+            // Check stocker lock (kalau kamu pakai ini)
+            if (!$this->checkStockerForm($form->id)) {
+                throw new \Exception("Stocker sudah diprint, tidak bisa dihapus");
+            }
+
+            // update qty sebelum delete
+            $qtyUsageBefore = $formDetail->qty_pemakaian - 0;
+            $formDetail->update([
+                "qty_pemakaian"      => 0,
+                "qty_sisa"           => $formDetail->qty,
+                "edited_by"          => auth()->id(),
+                "edited_by_username" => auth()->user()->username,
+                "edited_at"          => now(),
+                "edited_notes"       => "Reset qty_pemakaian to 0 before delete",
+            ]);
+
+            $this->fixChainedQty($formDetail->id, $qtyUsageBefore);
+
+            FormCutPieceDetailSize::where("form_detail_id", $formDetail->id)->delete();
+            $formDetail->delete();
+
+            return "Detail berhasil dihapus dari form {$form->no_form}";
+        });
     }
 
     // public function fixChainedQty($idDetail, $diffQty) {
