@@ -22,8 +22,8 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label>Tanggal Plan</label>
-                        <input type="date" class="form-control form-control" name="edit_tgl_plan" id="edit_tgl_plan" readonly>
+                        <label class="small">Tanggal Plan</label>
+                        <input type="date" class="form-control form-control-sm" name="edit_tgl_plan" id="edit_tgl_plan" readonly>
                     </div>
                     <div class="mb-3">
                         <div class="table-responsive">
@@ -349,6 +349,13 @@
                 },
             ],
             columnDefs: [
+                {
+                    targets: [1],
+                    className: "text-nowrap",
+                    render: (data, type, row, meta) => {
+                        return data ? `<a class='fw-bold' href='{{ route('detail-cutting') }}/ `+row.id+`' target='_blank'><u>`+data+`</u></a>` : "-";
+                    }
+                },
                 {
                     targets: [7],
                     render: (data, type, row, meta) => {
