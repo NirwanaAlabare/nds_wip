@@ -120,6 +120,25 @@ class CuttingPieceService
                 throw new \Exception("Form detail tidak ditemukan");
             }
 
+            // If no so_det_id provided, zero out pemakaian, fix chained qty, then delete
+            if (empty($request->so_det_id)) {
+                $qtyUsageBefore = $formDetail->qty_pemakaian - 0;
+
+                $formDetail->update([
+                    "qty_pemakaian" => 0,
+                    "qty_sisa"      => $formDetail->qty,
+                    "edited_by"          => auth()->id(),
+                    "edited_by_username" => auth()->user()->username,
+                    "edited_at"          => now(),
+                    "edited_notes"       => "Reset qty_pemakaian to 0 before delete",
+                ]);
+
+                $this->fixChainedQty($formDetail->id, $qtyUsageBefore);
+
+                $formDetail->delete();
+                return "Form detail pada form {$form->no_form} berhasil dihapus";
+            }
+
             // Lock all similar form detail
             FormCutPieceDetail::where("id_roll", $formDetail->id_roll)
                 ->lockForUpdate()

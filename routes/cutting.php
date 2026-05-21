@@ -466,5 +466,10 @@ Route::middleware('auth')->group(function () {
 
             // Empty Saldo Awal Cutting
             Route::post('/empty-saldo-awal-cutting', 'emptySaldoAwalCutting')->name('empty-saldo-awal-cutting');
+
+            // Check Empty Piece Detail
+            Route::get('/check-empty-piece-detail', 'checkEmptyPieceDetail')->name('check-empty-piece-detail');
+            Route::post('/check-empty-piece-detail-list', 'checkEmptyPieceDetailList')->name('check-empty-piece-detail-list');
+            Route::post('/delete-empty-piece-detail', 'deleteEmptyPieceDetail')->name('delete-empty-piece-detail');
         });
 });
