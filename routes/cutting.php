@@ -280,6 +280,7 @@ Route::middleware('auth')->group(function () {
             Route::put('/update', 'update')->name('update-cutting-piece');
             Route::put('/update/detail', 'updateDetail')->name('update-cutting-piece-detail');
             Route::delete('/destroy/{id?}', 'destroy')->name('destroy-cutting-piece');
+            Route::delete('/delete/detail', 'deleteDetail')->name('delete-cutting-piece-detail');
 
             // add-on
             Route::get('/stock', 'stock')->name('stock-cutting-piece');
@@ -287,6 +288,7 @@ Route::middleware('auth')->group(function () {
 
             // get sizes
             Route::get('/get-sizes', 'getSizeList')->name('get-form-piece-sizes');
+            Route::get('/get-data-ws', 'getDataWs')->name('get-data-ws-cutting-piece');
 
             // export piece
             Route::post('/export-excel', 'exportExcel')->name('export-form-piece');

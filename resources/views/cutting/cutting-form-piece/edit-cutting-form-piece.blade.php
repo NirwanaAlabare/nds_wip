@@ -85,10 +85,31 @@
                             <label class="form-label">Tanggal</label>
                             <input type="date" class="form-control" id="tanggal" name="tanggal" value="{{ $currentCuttingPiece ? ($currentCuttingPiece->tanggal ? $currentCuttingPiece->tanggal : date("Y-m-d")) : date("Y-m-d") }}" readonly>
                         </div>
-                        <div class="col-md-4">
+                        {{-- <div class="col-md-4">
                             <label class="form-label">Worksheet</label>
                             <input type="hidden" class="form-control" id="act_costing_id" name="act_costing_id" value="{{ $currentCuttingPiece ? $currentCuttingPiece->act_costing_id : null }}" readonly>
                             <input type="text" class="form-control" id="act_costing_ws" name="act_costing_ws" value="{{ $currentCuttingPiece ? $currentCuttingPiece->act_costing_ws : null }}" readonly>
+                        </div> --}}
+                        <div class="col-md-4">
+                            <label class="form-label">Worksheet</label>
+
+                            <input type="hidden"
+                                id="act_costing_id"
+                                name="act_costing_id"
+                                value="{{ $currentCuttingPiece->act_costing_id ?? '' }}">
+
+                            <select class="form-control select2bs4"
+                                    id="act_costing_ws"
+                                    name="act_costing_ws">
+
+                                @foreach($wsList as $ws)
+                                    <option value="{{ $ws->ws }}"
+                                        {{ ($currentCuttingPiece->act_costing_ws ?? null) == $ws->ws ? 'selected' : '' }}>
+                                        {{ $ws->ws }}
+                                    </option>
+                                @endforeach
+
+                            </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Buyer</label>
@@ -101,7 +122,13 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Color</label>
-                            <input type="text" class="form-control" id="color" name="color" value="{{ $currentCuttingPiece ? $currentCuttingPiece->color : null }}" readonly>
+                            {{-- <input type="text" class="form-control" id="color" name="color" value="{{ $currentCuttingPiece ? $currentCuttingPiece->color : null }}" readonly> --}}
+                            <select class="form-control select2bs4" id="color" name="color">
+                                <option value="{{ $currentCuttingPiece->color }}" selected>
+                                    {{ $currentCuttingPiece->color }}
+                                </option>
+
+                            </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Panel</label>
@@ -1071,6 +1098,20 @@
                     cloneCardButton.classList.remove("btn-sb");
                     cloneCardButton.classList.add("btn-success");
                     cloneCardButton.classList.add("fw-bold");
+
+                    let deleteButton = document.createElement("button");
+                    deleteButton.type = "button";
+                    deleteButton.className = "btn btn-danger fw-bold w-100 mt-2";
+                    deleteButton.innerHTML = "<i class='fa fa-trash'></i> DELETE";
+
+                    deleteButton.onclick = function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        deleteDetail(item.id, cloneCard);
+                    };
+
+                    cloneCard.querySelector(".card-footer").appendChild(deleteButton);
                 }
 
                 // Append Cloned Card to Form
@@ -1492,5 +1533,105 @@
                 }
             });
         // END
+
+        function deleteDetail(id, cardElement) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Hapus Data?',
+                text: 'Data yang dihapus tidak bisa dikembalikan.',
+                showCancelButton: true,
+                confirmButtonText: 'Hapus',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#d33'
+            }).then((result) => {
+                if (result.isConfirmed) {
+
+                    document.getElementById("loading").classList.remove("d-none");
+
+                    $.ajax({
+                        url: "{{ route('delete-cutting-piece-detail') }}", // <-- bikin route ini
+                        type: "delete",
+                        data: {
+                            id: id,
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function (res) {
+
+                            document.getElementById("loading").classList.add("d-none");
+
+                            if (res.status == 200) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    text: res.message ?? 'Data berhasil dihapus'
+                                });
+
+                                // remove card dari DOM
+                                cardElement.remove();
+
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: res.message ?? 'Gagal menghapus data'
+                                });
+                            }
+                        },
+                        error: function (xhr) {
+                            document.getElementById("loading").classList.add("d-none");
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Terjadi kesalahan server'
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        $('#act_costing_ws').on('change', function () {
+            let ws = $(this).val();
+            if (!ws) return;
+
+            $.ajax({
+                url: "{{ route('get-data-ws-cutting-piece') }}",
+                type: "GET",
+                data: {
+                    ws: ws
+                },
+
+                success: function(res) {
+
+                    let data = res.data;
+
+                    $('#act_costing_id').val(data[0].id_act_cost);
+                    $('#buyer').val(data[0].buyer);
+                    $('#style').val(data[0].styleno);
+
+                    // reset color
+                    $('#color').empty();
+
+                    $('#color').append(`
+                        <option value="">Pilih Color</option>
+                    `);
+
+                    // append color
+                    $.each(data, function(index, item) {
+
+                        $('#color').append(`
+                            <option value="${item.color}">
+                                ${item.color}
+                            </option>
+                        `);
+
+                    });
+
+                    $('#color').trigger('change');
+                }
+            });
+
+        });
     </script>
 @endsection
