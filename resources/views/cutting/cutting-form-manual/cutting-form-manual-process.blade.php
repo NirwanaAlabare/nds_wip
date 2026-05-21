@@ -1394,7 +1394,10 @@
                     targets: [3],
                     render: (data, type, row, meta) => {
                         // Hidden Ratio Input
-                        return '<input type="number" min="0" id="ratio-' + meta.row + '" name="ratio[' + meta.row + ']" onchange="calculateRatio(' + meta.row + ');" onkeyup="calculateRatio(' + meta.row + ');" />';
+                        // return '<input type="number" min="0" id="ratio-' + meta.row + '" name="ratio[' + meta.row + ']" onchange="calculateRatio(' + meta.row + ');" onkeyup="calculateRatio(' + meta.row + ');" />';
+                        return '<input type="number" min="0" id="ratio-' + meta.row + '" name="ratio[' + meta.row + ']" ' +
+                            'oninput="if(this.value < 0) this.value = 0; calculateRatio(' + meta.row + ');" ' +
+                            'onchange="calculateRatio(' + meta.row + ');" />';
                     }
                 },
                 {
