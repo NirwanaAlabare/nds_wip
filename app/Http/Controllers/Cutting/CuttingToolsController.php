@@ -125,14 +125,14 @@ class CuttingToolsController extends Controller
         if ($validatedRequest) {
             $checkStocker = Stocker::where("form_cut_id", $validatedRequest['modify_ratio_form_id'])->first();
 
-            if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() < 1) {
+            // if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() < 1) {
                 if ($checkStocker) {
                     return array(
                         "status" => 400,
                         "message" => "Form sudah memiliki Stocker."
                     );
                 }
-            }
+            // }
 
             $oldMarker = Marker::where("kode", $validatedRequest['modify_ratio_kode_marker'])->first();
 

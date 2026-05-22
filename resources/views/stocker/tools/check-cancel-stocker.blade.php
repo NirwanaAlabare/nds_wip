@@ -8,17 +8,17 @@
 
 @section('content')
     <div class="d-flex justify-content-between mb-3">
-        <h5 class="fw-bold text-sb"><i class="fa-solid fa-triangle-exclamation"></i> Form Cut Piece Empty Size</h5>
-        <a href="{{ route('cutting-tools') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali ke Tools</a>
+        <h5 class="fw-bold text-sb"><i class="fa-solid fa-triangle-exclamation"></i> Check Cancel Stocker</h5>
+        <a href="{{ route('stocker-tools') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali ke Tools</a>
     </div>
 
     <div class="card card-sb">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="card-title fw-bold mb-0">Form Cut Piece Detail Tanpa Size</h5>
+            <h5 class="card-title fw-bold mb-0">Stocker dengan Notes CANCEL tetapi Cancel belum = Y</h5>
             <div class="d-flex align-items-center gap-2">
                 <span class="badge bg-danger" id="total-badge">0 data</span>
-                <button class="btn btn-danger btn-sm" onclick="deleteAll()">
-                    <i class="fa fa-trash"></i> Hapus Semua
+                <button class="btn btn-danger btn-sm" onclick="fixAll()">
+                    <i class="fa fa-wrench"></i> Fix All (Set Cancel = Y)
                 </button>
             </div>
         </div>
@@ -28,15 +28,11 @@
                     <thead>
                         <tr class="text-center">
                             <th>No</th>
+                            <th>ID QR Stocker</th>
                             <th>No. Form</th>
-                            <th>ID Roll</th>
-                            <th>Lot</th>
-                            <th>Group Roll</th>
-                            <th>Group Stocker</th>
-                            <th>Qty</th>
-                            <th>Qty Pemakaian</th>
-                            <th>Qty Sisa</th>
-                            <th>Status</th>
+                            <th>So Det ID</th>
+                            <th>Notes</th>
+                            <th>Cancel</th>
                             <th>Created At</th>
                         </tr>
                     </thead>
@@ -54,13 +50,13 @@
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
 
     <script>
-        function deleteAll() {
+        function fixAll() {
             Swal.fire({
-                title: 'Hapus Empty Piece Detail',
-                html: '<span class="text-danger"><b>Critical</b></span><br>Yakin akan menghapus semua Form Cut Piece Detail yang tidak memiliki size?<br><small class="text-muted">Qty pemakaian akan di-reset dan chained qty akan diperbaiki sebelum dihapus.</small>',
+                title: 'Fix Cancel Stocker',
+                html: '<span class="text-danger"><b>Perhatian</b></span><br>Yakin akan mengupdate semua stocker yang memiliki notes CANCEL menjadi <b>cancel = Y</b>?',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'HAPUS',
+                confirmButtonText: 'FIX',
                 cancelButtonText: 'Batal',
                 confirmButtonColor: '#dc3545',
             }).then((result) => {
@@ -68,19 +64,14 @@
 
                 Swal.fire({
                     title: 'Please Wait...',
-                    html: 'Menghapus data...<br><br><b>0</b>s elapsed...',
-                    didOpen: () => {
-                        Swal.showLoading();
-                        let t = 0;
-                        const el = Swal.getPopup().querySelector('b');
-                        setInterval(() => { t++; el.textContent = t; }, 1000);
-                    },
+                    html: 'Memproses data...',
+                    didOpen: () => { Swal.showLoading(); },
                     allowOutsideClick: false,
                 });
 
                 $.ajax({
                     type: 'POST',
-                    url: '{{ route('delete-empty-piece-detail') }}',
+                    url: '{{ route('fix-cancel-stocker') }}',
                     data: { _token: '{{ csrf_token() }}' },
                     dataType: 'json',
                     success: function (response) {
@@ -104,7 +95,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('check-empty-piece-detail-list') }}',
+                    url: '{{ route('check-cancel-stocker-list') }}',
                     type: 'POST',
                     data: { _token: '{{ csrf_token() }}' },
                     dataSrc: function (json) {
@@ -114,20 +105,18 @@
                 },
                 columns: [
                     { data: null, render: function (d, t, r, m) { return m.row + 1; }, orderable: false, className: 'text-center' },
+                    { data: 'id_qr_stocker', defaultContent: '-' },
                     { data: 'no_form', defaultContent: '-' },
-                    { data: 'id_roll', defaultContent: '-' },
-                    { data: 'lot', defaultContent: '-' },
-                    { data: 'group_roll', defaultContent: '-', className: 'text-center' },
-                    { data: 'group_stocker', defaultContent: '-', className: 'text-center' },
-                    { data: 'qty', className: 'text-end' },
-                    { data: 'qty_pemakaian', className: 'text-end' },
-                    { data: 'qty_sisa', className: 'text-end' },
-                    { data: 'status', className: 'text-center', render: function (d) {
-                        return d ? '<span class="badge bg-secondary">' + d + '</span>' : '-';
+                    { data: 'so_det_id', defaultContent: '-', className: 'text-center' },
+                    { data: 'notes', defaultContent: '-' },
+                    { data: 'cancel', defaultContent: '-', className: 'text-center', render: function (d) {
+                        return d ? '<span class="badge bg-danger">' + d + '</span>' : '<span class="badge bg-secondary">NULL</span>';
                     }},
-                    { data: 'created_at', className: 'text-center' },
+                    { data: 'created_at', className: 'text-center', render: function (d) {
+                        return d ? formatDateTime(d) : '-';
+                    }},
                 ],
-                order: [[10, 'desc']],
+                order: [[6, 'desc']],
                 pageLength: 25,
                 language: { processing: '<i class="fa fa-spinner fa-spin"></i> Memuat data...' }
             });
