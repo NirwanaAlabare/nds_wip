@@ -71,7 +71,8 @@ class SewingService
                 actual.id_ws = output.actual_act_costing_id AND
                 actual.color = output.actual_color and
                 actual.sewing_line = output.line and
-                actual.tgl_plan <= output.tgl_plan
+                actual.tgl_plan <= output.tgl_plan and
+                (actual.cancel is null or actual.cancel != 'Y')
             WHERE
                 actual.id IS NULL OR output.plan_id is null OR actual.id != output.plan_id
             GROUP BY
@@ -123,7 +124,8 @@ class SewingService
                 actual.id_ws = output.actual_act_costing_id AND
                 actual.color = output.actual_color and
                 actual.sewing_line = output.line and
-                actual.tgl_plan <= output.tgl_plan
+                actual.tgl_plan <= output.tgl_plan and
+                (actual.cancel is null or actual.cancel != 'Y')
             WHERE
                 actual.id IS NULL OR output.plan_id is null OR actual.id != output.plan_id
             GROUP BY
@@ -175,7 +177,8 @@ class SewingService
                 actual.id_ws = output.actual_act_costing_id AND
                 actual.color = output.actual_color and
                 actual.sewing_line = output.line and
-                actual.tgl_plan <= output.tgl_plan
+                actual.tgl_plan <= output.tgl_plan and
+                (actual.cancel is null or actual.cancel != 'Y')
             WHERE
                 actual.id IS NULL OR output.plan_id is null OR actual.id != output.plan_id
             GROUP BY
@@ -217,7 +220,7 @@ class SewingService
                         array_push($fails, [$mp, "change output origin"]);
                     }
                 } else {
-                    array_push($fails, [$mp, "change output origin"]);
+                    array_push($unavailable, [$mp, "change output origin"]);
                 }
             } else {
                 if ($mp->act_plan_id) {
@@ -237,7 +240,7 @@ class SewingService
                         array_push($fails, [$mp, "change output master plan"]);
                     }
                 } else {
-                    array_push($fails, [$mp, "change output master plan"]);
+                    array_push($unavailable, [$mp, "change output master plan"]);
                 }
             }
         }
@@ -269,7 +272,7 @@ class SewingService
                         array_push($fails, [$mpDef, "change output origin defect"]);
                     }
                 } else {
-                    array_push($fails, [$mpDef, "change output origin defect"]);
+                    array_push($unavailable, [$mpDef, "change output origin defect"]);
                 }
             } else {
                 if ($mpDef->act_plan_id) {
@@ -289,7 +292,7 @@ class SewingService
                         array_push($fails, [$mpDef, "change output master plan defect"]);
                     }
                 } else {
-                    array_push($fails, [$mpDef, "change output master plan defect"]);
+                    array_push($unavailable, [$mpDef, "change output master plan defect"]);
                 }
             }
         }
@@ -320,7 +323,7 @@ class SewingService
                         array_push($fails, [$mpRej, "change output origin reject"]);
                     }
                 } else {
-                    array_push($fails, [$mpRej, "change output origin reject"]);
+                    array_push($unavailable, [$mpRej, "change output origin reject"]);
                 }
             } else {
                 if ($mpRej->act_plan_id) {
@@ -340,7 +343,7 @@ class SewingService
                         array_push($fails, [$mpRej, "change output master plan reject"]);
                     }
                 } else {
-                    array_push($fails, [$mpRej, "change output master plan reject"]);
+                    array_push($unavailable, [$mpRej, "change output master plan reject"]);
                 }
             }
         }
@@ -392,7 +395,8 @@ class SewingService
                 actual.id_ws = output.actual_act_costing_id AND
                 actual.color = output.actual_color and
                 actual.sewing_line = output.line and
-                actual.tgl_plan <= output.tgl_plan
+                actual.tgl_plan <= output.tgl_plan and
+                (actual.cancel is null or actual.cancel != 'Y')
             WHERE
                 actual.id IS NULL OR output.plan_id is null OR actual.id != output.plan_id
             GROUP BY
@@ -437,17 +441,14 @@ class SewingService
                     and (master_plan.id_ws != act_costing.id OR master_plan.color != so_det.color OR master_plan.id is null OR master_plan.cancel = 'Y')
                     ".$additionalQuery."
                 GROUP BY
-                    output_defects.id,
-                    act_costing.id,
-                    so_det.color,
-                    userpassword.username,
-                    COALESCE(master_plan.tgl_plan, DATE(output_defects.updated_at))
+                    output_defects.id
             ) output
             LEFT JOIN master_plan actual on
                 actual.id_ws = output.actual_act_costing_id AND
                 actual.color = output.actual_color and
                 actual.sewing_line = output.line and
-                actual.tgl_plan <= output.tgl_plan
+                actual.tgl_plan <= output.tgl_plan and
+                (actual.cancel is null or actual.cancel != 'Y')
             WHERE
                 actual.id IS NULL OR output.plan_id is null OR actual.id != output.plan_id
             GROUP BY
@@ -498,7 +499,8 @@ class SewingService
                 actual.id_ws = output.actual_act_costing_id AND
                 actual.color = output.actual_color and
                 actual.sewing_line = output.line and
-                actual.tgl_plan <= output.tgl_plan
+                actual.tgl_plan <= output.tgl_plan and
+                (actual.cancel is null or actual.cancel != 'Y')
             WHERE
                 actual.id IS NULL OR output.plan_id is null OR actual.id != output.plan_id
             GROUP BY
@@ -536,7 +538,7 @@ class SewingService
                         array_push($fails, [$mpPac, "change output origin packing"]);
                     }
                 } else {
-                    array_push($fails, [$mpPac, "change output origin packing"]);
+                    array_push($unavailable, [$mpPac, "change output origin packing"]);
                 }
             } else {
                 if ($mpPac->act_plan_id) {
@@ -556,7 +558,7 @@ class SewingService
                         array_push($fails, [$mpPac, "change output master plan packing"]);
                     }
                 } else {
-                    array_push($fails, [$mpPac, "change output master plan packing"]);
+                    array_push($unavailable, [$mpPac, "change output master plan packing"]);
                 }
             }
         }
@@ -588,7 +590,7 @@ class SewingService
                         array_push($fails, [$mpDefPac, "change output origin defect packing"]);
                     }
                 } else {
-                    array_push($fails, [$mpDefPac, "change output origin defect packing"]);
+                    array_push($unavailable, [$mpDefPac, "change output origin defect packing"]);
                 }
             } else {
                 if ($mpDefPac->act_plan_id) {
@@ -608,7 +610,7 @@ class SewingService
                         array_push($fails, [$mpDefPac, "change output master plan defect packing"]);
                     }
                 } else {
-                    array_push($fails, [$mpDefPac, "change output master plan defect packing"]);
+                    array_push($unavailable, [$mpDefPac, "change output master plan defect packing"]);
                 }
             }
         }
@@ -639,7 +641,7 @@ class SewingService
                         array_push($fails, [$mpRejPac, "change output origin reject packing"]);
                     }
                 } else {
-                    array_push($fails, [$mpRejPac, "change output origin reject packing"]);
+                    array_push($unavailable, [$mpRejPac, "change output origin reject packing"]);
                 }
             } else {
                 if ($mpRejPac->act_plan_id) {
@@ -658,7 +660,7 @@ class SewingService
                         array_push($fails, [$mpRejPac, "change output master plan reject packing"]);
                     }
                 } else {
-                    array_push($fails, [$mpRejPac, "change output master plan reject packing"]);
+                    array_push($unavailable, [$mpRejPac, "change output master plan reject packing"]);
                 }
             }
         }
@@ -712,7 +714,8 @@ class SewingService
                 actual.id_ws = output.actual_act_costing_id AND
                 actual.color = output.actual_color and
                 actual.sewing_line = output.line and
-                actual.tgl_plan <= output.tgl_plan
+                actual.tgl_plan <= output.tgl_plan and
+                (actual.cancel is null or actual.cancel != 'Y')
             WHERE
                 actual.id IS NULL OR output.plan_id is null OR actual.id != output.plan_id
             GROUP BY
@@ -750,13 +753,13 @@ class SewingService
                         $yearSequence = YearSequence::where("id_year_sequence", $rft->kode_numbering)->update(["so_det_id" => $rft->so_det_id]);
 
                         if ($yearSequence) {
-                            array_push($success, [$mpPac, "change output origin packing po"]);
+                            array_push($success, [$mpPacPo, "change output origin packing po"]);
                         }
                     } else {
-                        array_push($fails, [$mpPac, "change output origin packing po"]);
+                        array_push($fails, [$mpPacPo, "change output origin packing po"]);
                     }
                 } else {
-                    array_push($fails, [$mpPac, "change output origin packing po"]);
+                    array_push($unavailable, [$mpPacPo, "change output origin packing po"]);
                 }
             } else {
                 if ($mpPacPo->act_plan_id) {
@@ -771,7 +774,7 @@ class SewingService
                         array_push($fails, [$mpPacPo, "change output master plan packing po"]);
                     }
                 } else {
-                    array_push($fails, [$mpPacPo, "change output master plan packing po"]);
+                    array_push($unavailable, [$mpPacPo, "change output master plan packing po"]);
                 }
             }
         }
@@ -794,11 +797,16 @@ class SewingService
         );
     }
 
-    function missPackingPo() {
+    function missPackingPo($numberingList = null) {
+        $additionalQuery = "";
+        if ($numberingList) {
+            $additionalQuery .= " AND kode_numbering in (".$numberingList.")";
+        }
+
         $missPackingPo = DB::connection("mysql_sb")->table("output_rfts_packing_po")->
             select("output_rfts_packing_po.id", "output_rfts_packing_po.po_id", "output_rfts_packing_po.kode_numbering", "output_rfts_packing_po.so_det_id", "ppic_master_so.id as po_id", "ppic_master_so.po")->
             leftJoin("laravel_nds.ppic_master_so", "ppic_master_so.id", "=", "output_rfts_packing_po.po_id")->
-            whereRaw("output_rfts_packing_po.po_id is not null and (ppic_master_so.id_so_det is null OR ppic_master_so.id_so_det != output_rfts_packing_po.so_det_id)")->
+            whereRaw("output_rfts_packing_po.po_id is not null and (ppic_master_so.id_so_det is null OR ppic_master_so.id_so_det != output_rfts_packing_po.so_det_id)".$additionalQuery)->
             groupBy("output_rfts_packing_po.id")->
             get();
 
