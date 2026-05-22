@@ -133,9 +133,6 @@
                         </div>
                     </a>
                 </div>
-                <div class="col-md-12">
-                    <h5 class="text-sb-secondary fw-bold mt-3">Synchronize Data</h5>
-                </div>
                 <div class="col-md-4">
                     <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#rearrangeGroup">
                         <div class="card">
@@ -159,6 +156,36 @@
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Modify Stocker Order</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-12">
+                    <h5 class="text-sb-secondary fw-bold mt-3">Mismatch Data</h5>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ route('check-cancel-stocker') }}" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-triangle-exclamation"></i> Check Cancel Stocker</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ route('check-mismatch-part-stocker') }}" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-triangle-exclamation"></i> Check Mismatch Part Stocker</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ route('check-missmatched-order-stocker') }}" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-triangle-exclamation"></i> Check Mismatch Order Stocker</h5>
                             </div>
                         </div>
                     </a>

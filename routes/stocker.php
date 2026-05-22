@@ -132,5 +132,19 @@ Route::middleware('auth')->group(function () {
         Route::post('/recalculate-stocker-transaction', 'recalculateStockerTransaction')->name('recalculate-stocker-transaction');
 
         Route::delete('/undo-stocker-additional', 'undoStockerAdditional')->name('undo-stocker-additional');
+
+        // Check Cancel Stocker
+        Route::get('/check-cancel-stocker', 'checkCancelStocker')->name('check-cancel-stocker');
+        Route::post('/check-cancel-stocker-list', 'checkCancelStockerList')->name('check-cancel-stocker-list');
+        Route::post('/fix-cancel-stocker', 'fixCancelStocker')->name('fix-cancel-stocker');
+
+        // Check Missmatched Order Stocker
+        Route::get('/check-missmatched-order-stocker', 'checkMissmatchedOrderStocker')->name('check-missmatched-order-stocker');
+        Route::post('/check-missmatched-order-stocker-list', 'checkMissmatchedOrderStockerList')->name('check-missmatched-order-stocker-list');
+        Route::post('/fix-missmatched-order-stocker', 'fixMissmatchedOrderStocker')->name('fix-missmatched-order-stocker');
+
+        // Check Mismatch Part Stocker
+        Route::get('/check-mismatch-part-stocker', 'checkMismatchPartStocker')->name('check-mismatch-part-stocker');
+        Route::post('/check-mismatch-part-stocker-list', 'checkMismatchPartStockerList')->name('check-mismatch-part-stocker-list');
     });
 });

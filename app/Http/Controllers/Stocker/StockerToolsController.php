@@ -25,6 +25,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use App\Imports\ImportStockerManual;
 use Maatwebsite\Excel\Facades\Excel;
+use Yajra\DataTables\Facades\DataTables;
 use PDF;
 use DB;
 
@@ -440,6 +441,83 @@ class StockerToolsController extends Controller
         return $inserted;
     }
 
+    public function checkCancelStocker()
+    {
+        return view('stocker.tools.check-cancel-stocker', [
+            'page' => 'dashboard-stocker',
+        ]);
+    }
+
+    public function checkCancelStockerList(Request $request)
+    {
+        $data = Stocker::selectRaw("
+                stocker_input.id,
+                stocker_input.id_qr_stocker,
+                form_cut_input.no_form,
+                stocker_input.so_det_id,
+                stocker_input.notes,
+                stocker_input.cancel,
+                stocker_input.created_at
+            ")
+            ->leftJoin('form_cut_input', 'form_cut_input.id', '=', 'stocker_input.form_cut_id')
+            ->where('stocker_input.notes', 'LIKE', '%CANCEL')
+            ->orderBy('stocker_input.created_at', 'desc');
+
+        return DataTables::eloquent($data)->make(true);
+    }
+
+    public function fixCancelStocker(Request $request)
+    {
+        try {
+            $count = Stocker::where('stocker_input.notes', 'LIKE', '%CANCEL')->count();
+
+            Stocker::where('stocker_input.notes', 'LIKE', '%CANCEL')
+                ->update(['cancel' => 'Y']);
+
+            return [
+                'status'  => 200,
+                'message' => $count . ' data stocker berhasil diupdate cancel = Y.',
+            ];
+        } catch (\Exception $e) {
+            return [
+                'status'  => 400,
+                'message' => $e->getMessage(),
+            ];
+        }
+    }
+
+    public function checkMismatchPartStocker()
+    {
+        return view('stocker.tools.check-mismatch-part-stocker', [
+            'page' => 'dashboard-stocker',
+        ]);
+    }
+
+    public function checkMismatchPartStockerList(Request $request)
+    {
+        $data = Stocker::selectRaw("
+                stocker_input.id,
+                stocker_input.id_qr_stocker,
+                form_cut_input.no_form,
+                stocker_input.so_det_id,
+                stocker_input.act_costing_ws stocker_ws,
+                part.act_costing_ws part_ws,
+                master_part.nama_part part_name,
+                stocker_input.notes,
+                stocker_input.cancel,
+                stocker_input.created_at
+            ")
+            ->leftJoin('form_cut_input', 'form_cut_input.id', '=', 'stocker_input.form_cut_id')
+            ->leftJoin('part_detail', 'part_detail.id', '=', 'stocker_input.part_detail_id')
+            ->leftJoin('part', 'part.id', '=', 'part_detail.part_id')
+            ->leftJoin('master_part', 'master_part.id', '=', 'part_detail.master_part_id')
+            ->whereNotNull('stocker_input.part_detail_id')
+            ->whereColumn('part.act_costing_ws', '!=', 'stocker_input.act_costing_ws')
+            ->orderBy('stocker_input.created_at', 'desc');
+
+        return DataTables::eloquent($data)->make(true);
+    }
+
     function undoStockerAdditional(Request $request)
     {
         $validatedRequest = $request->validate([
@@ -475,5 +553,101 @@ class StockerToolsController extends Controller
             "status" => 400,
             "message" => "Data tidak ditemukan"
         );
+    }
+
+    function checkMissmatchedOrderStocker(Request $request) {
+        return view('stocker.tools.check-missmatched-order-stocker', [
+            'page' => 'dashboard-stocker',
+        ]);
+    }
+
+    function checkMissmatchedOrderStockerList(Request $request) {
+        $data = Stocker::selectRaw("
+                stocker_input.id,
+                stocker_input.id_qr_stocker,
+                form_cut_input.no_form,
+                stocker_input.so_det_id,
+                stocker_input.notes,
+                stocker_input.cancel,
+                stocker_input.created_at,
+                stocker_input.act_costing_ws stocker_ws,
+                stocker_input.color stocker_color,
+                stocker_input.size stocker_size,
+                master_sb_ws.ws actual_stocker_ws,
+                master_sb_ws.color actual_stocker_color,
+                master_sb_ws.size actual_stocker_size,
+                marker_input.act_costing_ws marker_ws,
+                marker_input.color marker_color
+            ")
+            ->leftJoin('form_cut_input', 'form_cut_input.id', '=', 'stocker_input.form_cut_id')
+            ->leftJoin('marker_input', 'marker_input.id', '=', 'form_cut_input.marker_id')
+            ->leftJoin('master_sb_ws', 'master_sb_ws.id_so_det', '=', 'stocker_input.so_det_id')
+            ->whereRaw("
+                (
+                    stocker_input.act_costing_ws != master_sb_ws.ws OR
+                    stocker_input.color != master_sb_ws.color OR
+                    stocker_input.so_det_id != master_sb_ws.id_so_det OR
+                    marker_input.act_costing_ws != master_sb_ws.ws OR
+                    marker_input.color != master_sb_ws.color
+                ) AND
+                (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y') AND
+                (stocker_input.notes IS NULL OR stocker_input.notes NOT LIKE '%ADDITIONAL%')
+            ")
+            ->orderBy('stocker_input.created_at', 'desc')
+            ->get();
+
+        return DataTables::of($data)->toJson();
+    }
+
+    function fixMissmatchedOrderStocker(Request $request) {
+        try {
+            $missmatchedStockers = Stocker::selectRaw("
+                    stocker_input.id,
+                    stocker_input.id_qr_stocker,
+                    form_cut_input.no_form,
+                    stocker_input.so_det_id,
+                    stocker_input.notes,
+                    stocker_input.cancel,
+                    stocker_input.created_at,
+                    stocker_input.act_costing_ws stocker_ws,
+                    stocker_input.color stocker_color,
+                    stocker_input.size stocker_size,
+                    master_sb_ws.ws actual_stocker_ws,
+                    master_sb_ws.color actual_stocker_color,
+                    master_sb_ws.size actual_stocker_size,
+                    marker_input.act_costing_ws marker_ws,
+                ")
+                ->leftJoin('form_cut_input', 'form_cut_input.id', '=', 'stocker_input.form_cut_id')
+                ->leftJoin('marker_input', 'marker_input.id', '=', 'form_cut_input.marker_id')
+                ->leftJoin('master_sb_ws', 'master_sb_ws.id_so_det', '=', 'stocker_input.so_det_id')
+                ->whereRaw("
+                    (
+                        stocker_input.act_costing_ws != master_sb_ws.ws OR
+                        stocker_input.color != master_sb_ws.color OR
+                        stocker_input.size != master_sb_ws.size OR
+                        marker_input.act_costing_ws != master_sb_ws.ws OR
+                        marker_input.color != master_sb_ws.color
+                    ) AND
+                    (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
+                ")
+                ->get();
+
+            foreach ($missmatchedStockers as $stocker) {
+                $stocker->act_costing_ws = $stocker->actual_stocker_ws;
+                $stocker->color = $stocker->actual_stocker_color;
+                $stocker->size = $stocker->actual_stocker_size;
+                $stocker->save();
+            }
+
+            return [
+                'status'  => 200,
+                'message' => count($missmatchedStockers) . ' data stocker berhasil diperbaiki.',
+            ];
+        } catch (\Exception $e) {
+            return [
+                'status'  => 400,
+                'message' => $e->getMessage(),
+            ];
+        }
     }
 }
