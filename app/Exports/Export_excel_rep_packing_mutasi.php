@@ -975,8 +975,10 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                         SUM( qty ) AS pc_fg_in
                     FROM
                         signalbit_erp.bpb
+                    LEFT JOIN signalbit_erp.mastersupplier sup ON sup.id_supplier = signalbit_erp.bpb.id_supplier
                     WHERE
-                        id_so_det IS NOT NULL
+                        (sup.Supplier NOT LIKE '%sample%' OR sup.Supplier IS NULL)
+                        AND id_so_det IS NOT NULL
                         AND bpbno_int LIKE '%FG%'
                         AND bpbdate BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
                     GROUP BY
@@ -1007,6 +1009,7 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                     trx_union t
                     LEFT JOIN master_sb_ws msw ON msw.id_so_det = t.so_det_id
                     LEFT JOIN master_size_new msn ON msn.size = msw.size
+                WHERE msw.styleno NOT LIKE '%SAMPLE%'
                 GROUP BY
                     msn.urutan,
                     msw.ws,
