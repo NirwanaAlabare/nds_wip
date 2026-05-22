@@ -41,7 +41,7 @@
                         <div class="mb-1">
                             <label class="form-label"><small>Tanggal Penerimaan</small></label>
                             <input type="date" class="form-control" id="tanggal_penerimaan" name="tanggal_penerimaan" 
-                            value="{{ date('Y-m-d') }}">
+                            value="{{ date('Y-m-d') }}" min="{{ date('Y-m-d', strtotime('-3 days')) }}">
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
@@ -261,8 +261,8 @@
             columns: [
                 {
                     data: 'no_trans'
-
-                }, {
+                }, 
+                {
                     data: 'tgl_terima_fix'
                 },
                 {
@@ -307,7 +307,8 @@
                         let btnDetail = `
                             <button 
                                 class="btn btn-primary btn-sm btn-detail"
-                                data-qr_code="${row.qr_code}"
+                                data-id_so_det="${row.id_so_det}"
+                                data-no_trans="${row.no_trans}"
                             >
                                 <i class="fa-solid fa-list"></i>
                             </button>
@@ -328,18 +329,21 @@
         });
 
         $(document).on('click', '.btn-detail', function () {
-            let qr_code = $(this).data('qr_code');
+            let id_so_det = $(this).data('id_so_det');
+            let no_trans = $(this).data('no_trans');
 
             $('#modal').modal('show');
-            iniModalDetail(qr_code);
+            iniModalDetail(id_so_det, no_trans);
         });
 
         // HISTORY FABRIC
         let tableDetail;
-        let currentQrCode = '';
+        let currentidSoDet = '';
+        let currentNoTrans = '';
         
-        function iniModalDetail(qr_code) {
-            currentQrCode = qr_code
+        function iniModalDetail(id_so_det, no_trans) {
+            currentidSoDet = id_so_det
+            currentNoTrans = no_trans
 
             if ($.fn.DataTable.isDataTable('#datatable-detail')) {
                 tableDetail.ajax.reload(null, false);
@@ -352,7 +356,8 @@
                 ajax: {
                     url: "{{ route('get-data-detail-bpb-fg-stock-scan') }}",
                     data: function (d) {
-                        d.qr_code = currentQrCode;
+                        d.id_so_det = currentidSoDet;
+                        d.no_trans = currentNoTrans;
                     }
                 },
                 columns: [
