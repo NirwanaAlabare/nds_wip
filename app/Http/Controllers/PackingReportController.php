@@ -969,7 +969,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     trx_union t
                     LEFT JOIN master_sb_ws msw ON msw.id_so_det = t.so_det_id
                     LEFT JOIN master_size_new msn ON msn.size = msw.size
-
+                WHERE msw.styleno NOT LIKE '%SAMPLE%'
                 GROUP BY
                     msn.urutan,
                     msw.ws,
