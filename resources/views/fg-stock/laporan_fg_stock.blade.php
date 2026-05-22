@@ -205,7 +205,7 @@
                     destroy: true,
                     scrollX: true,
                     ajax: {
-                        url: '{{ route('bpb-fg-stock') }}',
+                        url: '{{ route('get-data-penerimaan-laporan-fg-stock') }}',
                         data: function(d) {
                             d.dateFrom = $('#tgl-awal').val();
                             d.dateTo = $('#tgl-akhir').val();
@@ -424,7 +424,7 @@
                 if (cbojns_lap == 'Penerimaan') {
                     $.ajax({
                         type: "get",
-                        url: '{{ route('export_excel_bpb_fg_stok') }}',
+                        url: '{{ route('export-penerimaan-laporan-fg-stock') }}',
                         data: {
                             from: from,
                             to: to

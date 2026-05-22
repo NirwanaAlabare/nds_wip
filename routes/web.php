@@ -625,6 +625,8 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(FGStokLaporanController::class)->prefix("laporan-fg-stock")->middleware('fg-stock')->group(function () {
         Route::get('/', 'index')->name('laporan-fg-stock');
+        Route::get('/get-data-penerimaan', 'getDataPenerimaan')->name('get-data-penerimaan-laporan-fg-stock');
+        Route::get('/export-penerimaan', 'exportPenerimaan')->name('export-penerimaan-laporan-fg-stock');
         Route::get('/export_excel_mutasi_fg_stok', 'export_excel_mutasi_fg_stok')->name('export_excel_mutasi_fg_stok');
         Route::get('/rep_mutasi_fg_stock', 'rep_mutasi_fg_stock')->name('rep_mutasi_fg_stock');
         Route::post('/export_excel_mutasi_fg_stock', 'export_excel_mutasi_fg_stock')->name('export_excel_mutasi_fg_stock');
