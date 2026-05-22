@@ -919,6 +919,7 @@ class YearSequenceController extends Controller
                     master_sb_ws.buyer buyer,
                     master_sb_ws.styleno style,
                     UPPER(TRIM(master_sb_ws.color)) color,
+                    stocker_input.panel,
                     master_sb_ws.size,
                     master_sb_ws.dest,
                     COALESCE(form_cut_input.no_form, form_cut_reject.no_form, form_cut_piece.no_form) no_form,
@@ -2372,50 +2373,98 @@ class YearSequenceController extends Controller
             // If there is available data
             if (count($yearSequenceArr) > 0 && count($yearSequenceArr) <= 5000) {
 
-                // Update QR Label
-                $yearSequence = YearSequence::whereIn("id_year_sequence", $yearSequenceArr)->update([
-                    "id_qr_stocker" => $stocker ? $stocker->id_qr_stocker : null,
-                    "form_cut_id" => $stocker ? $stocker->form_cut_id : null,
-                    "form_reject_id" => $stocker ? $stocker->form_reject_id : null,
-                    "number" => $stocker ? $stocker->range_akhir : null,
-                    "so_det_id" => $request->size,
-                    "size" => $request->size_text,
-                ]);
+                // Pre-check: identify kode_numbering that have output but no valid master plan
+                // for the new so_det_id — those must not be updated at all (option A).
+                $blockedByMasterPlan = [];
+                $safeArr = $yearSequenceArr;
 
-                // Update OUTPUT
-                $rft = DB::connection("mysql_sb")->table("output_rfts")->whereIn("kode_numbering", $yearSequenceArr)->update([
-                    "so_det_id" => $request->size,
-                ]);
-                $defect = DB::connection("mysql_sb")->table("output_defects")->whereIn("kode_numbering", $yearSequenceArr)->update([
-                    "so_det_id" => $request->size,
-                ]);
-                $reject = DB::connection("mysql_sb")->table("output_rejects")->whereIn("kode_numbering", $yearSequenceArr)->update([
-                    "so_det_id" => $request->size,
-                ]);
-                $outputPacking = DB::connection("mysql_sb")->table("output_rfts_packing")->whereIn("kode_numbering", $yearSequenceArr)->update([
-                    "so_det_id" => $request->size,
-                ]);
-                $outputPackingNDS = DB::table("output_rfts_packing")->whereIn("kode_numbering", $yearSequenceArr)->update([
-                    "so_det_id" => $request->size,
-                ]);
-                $outputPackingPo = DB::connection("mysql_sb")->table("output_rfts_packing_po")->whereIn("kode_numbering", $yearSequenceArr)->update([
-                    "so_det_id" => $request->size,
-                ]);
-                $outputGudangStok = DB::connection("mysql_sb")->table("output_gudang_stok")->whereNotNull("packing_po_id")->whereIn("kode_numbering", $yearSequenceArr)->update([
-                    "so_det_id" => $request->size,
-                ]);
+                if ($request->size) {
+                    $newSoDet = DB::connection("mysql_sb")->table("so_det")
+                        ->leftJoin("so", "so.id", "=", "so_det.id_so")
+                        ->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")
+                        ->where("so_det.id", $request->size)
+                        ->selectRaw("so_det.color, act_costing.id as act_costing_id")
+                        ->first();
 
-                // When the updated Size Was in different Plan
-                $sewingService->missMasterPlan(addQuotesAround(implode("\n", $yearSequenceArr)), false);
+                    if ($newSoDet) {
+                        // Fetch all output rows (rft + defect + reject) for these kode_numbering in 3 queries
+                        $outputRows = collect();
+                        foreach (["output_rfts", "output_defects", "output_rejects"] as $outputTable) {
+                            $outputRows = $outputRows->merge(
+                                DB::connection("mysql_sb")->table($outputTable)
+                                    ->whereIn("kode_numbering", $yearSequenceArr)
+                                    ->leftJoin("user_sb_wip", "user_sb_wip.id", "=", "{$outputTable}.created_by")
+                                    ->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")
+                                    ->selectRaw("kode_numbering, userpassword.username AS sewing_line, DATE({$outputTable}.created_at) AS tgl_plan")
+                                    ->get()
+                            );
+                        }
 
-                // When the updated Size Was in different PO
-                $sewingService->missPackingPo();
+                        // Loop only over kode_numbering values that actually have output (small subset)
+                        foreach ($outputRows->unique("kode_numbering") as $outputRow) {
+                            $query = DB::connection("mysql_sb")->table("master_plan")
+                                ->where("id_ws", $newSoDet->act_costing_id)
+                                ->where("color", $newSoDet->color)
+                                ->where(function ($q) {
+                                    $q->whereNull("cancel")->orWhere("cancel", "!=", "Y");
+                                });
+
+                            if ($outputRow->sewing_line) {
+                                $query->where("sewing_line", $outputRow->sewing_line);
+                            }
+                            if ($outputRow->tgl_plan) {
+                                $query->where("tgl_plan", "<=", $outputRow->tgl_plan);
+                            }
+
+                            if (!$query->exists()) {
+                                $blockedByMasterPlan[] = $outputRow->kode_numbering;
+                            }
+                        }
+
+                        $safeArr = array_values(array_diff($yearSequenceArr, $blockedByMasterPlan));
+                    }
+                }
+
+                // Append blocked-by-master-plan to fail message
+                foreach ($blockedByMasterPlan as $blockedId) {
+                    $failMessage .= "<small>'".$blockedId."' tidak ada master plan untuk order/color baru</small><br>";
+                }
+
+                // Update QR Label — safe list only
+                if (count($safeArr) > 0) {
+                    YearSequence::whereIn("id_year_sequence", $safeArr)->update([
+                        "id_qr_stocker" => $stocker ? $stocker->id_qr_stocker : null,
+                        "form_cut_id" => $stocker ? $stocker->form_cut_id : null,
+                        "form_reject_id" => $stocker ? $stocker->form_reject_id : null,
+                        "number" => $stocker ? $stocker->range_akhir : null,
+                        "so_det_id" => $request->size,
+                        "size" => $request->size_text,
+                    ]);
+
+                    // Update OUTPUT — safe list only
+                    DB::connection("mysql_sb")->table("output_rfts")->whereIn("kode_numbering", $safeArr)->update(["so_det_id" => $request->size]);
+                    DB::connection("mysql_sb")->table("output_defects")->whereIn("kode_numbering", $safeArr)->update(["so_det_id" => $request->size]);
+                    DB::connection("mysql_sb")->table("output_rejects")->whereIn("kode_numbering", $safeArr)->update(["so_det_id" => $request->size]);
+                    DB::connection("mysql_sb")->table("output_rfts_packing")->whereIn("kode_numbering", $safeArr)->update(["so_det_id" => $request->size]);
+                    DB::table("output_rfts_packing")->whereIn("kode_numbering", $safeArr)->update(["so_det_id" => $request->size]);
+                    DB::connection("mysql_sb")->table("output_rfts_packing_po")->whereIn("kode_numbering", $safeArr)->update(["so_det_id" => $request->size]);
+                    DB::connection("mysql_sb")->table("output_gudang_stok")->whereNotNull("packing_po_id")->whereIn("kode_numbering", $safeArr)->update(["so_det_id" => $request->size]);
+
+                    // Re-link master_plan_id for updated records
+                    $sewingService->missMasterPlan(addQuotesAround(implode("\n", $safeArr)), false);
+
+                    // Re-align packing PO
+                    $sewingService->missPackingPo();
+                }
 
                 // Return response
+                $hasSuccess = count($safeArr) > 0;
+                $hasBlocked = count($blockedByMasterPlan) > 0;
+
                 if ($request['method'] == "list") {
                     if ($yearSequenceIds) {
                         return array(
-                            "status" => 200,
+                            "status" => ($hasSuccess || !$hasBlocked) ? 200 : 400,
                             "message" => "Year Sequence <br> ".$yearSequenceIds.". <br> <b>Berhasil di Update</b>".(strlen($failMessage) > 0 ? "<br> Kecuali: <br>".$failMessage : "")
                         );
                     } else {
@@ -2426,7 +2475,7 @@ class YearSequenceController extends Controller
                     }
                 } else {
                     return array(
-                        "status" => 200,
+                        "status" => ($hasSuccess || !$hasBlocked) ? 200 : 400,
                         "message" => "Year ".$request->year."' <br> Sequence '".$request->sequence."' <br> Range '".$request->range_awal." - ".$request->range_akhir."'. <br> <b>Berhasil di Update</b>".(strlen($failMessage) > 0 ? "<br> Kecuali: <br>".$failMessage : "")
                     );
                 }
@@ -2588,7 +2637,7 @@ class YearSequenceController extends Controller
                     $sewingService->missMasterPlan(addQuotesAround(implode("\n", $yearSequenceArr)), false);
 
                     // When the updated Size Was in different PO
-                    $sewingService->missPackingPo();
+                    $sewingService->missPackingPo(addQuotesAround(implode("\n", $yearSequenceArr)));
 
                     // Message
                     if ($request['method'] == "list") {

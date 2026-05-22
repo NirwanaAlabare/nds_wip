@@ -906,11 +906,13 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                         0, 0, 0, 0
                     FROM
                         signalbit_erp.bppb
+
                     WHERE
                         id_so_det IS NOT NULL
                         AND bppbno_int LIKE '%FG/RO%'
                         AND bppbdate >= '{$tanggal_saldo_awal} 00:00:00'
                         AND bppbdate < '{$tgl_awal} 00:00:00'
+                        AND id_supplier NOT IN (458 , 927 , 2053)
                     GROUP BY
                         id_so_det
 
@@ -929,6 +931,7 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                         AND bpbno_int LIKE '%FG%'
                         AND bpbdate >= '{$tanggal_saldo_awal} 00:00:00'
                         AND bpbdate < '{$tgl_awal} 00:00:00'
+                        AND id_supplier NOT IN (458 , 927 , 2053)
                     GROUP BY
                         id_so_det
 
@@ -957,12 +960,11 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                         0, 0, 0, 0, 0, 0, 0, 0,
                         SUM( qty ) AS pc_terima_return,
                         0
-                    FROM
-                        signalbit_erp.bppb
-                    WHERE
-                        id_so_det IS NOT NULL
+                    FROM signalbit_erp.bppb b
+                        WHERE b.id_so_det IS NOT NULL AND b.id_so_det != '0'
                         AND bppbno_int LIKE '%FG/RO%'
                         AND bppbdate BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+                        AND b.id_supplier NOT IN (458 , 927 , 2053)
                     GROUP BY
                         id_so_det
 
@@ -975,12 +977,11 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                         SUM( qty ) AS pc_fg_in
                     FROM
                         signalbit_erp.bpb
-                    LEFT JOIN signalbit_erp.mastersupplier sup ON sup.id_supplier = signalbit_erp.bpb.id_supplier
                     WHERE
-                        (sup.Supplier NOT LIKE '%sample%' OR sup.Supplier IS NULL)
-                        AND id_so_det IS NOT NULL
+                        id_so_det IS NOT NULL
                         AND bpbno_int LIKE '%FG%'
                         AND bpbdate BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+                        AND id_supplier NOT IN (458 , 927 , 2053)
                     GROUP BY
                         id_so_det
                 ),
@@ -1009,7 +1010,7 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                     trx_union t
                     LEFT JOIN master_sb_ws msw ON msw.id_so_det = t.so_det_id
                     LEFT JOIN master_size_new msn ON msn.size = msw.size
-                WHERE msw.styleno NOT LIKE '%SAMPLE%'
+                WHERE (msw.styleno NOT LIKE '%SAMPLE%' OR msw.styleno = '-' OR msw.styleno IS NULL OR msw.styleno = '')
                 GROUP BY
                     msn.urutan,
                     msw.ws,
