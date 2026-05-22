@@ -270,6 +270,10 @@
                             <input type="hidden" size="10" id="grade[` + row.kode + `]"
                             name="grade[` + row.kode + `]" value = "` + row.grade + `"/>
                         </div>
+                        <div>
+                            <input type="hidden" id="source_table[` + row.kode + `]"
+                            name="source_table[` + row.kode + `]" value="` + row.source_table + `"/>
+                        </div>
                         `;
                         }
                     },
