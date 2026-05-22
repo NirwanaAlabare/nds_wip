@@ -236,15 +236,15 @@ class DokumenPabeanController extends Controller
                         "jumlahSatuan"     => (float) ($brg['jumlahSatuan'] ?? 0),
                         "kodeBarang"       => strval($brg['kodeBarang'] ?? ''),
                         "kodeDokumen"      => "40",
-                        "kodeJenisKemasan" => $brg['kodeJenisKemasan'] ?? "NE",
+                        "kodeJenisKemasan" => $brg['kodeJenisKemasan'] ?? "",
                         "kodeSatuanBarang" => $brg['kodeSatuanBarang'] ?? "",
                         "merk"             => $brg['merk'] ?? "-",
                         "netto"            => (float) ($brg['netto'] ?? 0.00),
                         "nilaiBarang"      => 0.00,
-                        "posTarif"         => $brg['posTarif'] ?? "48191000",
+                        "posTarif"         => $brg['posTarif'] ?? "",
                         "seriBarang"       => (int) ($brg['seriBarang'] ?? ($index + 1)),
                         "spesifikasiLain"  => $brg['spesifikasiLain'] ?? "-",
-                        "tipe"             => $brg['tipe'] ?? "TIPE BARANG",
+                        "tipe"             => $brg['tipe'] ?? "",
                         "ukuran"           => $brg['ukuran'] ?? "",
                         "uraian"           => $brg['uraian'] ?? "Deskripsi Barang",
                         "volume"           => (float) ($brg['volume'] ?? 0.00),
@@ -342,7 +342,7 @@ class DokumenPabeanController extends Controller
                 "kodeJenisTpb"         => "1",
                 "freight"              => (float) ($draft['freight'] ?? 0.00),
                 "hargaPenyerahan"      => (float) ($draft['hargaPenyerahan'] ?? $totalHargaPenyerahan),
-                "idPengguna"           => "010693232092000 01234567890000",
+                "idPengguna"           => "",
                 "jabatanTtd"           => $draft['jabatanTtd'] ?? "EXIM STAFF",
                 "namaTtd"              => $draft['namaTtd'] ?? "USER EXIM",
                 "nik"                  => "123456789012345",
@@ -402,8 +402,8 @@ class DokumenPabeanController extends Controller
                 "dokumen"    => $payloadDokumen,
                 "pengangkut" => [
                     [
-                        "namaPengangkut"  => $draft['pengangkut']['nama'] ?? "TRUK",
-                        "nomorPengangkut" => $draft['pengangkut']['nomor'] ?? $header->nomor_mobil ?? "D 6661 XX",
+                        "namaPengangkut"  => $draft['pengangkut']['nama'] ?? "",
+                        "nomorPengangkut" => $draft['pengangkut']['nomor'] ?? $header->nomor_mobil ?? "",
                         "seriPengangkut"  => 1
                     ]
                 ],
@@ -412,7 +412,7 @@ class DokumenPabeanController extends Controller
                 "pungutan"   => [
                     [
                         "kodeFasilitasTarif" => "3",
-                        "kodeJenisPungutan"  => $draft['pungutan']['jenis'] ?? "PPN",
+                        "kodeJenisPungutan"  => $draft['pungutan']['jenis'] ?? "",
                         "nilaiPungutan"      => (float) ($draft['pungutan']['nilai'] ?? 0.00)
                     ]
                 ],
@@ -475,6 +475,7 @@ class DokumenPabeanController extends Controller
         if (!$header) abort(404, 'Data Transaksi Tidak Ditemukan');
 
         $ceisaInfo = $db->table('bpb_ceisa')->where('bpbno', $id)->first();
+
         $dataDetail = json_decode($ceisaInfo->payload_json ?? '{}', true);
 
         $items = $db->table('bpb as a')
@@ -486,6 +487,7 @@ class DokumenPabeanController extends Controller
                 ->get();
 
         $nomorAju = $ceisaInfo->nomor_aju ?? $this->generateNomorAju($db);
+
 
         return view('export-import.dokumen-pabean.edit', [
             "page"           => "dashboard-export-import",
@@ -504,29 +506,21 @@ class DokumenPabeanController extends Controller
     {
         $currentYear = date('Y');
         $today       = date('Ymd');
+        $prefix      = '000040NIW345';
 
         $lastCeisa = $db->table('bpb_ceisa')
-                        ->whereNotNull('nomor_aju')
-                        ->where('nomor_aju', '!=', '')
-                        ->orderBy('id', 'desc')
+                        ->where('nomor_aju', 'like', $prefix . $currentYear . '%')
+                        ->orderBy('nomor_aju', 'desc')
                         ->first();
 
-        if ($lastCeisa && strlen($lastCeisa->nomor_aju) === 26) {
+        if ($lastCeisa && $lastCeisa->nomor_aju && strlen($lastCeisa->nomor_aju) === 26) {
             $lastNoAju = $lastCeisa->nomor_aju;
-
-            $lastYear = substr($lastNoAju, 12, 4);
-            $prefix   = substr($lastNoAju, 0, 12);
-            $lastSeq  = (int) substr($lastNoAju, -6);
-
-            if ($lastYear === $currentYear) {
-                $nextSeq = str_pad($lastSeq + 1, 6, '0', STR_PAD_LEFT);
-                return $prefix . $today . $nextSeq;
-            } else {
-                return $prefix . $today . '000001';
-            }
+            $lastSeq   = (int) substr($lastNoAju, -6);
+            $nextSeq   = str_pad($lastSeq + 1, 6, '0', STR_PAD_LEFT);
+            return $prefix . $today . $nextSeq;
         }
 
-        return '000040NIW345' . $today . '000001';
+        return $prefix . $today . '000001';
     }
 
     public function updateDraft($id, Request $request)

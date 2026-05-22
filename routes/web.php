@@ -1377,6 +1377,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}/edit', 'edit')->name('dokumen-pabean-edit')->where('id', '.*');
         Route::post('/send/{id}', 'sendCeisa')->name('dokumen-pabean-send')->where('id', '.*');
         Route::put('/update-draft/{id}', 'updateDraft')->name('dokumen-pabean-update_draft')->where('id', '.*');
+        Route::get('/get-draft-status/{id}', 'getDraftData')->name('dokumen-pabean-sync')->where('noAju', '.*');
     });
 
     // WHS Soljer
