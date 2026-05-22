@@ -164,10 +164,10 @@ class SecondaryInController extends Controller
                 left join secondary_inhouse_input sii on a.id_qr_stocker = sii.id_qr_stocker
                 where
                     a.tgl_trans is not null
-                    AND (
-                        a.urutan IS NULL
-                        OR a.urutan = mx.max_urutan
-                    )
+                    -- AND (
+                    --    a.urutan IS NULL
+                    --    OR a.urutan = mx.max_urutan
+                    -- )
                     ".$additionalQuery."
                 group by a.id
                 order by a.tgl_trans desc
@@ -524,10 +524,10 @@ class SecondaryInController extends Controller
                 left join secondary_inhouse_input sii on a.id_qr_stocker = sii.id_qr_stocker
                 where
                     a.tgl_trans is not null
-                    AND (
-                        a.urutan IS NULL
-                        OR a.urutan = mx.max_urutan
-                    )
+                    -- AND (
+                    --    a.urutan IS NULL
+                    --    OR a.urutan = mx.max_urutan
+                    -- )
                     ".$additionalQuery."
                     ".$keywordQuery."
                 group by a.id
@@ -2095,10 +2095,10 @@ class SecondaryInController extends Controller
                 left join secondary_inhouse_input sii on a.id_qr_stocker = sii.id_qr_stocker
                 where
                     a.tgl_trans is not null
-                    AND (
-                        a.urutan IS NULL
-                        OR a.urutan = mx.max_urutan
-                    )
+                    -- AND (
+                    --    a.urutan IS NULL
+                    --    OR a.urutan = mx.max_urutan
+                    -- )
                     ".$additionalQuery."
                 group by a.id
                 order by a.tgl_trans desc
@@ -2132,10 +2132,11 @@ class SecondaryInController extends Controller
         $sheet->writeTo('Q2', 'Qty Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('R2', 'Qty Replace')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('S2', 'Qty In')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('T2', 'Buyer')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('U2', 'User')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('V2', 'Created At')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('W2', 'Notes')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('T2', 'Urutan')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('U2', 'Buyer')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('V2', 'User')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('W2', 'Created At')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('X2', 'Notes')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
             $sheet->writeAreas();
@@ -2161,6 +2162,7 @@ class SecondaryInController extends Controller
                     $row->qty_reject ?? "-",
                     $row->qty_replace ?? "-",
                     $row->qty_in ?? "-",
+                    $row->urutan ?? "-",
                     $row->buyer ?? "-",
                     $row->user ?? "-",
                     $row->created_at ?? "-",
