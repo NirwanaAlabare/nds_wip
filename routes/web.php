@@ -1471,6 +1471,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-items/{jenis}', 'getItems')->name('booking-stock-get-items');
         Route::delete('/delete/{id}', 'delete')->name('booking-stock-delete');
         Route::get('/export-excel', 'exportExcel')->name('booking-stock-export');
+         Route::get('/get-ws-asal', 'getWsAsal')->name('booking-stock-get-ws-asal');
     });
 
     Route::controller(PurchasingDashboardController::class)->middleware('role:purchasing')->group(function () {
