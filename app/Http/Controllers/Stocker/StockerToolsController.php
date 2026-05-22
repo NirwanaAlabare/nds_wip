@@ -667,7 +667,11 @@ class StockerToolsController extends Controller
             SELECT
                 stocker_input.*
             FROM stocker_input
-            WHERE stocker_input.updated_at BETWEEN ? AND ?
+            LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+            WHERE
+                stocker_input.updated_at BETWEEN ? AND ? AND
+                stocker_input.form_cut_id is not null AND
+                form_cut_input.id is null
             ORDER BY stocker_input.id DESC
         ", [$dateFrom . " 00:00:00", $dateTo . " 23:59:59"]);
 
