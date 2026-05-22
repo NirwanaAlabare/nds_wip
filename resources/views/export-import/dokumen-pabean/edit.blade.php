@@ -96,7 +96,7 @@
                         </div>
                         <div class="col-md-3 form-group">
                             <label>Kode Kantor</label>
-                            <input type="text" name="kodeKantor" class="form-control form-control-sm" value="{{ $dataDetail['kodeKantor'] ?? '050100' }}">
+                            <input type="text" name="kodeKantor" class="form-control form-control-sm" value="{{ $dataDetail['kodeKantor'] ?? '050500' }}">
                         </div>
                         <div class="col-md-3 form-group">
                             <label>Tujuan Pengiriman</label>

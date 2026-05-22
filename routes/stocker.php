@@ -132,5 +132,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/recalculate-stocker-transaction', 'recalculateStockerTransaction')->name('recalculate-stocker-transaction');
 
         Route::delete('/undo-stocker-additional', 'undoStockerAdditional')->name('undo-stocker-additional');
+
+        Route::get('/check-stocker-tidak-valid', 'checkStokerTidakValid')->name("check-stocker-tidak-valid");
+        Route::post('/check-stocker-tidak-valid-list', 'checkStokerTidakValidList')->name("check-stocker-tidak-valid-list");
     });
 });
