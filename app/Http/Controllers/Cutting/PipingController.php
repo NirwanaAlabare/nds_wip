@@ -191,28 +191,53 @@ class PipingController extends Controller
         if ($piping) {
             $qty = $validatedRequest['edit_qty_sisa'];
 
-            // Check After Piping Form Cut Detail
-            $formCutDetail = FormCutInputDetail::where("id_roll", $validatedRequest["edit_id_roll"])->where("created_at", ">=", $piping->created_at)->orderBy("form_cut_input_detail.created_at", "asc")->first();
+            // Check After Piping Form Cut Detail (including reject and next piping)
+            $formCutInputDetailQuery = DB::table('form_cut_input_detail')
+                ->selectRaw("id, id_roll, qty, created_at, 'form_cut_input_detail' as source")
+                ->where('id_roll', $validatedRequest["edit_id_roll"])
+                ->where('created_at', '>=', $piping->created_at);
 
-            if ($formCutDetail) {
+            $formCutRejectQuery = DB::table('form_cut_alokasi_gr_panel_barcode')
+                ->selectRaw("id, barcode as id_roll, qty_roll as qty, created_at, 'form_cut_alokasi_gr_panel_barcode' as source")
+                ->where('barcode', $validatedRequest["edit_id_roll"])
+                ->where('created_at', '>=', $piping->created_at);
+
+            $formCutPipingQuery = DB::table('form_cut_piping')
+                ->selectRaw("id, id_roll, qty, created_at, 'form_cut_piping' as source")
+                ->where('id_roll', $validatedRequest["edit_id_roll"])
+                ->where('created_at', '>=', $piping->created_at)
+                ->where('id', '!=', $piping->id);
+
+            $nextRecord = $formCutInputDetailQuery
+                ->union($formCutRejectQuery)
+                ->union($formCutPipingQuery)
+                ->orderBy('created_at', 'asc')
+                ->first();
+
+            if ($nextRecord) {
 
                 // Strict Qty
-                if ($formCutDetail->qty > $qty) {
+                if ($nextRecord->qty > $qty) {
                     return array(
                         "status" => 400,
-                        "message" => "Sisa Kain tidak bisa lebih kecil dari ".$formCutDetail->qty,
+                        "message" => "Sisa Kain tidak bisa lebih kecil dari ".$nextRecord->qty,
                         "additional" => [],
                     );
                 }
 
-                // Update After Piping Form Cut Detail
-                $formCut = $formCutDetail->formCutInput;
-                $pAct = $formCut->p_act + ($formCut->comma_p_act/100);
-                $sambunganRoll = $formCutDetail->formCutInputDetailSambungan ? $formCutDetail->formCutInputDetailSambungan->sum("sambungan_roll") : 0;
-                $shortRoll = (($pAct * $formCutDetail->lembar_gelaran) + $formCutDetail->sambungan + $formCutDetail->sisa_gelaran + $formCutDetail->kepala_kain + $formCutDetail->sisa_tidak_bisa + $formCutDetail->reject + $formCutDetail->piping + $formCutDetail->sisa_kain + $sambunganRoll) - $qty;
+                // Update After Piping Form Cut Detail (only when next usage is a gelaran)
+                if ($nextRecord->source == 'form_cut_input_detail') {
+                    $formCutDetail = FormCutInputDetail::where('id', $nextRecord->id)->first();
+                    if ($formCutDetail) {
+                        $formCut = $formCutDetail->formCutInput;
+                        $pAct = $formCut->p_act + ($formCut->comma_p_act/100);
+                        $sambunganRoll = $formCutDetail->formCutInputDetailSambungan ? $formCutDetail->formCutInputDetailSambungan->sum("sambungan_roll") : 0;
+                        $shortRoll = (($pAct * $formCutDetail->lembar_gelaran) + $formCutDetail->sambungan + $formCutDetail->sisa_gelaran + $formCutDetail->kepala_kain + $formCutDetail->sisa_tidak_bisa + $formCutDetail->reject + $formCutDetail->piping + $formCutDetail->sisa_kain + $sambunganRoll) - $qty;
 
-                $formCutDetail->short_roll = $shortRoll;
-                $formCutDetail->save();
+                        $formCutDetail->short_roll = $shortRoll;
+                        $formCutDetail->save();
+                    }
+                }
             } else {
 
                 // Update Scanned Item Qty

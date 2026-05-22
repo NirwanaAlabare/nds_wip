@@ -1108,8 +1108,10 @@
                     success: function(res) {
                         document.getElementById("loading").classList.add("d-none");
 
+                        console.log(res);
+
                         if (res && res.qty > 0) {
-                            setSpreadingForm(res, true);
+                            setSpreadingForm(res, true, null, true);
                         } else {
                             Swal.fire({
                                 icon: 'error',
@@ -1493,7 +1495,7 @@
         }
 
         // -Set Spreading Form-
-        function setSpreadingForm(data, item, latestStatus = null) {
+        function setSpreadingForm(data, item, latestStatus = null, noBerat = false) {
             openItemSpreading(latestStatus);
 
             // spreading form data set
@@ -1533,7 +1535,9 @@
             data.total_pemakaian_roll ? document.getElementById("current_total_pemakaian_roll").value = data.total_pemakaian_roll : '';
             data.short_roll ? document.getElementById("current_short_roll").value = data.short_roll : '';
             data.piping ? document.getElementById("current_piping").value = data.piping : '';
-            data.berat_amparan ? document.getElementById("current_berat_amparan").value = data.berat_amparan : '';
+            if (!noBerat) {
+                data.berat_amparan ? document.getElementById("current_berat_amparan").value = data.berat_amparan : '';
+            }
 
             if (data.unit == "KGM" || data.unit == "KG") {
                 document.getElementById("berat_amparan").classList.remove("d-none");
