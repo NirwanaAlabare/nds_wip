@@ -107,7 +107,10 @@
                 render: (data, type, row, meta) => {
                     let editable = true;
                     let cancelable = true;
-                    if (row.cancel != 'Y' && row.total_form > 0 /* && row.tipe_marker != "pilot marker" */) {
+                    if (row.status_selesai == 'SELESAI') {
+                        editable = false;
+                        cancelable = false;
+                    } else if (row.cancel != 'Y' && row.total_form > 0 /* && row.tipe_marker != "pilot marker" */) {
                         editable = true;
                         cancelable = false;
                     } else if ((row.cancel != 'Y' && row.total_form < 1) /*|| (row.cancel != 'Y' && row.gelar_qty_balance > 0  && row.tipe_marker == "pilot marker" )*/) {

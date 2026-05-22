@@ -1010,7 +1010,6 @@ class Export_excel_rep_packing_mutasi implements FromView, WithEvents, ShouldAut
                     trx_union t
                     LEFT JOIN master_sb_ws msw ON msw.id_so_det = t.so_det_id
                     LEFT JOIN master_size_new msn ON msn.size = msw.size
-                WHERE (msw.styleno NOT LIKE '%SAMPLE%' OR msw.styleno = '-' OR msw.styleno IS NULL OR msw.styleno = '')
                 GROUP BY
                     msn.urutan,
                     msw.ws,

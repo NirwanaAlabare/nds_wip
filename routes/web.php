@@ -625,6 +625,8 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(FGStokLaporanController::class)->prefix("laporan-fg-stock")->middleware('fg-stock')->group(function () {
         Route::get('/', 'index')->name('laporan-fg-stock');
+        Route::get('/get-data-penerimaan', 'getDataPenerimaan')->name('get-data-penerimaan-laporan-fg-stock');
+        Route::get('/export-penerimaan', 'exportPenerimaan')->name('export-penerimaan-laporan-fg-stock');
         Route::get('/export_excel_mutasi_fg_stok', 'export_excel_mutasi_fg_stok')->name('export_excel_mutasi_fg_stok');
         Route::get('/rep_mutasi_fg_stock', 'rep_mutasi_fg_stock')->name('rep_mutasi_fg_stock');
         Route::post('/export_excel_mutasi_fg_stock', 'export_excel_mutasi_fg_stock')->name('export_excel_mutasi_fg_stock');
@@ -1469,6 +1471,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-items/{jenis}', 'getItems')->name('booking-stock-get-items');
         Route::delete('/delete/{id}', 'delete')->name('booking-stock-delete');
         Route::get('/export-excel', 'exportExcel')->name('booking-stock-export');
+         Route::get('/get-ws-asal', 'getWsAsal')->name('booking-stock-get-ws-asal');
     });
 
     Route::controller(PurchasingDashboardController::class)->middleware('role:purchasing')->group(function () {

@@ -21,33 +21,72 @@ class FGStokMutasiController extends Controller
 
         if ($request->ajax()) {
             $data_input = DB::select("
-            select
-            a.id,
-            no_mut,
-            tgl_mut,
-            concat((DATE_FORMAT(tgl_mut,  '%d')), '-', left(DATE_FORMAT(tgl_mut,  '%M'),3),'-',DATE_FORMAT(tgl_mut,  '%Y')) tgl_mut_fix,
-            buyer,
-            ws,
-            brand,
-            styleno,
-            color,
-            size,
-            a.qty_mut,
-            a.grade,
-            lokasi_asal,
-			no_carton_asal,
-            lokasi_tujuan,
-            no_carton_tujuan,
-            a.created_by,
-            created_at,
-			bpb.no_trans,
-			bppb.no_trans_out
-            from fg_stok_mutasi_log a
-            inner join master_sb_ws m on a.id_so_det = m.id_so_det
-            inner join (select no_mutasi,no_trans_out from fg_stok_bppb where cancel = 'N' and mutasi = 'Y' group by no_trans_out) bppb on a.no_mut = bppb.no_mutasi
-            inner join (select no_mutasi,no_trans from fg_stok_bpb where cancel = 'N' and mutasi = 'Y' group by no_trans) bpb on a.no_mut = bpb.no_mutasi
-            where tgl_mut >= '$tgl_awal' and tgl_mut <= '$tgl_akhir'
-            order by substr(no_trans,14) desc
+                SELECT
+                    a.id,
+                    no_mut,
+                    tgl_mut,
+                    CONCAT(
+                        DATE_FORMAT(tgl_mut, '%d'), '-',
+                        LEFT(DATE_FORMAT(tgl_mut, '%M'), 3), '-',
+                        DATE_FORMAT(tgl_mut, '%Y')
+                    ) AS tgl_mut_fix,
+                    buyer,
+                    ws,
+                    brand,
+                    styleno,
+                    color,
+                    size,
+                    a.qty_mut,
+                    a.grade,
+                    lokasi_asal,
+                    no_carton_asal,
+                    lokasi_tujuan,
+                    no_carton_tujuan,
+                    a.created_by,
+                    created_at,
+                    bpb.no_trans,
+                    bppb.no_trans_out
+                FROM fg_stok_mutasi_log a
+                INNER JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+                INNER JOIN (
+                    SELECT
+                        no_mutasi,
+                        no_trans_out
+                    FROM fg_stok_bppb
+                    WHERE cancel = 'N'
+                        AND mutasi = 'Y'
+                    GROUP BY no_mutasi, no_trans_out
+                ) bppb
+                    ON a.no_mut = bppb.no_mutasi
+                INNER JOIN (
+                    SELECT
+                        no_mutasi,
+                        no_trans
+                    FROM
+                    (
+                        SELECT
+                            no_mutasi,
+                            no_trans
+                        FROM fg_stok_bpb
+                        WHERE cancel = 'N'
+                            AND mutasi = 'Y'
+
+                        UNION ALL
+
+                        SELECT
+                            no_mutasi,
+                            no_trans
+                        FROM fg_stok_bpb_scan
+                        WHERE cancel = 'N'
+                            AND mutasi = 'Y'
+
+                    ) bpb_all
+
+                    GROUP BY no_mutasi, no_trans
+                ) bpb
+                    ON a.no_mut = bpb.no_mutasi
+                WHERE tgl_mut BETWEEN '$tgl_awal' AND '$tgl_akhir'
+                ORDER BY SUBSTR(no_trans, 14) DESC
             ");
 
             return DataTables::of($data_input)->toJson();
@@ -64,6 +103,7 @@ class FGStokMutasiController extends Controller
         $id_so_detArray         = $_POST['id_so_det'];
         $no_cartonArray         = $_POST['no_carton'];
         $gradeArray         = $_POST['grade'];
+        $sourceTableArray = $_POST['source_table'];
         $lokasi_asal             = $request->cbolok_asal;
         $lokasi_tuj             = $request->cbolok_tuj;
         $no_carton_tuj             = $request->txtno_carton_tuj;
@@ -101,24 +141,39 @@ class FGStokMutasiController extends Controller
         $kodepay_bpb = sprintf("%05s", $urutan_bpb);
         $kode_trans_bpb = $kode_bpb . $no . '/' . $kodepay_bpb;
 
-
+        $kode_bpb_scan = 'FGS/SCAN/IN/';
+        $cek_nomor_bpb_scan = DB::select("
+        select max(right(no_trans,5))nomor from fg_stok_bpb_scan where year(tgl_terima) = '" . $tahun . "'
+        ");
+        $nomor_tr_bpb_scan = $cek_nomor_bpb_scan[0]->nomor;
+        $urutan_bpb_scan = (int)($nomor_tr_bpb_scan);
+        $urutan_bpb_scan++;
+        $kodepay_bpb_scan = sprintf("%05s", $urutan_bpb_scan);
+        $kode_trans_bpb_scan = $kode_bpb_scan . $no . '/' . $kodepay_bpb_scan;
 
         foreach ($JmlArray as $key => $value) {
             if ($value != '0' && $value != '') {
                 $txtqty         = $JmlArray[$key];
                 $txtid_so_det   = $id_so_detArray[$key];
                 $txtno_carton   = $no_cartonArray[$key];
-                $txtgrade       = $gradeArray[$key]; {
-                    $insert_mut =  DB::insert("
+                $txtgrade       = $gradeArray[$key];
+                $source_table = $sourceTableArray[$key]; 
+                
+                $insert_mut =  DB::insert("
                 insert into fg_stok_mutasi_log(no_mut,tgl_mut,id_so_det,qty_mut,grade,lokasi_asal,no_carton_asal,lokasi_tujuan,no_carton_tujuan,cancel,created_by,created_at,updated_at)
                 values('$kode_trans','$tgl_pengeluaran','$txtid_so_det','$txtqty','$txtgrade','$lokasi_asal','$txtno_carton','$lokasi_tuj','$no_carton_tuj','N','$user','$timestamp','$timestamp')");
-                }
                 $insert_bppb =  DB::insert("
                 insert into fg_stok_bppb(no_trans_out,tgl_pengeluaran,id_so_det,qty_out,grade,no_carton,lokasi,tujuan,mutasi,no_mutasi,cancel,created_by,created_at,updated_at)
                 values('$kode_trans_bppb','$tgl_pengeluaran','$txtid_so_det','$txtqty','$txtgrade','$txtno_carton','$lokasi_asal','MUTASI INTERNAL','Y','$kode_trans','N','$user','$timestamp','$timestamp')");
-                $insert_bpb =  DB::insert("
-                insert into fg_stok_bpb(no_trans,tgl_terima,id_so_det,qty,grade,no_carton,lokasi,sumber_pemasukan,mutasi,no_mutasi,cancel,created_by,created_at,updated_at)
-                values('$kode_trans_bpb','$tgl_pengeluaran','$txtid_so_det','$txtqty','$txtgrade','$no_carton_tuj','$lokasi_tuj','MUTASI INTERNAL','Y','$kode_trans','N','$user','$timestamp','$timestamp')");
+                if ($source_table == 'BPB') {
+                    $insert_bpb =  DB::insert("
+                    insert into fg_stok_bpb(no_trans,tgl_terima,id_so_det,qty,grade,no_carton,lokasi,sumber_pemasukan,mutasi,no_mutasi,cancel,created_by,created_at,updated_at)
+                    values('$kode_trans_bpb','$tgl_pengeluaran','$txtid_so_det','$txtqty','$txtgrade','$no_carton_tuj','$lokasi_tuj','MUTASI INTERNAL','Y','$kode_trans','N','$user','$timestamp','$timestamp')");
+                }else if($source_table == 'BPB_SCAN'){
+                    $insert_bpb_scan =  DB::insert("
+                    insert into fg_stok_bpb_scan(no_trans,tgl_terima,id_so_det,qty,grade,no_carton,lokasi,sumber_pemasukan,mutasi,no_mutasi,cancel,created_by,created_at,updated_at)
+                    values('$kode_trans_bpb_scan','$tgl_pengeluaran','$txtid_so_det','$txtqty','$txtgrade','$no_carton_tuj','$lokasi_tuj','MUTASI INTERNAL','Y','$kode_trans','N','$user','$timestamp','$timestamp')");
+                }
             }
         }
 
@@ -156,26 +211,65 @@ class FGStokMutasiController extends Controller
     public function getno_karton_asal(Request $request)
     {
         $data_no_karton_asal = DB::select("
-        select lokasi,
-        no_carton isi,
-        sum(s.qty_in) - sum(s.qty_out) saldo,
-                    concat (no_carton, ' ( ',sum(s.qty_in) - sum(s.qty_out), ' )' ) tampil
-        from
-        (
-        select lokasi,no_carton,a.id_so_det,sum(a.qty) qty_in, '0' qty_out,grade  from fg_stok_bpb a
-        inner join master_sb_ws m on a.id_so_det = m.id_so_det
-        where lokasi = '" . $request->cbolok_asal . "'
-        group by no_carton, a.id_so_det, a.grade
-        union
-        select lokasi,no_carton,a.id_so_det,'0' qty_in,sum(a.qty_out) qty_out,grade  from fg_stok_bppb a
-        inner join master_sb_ws m on a.id_so_det = m.id_so_det
-        where lokasi = '" . $request->cbolok_asal . "'
-        group by no_carton, a.id_so_det, a.grade
-        )
-        s
-        inner join master_sb_ws m on s.id_so_det = m.id_so_det
-        group by no_carton
-        having sum(s.qty_in) - sum(s.qty_out) != '0'
+            SELECT
+                lokasi,
+                no_carton AS isi,
+                SUM(s.qty_in) - SUM(s.qty_out) AS saldo,
+                CONCAT(
+                    no_carton,
+                    ' ( ',
+                    SUM(s.qty_in) - SUM(s.qty_out),
+                    ' )'
+                ) AS tampil
+            FROM
+            (
+                SELECT
+                    lokasi,
+                    no_carton,
+                    a.id_so_det,
+                    SUM(a.qty) AS qty_in,
+                    0 AS qty_out,
+                    grade
+                FROM fg_stok_bpb a
+                INNER JOIN master_sb_ws m
+                    ON a.id_so_det = m.id_so_det
+                WHERE lokasi = '" . $request->cbolok_asal . "'
+                GROUP BY no_carton, a.id_so_det, a.grade
+
+                UNION ALL
+
+                SELECT
+                    lokasi,
+                    no_carton,
+                    a.id_so_det,
+                    SUM(a.qty) AS qty_in,
+                    0 AS qty_out,
+                    grade
+                FROM fg_stok_bpb_scan a
+                INNER JOIN master_sb_ws m
+                    ON a.id_so_det = m.id_so_det
+                WHERE lokasi = '" . $request->cbolok_asal . "'
+                GROUP BY no_carton, a.id_so_det, a.grade
+
+                UNION ALL
+
+                SELECT
+                    lokasi,
+                    no_carton,
+                    a.id_so_det,
+                    0 AS qty_in,
+                    SUM(a.qty_out) AS qty_out,
+                    grade
+                FROM fg_stok_bppb a
+                INNER JOIN master_sb_ws m
+                    ON a.id_so_det = m.id_so_det
+                WHERE lokasi = '" . $request->cbolok_asal . "'
+                GROUP BY no_carton, a.id_so_det, a.grade
+
+            ) s
+            INNER JOIN master_sb_ws m ON s.id_so_det = m.id_so_det
+            GROUP BY no_carton
+            HAVING SUM(s.qty_in) - SUM(s.qty_out) != 0
         ");
 
         $html = "<option value=''  selected='true' disabled='true'>Pilih No Karton Asal</option>";
@@ -194,34 +288,78 @@ class FGStokMutasiController extends Controller
         if ($request->ajax()) {
 
             $data_det = DB::select("
-            select lokasi,
-            no_carton,
-            s.id_so_det,
-            ws,
-            sum(s.qty_in) - sum(s.qty_out) saldo,
-            m.buyer,
-            m.color,
-            m.size,
-            m.styleno,
-            m.brand,
-            s.grade,
-            concat(s.id_so_det,'_',no_carton,'_',grade) kode
-            from
-            (
-            select lokasi,no_carton,a.id_so_det,sum(a.qty) qty_in, '0' qty_out,grade  from fg_stok_bpb a
-            inner join master_sb_ws m on a.id_so_det = m.id_so_det
-            where lokasi = '" . $request->cbolok_asal . "' and no_carton = '" . $request->cbono_carton_asal . "'
-            group by no_carton, a.id_so_det, a.grade
-            union
-            select lokasi,no_carton,a.id_so_det,'0' qty_in,sum(a.qty_out) qty_out,grade  from fg_stok_bppb a
-            inner join master_sb_ws m on a.id_so_det = m.id_so_det
-            where lokasi = '" . $request->cbolok_asal . "'  and no_carton = '" . $request->cbono_carton_asal . "'
-            group by no_carton, a.id_so_det, a.grade
-            )
-            s
-            inner join master_sb_ws m on s.id_so_det = m.id_so_det
-            group by no_carton, s.id_so_det, s.grade
-            having sum(s.qty_in) - sum(s.qty_out) != '0'
+                SELECT
+                    lokasi,
+                    no_carton,
+                    s.id_so_det,
+                    ws,
+                    SUM(s.qty_in) - SUM(s.qty_out) AS saldo,
+                    m.buyer,
+                    m.color,
+                    m.size,
+                    m.styleno,
+                    m.brand,
+                    s.grade,
+                    CONCAT(
+                        s.id_so_det, '_',
+                        no_carton, '_',
+                        grade
+                    ) AS kode,
+                    s.source_table
+                FROM
+                (
+                    SELECT
+                        lokasi,
+                        no_carton,
+                        a.id_so_det,
+                        SUM(a.qty) AS qty_in,
+                        0 AS qty_out,
+                        grade,
+                        'BPB' AS source_table
+                    FROM fg_stok_bpb a
+                    INNER JOIN master_sb_ws m
+                        ON a.id_so_det = m.id_so_det
+                    WHERE lokasi = '" . $request->cbolok_asal . "'
+                        AND no_carton = '" . $request->cbono_carton_asal . "'
+                    GROUP BY no_carton, a.id_so_det, a.grade
+
+                    UNION ALL
+
+                    SELECT
+                        lokasi,
+                        no_carton,
+                        a.id_so_det,
+                        SUM(a.qty) AS qty_in,
+                        0 AS qty_out,
+                        grade,
+                        'BPB_SCAN' AS source_table
+                    FROM fg_stok_bpb_scan a
+                    INNER JOIN master_sb_ws m
+                        ON a.id_so_det = m.id_so_det
+                    WHERE lokasi = '" . $request->cbolok_asal . "'
+                        AND no_carton = '" . $request->cbono_carton_asal . "'
+                    GROUP BY no_carton, a.id_so_det, a.grade
+
+                    UNION ALL
+
+                    SELECT
+                        lokasi,
+                        no_carton,
+                        a.id_so_det,
+                        0 AS qty_in,
+                        SUM(a.qty_out) AS qty_out,
+                        grade,
+                        'BPPB' AS source_table
+                    FROM fg_stok_bppb a
+                    INNER JOIN master_sb_ws m
+                        ON a.id_so_det = m.id_so_det
+                    WHERE lokasi = '" . $request->cbolok_asal . "'
+                        AND no_carton = '" . $request->cbono_carton_asal . "'
+                    GROUP BY no_carton, a.id_so_det, a.grade
+                ) s
+                INNER JOIN master_sb_ws m ON s.id_so_det = m.id_so_det
+                GROUP BY no_carton, s.id_so_det, s.grade, s.source_table
+                HAVING SUM(s.qty_in) - SUM(s.qty_out) != 0
             ");
 
             return DataTables::of($data_det)->toJson();
