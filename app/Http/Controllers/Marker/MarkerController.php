@@ -45,6 +45,7 @@ class MarkerController extends Controller
                 COALESCE(b.total_form, 0) total_form,
                 COALESCE(b.total_lembar, 0) total_lembar,
                 CONCAT(COALESCE(b.total_lembar, 0), '/', gelar_qty) ply_progress,
+                COALESCE(b.status_selesai, 'BELUM') status_selesai,
                 COALESCE(notes, '-') notes,
                 cancel
             ")->
@@ -54,7 +55,12 @@ class MarkerController extends Controller
                         select
                             id_marker,
                             count(id_marker) total_form,
-                            sum(total_lembar) total_lembar
+                            sum(total_lembar) total_lembar,
+                            CASE
+                                WHEN MAX(status) = 'SELESAI PENGERJAAN'
+                                THEN 'SELESAI'
+                                ELSE 'BELUM'
+                            END status_selesai
                         from
                             form_cut_input
                         group by
