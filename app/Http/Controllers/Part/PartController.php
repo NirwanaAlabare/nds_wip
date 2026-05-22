@@ -824,6 +824,14 @@ class PartController extends Controller
             //     unit = 'METER'
             //     where id = '$request->txtpart'");
 
+        // Cek apakah part sudah memiliki part_form (sudah digunakan di form cut)
+        if (PartForm::where('part_id', $request->id)->exists()) {
+            return array(
+                'icon' => 'salah',
+                'msg'  => 'Part sudah memiliki Form Cut, tidak dapat menambah Part Detail.',
+            );
+        }
+
         // IF COMPLEMENT
         if ($request->is_complement) {
             $validatedRequest = $request->validate([
@@ -1632,6 +1640,16 @@ class PartController extends Controller
         $partDetail = PartDetail::with('masterPart')->find($id);
 
         if ($partDetail) {
+            if (PartForm::where('part_id', $partDetail->part_id)->exists()) {
+                return array(
+                    'status' => 400,
+                    'message' => 'Part sudah memiliki Form Cut, tidak dapat diubah.',
+                    'redirect' => '',
+                    'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
+                    'additional' => [],
+                );
+            }
+
             // Update Part Detail Status to Inactive
             $partDetailUpdate = $partDetail->update([
                "status" => "inactive",
@@ -1663,6 +1681,16 @@ class PartController extends Controller
         $partDetail = PartDetail::with('masterPart')->find($id);
 
         if ($partDetail) {
+            if (PartForm::where('part_id', $partDetail->part_id)->exists()) {
+                return array(
+                    'status' => 400,
+                    'message' => 'Part sudah memiliki Form Cut, tidak dapat diubah.',
+                    'redirect' => '',
+                    'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
+                    'additional' => [],
+                );
+            }
+
             // Update Part Detail Status to Inactive
             $partDetailUpdate = $partDetail->update([
                "status" => "active",
@@ -1694,6 +1722,16 @@ class PartController extends Controller
         ini_set('max_execution_time', 3600);
 
         $partDetail = PartDetail::with('masterPart')->find($id);
+
+        if ($partDetail && PartForm::where('part_id', $partDetail->part_id)->exists()) {
+            return array(
+                'status' => 400,
+                'message' => 'Part sudah memiliki Form Cut, tidak dapat dihapus.',
+                'redirect' => '',
+                'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
+                'additional' => [],
+            );
+        }
 
         if ($partDetail->delete()) {
             // Delete related stocker input
