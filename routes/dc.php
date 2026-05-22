@@ -275,6 +275,10 @@ Route::middleware('auth')->group(function () {
 
         Route::put('/update-dc-in', 'updateDcIn')->name('update-dc-in');
         Route::delete('/delete-dc-in', 'deleteDcIn')->name('delete-dc-in');
+
+        // Check Orphan Transaction
+        Route::get('/check-orphan-transaction', 'checkOrphanTransaction')->name('check-orphan-transaction');
+        Route::post('/check-orphan-transaction-list', 'checkOrphanTransactionList')->name('check-orphan-transaction-list');
     });
 
     // DC report
