@@ -378,6 +378,18 @@
                                     Penerimaan Barang Jadi Stok <i class="fas fa-box fa-sm"></i>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('bpb-fg-stock-scan') }}"
+                                    class="dropdown-item {{ $subPage == 'bpb-fg-stock-scan' ? 'active' : '' }}">
+                                    Penerimaan Barang Jadi Stok Scan <i class="fas fa-box fa-sm"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('bpb-fg-stock-lokasi-scan') }}"
+                                    class="dropdown-item {{ $subPage == 'bpb-fg-stock-lokasi-scan' ? 'active' : '' }}">
+                                    Penerimaan Lokasi Barang Jadi Stok Scan <i class="fas fa-box fa-sm"></i>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">

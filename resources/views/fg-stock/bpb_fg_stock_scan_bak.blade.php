@@ -41,7 +41,7 @@
                         <div class="mb-1">
                             <label class="form-label"><small>Tanggal Penerimaan</small></label>
                             <input type="date" class="form-control" id="tanggal_penerimaan" name="tanggal_penerimaan" 
-                            value="{{ date('Y-m-d') }}" min="{{ date('Y-m-d', strtotime('-3 days')) }}">
+                            value="{{ date('Y-m-d') }}">
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
@@ -122,12 +122,12 @@
                             <th>No. Trans</th>
                             <th>Tgl. Trans</th>
                             <th>Lokasi</th>
-                            <th>Buyer</th>
+                            {{-- <th>Buyer</th>
                             <th>Brand</th>
                             <th>Style</th>
                             <th>WS</th>
                             <th>Color</th>
-                            <th>Size</th>
+                            <th>Size</th> --}}
                             <th>Total Karton</th>
                             <th>Total Qty</th>
                             <th>Sumber</th>
@@ -261,31 +261,31 @@
             columns: [
                 {
                     data: 'no_trans'
-                }, 
-                {
+
+                }, {
                     data: 'tgl_terima_fix'
                 },
                 {
                     data: 'lokasi'
                 },
-                {
-                    data: 'buyer'
-                },
-                {
-                    data: 'brand'
-                },
-                {
-                    data: 'styleno'
-                },
-                {
-                    data: 'ws'
-                },
-                {
-                    data: 'color'
-                },
-                {
-                    data: 'size'
-                },
+                // {
+                //     data: 'buyer'
+                // },
+                // {
+                //     data: 'brand'
+                // },
+                // {
+                //     data: 'styleno'
+                // },
+                // {
+                //     data: 'ws'
+                // },
+                // {
+                //     data: 'color'
+                // },
+                // {
+                //     data: 'size'
+                // },
                 {
                     data: 'total_carton'
                 },
@@ -301,13 +301,12 @@
             ],
             columnDefs: [
                 {
-                    targets: [12],
+                    targets: [6],
                     render: (data, type, row, meta) => {
 
                         let btnDetail = `
                             <button 
                                 class="btn btn-primary btn-sm btn-detail"
-                                data-id_so_det="${row.id_so_det}"
                                 data-no_trans="${row.no_trans}"
                             >
                                 <i class="fa-solid fa-list"></i>
@@ -329,22 +328,16 @@
         });
 
         $(document).on('click', '.btn-detail', function () {
-            let id_so_det = $(this).data('id_so_det');
             let no_trans = $(this).data('no_trans');
 
             $('#modal').modal('show');
-            iniModalDetail(id_so_det, no_trans);
+            iniModalDetail(no_trans);
         });
 
         // HISTORY FABRIC
         let tableDetail;
-        let currentidSoDet = '';
-        let currentNoTrans = '';
         
-        function iniModalDetail(id_so_det, no_trans) {
-            currentidSoDet = id_so_det
-            currentNoTrans = no_trans
-
+        function iniModalDetail(no_trans) {
             if ($.fn.DataTable.isDataTable('#datatable-detail')) {
                 tableDetail.ajax.reload(null, false);
                 return;
@@ -356,8 +349,7 @@
                 ajax: {
                     url: "{{ route('get-data-detail-bpb-fg-stock-scan') }}",
                     data: function (d) {
-                        d.id_so_det = currentidSoDet;
-                        d.no_trans = currentNoTrans;
+                        d.no_trans = no_trans;
                     }
                 },
                 columns: [
