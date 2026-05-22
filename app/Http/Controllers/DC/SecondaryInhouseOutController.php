@@ -94,8 +94,8 @@ class SecondaryInhouseOutController extends Controller
                     COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
                     COALESCE(a.qty_in) qty_in,
                     a.created_at,
-                    COALESCE(mx.tujuan, dc.tujuan) as tujuan,
-                    COALESCE(mx.proses, dc.lokasi) lokasi,
+                    COALESCE(mms.tujuan, ms.tujuan, mx.tujuan, dc.tujuan) as tujuan,
+                    COALESCE(mms.proses, ms.proses, mx.proses, dc.lokasi) lokasi,
                     dc.tempat,
                     COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
                     COALESCE(msb.size, s.size) AS size,
@@ -110,7 +110,7 @@ class SecondaryInhouseOutController extends Controller
                         ELSE ' (0)'
                         END
                     ) AS stocker_range_old,
-                    CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range
+                    CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range,
                 FROM secondary_inhouse_input a
                 LEFT JOIN (
                     SELECT
@@ -139,16 +139,19 @@ class SecondaryInhouseOutController extends Controller
                 left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
                 left join part p_com on p_com.id = pd_com.part_id
                 LEFT JOIN master_part mp ON mp.id = pd.master_part_id
+                left join part_detail_secondary pds on pds.part_detail_id = pd.id and pds.urutan = a.urutan
+                left join master_secondary mms on mms.id = pds.master_secondary_id
+                left join master_secondary ms on ms.id = pd.master_secondary_id
                 LEFT JOIN (
                     SELECT id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat
                     FROM dc_in_input
                 ) dc ON a.id_qr_stocker = dc.id_qr_stocker
                 WHERE
                     a.tgl_trans IS NOT NULL
-                    AND (
-                        a.urutan IS NULL
-                        OR a.urutan = mx.max_urutan
-                    )
+                    -- AND (
+                    --     a.urutan IS NULL
+                    --     OR a.urutan = mx.max_urutan
+                    -- )
                     $additionalQuery
                     $keywordQuery
                 ORDER BY a.tgl_trans DESC
@@ -187,8 +190,8 @@ class SecondaryInhouseOutController extends Controller
                 COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
                 COALESCE(a.qty_in) qty_in,
                 a.created_at,
-                COALESCE(mx.tujuan, dc.tujuan) as tujuan,
-                COALESCE(mx.proses, dc.lokasi) lokasi,
+                COALESCE(mms.tujuan, ms.tujuan, mx.tujuan, dc.tujuan) as tujuan,
+                COALESCE(mms.proses, ms.proses, mx.proses, dc.lokasi) lokasi,
                 dc.tempat,
                 COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
                 COALESCE(msb.size, s.size) AS size,
@@ -232,16 +235,19 @@ class SecondaryInhouseOutController extends Controller
             left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
             left join part p_com on p_com.id = pd_com.part_id
             LEFT JOIN master_part mp ON mp.id = pd.master_part_id
+            left join part_detail_secondary pds on pds.part_detail_id = pd.id and pds.urutan = a.urutan
+            left join master_secondary mms on mms.id = pds.master_secondary_id
+            left join master_secondary ms on ms.id = pd.master_secondary_id
             LEFT JOIN (
                 SELECT id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat
                 FROM dc_in_input
             ) dc ON a.id_qr_stocker = dc.id_qr_stocker
             WHERE
                 a.tgl_trans IS NOT NULL
-                AND (
-                    a.urutan IS NULL
-                    OR a.urutan = mx.max_urutan
-                )
+                -- AND (
+                --  a.urutan IS NULL
+                --  OR a.urutan = mx.max_urutan
+                -- )
                 $additionalQuery
             ORDER BY a.tgl_trans DESC
         "));
@@ -443,8 +449,8 @@ class SecondaryInhouseOutController extends Controller
                     COALESCE(mx.qty_replace, a.qty_replace) qty_replace,
                     COALESCE(a.qty_in) qty_in,
                     a.created_at,
-                    COALESCE(mx.tujuan, dc.tujuan) as tujuan,
-                    COALESCE(mx.proses, dc.lokasi) lokasi,
+                    COALESCE(mms.tujuan, ms.tujuan, mx.tujuan, dc.tujuan) as tujuan,
+                    COALESCE(mms.proses, ms.proses, mx.proses, dc.lokasi) lokasi,
                     dc.tempat,
                     COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
                     COALESCE(msb.size, s.size) AS size,
@@ -488,16 +494,19 @@ class SecondaryInhouseOutController extends Controller
                 left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
                 left join part p_com on p_com.id = pd_com.part_id
                 LEFT JOIN master_part mp ON mp.id = pd.master_part_id
+                left join part_detail_secondary pds on pds.part_detail_id = pd.id and pds.urutan = a.urutan
+                left join master_secondary mms on mms.id = pds.master_secondary_id
+                left join master_secondary ms on ms.id = pd.master_secondary_id
                 LEFT JOIN (
                     SELECT id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat
                     FROM dc_in_input
                 ) dc ON a.id_qr_stocker = dc.id_qr_stocker
                 WHERE
                     a.tgl_trans IS NOT NULL
-                    AND (
-                        a.urutan IS NULL
-                        OR a.urutan = mx.max_urutan
-                    )
+                    -- AND (
+                    --     a.urutan IS NULL
+                    --     OR a.urutan = mx.max_urutan
+                    -- )
                     $additionalQuery
                     $keywordQuery
                 ORDER BY a.tgl_trans DESC
@@ -1362,8 +1371,8 @@ class SecondaryInhouseOutController extends Controller
                 COALESCE(a.qty_in) qty_in,
                 (CASE WHEN a.urutan > 0 THEN a.urutan ELSE '-' END) urutan,
                 a.created_at,
-                COALESCE(mx.tujuan, dc.tujuan) as tujuan,
-                COALESCE(mx.proses, dc.lokasi) lokasi,
+                COALESCE(mms.tujuan, ms.tujuan, mx.tujuan, dc.tujuan) as tujuan,
+                COALESCE(mms.tujuan, ms.proses, mx.proses, dc.lokasi) lokasi,
                 dc.tempat,
                 COALESCE(f.no_cut, fp.no_cut, '-') AS no_cut,
                 COALESCE(msb.size, s.size) AS size,
@@ -1400,16 +1409,19 @@ class SecondaryInhouseOutController extends Controller
             left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
             left join part p_com on p_com.id = pd_com.part_id
             LEFT JOIN master_part mp ON mp.id = pd.master_part_id
+            left join part_detail_secondary pds on pds.part_detail_id = pd.id and pds.urutan = a.urutan
+            left join master_secondary mms on mms.id = pds.master_secondary_id
+            left join master_secondary ms on ms.id = pd.master_secondary_id
             LEFT JOIN (
                 SELECT id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat
                 FROM dc_in_input
             ) dc ON a.id_qr_stocker = dc.id_qr_stocker
             WHERE
                 a.tgl_trans IS NOT NULL
-                AND (
-                    a.urutan IS NULL
-                    OR a.urutan = mx.max_urutan
-                )
+                -- AND (
+                --  a.urutan IS NULL
+                --  OR a.urutan = mx.max_urutan
+                -- )
                 $additionalQuery
             ORDER BY a.tgl_trans DESC
         ");
@@ -1441,10 +1453,11 @@ class SecondaryInhouseOutController extends Controller
         $sheet->writeTo('P2', 'Qty Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('Q2', 'Qty Replace')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('R2', 'Qty In')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('S2', 'Buyer')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('T2', 'User')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('U2', 'Created At')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('V2', 'Notes')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('S2', 'Urutan')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('T2', 'Buyer')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('U2', 'User')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('V2', 'Created At')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('W2', 'Notes')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
             $sheet->writeAreas();
@@ -1469,6 +1482,7 @@ class SecondaryInhouseOutController extends Controller
                     $row->qty_reject ?? "-",
                     $row->qty_replace ?? "-",
                     $row->qty_in ?? "-",
+                    $row->urutan ?? "-",
                     $row->buyer ?? "-",
                     $row->user ?? "-",
                     $row->created_at ?? "-",
