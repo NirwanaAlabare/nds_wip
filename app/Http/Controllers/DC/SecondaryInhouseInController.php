@@ -97,9 +97,9 @@ class SecondaryInhouseInController extends Controller
                 COALESCE(CONCAT(p_com.panel, (CASE WHEN p_com.panel_status IS NOT NULL THEN CONCAT(' - ', p_com.panel_status) ELSE '' END)), CONCAT(p.panel, (CASE WHEN p.panel_status IS NOT NULL THEN CONCAT(' - ', p.panel_status) ELSE '' END))) panel,
                 a.qty_in,
                 a.created_at,
-                dc.tujuan,
-                dc.lokasi,
-                dc.tempat,
+                COALESCE(mms.tujuan, mms.tujuan, dc.tujuan) as tujuan,
+                dc.lokasi as lokasi,
+                COALESCE(mms.proses, mms.proses, dc.tempat) as tempat,
                 COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                 COALESCE(msb.size, s.size) size,
                 a.user,
@@ -116,6 +116,9 @@ class SecondaryInhouseInController extends Controller
                 left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
                 left join part p_com on p_com.id = pd_com.part_id
                 left join master_part mp on mp.id = pd.master_part_id
+                left join part_detail_secondary pds on pds.part_detail_id = pd.id
+                left join master_secondary mms on mms.id = pds.master_secondary_id
+                left join master_secondary ms on ms.id = pd.master_secondary_id
                 left join (select id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
                 where
                 a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
@@ -168,6 +171,9 @@ class SecondaryInhouseInController extends Controller
             left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
             left join part p_com on p_com.id = pd_com.part_id
             left join master_part mp on mp.id = pd.master_part_id
+            left join part_detail_secondary pds on pds.part_detail_id = pd.id
+            left join master_secondary mms on mms.id = pds.master_secondary_id
+            left join master_secondary ms on ms.id = pd.master_secondary_id
             left join (select id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
             where
             a.tgl_trans is not null
@@ -986,6 +992,9 @@ class SecondaryInhouseInController extends Controller
                     LEFT JOIN master_part mp ON p.master_part_id = mp.id
                     LEFT JOIN marker_input mi ON a.id_marker = mi.kode
                     LEFT JOIN secondary_inhouse_in_input si ON dc.id_qr_stocker = si.id_qr_stocker
+                    left join part_detail_secondary pds on pds.part_detail_id = pd.id
+                    left join master_secondary mms on mms.id = pds.master_secondary_id
+                    left join master_secondary ms on ms.id = pd.master_secondary_id
                 WHERE
                     s.act_costing_ws = '".$thisStocker->act_costing_ws."' AND
                     s.color = '".$thisStocker->color."' AND
@@ -1065,9 +1074,9 @@ class SecondaryInhouseInController extends Controller
             p.style,
             a.qty_in,
             a.created_at,
-            dc.tujuan,
-            dc.lokasi,
-            dc.tempat,
+            COALESCE(mms.tujuan, mms.tujuan, dc.tujuan) as tujuan,
+            dc.lokasi as lokasi,
+            COALESCE(mms.proses, mms.proses, dc.tempat) as tempat,
             COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
             COALESCE(msb.size, s.size) size,
             a.user,
@@ -1087,6 +1096,9 @@ class SecondaryInhouseInController extends Controller
             left join part p_com on p_com.id = pd_com.part_id
             left join master_part mp on mp.id = pd.master_part_id
             left join (select id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
+            left join part_detail_secondary pds on pds.part_detail_id = pd.id
+            left join master_secondary mms on mms.id = pds.master_secondary_id
+            left join master_secondary ms on ms.id = pd.master_secondary_id
             where
             a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
             ".$additionalQuery."

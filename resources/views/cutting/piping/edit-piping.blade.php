@@ -25,62 +25,90 @@
             </div>
             <div class="card-body">
                 <input type="hidden" class="form-control d-none" id="edit_id" name="edit_id" value="{{ $piping->id }}">
-                <div class="row align-items-end">
+                <div class="row row-gap-3 align-items-end">
                     <div class="col-6 col-md-6">
                         <div class="mb-1">
-                            <label class="form-label"><small>ID</small></label>
+                            <label class="form-label">ID</label>
                             <input type="text" class="form-control" id="edit_id" name="edit_id" value="{{ $piping->id }}" readonly>
                         </div>
                     </div>
                     <div class="col-6 col-md-6">
                         <div class="mb-1">
-                            <label class="form-label"><small>Tanggal</small></label>
+                            <label class="form-label">Tanggal</label>
                             <input type="date" class="form-control" id="edit_tanggal" name="edit_tanggal" value="{{ $piping->tanggal_piping }}">
+                            <input type="hidden" id="initial_edit_tanggal" name="initial_edit_tanggal" value="{{ $piping->tanggal_piping }}">
                         </div>
                     </div>
                     <div class="col-6 col-md-6">
                         <div class="mb-1">
-                            <label class="form-label"><small>ID Roll</small></label>
+                            <label class="form-label">ID Roll Awal</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" id="edit_id_roll" name="edit_id_roll" value="{{ $piping->id_roll }}" readonly>
-                                <button class="btn btn-outline-success" type="button" id="get-item" onclick="fetchScan()"><i class="fa fa-rotate"></i></button>
+                                <input type="text" class="form-control" id="edit_id_roll_awal" name="edit_id_roll_awal" value="{{ $piping->id_roll }}" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-6">
+                        <div class="mb-1">
+                            <label class="form-label">Qty Roll Awal</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="edit_qty_awal" name="edit_qty_awal" value="{{ $piping->qty }}" readonly>
+                                <input type="text" class="form-control" id="edit_unit_awal" name="edit_unit_awal" value="{{ $piping->unit }}" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <hr>
+                    </div>
+                    <div class="col-6 col-md-6">
+                        <div class="mb-1">
+                            <label class="form-label">ID Roll</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="edit_id_roll" name="edit_id_roll" value="{{ $piping->id_roll }}">
+                                <input type="hidden" id="initial_edit_id_roll" name="initial_edit_id_roll" value="{{ $piping->id_roll }}">
+                                <button class="btn btn-outline-success" type="button" id="get-item" onclick="fetchScan()">Get</button>
+                                <button class="btn btn-outline-danger" type="button" id="reset-item" onclick="resetScan()">Reset</button>
                             </div>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="mb-1">
-                            <label class="form-label"><small>ID Item</small></label>
+                            <input type="hidden" id="initial_id_item" name="initial_id_item" value="{{ $piping->scannedItem->id_item }}">
+                            <label class="form-label">ID Item</label>
                             <input type="text" class="form-control" id="edit_id_item" name="edit_id_item" value="{{ $piping->scannedItem->id_item }}" readonly>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="mb-1">
-                            <label class="form-label"><small>Lot</small></label>
+                            <input type="hidden" id="initial_edit_lot" name="initial_edit_lot" value="{{ $piping->scannedItem->lot }}">
+                            <label class="form-label">Lot</label>
                             <input type="text" class="form-control" id="edit_lot" name="edit_lot" value="{{ $piping->scannedItem->lot }}" readonly>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="mb-1">
-                            <label class="form-label"><small>No. Roll</small></label>
+                            <input type="hidden" id="initial_edit_roll" name="initial_edit_roll" value="{{ $piping->scannedItem->roll }}">
+                            <label class="form-label">No. Roll</label>
                             <input type="text" class="form-control" id="edit_roll" name="edit_roll" value="{{ $piping->scannedItem->roll }}" readonly>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="mb-1">
-                            <label class="form-label"><small>No. Roll Buyer</small></label>
+                            <input type="hidden" id="initial_edit_roll_buyer" name="initial_edit_roll_buyer" value="{{ $piping->scannedItem->roll_buyer }}">
+                            <label class="form-label">No. Roll Buyer</label>
                             <input type="text" class="form-control" id="edit_roll_buyer" name="edit_roll_buyer" value="{{ $piping->scannedItem->roll_buyer }}" readonly>
                         </div>
                     </div>
                     <div class="col-12 col-md-6">
                         <div class="mb-1">
-                            <label class="form-label"><small>Detail Item</small></label>
+                            <input type="hidden" id="initial_edit_detail_item" name="initial_edit_detail_item" value="{{ $piping->scannedItem->detail_item }}">
+                            <label class="form-label">Detail Item</label>
                             <input type="text" class="form-control" id="edit_detail_item" name="edit_detail_item" value="{{ $piping->scannedItem->detail_item }}" readonly>
                         </div>
                     </div>
                     <div class="col-6 col-md-6">
                         <div class="mb-1">
                             <div class="form-group mb-0">
-                                <label><small>No. WS</small></label>
+                                <label>No. WS</label>
                                 <input type="hidden" class="form-control" id="edit_ws" name="edit_ws" value="{{ $piping->act_costing_id }}" readonly>
                                 <input type="hidden" class="form-control" id="edit_ws_id_value" name="edit_ws_id_value" value="{{ $piping->act_costing_id }}" readonly>
                                 <select name="edit_ws_id" id="edit_ws_id" class="form-select select2bs4">
@@ -94,7 +122,7 @@
                     <div class="col-6 col-md-3">
                         <div class="mb-1">
                             <div class="form-group mb-0">
-                                <label><small>Color</small></label>
+                                <label>Color</label>
                                 <input type="hidden" class="form-control" id="edit_color_value" name="edit_color_value" value="{{ $piping->color }}" readonly>
                                 <select name="edit_color" id="edit_color" class="form-select select2bs4">
                                 </select>
@@ -104,7 +132,7 @@
                     <div class="col-6 col-md-3">
                         <div class="mb-1">
                             <div class="form-group mb-0">
-                                <label><small>Panel</small></label>
+                                <label>Panel</label>
                                 <input type="hidden" class="form-control" id="edit_panel_value" name="edit_panel_value" value="{{ $piping->panel }}" readonly>
                                 <select name="edit_panel" id="edit_panel" class="form-select select2bs4">
                                 </select>
@@ -113,19 +141,19 @@
                     </div>
                     <div class="col-md-4">
                         <div class="mb-1">
-                            <label class="form-label"><small>Buyer</small></label>
+                            <label class="form-label">Buyer</label>
                             <input type="text" class="form-control" id="edit_buyer" name="edit_buyer" value="{{ $piping->buyer }}" readonly>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="mb-1">
-                            <label class="form-label"><small>Style</small></label>
+                            <label class="form-label">Style</label>
                             <input type="text" class="form-control" id="edit_style" name="edit_style" value="{{ $piping->style }}" readonly>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="mb-1">
-                            <label class="form-label"><small>Cons. Piping</small></label>
+                            <label class="form-label">Cons. Piping</label>
                             <div class="input-group">
                                 <input type="text" class="form-control" id="edit_cons_piping" name="edit_cons_piping" value="{{ $piping->cons_piping }}" readonly>
                                 <span class="input-group-text unit-text">METER</span>
@@ -134,7 +162,7 @@
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="mb-1">
-                            <label class="form-label"><small>Qty Roll</small></label>
+                            <label class="form-label">Qty Roll</label>
                             <div class="input-group">
                                 <input type="number" class="form-control" id="edit_qty_item" name="edit_qty_item" value="{{ $piping->qty }}" readonly>
                                 <span class="input-group-text unit-text">METER</span>
@@ -143,8 +171,9 @@
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="mb-1">
-                            <label class="form-label"><small>Piping</small></label>
+                            <label class="form-label">Piping</label>
                             <div class="input-group">
+                                <input type="hidden" id="initial_edit_piping" name="initial_edit_piping" value="{{ $piping->piping }}">
                                 <input type="number" class="form-control" id="edit_piping" name="edit_piping" step=".001" oninput="calculatePipingRoll()" onkeyup="calculatePipingRoll()" onchange="calculatePipingRoll()" value="{{ $piping->piping }}">
                                 <span class="input-group-text unit-text">METER</span>
                             </div>
@@ -153,8 +182,9 @@
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="mb-1">
-                            <label class="form-label"><small>Qty Sisa</small></label>
+                            <label class="form-label">Qty Sisa</label>
                             <div class="input-group">
+                                <input type="hidden" id="initial_edit_qty_sisa" name="initial_edit_qty_sisa" value="{{ $piping->qty_sisa }}">
                                 <input type="number" class="form-control" id="edit_qty_sisa" name="edit_qty_sisa" step=".001" oninput="calculateShortRoll()" onkeyup="calculateShortRoll()" onchange="calculateShortRoll()" value="{{ $piping->qty_sisa }}">
                                 <span class="input-group-text unit-text">METER</span>
                             </div>
@@ -162,7 +192,7 @@
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="mb-1">
-                            <label class="form-label"><small>Short Roll</small></label>
+                            <label class="form-label">Short Roll</label>
                             <div class="input-group">
                                 <input type="number" class="form-control" id="edit_short_roll" name="edit_short_roll" step=".001" value="{{ $piping->short_roll }}" readonly>
                                 <span class="input-group-text unit-text">METER</span>
@@ -171,8 +201,9 @@
                     </div>
                     <div class="col-6 col-md-6">
                         <div class="mb-1">
-                            <label class="form-label"><small>Operator</small></label>
+                            <label class="form-label">Operator</label>
                             <input type="text" class="form-control" id="edit_operator" name="edit_operator" value="{{ $piping->operator }}">
+                            <input type="hidden" id="initial_edit_operator" name="initial_edit_operator" value="{{ $piping->operator }}">
                         </div>
                     </div>
                     <div class="col-6 col-md-6">
@@ -303,6 +334,34 @@
             let idRoll = document.getElementById('edit_id_roll').value;
 
             getScannedItem(idRoll);
+        }
+
+        // -Reset Scanned Item Data-
+        function resetScan() {
+            document.getElementById("loading").classList.remove("d-none");
+
+            setTimeout(() => {
+                let idRollAwal = document.getElementById('edit_id_roll_awal').value;
+                let qtyAwal = document.getElementById('edit_qty_awal').value;
+
+                document.getElementById('edit_id_roll').value = idRollAwal;
+                document.getElementById('edit_qty_item').value = qtyAwal;
+
+                document.getElementById('edit_id_item').value = document.getElementById('initial_id_item').value;
+                document.getElementById('edit_detail_item').value = document.getElementById('initial_edit_detail_item').value;
+                document.getElementById('edit_lot').value = document.getElementById('initial_edit_lot').value;
+                document.getElementById('edit_roll').value = document.getElementById('initial_edit_roll').value;
+                document.getElementById('edit_roll_buyer').value = document.getElementById('initial_edit_roll_buyer').value;
+
+                let initialPiping = document.getElementById('initial_edit_piping').value;
+                let initialQtySisa = document.getElementById('initial_edit_qty_sisa').value;
+
+                document.getElementById('edit_piping').value = initialPiping;
+                document.getElementById('edit_qty_sisa').value = initialQtySisa;
+                calculateShortRoll();
+
+                document.getElementById("loading").classList.add("d-none");
+            }, 100);
         }
 
         // -Get Scanned Item Data-

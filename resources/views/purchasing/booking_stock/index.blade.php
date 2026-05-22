@@ -182,7 +182,9 @@
         let jenis = $('#filter_jenis').val();
         let search = $('#filter_search').val();
 
-        Swal.fire('Info', 'Fitur Export Excel belum disambungkan ke Controller!', 'info');
+        let url = `{{ route("booking-stock-export") }}?tgl_awal=${tgl_awal}&tgl_akhir=${tgl_akhir}&status=${status}&jenis=${jenis}&search_text=${search}`;
+
+        window.open(url, '_blank');
     });
 
     function deleteBooking(id) {

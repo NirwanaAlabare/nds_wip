@@ -24,14 +24,9 @@ use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
-use OpenSpout\Common\Entity\Style\Border;
-use OpenSpout\Common\Entity\Style\CellAlignment;
-use OpenSpout\Common\Entity\Style\Color;
-use OpenSpout\Writer\Common\Creator\Style\BorderBuilder;
-use OpenSpout\Writer\Common\Creator\Style\StyleBuilder;
-use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
-use Rap2hpoutre\FastExcel\FastExcel;
 use Yajra\DataTables\Facades\DataTables;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
+
 
 class ReportCuttingController extends Controller
 {
@@ -3378,65 +3373,28 @@ SELECT
 order by  ws asc, color asc
     ");
 
-        $fileName = 'report-mutasi-fabric.xlsx';
+        $fileName = 'report-mutasi-fabric';
 
-        $border = (new BorderBuilder())
-            ->setBorderBottom(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderTop(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderLeft(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderRight(Color::BLACK, Border::WIDTH_THIN)
-            ->build();
+        $excel = FastExcel::create($fileName);
 
-        $titleStyle = (new StyleBuilder())
-            ->setFontBold()
-            ->setFontSize(14)
-            ->build();
+        $sheet = $excel->sheet();
 
-        $filterStyle = (new StyleBuilder())
-            ->setFontSize(12)
-            ->build();
-
-        $headerStyle = (new StyleBuilder())
-            ->setFontBold()
-            ->setBorder($border)
-            ->build();
-
-        $rowStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->build();
-
-        $rightStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->setCellAlignment(CellAlignment::RIGHT)
-            ->build();
-
-        $qtyStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->setCellAlignment(CellAlignment::RIGHT)
-            ->setFormat('[=0]0;0.00')
-            ->build();
-
-        $writer = WriterEntityFactory::createXLSXWriter();
-
-        $writer->openToBrowser($fileName);
-
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray(
-                ['Report Mutasi Fabric'],
-                $titleStyle
-            )
+        $sheet->writeRow(
+            ['Report Mutasi Fabric'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+            ]
         );
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray(
-                ['Periode '. $start_date .' s/d '. $end_date],
-                $filterStyle
-            )
+        $sheet->writeRow(
+            ['Periode ' . $start_date . ' s/d ' . $end_date],
+            [
+                'font-size' => 12,
+            ]
         );
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray([])
-        );
+        $sheet->writeRow(['']);
 
         $header = [
             'Worksheet',
@@ -3463,45 +3421,54 @@ order by  ws asc, color asc
             'Saldo Akhir',
         ]);
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray($header, $headerStyle)
+        $sheet->writeRow(
+            $header,
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+            ]
         );
 
         foreach ($data as $row) {
 
-            $cells = [
-                WriterEntityFactory::createCell($row->ws, $rowStyle),
-                WriterEntityFactory::createCell($row->buyer, $rowStyle),
-                WriterEntityFactory::createCell($row->styleno, $rightStyle),
-                WriterEntityFactory::createCell($row->color, $rowStyle),
+            $rows = [
+                $row->ws ?: '',
+                $row->buyer ?: '',
+                $row->styleno ?: '',
+                $row->color ?: '',
             ];
 
             if ($tipe == 'Barcode') {
-                $cells[] = WriterEntityFactory::createCell($row->barcode, $rowStyle);
+                $rows[] = $row->barcode ?: '';
             }
 
-            $cells = array_merge($cells, [
-                WriterEntityFactory::createCell($row->id_item, $rightStyle),
-                WriterEntityFactory::createCell($row->itemdesc, $rowStyle),
-                WriterEntityFactory::createCell($row->satuan, $rowStyle),
-                WriterEntityFactory::createCell((float) $row->saldo_awal, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->penerimaan, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->pemakaian, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->short_roll, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->gr_set, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->gr_panel, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->retur, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->saldo_akhir, $rightStyle),
+            $rows = array_merge($rows, [
+                $row->id_item ?: '',
+                $row->itemdesc ?: '',
+                $row->satuan ?: '',
+                (float) $row->saldo_awal,
+                (float) $row->penerimaan,
+                (float) $row->pemakaian,
+                (float) $row->short_roll,
+                (float) $row->gr_set,
+                (float) $row->gr_panel,
+                (float) $row->retur,
+                (float) $row->saldo_akhir,
             ]);
 
-            $writer->addRow(
-                WriterEntityFactory::createRow($cells)
+            $sheet->writeRow(
+                $rows,
+                [
+                    'border' => 'thin',
+                ]
             );
         }
 
-        $writer->close();
+        foreach (range('A', 'Z') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
 
-        exit;
+        return $excel->download();
     }
 
 
@@ -3731,65 +3698,28 @@ HAVING
             ORDER BY ws ASC, color ASC
         ", [$start_date, $end_date, $prev_date]);
 
-        $fileName = 'report-mutasi-fabric-proporsional.xlsx';
+        $fileName = 'report-mutasi-fabric-proporsional';
 
-        $border = (new BorderBuilder())
-            ->setBorderBottom(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderTop(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderLeft(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderRight(Color::BLACK, Border::WIDTH_THIN)
-            ->build();
+        $excel = FastExcel::create($fileName);
 
-        $titleStyle = (new StyleBuilder())
-            ->setFontBold()
-            ->setFontSize(14)
-            ->build();
+        $sheet = $excel->sheet();
 
-        $filterStyle = (new StyleBuilder())
-            ->setFontSize(12)
-            ->build();
-
-        $headerStyle = (new StyleBuilder())
-            ->setFontBold()
-            ->setBorder($border)
-            ->build();
-
-        $rowStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->build();
-
-        $rightStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->setCellAlignment(CellAlignment::RIGHT)
-            ->build();
-
-        $qtyStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->setCellAlignment(CellAlignment::RIGHT)
-            ->setFormat('[=0]0;0.00')
-            ->build();
-
-        $writer = WriterEntityFactory::createXLSXWriter();
-
-        $writer->openToBrowser($fileName);
-
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray(
-                ['Report Mutasi Fabric Proporsional'],
-                $titleStyle
-            )
+        $sheet->writeRow(
+            ['Report Mutasi Fabric Proporsional'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+            ]
         );
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray(
-                ['Periode '. $start_date .' s/d '. $end_date],
-                $filterStyle
-            )
+        $sheet->writeRow(
+            ['Periode ' . $start_date . ' s/d ' . $end_date],
+            [
+                'font-size' => 12,
+            ]
         );
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray([])
-        );
+        $sheet->writeRow(['']);
 
         $header = [
             'Worksheet',
@@ -3816,45 +3746,54 @@ HAVING
             'Saldo Akhir',
         ]);
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray($header, $headerStyle)
+        $sheet->writeRow(
+            $header,
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+            ]
         );
 
         foreach ($data as $row) {
 
-            $cells = [
-                WriterEntityFactory::createCell($row->ws, $rowStyle),
-                WriterEntityFactory::createCell($row->buyer, $rowStyle),
-                WriterEntityFactory::createCell($row->styleno, $rightStyle),
-                WriterEntityFactory::createCell($row->color, $rowStyle),
+            $rows = [
+                $row->ws ?: '',
+                $row->buyer ?: '',
+                $row->styleno ?: '',
+                $row->color ?: '',
             ];
 
             if ($tipe == 'Barcode') {
-                $cells[] = WriterEntityFactory::createCell($row->barcode, $rowStyle);
+                $rows[] = $row->barcode ?: '';
             }
 
-            $cells = array_merge($cells, [
-                WriterEntityFactory::createCell($row->id_item, $rightStyle),
-                WriterEntityFactory::createCell($row->itemdesc, $rowStyle),
-                WriterEntityFactory::createCell($row->satuan, $rowStyle),
-                WriterEntityFactory::createCell((float) $row->saldo_awal, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->penerimaan, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->pemakaian, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->short_roll, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->gr_set, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->gr_panel, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->retur, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->saldo_akhir, $rightStyle),
+            $rows = array_merge($rows, [
+                $row->id_item ?: '',
+                $row->itemdesc ?: '',
+                $row->satuan ?: '',
+                (float) $row->saldo_awal,
+                (float) $row->penerimaan,
+                (float) $row->pemakaian,
+                (float) $row->short_roll,
+                (float) $row->gr_set,
+                (float) $row->gr_panel,
+                (float) $row->retur,
+                (float) $row->saldo_akhir,
             ]);
 
-            $writer->addRow(
-                WriterEntityFactory::createRow($cells)
+            $sheet->writeRow(
+                $rows,
+                [
+                    'border' => 'thin',
+                ]
             );
         }
 
-        $writer->close();
+        foreach (range('A', 'Z') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
 
-        exit;
+        return $excel->download();
     }
 
     /// Penerimaan Fabric Cutting
@@ -3987,118 +3926,92 @@ where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Produc
 
                 ");
 
-        $fileName = 'report-penerimaan-fabric-cutting.xlsx';
+        $fileName = 'report-penerimaan-fabric-cutting';
 
-        $border = (new BorderBuilder())
-            ->setBorderBottom(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderTop(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderLeft(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderRight(Color::BLACK, Border::WIDTH_THIN)
-            ->build();
+        $excel = FastExcel::create($fileName);
 
-        $titleStyle = (new StyleBuilder())
-            ->setFontBold()
-            ->setFontSize(14)
-            ->build();
+        $sheet = $excel->sheet();
 
-        $filterStyle = (new StyleBuilder())
-            ->setFontSize(12)
-            ->build();
-
-        $headerStyle = (new StyleBuilder())
-            ->setFontBold()
-            ->setBorder($border)
-            ->build();
-
-        $rowStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->build();
-
-        $rightStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->setCellAlignment(CellAlignment::RIGHT)
-            ->build();
-
-        $qtyStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->setCellAlignment(CellAlignment::RIGHT)
-            ->setFormat('[=0]0;0.00')
-            ->build();
-
-        $writer = WriterEntityFactory::createXLSXWriter();
-
-        $writer->openToBrowser($fileName);
-
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray(
-                ['Report Penerimaan Fabric Cutting'],
-                $titleStyle
-            )
+        $sheet->writeRow(
+            ['Report Penerimaan Fabric Cutting'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+            ]
         );
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray(
-                ['Periode '. $start_date .' s/d '. $end_date],
-                $filterStyle
-            )
+        $sheet->writeRow(
+            ['Periode ' . $start_date . ' s/d ' . $end_date],
+            [
+                'font-size' => 12,
+            ]
         );
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray([])
-        );
+        $sheet->writeRow(['']);
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray([
-                'No BPPB',
-                'Tgl BPPB',
-                'No Req',
-                'Barcode',
-                'No Roll',
-                'No Roll Buyer',
-                'No Lot',
-                'ID Item',
-                'No WS',
-                'No WS Act',
-                'Style',
-                'Nama Barang',
-                'Warna',
-                'Qty Out',
-                'Satuan',
-                'Qty Konv',
-                'Satuan Konv',
-            ], $headerStyle)
+        $header = [
+            'No BPPB',
+            'Tgl BPPB',
+            'No Req',
+            'Barcode',
+            'No Roll',
+            'No Roll Buyer',
+            'No Lot',
+            'ID Item',
+            'No WS',
+            'No WS Act',
+            'Style',
+            'Nama Barang',
+            'Warna',
+            'Qty Out',
+            'Satuan',
+            'Qty Konv',
+            'Satuan Konv',
+        ];
+
+        $sheet->writeRow(
+            $header,
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+            ]
         );
 
         foreach ($data as $row) {
 
-            $cells = [
-                WriterEntityFactory::createCell($row->no_bppb, $rowStyle),
-                WriterEntityFactory::createCell($row->tgl_bppb_fix, $rowStyle),
-                WriterEntityFactory::createCell($row->no_req, $rowStyle),
-                WriterEntityFactory::createCell($row->id_roll, $rowStyle),
-                WriterEntityFactory::createCell($row->no_roll, $rowStyle),
-                WriterEntityFactory::createCell($row->no_roll_buyer, $rowStyle),
-                WriterEntityFactory::createCell($row->no_lot, $rowStyle),
-                WriterEntityFactory::createCell($row->id_item, $rightStyle),
-                WriterEntityFactory::createCell($row->no_ws, $rowStyle),
-                WriterEntityFactory::createCell($row->no_ws_aktual, $rowStyle),
-                WriterEntityFactory::createCell($row->styleno, $rowStyle),
-                WriterEntityFactory::createCell($row->itemdesc, $rowStyle),
-                WriterEntityFactory::createCell($row->color, $rowStyle),
-                WriterEntityFactory::createCell((float) $row->qty_out, $rightStyle),
-                WriterEntityFactory::createCell($row->satuan, $rowStyle),
-                WriterEntityFactory::createCell((float) $row->qty_out_konversi, $rightStyle),
-                WriterEntityFactory::createCell($row->satuan_konversi, $rowStyle),
+            $rows = [
+                $row->no_bppb ?: '',
+                $row->tgl_bppb_fix ?: '',
+                $row->no_req ?: '',
+                $row->id_roll ?: '',
+                $row->no_roll ?: '',
+                $row->no_roll_buyer ?: '',
+                $row->no_lot ?: '',
+                $row->id_item ?: '',
+                $row->no_ws ?: '',
+                $row->no_ws_aktual ?: '',
+                $row->styleno ?: '',
+                $row->itemdesc ?: '',
+                $row->color ?: '',
+                (float) $row->qty_out,
+                $row->satuan ?: '',
+                (float) $row->qty_out_konversi,
+                $row->satuan_konversi ?: '',
             ];
 
-            $writer->addRow(
-                WriterEntityFactory::createRow($cells)
+            $sheet->writeRow(
+                $rows,
+                [
+                    'border' => 'thin',
+                ]
             );
         }
 
-        $writer->close();
+        foreach (range('A', 'Z') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
 
-        exit;
+        return $excel->download();
     }
 
     /// Report Ganti Reject Set
@@ -4200,106 +4113,80 @@ order by tanggal asc, no_form asc
             order by tanggal asc, no_form asc
                 ");
 
-        $fileName = 'report-gr-set.xlsx';
+        $fileName = 'report-gr-set';
 
-        $border = (new BorderBuilder())
-            ->setBorderBottom(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderTop(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderLeft(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderRight(Color::BLACK, Border::WIDTH_THIN)
-            ->build();
+        $excel = FastExcel::create($fileName);
 
-        $titleStyle = (new StyleBuilder())
-            ->setFontBold()
-            ->setFontSize(14)
-            ->build();
+        $sheet = $excel->sheet();
 
-        $filterStyle = (new StyleBuilder())
-            ->setFontSize(12)
-            ->build();
-
-        $headerStyle = (new StyleBuilder())
-            ->setFontBold()
-            ->setBorder($border)
-            ->build();
-
-        $rowStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->build();
-
-        $rightStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->setCellAlignment(CellAlignment::RIGHT)
-            ->build();
-
-        $qtyStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->setCellAlignment(CellAlignment::RIGHT)
-            ->setFormat('[=0]0;0.00')
-            ->build();
-
-        $writer = WriterEntityFactory::createXLSXWriter();
-
-        $writer->openToBrowser($fileName);
-
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray(
-                ['Report GR Set'],
-                $titleStyle
-            )
+        $sheet->writeRow(
+            ['Report GR Set'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+            ]
         );
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray(
-                ['Periode '. $start_date .' s/d '. $end_date],
-                $filterStyle
-            )
+        $sheet->writeRow(
+            ['Periode ' . $start_date . ' s/d ' . $end_date],
+            [
+                'font-size' => 12,
+            ]
         );
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray([])
-        );
+        $sheet->writeRow(['']);
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray([
-                'Tanggal',
-                'No Form',
-                'Panel',
-                'WS',
-                'Style',
-                'Color',
-                'Barcode',
-                'ID Item',
-                'Item',
-                'Qty',
-                'Unit',
-            ], $headerStyle)
+        $header = [
+            'Tanggal',
+            'No Form',
+            'Panel',
+            'WS',
+            'Style',
+            'Color',
+            'Barcode',
+            'ID Item',
+            'Item',
+            'Qty',
+            'Unit',
+        ];
+
+        $sheet->writeRow(
+            $header,
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+            ]
         );
 
         foreach ($data as $row) {
 
-            $cells = [
-                WriterEntityFactory::createCell($row->tanggal_fix, $rowStyle),
-                WriterEntityFactory::createCell($row->no_form, $rowStyle),
-                WriterEntityFactory::createCell($row->panel, $rowStyle),
-                WriterEntityFactory::createCell($row->act_costing_ws, $rowStyle),
-                WriterEntityFactory::createCell($row->style, $rowStyle),
-                WriterEntityFactory::createCell($row->color, $rowStyle),
-                WriterEntityFactory::createCell($row->barcode, $rowStyle),
-                WriterEntityFactory::createCell($row->id_item, $rightStyle),
-                WriterEntityFactory::createCell($row->itemdesc, $rowStyle),
-                WriterEntityFactory::createCell((float) $row->qty_pakai, $rightStyle),
-                WriterEntityFactory::createCell($row->satuan, $rowStyle),
+            $rows = [
+                $row->tanggal_fix ?: '',
+                $row->no_form ?: '',
+                $row->panel ?: '',
+                $row->act_costing_ws ?: '',
+                $row->style ?: '',
+                $row->color ?: '',
+                $row->barcode ?: '',
+                $row->id_item ?: '',
+                $row->itemdesc ?: '',
+                (float) $row->qty_pakai,
+                $row->satuan ?: '',
             ];
 
-            $writer->addRow(
-                WriterEntityFactory::createRow($cells)
+            $sheet->writeRow(
+                $rows,
+                [
+                    'border' => 'thin',
+                ]
             );
         }
 
-        $writer->close();
+        foreach (range('A', 'Z') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
 
-        exit;
+        return $excel->download();
     }
 
 
@@ -4419,104 +4306,78 @@ order by a.tgl_trans asc
         order by a.tgl_trans asc
             ");
 
-        $fileName = 'report-gr-panel.xlsx';
+        $fileName = 'report-gr-panel';
 
-        $border = (new BorderBuilder())
-            ->setBorderBottom(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderTop(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderLeft(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderRight(Color::BLACK, Border::WIDTH_THIN)
-            ->build();
+        $excel = FastExcel::create($fileName);
 
-        $titleStyle = (new StyleBuilder())
-            ->setFontBold()
-            ->setFontSize(14)
-            ->build();
+        $sheet = $excel->sheet();
 
-        $filterStyle = (new StyleBuilder())
-            ->setFontSize(12)
-            ->build();
-
-        $headerStyle = (new StyleBuilder())
-            ->setFontBold()
-            ->setBorder($border)
-            ->build();
-
-        $rowStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->build();
-
-        $rightStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->setCellAlignment(CellAlignment::RIGHT)
-            ->build();
-        
-        $qtyStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->setCellAlignment(CellAlignment::RIGHT)
-            ->setFormat('[=0]0;0.00')
-            ->build();
-
-        $writer = WriterEntityFactory::createXLSXWriter();
-
-        $writer->openToBrowser($fileName);
-
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray(
-                ['Report GR Panel'],
-                $titleStyle
-            )
+        $sheet->writeRow(
+            ['Report GR Panel'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+            ]
         );
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray(
-                ['Periode '. $start_date .' s/d '. $end_date],
-                $filterStyle
-            )
+        $sheet->writeRow(
+            ['Periode ' . $start_date . ' s/d ' . $end_date],
+            [
+                'font-size' => 12,
+            ]
         );
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray([])
-        );
+        $sheet->writeRow(['']);
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray([
-                'Tanggal',
-                'Buyer',
-                'WS',
-                'Style',
-                'Color',
-                'Barcode',
-                'ID Item',
-                'Item',
-                'Qty',
-                'Unit',
-            ], $headerStyle)
+        $header = [
+            'Tanggal',
+            'Buyer',
+            'WS',
+            'Style',
+            'Color',
+            'Barcode',
+            'ID Item',
+            'Item',
+            'Qty',
+            'Unit',
+        ];
+
+        $sheet->writeRow(
+            $header,
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+            ]
         );
 
         foreach ($data as $row) {
 
-            $cells = [
-                WriterEntityFactory::createCell($row->tanggal_fix, $rowStyle),
-                WriterEntityFactory::createCell($row->buyer, $rowStyle),
-                WriterEntityFactory::createCell($row->ws, $rowStyle),
-                WriterEntityFactory::createCell($row->styleno, $rowStyle),
-                WriterEntityFactory::createCell($row->color, $rowStyle),
-                WriterEntityFactory::createCell($row->barcode, $rowStyle),
-                WriterEntityFactory::createCell($row->id_item, $rightStyle),
-                WriterEntityFactory::createCell($row->itemdesc, $rowStyle),
-                WriterEntityFactory::createCell((float) $row->qty_pakai, $rightStyle),
-                WriterEntityFactory::createCell($row->satuan, $rowStyle),
+            $rows = [
+                $row->tanggal_fix ?: '',
+                $row->buyer ?: '',
+                $row->ws ?: '',
+                $row->styleno ?: '',
+                $row->color ?: '',
+                $row->barcode ?: '',
+                $row->id_item ?: '',
+                $row->itemdesc ?: '',
+                (float) $row->qty_pakai,
+                $row->satuan ?: '',
             ];
 
-            $writer->addRow(
-                WriterEntityFactory::createRow($cells)
+            $sheet->writeRow(
+                $rows,
+                [
+                    'border' => 'thin',
+                ]
             );
         }
 
-        $writer->close();
+        foreach (range('A', 'Z') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
 
-        exit;
+        return $excel->download();
     }
 
 
@@ -6040,7 +5901,7 @@ order by a.tgl_trans asc
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '$tgl_saldo'
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) < '$start_date'
                                 AND ( marker_input_detail.ratio > 0 OR ( similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0 ))
-                                AND part_detail.part_status != 'complement'
+                                AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                             GROUP BY
                                 form_cut_input.id,
                                 form_cut_input_detail.group_stocker,
@@ -6092,7 +5953,7 @@ order by a.tgl_trans asc
                                 COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$tgl_saldo'
                                 AND COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) < '$start_date'
                                 AND form_cut_piece_detail.STATUS = 'complete'
-                                AND part_detail.part_status != 'complement'
+                                AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                             GROUP BY
                                 form_cut_piece.id,
                                 form_cut_piece_detail.group_stocker,
@@ -6165,7 +6026,7 @@ order by a.tgl_trans asc
                                 AND ( stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 )
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '$tgl_saldo'
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) < '$start_date'
-                                AND part_detail.part_status != 'complement'
+                                AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                             GROUP BY
                                 form_cut_input.id,
                                 form_cut_input_detail.group_stocker,
@@ -6248,7 +6109,7 @@ order by a.tgl_trans asc
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '$start_date'
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '$end_date'
                                 AND ( marker_input_detail.ratio > 0 OR ( similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0 ))
-                                AND part_detail.part_status != 'complement'
+                                AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                             GROUP BY
                                 form_cut_input.id,
                                 form_cut_input_detail.group_stocker,
@@ -6301,7 +6162,7 @@ order by a.tgl_trans asc
                                 COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$start_date'
                                 AND COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) <= '$end_date'
                                 AND form_cut_piece_detail.STATUS = 'complete'
-                                AND part_detail.part_status != 'complement'
+                                AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                             GROUP BY
                                 form_cut_piece.id,
                                 form_cut_piece_detail.group_stocker,
@@ -6375,7 +6236,7 @@ order by a.tgl_trans asc
                                 AND ( stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 )
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '$start_date'
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '$end_date'
-                                AND part_detail.part_status != 'complement'
+                                AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                             GROUP BY
                                 form_cut_input.id,
                                 form_cut_input_detail.group_stocker,
@@ -6508,7 +6369,7 @@ order by a.tgl_trans asc
                                 left join part_detail on part_detail.part_id = part.id
                                 left join master_part mp on mp.id = part_detail.master_part_id
                             where
-                            part.panel_status != 'COMPLEMENT' and part_detail.part_status != 'COMPLEMENT'
+                            part.panel_status != 'COMPLEMENT' AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                             group by
                                 no_form,
                                 id_so_det,
@@ -6671,7 +6532,7 @@ order by a.tgl_trans asc
                                 left join part_detail on part_detail.part_id = part.id
                                 left join master_part mp on mp.id = part_detail.master_part_id
                             where
-                            part.panel_status != 'COMPLEMENT' and part_detail.part_status != 'COMPLEMENT'
+                            part.panel_status != 'COMPLEMENT' AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
                             group by
                                 no_form,
                                 id_so_det,
@@ -6717,6 +6578,7 @@ order by a.tgl_trans asc
                             part_id,
                             part_detail_id
                     ),
+
                     saldo_awal_cutting as (
                         SELECT
                             master_sb_ws.id_so_det,
@@ -7571,106 +7433,80 @@ order by a.tgl_trans asc
             ORDER BY ws asc, color asc, urutan asc
         ");
 
-        $fileName = 'report-mutasi-wip-cutting.xlsx';
+        $fileName = 'report-mutasi-wip-cutting';
 
-        $border = (new BorderBuilder())
-            ->setBorderBottom(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderTop(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderLeft(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderRight(Color::BLACK, Border::WIDTH_THIN)
-            ->build();
+        $excel = FastExcel::create($fileName);
 
-        $titleStyle = (new StyleBuilder())
-            ->setFontBold()
-            ->setFontSize(14)
-            ->build();
+        $sheet = $excel->sheet();
 
-        $filterStyle = (new StyleBuilder())
-            ->setFontSize(12)
-            ->build();
-
-        $headerStyle = (new StyleBuilder())
-            ->setFontBold()
-            ->setBorder($border)
-            ->build();
-
-        $rowStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->build();
-
-        $rightStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->setCellAlignment(CellAlignment::RIGHT)
-            ->build();
-
-        $qtyStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->setCellAlignment(CellAlignment::RIGHT)
-            ->setFormat('[=0]0;0.00')
-            ->build();
-
-        $writer = WriterEntityFactory::createXLSXWriter();
-
-        $writer->openToBrowser($fileName);
-
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray(
-                ['Report Mutasi WIP Cutting'],
-                $titleStyle
-            )
+        $sheet->writeRow(
+            ['Report Mutasi WIP Cutting'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+            ]
         );
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray(
-                ['Periode '. $start_date .' s/d '. $end_date],
-                $filterStyle
-            )
+        $sheet->writeRow(
+            ['Periode ' . $start_date . ' s/d ' . $end_date],
+            [
+                'font-size' => 12,
+            ]
         );
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray([])
-        );
+        $sheet->writeRow(['']);
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray([
-                'Worksheet',
-                'Buyer',
-                'Style',
-                'Color',
-                'Size',
-                'Panel',
-                'Saldo Awal',
-                'In',
-                'Replacement',
-                'Out',
-                'Saldo Akhir',
-            ], $headerStyle)
+        $header = [
+            'Worksheet',
+            'Buyer',
+            'Style',
+            'Color',
+            'Size',
+            'Panel',
+            'Saldo Awal',
+            'In',
+            'Replacement',
+            'Out',
+            'Saldo Akhir',
+        ];
+
+        $sheet->writeRow(
+            $header,
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+            ]
         );
 
         foreach ($data as $row) {
 
-            $cells = [
-                WriterEntityFactory::createCell($row->ws, $rowStyle),
-                WriterEntityFactory::createCell($row->buyer, $rowStyle),
-                WriterEntityFactory::createCell($row->styleno, $rowStyle),
-                WriterEntityFactory::createCell($row->color, $rowStyle),
-                WriterEntityFactory::createCell($row->size, $rowStyle),
-                WriterEntityFactory::createCell($row->panel, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->saldo_awal, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->qty_cut, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->qty_replace, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->qty_dc, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->saldo_akhir, $rightStyle),
+            $rows = [
+                $row->ws ?: '',
+                $row->buyer ?: '',
+                $row->styleno ?: '',
+                $row->color ?: '',
+                $row->size ?: '',
+                $row->panel ?: '',
+                (float) $row->saldo_awal,
+                (float) $row->qty_cut,
+                (float) $row->qty_replace,
+                (float) $row->qty_dc,
+                (float) $row->saldo_akhir,
             ];
 
-            $writer->addRow(
-                WriterEntityFactory::createRow($cells)
+            $sheet->writeRow(
+                $rows,
+                [
+                    'border' => 'thin',
+                ]
             );
         }
 
-        $writer->close();
+        foreach (range('A', 'Z') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
 
-        exit;
+        return $excel->download();
     }
 
     // public function export_excel_report_mut_wip_cutting_detail(Request $request)
@@ -8515,110 +8351,84 @@ order by a.tgl_trans asc
                         select '' id_so_det, buyer, no_ws ws, style styleno, color, size, '' dest, '' part_id, panel, '' panel_status, '' part_detail_id, part nama_part, '' part_status, 0 saldo_awal, 0 qty_cut, 0 qty_dc_1, 0 qty_dc, 0 qty_replace, 0 saldo_akhir, 'N' cancel, 'N' cancel_h, status, IF(tgl_saldo < '$start_date',qty,0) qty_adjust_before, IF(tgl_saldo >= '$start_date',qty,0) qty_adjust from wip_adjustment where tgl_saldo <= '$end_date' and type_report = 'wip_cut_detail' and status = 'Y') a LEFT JOIN signalbit_erp.master_size_new msn on a.size = msn.size group by ws, color, size, panel, nama_part ORDER BY ws asc, color asc, size asc, panel, nama_part, urutan asc
         ");
 
-        $fileName = 'report-mutasi-wip-cutting-detail.xlsx';
+        $fileName = 'report-mutasi-wip-cutting-detail';
 
-        $border = (new BorderBuilder())
-            ->setBorderBottom(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderTop(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderLeft(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderRight(Color::BLACK, Border::WIDTH_THIN)
-            ->build();
+        $excel = FastExcel::create($fileName);
 
-        $titleStyle = (new StyleBuilder())
-            ->setFontBold()
-            ->setFontSize(14)
-            ->build();
+        $sheet = $excel->sheet();
 
-        $filterStyle = (new StyleBuilder())
-            ->setFontSize(12)
-            ->build();
-
-        $headerStyle = (new StyleBuilder())
-            ->setFontBold()
-            ->setBorder($border)
-            ->build();
-
-        $rowStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->build();
-
-        $rightStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->setCellAlignment(CellAlignment::RIGHT)
-            ->build();
-
-        $qtyStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->setCellAlignment(CellAlignment::RIGHT)
-            ->setFormat('[=0]0;0.00')
-            ->build();
-
-        $writer = WriterEntityFactory::createXLSXWriter();
-
-        $writer->openToBrowser($fileName);
-
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray(
-                ['Report Mutasi WIP Cutting Detail'],
-                $titleStyle
-            )
+        $sheet->writeRow(
+            ['Report Mutasi WIP Cutting Detail'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+            ]
         );
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray(
-                ['Periode '. $start_date .' s/d '. $end_date],
-                $filterStyle
-            )
+        $sheet->writeRow(
+            ['Periode ' . $start_date . ' s/d ' . $end_date],
+            [
+                'font-size' => 12,
+            ]
         );
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray([])
-        );
+        $sheet->writeRow(['']);
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray([
-                'Worksheet',
-                'Buyer',
-                'Style',
-                'Color',
-                'Size',
-                'Panel',
-                'Part',
-                'Saldo Awal',
-                'In',
-                'Replacement',
-                'Out',
-                'Adjustment',
-                'Saldo Akhir',
-            ], $headerStyle)
+        $header = [
+            'Worksheet',
+            'Buyer',
+            'Style',
+            'Color',
+            'Size',
+            'Panel',
+            'Part',
+            'Saldo Awal',
+            'In',
+            'Replacement',
+            'Out',
+            'Adjusment',
+            'Saldo Akhir',
+        ];
+
+        $sheet->writeRow(
+            $header,
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+            ]
         );
 
         foreach ($data as $row) {
 
-            $cells = [
-                WriterEntityFactory::createCell($row->ws, $rowStyle),
-                WriterEntityFactory::createCell($row->buyer, $rowStyle),
-                WriterEntityFactory::createCell($row->styleno, $rowStyle),
-                WriterEntityFactory::createCell($row->color, $rowStyle),
-                WriterEntityFactory::createCell($row->size, $rowStyle),
-                WriterEntityFactory::createCell($row->panel, $rowStyle),
-                WriterEntityFactory::createCell($row->nama_part, $rowStyle),
-                WriterEntityFactory::createCell((float) $row->saldo_awal, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->qty_cut, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->qty_replace, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->qty_dc, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->qty_adjust, $rightStyle),
-                WriterEntityFactory::createCell((float) $row->saldo_akhir, $rightStyle),
+            $rows = [
+                $row->ws ?: '',
+                $row->buyer ?: '',
+                $row->styleno ?: '',
+                $row->color ?: '',
+                $row->size ?: '',
+                $row->panel ?: '',
+                $row->nama_part ?: '',
+                (float) $row->saldo_awal,
+                (float) $row->qty_cut,
+                (float) $row->qty_replace,
+                (float) $row->qty_dc,
+                (float) $row->qty_adjust,
+                (float) $row->saldo_akhir,
             ];
 
-            $writer->addRow(
-                WriterEntityFactory::createRow($cells)
+            $sheet->writeRow(
+                $rows,
+                [
+                    'border' => 'thin',
+                ]
             );
         }
 
-        $writer->close();
+        foreach (range('A', 'Z') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
 
-        exit;
+        return $excel->download();
     }
 
     // public function report_pengeluaran_cutting1(Request $request)
@@ -9635,110 +9445,84 @@ order by a.tgl_trans asc
                 part_detail_id
         ");
 
-        $fileName = 'laporan-pengeluaran-cutting.xlsx';
+        $fileName = 'laporan-pengeluaran-cutting';
 
-        $border = (new BorderBuilder())
-            ->setBorderBottom(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderTop(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderLeft(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderRight(Color::BLACK, Border::WIDTH_THIN)
-            ->build();
+        $excel = FastExcel::create($fileName);
 
-        $titleStyle = (new StyleBuilder())
-            ->setFontBold()
-            ->setFontSize(14)
-            ->build();
+        $sheet = $excel->sheet();
 
-        $filterStyle = (new StyleBuilder())
-            ->setFontSize(12)
-            ->build();
-
-        $headerStyle = (new StyleBuilder())
-            ->setFontBold()
-            ->setBorder($border)
-            ->build();
-
-        $rowStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->build();
-
-        $rightStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->setCellAlignment(CellAlignment::RIGHT)
-            ->build();
-
-        $qtyStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->setCellAlignment(CellAlignment::RIGHT)
-            ->setFormat('0.00')
-            ->build();
-
-        $writer = WriterEntityFactory::createXLSXWriter();
-
-        $writer->openToBrowser($fileName);
-
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray(
-                ['Report Pengeluaran Cutting'],
-                $titleStyle
-            )
+        $sheet->writeRow(
+            ['Report Pengeluaran Cutting'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+            ]
         );
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray(
-                ['Periode '. $start_date .' s/d '. $end_date],
-                $filterStyle
-            )
+        $sheet->writeRow(
+            ['Periode ' . $start_date . ' s/d ' . $end_date],
+            [
+                'font-size' => 12,
+            ]
         );
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray([])
-        );
+        $sheet->writeRow(['']);
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray([
-                'Tanggal',
-                'No Form',
-                'No Cut',
-                'Worksheet',
-                'Buyer',
-                'Style',
-                'Color',
-                'Size',
-                'Panel',
-                'Panel Status',
-                'Part',
-                'Part Status',
-                'Qty',
-            ], $headerStyle)
+        $header = [
+            'Tanggal',
+            'No Form',
+            'No Cut',
+            'Worksheet',
+            'Buyer',
+            'Style',
+            'Color',
+            'Size',
+            'Panel',
+            'Panel Status',
+            'Part',
+            'Part Status',
+            'Qty',
+        ];
+
+        $sheet->writeRow(
+            $header,
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+            ]
         );
 
         foreach ($data as $row) {
 
-            $cells = [
-                WriterEntityFactory::createCell($row->created_at, $rowStyle),
-                WriterEntityFactory::createCell($row->no_form, $rowStyle),
-                WriterEntityFactory::createCell($row->no_cut, $rightStyle),
-                WriterEntityFactory::createCell($row->ws, $rowStyle),
-                WriterEntityFactory::createCell($row->buyer, $rowStyle),
-                WriterEntityFactory::createCell($row->styleno, $rowStyle),
-                WriterEntityFactory::createCell($row->color, $rowStyle),
-                WriterEntityFactory::createCell($row->size, $rowStyle),
-                WriterEntityFactory::createCell($row->panel, $rowStyle),
-                WriterEntityFactory::createCell($row->panel_status, $rowStyle),
-                WriterEntityFactory::createCell($row->nama_part, $rowStyle),
-                WriterEntityFactory::createCell($row->part_status, $rowStyle),
-                WriterEntityFactory::createCell((float) $row->qty_dc, $rightStyle),
+            $rows = [
+                $row->created_at ?: '',
+                $row->no_form ?: '',
+                $row->no_cut ?: '',
+                $row->ws ?: '',
+                $row->buyer ?: '',
+                $row->styleno ?: '',
+                $row->color ?: '',
+                $row->size ?: '',
+                $row->panel ?: '',
+                $row->panel_status ?: '',
+                $row->nama_part ?: '',
+                $row->part_status ?: '',
+                (float) $row->qty_dc,
             ];
 
-            $writer->addRow(
-                WriterEntityFactory::createRow($cells)
+            $sheet->writeRow(
+                $rows,
+                [
+                    'border' => 'thin',
+                ]
             );
         }
 
-        $writer->close();
+        foreach (range('A', 'Z') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
 
-        exit;
+        return $excel->download();
     }
 
     // public function export_excel_report_pengeluaran_cutting_panel(Request $request)
@@ -9906,100 +9690,80 @@ order by a.tgl_trans asc
                 part_detail_id
         ");
 
-        $fileName = 'report-pengeluaran-cutting-panel.xlsx';
+        $fileName = 'report-pengeluaran-cutting-panel';
 
-        $border = (new BorderBuilder())
-            ->setBorderBottom(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderTop(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderLeft(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderRight(Color::BLACK, Border::WIDTH_THIN)
-            ->build();
+        $excel = FastExcel::create($fileName);
 
-        $titleStyle = (new StyleBuilder())
-            ->setFontBold()
-            ->setFontSize(14)
-            ->build();
+        $sheet = $excel->sheet();
 
-        $filterStyle = (new StyleBuilder())
-            ->setFontSize(12)
-            ->build();
-
-        $headerStyle = (new StyleBuilder())
-            ->setFontBold()
-            ->setBorder($border)
-            ->build();
-
-        $rowStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->build();
-
-        $rightStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->setCellAlignment(CellAlignment::RIGHT)
-            ->build();
-
-        $writer = WriterEntityFactory::createXLSXWriter();
-
-        $writer->openToBrowser($fileName);
-
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray(
-                ['Report Pengeluaran Cutting Panel'],
-                $titleStyle
-            )
+        $sheet->writeRow(
+            ['Report Pengeluaran Cutting Panel'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+            ]
         );
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray(
-                ['Periode '. $start_date .' s/d '. $end_date],
-                $filterStyle
-            )
+        $sheet->writeRow(
+            ['Periode ' . $start_date . ' s/d ' . $end_date],
+            [
+                'font-size' => 12,
+            ]
         );
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray([])
-        );
+        $sheet->writeRow(['']);
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray([
-                'Tanggal',
-                'No Form',
-                'No Cut',
-                'Worksheet',
-                'Buyer',
-                'Style',
-                'Color',
-                'Size',
-                'Panel',
-                'Panel Status',
-                'Qty',
-            ], $headerStyle)
+        $header = [
+            'Tanggal',
+            'No Form',
+            'No Cut',
+            'Worksheet',
+            'Buyer',
+            'Style',
+            'Color',
+            'Size',
+            'Panel',
+            'Panel Status',
+            'Qty',
+        ];
+
+        $sheet->writeRow(
+            $header,
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+            ]
         );
 
         foreach ($data as $row) {
 
-            $cells = [
-                WriterEntityFactory::createCell($row->created_at, $rowStyle),
-                WriterEntityFactory::createCell($row->no_form, $rowStyle),
-                WriterEntityFactory::createCell($row->no_cut, $rowStyle),
-                WriterEntityFactory::createCell($row->ws, $rowStyle),
-                WriterEntityFactory::createCell($row->buyer, $rowStyle),
-                WriterEntityFactory::createCell($row->styleno, $rowStyle),
-                WriterEntityFactory::createCell($row->color, $rowStyle),
-                WriterEntityFactory::createCell($row->size, $rowStyle),
-                WriterEntityFactory::createCell($row->panel, $rowStyle),
-                WriterEntityFactory::createCell($row->panel_status, $rowStyle),
-                WriterEntityFactory::createCell((float) $row->qty_dc, $rightStyle),
+            $rows = [
+                $row->created_at ?: '',
+                $row->no_form ?: '',
+                $row->no_cut ?: '',
+                $row->ws ?: '',
+                $row->buyer ?: '',
+                $row->styleno ?: '',
+                $row->color ?: '',
+                $row->size ?: '',
+                $row->panel ?: '',
+                $row->panel_status ?: '',
+                (float) $row->qty_dc,
             ];
 
-            $writer->addRow(
-                WriterEntityFactory::createRow($cells)
+            $sheet->writeRow(
+                $rows,
+                [
+                    'border' => 'thin',
+                ]
             );
         }
 
-        $writer->close();
+        foreach (range('A', 'Z') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
 
-        exit;
+        return $excel->download();
     }
 
     public function report_return_fabric_cutting(Request $request)
@@ -10184,118 +9948,97 @@ order by a.tgl_trans asc
 
                 ", [$start_date, $end_date]);
 
-        $fileName = 'report-return-fabric-cutting.xlsx';
+        $fileName = 'report-return-fabric-cutting';
 
-        $border = (new BorderBuilder())
-            ->setBorderBottom(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderTop(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderLeft(Color::BLACK, Border::WIDTH_THIN)
-            ->setBorderRight(Color::BLACK, Border::WIDTH_THIN)
-            ->build();
+        $excel = FastExcel::create($fileName);
 
-        $titleStyle = (new StyleBuilder())
-            ->setFontBold()
-            ->setFontSize(14)
-            ->build();
+        $sheet = $excel->sheet();
 
-        $filterStyle = (new StyleBuilder())
-            ->setFontSize(12)
-            ->build();
-
-        $headerStyle = (new StyleBuilder())
-            ->setFontBold()
-            ->setBorder($border)
-            ->build();
-
-        $rowStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->build();
-
-        $rightStyle = (new StyleBuilder())
-            ->setBorder($border)
-            ->setCellAlignment(CellAlignment::RIGHT)
-            ->build();
-
-        $writer = WriterEntityFactory::createXLSXWriter();
-
-        $writer->openToBrowser($fileName);
-
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray(
-                ['Report Return Fabric Cutting'],
-                $titleStyle
-            )
+        $sheet->writeRow(
+            ['Report Return Fabric Cutting'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+            ]
         );
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray(
-                ['Periode '. $start_date .' s/d '. $end_date],
-                $filterStyle
-            )
+        $sheet->writeRow(
+            ['Periode ' . $start_date . ' s/d ' . $end_date],
+            [
+                'font-size' => 12,
+            ]
         );
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray([])
-        );
+        $sheet->writeRow(['']);
 
-        $writer->addRow(
-            WriterEntityFactory::createRowFromArray([
-                'Tanggal Keluar',
-                'No Barcode',
-                'Qty BPB',
-                'Unit',
-                'Qty Konv',
-                'Unit Konv',
-                'Rak',
-                'No BPB',
-                'No SJ',
-                'Supplier',
-                'No WS',
-                'No WS Aktual',
-                'ID Item',
-                'Style',
-                'Warna',
-                'No Lot',
-                'No Roll',
-                'No Roll Buyer',
-                'Created By',
-                'Created At',
-            ], $headerStyle)
+        $header = [
+            'Tanggal Keluar',
+            'No Barcode',
+            'Qty BPB',
+            'Unit',
+            'Qty Konv',
+            'Unit Konv',
+            'Rak',
+            'No BPB',
+            'No SJ',
+            'Supplier',
+            'No WS',
+            'No WS Aktual',
+            'ID Item',
+            'Style',
+            'Warna',
+            'No Lot',
+            'No Roll',
+            'No Roll Buyer',
+            'Created By',
+            'Created At',
+        ];
+
+        $sheet->writeRow(
+            $header,
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+            ]
         );
 
         foreach ($data as $row) {
 
-            $cells = [
-                WriterEntityFactory::createCell($row->tanggal_keluar, $rowStyle),
-                WriterEntityFactory::createCell($row->no_barcode, $rowStyle),
-                WriterEntityFactory::createCell((float) $row->qty_aktual, $rightStyle),
-                WriterEntityFactory::createCell($row->satuan, $rowStyle),
-                WriterEntityFactory::createCell((float) $row->qty_konv, $rightStyle),
-                WriterEntityFactory::createCell($row->satuan_konv, $rowStyle),
-                WriterEntityFactory::createCell($row->rak, $rowStyle),
-                WriterEntityFactory::createCell($row->no_dok, $rowStyle),
-                WriterEntityFactory::createCell($row->no_invoice, $rowStyle),
-                WriterEntityFactory::createCell($row->supplier, $rowStyle),
-                WriterEntityFactory::createCell($row->no_ws, $rowStyle),
-                WriterEntityFactory::createCell($row->ws_aktual, $rowStyle),
-                WriterEntityFactory::createCell($row->id_item, $rightStyle),
-                WriterEntityFactory::createCell($row->styleno, $rowStyle),
-                WriterEntityFactory::createCell($row->warna, $rowStyle),
-                WriterEntityFactory::createCell($row->no_lot, $rowStyle),
-                WriterEntityFactory::createCell($row->no_roll, $rightStyle),
-                WriterEntityFactory::createCell($row->no_roll_buyer, $rightStyle),
-                WriterEntityFactory::createCell($row->created_by, $rowStyle),
-                WriterEntityFactory::createCell($row->created_at, $rowStyle),
-                
+            $rows = [
+                $row->tanggal_keluar ?: '',
+                $row->no_barcode ?: '',
+                (float) $row->qty_aktual,
+                $row->satuan ?: '',
+                (float) $row->qty_konv,
+                $row->satuan_konv ?: '',
+                $row->rak ?: '',
+                $row->no_dok ?: '',
+                $row->no_invoice ?: '',
+                $row->supplier ?: '',
+                $row->no_ws ?: '',
+                $row->ws_aktual ?: '',
+                $row->id_item ?: '',
+                $row->styleno ?: '',
+                $row->warna ?: '',
+                $row->no_lot ?: '',
+                $row->no_roll ?: '',
+                $row->no_roll_buyer ?: '',
+                $row->created_by ?: '',
+                $row->created_at ?: '',
             ];
 
-            $writer->addRow(
-                WriterEntityFactory::createRow($cells)
+            $sheet->writeRow(
+                $rows,
+                [
+                    'border' => 'thin',
+                ]
             );
         }
 
-        $writer->close();
+        foreach (range('A', 'Z') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
 
-        exit;
+        return $excel->download();
     }
 }

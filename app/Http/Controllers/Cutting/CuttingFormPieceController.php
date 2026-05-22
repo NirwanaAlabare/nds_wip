@@ -497,8 +497,9 @@ class CuttingFormPieceController extends Controller
     public function edit(FormCutPiece $formCutPiece, $id = 0)
     {
         $cuttingFormPiece = FormCutPiece::find($id);
+        $wsList = DB::table('master_sb_ws')->select('tgl_kirim', 'id_act_cost', 'ws')->distinct()->orderBy('tgl_kirim', 'desc')->limit(1000)->get();
 
-        return view("cutting.cutting-form-piece.edit-cutting-form-piece", ["page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "cutting-piece", 'cuttingFormPiece' => $cuttingFormPiece]);
+        return view("cutting.cutting-form-piece.edit-cutting-form-piece", ["page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "cutting-piece", 'cuttingFormPiece' => $cuttingFormPiece, 'wsList' => $wsList]);
     }
 
     /**
@@ -564,6 +565,37 @@ class CuttingFormPieceController extends Controller
                         "edited_by" => Auth::user()->id,
                         "edited_by_username" => Auth::user()->username,
                     ]);
+
+                // Update so_det_id in detail size
+                $details = DB::table('form_cut_piece_detail')
+                    ->where('form_id', $validatedRequest['id'])
+                    ->get();
+
+                foreach ($details as $detail) {
+
+                    $detailSizes = DB::table('form_cut_piece_detail_size')
+                        ->where('form_detail_id', $detail->id)
+                        ->get();
+
+                    foreach ($detailSizes as $sizeDetail) {
+
+                        $masterWs = DB::table('master_sb_ws')
+                            ->select('id_so_det')
+                            ->where('ws', $validatedRequest['act_costing_ws'])
+                            ->where('size', $sizeDetail->size)
+                            ->where('color', $validatedRequest['color'])
+                            ->first();
+
+                        if ($masterWs) {
+
+                            DB::table('form_cut_piece_detail_size')
+                                ->where('id', $sizeDetail->id)
+                                ->update([
+                                    'so_det_id' => $masterWs->id_so_det
+                                ]);
+                        }
+                    }
+                }
 
                 if ($updateFormCutPiece) {
                     $updatedFormCutPiece = FormCutPiece::where("id", $validatedRequest["id"])->where("no_form", $validatedRequest["no_form"])->first();
@@ -1044,6 +1076,48 @@ class CuttingFormPieceController extends Controller
             ];
         }
     }
+
+    public function getDataWs(Request $request)
+    {
+        $data = DB::table('master_sb_ws')
+            ->select(
+                'id_act_cost',
+                'ws',
+                'buyer',
+                'styleno',
+                'color'
+            )
+            ->where('ws', $request->ws)
+            ->distinct()
+            ->get();
+
+        return response()->json([
+            'status' => 200,
+            'data' => $data
+        ]);
+    }
+
+    // public function getDataDetail(Request $request)
+    // {
+    //     $data = DB::table('master_sb_ws')
+    //         ->select(
+    //             'id_act_cost',
+    //             'ws',
+    //             'buyer',
+    //             'styleno',
+    //             'color',
+    //             'id_so_det'
+    //         )
+    //         ->where('id_act_cost', $request->id_act_cost)
+    //         ->where('color', $request->color)
+    //         ->where('size', $request->size)
+    //         ->first();
+
+    //     return response()->json([
+    //         'status' => 200,
+    //         'data' => $data
+    //     ]);
+    // }
 
     public function exportExcel(Request $request) {
         return Excel::download(new ExportCuttingFormReject($request->dateFrom, $request->dateTo), 'Report Cutting.xlsx');

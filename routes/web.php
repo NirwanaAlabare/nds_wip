@@ -1377,6 +1377,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}/edit', 'edit')->name('dokumen-pabean-edit')->where('id', '.*');
         Route::post('/send/{id}', 'sendCeisa')->name('dokumen-pabean-send')->where('id', '.*');
         Route::put('/update-draft/{id}', 'updateDraft')->name('dokumen-pabean-update_draft')->where('id', '.*');
+        Route::get('/get-draft-status/{id}', 'getDraftData')->name('dokumen-pabean-sync')->where('noAju', '.*');
     });
 
     // WHS Soljer
@@ -1456,6 +1457,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('booking-stock-store');
         Route::get('/get-items/{jenis}', 'getItems')->name('booking-stock-get-items');
         Route::delete('/delete/{id}', 'delete')->name('booking-stock-delete');
+        Route::get('/export-excel', 'exportExcel')->name('booking-stock-export');
     });
 
     Route::controller(PurchasingDashboardController::class)->middleware('role:purchasing')->group(function () {

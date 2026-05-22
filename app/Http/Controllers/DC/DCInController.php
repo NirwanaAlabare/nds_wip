@@ -44,49 +44,49 @@ class DCInController extends Controller
             }
 
             if ($request->dc_filter_tipe && count($request->dc_filter_tipe) > 0) {
-                $additionalQuery .= " and (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) in (".addQuotesAround(implode("\n", $request->dc_filter_tipe)).")";
+                $additionalQuery .= " and (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) in (" . addQuotesAround(implode("\n", $request->dc_filter_tipe)) . ")";
             }
             if ($request->dc_filter_buyer && count($request->dc_filter_buyer) > 0) {
-                $additionalQuery .= " and p.buyer in (".addQuotesAround(implode("\n", $request->dc_filter_buyer)).")";
+                $additionalQuery .= " and p.buyer in (" . addQuotesAround(implode("\n", $request->dc_filter_buyer)) . ")";
             }
             if ($request->dc_filter_ws && count($request->dc_filter_ws) > 0) {
-                $additionalQuery .= " and COALESCE(msb.ws, s.act_costing_ws) in (".addQuotesAround(implode("\n", $request->dc_filter_ws)).")";
+                $additionalQuery .= " and COALESCE(msb.ws, s.act_costing_ws) in (" . addQuotesAround(implode("\n", $request->dc_filter_ws)) . ")";
             }
             if ($request->dc_filter_style && count($request->dc_filter_style) > 0) {
-                $additionalQuery .= " and COALESCE(msb.styleno, p.style) in (".addQuotesAround(implode("\n", $request->dc_filter_style)).")";
+                $additionalQuery .= " and COALESCE(msb.styleno, p.style) in (" . addQuotesAround(implode("\n", $request->dc_filter_style)) . ")";
             }
             if ($request->dc_filter_color && count($request->dc_filter_color) > 0) {
-                $additionalQuery .= " and COALESCE(COALESCE(msb.color, s.color) color, s.color) in (".addQuotesAround(implode("\n", $request->dc_filter_color)).")";
+                $additionalQuery .= " and COALESCE(COALESCE(msb.color, s.color) color, s.color) in (" . addQuotesAround(implode("\n", $request->dc_filter_color)) . ")";
             }
             if ($request->dc_filter_part && count($request->dc_filter_part) > 0) {
-                $additionalQuery .= " and mp.nama_part in (".addQuotesAround(implode("\n", $request->dc_filter_part)).")";
+                $additionalQuery .= " and mp.nama_part in (" . addQuotesAround(implode("\n", $request->dc_filter_part)) . ")";
             }
             if ($request->dc_filter_part_status && count($request->dc_filter_part_status) > 0) {
-                $additionalQuery .= " and pd.part_status in (".addQuotesAround(implode("\n", $request->dc_filter_part_status)).")";
+                $additionalQuery .= " and pd.part_status in (" . addQuotesAround(implode("\n", $request->dc_filter_part_status)) . ")";
             }
             if ($request->dc_filter_panel && count($request->dc_filter_panel) > 0) {
-                $additionalQuery .= " and p.panel in (".addQuotesAround(implode("\n", $request->dc_filter_panel)).")";
+                $additionalQuery .= " and p.panel in (" . addQuotesAround(implode("\n", $request->dc_filter_panel)) . ")";
             }
             if ($request->dc_filter_panel_status && count($request->dc_filter_panel_status) > 0) {
-                $additionalQuery .= " and p.panel_status in (".addQuotesAround(implode("\n", $request->dc_filter_panel_status)).")";
+                $additionalQuery .= " and p.panel_status in (" . addQuotesAround(implode("\n", $request->dc_filter_panel_status)) . ")";
             }
             if ($request->dc_filter_size && count($request->dc_filter_size) > 0) {
-                $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->dc_filter_size)).")";
+                $additionalQuery .= " and COALESCE(msb.size, s.size) in (" . addQuotesAround(implode("\n", $request->dc_filter_size)) . ")";
             }
             if ($request->size_filter && count($request->size_filter) > 0) {
-                $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->size_filter)).")";
+                $additionalQuery .= " and COALESCE(msb.size, s.size) in (" . addQuotesAround(implode("\n", $request->size_filter)) . ")";
             }
             if ($request->dc_filter_no_cut && count($request->dc_filter_no_cut) > 0) {
-                $additionalQuery .= " and f.no_cut in (".addQuotesAround(implode("\n", $request->dc_filter_no_cut)).")";
+                $additionalQuery .= " and f.no_cut in (" . addQuotesAround(implode("\n", $request->dc_filter_no_cut)) . ")";
             }
             if ($request->dc_filter_tujuan && count($request->dc_filter_tujuan) > 0) {
-                $additionalQuery .= " and a.tujuan in (".addQuotesAround(implode("\n", $request->dc_filter_tujuan)).")";
+                $additionalQuery .= " and a.tujuan in (" . addQuotesAround(implode("\n", $request->dc_filter_tujuan)) . ")";
             }
             if ($request->dc_filter_tempat && count($request->dc_filter_tempat) > 0) {
-                $additionalQuery .= " and a.tempat in (".addQuotesAround(implode("\n", $request->dc_filter_tempat)).")";
+                $additionalQuery .= " and a.tempat in (" . addQuotesAround(implode("\n", $request->dc_filter_tempat)) . ")";
             }
             if ($request->dc_filter_lokasi && count($request->dc_filter_lokasi) > 0) {
-                $additionalQuery .= " and a.lokasi in (".addQuotesAround(implode("\n", $request->dc_filter_lokasi)).")";
+                $additionalQuery .= " and a.lokasi in (" . addQuotesAround(implode("\n", $request->dc_filter_lokasi)) . ")";
             }
 
             $data_input = DB::select("
@@ -131,7 +131,7 @@ class DCInController extends Controller
                     left join master_part mp on mp.id = pd.master_part_id
                 where
                     a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
-                    ".$additionalQuery."
+                    " . $additionalQuery . "
                 UNION ALL
                 select
                     id_qr_stocker,
@@ -173,7 +173,8 @@ class DCInController extends Controller
         return view('dc.dc-in.dc-in', ['page' => 'dashboard-dc', "subPageGroup" => "dcin-dc", "subPage" => "dc-in", "data_rak" => $data_rak], ['tgl_skrg' => $tgl_skrg]);
     }
 
-    public function filter_dc_in(Request $request) {
+    public function filter_dc_in(Request $request)
+    {
         $additionalQuery = '';
 
         if ($request->dateFrom) {
@@ -225,7 +226,7 @@ class DCInController extends Controller
                 left join master_part mp on mp.id = pd.master_part_id
             where
                 a.tgl_trans is not null
-                ".$additionalQuery."
+                " . $additionalQuery . "
             order by
                 a.tgl_trans desc
         "));
@@ -272,115 +273,115 @@ class DCInController extends Controller
         }
 
         if ($request->tgl_trans) {
-            $additionalQuery .= " and a.tgl_trans LIKE '%".$request->tgl_trans."%'";
+            $additionalQuery .= " and a.tgl_trans LIKE '%" . $request->tgl_trans . "%'";
         }
 
         if ($request->id_qr) {
-            $additionalQuery .= " and a.id_qr_stocker LIKE '%".$request->id_qr."%'";
+            $additionalQuery .= " and a.id_qr_stocker LIKE '%" . $request->id_qr . "%'";
         }
 
         if ($request->ws) {
-            $additionalQuery .= " and msb.ws LIKE '%".$request->ws."%'";
+            $additionalQuery .= " and msb.ws LIKE '%" . $request->ws . "%'";
         }
 
         if ($request->style) {
-            $additionalQuery .= " and msb.styleno LIKE '%".$request->style."%'";
+            $additionalQuery .= " and msb.styleno LIKE '%" . $request->style . "%'";
         }
 
         if ($request->color) {
-            $additionalQuery .= " and msb.color LIKE '%".$request->color."%'";
+            $additionalQuery .= " and msb.color LIKE '%" . $request->color . "%'";
         }
 
         if ($request->part) {
-            $additionalQuery .= " and mp.nama_part LIKE '%".$request->part."%'";
+            $additionalQuery .= " and mp.nama_part LIKE '%" . $request->part . "%'";
         }
 
         // if ($request->size) {
         //     $additionalQuery .= " and msb.size LIKE '%".$request->size."%'";
         // }
         if ($request->size_filter && count($request->size_filter) > 0) {
-            $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->size_filter)).")";
+            $additionalQuery .= " and COALESCE(msb.size, s.size) in (" . addQuotesAround(implode("\n", $request->size_filter)) . ")";
         }
 
         if ($request->no_cut) {
-            $additionalQuery .= " and COALESCE(f.no_cut, fp.no_cut, '-') LIKE '%".$request->no_cut."%'";
+            $additionalQuery .= " and COALESCE(f.no_cut, fp.no_cut, '-') LIKE '%" . $request->no_cut . "%'";
         }
 
         if ($request->tujuan) {
-            $additionalQuery .= " and a.tujuan LIKE '%".$request->tujuan."%'";
+            $additionalQuery .= " and a.tujuan LIKE '%" . $request->tujuan . "%'";
         }
 
         if ($request->tempat) {
-            $additionalQuery .= " and a.tempat LIKE '%".$request->tempat."%'";
+            $additionalQuery .= " and a.tempat LIKE '%" . $request->tempat . "%'";
         }
 
         if ($request->lokasi) {
-            $additionalQuery .= " and a.lokasi LIKE '%".$request->lokasi."%'";
+            $additionalQuery .= " and a.lokasi LIKE '%" . $request->lokasi . "%'";
         }
 
         if ($request->qty_awal) {
-            $additionalQuery .= " and a.qty_awal LIKE '%".$request->qty_awal."%'";
+            $additionalQuery .= " and a.qty_awal LIKE '%" . $request->qty_awal . "%'";
         }
 
         if ($request->qty_reject) {
-            $additionalQuery .= " and a.qty_awal LIKE '%".$request->qty_reject."%'";
+            $additionalQuery .= " and a.qty_awal LIKE '%" . $request->qty_reject . "%'";
         }
 
         if ($request->qty_replace) {
-            $additionalQuery .= " and a.qty_replace LIKE '%".$request->qty_replace."%'";
+            $additionalQuery .= " and a.qty_replace LIKE '%" . $request->qty_replace . "%'";
         }
 
         if ($request->qty_in) {
-            $additionalQuery .= " and (a.qty_awal - a.qty_reject + a.qty_replace) LIKE '%".$request->qty_in."%'";
+            $additionalQuery .= " and (a.qty_awal - a.qty_reject + a.qty_replace) LIKE '%" . $request->qty_in . "%'";
         }
 
         if ($request->buyer) {
-            $additionalQuery .= " and msb.buyer LIKE '%".$request->buyer."%'";
+            $additionalQuery .= " and msb.buyer LIKE '%" . $request->buyer . "%'";
         }
 
         if ($request->user) {
-            $additionalQuery .= " and a.user LIKE '%".$request->user."%'";
+            $additionalQuery .= " and a.user LIKE '%" . $request->user . "%'";
         }
 
         if ($request->created_at) {
-            $additionalQuery .= " and a.created_at LIKE '%".$request->created_at."%'";
+            $additionalQuery .= " and a.created_at LIKE '%" . $request->created_at . "%'";
         }
 
         if ($request->dc_filter_tipe && count($request->dc_filter_tipe) > 0) {
-            $additionalQuery .= " and (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) in (".addQuotesAround(implode("\n", $request->dc_filter_tipe)).")";
+            $additionalQuery .= " and (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) in (" . addQuotesAround(implode("\n", $request->dc_filter_tipe)) . ")";
         }
         if ($request->dc_filter_buyer && count($request->dc_filter_buyer) > 0) {
-            $additionalQuery .= " and COALESCE(msb.buyer, p.buyer) in (".addQuotesAround(implode("\n", $request->dc_filter_buyer)).")";
+            $additionalQuery .= " and COALESCE(msb.buyer, p.buyer) in (" . addQuotesAround(implode("\n", $request->dc_filter_buyer)) . ")";
         }
         if ($request->dc_filter_ws && count($request->dc_filter_ws) > 0) {
-            $additionalQuery .= " and COALESCE(msb.ws, s.act_costing_ws) in (".addQuotesAround(implode("\n", $request->dc_filter_ws)).")";
+            $additionalQuery .= " and COALESCE(msb.ws, s.act_costing_ws) in (" . addQuotesAround(implode("\n", $request->dc_filter_ws)) . ")";
         }
         if ($request->dc_filter_style && count($request->dc_filter_style) > 0) {
-            $additionalQuery .= " and COALESCE(msb.styleno, p.style) in (".addQuotesAround(implode("\n", $request->dc_filter_style)).")";
+            $additionalQuery .= " and COALESCE(msb.styleno, p.style) in (" . addQuotesAround(implode("\n", $request->dc_filter_style)) . ")";
         }
         if ($request->dc_filter_color && count($request->dc_filter_color) > 0) {
-            $additionalQuery .= " and COALESCE(msb.color, s.color) in (".addQuotesAround(implode("\n", $request->dc_filter_color)).")";
+            $additionalQuery .= " and COALESCE(msb.color, s.color) in (" . addQuotesAround(implode("\n", $request->dc_filter_color)) . ")";
         }
         if ($request->dc_filter_part && count($request->dc_filter_part) > 0) {
-            $additionalQuery .= " and mp.nama_part in (".addQuotesAround(implode("\n", $request->dc_filter_part)).")";
+            $additionalQuery .= " and mp.nama_part in (" . addQuotesAround(implode("\n", $request->dc_filter_part)) . ")";
         }
         if ($request->dc_filter_panel && count($request->dc_filter_panel) > 0) {
-                $additionalQuery .= " and p.panel in (".addQuotesAround(implode("\n", $request->dc_filter_panel)).")";
+            $additionalQuery .= " and p.panel in (" . addQuotesAround(implode("\n", $request->dc_filter_panel)) . ")";
         }
         if ($request->dc_filter_size && count($request->dc_filter_size) > 0) {
-            $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->dc_filter_size)).")";
+            $additionalQuery .= " and COALESCE(msb.size, s.size) in (" . addQuotesAround(implode("\n", $request->dc_filter_size)) . ")";
         }
         if ($request->dc_filter_no_cut && count($request->dc_filter_no_cut) > 0) {
-            $additionalQuery .= " and COALESCE(f.no_cut, fp.no_cut, '-') in (".addQuotesAround(implode("\n", $request->dc_filter_no_cut)).")";
+            $additionalQuery .= " and COALESCE(f.no_cut, fp.no_cut, '-') in (" . addQuotesAround(implode("\n", $request->dc_filter_no_cut)) . ")";
         }
         if ($request->dc_filter_tujuan && count($request->dc_filter_tujuan) > 0) {
-            $additionalQuery .= " and a.tujuan in (".addQuotesAround(implode("\n", $request->dc_filter_tujuan)).")";
+            $additionalQuery .= " and a.tujuan in (" . addQuotesAround(implode("\n", $request->dc_filter_tujuan)) . ")";
         }
         if ($request->dc_filter_tempat && count($request->dc_filter_tempat) > 0) {
-            $additionalQuery .= " and a.tempat in (".addQuotesAround(implode("\n", $request->dc_filter_tempat)).")";
+            $additionalQuery .= " and a.tempat in (" . addQuotesAround(implode("\n", $request->dc_filter_tempat)) . ")";
         }
         if ($request->dc_filter_lokasi && count($request->dc_filter_lokasi) > 0) {
-            $additionalQuery .= " and a.lokasi in (".addQuotesAround(implode("\n", $request->dc_filter_lokasi)).")";
+            $additionalQuery .= " and a.lokasi in (" . addQuotesAround(implode("\n", $request->dc_filter_lokasi)) . ")";
         }
 
         $data_input = DB::select("
@@ -401,7 +402,7 @@ class DCInController extends Controller
                 left join master_part mp on mp.id = pd.master_part_id
             where
                 a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
-                ".$additionalQuery."
+                " . $additionalQuery . "
         ");
 
         // dd("
@@ -443,46 +444,46 @@ class DCInController extends Controller
         }
 
         if ($request->dc_filter_tipe && count($request->dc_filter_tipe) > 0) {
-            $additionalQuery .= " and (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) in (".addQuotesAround(implode("\n", $request->dc_filter_tipe)).")";
+            $additionalQuery .= " and (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) in (" . addQuotesAround(implode("\n", $request->dc_filter_tipe)) . ")";
         }
         if ($request->dc_filter_buyer && count($request->dc_filter_buyer) > 0) {
-            $additionalQuery .= " and COALESCE(msb.buyer, p.buyer) in (".addQuotesAround(implode("\n", $request->dc_filter_buyer)).")";
+            $additionalQuery .= " and COALESCE(msb.buyer, p.buyer) in (" . addQuotesAround(implode("\n", $request->dc_filter_buyer)) . ")";
         }
         if ($request->dc_filter_ws && count($request->dc_filter_ws) > 0) {
-            $additionalQuery .= " and COALESCE(msb.ws, s.act_costing_ws) in (".addQuotesAround(implode("\n", $request->dc_filter_ws)).")";
+            $additionalQuery .= " and COALESCE(msb.ws, s.act_costing_ws) in (" . addQuotesAround(implode("\n", $request->dc_filter_ws)) . ")";
         }
         if ($request->dc_filter_style && count($request->dc_filter_style) > 0) {
-            $additionalQuery .= " and COALESCE(msb.styleno, p.style) in (".addQuotesAround(implode("\n", $request->dc_filter_style)).")";
+            $additionalQuery .= " and COALESCE(msb.styleno, p.style) in (" . addQuotesAround(implode("\n", $request->dc_filter_style)) . ")";
         }
         if ($request->dc_filter_color && count($request->dc_filter_color) > 0) {
-            $additionalQuery .= " and COALESCE(COALESCE(msb.color, s.color) color, s.color) in (".addQuotesAround(implode("\n", $request->dc_filter_color)).")";
+            $additionalQuery .= " and COALESCE(COALESCE(msb.color, s.color) color, s.color) in (" . addQuotesAround(implode("\n", $request->dc_filter_color)) . ")";
         }
         if ($request->dc_filter_part && count($request->dc_filter_part) > 0) {
-            $additionalQuery .= " and mp.nama_part in (".addQuotesAround(implode("\n", $request->dc_filter_part)).")";
+            $additionalQuery .= " and mp.nama_part in (" . addQuotesAround(implode("\n", $request->dc_filter_part)) . ")";
         }
         if ($request->dc_filter_part_status && count($request->dc_filter_part_status) > 0) {
-            $additionalQuery .= " and pd.part_status in (".addQuotesAround(implode("\n", $request->dc_filter_part_status)).")";
+            $additionalQuery .= " and pd.part_status in (" . addQuotesAround(implode("\n", $request->dc_filter_part_status)) . ")";
         }
         if ($request->dc_filter_panel && count($request->dc_filter_panel) > 0) {
-            $additionalQuery .= " and p.panel in (".addQuotesAround(implode("\n", $request->dc_filter_panel)).")";
+            $additionalQuery .= " and p.panel in (" . addQuotesAround(implode("\n", $request->dc_filter_panel)) . ")";
         }
         if ($request->dc_filter_panel_status && count($request->dc_filter_panel_status) > 0) {
-            $additionalQuery .= " and p.panel_status in (".addQuotesAround(implode("\n", $request->dc_filter_panel_status)).")";
+            $additionalQuery .= " and p.panel_status in (" . addQuotesAround(implode("\n", $request->dc_filter_panel_status)) . ")";
         }
         if ($request->dc_filter_size && count($request->dc_filter_size) > 0) {
-            $additionalQuery .= " and COALESCE(msb.size, s.size) in (".addQuotesAround(implode("\n", $request->dc_filter_size)).")";
+            $additionalQuery .= " and COALESCE(msb.size, s.size) in (" . addQuotesAround(implode("\n", $request->dc_filter_size)) . ")";
         }
         if ($request->dc_filter_no_cut && count($request->dc_filter_no_cut) > 0) {
-            $additionalQuery .= " and f.no_cut in (".addQuotesAround(implode("\n", $request->dc_filter_no_cut)).")";
+            $additionalQuery .= " and f.no_cut in (" . addQuotesAround(implode("\n", $request->dc_filter_no_cut)) . ")";
         }
         if ($request->dc_filter_tujuan && count($request->dc_filter_tujuan) > 0) {
-            $additionalQuery .= " and a.tujuan in (".addQuotesAround(implode("\n", $request->dc_filter_tujuan)).")";
+            $additionalQuery .= " and a.tujuan in (" . addQuotesAround(implode("\n", $request->dc_filter_tujuan)) . ")";
         }
         if ($request->dc_filter_tempat && count($request->dc_filter_tempat) > 0) {
-            $additionalQuery .= " and a.tempat in (".addQuotesAround(implode("\n", $request->dc_filter_tempat)).")";
+            $additionalQuery .= " and a.tempat in (" . addQuotesAround(implode("\n", $request->dc_filter_tempat)) . ")";
         }
         if ($request->dc_filter_lokasi && count($request->dc_filter_lokasi) > 0) {
-            $additionalQuery .= " and a.lokasi in (".addQuotesAround(implode("\n", $request->dc_filter_lokasi)).")";
+            $additionalQuery .= " and a.lokasi in (" . addQuotesAround(implode("\n", $request->dc_filter_lokasi)) . ")";
         }
 
         $data = DB::select("
@@ -528,7 +529,7 @@ class DCInController extends Controller
                 left join master_part mp on mp.id = pd.master_part_id
             where
                 a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
-                ".$additionalQuery."
+                " . $additionalQuery . "
             UNION ALL
             select
                 id_qr_stocker,
@@ -670,19 +671,19 @@ class DCInController extends Controller
             }
 
             if ($request->detail_dc_filter_buyer && count($request->detail_dc_filter_buyer) > 0) {
-                $additionalQuery .= " and m.buyer in (".addQuotesAround(implode("\n", $request->detail_dc_filter_buyer)).")";
+                $additionalQuery .= " and m.buyer in (" . addQuotesAround(implode("\n", $request->detail_dc_filter_buyer)) . ")";
             }
             if ($request->detail_dc_filter_ws && count($request->detail_dc_filter_ws) > 0) {
-                $additionalQuery .= " and m.ws in (".addQuotesAround(implode("\n", $request->detail_dc_filter_ws)).")";
+                $additionalQuery .= " and m.ws in (" . addQuotesAround(implode("\n", $request->detail_dc_filter_ws)) . ")";
             }
             if ($request->detail_dc_filter_style && count($request->detail_dc_filter_style) > 0) {
-                $additionalQuery .= " and styleno in (".addQuotesAround(implode("\n", $request->detail_dc_filter_style)).")";
+                $additionalQuery .= " and styleno in (" . addQuotesAround(implode("\n", $request->detail_dc_filter_style)) . ")";
             }
             if ($request->detail_dc_filter_color && count($request->detail_dc_filter_color) > 0) {
-                $additionalQuery .= " and s.color in (".addQuotesAround(implode("\n", $request->detail_dc_filter_color)).")";
+                $additionalQuery .= " and s.color in (" . addQuotesAround(implode("\n", $request->detail_dc_filter_color)) . ")";
             }
             if ($request->detail_dc_filter_lokasi && count($request->detail_dc_filter_lokasi) > 0) {
-                $additionalQuery .= " and dc.lokasi in (".addQuotesAround(implode("\n", $request->detail_dc_filter_lokasi)).")";
+                $additionalQuery .= " and dc.lokasi in (" . addQuotesAround(implode("\n", $request->detail_dc_filter_lokasi)) . ")";
             }
 
             $data_detail = DB::select("
@@ -694,7 +695,7 @@ class DCInController extends Controller
                     left join master_sb_ws m on s.so_det_id = m.id_so_det
                 where
                     dc.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
-                    ".$additionalQuery."
+                    " . $additionalQuery . "
                 group by
                     m.ws,m.buyer,m.styleno,m.color,dc.lokasi
             ");
@@ -705,7 +706,8 @@ class DCInController extends Controller
         return view('dc.dc-in.dc-in', ['page' => 'dashboard-dc', "subPageGroup" => "dcin-dc", "subPage" => "dc-in"], ['tgl_skrg' => $tgl_skrg]);
     }
 
-    public function filter_detail_dc_in(Request $request) {
+    public function filter_detail_dc_in(Request $request)
+    {
         $additionalQuery = '';
 
         if ($request->dateFrom) {
@@ -725,7 +727,7 @@ class DCInController extends Controller
                 left join master_sb_ws m on s.so_det_id = m.id_so_det
             where
                 dc.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
-                ".$additionalQuery."
+                " . $additionalQuery . "
             group by
                 m.ws,m.buyer,m.styleno,m.color,dc.lokasi
         "));
@@ -747,7 +749,7 @@ class DCInController extends Controller
 
     public function exportExcelDetail(Request $request)
     {
-        return Excel::download(new ExportDcInDetail($request->from, $request->to), 'Laporan dc in detail '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
+        return Excel::download(new ExportDcInDetail($request->from, $request->to), 'Laporan dc in detail ' . $request->from . ' - ' . $request->to . ' (' . Carbon::now() . ').xlsx');
     }
 
     public function show_data_header(Request $request)
@@ -801,9 +803,9 @@ class DCInController extends Controller
     {
         $tujuan = $request->tujuan;
         if ($tujuan == 'NON SECONDARY') {
-            $data_tempat = DB::select("select 'RAK' isi, 'RAK' tampil
-            union
-            select 'TROLLEY', 'TROLLEY'");
+            $data_tempat = DB::select("select 'RAK' isi, 'RAK' tampil");
+            //             union
+            // select 'TROLLEY', 'TROLLEY'
             $html = "<option value=''>Pilih Tempat</option>";
             foreach ($data_tempat as $datatempat) {
                 $html .= " <option value='" . $datatempat->tampil . "'>" . $datatempat->tampil . "</option> ";
@@ -929,7 +931,7 @@ class DCInController extends Controller
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
                 LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = x.id_qr_stocker
             WHERE
-                x.`user` = '".$user."' and
+                x.`user` = '" . $user . "' and
                 (y.cancel != 'y' or y.cancel IS NULL)
                 and (ms.cancel != 'y' or ms.cancel IS NULL) and
                 y.id is not null and
@@ -970,7 +972,7 @@ class DCInController extends Controller
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
                 LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = x.id_qr_stocker
             WHERE
-                x.`user` = '".$user."' and
+                x.`user` = '" . $user . "' and
                 (y.cancel != 'y' or y.cancel IS NULL)
                 and (ms.cancel != 'y' or ms.cancel IS NULL) and
                 y.id is not null and
@@ -1011,7 +1013,7 @@ class DCInController extends Controller
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
                 LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = x.id_qr_stocker
             WHERE
-                x.`user` = '".$user."' and
+                x.`user` = '" . $user . "' and
                 (y.cancel != 'y' or y.cancel IS NULL)
                 and (ms.cancel != 'y' or ms.cancel IS NULL) and
                 y.id is not null and
@@ -1046,7 +1048,7 @@ class DCInController extends Controller
                 tmp_dc_in_input_new
                 left join dc_in_input on dc_in_input.id_qr_stocker = tmp_dc_in_input_new.id_qr_stocker
             where
-                tmp_dc_in_input_new.id_qr_stocker = '" . $request->txtqrstocker . "' and tmp_dc_in_input_new.user = '".Auth::user()->username."'
+                tmp_dc_in_input_new.id_qr_stocker = '" . $request->txtqrstocker . "' and tmp_dc_in_input_new.user = '" . Auth::user()->username . "'
         ");
 
         $cekdata_fix = $cekdata ? $cekdata[0] : null;
@@ -1098,12 +1100,7 @@ class DCInController extends Controller
     // mass insert tmp dc in
     public function mass_insert_tmp_dc_in(Request $request)
     {
-        $thisStocker = Stocker::selectRaw("stocker_input.id_qr_stocker, stocker_input.act_costing_ws, stocker_input.color, form_cut_input.no_cut, form_cut_piece.no_cut")->
-            leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
-            leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->
-            where("id_qr_stocker", $request->txtqrstocker)->
-            whereRaw("(stocker_input.cancel is null or stocker_input.cancel != 'y')")->
-            first();
+        $thisStocker = Stocker::selectRaw("stocker_input.id_qr_stocker, stocker_input.act_costing_ws, stocker_input.color, form_cut_input.no_cut, form_cut_piece.no_cut")->leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->leftJoin("form_cut_piece", "form_cut_piece.id", "=", "stocker_input.form_piece_id")->where("id_qr_stocker", $request->txtqrstocker)->whereRaw("(stocker_input.cancel is null or stocker_input.cancel != 'y')")->first();
 
         if ($thisStocker) {
             $data_header = DB::select("
@@ -1138,9 +1135,9 @@ class DCInController extends Controller
                     left join master_secondary ms on pds.master_secondary_id = ms.id
                     left join master_secondary ms_old on pds.master_secondary_id = ms_old.id
                 WHERE
-                    a.act_costing_ws = '".$thisStocker->act_costing_ws."' AND
-                    a.color = '".$thisStocker->color."' AND
-                    COALESCE(f.no_cut, fp.no_cut) = '".$thisStocker->no_cut."' AND
+                    a.act_costing_ws = '" . $thisStocker->act_costing_ws . "' AND
+                    a.color = '" . $thisStocker->color . "' AND
+                    COALESCE(f.no_cut, fp.no_cut) = '" . $thisStocker->no_cut . "' AND
                     (a.cancel IS NULL OR a.cancel != 'y') and
                     (CASE WHEN pds.id IS NOT NULL THEN pds.urutan = 1 ELSE pd.id IS NOT NULL END)
             ");
@@ -1265,51 +1262,49 @@ class DCInController extends Controller
             ");
 
             // // Trolley Things
-                // if ($request->cbotempat == "TROLLEY") {
-                //     $lastTrolleyStock = TrolleyStocker::select('kode')->orderBy('id', 'desc')->first();
-                //     $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
+            // if ($request->cbotempat == "TROLLEY") {
+            //     $lastTrolleyStock = TrolleyStocker::select('kode')->orderBy('id', 'desc')->first();
+            //     $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
 
-                //     $stockerData = Stocker::whereRaw("concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) = '" . $request->id_kode . "'")->get();
+            //     $stockerData = Stocker::whereRaw("concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) = '" . $request->id_kode . "'")->get();
 
-                //     $trolleyStockArr = [];
+            //     $trolleyStockArr = [];
 
-                //     $thisTrolley = Trolley::where("nama_trolley", $request->cbolokasi)->first();
-                //     if ($thisTrolley) {
+            //     $thisTrolley = Trolley::where("nama_trolley", $request->cbolokasi)->first();
+            //     if ($thisTrolley) {
 
-                //         $i = 0;
-                //         foreach ($stockerData as $stocker) {
-                //             $trolleyCheck = TrolleyStocker::where('stocker_id', $stocker->id)->first();
-                //             if (!$trolleyCheck) {
-                //                 array_push($trolleyStockArr, [
-                //                     "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
-                //                     "trolley_id" => $thisTrolley->id,
-                //                     "stocker_id" => $stocker->id,
-                //                     "status" => "active",
-                //                     "tanggal_alokasi" => date('Y-m-d'),
-                //                     "created_at" => Carbon::now(),
-                //                     "updated_at" => Carbon::now(),
-                //                 ]);
+            //         $i = 0;
+            //         foreach ($stockerData as $stocker) {
+            //             $trolleyCheck = TrolleyStocker::where('stocker_id', $stocker->id)->first();
+            //             if (!$trolleyCheck) {
+            //                 array_push($trolleyStockArr, [
+            //                     "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
+            //                     "trolley_id" => $thisTrolley->id,
+            //                     "stocker_id" => $stocker->id,
+            //                     "status" => "active",
+            //                     "tanggal_alokasi" => date('Y-m-d'),
+            //                     "created_at" => Carbon::now(),
+            //                     "updated_at" => Carbon::now(),
+            //                 ]);
 
-                //                 $i++;
-                //             }
-                //         }
+            //                 $i++;
+            //             }
+            //         }
 
-                //         $storeTrolleyStock = TrolleyStocker::insert($trolleyStockArr);
+            //         $storeTrolleyStock = TrolleyStocker::insert($trolleyStockArr);
 
-                //         if (count($trolleyStockArr) > 0) {
-                //             $updateStocker = Stocker::whereRaw("concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) = '" . $request->id_kode . "'")->
-                //                 update([
-                //                     "status" => "trolley",
-                //                     "latest_alokasi" => Carbon::now()
-                //                 ]);
-                //         }
-                //     }
-                // }
+            //         if (count($trolleyStockArr) > 0) {
+            //             $updateStocker = Stocker::whereRaw("concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) = '" . $request->id_kode . "'")->
+            //                 update([
+            //                     "status" => "trolley",
+            //                     "latest_alokasi" => Carbon::now()
+            //                 ]);
+            //         }
+            //     }
+            // }
         }
 
-        $update_tmp_dc_in = DB::table("tmp_dc_in_input_new")->
-            where("id_qr_stocker", $request->id_c )->
-            update([
+        $update_tmp_dc_in = DB::table("tmp_dc_in_input_new")->where("id_qr_stocker", $request->id_c)->update([
                 "qty_reject" => $request->txtqtyreject,
                 "qty_replace" => $request->txtqtyreplace,
                 "tujuan" => $request->txttuj,
@@ -1341,9 +1336,9 @@ class DCInController extends Controller
             $stockerCodeRaw = "(";
             for ($i = 0; $i < count($stockerCodes); $i++) {
                 if ($i > 0) {
-                    $stockerCodeRaw .= ", '".$stockerCodes[$i]."'";
+                    $stockerCodeRaw .= ", '" . $stockerCodes[$i] . "'";
                 } else {
-                    $stockerCodeRaw .= "'".$stockerCodes[$i]."'";
+                    $stockerCodeRaw .= "'" . $stockerCodes[$i] . "'";
                 }
             }
             $stockerCodeRaw .= ")";
@@ -1361,51 +1356,49 @@ class DCInController extends Controller
                 ");
 
                 // Trolley Things
-                    // if ($request->mass_cbotempat == "TROLLEY") {
-                    //     $lastTrolleyStock = TrolleyStocker::select('kode')->orderBy('id', 'desc')->first();
-                    //     $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
+                // if ($request->mass_cbotempat == "TROLLEY") {
+                //     $lastTrolleyStock = TrolleyStocker::select('kode')->orderBy('id', 'desc')->first();
+                //     $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
 
-                    //     $stockerData = Stocker::whereRaw("concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) in " . $stockerCodeRaw)->get();
+                //     $stockerData = Stocker::whereRaw("concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) in " . $stockerCodeRaw)->get();
 
-                    //     $trolleyStockArr = [];
+                //     $trolleyStockArr = [];
 
-                    //     $thisTrolley = Trolley::where("nama_trolley", $request->mass_cbolokasi)->first();
-                    //     if ($thisTrolley) {
+                //     $thisTrolley = Trolley::where("nama_trolley", $request->mass_cbolokasi)->first();
+                //     if ($thisTrolley) {
 
-                    //         $i = 0;
-                    //         foreach ($stockerData as $stocker) {
-                    //             $trolleyCheck = TrolleyStocker::where('stocker_id', $stocker->id)->first();
-                    //             if (!$trolleyCheck) {
-                    //                 array_push($trolleyStockArr, [
-                    //                     "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
-                    //                     "trolley_id" => $thisTrolley->id,
-                    //                     "stocker_id" => $stocker->id,
-                    //                     "status" => "active",
-                    //                     "tanggal_alokasi" => date('Y-m-d'),
-                    //                     "created_at" => Carbon::now(),
-                    //                     "updated_at" => Carbon::now(),
-                    //                 ]);
+                //         $i = 0;
+                //         foreach ($stockerData as $stocker) {
+                //             $trolleyCheck = TrolleyStocker::where('stocker_id', $stocker->id)->first();
+                //             if (!$trolleyCheck) {
+                //                 array_push($trolleyStockArr, [
+                //                     "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
+                //                     "trolley_id" => $thisTrolley->id,
+                //                     "stocker_id" => $stocker->id,
+                //                     "status" => "active",
+                //                     "tanggal_alokasi" => date('Y-m-d'),
+                //                     "created_at" => Carbon::now(),
+                //                     "updated_at" => Carbon::now(),
+                //                 ]);
 
-                    //                 $i++;
-                    //             }
-                    //         }
+                //                 $i++;
+                //             }
+                //         }
 
-                    //         $storeTrolleyStock = TrolleyStocker::insert($trolleyStockArr);
+                //         $storeTrolleyStock = TrolleyStocker::insert($trolleyStockArr);
 
-                    //         if (count($trolleyStockArr) > 0) {
-                    //             $updateStocker = Stocker::whereRaw("concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) in " . $stockerCodeRaw)->
-                    //                 update([
-                    //                     "status" => "trolley",
-                    //                     "latest_alokasi" => Carbon::now()
-                    //                 ]);
-                    //         }
-                    //     }
-                    // }
+                //         if (count($trolleyStockArr) > 0) {
+                //             $updateStocker = Stocker::whereRaw("concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) in " . $stockerCodeRaw)->
+                //                 update([
+                //                     "status" => "trolley",
+                //                     "latest_alokasi" => Carbon::now()
+                //                 ]);
+                //         }
+                //     }
+                // }
             }
 
-            $update_tmp_dc_in = DB::table("tmp_dc_in_input_new")->
-                whereIn("id_qr_stocker", $massStockerIds)->
-                update([
+            $update_tmp_dc_in = DB::table("tmp_dc_in_input_new")->whereIn("id_qr_stocker", $massStockerIds)->update([
                     "tujuan" => $request->mass_txttuj,
                     "tempat" => $request->mass_cbotempat,
                     "lokasi" => $request->mass_cbolokasi,
@@ -1440,9 +1433,7 @@ class DCInController extends Controller
         $massStockerIds = explode(",", $request->ids);
 
         if (count($massStockerIds) > 0) {
-            $delete_tmp_dc_in = DB::table("tmp_dc_in_input_new")->
-                whereIn("id_qr_stocker", $massStockerIds)->
-                delete();
+            $delete_tmp_dc_in = DB::table("tmp_dc_in_input_new")->whereIn("id_qr_stocker", $massStockerIds)->delete();
 
             if ($delete_tmp_dc_in) {
                 return array(
@@ -1485,7 +1476,7 @@ class DCInController extends Controller
         // Generate Rescan Message
         $message = "<br>";
         foreach ($dcRescan as $rescan) {
-            $message .= "<br> <span class='text-danger fw-bold'>".$rescan->id_qr_stocker." sudah discan pada tanggal ".$rescan->tgl_trans."</span>";
+            $message .= "<br> <span class='text-danger fw-bold'>" . $rescan->id_qr_stocker . " sudah discan pada tanggal " . $rescan->tgl_trans . "</span>";
         }
 
         // DC In Input Insert
@@ -1522,13 +1513,13 @@ class DCInController extends Controller
                 tmp.qty_replace,
                 tmp.user,
                 'N',
-                COALESCE(dc.created_by, '".Auth::user()->id."') created_by,
-                COALESCE(dc.created_by_username,'".Auth::user()->username."') created_by_username,
+                COALESCE(dc.created_by, '" . Auth::user()->id . "') created_by,
+                COALESCE(dc.created_by_username,'" . Auth::user()->username . "') created_by_username,
                 COALESCE(dc.created_at, '$timestamp') created_at,
                 '$timestamp' updated_at,
                 (CASE WHEN dc.id IS NOT NULL THEN 1 ELSE 0 END) rescanned,
-                (CASE WHEN dc.id IS NOT NULL THEN '".Auth::user()->id."' ELSE null END) rescanned_by,
-                (CASE WHEN dc.id IS NOT NULL THEN '".Auth::user()->username."' ELSE null END) rescanned_by_username,
+                (CASE WHEN dc.id IS NOT NULL THEN '" . Auth::user()->id . "' ELSE null END) rescanned_by,
+                (CASE WHEN dc.id IS NOT NULL THEN '" . Auth::user()->username . "' ELSE null END) rescanned_by_username,
                 '$timestamp' rescanned_at
             from
                 tmp_dc_in_input_new tmp
@@ -1563,14 +1554,14 @@ class DCInController extends Controller
             where
                 (s.cancel is null or s.cancel != 'y') and
                 (CASE WHEN pds.id IS NOT NULL THEN pds.urutan = 1 ELSE pd.id IS NOT NULL END) and
-                tmp.user = '".$user."' and
+                tmp.user = '" . $user . "' and
                 ms.tujuan = 'NON SECONDARY'
             group by
                 concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)
         ");
         foreach ($data_tmp_dc_in as $data_tmp) {
             if ($data_tmp) {
-                Stocker::whereRaw("concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) = '".$data_tmp->kode."'")->update([
+                Stocker::whereRaw("concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) = '" . $data_tmp->kode . "'")->update([
                     "tempat" => $data_tmp->tempat,
                     "lokasi" => $data_tmp->lokasi,
                 ]);
@@ -1656,7 +1647,7 @@ class DCInController extends Controller
 
         return array(
             'status' => 900,
-            'message' => 'Data Disimpan '.$message,
+            'message' => 'Data Disimpan ' . $message,
             'redirect' => 'reload',
             'table' => '',
             'additional' => [],
@@ -1697,17 +1688,7 @@ class DCInController extends Controller
                 CONCAT(COALESCE(loading_line.nama_line,'-'), ' (', COALESCE(loading_line.created_at, '-'), ')') line,
                 dc_in_input.created_at,
                 dc_in_input.updated_at
-            ")->
-            leftJoin("stocker_input", "stocker_input.id_qr_stocker", "=", "dc_in_input.id_qr_stocker")->
-            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
-            leftJoin("secondary_inhouse_in_input", "secondary_inhouse_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
-            leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
-            leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
-            leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
-            leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
-            leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
-            whereIn("dc_in_input.id_qr_stocker", $idQrStockers)->
-            get();
+            ")->leftJoin("stocker_input", "stocker_input.id_qr_stocker", "=", "dc_in_input.id_qr_stocker")->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->leftJoin("secondary_inhouse_in_input", "secondary_inhouse_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->whereIn("dc_in_input.id_qr_stocker", $idQrStockers)->get();
 
         return DataTables::of($dcInList)->toJson();
     }
