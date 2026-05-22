@@ -300,7 +300,7 @@
             $("#switch-method").prop("checked", false);
         });
 
-        var stockListFilter = ['action', 'tanggal_filter', 'no_bon_filter', 'no_form_filter', 'no_cut_filter', 'color_filter', 'size_filter', 'dest_filter', 'qty_filter', 'year_sequence_filter', 'numbering_range_filter', 'buyer_filter', 'ws_filter', 'style_filter', 'stocker_filter', 'tipe_filter', 'part_filter', 'group_filter', 'shade_filter', 'ratio_filter', 'stocker_range_filter'];
+        var stockListFilter = ['action', 'tanggal_filter', 'no_bon_filter', 'no_form_filter', 'no_cut_filter', 'color_filter', 'size_filter', 'dest_filter', 'panel_filter', 'qty_filter', 'year_sequence_filter', 'numbering_range_filter', 'buyer_filter', 'ws_filter', 'style_filter', 'stocker_filter', 'tipe_filter', 'part_filter', 'group_filter', 'shade_filter', 'ratio_filter', 'stocker_range_filter'];
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
@@ -473,6 +473,7 @@
                         'color_filter': $('#color_filter').val(),
                         'size_filter': $('#size_filter').val(),
                         'dest_filter': $('#dest_filter').val(),
+                        'panel_filter': $('#panel_filter').val(),
                         'qty_filter': $('#qty_filter').val(),
                         'year_sequence_filter': $('#year_sequence_filter').val(),
                         'numbering_range_filter': $('#numbering_range_filter').val(),
@@ -592,6 +593,7 @@
                     'color_filter': $('#color_filter').val(),
                     'size_filter': $('#size_filter').val(),
                     'dest_filter': $('#dest_filter').val(),
+                    'panel_filter': $('#panel_filter').val(),
                     'qty_filter': $('#qty_filter').val(),
                     'year_sequence_filter': $('#year_sequence_filter').val(),
                     'numbering_range_filter': $('#numbering_range_filter').val(),
@@ -1221,6 +1223,7 @@
                         color_filter: $('#color_filter').val(),
                         size_filter: $('#size_filter').val(),
                         dest_filter: $('#dest_filter').val(),
+                        panel_filter: $('#panel_filter').val(),
                         group_filter: $('#group_filter').val(),
                         shade_filter: $('#shade_filter').val(),
                         ratio_filter: $('#ratio_filter').val(),

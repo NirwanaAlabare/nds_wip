@@ -146,5 +146,9 @@ Route::middleware('auth')->group(function () {
         // Check Mismatch Part Stocker
         Route::get('/check-mismatch-part-stocker', 'checkMismatchPartStocker')->name('check-mismatch-part-stocker');
         Route::post('/check-mismatch-part-stocker-list', 'checkMismatchPartStockerList')->name('check-mismatch-part-stocker-list');
+
+        // Check Stocker Tidak Valid
+        Route::get('/check-stocker-tidak-valid', 'checkStokerTidakValid')->name("check-stocker-tidak-valid");
+        Route::post('/check-stocker-tidak-valid-list', 'checkStokerTidakValidList')->name("check-stocker-tidak-valid-list");
     });
 });

@@ -3,31 +3,31 @@
 namespace App\Http\Controllers\Stocker;
 
 use App\Http\Controllers\Controller;
+use App\Imports\ImportStockerManual;
+use App\Models\Cutting\FormCutInput;
+use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Dc\DCIn;
+use App\Models\Dc\LoadingLine;
+use App\Models\Dc\RackDetailStocker;
+use App\Models\Dc\SecondaryIn;
+use App\Models\Dc\SecondaryInhouse;
+use App\Models\Dc\SecondaryInhouseIn;
+use App\Models\Dc\TrolleyStocker;
 use App\Models\SignalBit\FormCut;
-use App\Models\Stocker\YearSequence;
 use App\Models\Stocker\Stocker;
 use App\Models\Stocker\StockerAdditional;
 use App\Models\Stocker\StockerAdditionalDetail;
-use App\Models\Dc\DCIn;
-use App\Models\Dc\SecondaryIn;
-use App\Models\Dc\SecondaryInhouseIn;
-use App\Models\Dc\SecondaryInhouse;
-use App\Models\Dc\RackDetailStocker;
-use App\Models\Dc\TrolleyStocker;
-use App\Models\Dc\LoadingLine;
-use App\Models\Cutting\FormCutInput;
-use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Stocker\YearSequence;
 use App\Services\StockerService;
+use DB;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
-use App\Imports\ImportStockerManual;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 use PDF;
-use DB;
 
 class StockerToolsController extends Controller
 {
@@ -649,5 +649,28 @@ class StockerToolsController extends Controller
                 'message' => $e->getMessage(),
             ];
         }
+    }
+
+    public function checkStokerTidakValid() {
+
+        return view("stocker.tools.check-stocker-tidak-valid", [
+            "page"    => "dashboard-stocker",
+        ]);
+    }
+
+    public function checkStokerTidakValidList(Request $request)
+    {
+        $dateFrom = $request->date_from ?? date("Y-m-d", strtotime("-30 days"));
+        $dateTo   = $request->date_to ?? date("Y-m-d");
+
+        $data = DB::select("
+            SELECT
+                stocker_input.*
+            FROM stocker_input
+            WHERE stocker_input.updated_at BETWEEN ? AND ?
+            ORDER BY stocker_input.id DESC
+        ", [$dateFrom . " 00:00:00", $dateTo . " 23:59:59"]);
+
+        return DataTables::of($data)->make(true);
     }
 }

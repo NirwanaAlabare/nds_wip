@@ -448,6 +448,10 @@ class YearSequenceController extends Controller
         if ($request->dest_filter) {
             $dest_filter = "AND master_sb_ws.dest LIKE '%".$request->dest_filter."%' ";
         }
+        $panel_filter = "";
+        if ($request->panel_filter) {
+            $panel_filter = "AND COALESCE(part_com.panel, part.panel) LIKE '%".$request->panel_filter."%' ";
+        }
         $qty_filter = "";
         if ($request->qty_filter) {
             $qty_filter = "AND (MAX(year_sequence_num.range_akhir) - MIN(year_sequence_num.range_awal) + 1) LIKE '%".$request->qty_filter."%' ";
@@ -849,6 +853,7 @@ class YearSequenceController extends Controller
                         ".$color_filter."
                         ".$size_filter."
                         ".$dest_filter."
+                        ".$panel_filter."
                         ".$year_sequence_filter."
                         ".$buyer_filter."
                         ".$ws_filter."
@@ -893,7 +898,7 @@ class YearSequenceController extends Controller
         $dateFrom = $request->dateFrom ? $request->dateFrom : date('Y-m-d');
         $dateTo = $request->dateTo ? $request->dateTo : date('Y-m-d');
 
-        return Excel::download(new StockerListExport($dateFrom, $dateTo, $request->tanggal_filter, $request->no_form_filter, $request->no_cut_filter, $request->color_filter, $request->size_filter, $request->dest_filter, $request->qty_filter, $request->year_sequence_filter, $request->numbering_range_filter, $request->buyer_filter, $request->ws_filter, $request->style_filter, $request->stocker_filter, $request->part_filter, $request->group_filter, $request->shade_filter, $request->ratio_filter, $request->stocker_range_filter), 'production_excel.xlsx');
+        return Excel::download(new StockerListExport($dateFrom, $dateTo, $request->tanggal_filter, $request->no_form_filter, $request->no_cut_filter, $request->color_filter, $request->size_filter, $request->dest_filter, $request->panel_filter, $request->qty_filter, $request->year_sequence_filter, $request->numbering_range_filter, $request->buyer_filter, $request->ws_filter, $request->style_filter, $request->stocker_filter, $request->part_filter, $request->group_filter, $request->shade_filter, $request->ratio_filter, $request->stocker_range_filter), 'production_excel.xlsx');
     }
 
     public function stockerListDetail($form_cut_id, $group_stocker, $ratio, $so_det_id, $normal = 1) {
@@ -1320,6 +1325,10 @@ class YearSequenceController extends Controller
         if ($request->dest_filter) {
             $dest_filter = "AND master_sb_ws.dest LIKE '%".$request->dest_filter."%' ";
         }
+        $panel_filter = "";
+        if ($request->panel_filter) {
+            $panel_filter = "AND COALESCE(part_com.panel, part.panel) LIKE '%".$request->panel_filter."%' ";
+        }
         $qty_filter = "";
         if ($request->qty_filter) {
             $qty_filter = "AND (MAX(year_sequence_num.range_akhir) - MIN(year_sequence_num.range_awal) + 1) LIKE '%".$request->qty_filter."%' ";
@@ -1731,6 +1740,7 @@ class YearSequenceController extends Controller
                         ".$color_filter."
                         ".$size_filter."
                         ".$dest_filter."
+                        ".$panel_filter."
                         ".$year_sequence_filter."
                         ".$buyer_filter."
                         ".$ws_filter."

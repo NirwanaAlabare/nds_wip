@@ -1377,6 +1377,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}/edit', 'edit')->name('dokumen-pabean-edit')->where('id', '.*');
         Route::post('/send/{id}', 'sendCeisa')->name('dokumen-pabean-send')->where('id', '.*');
         Route::put('/update-draft/{id}', 'updateDraft')->name('dokumen-pabean-update_draft')->where('id', '.*');
+        Route::get('/get-draft-status/{id}', 'getDraftData')->name('dokumen-pabean-sync')->where('noAju', '.*');
     });
 
     // WHS Soljer
@@ -1698,6 +1699,15 @@ Route::controller(AccountingController::class)->prefix("accounting")->middleware
     Route::post('/store', 'store')->name('store-update-ceisa');
     Route::get('/cancel-keterangan-ceisa', 'CancelDataCeisa')->name('cancel-keterangan-ceisa');
     Route::get('/edit-keterangan-ceisa', 'EditDataCeisa')->name('edit-keterangan-ceisa');
+
+    // Memo Permintaan Pembayaran
+    Route::get('/memo', 'memoIndex')->name('accounting-memo');
+    Route::get('/memo/create', 'memoCreate')->name('accounting-memo-create');
+    Route::post('/memo/store', 'memoStore')->name('accounting-memo-store');
+    Route::get('/memo/edit/{id}', 'memoEdit')->name('accounting-memo-edit');
+    Route::put('/memo/update/{id}', 'memoUpdate')->name('accounting-memo-update');
+    Route::delete('/memo/delete/{id}', 'memoDelete')->name('accounting-memo-delete');
+    Route::get('/memo/pdf/{id}', 'memoPrintPdf')->name('accounting-memo-pdf');
     // Route::get('/report-rekonsiliasi-ceisa', 'ReportRekonsiliasi')->name('report-rekonsiliasi-ceisa');
     // Route::get('/export-rekonsiliasi-ceisa', 'ExportReportRekonsiliasi')->name('export-rekonsiliasi-ceisa');
     // Route::get('/report-ceisa-detail', 'ReportCeisaDetail')->name('report-ceisa-detail');
