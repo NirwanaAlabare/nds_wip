@@ -9,7 +9,7 @@ use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\ExportLaporanPenerimaanFGStokBPB;
+use App\Exports\ExportListLaporanPenerimaanFGStockBPB;
 use Illuminate\Http\JsonResponse;
 use \avadim\FastExcelLaravel\Excel as FastExcel;
 
@@ -236,55 +236,122 @@ class FGStokLaporanController extends Controller
 
         if ($request->ajax()) {
             $data_input = DB::select("
-                select mt.id_so_det,
-                sum(qty_awal) qty_awal,
-                sum(qty_in) qty_in,
-                sum(qty_out) qty_out,
-                sum(qty_awal) + sum(qty_in) - sum(qty_out) saldo_akhir,
-                grade,
-                lokasi,
-                no_carton,
-                buyer,
-                color,
-                m.size,
-                ws,
-                brand,
-                styleno,
-                m.product_group,
-                m.product_item,
-                m.dest
-                from
+                SELECT
+                    mt.id_so_det,
+                    SUM(qty_awal) AS qty_awal,
+                    SUM(qty_in) AS qty_in,
+                    SUM(qty_out) AS qty_out,
+                    SUM(qty_awal) + SUM(qty_in) - SUM(qty_out) AS saldo_akhir,
+                    grade,
+                    lokasi,
+                    no_carton,
+                    buyer,
+                    color,
+                    m.size,
+                    ws,
+                    brand,
+                    styleno,
+                    m.product_group,
+                    m.product_item,
+                    m.dest
+                FROM
                 (
-                    select id_so_det,sum(qty_in) - sum(qty_out) qty_awal,'0' qty_in,'0' qty_out, grade, lokasi, no_carton
-                    from
+                    SELECT
+                        id_so_det,
+                        SUM(qty_in) - SUM(qty_out) AS qty_awal,
+                        0 AS qty_in,
+                        0 AS qty_out,
+                        grade,
+                        lokasi,
+                        no_carton
+                    FROM
                     (
-                    select id_so_det,sum(qty) qty_in,'0' qty_out,grade, lokasi, no_carton
-                    from fg_stok_bpb
-                    where tgl_terima < '$tgl_awal'
-                    group by id_so_det, grade, lokasi, no_carton
-                    UNION
-                    select id_so_det,'0' qty_in,sum(qty_out) qty_out,grade, lokasi, no_carton
-                    from fg_stok_bppb
-                    where tgl_pengeluaran < '$tgl_awal'
-                    group by id_so_det, grade, lokasi, no_carton
+                        SELECT
+                            id_so_det,
+                            SUM(qty) AS qty_in,
+                            0 AS qty_out,
+                            grade,
+                            lokasi,
+                            no_carton
+                        FROM fg_stok_bpb
+                        WHERE tgl_terima < '$tgl_awal'
+                        GROUP BY id_so_det, grade, lokasi, no_carton
+
+                        UNION ALL
+
+                        SELECT
+                            id_so_det,
+                            SUM(qty) AS qty_in,
+                            0 AS qty_out,
+                            grade,
+                            lokasi,
+                            no_carton
+                        FROM fg_stok_bpb_scan
+                        WHERE tgl_terima < '$tgl_awal'
+                        GROUP BY id_so_det, grade, lokasi, no_carton
+
+                        UNION ALL
+
+                        SELECT
+                            id_so_det,
+                            0 AS qty_in,
+                            SUM(qty_out) AS qty_out,
+                            grade,
+                            lokasi,
+                            no_carton
+                        FROM fg_stok_bppb
+                        WHERE tgl_pengeluaran < '$tgl_awal'
+                        GROUP BY id_so_det, grade, lokasi, no_carton
+
                     ) sa
-                    group by id_so_det, grade, lokasi, no_carton
-                union
-                select id_so_det,'0' qty_awal,sum(qty) qty_in,'0' qty_out,grade, lokasi, no_carton
-                from fg_stok_bpb
-                where tgl_terima >= '$tgl_awal' and tgl_terima <= '$tgl_akhir'
-                group by id_so_det, grade, lokasi, no_carton
-                union
-                select id_so_det,'0' qty_awal,'0' qty_in,sum(qty_out) qty_out,grade, lokasi, no_carton
-                from fg_stok_bppb
-                where tgl_pengeluaran >= '$tgl_awal' and tgl_pengeluaran <= '$tgl_akhir'
-                group by id_so_det, grade, lokasi, no_carton
-                )
-                mt
-                left join master_sb_ws m on mt.id_so_det = m.id_so_det
-                left join master_size_new ms on m.size = ms.size
-                group by mt.id_so_det, grade, lokasi, no_carton
-                order by buyer asc, color asc, ms.urutan asc
+                    GROUP BY id_so_det, grade, lokasi, no_carton
+
+                    UNION ALL
+
+                    SELECT
+                        id_so_det,
+                        0 AS qty_awal,
+                        SUM(qty) AS qty_in,
+                        0 AS qty_out,
+                        grade,
+                        lokasi,
+                        no_carton
+                    FROM fg_stok_bpb
+                    WHERE tgl_terima BETWEEN '$tgl_awal' AND '$tgl_akhir'
+                    GROUP BY id_so_det, grade, lokasi, no_carton
+
+                    UNION ALL
+
+                    SELECT
+                        id_so_det,
+                        0 AS qty_awal,
+                        SUM(qty) AS qty_in,
+                        0 AS qty_out,
+                        grade,
+                        lokasi,
+                        no_carton
+                    FROM fg_stok_bpb_scan
+                    WHERE tgl_terima BETWEEN '$tgl_awal' AND '$tgl_akhir'
+                    GROUP BY id_so_det, grade, lokasi, no_carton
+
+                    UNION ALL
+
+                    SELECT
+                        id_so_det,
+                        0 AS qty_awal,
+                        0 AS qty_in,
+                        SUM(qty_out) AS qty_out,
+                        grade,
+                        lokasi,
+                        no_carton
+                    FROM fg_stok_bppb
+                    WHERE tgl_pengeluaran BETWEEN '$tgl_awal' AND '$tgl_akhir'
+                    GROUP BY id_so_det, grade, lokasi, no_carton
+                ) mt
+                LEFT JOIN master_sb_ws m ON mt.id_so_det = m.id_so_det
+                LEFT JOIN master_size_new ms ON m.size = ms.size
+                GROUP BY mt.id_so_det, grade, lokasi, no_carton
+                ORDER BY buyer ASC, color ASC, ms.urutan ASC
             ");
 
             return DataTables::of($data_input)->toJson();
@@ -296,13 +363,18 @@ class FGStokLaporanController extends Controller
     {
         $tgl_awal = $request->from;
         $tgl_akhir = $request->to;
-        $data = DB::select("SELECT
-        ROW_NUMBER() OVER (ORDER BY buyer ASC, color ASC, ms.urutan ASC) AS no_urut,
+        $data = DB::select("
+            SELECT
+                ROW_NUMBER() OVER (
+                    ORDER BY buyer ASC, color ASC, ms.urutan ASC
+                ) AS no_urut,
+
                 mt.id_so_det,
-                sum(qty_awal) qty_awal,
-                sum(qty_in) qty_in,
-                sum(qty_out) qty_out,
-                sum(qty_awal) + sum(qty_in) - sum(qty_out) saldo_akhir,
+
+                SUM(qty_awal) AS qty_awal,
+                SUM(qty_in) AS qty_in,
+                SUM(qty_out) AS qty_out,
+                SUM(qty_awal) + SUM(qty_in) - SUM(qty_out) AS saldo_akhir,
                 grade,
                 lokasi,
                 no_carton,
@@ -315,39 +387,105 @@ class FGStokLaporanController extends Controller
                 m.product_group,
                 m.product_item,
                 m.dest
-                from
+            FROM
+            (
+                SELECT
+                    id_so_det,
+                    SUM(qty_in) - SUM(qty_out) AS qty_awal,
+                    0 AS qty_in,
+                    0 AS qty_out,
+                    grade,
+                    lokasi,
+                    no_carton
+                FROM
                 (
-                    select id_so_det,sum(qty_in) - sum(qty_out) qty_awal,'0' qty_in,'0' qty_out, grade, lokasi, no_carton
-                    from
-                    (
-                    select id_so_det,sum(qty) qty_in,'0' qty_out,grade, lokasi, no_carton
-                    from fg_stok_bpb
-                    where tgl_terima < '$tgl_awal'
-                    group by id_so_det, grade, lokasi, no_carton
-                    UNION
-                    select id_so_det,'0' qty_in,sum(qty_out) qty_out,grade, lokasi, no_carton
-                    from fg_stok_bppb
-                    where tgl_pengeluaran < '$tgl_awal'
-                    group by id_so_det, grade, lokasi, no_carton
-                    ) sa
-                    group by id_so_det, grade, lokasi, no_carton
-                union
-                select id_so_det,'0' qty_awal,sum(qty) qty_in,'0' qty_out,grade, lokasi, no_carton
-                from fg_stok_bpb
-                where tgl_terima >= '$tgl_awal' and tgl_terima <= '$tgl_akhir'
-                group by id_so_det, grade, lokasi, no_carton
-                union
-                select id_so_det,'0' qty_awal,'0' qty_in,sum(qty_out) qty_out,grade, lokasi, no_carton
-                from fg_stok_bppb
-                where tgl_pengeluaran >= '$tgl_awal' and tgl_pengeluaran <= '$tgl_akhir'
-                group by id_so_det, grade, lokasi, no_carton
-                )
-                mt
-                left join master_sb_ws m on mt.id_so_det = m.id_so_det
-                left join master_size_new ms on m.size = ms.size
-                group by mt.id_so_det, grade, lokasi, no_carton
-                order by buyer asc, color asc, ms.urutan asc
-              ");
+                    SELECT
+                        id_so_det,
+                        SUM(qty) AS qty_in,
+                        0 AS qty_out,
+                        grade,
+                        lokasi,
+                        no_carton
+                    FROM fg_stok_bpb
+                    WHERE tgl_terima < '$tgl_awal'
+                    GROUP BY id_so_det, grade, lokasi, no_carton
+
+                    UNION ALL
+
+                    SELECT
+                        id_so_det,
+                        SUM(qty) AS qty_in,
+                        0 AS qty_out,
+                        grade,
+                        lokasi,
+                        no_carton
+                    FROM fg_stok_bpb_scan
+                    WHERE tgl_terima < '$tgl_awal'
+                    GROUP BY id_so_det, grade, lokasi, no_carton
+
+                    UNION ALL
+
+                    SELECT
+                        id_so_det,
+                        0 AS qty_in,
+                        SUM(qty_out) AS qty_out,
+                        grade,
+                        lokasi,
+                        no_carton
+                    FROM fg_stok_bppb
+                    WHERE tgl_pengeluaran < '$tgl_awal'
+                    GROUP BY id_so_det, grade, lokasi, no_carton
+
+                ) sa
+                GROUP BY id_so_det, grade, lokasi, no_carton
+
+                UNION ALL
+
+                SELECT
+                    id_so_det,
+                    0 AS qty_awal,
+                    SUM(qty) AS qty_in,
+                    0 AS qty_out,
+                    grade,
+                    lokasi,
+                    no_carton
+                FROM fg_stok_bpb
+                WHERE tgl_terima BETWEEN '$tgl_awal' AND '$tgl_akhir'
+                GROUP BY id_so_det, grade, lokasi, no_carton
+
+                UNION ALL
+
+                SELECT
+                    id_so_det,
+                    0 AS qty_awal,
+                    SUM(qty) AS qty_in,
+                    0 AS qty_out,
+                    grade,
+                    lokasi,
+                    no_carton
+                FROM fg_stok_bpb_scan
+                WHERE tgl_terima BETWEEN '$tgl_awal' AND '$tgl_akhir'
+                GROUP BY id_so_det, grade, lokasi, no_carton
+
+                UNION ALL
+
+                SELECT
+                    id_so_det,
+                    0 AS qty_awal,
+                    0 AS qty_in,
+                    SUM(qty_out) AS qty_out,
+                    grade,
+                    lokasi,
+                    no_carton
+                FROM fg_stok_bppb
+                WHERE tgl_pengeluaran BETWEEN '$tgl_awal' AND '$tgl_akhir'
+                GROUP BY id_so_det, grade, lokasi, no_carton
+            ) mt
+            LEFT JOIN master_sb_ws m ON mt.id_so_det = m.id_so_det
+            LEFT JOIN master_size_new ms ON m.size = ms.size
+            GROUP BY mt.id_so_det, grade, lokasi, no_carton
+            ORDER BY buyer ASC, color ASC, ms.urutan ASC
+        ");
 
         return response()->json($data);
     }
@@ -473,4 +611,72 @@ class FGStokLaporanController extends Controller
         return $excel->download($filename);
     }
 
+    public function getDataPenerimaan(Request $request){
+        $data = DB::select("
+            SELECT
+                a.id,
+                a.no_trans,
+                a.tgl_terima,
+                CONCAT(
+                    DATE_FORMAT(a.tgl_terima, '%d'), '-',
+                    LEFT(DATE_FORMAT(a.tgl_terima, '%M'), 3), '-',
+                    DATE_FORMAT(a.tgl_terima, '%Y')
+                ) AS tgl_terima_fix,
+                buyer,
+                ws,
+                brand,
+                styleno,
+                color,
+                size,
+                a.qty,
+                a.grade,
+                no_carton,
+                lokasi,
+                sumber_pemasukan,
+                created_by,
+                created_at
+            FROM fg_stok_bpb a
+            LEFT JOIN master_sb_ws m
+                ON a.id_so_det = m.id_so_det
+            WHERE a.tgl_terima BETWEEN '$request->dateFrom' AND '$request->dateTo'
+
+            UNION ALL
+
+            SELECT
+                a.id,
+                a.no_trans,
+                a.tgl_terima,
+                CONCAT(
+                    DATE_FORMAT(a.tgl_terima, '%d'), '-',
+                    LEFT(DATE_FORMAT(a.tgl_terima, '%M'), 3), '-',
+                    DATE_FORMAT(a.tgl_terima, '%Y')
+                ) AS tgl_terima_fix,
+                buyer,
+                ws,
+                brand,
+                styleno,
+                color,
+                size,
+                a.qty,
+                a.grade,
+                no_carton,
+                lokasi,
+                sumber_pemasukan,
+                created_by,
+                created_at
+            FROM fg_stok_bpb_scan a
+            LEFT JOIN master_sb_ws m
+                ON a.id_so_det = m.id_so_det
+            WHERE a.tgl_terima BETWEEN '$request->dateFrom' AND '$request->dateTo'
+
+            ORDER BY SUBSTR(no_trans, 13) DESC
+        ");
+
+        return DataTables::of($data)->toJson();
+    }
+
+    public function exportPenerimaan(Request $request)
+    {
+        return Excel::download(new ExportListLaporanPenerimaanFGStockBPB($request->from, $request->to), 'Laporan_Penerimaan FG_Stok.xlsx');
+    }
 }
