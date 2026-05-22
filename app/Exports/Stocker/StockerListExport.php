@@ -31,6 +31,7 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
     protected $color_filter;
     protected $size_filter;
     protected $dest_filter;
+    protected $panel_filter;
     protected $qty_filter;
     protected $year_sequence_filter;
     protected $numbering_range_filter;
@@ -44,7 +45,7 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
     protected $ratio_filter;
     protected $stocker_range_filter;
 
-    public function __construct($dateFrom, $dateTo, $tanggal_filter, $no_form_filter, $no_cut_filter, $color_filter, $size_filter, $dest_filter, $qty_filter, $year_sequence_filter, $numbering_range_filter, $buyer_filter, $ws_filter, $style_filter, $stocker_filter, $part_filter, $group_filter, $shade_filter, $ratio_filter, $stocker_range_filter)
+    public function __construct($dateFrom, $dateTo, $tanggal_filter, $no_form_filter, $no_cut_filter, $color_filter, $size_filter, $dest_filter, $panel_filter, $qty_filter, $year_sequence_filter, $numbering_range_filter, $buyer_filter, $ws_filter, $style_filter, $stocker_filter, $part_filter, $group_filter, $shade_filter, $ratio_filter, $stocker_range_filter)
     {
         $this->dateFrom = $dateFrom ? $dateFrom : date('Y-m-d');
         $this->dateTo = $dateTo ? $dateTo : date('Y-m-d');
@@ -54,6 +55,7 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
         $this->color_filter = $color_filter ? $color_filter : null;
         $this->size_filter = $size_filter ? $size_filter : null;
         $this->dest_filter = $dest_filter ? $dest_filter : null;
+        $this->panel_filter = $panel_filter ? $panel_filter : null;
         $this->qty_filter = $qty_filter ? $qty_filter : null;
         $this->year_sequence_filter = $year_sequence_filter ? $year_sequence_filter : null;
         $this->numbering_range_filter = $numbering_range_filter ? $numbering_range_filter : null;
@@ -106,6 +108,10 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
         $dest_filter = "";
         if ($this->dest_filter) {
             $dest_filter = "AND master_sb_ws.dest LIKE '%".$this->dest_filter."%' ";
+        }
+        $panel_filter = "";
+        if ($this->panel_filter) {
+            $panel_filter = "AND COALESCE(part_com.panel, part.panel) LIKE '%".$this->panel_filter."%' ";
         }
         $qty_filter = "";
         if ($this->qty_filter) {
@@ -494,6 +500,7 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                         ".$color_filter."
                         ".$size_filter."
                         ".$dest_filter."
+                        ".$panel_filter."
                         ".$year_sequence_filter."
                         ".$buyer_filter."
                         ".$ws_filter."
