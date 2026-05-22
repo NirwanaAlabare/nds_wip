@@ -11,6 +11,7 @@ use App\Http\Controllers\Exim\ExportImportController;
 use App\Http\Controllers\FGStokBPBController;
 use App\Http\Controllers\FGStokBPPBController;
 use App\Http\Controllers\FGStokLaporanController;
+use App\Http\Controllers\FGStokLokasiScanBPBController;
 use App\Http\Controllers\FGStokMasterController;
 use App\Http\Controllers\FGStokMutasiController;
 use App\Http\Controllers\FGStokScanBPBController;
@@ -68,7 +69,6 @@ use App\Http\Controllers\PackingPackingListController;
 use App\Http\Controllers\PackingPackingOutController;
 use App\Http\Controllers\PackingReportController;
 use App\Http\Controllers\PackingSubcontController;
-use App\Http\Controllers\SewingOutController;
 use App\Http\Controllers\PackingTransferGarmentController;
 use App\Http\Controllers\PPIC_LaporanTrackingController;
 use App\Http\Controllers\PPIC_MasterSOController;
@@ -78,6 +78,7 @@ use App\Http\Controllers\PPIC_MonitoringMaterialSumController;
 use App\Http\Controllers\PPIC_tools_adjustmentController;
 use App\Http\Controllers\PPICDashboardController;
 use App\Http\Controllers\ProcurementController;
+use App\Http\Controllers\Purchasing\BookingStockController;
 use App\Http\Controllers\PurchasingController;
 use App\Http\Controllers\PurchasingDashboardController;
 use App\Http\Controllers\PurchasingReportController;
@@ -118,6 +119,7 @@ use App\Http\Controllers\Sewing\SewingReworkMendingReportController;
 use App\Http\Controllers\Sewing\SewingReworkReportController;
 use App\Http\Controllers\Sewing\SewingReworkSpotcleaningReportController;
 use App\Http\Controllers\Sewing\SewingSpotcleaningReportController;
+use App\Http\Controllers\SewingOutController;
 use App\Http\Controllers\StockOpnameController;
 use App\Http\Controllers\TransferBpbController;
 use App\Http\Controllers\TransferMemoController;
@@ -135,7 +137,6 @@ use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanFgController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanAccesoriesController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanFgController;
-use App\Http\Controllers\Purchasing\BookingStockController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -600,6 +601,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('bpb-fg-stock-scan');
         Route::post('/store', 'store')->name('store-bpb-fg-stock-scan');
         Route::get('/getDataBarcode', 'getDataBarcode')->name('get-data-barcode-bpb-fg-stock-scan');
+        Route::get('/getDataDetail', 'getDataDetail')->name('get-data-detail-bpb-fg-stock-scan');
+        Route::get('/export_excel_bpb_fg_stok_scan', 'export_excel_bpb_fg_stok_scan')->name('export_excel_bpb_fg_stok_scan');
+    });
+
+    Route::controller(FGStokLokasiScanBPBController::class)->prefix("bpb-fg-stock-lokasi-scan")->middleware('fg-stock')->group(function () {
+        Route::get('/', 'index')->name('bpb-fg-stock-lokasi-scan');
+        Route::get('/create', 'create')->name('create-bpb-fg-stock-lokasi-scan');
+        Route::post('/store', 'store')->name('store-bpb-fg-stock-lokasi-scan');
+        Route::get('/getDataStockScan', 'getDataStockScan')->name('get-data-stok-scan-bpb-fg-stock-lokasi-scan');
+        Route::get('/export_excel_bpb_fg_stok_lokasi_scan', 'export_excel_bpb_fg_stok_lokasi_scan')->name('export_excel_bpb_fg_stok_lokasi_scan');
     });
 
     Route::controller(FGStokBPPBController::class)->prefix("bppb-fg-stock")->middleware('fg-stock')->group(function () {

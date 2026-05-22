@@ -122,12 +122,12 @@
                             <th>No. Trans</th>
                             <th>Tgl. Trans</th>
                             <th>Lokasi</th>
-                            <th>Buyer</th>
+                            {{-- <th>Buyer</th>
                             <th>Brand</th>
                             <th>Style</th>
                             <th>WS</th>
                             <th>Color</th>
-                            <th>Size</th>
+                            <th>Size</th> --}}
                             <th>Total Karton</th>
                             <th>Total Qty</th>
                             <th>Sumber</th>
@@ -268,24 +268,24 @@
                 {
                     data: 'lokasi'
                 },
-                {
-                    data: 'buyer'
-                },
-                {
-                    data: 'brand'
-                },
-                {
-                    data: 'styleno'
-                },
-                {
-                    data: 'ws'
-                },
-                {
-                    data: 'color'
-                },
-                {
-                    data: 'size'
-                },
+                // {
+                //     data: 'buyer'
+                // },
+                // {
+                //     data: 'brand'
+                // },
+                // {
+                //     data: 'styleno'
+                // },
+                // {
+                //     data: 'ws'
+                // },
+                // {
+                //     data: 'color'
+                // },
+                // {
+                //     data: 'size'
+                // },
                 {
                     data: 'total_carton'
                 },
@@ -301,13 +301,13 @@
             ],
             columnDefs: [
                 {
-                    targets: [12],
+                    targets: [6],
                     render: (data, type, row, meta) => {
 
                         let btnDetail = `
                             <button 
                                 class="btn btn-primary btn-sm btn-detail"
-                                data-qr_code="${row.qr_code}"
+                                data-no_trans="${row.no_trans}"
                             >
                                 <i class="fa-solid fa-list"></i>
                             </button>
@@ -328,19 +328,16 @@
         });
 
         $(document).on('click', '.btn-detail', function () {
-            let qr_code = $(this).data('qr_code');
+            let no_trans = $(this).data('no_trans');
 
             $('#modal').modal('show');
-            iniModalDetail(qr_code);
+            iniModalDetail(no_trans);
         });
 
         // HISTORY FABRIC
         let tableDetail;
-        let currentQrCode = '';
         
-        function iniModalDetail(qr_code) {
-            currentQrCode = qr_code
-
+        function iniModalDetail(no_trans) {
             if ($.fn.DataTable.isDataTable('#datatable-detail')) {
                 tableDetail.ajax.reload(null, false);
                 return;
@@ -352,7 +349,7 @@
                 ajax: {
                     url: "{{ route('get-data-detail-bpb-fg-stock-scan') }}",
                     data: function (d) {
-                        d.qr_code = currentQrCode;
+                        d.no_trans = no_trans;
                     }
                 },
                 columns: [
