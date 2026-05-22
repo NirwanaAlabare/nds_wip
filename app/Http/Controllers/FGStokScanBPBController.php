@@ -40,10 +40,9 @@ class FGStokScanBPBController extends Controller
                     COUNT(a.no_carton) AS total_carton,
                     SUM(a.qty) AS total_qty,
                     sumber_pemasukan,
-                    a.qr_code
+                    a.id_so_det
                 FROM fg_stok_bpb_scan a
-                LEFT JOIN master_sb_ws m 
-                    ON a.id_so_det = m.id_so_det
+                LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                 WHERE tgl_terima >= '$tgl_awal'
                 AND tgl_terima <= '$tgl_akhir'
                 GROUP BY
@@ -57,7 +56,7 @@ class FGStokScanBPBController extends Controller
                     color,
                     size,
                     sumber_pemasukan,
-                    a.qr_code
+                    a.id_so_det
                 ORDER BY SUBSTR(no_trans, 13) DESC
             ");
 
@@ -184,8 +183,9 @@ class FGStokScanBPBController extends Controller
                 size,
                 a.sumber_pemasukan
             ")
-            ->where('a.qr_code', $request->qr_code)
-            ->orderByRaw('SUBSTR(a.qr_code, 13) DESC');
+            ->where('a.id_so_det', $request->id_so_det)
+            ->where('a.no_trans', $request->no_trans)
+            ->orderByRaw('a.id DESC');
 
         return DataTables::queryBuilder($data)->make(true);
     }
