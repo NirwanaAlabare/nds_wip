@@ -150,5 +150,9 @@ Route::middleware('auth')->group(function () {
         // Check Stocker Tidak Valid
         Route::get('/check-stocker-tidak-valid', 'checkStokerTidakValid')->name("check-stocker-tidak-valid");
         Route::post('/check-stocker-tidak-valid-list', 'checkStokerTidakValidList')->name("check-stocker-tidak-valid-list");
+
+        // Check Stocker By Filter
+        Route::get('/check-stocker-by-filter', 'checkStockerByFilter')->name('check-stocker-by-filter');
+        Route::post('/check-stocker-by-filter-list', 'checkStockerByFilterList')->name('check-stocker-by-filter-list');
     });
 });
