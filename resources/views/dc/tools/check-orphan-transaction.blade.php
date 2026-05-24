@@ -47,7 +47,12 @@
     <div class="card card-sb">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title fw-bold mb-0">Transaksi Tanpa Stocker</h5>
-            <span class="badge bg-danger" id="total-badge">0 data</span>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-danger" id="total-badge">0 data</span>
+                <button class="btn btn-danger btn-sm" onclick="deleteAll()">
+                    <i class="fa fa-trash"></i> Hapus Semua
+                </button>
+            </div>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -148,6 +153,54 @@
                 table.ajax.reload();
             } else {
                 initTable();
+            }
+        }
+
+        function deleteAll() {
+            if (!$('#total-badge').text().startsWith('0')) {
+                Swal.fire({
+                    title: 'Hapus Orphan Transaction',
+                    html: '<span class="text-danger"><b>Perhatian</b></span><br>Yakin akan menghapus semua transaksi <b>' + $('#transaction_type option:selected').text() + '</b> yang tidak memiliki stocker pada rentang tanggal ini?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'HAPUS',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#dc3545',
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    Swal.fire({
+                        title: 'Please Wait...',
+                        html: 'Menghapus data...',
+                        didOpen: () => { Swal.showLoading(); },
+                        allowOutsideClick: false,
+                    });
+
+                    $.ajax({
+                        type: 'DELETE',
+                        url: '{{ route('delete-orphan-transaction') }}',
+                        data: {
+                            _token:           '{{ csrf_token() }}',
+                            transaction_type: $('#transaction_type').val(),
+                            date_from:        $('#date_from').val(),
+                            date_to:          $('#date_to').val(),
+                        },
+                        dataType: 'json',
+                        success: function (response) {
+                            Swal.fire({
+                                icon: response.status == 200 ? 'success' : 'error',
+                                title: response.status == 200 ? 'Berhasil' : 'Gagal',
+                                html: response.message,
+                                confirmButtonColor: '#082149',
+                            }).then(() => { if (table) table.ajax.reload(); });
+                        },
+                        error: function (jqXHR) {
+                            Swal.fire({ icon: 'error', title: 'Error', html: jqXHR.responseText });
+                        }
+                    });
+                });
+            } else {
+                Swal.fire({ icon: 'info', title: 'Tidak ada data', html: 'Lakukan pencarian terlebih dahulu.' });
             }
         }
     </script>

@@ -279,6 +279,7 @@ Route::middleware('auth')->group(function () {
         // Check Orphan Transaction
         Route::get('/check-orphan-transaction', 'checkOrphanTransaction')->name('check-orphan-transaction');
         Route::post('/check-orphan-transaction-list', 'checkOrphanTransactionList')->name('check-orphan-transaction-list');
+        Route::delete('/delete-orphan-transaction', 'deleteOrphanTransaction')->name('delete-orphan-transaction');
     });
 
     // DC report

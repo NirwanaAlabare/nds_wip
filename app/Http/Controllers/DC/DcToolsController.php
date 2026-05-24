@@ -539,4 +539,45 @@ class DcToolsController extends Controller
 
         return DataTables::queryBuilder($query)->make(true);
     }
+
+    public function deleteOrphanTransaction(Request $request)
+    {
+        $tableMap = [
+            'dc'                   => 'dc_in_input',
+            'secondary_inhouse_in' => 'secondary_inhouse_in_input',
+            'secondary_inhouse'    => 'secondary_inhouse_input',
+            'secondary_in'         => 'secondary_in_input',
+        ];
+
+        $type = $request->transaction_type;
+
+        if (!isset($tableMap[$type])) {
+            return ['status' => 400, 'message' => 'Jenis transaksi tidak valid.'];
+        }
+
+        $table = $tableMap[$type];
+
+        $query = DB::table($table . ' as t')
+            ->leftJoin('stocker_input as s', 's.id_qr_stocker', '=', 't.id_qr_stocker')
+            ->whereNull('s.id')
+            ->whereNotNull('t.tgl_trans');
+
+        if ($request->date_from) {
+            $query->where('t.tgl_trans', '>=', $request->date_from . ' 00:00:00');
+        }
+        if ($request->date_to) {
+            $query->where('t.tgl_trans', '<=', $request->date_to . ' 23:59:59');
+        }
+
+        $ids   = $query->pluck('t.id');
+        $count = $ids->count();
+
+        if ($count === 0) {
+            return ['status' => 400, 'message' => 'Tidak ada data yang dihapus.'];
+        }
+
+        DB::table($table)->whereIn('id', $ids)->delete();
+
+        return ['status' => 200, 'message' => $count . ' data orphan transaction berhasil dihapus.'];
+    }
 }
