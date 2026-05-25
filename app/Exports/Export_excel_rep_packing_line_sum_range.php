@@ -62,7 +62,7 @@ class Export_excel_rep_packing_line_sum_range implements FromView, WithEvents, S
                 so_det_id,
                 count(so_det_id) qty,
                 created_by
-                from output_rfts_packing where date(updated_at) >= '$this->from' and date(updated_at) <= '$this->to'
+                from output_rfts_packing where updated_at >= '$this->from 00:00:00' and updated_at <= '$this->to 23:59:59'
                 group by so_det_id, created_by
                 ) a
                 inner join master_sb_ws m on a.so_det_id = m.id_so_det
