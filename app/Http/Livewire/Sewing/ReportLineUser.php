@@ -55,10 +55,10 @@ class ReportLineUser extends Component
                 GREATEST(IFNULL(MAX(rfts.last_rft), '".$this->date." 00:00:00'), IFNULL(MAX(defects.last_defect), '".$this->date." 00:00:00'), IFNULL(MAX(reworks.last_rework), '".$this->date." 00:00:00'), IFNULL(MAX(rejects.last_reject), '".$this->date." 00:00:00')) latest_output
             ")->
             leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->
-            leftJoin(DB::raw("(SELECT max(rfts.updated_at) last_rft, count(rfts.id) rft, rfts.created_by from output_rfts rfts inner join master_plan on master_plan.id = rfts.master_plan_id where DATE(rfts.updated_at) = '".$this->date."' and master_plan.tgl_plan = '".$this->date."' and status = 'NORMAL' GROUP BY rfts.created_by) as rfts"), "user_sb_wip.id", "=", "rfts.created_by")->
-            leftJoin(DB::raw("(SELECT max(defects.updated_at) last_defect, defects.created_by from output_defects defects inner join master_plan on master_plan.id = defects.master_plan_id where defects.defect_status = 'defect' and DATE(defects.updated_at) = '".$this->date."' and master_plan.tgl_plan = '".$this->date."' GROUP BY defects.created_by) as defects"), "user_sb_wip.id", "=", "defects.created_by")->
-            leftJoin(DB::raw("(SELECT max(defrew.updated_at) last_rework, count(defrew.id) rework, reworks.created_by from output_defects defrew inner join master_plan on master_plan.id = defrew.master_plan_id inner join output_reworks reworks on reworks.defect_id = defrew.id where defrew.defect_status = 'reworked' and DATE(defrew.updated_at) = '".$this->date."' and master_plan.tgl_plan = '".$this->date."' GROUP BY reworks.created_by) as reworks"), "user_sb_wip.id", "=", "reworks.created_by")->
-            leftJoin(DB::raw("(SELECT max(rejects.updated_at) last_reject, rejects.created_by from output_rejects rejects inner join master_plan on master_plan.id = rejects.master_plan_id where DATE(rejects.updated_at) = '".$this->date."' and master_plan.tgl_plan = '".$this->date."' GROUP BY rejects.created_by) as rejects"), "user_sb_wip.id", "=", "rejects.created_by")->
+            leftJoin(DB::raw("(SELECT max(rfts.updated_at) last_rft, count(rfts.id) rft, rfts.created_by from output_rfts rfts inner join master_plan on master_plan.id = rfts.master_plan_id where rfts.updated_at between '".$this->date." 00:00:00' and '".$this->date." 23:59:59' and master_plan.tgl_plan = '".$this->date."' and status = 'NORMAL' GROUP BY rfts.created_by) as rfts"), "user_sb_wip.id", "=", "rfts.created_by")->
+            leftJoin(DB::raw("(SELECT max(defects.updated_at) last_defect, defects.created_by from output_defects defects inner join master_plan on master_plan.id = defects.master_plan_id where defects.defect_status = 'defect' and defects.updated_at between '".$this->date." 00:00:00' and '".$this->date." 23:59:59' and master_plan.tgl_plan = '".$this->date."' GROUP BY defects.created_by) as defects"), "user_sb_wip.id", "=", "defects.created_by")->
+            leftJoin(DB::raw("(SELECT max(defrew.updated_at) last_rework, count(defrew.id) rework, reworks.created_by from output_defects defrew inner join master_plan on master_plan.id = defrew.master_plan_id inner join output_reworks reworks on reworks.defect_id = defrew.id where defrew.defect_status = 'reworked' and defrew.updated_at between '".$this->date." 00:00:00' and '".$this->date." 23:59:59' and master_plan.tgl_plan = '".$this->date."' GROUP BY reworks.created_by) as reworks"), "user_sb_wip.id", "=", "reworks.created_by")->
+            leftJoin(DB::raw("(SELECT max(rejects.updated_at) last_reject, rejects.created_by from output_rejects rejects inner join master_plan on master_plan.id = rejects.master_plan_id where rejects.updated_at between '".$this->date." 00:00:00' and '".$this->date." 23:59:59' and master_plan.tgl_plan = '".$this->date."' GROUP BY rejects.created_by) as rejects"), "user_sb_wip.id", "=", "rejects.created_by")->
             where("userpassword.Groupp", 'SEWING')->
             whereRaw("(userpassword.Locked != 1 OR userpassword.Locked IS NULL)")->
             whereRaw("(user_sb_wip.locked != 'locked' OR user_sb_wip.locked IS NULL)")->
@@ -67,7 +67,10 @@ class ReportLineUser extends Component
                 userpassword.FullName LIKE '%".$this->search."%' OR
                 user_sb_wip.name LIKE '%".$this->search."%'
             )")->
-            groupBy("user_sb_wip.id")->get();
+            groupBy("user_sb_wip.id")->
+            orderBy("user_sb_wip.line_id", "asc")->
+            orderBy("user_sb_wip.id", "asc")->
+            get();
 
         return view('livewire.sewing.report-line-user', [
             'masterPlans' => $masterPlans,
