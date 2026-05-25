@@ -2986,7 +2986,7 @@ class SewingToolsController extends Controller
                                 ->first();
 
                             $userPlan = UserSbWip::select("user_sb_wip.id")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")
-                                ->where("userpassword.username", $modMasterPlan->sewing_line)
+                                ->where("userpassword.username", $request->line)
                                 ->orderBy("user_sb_wip.id", "desc")
                                 ->first();
 
@@ -3127,7 +3127,7 @@ class SewingToolsController extends Controller
                                 ->first();
 
                             $userPlan = UserSbWip::select("user_sb_wip.id")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")
-                                ->where("userpassword.username", $modMasterPlan->sewing_line)
+                                ->where("userpassword.username", $request->line)
                                 ->orderBy("user_sb_wip.id", "desc")
                                 ->first();
 
@@ -3229,7 +3229,7 @@ class SewingToolsController extends Controller
                                 ->first();
 
                             $userPlan = UserSbWip::select("user_sb_wip.id")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")
-                                ->where("userpassword.username", $modMasterPlan->sewing_line)
+                                ->where("userpassword.username", $request->line)
                                 ->orderBy("user_sb_wip.id", "desc")
                                 ->first();
 
@@ -3339,7 +3339,7 @@ class SewingToolsController extends Controller
                                 ->first();
 
                             $userPlan = UserSbWip::select("user_sb_wip.id")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")
-                                ->where("userpassword.username", $modMasterPlan->sewing_line)
+                                ->where("userpassword.username", $request->line)
                                 ->orderBy("user_sb_wip.id", "desc")
                                 ->first();
 
