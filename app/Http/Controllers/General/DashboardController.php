@@ -1933,6 +1933,8 @@ class DashboardController extends Controller
             $years = array_reverse(range(1999, date('Y')));
 
             if ($request->ajax()) {
+                return json_encode(array("message" => "Feature Disabled"));
+
                 $month = date("m");
                 $year = date("Y");
 
@@ -2011,6 +2013,8 @@ class DashboardController extends Controller
         }
 
         public function sewingSummary(Request $request) {
+            return json_encode(array("message" => "Feature Disabled"));
+
             $month = date("m");
             $year = date("Y");
 
@@ -2045,6 +2049,8 @@ class DashboardController extends Controller
         }
 
         public function sewingOutputData(Request $request) {
+            return json_encode(array("message" => "Feature Disabled"));
+
             $month = $request->month ? $request->month : date('m');
             $year = $request->year ? $request->year : date('Y');
 
