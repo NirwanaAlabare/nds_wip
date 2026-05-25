@@ -2045,8 +2045,10 @@ class DashboardController extends Controller
         }
 
         public function sewingOutputData(Request $request) {
-            $dateFrom = $request->date_from ? $request->date_from : date('Y-m-01');
-            $dateTo   = $request->date_to   ? $request->date_to   : date('Y-m-t');
+            return json_encode(array("message" => "Feature Disabled"));
+
+            $month = $request->month ? $request->month : date('m');
+            $year = $request->year ? $request->year : date('Y');
 
             $sewingOutputData = DB::connection('mysql_sb')->select("
                     SELECT
