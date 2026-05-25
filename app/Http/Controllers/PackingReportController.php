@@ -74,7 +74,7 @@ class PackingReportController extends Controller
                 so_det_id,
                 count(so_det_id) qty,
                 created_by
-                from output_rfts_packing where date(updated_at) >= '$tgl_awal' and date(updated_at) <= '$tgl_akhir'
+                from output_rfts_packing where updated_at >= '$tgl_awal 00:00:00' and updated_at) <= '$tgl_akhir 23:59:59'
                 group by so_det_id, created_by
                 ) a
                 inner join master_sb_ws m on a.so_det_id = m.id_so_det
