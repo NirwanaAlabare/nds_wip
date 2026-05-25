@@ -110,7 +110,7 @@ class SecondaryInhouseOutController extends Controller
                         ELSE ' (0)'
                         END
                     ) AS stocker_range_old,
-                    CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range,
+                    CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range
                 FROM secondary_inhouse_input a
                 LEFT JOIN (
                     SELECT
