@@ -2905,6 +2905,491 @@ class SewingToolsController extends Controller
         return view("sewing.tools.modify-output", ["lines" => $lines, "orders" => $orders, "page" => "dashboard-sewing-eff"]);
     }
 
+    // public function modifyOutputAction(Request $request) {
+    //     switch ($request->type) {
+    //         case 'rft_' :
+    //             // Take Rft
+    //             $rfts = DB::connection("mysql_sb")->table("output_rfts".$request->dept." as output_rfts")
+    //                 ->select("output_rfts.*")
+    //                 ->leftJoin("master_plan", "master_plan.id", "=", "output_rfts.master_plan_id");
+    //                 if ($request->dept == "_packing_po") {
+    //                     $rfts->leftJoin("userpassword", "userpassword.username", "=", "output_rfts.created_by_line")->leftJoin("laravel_nds.ppic_master_so", "ppic_master_so.id", "=", "output_rfts.po_id");
+    //                 } else {
+    //                     if ($request->dept == "_packing") {
+    //                         $rfts->leftJoin("userpassword", "userpassword.username", "=", "output_rfts.created_by");
+    //                     } else {
+    //                         $rfts->leftJoin("user_sb_wip", "user_sb_wip.id", "=", "output_rfts.created_by")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id");
+    //                     }
+    //                 }
+    //                 $rfts->where("output_rfts.status", "NORMAL")
+    //                 ->where("userpassword.username", $request->line)
+    //                 ->where("master_plan.id", $request->master_plan_id)
+    //                 ->where("output_rfts.so_det_id", $request->so_det_id);
+    //                 if ($request->dept == "_packing_po") {
+    //                     $rfts->where("ppic_master_so.po", $request->po_id);
+    //                 }
+    //                 $rfts->take($request->qty);
+
+    //             $rftIds = $rfts->pluck("id")->toArray();
+
+    //             if (count($rftIds) > 0) {
+    //                 // Undo
+    //                 if ($request->action == "undo") {
+    //                     // Log
+    //                     $undoArray = [];
+    //                     foreach ($rftIds as $rftId) {
+    //                         $rft = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->where('id', $rftId)->first();
+
+    //                         if ($rft) {
+    //                             if ($request->dept == "_packing_po") {
+    //                                 array_push($undoArray, ['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'po_id' => $rft->po_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'alokasi' => $rft->alokasi, 'created_by' => $rft->created_by, 'created_by_username' => $rft->created_by_username, 'created_by_line' => $rft->created_by_line, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+
+    //                                 // Delete Gudang Stok on Packing Po GudangStok
+    //                                 if ($rft->alokasi == "gudang stok") {
+    //                                     DB::connection("mysql_sb")->table("output_gudang_stok")->where('packing_po_id', $rft->id)->delete();
+    //                                 }
+    //                             } else {
+    //                                 array_push($undoArray, ['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+    //                             }
+    //                         }
+    //                     }
+
+    //                     DB::connection("mysql_sb")->table("output_undo".$request->dept)->insert($undoArray);
+
+    //                     // Delete
+    //                     $deleteRft = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->whereIn('id', $rftIds)->delete();
+
+    //                     if ($deleteRft) {
+    //                         return [
+    //                             "status"  => 200,
+    //                             "message" => $deleteRft." berhasil di UNDO.",
+    //                         ];
+    //                     }
+    //                 // Modify
+    //                 } else {
+    //                     // Check So Det
+    //                     $modSoDet = SoDet::selectRaw("so_det.id, act_costing.id id_ws, so_det.color, so_det.size")
+    //                         ->leftJoin("so", "so.id", "=", "so_det.id_so")
+    //                         ->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")
+    //                         ->where("so_det.id", $request->mod_so_det_id)
+    //                         ->first();
+
+    //                     if ($modSoDet) {
+
+    //                         // Check Master Plan
+    //                         $modMasterPlan = MasterPlan::select("master_plan.id", "master_plan.sewing_line")
+    //                             ->where("tgl_plan", $request->tanggal)
+    //                             ->where("id_ws", $modSoDet->id_ws)
+    //                             ->where("color", $modSoDet->color)
+    //                             ->where("sewing_line", $request->line)
+    //                             ->whereRaw("(cancel IS NULL or cancel = 'N')")
+    //                             ->first();
+
+    //                         $userPlan = UserSbWip::select("user_sb_wip.id")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")
+    //                             ->where("userpassword.username", $request->line)
+    //                             ->orderBy("user_sb_wip.id", "desc")
+    //                             ->first();
+
+    //                         if ($modMasterPlan) {
+    //                             if ($request->dept == "_packing_po") {
+    //                                 // Check Po
+    //                                 $modPo = PPICMasterSo::selectRaw("ppic_master_so.id")
+    //                                     ->where("ppic_master_so.id", $request->mod_po_id)
+    //                                     ->first();
+
+    //                                 $currentRft = [
+    //                                     "so_det_id" => $modSoDet->id,
+    //                                     "po_id" => $modPo ? $modPo->id : null,
+    //                                     "master_plan_id" => $modMasterPlan->id,
+    //                                     "alokasi" => ($modPo ? ($modPo->id ? "po" : "gudang stok") : null),
+    //                                     "created_by_line" => $modMasterPlan->sewing_line
+    //                                 ];
+
+    //                                 if ($modPo && $modPo->id) {
+    //                                     // IF PO
+    //                                     DB::connection("mysql_sb")->table("output_gudang_stok")->whereIn("packing_po_id", $rftIds)->delete();
+    //                                 } else {
+    //                                     // IF Gudang Stok
+    //                                     $gudangStokArr = [];
+    //                                     foreach ($rftIds as $rftId) {
+    //                                         $rft = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->where('id', $rftId)->first();
+
+    //                                         if ($rft) {
+    //                                             array_push($gudangStokArr, [
+    //                                                 "kode_numbering" => $rft->kode_numbering,
+    //                                                 "packing_po_id" => $rft->id,
+    //                                                 "so_det_id" => $rft->so_det_id,
+    //                                                 "created_by" => $rft->created_by,
+    //                                                 "created_by_username" => $rft->created_by_line,
+    //                                                 "created_by_line" => $rft->created_by_line,
+    //                                                 "created_at" => $rft->created_at,
+    //                                                 "updated_at" => $rft->updated_at,
+    //                                             ]);
+    //                                         }
+    //                                     }
+
+    //                                     DB::connection("mysql_sb")->table("output_gudang_stok")->upsert(
+    //                                         $gudangStokArr,
+    //                                         ['packing_po_id'],
+    //                                         ['kode_numbering', 'so_det_id', 'created_by', 'created_by_username', 'created_by_line', 'created_at', 'updated_at']
+    //                                     );
+    //                                 }
+    //                             } else {
+    //                                 $currentRft = [
+    //                                     "so_det_id" => $modSoDet->id,
+    //                                     "master_plan_id" => $modMasterPlan->id,
+    //                                     "created_by" => ($request->dept == '_packing' ? $modMasterPlan->sewing_line : $userPlan->id)
+    //                                 ];
+    //                             }
+
+    //                             $updateRfts = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->whereIn("id", $rftIds)->update($currentRft);
+
+    //                             if ($updateRfts) {
+    //                                 return [
+    //                                     "status"  => 200,
+    //                                     "message" => $updateRfts." RFT berhasil di ubah.",
+    //                                 ];
+    //                             }
+    //                         } else {
+    //                             return [
+    //                                 "status"  => 400,
+    //                                 "message" => "Master Plan untuk size tujuan tidak ditemukan.",
+    //                             ];
+    //                         }
+    //                     } else {
+    //                         return [
+    //                             "status"  => 400,
+    //                             "message" => "Size tujuan tidak ditemukan.",
+    //                         ];
+    //                     }
+    //                 }
+    //             }
+
+    //             break;
+
+    //         case 'defect_' :
+    //             // Take Defect
+    //             $defects = DB::connection("mysql_sb")->table("output_defects".$request->dept." as output_defects")
+    //                 ->select("output_defects.*")
+    //                 ->leftJoin("master_plan", "master_plan.id", "=", "output_defects.master_plan_id");
+    //                 if ($request->dept == "_packing") {
+    //                     $defects->leftJoin("userpassword", "userpassword.username", "=", "output_defects.created_by");
+    //                 } else {
+    //                     $defects->leftJoin("user_sb_wip", "user_sb_wip.id", "=", "output_defects.created_by")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id");
+    //                 }
+    //                 $defects->where("output_defects.defect_status", "defect")
+    //                 ->where("userpassword.username", $request->line)
+    //                 ->where("master_plan.id", $request->master_plan_id)
+    //                 ->where("output_defects.so_det_id", $request->so_det_id)
+    //                 ->take($request->qty);
+
+    //             $defectIds = $defects->pluck("id")->toArray();
+
+    //             if (count($defectIds) > 0) {
+    //                 // Undo
+    //                 if ($request->action == "undo") {
+    //                     // Log
+    //                     $undoArray = [];
+    //                     foreach ($defectIds as $defectId) {
+    //                         $defect = DB::connection("mysql_sb")->table("output_defects".$request->dept)->where('id', $defectId)->first();
+
+    //                         if ($defect) {
+    //                             array_push($undoArray, ['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_defect_id' => $defect->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect', 'defect_type_id' => $defect->defect_type_id, 'defect_area_id' => $defect->defect_area_id, 'defect_area_x' => $defect->defect_area_x, 'defect_area_y' => $defect->defect_area_y, 'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+    //                         }
+    //                     }
+
+    //                     // Delete
+    //                     $deleteDefect = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn('id', $defectIds)->delete();
+
+    //                     if ($deleteDefect) {
+    //                         return [
+    //                             "status"  => 200,
+    //                             "message" => $deleteDefect." berhasil di UNDO.",
+    //                         ];
+    //                     }
+    //                 // Modify
+    //                 } else {
+    //                     // Check So Det
+    //                     $modSoDet = SoDet::selectRaw("so_det.id, act_costing.id id_ws, so_det.color, so_det.size")
+    //                         ->leftJoin("so", "so.id", "=", "so_det.id_so")
+    //                         ->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")
+    //                         ->where("so_det.id", $request->mod_so_det_id)
+    //                         ->first();
+
+    //                     if ($modSoDet) {
+    //                         // Check Master Plan
+    //                         $modMasterPlan = MasterPlan::select("master_plan.id", "sewing_line")
+    //                             ->where("tgl_plan", $request->tanggal)
+    //                             ->where("id_ws", $modSoDet->id_ws)
+    //                             ->where("color", $modSoDet->color)
+    //                             ->where("sewing_line", $request->line)
+    //                             ->whereRaw("(cancel IS NULL or cancel = 'N')")
+    //                             ->first();
+
+    //                         $userPlan = UserSbWip::select("user_sb_wip.id")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")
+    //                             ->where("userpassword.username", $request->line)
+    //                             ->orderBy("user_sb_wip.id", "desc")
+    //                             ->first();
+
+    //                         if ($modMasterPlan) {
+    //                             $updateDefects = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn("id", $defectIds)->update([
+    //                                 "so_det_id"       => $modSoDet->id,
+    //                                 "master_plan_id"  => $modMasterPlan->id,
+    //                                 "created_by" => ($request->dept == '_packing' ? $modMasterPlan->sewing_line : $userPlan->id)
+    //                             ]);
+
+    //                             if ($updateDefects) {
+    //                                 return [
+    //                                     "status"  => 200,
+    //                                     "message" => $updateDefects." Defect berhasil di ubah.",
+    //                                 ];
+    //                             }
+    //                         } else {
+    //                             return [
+    //                                 "status"  => 400,
+    //                                 "message" => "Master Plan untuk size tujuan tidak ditemukan.",
+    //                             ];
+    //                         }
+    //                     } else {
+    //                         return [
+    //                             "status"  => 400,
+    //                             "message" => "Size tujuan tidak ditemukan.",
+    //                         ];
+    //                     }
+    //                 }
+    //             }
+
+    //             break;
+
+    //         case 'rework_' :
+    //             // Take Reworks
+    //             $defects = DB::connection("mysql_sb")->table("output_defects".$request->dept." as output_defects")
+    //                 ->select("output_defects.*")
+    //                 ->leftJoin("master_plan", "master_plan.id", "=", "output_defects.master_plan_id");
+    //                 if ($request->dept == "_packing") {
+    //                     $defects->leftJoin("userpassword", "userpassword.username", "=", "output_defects.created_by");
+    //                 } else {
+    //                     $defects->leftJoin("user_sb_wip", "user_sb_wip.id", "=", "output_defects.created_by")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id");
+    //                 }
+    //                 $defects->where("output_defects.defect_status", "reworked")
+    //                 ->where("userpassword.username", $request->line)
+    //                 ->where("master_plan.id", $request->master_plan_id)
+    //                 ->where("output_defects.so_det_id", $request->so_det_id)
+    //                 ->take($request->qty);
+
+    //             $defectIds = $defects->pluck("id")->toArray();
+
+    //             if (count($defectIds) > 0) {
+    //                 // Undo
+    //                 if ($request->action == "undo") {
+    //                     // Log
+    //                     $undoArray = [];
+    //                     foreach ($defectIds as $defectId) {
+    //                         $rework = DB::connection("mysql_sb")->table("output_reworks".$request->dept)->selectRaw("output_reworks.*, output_rfts.id as rft_id, output_rfts.master_plan_id, output_rfts.so_det_id, output_rfts.kode_numbering")->leftJoin("output_rfts", "output_rfts.rework_id", "=", "output_reworks.id")->where('defect_id', $defectId)->first();
+
+    //                         if ($rework) {
+    //                             array_push($undoArray, ['master_plan_id' => $rework->master_plan_id, 'so_det_id' => $rework->so_det_id, 'output_rework_id' => $rework->id, 'output_rft_id' => $rework->rft_id, 'kode_numbering' => $rework->kode_numbering, 'keterangan' => 'rework', 'created_by' => $rework->created_by, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+    //                         }
+    //                     }
+
+    //                     DB::connection("mysql_sb")->table("output_undo".$request->dept)->insert($undoArray);
+
+    //                     // Delete
+    //                     $reworkIds = DB::connection("mysql_sb")->table("output_reworks".$request->dept)->whereIn('defect_id', $defectIds)->pluck("id")->toArray();
+    //                     $deleteReworks = DB::connection("mysql_sb")->table("output_reworks".$request->dept)->whereIn('defect_id', $defectIds)->delete();
+    //                     $deleteRfts = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->whereIn('rework_id', $reworkIds)->delete();
+
+    //                     if ($deleteReworks) {
+    //                         $updateDefects = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn("id", $defectIds)->update([
+    //                             "defect_status" => "defect",
+    //                         ]);
+
+    //                         return [
+    //                             "status"  => 200,
+    //                             "message" => $deleteReworks." Rework berhasil di UNDO.",
+    //                         ];
+    //                     }
+    //                 // Modify
+    //                 } else {
+    //                     // Check So Det
+    //                     $modSoDet = SoDet::selectRaw("so_det.id, act_costing.id id_ws, so_det.color, so_det.size")
+    //                         ->leftJoin("so", "so.id", "=", "so_det.id_so")
+    //                         ->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")
+    //                         ->where("so_det.id", $request->mod_so_det_id)
+    //                         ->first();
+
+    //                     if ($modSoDet) {
+    //                         // Check Master Plan
+    //                         $modMasterPlan = MasterPlan::select("master_plan.id", "sewing_line")
+    //                             ->where("tgl_plan", $request->tanggal)
+    //                             ->where("id_ws", $modSoDet->id_ws)
+    //                             ->where("color", $modSoDet->color)
+    //                             ->where("sewing_line", $request->line)
+    //                             ->whereRaw("(cancel IS NULL or cancel = 'N')")
+    //                             ->first();
+
+    //                         $userPlan = UserSbWip::select("user_sb_wip.id")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")
+    //                             ->where("userpassword.username", $request->line)
+    //                             ->orderBy("user_sb_wip.id", "desc")
+    //                             ->first();
+
+    //                         if ($modMasterPlan) {
+    //                             $updateDefects = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn("id", $defectIds)->update([
+    //                                 "so_det_id"       => $modSoDet->id,
+    //                                 "master_plan_id"  => $modMasterPlan->id,
+    //                                 "created_by" => ($request->dept == '_packing' ? $modMasterPlan->sewing_line : $userPlan->id)
+    //                             ]);
+
+    //                             if ($updateDefects) {
+    //                                 $reworkIds = DB::connection("mysql_sb")->table("output_reworks".$request->dept)->whereIn("defect_id", $defectIds)->pluck("id")->toArray();
+
+    //                                 if ($reworkIds && count($reworkIds) > 0) {
+    //                                     $updateRft = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->whereIn("rework_id", $reworkIds)->update([
+    //                                         "so_det_id"       => $modSoDet->id,
+    //                                         "master_plan_id"  => $modMasterPlan->id,
+    //                                     ]);
+    //                                 }
+
+    //                                 return [
+    //                                     "status"  => 200,
+    //                                     "message" => $updateDefects." Rework berhasil di ubah.",
+    //                                 ];
+    //                             }
+    //                         } else {
+    //                             return [
+    //                                 "status"  => 400,
+    //                                 "message" => "Master Plan untuk size tujuan tidak ditemukan.",
+    //                             ];
+    //                         }
+    //                     } else {
+    //                         return [
+    //                             "status"  => 400,
+    //                             "message" => "Size tujuan tidak ditemukan.",
+    //                         ];
+    //                     }
+    //                 }
+    //             }
+
+    //             break;
+
+    //         case 'reject_' :
+    //             // Take Rejects
+    //             $rejects = DB::connection("mysql_sb")->table("output_rejects".$request->dept." as output_rejects")
+    //                 ->select("output_rejects.*")
+    //                 ->leftJoin("master_plan", "master_plan.id", "=", "output_rejects.master_plan_id");
+    //                 if ($request->dept == "_packing") {
+    //                     $rejects->leftJoin("userpassword", "userpassword.username", "=", "output_rejects.created_by");
+    //                 } else {
+    //                     $rejects->leftJoin("user_sb_wip", "user_sb_wip.id", "=", "output_rejects.created_by")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id");
+    //                 }
+    //                 $rejects
+    //                 ->where("userpassword.username", $request->line)
+    //                 ->where("master_plan.id", $request->master_plan_id)
+    //                 ->where("output_rejects.so_det_id", $request->so_det_id)
+    //                 ->take($request->qty);
+
+    //             $rejectIds = $rejects->pluck("id")->toArray();
+
+    //             if (count($rejectIds) > 0) {
+    //                 // Undo
+    //                 if ($request->action == "undo") {
+    //                     // Log
+    //                     $undoArray = [];
+    //                     foreach ($rejectIds as $rejectId) {
+    //                         $reject = DB::connection("mysql_sb")->table("output_rejects".$request->dept)->where('id', $rejectId)->first();
+
+    //                         if ($reject) {
+    //                             array_push($undoArray, ['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_defect_id' => $reject->defect_id, 'output_reject_id' => $reject->id, 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+    //                         }
+    //                     }
+
+    //                     DB::connection("mysql_sb")->table("output_undo".$request->dept)->insert($undoArray);
+
+    //                     // Delete
+    //                     $defectIds = DB::connection("mysql_sb")->table("output_rejects".$request->dept)->whereNotNull("defect_id")->whereIn('id', $rejectIds)->pluck("defect_id")->toArray();
+    //                     $deleteRejects = DB::connection("mysql_sb")->table("output_rejects".$request->dept)->whereIn('id', $rejectIds)->delete();
+
+    //                     if ($deleteRejects) {
+    //                         $updateDefects = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn("id", $defectIds)->update([
+    //                             "defect_status" => "defect",
+    //                         ]);
+
+    //                         return [
+    //                             "status"  => 200,
+    //                             "message" => $deleteRejects." Reject berhasil di UNDO.",
+    //                         ];
+    //                     }
+    //                 // Modify
+    //                 } else {
+    //                     // Check So Det
+    //                     $modSoDet = SoDet::selectRaw("so_det.id, act_costing.id id_ws, so_det.color, so_det.size")
+    //                         ->leftJoin("so", "so.id", "=", "so_det.id_so")
+    //                         ->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")
+    //                         ->where("so_det.id", $request->mod_so_det_id)
+    //                         ->first();
+
+    //                     if ($modSoDet) {
+    //                         // Check Master Plan
+    //                         $modMasterPlan = MasterPlan::select("master_plan.id", "sewing_line")
+    //                             ->where("tgl_plan", $request->tanggal)
+    //                             ->where("id_ws", $modSoDet->id_ws)
+    //                             ->where("color", $modSoDet->color)
+    //                             ->where("sewing_line", $request->line)
+    //                             ->whereRaw("(cancel IS NULL or cancel = 'N')")
+    //                             ->first();
+
+    //                         $userPlan = UserSbWip::select("user_sb_wip.id")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")
+    //                             ->where("userpassword.username", $request->line)
+    //                             ->orderBy("user_sb_wip.id", "desc")
+    //                             ->first();
+
+    //                         if ($modMasterPlan) {
+    //                             $updateRejects = DB::connection("mysql_sb")->table("output_rejects".$request->dept)->whereIn("id", $rejectIds)->update([
+    //                                 "so_det_id"       => $modSoDet->id,
+    //                                 "master_plan_id"  => $modMasterPlan->id,
+    //                                 "created_by" => ($request->dept == '_packing' ? $modMasterPlan->sewing_line : $userPlan->id)
+    //                             ]);
+
+    //                             if ($updateRejects) {
+    //                                 $defectIds = DB::connection("mysql_sb")->table("output_rejects".$request->dept)->whereIn("id", $rejectIds)->whereNotNull("defect_id")->pluck("defect_id")->toArray();
+
+    //                                 if ($defectIds && count($defectIds) > 0) {
+    //                                     $updateDefects = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn("id", $defectIds)->update([
+    //                                         "so_det_id"       => $modSoDet->id,
+    //                                         "master_plan_id"  => $modMasterPlan->id,
+    //                                     ]);
+    //                                 }
+
+    //                                 return [
+    //                                     "status"  => 200,
+    //                                     "message" => $updateRejects." Reject berhasil di ubah.",
+    //                                 ];
+    //                             }
+    //                         } else {
+    //                             return [
+    //                                 "status"  => 400,
+    //                                 "message" => "Master Plan untuk size tujuan tidak ditemukan.",
+    //                             ];
+    //                         }
+    //                     } else {
+    //                         return [
+    //                             "status"  => 400,
+    //                             "message" => "Size tujuan tidak ditemukan.",
+    //                         ];
+    //                     }
+    //                 }
+    //             }
+
+    //             break;
+
+    //         default:
+    //             return [
+    //                 "status"  => 400,
+    //                 "message" => "Terjadi kesalahan.",
+    //             ];
+    //     }
+    // }
+
     public function modifyOutputAction(Request $request) {
         switch ($request->type) {
             case 'rft_' :
@@ -2956,6 +3441,27 @@ class SewingToolsController extends Controller
 
                         DB::connection("mysql_sb")->table("output_undo".$request->dept)->insert($undoArray);
 
+                        foreach ($rftIds as $rftId) {
+
+                            $beforeRft = DB::connection("mysql_sb")
+                                ->table("output_rfts".$request->dept)
+                                ->where('id', $rftId)
+                                ->first();
+
+                            if ($beforeRft) {
+
+                                $this->saveModifyLog(
+                                    'rft',
+                                    'undo',
+                                    'output_rfts'.$request->dept,
+                                    $beforeRft->id,
+                                    $request->dept,
+                                    $beforeRft,
+                                    null
+                                );
+                            }
+                        }
+
                         // Delete
                         $deleteRft = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->whereIn('id', $rftIds)->delete();
 
@@ -3002,7 +3508,7 @@ class SewingToolsController extends Controller
                                         "po_id" => $modPo ? $modPo->id : null,
                                         "master_plan_id" => $modMasterPlan->id,
                                         "alokasi" => ($modPo ? ($modPo->id ? "po" : "gudang stok") : null),
-                                        "created_by_line" => $modMasterPlan->sewing_line
+                                        "created_by_line" => $request->line
                                     ];
 
                                     if ($modPo && $modPo->id) {
@@ -3038,8 +3544,31 @@ class SewingToolsController extends Controller
                                     $currentRft = [
                                         "so_det_id" => $modSoDet->id,
                                         "master_plan_id" => $modMasterPlan->id,
-                                        "created_by" => ($request->dept == '_packing' ? $modMasterPlan->sewing_line : $userPlan->id)
+                                        "created_by" => ($request->dept == '_packing' ? $request->line : $userPlan->id)
                                     ];
+                                }
+
+                                $beforeRfts = DB::connection("mysql_sb")
+                                    ->table("output_rfts".$request->dept)
+                                    ->whereIn("id", $rftIds)
+                                    ->get();
+
+                                foreach ($beforeRfts as $beforeRft) {
+
+                                    $afterData = array_merge(
+                                        (array) $beforeRft,
+                                        $currentRft
+                                    );
+
+                                    $this->saveModifyLog(
+                                        'rft',
+                                        'modify',
+                                        'output_rfts'.$request->dept,
+                                        $beforeRft->id,
+                                        $request->dept,
+                                        $beforeRft,
+                                        $afterData
+                                    );
                                 }
 
                                 $updateRfts = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->whereIn("id", $rftIds)->update($currentRft);
@@ -3098,6 +3627,27 @@ class SewingToolsController extends Controller
                             }
                         }
 
+                        foreach ($defectIds as $defectId) {
+
+                            $beforeDefect = DB::connection("mysql_sb")
+                                ->table("output_defects".$request->dept)
+                                ->where('id', $defectId)
+                                ->first();
+
+                            if ($beforeDefect) {
+
+                                $this->saveModifyLog(
+                                    'defect',
+                                    'undo',
+                                    'output_defects'.$request->dept,
+                                    $beforeDefect->id,
+                                    $request->dept,
+                                    $beforeDefect,
+                                    null
+                                );
+                            }
+                        }
+
                         // Delete
                         $deleteDefect = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn('id', $defectIds)->delete();
 
@@ -3132,11 +3682,43 @@ class SewingToolsController extends Controller
                                 ->first();
 
                             if ($modMasterPlan) {
-                                $updateDefects = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn("id", $defectIds)->update([
-                                    "so_det_id"       => $modSoDet->id,
-                                    "master_plan_id"  => $modMasterPlan->id,
-                                    "created_by" => ($request->dept == '_packing' ? $modMasterPlan->sewing_line : $userPlan->id)
-                                ]);
+                                $updateData = [
+                                    "so_det_id"      => $modSoDet->id,
+                                    "master_plan_id" => $modMasterPlan->id,
+                                    "created_by"     => (
+                                        $request->dept == '_packing'
+                                            ? $request->line
+                                            : $userPlan->id
+                                    )
+                                ];
+
+                                $beforeDefects = DB::connection("mysql_sb")
+                                    ->table("output_defects".$request->dept)
+                                    ->whereIn("id", $defectIds)
+                                    ->get();
+
+                                foreach ($beforeDefects as $beforeDefect) {
+
+                                    $afterData = array_merge(
+                                        (array) $beforeDefect,
+                                        $updateData
+                                    );
+
+                                    $this->saveModifyLog(
+                                        'defect',
+                                        'modify',
+                                        'output_defects'.$request->dept,
+                                        $beforeDefect->id,
+                                        $request->dept,
+                                        $beforeDefect,
+                                        $afterData
+                                    );
+                                }
+
+                                $updateDefects = DB::connection("mysql_sb")
+                                    ->table("output_defects".$request->dept)
+                                    ->whereIn("id", $defectIds)
+                                    ->update($updateData);
 
                                 if ($updateDefects) {
                                     return [
@@ -3194,6 +3776,42 @@ class SewingToolsController extends Controller
 
                         DB::connection("mysql_sb")->table("output_undo".$request->dept)->insert($undoArray);
 
+                        $beforeReworks = DB::connection("mysql_sb")
+                            ->table("output_reworks".$request->dept)
+                            ->whereIn("defect_id", $defectIds)
+                            ->get();
+
+                        foreach ($beforeReworks as $beforeRework) {
+
+                            $this->saveModifyLog(
+                                'rework',
+                                'undo',
+                                'output_reworks'.$request->dept,
+                                $beforeRework->id,
+                                $request->dept,
+                                $beforeRework,
+                                null
+                            );
+                        }
+
+                        $beforeRfts = DB::connection("mysql_sb")
+                            ->table("output_rfts".$request->dept)
+                            ->whereIn("rework_id", $beforeReworks->pluck('id')->toArray())
+                            ->get();
+
+                        foreach ($beforeRfts as $beforeRft) {
+
+                            $this->saveModifyLog(
+                                'rft',
+                                'undo',
+                                'output_rfts'.$request->dept,
+                                $beforeRft->id,
+                                $request->dept,
+                                $beforeRft,
+                                null
+                            );
+                        }
+
                         // Delete
                         $reworkIds = DB::connection("mysql_sb")->table("output_reworks".$request->dept)->whereIn('defect_id', $defectIds)->pluck("id")->toArray();
                         $deleteReworks = DB::connection("mysql_sb")->table("output_reworks".$request->dept)->whereIn('defect_id', $defectIds)->delete();
@@ -3234,20 +3852,87 @@ class SewingToolsController extends Controller
                                 ->first();
 
                             if ($modMasterPlan) {
-                                $updateDefects = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn("id", $defectIds)->update([
-                                    "so_det_id"       => $modSoDet->id,
-                                    "master_plan_id"  => $modMasterPlan->id,
-                                    "created_by" => ($request->dept == '_packing' ? $modMasterPlan->sewing_line : $userPlan->id)
-                                ]);
+
+                                $updateDataDefect = [
+                                    "so_det_id"      => $modSoDet->id,
+                                    "master_plan_id" => $modMasterPlan->id,
+                                    "created_by"     => (
+                                        $request->dept == '_packing'
+                                            ? $request->line
+                                            : $userPlan->id
+                                    )
+                                ];
+
+                                $beforeDefects = DB::connection("mysql_sb")
+                                    ->table("output_defects".$request->dept)
+                                    ->whereIn("id", $defectIds)
+                                    ->get();
+
+                                foreach ($beforeDefects as $beforeDefect) {
+
+                                    $afterData = array_merge(
+                                        (array) $beforeDefect,
+                                        $updateDataDefect
+                                    );
+
+                                    $this->saveModifyLog(
+                                        'defect',
+                                        'modify',
+                                        'output_defects'.$request->dept,
+                                        $beforeDefect->id,
+                                        $request->dept,
+                                        $beforeDefect,
+                                        $afterData
+                                    );
+                                }
+
+                                $updateDefects = DB::connection("mysql_sb")
+                                    ->table("output_defects".$request->dept)
+                                    ->whereIn("id", $defectIds)
+                                    ->update($updateDataDefect);
 
                                 if ($updateDefects) {
-                                    $reworkIds = DB::connection("mysql_sb")->table("output_reworks".$request->dept)->whereIn("defect_id", $defectIds)->pluck("id")->toArray();
+
+                                    $reworkIds = DB::connection("mysql_sb")
+                                        ->table("output_reworks".$request->dept)
+                                        ->whereIn("defect_id", $defectIds)
+                                        ->pluck("id")
+                                        ->toArray();
 
                                     if ($reworkIds && count($reworkIds) > 0) {
-                                        $updateRft = DB::connection("mysql_sb")->table("output_rfts".$request->dept)->whereIn("rework_id", $reworkIds)->update([
-                                            "so_det_id"       => $modSoDet->id,
-                                            "master_plan_id"  => $modMasterPlan->id,
-                                        ]);
+
+                                        $updateDataRft = [
+                                            "so_det_id"      => $modSoDet->id,
+                                            "master_plan_id" => $modMasterPlan->id,
+                                        ];
+
+                                        $beforeRfts = DB::connection("mysql_sb")
+                                            ->table("output_rfts".$request->dept)
+                                            ->whereIn("rework_id", $reworkIds)
+                                            ->get();
+
+                                        foreach ($beforeRfts as $beforeRft) {
+
+                                            $afterData = array_merge(
+                                                (array) $beforeRft,
+                                                $updateDataRft
+                                            );
+
+                                            $this->saveModifyLog(
+                                                'rft',
+                                                'modify',
+                                                'output_rfts'.$request->dept,
+                                                $beforeRft->id,
+                                                $request->dept,
+                                                $beforeRft,
+                                                $afterData
+                                            );
+                                        }
+
+                                        $updateRft = DB::connection("mysql_sb")
+                                            ->table("output_rfts".$request->dept)
+                                            ->whereIn("rework_id", $reworkIds)
+                                            ->update($updateDataRft);
                                     }
 
                                     return [
@@ -3305,6 +3990,24 @@ class SewingToolsController extends Controller
 
                         DB::connection("mysql_sb")->table("output_undo".$request->dept)->insert($undoArray);
 
+                        $beforeRejects = DB::connection("mysql_sb")
+                            ->table("output_rejects".$request->dept)
+                            ->whereIn("id", $rejectIds)
+                            ->get();
+
+                        foreach ($beforeRejects as $beforeReject) {
+
+                            $this->saveModifyLog(
+                                'reject',
+                                'undo',
+                                'output_rejects'.$request->dept,
+                                $beforeReject->id,
+                                $request->dept,
+                                $beforeReject,
+                                null
+                            );
+                        }
+
                         // Delete
                         $defectIds = DB::connection("mysql_sb")->table("output_rejects".$request->dept)->whereNotNull("defect_id")->whereIn('id', $rejectIds)->pluck("defect_id")->toArray();
                         $deleteRejects = DB::connection("mysql_sb")->table("output_rejects".$request->dept)->whereIn('id', $rejectIds)->delete();
@@ -3344,20 +4047,88 @@ class SewingToolsController extends Controller
                                 ->first();
 
                             if ($modMasterPlan) {
-                                $updateRejects = DB::connection("mysql_sb")->table("output_rejects".$request->dept)->whereIn("id", $rejectIds)->update([
-                                    "so_det_id"       => $modSoDet->id,
-                                    "master_plan_id"  => $modMasterPlan->id,
-                                    "created_by" => ($request->dept == '_packing' ? $modMasterPlan->sewing_line : $userPlan->id)
-                                ]);
+
+                                $updateDataReject = [
+                                    "so_det_id"      => $modSoDet->id,
+                                    "master_plan_id" => $modMasterPlan->id,
+                                    "created_by"     => (
+                                        $request->dept == '_packing'
+                                            ? $request->line
+                                            : $userPlan->id
+                                    )
+                                ];
+
+                                $beforeRejects = DB::connection("mysql_sb")
+                                    ->table("output_rejects".$request->dept)
+                                    ->whereIn("id", $rejectIds)
+                                    ->get();
+
+                                foreach ($beforeRejects as $beforeReject) {
+
+                                    $afterData = array_merge(
+                                        (array) $beforeReject,
+                                        $updateDataReject
+                                    );
+
+                                    $this->saveModifyLog(
+                                        'reject',
+                                        'modify',
+                                        'output_rejects'.$request->dept,
+                                        $beforeReject->id,
+                                        $request->dept,
+                                        $beforeReject,
+                                        $afterData
+                                    );
+                                }
+
+                                $updateRejects = DB::connection("mysql_sb")
+                                    ->table("output_rejects".$request->dept)
+                                    ->whereIn("id", $rejectIds)
+                                    ->update($updateDataReject);
 
                                 if ($updateRejects) {
-                                    $defectIds = DB::connection("mysql_sb")->table("output_rejects".$request->dept)->whereIn("id", $rejectIds)->whereNotNull("defect_id")->pluck("defect_id")->toArray();
+
+                                    $defectIds = DB::connection("mysql_sb")
+                                        ->table("output_rejects".$request->dept)
+                                        ->whereIn("id", $rejectIds)
+                                        ->whereNotNull("defect_id")
+                                        ->pluck("defect_id")
+                                        ->toArray();
 
                                     if ($defectIds && count($defectIds) > 0) {
-                                        $updateDefects = DB::connection("mysql_sb")->table("output_defects".$request->dept)->whereIn("id", $defectIds)->update([
-                                            "so_det_id"       => $modSoDet->id,
-                                            "master_plan_id"  => $modMasterPlan->id,
-                                        ]);
+
+                                        $updateDataDefect = [
+                                            "so_det_id"      => $modSoDet->id,
+                                            "master_plan_id" => $modMasterPlan->id,
+                                        ];
+
+                                        $beforeDefects = DB::connection("mysql_sb")
+                                            ->table("output_defects".$request->dept)
+                                            ->whereIn("id", $defectIds)
+                                            ->get();
+
+                                        foreach ($beforeDefects as $beforeDefect) {
+
+                                            $afterData = array_merge(
+                                                (array) $beforeDefect,
+                                                $updateDataDefect
+                                            );
+
+                                            $this->saveModifyLog(
+                                                'defect',
+                                                'modify',
+                                                'output_defects'.$request->dept,
+                                                $beforeDefect->id,
+                                                $request->dept,
+                                                $beforeDefect,
+                                                $afterData
+                                            );
+                                        }
+
+                                        $updateDefects = DB::connection("mysql_sb")
+                                            ->table("output_defects".$request->dept)
+                                            ->whereIn("id", $defectIds)
+                                            ->update($updateDataDefect);
                                     }
 
                                     return [
@@ -3388,6 +4159,43 @@ class SewingToolsController extends Controller
                     "message" => "Terjadi kesalahan.",
                 ];
         }
+    }
+
+    private function saveModifyLog($type, $actionType, $tableName, $recordId, $dept, $before, $after = null)
+    {
+        $changed = [];
+
+        if ($after) {
+            foreach ($after as $key => $value) {
+
+                $beforeValue = isset($before->$key) ? $before->$key : null;
+
+                if ($beforeValue != $value) {
+                    $changed[$key] = [
+                        'before' => $beforeValue,
+                        'after'  => $value
+                    ];
+                }
+            }
+        }
+
+        DB::connection("mysql_sb")->table("output_modify_logs")->insert([
+            'type'           => $type,
+            'action_type'    => $actionType,
+            'table_name'     => $tableName,
+            'record_id'      => $recordId,
+            'dept'           => $dept,
+
+            'before_data'    => json_encode($before),
+            'after_data'     => $after ? json_encode($after) : null,
+            'changed_fields' => json_encode($changed),
+
+            'modified_by'    => Auth::user()->id,
+            'modified_at'    => Carbon::now(),
+
+            'created_at'     => Carbon::now(),
+            'updated_at'     => Carbon::now(),
+        ]);
     }
 
     public function getMasterPlan(Request $request) {
