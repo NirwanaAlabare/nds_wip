@@ -350,8 +350,7 @@
                     searchable: false
                 },
                 {
-                    data: 'marker_details',
-                    searchable: false
+                    data: 'marker_details'
                 },
                 {
                     data: 'id_marker'
@@ -434,7 +433,7 @@
         // Datatable Part Detail Form Header Column Filter
         $('#datatable-part-form thead tr').clone(true).appendTo('#datatable-part-form thead');
         $('#datatable-part-form thead tr:eq(1) th').each(function(i) {
-            if (i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 10 || i == 11 || i == 12) {
+            if (i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 9 || i == 10 || i == 11 || i == 12) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
 

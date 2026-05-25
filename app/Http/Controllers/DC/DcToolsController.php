@@ -15,6 +15,7 @@ use App\Models\SignalBit\UserLine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Yajra\DataTables\Facades\DataTables;
 use DB;
 
 class DcToolsController extends Controller
@@ -471,5 +472,112 @@ class DcToolsController extends Controller
             "status" => 400,
             "message" => "Request tidak sesuai"
         );
+    }
+
+    public function checkOrphanTransaction()
+    {
+        return view('dc.tools.check-orphan-transaction', [
+            'page' => 'dashboard-dc',
+        ]);
+    }
+
+    public function checkOrphanTransactionList(Request $request)
+    {
+        $tableMap = [
+            'dc'                   => 'dc_in_input',
+            'secondary_inhouse_in' => 'secondary_inhouse_in_input',
+            'secondary_inhouse'    => 'secondary_inhouse_input',
+            'secondary_in'         => 'secondary_in_input',
+        ];
+
+        $qtyColumnMap = [
+            'dc'                   => 't.qty_awal',
+            'secondary_inhouse_in' => 't.qty_in',
+            'secondary_inhouse'    => 't.qty_awal',
+            'secondary_in'         => 't.qty_awal',
+        ];
+
+        $type = $request->transaction_type;
+
+        if (!isset($tableMap[$type])) {
+            return response()->json(['error' => 'Jenis transaksi tidak valid'], 400);
+        }
+
+        $table     = $tableMap[$type];
+        $qtyColumn = $qtyColumnMap[$type];
+
+        $query = DB::table($table . ' as t')
+            ->leftJoin('stocker_input as s', 's.id_qr_stocker', '=', 't.id_qr_stocker')
+            ->leftJoin('part_detail as pd', 'pd.id', '=', 's.part_detail_id')
+            ->leftJoin('master_part as mp', 'mp.id', '=', 'pd.master_part_id')
+            ->whereNull('s.id')
+            ->whereNotNull('t.tgl_trans')
+            ->selectRaw("
+                t.id,
+                t.id_qr_stocker,
+                t.tgl_trans,
+                t.created_at,
+                {$qtyColumn} as qty,
+                s.act_costing_ws,
+                s.color,
+                s.size,
+                s.ratio,
+                s.group_stocker,
+                CONCAT(COALESCE(s.range_awal, '-'), ' - ', COALESCE(s.range_akhir, '-')) as stocker_range,
+                s.panel,
+                mp.nama_part as part
+            ");
+
+        if ($request->date_from) {
+            $query->where('t.tgl_trans', '>=', $request->date_from . ' 00:00:00');
+        }
+        if ($request->date_to) {
+            $query->where('t.tgl_trans', '<=', $request->date_to . ' 23:59:59');
+        }
+
+        $query->orderBy('t.tgl_trans', 'desc');
+
+        return DataTables::queryBuilder($query)->make(true);
+    }
+
+    public function deleteOrphanTransaction(Request $request)
+    {
+        $tableMap = [
+            'dc'                   => 'dc_in_input',
+            'secondary_inhouse_in' => 'secondary_inhouse_in_input',
+            'secondary_inhouse'    => 'secondary_inhouse_input',
+            'secondary_in'         => 'secondary_in_input',
+        ];
+
+        $type = $request->transaction_type;
+
+        if (!isset($tableMap[$type])) {
+            return ['status' => 400, 'message' => 'Jenis transaksi tidak valid.'];
+        }
+
+        $table = $tableMap[$type];
+
+        $query = DB::table($table . ' as t')
+            ->leftJoin('stocker_input as s', 's.id_qr_stocker', '=', 't.id_qr_stocker')
+            ->whereNull('s.id')
+            ->whereNotNull('t.tgl_trans');
+
+        if ($request->date_from) {
+            $query->where('t.tgl_trans', '>=', $request->date_from . ' 00:00:00');
+        }
+        if ($request->date_to) {
+            $query->where('t.tgl_trans', '<=', $request->date_to . ' 23:59:59');
+        }
+
+        $ids   = $query->pluck('t.id');
+        $count = $ids->count();
+
+        if ($count === 0) {
+            return ['status' => 400, 'message' => 'Tidak ada data yang dihapus.'];
+        }
+
+        DB::table($table)->whereIn('id', $ids)->delete();
+
+        return ['status' => 200, 'message' => $count . ' data orphan transaction berhasil dihapus.'];
     }
 }
