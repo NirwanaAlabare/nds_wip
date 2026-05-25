@@ -48,9 +48,9 @@
         {
             $dateFilter = "";
             if ($this->periode == "monthly") {
-                $dateFilter = "date(a.updated_at) >= '".$this->tahun."-".$this->bulan."-01' AND date(a.updated_at) <= '".$this->tahun."-".$this->bulan."-31'";
+                $dateFilter = "a.updated_at >= '".$this->tahun."-".$this->bulan."-01 00:00:00' AND a.updated_at <= '".$this->tahun."-".$this->bulan."-31' 23:59:59";
             } else {
-                $dateFilter = "date(a.updated_at) = '".$this->tanggal."' ";
+                $dateFilter = "a.updated_at = '".$this->tanggal." 00:00:00' ";
             }
 
             $dataDetailProduksiDay = collect(
