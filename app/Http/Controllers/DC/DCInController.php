@@ -926,6 +926,15 @@ class DCInController extends Controller
                         ORDER BY rds.id DESC
                         LIMIT 1
                     ),
+                    (
+                        SELECT dci.lokasi
+                        FROM dc_in_input dci
+                        WHERE dci.id_qr_stocker = ms.id_qr_stocker
+                        AND dci.lokasi IS NOT NULL
+                        AND dci.lokasi != ''
+                        ORDER BY dci.id DESC
+                        LIMIT 1
+                    ),
                     '-'
                 ) AS lokasi_terkini
             FROM
@@ -978,6 +987,15 @@ class DCInController extends Controller
                         ORDER BY rds.id DESC
                         LIMIT 1
                     ),
+                    (
+                        SELECT dci.lokasi
+                        FROM dc_in_input dci
+                        WHERE dci.id_qr_stocker = ms.id_qr_stocker
+                        AND dci.lokasi IS NOT NULL
+                        AND dci.lokasi != ''
+                        ORDER BY dci.id DESC
+                        LIMIT 1
+                    ),
                     '-'
                 ) AS lokasi_terkini
             FROM
@@ -1028,6 +1046,15 @@ class DCInController extends Controller
                         WHERE rds.stocker_id = ms.id_qr_stocker
                         AND rds.status = 'active'
                         ORDER BY rds.id DESC
+                        LIMIT 1
+                    ),
+                    (
+                        SELECT dci.lokasi
+                        FROM dc_in_input dci
+                        WHERE dci.id_qr_stocker = ms.id_qr_stocker
+                        AND dci.lokasi IS NOT NULL
+                        AND dci.lokasi != ''
+                        ORDER BY dci.id DESC
                         LIMIT 1
                     ),
                     '-'
