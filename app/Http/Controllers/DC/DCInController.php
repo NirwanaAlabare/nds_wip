@@ -916,7 +916,18 @@ class DCInController extends Controller
                 ms.panel,
                 concat( ms.range_awal, '-', ms.range_akhir ) rangeAwalAkhir,
                 ifnull( tmp.id_qr_stocker, 'x' ) cek_stat,
-                dc_in_input.id as dc
+                dc_in_input.id as dc,
+                COALESCE(
+                    (
+                        SELECT rds.nm_rak
+                        FROM rack_detail_stocker rds
+                        WHERE rds.stocker_id = ms.id_qr_stocker
+                        AND rds.status = 'active'
+                        ORDER BY rds.id DESC
+                        LIMIT 1
+                    ),
+                    '-'
+                ) AS lokasi_terkini
             FROM
                 tmp_dc_in_input_new x
                 left JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
@@ -957,7 +968,18 @@ class DCInController extends Controller
                 ms.panel,
                 concat( ms.range_awal, '-', ms.range_akhir ) rangeAwalAkhir,
                 ifnull( tmp.id_qr_stocker, 'x' ) cek_stat,
-                dc_in_input.id as dc
+                dc_in_input.id as dc,
+                COALESCE(
+                    (
+                        SELECT rds.nm_rak
+                        FROM rack_detail_stocker rds
+                        WHERE rds.stocker_id = ms.id_qr_stocker
+                        AND rds.status = 'active'
+                        ORDER BY rds.id DESC
+                        LIMIT 1
+                    ),
+                    '-'
+                ) AS lokasi_terkini
             FROM
                 tmp_dc_in_input_new x
                 left JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
@@ -998,7 +1020,18 @@ class DCInController extends Controller
                 ms.panel,
                 concat( ms.range_awal, '-', ms.range_akhir ) rangeAwalAkhir,
                 ifnull( tmp.id_qr_stocker, 'x' ) cek_stat,
-                dc_in_input.id as dc
+                dc_in_input.id as dc,
+                COALESCE(
+                    (
+                        SELECT rds.nm_rak
+                        FROM rack_detail_stocker rds
+                        WHERE rds.stocker_id = ms.id_qr_stocker
+                        AND rds.status = 'active'
+                        ORDER BY rds.id DESC
+                        LIMIT 1
+                    ),
+                    '-'
+                ) AS lokasi_terkini
             FROM
                 tmp_dc_in_input_new x
                 left JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker

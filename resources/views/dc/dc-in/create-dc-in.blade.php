@@ -275,6 +275,7 @@
                                 <th>Tujuan</th>
                                 <th>Tempat</th>
                                 <th>Proses / Lokasi</th>
+                                <th>Lokasi Terkini</th>
                                 <th>Qty In</th>
                             </tr>
                         </thead>
@@ -644,6 +645,9 @@
                     },
                     {
                         data: 'lokasi',
+                    },
+                    {
+                        data: 'lokasi_terkini',
                     },
                     {
                         data: 'qty_in',
