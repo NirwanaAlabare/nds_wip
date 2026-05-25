@@ -2094,12 +2094,9 @@ class DashboardController extends Controller
                             master_plan
                         WHERE
                             master_plan.cancel = 'N'
-                            AND MONTH ( master_plan.tgl_plan ) = '".$month."'
-                            AND YEAR ( master_plan.tgl_plan ) = '".$year."'
-                            AND master_plan.tgl_plan < '".date("Y-m-d")."'
+                            AND master_plan.tgl_plan >= '".$dateFrom."'
+                            AND master_plan.tgl_plan <= '".$dateTo."'
                         GROUP BY
-                            MONTH ( master_plan.tgl_plan ),
-                            YEAR ( master_plan.tgl_plan ),
                             master_plan.id_ws,
                             master_plan.color
                         ) master_plan
@@ -2122,12 +2119,10 @@ class DashboardController extends Controller
                             INNER JOIN so_det ON so_det.id = rfts.so_det_id
                         WHERE
                             STATUS = 'NORMAL'
-                            AND MONTH ( rfts.updated_at ) = '".$month."'
-                            AND YEAR ( rfts.updated_at ) = '".$year."'
-                            AND MONTH ( master_plan.tgl_plan ) = '".$month."'
-                            AND YEAR ( master_plan.tgl_plan ) = '".$year."'
-                            AND rfts.updated_at < '".date("Y-m-d")." 00:00:00'
-                            AND master_plan.tgl_plan < '".date("Y-m-d")."'
+                            AND rfts.updated_at >= '".$dateFrom." 00:00:00'
+                            AND rfts.updated_at <= '".$dateTo." 23:59:59'
+                            AND master_plan.tgl_plan >= '".$dateFrom."'
+                            AND master_plan.tgl_plan <= '".$dateTo."'
                         GROUP BY
                             rfts.so_det_id
                         ) AS rfts ON `so_det`.`id` = `rfts`.`so_det_id`
@@ -2144,12 +2139,10 @@ class DashboardController extends Controller
                             INNER JOIN so_det ON so_det.id = defects.so_det_id
                         WHERE
                             defects.defect_status = 'defect'
-                            AND MONTH ( defects.updated_at ) = '".$month."'
-                            AND YEAR ( defects.updated_at ) = '".$year."'
-                            AND MONTH ( master_plan.tgl_plan ) = '".$month."'
-                            AND YEAR ( master_plan.tgl_plan ) = '".$year."'
-                            AND defects.updated_at < '".date("Y-m-d")." 00:00:00'
-                            AND master_plan.tgl_plan < '".date("Y-m-d")."'
+                            AND defects.updated_at >= '".$dateFrom." 00:00:00'
+                            AND defects.updated_at <= '".$dateTo." 23:59:59'
+                            AND master_plan.tgl_plan >= '".$dateFrom."'
+                            AND master_plan.tgl_plan <= '".$dateTo."'
                         GROUP BY
                             defects.so_det_id
                         ) AS defects ON `so_det`.`id` = `defects`.`so_det_id`
@@ -2166,12 +2159,10 @@ class DashboardController extends Controller
                             INNER JOIN so_det ON so_det.id = defrew.so_det_id
                         WHERE
                             defrew.defect_status = 'reworked'
-                            AND MONTH ( defrew.updated_at ) = '".$month."'
-                            AND YEAR ( defrew.updated_at ) = '".$year."'
-                            AND MONTH ( master_plan.tgl_plan ) = '".$month."'
-                            AND YEAR ( master_plan.tgl_plan ) = '".$year."'
-                            AND defrew.updated_at < '".date("Y-m-d")." 00:00:00'
-                            AND master_plan.tgl_plan < '".date("Y-m-d")."'
+                            AND defrew.updated_at >= '".$dateFrom." 00:00:00'
+                            AND defrew.updated_at <= '".$dateTo." 23:59:59'
+                            AND master_plan.tgl_plan >= '".$dateFrom."'
+                            AND master_plan.tgl_plan <= '".$dateTo."'
                         GROUP BY
                             defrew.so_det_id
                         ) AS reworks ON `so_det`.`id` = `reworks`.`so_det_id`
@@ -2188,12 +2179,10 @@ class DashboardController extends Controller
                             INNER JOIN so_det ON so_det.id = rejects.so_det_id
                         WHERE
                             STATUS = 'NORMAL'
-                            AND MONTH ( rejects.updated_at ) = '".$month."'
-                            AND YEAR ( rejects.updated_at ) = '".$year."'
-                            AND MONTH ( master_plan.tgl_plan ) = '".$month."'
-                            AND YEAR ( master_plan.tgl_plan ) = '".$year."'
-                            AND rejects.updated_at < '".date("Y-m-d")." 00:00:00'
-                            AND master_plan.tgl_plan < '".date("Y-m-d")."'
+                            AND rejects.updated_at >= '".$dateFrom." 00:00:00'
+                            AND rejects.updated_at <= '".$dateTo." 23:59:59'
+                            AND master_plan.tgl_plan >= '".$dateFrom."'
+                            AND master_plan.tgl_plan <= '".$dateTo."'
                         GROUP BY
                             rejects.so_det_id
                         ) AS rejects ON `so_det`.`id` = `rejects`.`so_det_id`
@@ -2210,12 +2199,10 @@ class DashboardController extends Controller
                             INNER JOIN so_det ON so_det.id = rfts.so_det_id
                         WHERE
                             STATUS = 'NORMAL'
-                            AND MONTH ( rfts.updated_at ) = '".$month."'
-                            AND YEAR ( rfts.updated_at ) = '".$year."'
-                            AND MONTH ( master_plan.tgl_plan ) = '".$month."'
-                            AND YEAR ( master_plan.tgl_plan ) = '".$year."'
-                            AND rfts.updated_at < '".date("Y-m-d")." 00:00:00'
-                            AND master_plan.tgl_plan < '".date("Y-m-d")."'
+                            AND rfts.updated_at >= '".$dateFrom." 00:00:00'
+                            AND rfts.updated_at <= '".$dateTo." 23:59:59'
+                            AND master_plan.tgl_plan >= '".$dateFrom."'
+                            AND master_plan.tgl_plan <= '".$dateTo."'
                         GROUP BY
                             rfts.so_det_id
                         ) AS rfts_packing ON `so_det`.`id` = `rfts_packing`.`so_det_id`

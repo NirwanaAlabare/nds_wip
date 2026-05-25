@@ -13,6 +13,7 @@ use App\Exports\Export_excel_rep_packing_line_sum_range;
 use App\Exports\Export_excel_rep_packing_line_sum_buyer;
 use App\Exports\Export_excel_rep_packing_mutasi;
 use App\Exports\ExportDataTemplatePackingListVertical;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
 
 
 class PackingReportController extends Controller
@@ -1023,18 +1024,427 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
     }
 
 
+    // public function export_excel_rep_packing_mutasi_wip(Request $request)
+    // {
+    //     // return Excel::download(new export_excel_rep_packing_mutasi, 'Laporan_Packing_In.xlsx');
+    //     $tgl_awal = $request->from;
+    //     $tgl_akhir = $request->to;
+
+    //     return Excel::download(
+    //         new Export_excel_rep_packing_mutasi(
+    //             $tgl_awal,
+    //             $tgl_akhir,
+    //         ),
+    //         'Laporan Mutasi Packing (WIP) ' . $tgl_awal . ' - ' . $tgl_akhir . '.xlsx'
+    //     );
+    // }
+
     public function export_excel_rep_packing_mutasi_wip(Request $request)
     {
-        // return Excel::download(new export_excel_rep_packing_mutasi, 'Laporan_Packing_In.xlsx');
         $tgl_awal = $request->from;
         $tgl_akhir = $request->to;
-
-        return Excel::download(
-            new Export_excel_rep_packing_mutasi(
-                $tgl_awal,
-                $tgl_akhir,
-            ),
-            'Laporan Mutasi Packing (WIP) ' . $tgl_awal . ' - ' . $tgl_akhir . '.xlsx'
+        $tanggal_saldo_awal = '2026-03-01';
+        $tgl_saldo_akhir = date(
+            'Y-m-d',
+            strtotime($tgl_awal . ' -1 day')
         );
+
+        $data = DB::select("
+            WITH trx_union ( so_det_id, pl_saldo_awal_masuk, pl_saldo_awal_keluar, pl_rft, pl_reject, pl_keluar, pc_saldo_awal_masuk, pc_saldo_awal_keluar, pc_terima, pc_terima_return, pc_fg_in ) AS (
+
+            /* ================= SALDO AWAL (INJECT) ================= */
+                SELECT
+                    id_so_det AS so_det_id,
+                    CASE WHEN type = 'packing_line' THEN saldo ELSE 0 END AS pl_saldo_awal_masuk,
+                    0 AS pl_saldo_awal_keluar,
+                    0 AS pl_rft,
+                    0 AS pl_reject,
+                    0 AS pl_keluar,
+                    CASE WHEN type = 'packing_center' THEN saldo ELSE 0 END AS pc_saldo_awal_masuk,
+                    0 AS pc_saldo_awal_keluar,
+                    0 AS pc_terima,
+                    0 AS pc_terima_return,
+                    0 AS pc_fg_in
+                FROM
+                    sa_report_pck
+                WHERE
+                    tgl_saldo = '{$tanggal_saldo_awal}'
+
+                UNION ALL
+
+            /* ================= PACKING LINE SALDO AWAL MASUK (HISTORY) ================= */
+                SELECT
+                    so_det_id,
+                    COUNT(*) AS pl_saldo_awal_masuk,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0
+                FROM
+                    signalbit_erp.output_rfts_packing_po
+                WHERE
+                    so_det_id IS NOT NULL
+                    AND updated_at >= '{$tanggal_saldo_awal} 00:00:00'
+                    AND updated_at < '{$tgl_awal} 00:00:00'
+                GROUP BY
+                    so_det_id
+
+                UNION ALL
+
+            /* ================= PACKING LINE SALDO AWAL KELUAR (HISTORY TRF GARMENT) ================= */
+                SELECT
+                    pms.id_so_det AS so_det_id,
+                    0 AS pl_saldo_awal_masuk,
+                    SUM( tg.qty ) AS pl_saldo_awal_keluar,
+                    0, 0, 0, 0, 0, 0, 0, 0
+                FROM
+                    laravel_nds.packing_trf_garment tg
+                    JOIN ppic_master_so pms ON pms.id = tg.id_ppic_master_so
+                WHERE
+                    pms.id_so_det IS NOT NULL
+                    AND tg.tgl_trans >= '{$tanggal_saldo_awal} 00:00:00'
+                    AND tg.tgl_trans < '{$tgl_awal} 00:00:00'
+                GROUP BY
+                    pms.id_so_det
+
+                UNION ALL
+
+            /* ================= PACKING LINE PERIODE MASUK ================= */
+                SELECT
+                    so_det_id,
+                    0, 0,
+                    SUM( type = 'RFT' ) AS pl_rft,
+                    SUM( type = 'REJECT' ) AS pl_reject,
+                    0, 0, 0, 0, 0, 0
+                FROM
+                    signalbit_erp.output_rfts_packing_po
+                WHERE
+                    so_det_id IS NOT NULL
+                    AND updated_at BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+                GROUP BY
+                    so_det_id
+
+                UNION ALL
+
+            /* ================= PACKING LINE PERIODE KELUAR (TRF GARMENT) ================= */
+                SELECT
+                    pms.id_so_det AS so_det_id,
+                    0, 0, 0, 0,
+                    SUM( tg.qty ) AS pl_keluar,
+                    0, 0, 0, 0, 0
+                FROM
+                    laravel_nds.packing_trf_garment tg
+                    JOIN ppic_master_so pms ON pms.id = tg.id_ppic_master_so
+                WHERE
+                    pms.id_so_det IS NOT NULL
+                    AND tg.tgl_trans BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+                GROUP BY
+                    pms.id_so_det
+
+                UNION ALL
+
+            /* ================= PACKING CENTRAL SALDO AWAL MASUK (HISTORY TERIMA) ================= */
+                SELECT
+                    pms.id_so_det AS so_det_id,
+                    0, 0, 0, 0, 0,
+                    SUM( pi.qty ) AS pc_saldo_awal_masuk,
+                    0, 0, 0, 0
+                FROM
+                    laravel_nds.packing_packing_in pi
+                    JOIN ppic_master_so pms ON pms.id = pi.id_ppic_master_so
+                WHERE
+                    pms.id_so_det IS NOT NULL
+                    AND pi.tgl_penerimaan >= '{$tanggal_saldo_awal} 00:00:00'
+                    AND pi.tgl_penerimaan < '{$tgl_awal} 00:00:00'
+                GROUP BY
+                    pms.id_so_det
+
+                UNION ALL
+
+            /* ================= PACKING CENTRAL SALDO AWAL MASUK (HISTORY TERIMA RETURN - BPPB) ================= */
+                SELECT
+                    id_so_det AS so_det_id,
+                    0, 0, 0, 0, 0,
+                    SUM( qty ) AS pc_saldo_awal_masuk,
+                    0, 0, 0, 0
+                FROM
+                    signalbit_erp.bppb
+
+                WHERE
+                    id_so_det IS NOT NULL
+                    AND bppbno_int LIKE '%FG/RO%'
+                    AND bppbdate >= '{$tanggal_saldo_awal} 00:00:00'
+                    AND bppbdate < '{$tgl_awal} 00:00:00'
+                    AND id_supplier NOT IN (458 , 927 , 2053)
+                GROUP BY
+                    id_so_det
+
+                UNION ALL
+
+            /* ================= PACKING CENTRAL SALDO AWAL KELUAR (HISTORY FG IN - BPB) ================= */
+                SELECT
+                    id_so_det AS so_det_id,
+                    0, 0, 0, 0, 0, 0,
+                    SUM( qty ) AS pc_saldo_awal_keluar,
+                    0, 0, 0
+                FROM
+                    signalbit_erp.bpb
+                WHERE
+                    id_so_det IS NOT NULL
+                    AND bpbno_int LIKE '%FG%'
+                    AND bpbdate >= '{$tanggal_saldo_awal} 00:00:00'
+                    AND bpbdate < '{$tgl_awal} 00:00:00'
+                    AND id_supplier NOT IN (458 , 927 , 2053)
+                GROUP BY
+                    id_so_det
+
+                UNION ALL
+
+            /* ================= PACKING CENTRAL PERIODE MASUK ================= */
+                SELECT
+                    pms.id_so_det AS so_det_id,
+                    0, 0, 0, 0, 0, 0, 0,
+                    SUM( pi.qty ) AS pc_terima,
+                    0, 0
+                FROM
+                    laravel_nds.packing_packing_in pi
+                    JOIN ppic_master_so pms ON pms.id = pi.id_ppic_master_so
+                WHERE
+                    pms.id_so_det IS NOT NULL
+                    AND pi.tgl_penerimaan BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+                GROUP BY
+                    pms.id_so_det
+
+                UNION ALL
+
+            /* ================= PACKING CENTRAL PERIODE TERIMA RETURN (BPPB) ================= */
+                SELECT
+                    id_so_det AS so_det_id,
+                    0, 0, 0, 0, 0, 0, 0, 0,
+                    SUM( qty ) AS pc_terima_return,
+                    0
+                FROM signalbit_erp.bppb b
+                    WHERE b.id_so_det IS NOT NULL AND b.id_so_det != '0'
+                    AND bppbno_int LIKE '%FG/RO%'
+                    AND bppbdate BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+                    AND b.id_supplier NOT IN (458 , 927 , 2053)
+                GROUP BY
+                    id_so_det
+
+                UNION ALL
+
+            /* ================= PACKING CENTRAL PERIODE FG IN KELUAR (BPB) ================= */
+                SELECT
+                    id_so_det AS so_det_id,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    SUM( qty ) AS pc_fg_in
+                FROM
+                    signalbit_erp.bpb
+                WHERE
+                    id_so_det IS NOT NULL
+                    AND bpbno_int LIKE '%FG%'
+                    AND bpbdate BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+                    AND id_supplier NOT IN (458 , 927 , 2053)
+                GROUP BY
+                    id_so_det
+            ),
+
+            /* ================= FINAL RESULT CTE ================= */
+            final_query as (SELECT
+                msn.urutan,
+                msw.ws,
+                msw.color,
+                msw.styleno AS style,
+                msw.size,
+                msw.buyer,
+                (SUM( pl_saldo_awal_masuk ) - SUM( pl_saldo_awal_keluar )) AS pl_saldo_awal,
+                SUM( pl_rft ) AS pl_rft,
+                SUM( pl_reject ) AS pl_reject,
+                SUM( pl_keluar ) AS pl_keluar,
+                ((SUM( pl_saldo_awal_masuk ) - SUM( pl_saldo_awal_keluar )) + SUM( pl_rft ) + SUM( pl_reject ) - SUM( pl_keluar )) AS pl_saldo_akhir,
+
+                (SUM( pc_saldo_awal_masuk ) - SUM( pc_saldo_awal_keluar )) AS pc_saldo_awal,
+                SUM( pc_terima ) AS pc_terima,
+                SUM( pc_terima_return ) AS pc_terima_return,
+                SUM( pc_fg_in ) AS pc_fg_in,
+
+                ((SUM( pc_saldo_awal_masuk ) - SUM( pc_saldo_awal_keluar )) + SUM( pc_terima ) + SUM( pc_terima_return ) - SUM( pc_fg_in )) AS pc_saldo_akhir
+            FROM
+                trx_union t
+                LEFT JOIN master_sb_ws msw ON msw.id_so_det = t.so_det_id
+                LEFT JOIN master_size_new msn ON msn.size = msw.size
+            GROUP BY
+                msn.urutan,
+                msw.ws,
+                msw.color,
+                msw.styleno,
+                msw.size,
+                msw.buyer
+            )
+
+            /* ================= MAIN SELECT ================= */
+                select
+                urutan, ws, color, style, a.size, buyer,
+                sum(pl_saldo_awal) pl_saldo_awal, sum(pl_rft) pl_rft, sum(pl_reject) pl_reject, sum(pl_keluar) pl_keluar,
+                (SUM(pl_saldo_awal) + SUM(pl_rft) + SUM(pl_reject) - SUM(pl_keluar)) pl_saldo_akhir,
+                sum(pc_saldo_awal) pc_saldo_awal, sum(pc_terima) pc_terima,
+                sum(pc_terima_return) pc_terima_return,
+                sum(pc_fg_in) pc_fg_in,
+                (sum(pc_saldo_awal) + SUM(pc_terima) + SUM(pc_terima_return) - SUM(pc_fg_in)) pc_saldo_akhir
+                from
+                (
+                    select * from final_query
+
+                    UNION ALL
+
+                    select msn.urutan, ws, color, styleno style, a.size, buyer,
+                    COALESCE(packing_saldo_awal, 0) pl_saldo_awal, COALESCE(packing_rft,0) pl_rft, 0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir,
+                    COALESCE( pc_saldo_awal, 0) pc_saldo_awal, 0 pc_terima, 0 pc_terima_return, 0 pc_fg_in, 0 pc_saldo_akhir
+                    from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+
+                    UNION ALL
+
+                    select msn.urutan, ws, color, styleno style, a.size, buyer,
+                    (COALESCE(packing_saldo_awal, 0)+COALESCE(packing_rft, 0)+COALESCE(packing_reject, 0)-COALESCE(packing_keluar, 0)) pl_saldo_awal,
+                    0 pl_rft,
+                    0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir,
+                    (COALESCE(pc_saldo_awal, 0)+COALESCE(pc_terima, 0)) pc_saldo_awal, 0 pc_terima, 0 pc_terima_return, 0 pc_fg_in, 0 pc_saldo_akhir
+                    from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo < '{$tgl_awal}'
+                ) a
+                GROUP BY urutan, ws, color, style, size, buyer ORDER BY ws, color, buyer, urutan
+        ");
+
+        $fileName = 'report-mutasi-packing-wip';
+
+        $excel = FastExcel::create($fileName);
+
+        $sheet = $excel->sheet();
+
+        $sheet->writeRow(
+            ['Laporan Mutasi Packing (WIP)'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+            ]
+        );
+
+        $sheet->writeRow(
+            ['Periode ' . $tgl_awal . ' s/d ' . $tgl_akhir],
+            [
+                'font-size' => 12,
+            ]
+        );
+
+        $sheet->writeRow(['']);
+
+        $headerTop = [
+            'Jenis Produk', '', '', '', '',
+            'Packing Line', '', '', '', '',
+            'Packing Central', '', '', '', '',
+        ];
+
+        $sheet->writeRow(
+            $headerTop,
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+                'halign'     => 'center',
+                'valign'     => 'center',
+            ]
+        );
+
+        $sheet->mergeCells('A4:E4');
+        $sheet->mergeCells('F4:J4');
+        $sheet->mergeCells('K4:O4');
+
+        $sheet->setCellStyle('A4:E4', [
+            'fill'       => '#ADD8E6',
+            'text-align' => 'center',
+        ]);
+
+        $sheet->setCellStyle('F4:J4', [
+            'fill'       => '#90EE90',
+            'text-align' => 'center',
+        ]);
+
+        $sheet->setCellStyle('K4:O4', [
+            'fill'       => '#FAFAD2',
+            'text-align' => 'center',
+        ]);
+
+        $header = [
+            'WS',
+            'Buyer',
+            'Style',
+            'Color',
+            'Size',
+            'Saldo Awal',
+            'Terima RFT',
+            'Terima Reject',
+            'Keluar',
+            'Saldo Akhir',
+            'Saldo Awal',
+            'Terima',
+            'Terima Return',
+            'Packing Scan FG In',
+            'Saldo Akhir',
+        ];
+
+        $sheet->writeRow(
+            $header,
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+                'halign'     => 'center',
+            ]
+        );
+
+        $sheet->setCellStyle('A5:E5', [
+            'fill' => '#ADD8E6', 
+            'text-align' => 'center',
+        ]);
+
+        $sheet->setCellStyle('F5:J5', [
+            'fill' => '#90EE90', 
+            'text-align' => 'center',
+        ]);
+
+        $sheet->setCellStyle('K5:O5', [
+            'fill' => '#FAFAD2',
+            'text-align' => 'center',
+        ]);
+
+        foreach ($data as $row) {
+
+            $rows = [
+                $row->ws ?? '',
+                $row->buyer ?? '',
+                $row->style ?? '',
+                $row->color ?? '',
+                $row->size ?? '',
+
+                (float) ($row->pl_saldo_awal ?? 0),
+                (float) ($row->pl_rft ?? 0),
+                (float) ($row->pl_reject ?? 0),
+                (float) ($row->pl_keluar ?? 0),
+                (float) ($row->pl_saldo_akhir ?? 0),
+
+                (float) ($row->pc_saldo_awal ?? 0),
+                (float) ($row->pc_terima ?? 0),
+                (float) ($row->pc_terima_return ?? 0),
+                (float) ($row->pc_fg_in ?? 0),
+                (float) ($row->pc_saldo_akhir ?? 0),
+            ];
+
+            $sheet->writeRow(
+                $rows,
+                [
+                    'border' => 'thin',
+                ]
+            );
+        }
+
+        foreach (range('A', 'O') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
+
+        return $excel->download();
     }
 }

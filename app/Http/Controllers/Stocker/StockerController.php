@@ -319,7 +319,7 @@ class StockerController extends Controller
             where("marker_input.panel", $dataSpreading->panel)->
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
             where("part_form.part_id", $dataSpreading->part_id)->
-            whereRaw("(stocker_input.cancel != 'y' OR stocker_input.cancel is null OR stocker_input.cancel = '') AND stocker_input.id_qr_stocker IS NOT NULL AND stocker_input.stocker_reject IS NULL")->
+            whereRaw("(stocker_input.cancel != 'Y' OR stocker_input.cancel is null OR stocker_input.cancel = '') AND stocker_input.id_qr_stocker IS NOT NULL AND stocker_input.stocker_reject IS NULL")->
             // where("marker_input_detail.ratio", ">", "0")->
             groupBy("form_cut_input.no_form", "form_cut_input.no_cut", "marker_input_detail.so_det_id")->
             orderBy("form_cut_input.no_cut", "desc")->
@@ -460,7 +460,7 @@ class StockerController extends Controller
                 where("stocker_ws_additional.panel", $dataAdditional->panel)->
                 where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
                 where("part_form.part_id", $dataSpreading->part_id)->
-                whereRaw("(stocker_input.cancel != 'y' OR stocker_input.cancel is null OR stocker_input.cancel = '') AND stocker_input.id_qr_stocker IS NOT NULL AND stocker_input.stocker_reject IS NULL")->
+                whereRaw("(stocker_input.cancel != 'Y' OR stocker_input.cancel is null OR stocker_input.cancel = '') AND stocker_input.id_qr_stocker IS NOT NULL AND stocker_input.stocker_reject IS NULL")->
                 // where("marker_input_detail.ratio", ">", "0")->
                 groupBy("form_cut_input.no_form", "form_cut_input.no_cut", "stocker_ws_additional_detail.so_det_id")->
                 orderBy("form_cut_input.no_cut", "desc")->
@@ -718,7 +718,7 @@ class StockerController extends Controller
                         " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
                         ratio = " . ($i + 1) . " AND
                         stocker_reject IS NULL AND
-                        (`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%' OR notes NOT LIKE '%CANCEL%')
+                        (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
                     ")->first();
 
                     // Stocker Spec
@@ -761,7 +761,7 @@ class StockerController extends Controller
                         $checkStocker->range_awal = $cumRangeAwal;
                         $checkStocker->range_akhir = $cumRangeAkhir;
                         $checkStocker->notes .= "Separated Stocker";
-                        $checkStocker->cancel = 'n';
+                        $checkStocker->cancel = 'N';
                         $checkStocker->save();
                     }
 
@@ -788,7 +788,7 @@ class StockerController extends Controller
                     " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
                     ratio = " . ($i + 1) . " AND
                     stocker_reject IS NULL AND
-                    (`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%' OR notes NOT LIKE '%CANCEL%')
+                    (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
                 ")->first();
 
                 // Stocker Spec
@@ -844,15 +844,15 @@ class StockerController extends Controller
                 // Update when the stocker is available
                 else if ($checkStocker && $checkStocker->qty_ply != ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index])) {
                     $checkStocker->qty_ply = ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
-                    $checkStocker->qty_ply_mod = (($request['group_stocker'][$index] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($i == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) + $modifySizeQty->difference_qty : null  ||  (($cumRangeAwal > (($request['group_stocker'][$index] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($i == ($request['ratio'][$index] - 1) && $modifySizeQty)  || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) && $checkStocker->cancel != 'y')));
+                    $checkStocker->qty_ply_mod = (($request['group_stocker'][$index] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($i == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) + $modifySizeQty->difference_qty : null  ||  (($cumRangeAwal > (($request['group_stocker'][$index] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($i == ($request['ratio'][$index] - 1) && $modifySizeQty)  || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) && $checkStocker->cancel != 'Y')));
                     $checkStocker->range_awal = $cumRangeAwal;
                     $checkStocker->range_akhir = (($request['group_stocker'][$index] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($i == ($request['ratio'][$index] - 1) && $modifySizeQty)  || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir);
                     if ($cumRangeAwal <= (($request['group_stocker'][$index] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($i == ($request['ratio'][$index] - 1) && $modifySizeQty)  || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir)) {
                         // Uncancel when the range is right
-                        $checkStocker->cancel = 'n';
+                        $checkStocker->cancel = 'N';
                     } else {
                         // Cancel when the stocker is not right
-                        $checkStocker->cancel = 'y';
+                        $checkStocker->cancel = 'Y';
 
                         // Incomplete Modify Size Qty
                         array_push($incompleteModSizeQty, [
@@ -887,7 +887,7 @@ class StockerController extends Controller
                 group_stocker = '".$incompleteModSizeQty[$i]['group_stocker']."' and
                 ratio < '".$incompleteModSizeQty[$i]['ratio']."' AND
                 stocker_reject IS NULL AND
-                (`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%' OR notes NOT LIKE '%CANCEL%')
+                (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
             ")->first();
             if (!$currentStocker) {
                 $currentStocker = Stocker::whereRaw("
@@ -898,7 +898,7 @@ class StockerController extends Controller
                     group_stocker = '".$incompleteModSizeQty[$i]['group_stocker']."' and
                     ratio > '".$incompleteModSizeQty[$i]['ratio']."' AND
                     stocker_reject IS NULL AND
-                    (`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%' OR notes NOT LIKE '%CANCEL%')
+                    (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
                 ")->first();
             }
 
@@ -908,7 +908,7 @@ class StockerController extends Controller
                 $currentStocker->qty_ply_mod = ($currentStocker->qty_ply_mod ? $currentStocker->qty_ply_mod : $currentStocker->qty_ply) + $incompleteModSizeQty[$i]['qty'];
                 $currentStocker->range_akhir = $currentStocker->range_akhir + $incompleteModSizeQty[$i]["qty"];
                 if ($currentStocker->range_awal > $currentStocker->range_akhir) {
-                    $currentStocker->cancel = 'y';
+                    $currentStocker->cancel = 'Y';
 
                     array_push($incompleteModSizeQty, [
                         "form_cut_id" => $currentStocker->form_cut_id,
@@ -920,7 +920,7 @@ class StockerController extends Controller
                         "qty" => ($currentStocker->range_akhir - $currentStocker->range_awal)
                     ]);
                 } else {
-                    $currentStocker->cancel = 'n';
+                    $currentStocker->cancel = 'N';
                 }
                 $currentStocker->save();
             } else {
@@ -1099,7 +1099,7 @@ class StockerController extends Controller
                                 " . ( $request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "" ) . "
                                 ratio = " . ($j + 1) . " AND
                                 stocker_reject IS NULL AND
-                                (`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%' OR notes NOT LIKE '%CANCEL%')
+                                (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
                             ")->first();
 
                             $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $k + 1);
@@ -1138,12 +1138,12 @@ class StockerController extends Controller
                                 $checkStocker->range_awal = $cumRangeAwal;
                                 $checkStocker->range_akhir = $cumRangeAkhir;
                                 $checkStocker->notes = $request['note']." (Separated Stocker)";
-                                $checkStocker->cancel = 'n';
+                                $checkStocker->cancel = 'N';
                                 $checkStocker->save();
 
                             } else if ($checkStocker && $checkStocker->notes != $request['note']) {
                                 $checkStocker->notes = $request['note']." (Separated Stocker)";
-                                $checkStocker->cancel = 'n';
+                                $checkStocker->cancel = 'N';
                                 $checkStocker->save();
 
                             }
@@ -1168,7 +1168,7 @@ class StockerController extends Controller
                                 " . ( $request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "" ) . "
                                 ratio = " . ($j + 1) . " AND
                                 stocker_reject IS NULL AND
-                                (`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%' OR notes NOT LIKE '%CANCEL%')
+                                (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
                             ")->first();
 
                             $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $k + 1);
@@ -1211,15 +1211,15 @@ class StockerController extends Controller
                                         "qty" => (($request['group_stocker'][$i] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($j == ($request['ratio'][$i] - 1) && $modifySizeQty) || ($request['ratio'][$i] < 1 && $modifySizeQty)) ? ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]) + $modifySizeQty->difference_qty : null)
                                     ]);
                                 }
-                            } else if ($checkStocker && $checkStocker->qty_ply != ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]) || (($cumRangeAwal > (($request['group_stocker'][$i] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($j == ($request['ratio'][$i] - 1) && $modifySizeQty)  || ($request['ratio'][$i] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) && $checkStocker->cancel != 'y'))) {
+                            } else if ($checkStocker && $checkStocker->qty_ply != ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]) || (($cumRangeAwal > (($request['group_stocker'][$i] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($j == ($request['ratio'][$i] - 1) && $modifySizeQty)  || ($request['ratio'][$i] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) && $checkStocker->cancel != 'Y'))) {
                                 $checkStocker->qty_ply = ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]);
                                 $checkStocker->qty_ply_mod = (($request['group_stocker'][$i] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($j == ($request['ratio'][$i] - 1) && $modifySizeQty) || ($request['ratio'][$i] < 1 && $modifySizeQty)) ? ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]) + $modifySizeQty->difference_qty : null);
                                 $checkStocker->range_awal = $cumRangeAwal;
                                 $checkStocker->range_akhir = (($request['group_stocker'][$i] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($j == ($request['ratio'][$i] - 1) && $modifySizeQty) || ($request['ratio'][$i] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir);
                                 if ($cumRangeAwal <= (($request['group_stocker'][$i] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($j == ($request['ratio'][$i] - 1) && $modifySizeQty)  || ($request['ratio'][$i] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir)) {
-                                    $checkStocker->cancel = 'n';
+                                    $checkStocker->cancel = 'N';
                                 } else {
-                                    $checkStocker->cancel = 'y';
+                                    $checkStocker->cancel = 'Y';
 
                                     array_push($incompleteModSizeQty, [
                                         "form_cut_id" => $request['form_cut_id'],
@@ -1234,7 +1234,7 @@ class StockerController extends Controller
                                 $checkStocker->save();
                             } else if ($checkStocker && $checkStocker->notes != $request['note']) {
                                 $checkStocker->notes = $request['note'];
-                                $checkStocker->cancel = 'n';
+                                $checkStocker->cancel = 'N';
                                 $checkStocker->save();
                             }
 
@@ -1275,7 +1275,7 @@ class StockerController extends Controller
                 group_stocker = '".$incompleteModSizeQty[$i]['group_stocker']."' and
                 ratio < '".$incompleteModSizeQty[$i]['ratio']."' AND
                 stocker_reject IS NULL AND
-                (`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%' OR notes NOT LIKE '%CANCEL%')
+                (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
             ")->first();
 
             if (!$currentStocker) {
@@ -1287,7 +1287,7 @@ class StockerController extends Controller
                     group_stocker = '".$incompleteModSizeQty[$i]['group_stocker']."' and
                     ratio > '".$incompleteModSizeQty[$i]['ratio']."' AND
                     stocker_reject IS NULL AND
-                    (`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%' OR notes NOT LIKE '%CANCEL%')
+                    (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
                 ")->first();
             }
 
@@ -1295,7 +1295,7 @@ class StockerController extends Controller
                 $currentStocker->qty_ply_mod = ($currentStocker->qty_ply_mod ? $currentStocker->qty_ply_mod : $currentStocker->qty_ply) + $incompleteModSizeQty[$i]['qty'];
                 $currentStocker->range_akhir = $currentStocker->range_akhir + $incompleteModSizeQty[$i]["qty"];
                 if ($currentStocker->range_awal > $currentStocker->range_akhir) {
-                    $currentStocker->cancel = 'y';
+                    $currentStocker->cancel = 'Y';
 
                     array_push($incompleteModSizeQty, [
                         "form_cut_id" => $currentStocker->form_cut_id,
@@ -1307,7 +1307,7 @@ class StockerController extends Controller
                         "qty" => ($currentStocker->range_akhir - $currentStocker->range_awal)
                     ]);
                 } else {
-                    $currentStocker->cancel = 'n';
+                    $currentStocker->cancel = 'N';
                 }
                 $currentStocker->save();
             } else {
@@ -1477,7 +1477,7 @@ class StockerController extends Controller
                         " . ( $request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "" ) . "
                         ratio = " . ($j + 1) . " AND
                         stocker_reject IS NULL AND
-                        (`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%' OR notes NOT LIKE '%CANCEL%')
+                        (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
                     ")->first();
 
                     $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $i + 1);
@@ -1518,7 +1518,7 @@ class StockerController extends Controller
                         $checkStocker->range_awal = $cumRangeAwal;
                         $checkStocker->range_akhir = $cumRangeAkhir;
                         $checkStocker->notes = $request['note']." (Separated Stocker)";
-                        $checkStocker->cancel = 'n';
+                        $checkStocker->cancel = 'N';
                         $checkStocker->save();
                     }
 
@@ -1544,7 +1544,7 @@ class StockerController extends Controller
                         " . ( $request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "" ) . "
                         ratio = " . ($j + 1) . " AND
                         stocker_reject IS NULL AND
-                        (`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%' OR notes NOT LIKE '%CANCEL%')
+                        (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
                     ")->first();
 
                     $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $i + 1);
@@ -1591,15 +1591,15 @@ class StockerController extends Controller
                                 ]);
                             }
                         }
-                    } else if ($checkStocker && ($checkStocker->qty_ply != ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) || $checkStocker->range_awal != $cumRangeAwal || $checkStocker->range_akhir != ($request['group_stocker'][$index] == (($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) || (($cumRangeAwal > (($request['group_stocker'][$index] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty)  || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) && $checkStocker->cancel != 'y')))) {
+                    } else if ($checkStocker && ($checkStocker->qty_ply != ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) || $checkStocker->range_awal != $cumRangeAwal || $checkStocker->range_akhir != ($request['group_stocker'][$index] == (($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) || (($cumRangeAwal > (($request['group_stocker'][$index] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty)  || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) && $checkStocker->cancel != 'Y')))) {
                         $checkStocker->qty_ply = ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
                         $checkStocker->qty_ply_mod = (($request['group_stocker'][$index] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) + $modifySizeQty->difference_qty : null);
                         $checkStocker->range_awal = $cumRangeAwal;
                         $checkStocker->range_akhir = (($request['group_stocker'][$index] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty)  || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir);
                         if ($cumRangeAwal <= (($request['group_stocker'][$index] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty)  || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir)) {
-                            $checkStocker->cancel = 'n';
+                            $checkStocker->cancel = 'N';
                         } else {
-                            $checkStocker->cancel = 'y';
+                            $checkStocker->cancel = 'Y';
 
                             array_push($incompleteModSizeQty, [
                                 "form_cut_id" => $request['form_cut_id'],
@@ -1648,7 +1648,7 @@ class StockerController extends Controller
                 group_stocker = '".$incompleteModSizeQty[$i]['group_stocker']."' and
                 ratio < '".$incompleteModSizeQty[$i]['ratio']."' AND
                 stocker_reject IS NULL AND
-                (`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%' OR notes NOT LIKE '%CANCEL%')
+                (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
             ")->first();
 
             if (!$currentStocker) {
@@ -1660,7 +1660,7 @@ class StockerController extends Controller
                     group_stocker = '".$incompleteModSizeQty[$i]['group_stocker']."' and
                     ratio > '".$incompleteModSizeQty[$i]['ratio']."' AND
                     stocker_reject IS NULL AND
-                    (`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%' OR notes NOT LIKE '%CANCEL%')
+                    (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
                 ")->first();
             }
 
@@ -1668,7 +1668,7 @@ class StockerController extends Controller
                 $currentStocker->qty_ply_mod = ($currentStocker->qty_ply_mod ? $currentStocker->qty_ply_mod : $currentStocker->qty_ply) + $incompleteModSizeQty[$i]['qty'];
                 $currentStocker->range_akhir = $currentStocker->range_akhir + $incompleteModSizeQty[$i]["qty"];
                 if ($currentStocker->range_awal > $currentStocker->range_akhir) {
-                    $currentStocker->cancel = 'y';
+                    $currentStocker->cancel = 'Y';
 
                     array_push($incompleteModSizeQty, [
                         "form_cut_id" => $currentStocker->form_cut_id,
@@ -1680,7 +1680,7 @@ class StockerController extends Controller
                         "qty" => ($currentStocker->range_akhir - $currentStocker->range_awal)
                     ]);
                 } else {
-                    $currentStocker->cancel = 'n';
+                    $currentStocker->cancel = 'N';
                 }
                 $currentStocker->save();
             } else {
@@ -1818,7 +1818,7 @@ class StockerController extends Controller
                         " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
                         ratio = " . ($i + 1) . " AND
                         stocker_reject IS NULL AND
-                        (`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%' OR notes NOT LIKE '%CANCEL%')
+                        (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
                     ")->first();
 
                     $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $i);
@@ -1856,7 +1856,7 @@ class StockerController extends Controller
                         $checkStocker->range_awal = $cumRangeAwal;
                         $checkStocker->range_akhir = $cumRangeAkhir;
                         $checkStocker->notes = "Separated Stocker";
-                        $checkStocker->cancel = 'n';
+                        $checkStocker->cancel = 'N';
                         $checkStocker->save();
                     }
 
@@ -1875,7 +1875,7 @@ class StockerController extends Controller
                     " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
                     ratio = " . ($i + 1) . " AND
                     stocker_reject IS NULL AND
-                    (`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%' OR notes NOT LIKE '%CANCEL%')
+                    (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
                 ")->first();
 
                 $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $i);
@@ -1910,7 +1910,7 @@ class StockerController extends Controller
                     $checkStocker->qty_ply_mod = null;
                     $checkStocker->range_awal = $cumRangeAwal;
                     $checkStocker->range_akhir = $cumRangeAkhir;
-                    $checkStocker->cancel = 'n';
+                    $checkStocker->cancel = 'N';
                     $checkStocker->save();
                 }
 
@@ -2033,7 +2033,7 @@ class StockerController extends Controller
                             " . ( $request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "" ) . "
                             ratio = " . ($j + 1) . " AND
                             stocker_reject IS NULL AND
-                            (`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%' OR notes NOT LIKE '%CANCEL%')
+                            (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
                         ")->first();
 
                         $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $k + 1);
@@ -2070,12 +2070,12 @@ class StockerController extends Controller
                             $checkStocker->range_awal = $cumRangeAwal;
                             $checkStocker->range_akhir = $cumRangeAkhir;
                             $checkStocker->notes = $request['note']." (Separated Stocker)";
-                            $checkStocker->cancel = 'n';
+                            $checkStocker->cancel = 'N';
                             $checkStocker->save();
 
                         } else if ($checkStocker && $checkStocker->notes != $request['note']) {
                             $checkStocker->notes = $request['note']." (Separated Stocker)";
-                            $checkStocker->cancel = 'n';
+                            $checkStocker->cancel = 'N';
                             $checkStocker->save();
 
                         }
@@ -2096,7 +2096,7 @@ class StockerController extends Controller
                             " . ( $request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "" ) . "
                             ratio = " . ($j + 1) . " AND
                             stocker_reject IS NULL AND
-                            (`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%' OR notes NOT LIKE '%CANCEL%')
+                            (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
                         ")->first();
 
                         $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $k + 1);
@@ -2132,11 +2132,11 @@ class StockerController extends Controller
                             $checkStocker->qty_ply_mod = null;
                             $checkStocker->range_awal = $cumRangeAwal;
                             $checkStocker->range_akhir = $cumRangeAkhir;
-                            $checkStocker->cancel = 'n';
+                            $checkStocker->cancel = 'N';
                             $checkStocker->save();
                         } else if ($checkStocker && $checkStocker->notes != $request['note']) {
                             $checkStocker->notes = $request['note'];
-                            $checkStocker->cancel = 'n';
+                            $checkStocker->cancel = 'N';
                             $checkStocker->save();
                         }
 
@@ -2265,7 +2265,7 @@ class StockerController extends Controller
                         " . ( $request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "" ) . "
                         ratio = " . ($j + 1) . " AND
                         stocker_reject IS NULL AND
-                        (`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%' OR notes NOT LIKE '%CANCEL%')
+                        (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
                     ")->first();
 
                     $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $i + 1);
@@ -2304,7 +2304,7 @@ class StockerController extends Controller
                         $checkStocker->qty_cut = $stockerSeparateDetail->qty;
                         $checkStocker->range_awal = $cumRangeAwal;
                         $checkStocker->range_akhir = $cumRangeAkhir;
-                        $checkStocker->cancel = 'n';
+                        $checkStocker->cancel = 'N';
                         $checkStocker->save();
                     }
 
@@ -2324,7 +2324,7 @@ class StockerController extends Controller
                         " . ( $request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "" ) . "
                         ratio = " . ($j + 1) . " AND
                         stocker_reject IS NULL AND
-                        (`notes` IS NULL OR `notes` NOT LIKE '%ADDITIONAL%' OR notes NOT LIKE '%CANCEL%')
+                        (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
                     ")->first();
 
                     $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $i + 1);
@@ -2363,7 +2363,7 @@ class StockerController extends Controller
                         $checkStocker->qty_cut = ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
                         $checkStocker->range_awal = $cumRangeAwal;
                         $checkStocker->range_akhir = $cumRangeAkhir;
-                        $checkStocker->cancel = 'n';
+                        $checkStocker->cancel = 'N';
                         $checkStocker->save();
                     }
 
@@ -2525,12 +2525,12 @@ class StockerController extends Controller
                         $checkStocker->range_awal = $cumRangeAwal;
                         $checkStocker->range_akhir = $cumRangeAkhir;
                         $checkStocker->notes = "ADDITIONAL ".$request['note']." (Separated Stocker)";
-                        $checkStocker->cancel = 'n';
+                        $checkStocker->cancel = 'N';
                         $checkStocker->save();
 
                     } else if ($checkStocker && $checkStocker->notes != $request['note']) {
                         $checkStocker->notes = "ADDITIONAL ".$request['note']." (Separated Stocker)";
-                        $checkStocker->cancel = 'n';
+                        $checkStocker->cancel = 'N';
                         $checkStocker->save();
 
                     }
@@ -2594,15 +2594,15 @@ class StockerController extends Controller
                                 "qty" => (($request['group_stocker_add'][$i] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($j == ($request['ratio_add'][$i] - 1) && $modifySizeQty) || ($request['ratio_add'][$i] < 1 && $modifySizeQty)) ? ($request['ratio_add'][$i] < 1 ? 0 : $request['qty_ply_group_add'][$i]) + $modifySizeQty->difference_qty : null)
                             ]);
                         }
-                    } else if ($checkStocker && $checkStocker->qty_ply != ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]) || (($cumRangeAwal > (($request['group_stocker'][$i] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($j == ($request['ratio'][$i] - 1) && $modifySizeQty)  || ($request['ratio'][$i] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) && $checkStocker->cancel != 'y'))) {
+                    } else if ($checkStocker && $checkStocker->qty_ply != ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]) || (($cumRangeAwal > (($request['group_stocker'][$i] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($j == ($request['ratio'][$i] - 1) && $modifySizeQty)  || ($request['ratio'][$i] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) && $checkStocker->cancel != 'Y'))) {
                         $checkStocker->qty_ply = ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]);
                         $checkStocker->qty_ply_mod = (($request['group_stocker_add'][$i] == min($request['group_stocker_add'])) && (($j == ($request['ratio_add'][$i] - 1) && $modifySizeQty) || ($request['ratio_add'][$i] < 1 && $modifySizeQty)) ? ($request['ratio_add'][$i] < 1 ? 0 : $request['qty_ply_group_add'][$i]) + $modifySizeQty->difference_qty : null);
                         $checkStocker->range_awal = $cumRangeAwal;
                         $checkStocker->range_akhir = (($request['group_stocker_add'][$i] == min($request['group_stocker_add'])) && (($j == ($request['ratio_add'][$i] - 1) && $modifySizeQty) || ($request['ratio_add'][$i] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir);
                         if ($cumRangeAwal <= (($request['group_stocker_add'][$i] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($j == ($request['ratio_add'][$i] - 1) && $modifySizeQty)  || ($request['ratio_add'][$i] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir)) {
-                            $checkStocker->cancel = 'n';
+                            $checkStocker->cancel = 'N';
                         } else {
-                            $checkStocker->cancel = 'y';
+                            $checkStocker->cancel = 'Y';
 
                             array_push($incompleteModSizeQty, [
                                 "form_cut_id" => $request['form_cut_id'],
@@ -2617,7 +2617,7 @@ class StockerController extends Controller
                         $checkStocker->save();
                     } else if ($checkStocker && $checkStocker->notes != $request['note']) {
                         $checkStocker->notes = "ADDITIONAL ".$request['note'];
-                        $checkStocker->cancel = 'n';
+                        $checkStocker->cancel = 'N';
                         $checkStocker->save();
                     }
 
@@ -2672,7 +2672,7 @@ class StockerController extends Controller
                 $currentStocker->qty_ply_mod = ($currentStocker->qty_ply_mod ? $currentStocker->qty_ply_mod : $currentStocker->qty_ply) + $incompleteModSizeQty[$i]['qty'];
                 $currentStocker->range_akhir = $currentStocker->range_akhir + $incompleteModSizeQty[$i]["qty"];
                 if ($currentStocker->range_awal > $currentStocker->range_akhir) {
-                    $currentStocker->cancel = 'y';
+                    $currentStocker->cancel = 'Y';
 
                     array_push($incompleteModSizeQty, [
                         "form_cut_id" => $currentStocker->form_cut_id,
@@ -2684,7 +2684,7 @@ class StockerController extends Controller
                         "qty" => ($currentStocker->range_akhir - $currentStocker->range_awal)
                     ]);
                 } else {
-                    $currentStocker->cancel = 'n';
+                    $currentStocker->cancel = 'N';
                 }
                 $currentStocker->save();
             } else {
@@ -2877,7 +2877,7 @@ class StockerController extends Controller
                         $checkStocker->range_awal = $cumRangeAwal;
                         $checkStocker->range_akhir = $cumRangeAkhir;
                         $checkStocker->notes = "ADDITIONAL ".$request['note']." (Separated Stocker)";
-                        $checkStocker->cancel = 'n';
+                        $checkStocker->cancel = 'N';
                         $checkStocker->save();
                     }
 
@@ -2941,16 +2941,16 @@ class StockerController extends Controller
                                 ]);
                             }
                         }
-                    } else if ($checkStocker && ($checkStocker->qty_ply != ($request['ratio_add'][$index] < 1 ? 0 : $request['qty_ply_group_add'][$index]) || $checkStocker->range_awal != $cumRangeAwal || $checkStocker->range_akhir != ($request['group_stocker_add'][$index] == (min($request['group_stocker_add'])) && (($j == ($request['ratio_add'][$index] - 1) && $modifySizeQty) || ($request['ratio_add'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) || (($cumRangeAwal > (($request['group_stocker_add'][$index] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker_add))) && (($j == ($request['ratio_add'][$index] - 1) && $modifySizeQty)  || ($request['ratio_add'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) && $checkStocker->cancel != 'y')) )) {
+                    } else if ($checkStocker && ($checkStocker->qty_ply != ($request['ratio_add'][$index] < 1 ? 0 : $request['qty_ply_group_add'][$index]) || $checkStocker->range_awal != $cumRangeAwal || $checkStocker->range_akhir != ($request['group_stocker_add'][$index] == (min($request['group_stocker_add'])) && (($j == ($request['ratio_add'][$index] - 1) && $modifySizeQty) || ($request['ratio_add'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) || (($cumRangeAwal > (($request['group_stocker_add'][$index] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker_add))) && (($j == ($request['ratio_add'][$index] - 1) && $modifySizeQty)  || ($request['ratio_add'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) && $checkStocker->cancel != 'Y')) )) {
                         $checkStocker->qty_ply = ($request['ratio_add'][$index] < 1 ? 0 : $request['qty_ply_group_add'][$index]);
                         $checkStocker->qty_ply_mod = (($request['group_stocker_add'][$index] == min($request['group_stocker_add'])) && (($j == ($request['ratio_add'][$index] - 1) && $modifySizeQty) || ($request['ratio_add'][$index] < 1 && $modifySizeQty)) ? ($request['ratio_add'][$index] < 1 ? 0 : $request['qty_ply_group_add'][$index]) + $modifySizeQty->difference_qty : null);
                         $checkStocker->range_awal = $cumRangeAwal;
                         $checkStocker->range_akhir = (($request['group_stocker_add'][$index] == min($request['group_stocker_add'])) && (($j == ($request['ratio_add'][$index] - 1) && $modifySizeQty)  || ($request['ratio_add'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir);
-                        $checkStocker->cancel = 'n';
+                        $checkStocker->cancel = 'N';
                         if ($cumRangeAwal <= (($request['group_stocker_add'][$index] == ($modifySizeQty ? $modifySizeQty->group_stocker : min($request->group_stocker))) && (($j == ($request['ratio_add'][$index] - 1) && $modifySizeQty)  || ($request['ratio_add'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir)) {
-                            $checkStocker->cancel = 'n';
+                            $checkStocker->cancel = 'N';
                         } else {
-                            $checkStocker->cancel = 'y';
+                            $checkStocker->cancel = 'Y';
 
                             array_push($incompleteModSizeQty, [
                                 "form_cut_id" => $request['form_cut_id'],
@@ -3014,7 +3014,7 @@ class StockerController extends Controller
                 $currentStocker->qty_ply_mod = ($currentStocker->qty_ply_mod ? $currentStocker->qty_ply_mod : $currentStocker->qty_ply) + $incompleteModSizeQty[$i]['qty'];
                 $currentStocker->range_akhir = $currentStocker->range_akhir + $incompleteModSizeQty[$i]["qty"];
                 if ($currentStocker->range_awal > $currentStocker->range_akhir) {
-                    $currentStocker->cancel = 'y';
+                    $currentStocker->cancel = 'Y';
 
                     array_push($incompleteModSizeQty, [
                         "form_cut_id" => $currentStocker->form_cut_id,
@@ -3026,7 +3026,7 @@ class StockerController extends Controller
                         "qty" => ($currentStocker->range_akhir - $currentStocker->range_awal)
                     ]);
                 } else {
-                    $currentStocker->cancel = 'n';
+                    $currentStocker->cancel = 'N';
                 }
                 $currentStocker->save();
             } else {
@@ -4700,7 +4700,7 @@ class StockerController extends Controller
                     $checkStocker->range_awal = 1;
                     $checkStocker->range_akhir = $request["qty"][$i];
                     $checkStocker->notes = $request["note"];
-                    $checkStocker->cancel = 'n';
+                    $checkStocker->cancel = 'N';
                     $checkStocker->save();
                 }
             }
@@ -4792,7 +4792,7 @@ class StockerController extends Controller
                 $checkStocker->range_awal = 1;
                 $checkStocker->range_akhir = $request["qty"][$i];
                 $checkStocker->notes = $request["note"];
-                $checkStocker->cancel = 'n';
+                $checkStocker->cancel = 'N';
                 $checkStocker->save();
             }
         }

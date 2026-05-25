@@ -677,4 +677,60 @@ class StockerToolsController extends Controller
 
         return DataTables::of($data)->make(true);
     }
+
+    public function checkStockerByFilter()
+    {
+        return view('stocker.tools.check-stocker-by-filter', [
+            'page' => 'dashboard-stocker',
+        ]);
+    }
+
+    public function checkStockerByFilterList(Request $request)
+    {
+        $data = Stocker::withoutGlobalScopes()
+            ->selectRaw("
+                MIN(stocker_input.id) as id,
+                COUNT(*) as stocker_count,
+                stocker_input.act_costing_ws,
+                stocker_input.color,
+                stocker_input.size,
+                stocker_input.group_stocker,
+                stocker_input.ratio,
+                stocker_input.so_det_id,
+                stocker_input.stocker_reject,
+                form_cut_input.no_form,
+                form_cut_input.no_cut,
+                MIN(stocker_input.range_awal) as range_awal,
+                MAX(stocker_input.range_akhir) as range_akhir,
+                MIN(stocker_input.qty_ply) as qty_ply,
+                SUM(stocker_input.qty_ply_mod) as qty_ply_mod,
+                MAX(stocker_input.cancel) as cancel,
+                MAX(stocker_input.notes) as notes,
+                MIN(stocker_input.created_at) as created_at
+            ")
+            ->leftJoin('form_cut_input', 'form_cut_input.id', '=', 'stocker_input.form_cut_id')
+            ->when($request->act_costing_ws, fn($q) => $q->where('stocker_input.act_costing_ws', $request->act_costing_ws))
+            ->when($request->color, fn($q) => $q->where('stocker_input.color', $request->color))
+            ->when($request->size, fn($q) => $q->where('stocker_input.size', $request->size))
+            ->when($request->additional === 'Y', fn($q) => $q->where('stocker_input.notes', 'LIKE', '%ADDITIONAL%'))
+            ->when($request->additional === 'N', fn($q) => $q->where(function ($q) {
+                $q->whereNull('stocker_input.notes')->orWhere('stocker_input.notes', 'NOT LIKE', '%ADDITIONAL%');
+            }))
+            ->groupBy(
+                'stocker_input.act_costing_ws',
+                'stocker_input.color',
+                'stocker_input.size',
+                'stocker_input.group_stocker',
+                'stocker_input.ratio',
+                'stocker_input.so_det_id',
+                'stocker_input.stocker_reject',
+                'form_cut_input.no_form',
+                'form_cut_input.no_cut'
+            )
+            ->orderByRaw('CAST(form_cut_input.no_cut AS UNSIGNED) ASC')
+            ->orderBy('stocker_input.group_stocker', 'desc')
+            ->orderBy('stocker_input.ratio', 'asc');
+
+        return DataTables::eloquent($data)->make(true);
+    }
 }
