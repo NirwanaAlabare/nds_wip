@@ -247,6 +247,12 @@ return [
             'path' => storage_path('logs/fixOutputMasterPlan/fixOutputMasterPlan.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
             'days' => 30,
+        ],
+        'storePartDetailSecondary' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/storePartDetailSecondary/storePartDetailSecondary.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
         ]
     ],
 ];
