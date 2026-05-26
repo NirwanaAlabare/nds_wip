@@ -866,6 +866,13 @@ class PartController extends Controller
                         "created_by_username" => Auth::user()->username,
                     ]);
 
+                    // Logging
+                    Log::channel("storePartDetailSecondary")->info([
+                        "Creating Data",
+                        "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                        $createNewPartDetail
+                    ]);
+
                     if ($createNewPartDetail) {
                         // Get Current Secondaries
                         $currentPartDetailSecondaries = $currentFromPartDetail->secondaries;
@@ -938,6 +945,13 @@ class PartController extends Controller
                     'tujuan' => $validatedRequest['tujuan'],
                     "created_by" => Auth::user()->id,
                     "created_by_username" => Auth::user()->username,
+                ]);
+
+                // Logging
+                Log::channel("storePartDetailSecondary")->info([
+                    "Creating Data",
+                    "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                    $createNewPartDetail
                 ]);
 
                 if ($createNewPartDetail) {
