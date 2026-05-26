@@ -1118,8 +1118,8 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 as qty_adjustment,
                         0 as switching_in_before,
                         0 as switching_in,
-                        SUM(IF(from_tgl_saldo < '{$tgl_awal}',from_qty,0)) switching_out_before,
-                        SUM(IF(from_tgl_saldo >= '{$tgl_awal}',from_qty,0)) as switching_out,
+                        SUM(IF(from_tgl_saldo < '{$tgl_awal}',qty,0)) switching_out_before,
+                        SUM(IF(from_tgl_saldo >= '{$tgl_awal}',qty,0)) as switching_out,
                         0 as pc_qty_adjustment_before,
                         0 as pc_qty_adjustment,
                         0 as pc_switching_in_before,
@@ -1237,8 +1237,8 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 as pc_qty_adjustment,
                         0 as pc_switching_in_before,
                         0 as pc_switching_in,
-                        SUM(IF(from_tgl_saldo < '{$tgl_awal}',from_qty,0)) as pc_switching_out_before,
-                        SUM(IF(from_tgl_saldo >= '{$tgl_awal}',from_qty,0)) as pc_switching_out
+                        SUM(IF(from_tgl_saldo < '{$tgl_awal}',qty,0)) as pc_switching_out_before,
+                        SUM(IF(from_tgl_saldo >= '{$tgl_awal}',qty,0)) as pc_switching_out
                     FROM 
                         wip_switching_adj
                     where
@@ -1693,8 +1693,8 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as qty_adjustment,
                     0 as switching_in_before,
                     0 as switching_in,
-                    SUM(IF(from_tgl_saldo < '{$tgl_awal}',from_qty,0)) switching_out_before,
-                    SUM(IF(from_tgl_saldo >= '{$tgl_awal}',from_qty,0)) as switching_out,
+                    SUM(IF(from_tgl_saldo < '{$tgl_awal}',qty,0)) switching_out_before,
+                    SUM(IF(from_tgl_saldo >= '{$tgl_awal}',qty,0)) as switching_out,
                     0 as pc_qty_adjustment_before,
                     0 as pc_qty_adjustment,
                     0 as pc_switching_in_before,
@@ -1812,8 +1812,8 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_qty_adjustment,
                     0 as pc_switching_in_before,
                     0 as pc_switching_in,
-                    SUM(IF(from_tgl_saldo < '{$tgl_awal}',from_qty,0)) as pc_switching_out_before,
-                    SUM(IF(from_tgl_saldo >= '{$tgl_awal}',from_qty,0)) as pc_switching_out
+                    SUM(IF(from_tgl_saldo < '{$tgl_awal}',qty,0)) as pc_switching_out_before,
+                    SUM(IF(from_tgl_saldo >= '{$tgl_awal}',qty,0)) as pc_switching_out
                 FROM 
                     wip_switching_adj
                 where
