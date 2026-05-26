@@ -1029,6 +1029,18 @@ class PartController extends Controller
             "edit_tujuan" => "required",
         ]);
 
+        Log::channel('updatePartSecondary')->info([
+            "Updating Data",
+            "By " . (Auth::user() ? Auth::user()->id . " " . Auth::user()->username : "System"),
+            "edit_id"             => $validatedRequest['edit_id'],
+            "edit_tujuan"         => $validatedRequest['edit_tujuan'],
+            "edit_master_part_id" => $request->edit_master_part_id,
+            "edit_cons"           => $request->edit_cons,
+            "edit_urutan"         => $request->edit_urutan,
+            "edit_part_status"    => $request->edit_part_status,
+            "edit_item"           => $request->edit_item,
+        ]);
+
         // Phase 1
         $checkDc = DcIn::leftJoin("stocker_input", "stocker_input.id_qr_stocker", "=", "dc_in_input.id_qr_stocker")->
             where("part_detail_id", $validatedRequest['edit_id'])->
@@ -1122,6 +1134,15 @@ class PartController extends Controller
                     }
 
                     PartDetailItem::upsert($partItemData, ['part_detail_id', 'bom_jo_item_id'], ["updated_at"]);
+
+                    // Similar Recursive Call
+                    $similarPartDetail = PartDetail::where("from_part_detail", $validatedRequest['edit_id'])->first();
+                    if ($similarPartDetail) {
+                        $similarRequest = new Request(array_merge($request->all(), [
+                            'edit_id' => $similarPartDetail->id,
+                        ]));
+                        $this->updatePartSecondary($similarRequest);
+                    }
                 }
 
                 return array(
