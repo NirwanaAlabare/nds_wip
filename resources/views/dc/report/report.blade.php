@@ -258,7 +258,7 @@
                     totalSaldoAkhir += intVal(r.current_saldo_awal_adjustment) + intVal(r.qty_in) - intVal(r.kirim_secondary_dalam) + intVal(r.terima_repaired_secondary_dalam) + intVal(r.terima_good_secondary_dalam) - intVal(r.kirim_secondary_luar) + intVal(r.terima_repaired_secondary_luar) + intVal(r.terima_good_secondary_luar) - intVal(r.loading) + (intVal(r.adjustment) + intVal(r.switching_in) - intVal(r.switching_out));
                 });
 
-                $(api.column(18).footer()).html(totalSaldoAkhir);
+                $(api.column(19).footer()).html(totalSaldoAkhir);
             }
         });
 

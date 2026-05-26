@@ -1341,7 +1341,7 @@ class DcReportController extends Controller
                         SUM(qty_adjustment_before) adjustment_before,
                         SUM(switching_in_before) switching_in_before,
                         SUM(switching_out_before) switching_out_before,
-                        SUM(current_saldo_awal) + SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before) current_saldo_awal_adjusment,
+                        SUM(current_saldo_awal) + SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before) current_saldo_awal_adjustment,
                         SUM(qty_in) qty_in,
                         SUM(kirim_secondary_dalam) kirim_secondary_dalam,
                         SUM(terima_repaired_secondary_dalam) terima_repaired_secondary_dalam,
@@ -1354,7 +1354,7 @@ class DcReportController extends Controller
                         SUM(qty_adjustment) adjustment,
                         SUM(switching_in) switching_in,
                         SUM(switching_out) switching_out,
-                        (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before)) + SUM(current_saldo_akhir) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out)) current_saldo_akhir_adj
+                        (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before)) + SUM(current_saldo_akhir) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out)) current_saldo_akhir_adjustment
                     from (
                         select
                             stockers,
@@ -1448,8 +1448,7 @@ class DcReportController extends Controller
                             from_tgl_saldo <= '$dateTo' and
                             type_report = 'DC'
                         GROUP BY
-                            from_no_ws, from_color, from_size, from_panel, from_part,
-                            no_ws, color, size, panel, part
+                            from_no_ws, from_color, from_size, from_panel, from_part
                         UNION ALL
                         select
                             null stockers,
@@ -1482,11 +1481,26 @@ class DcReportController extends Controller
                             tgl_saldo <= '$dateTo' and
                             type_report = 'DC'
                         GROUP BY
-                            from_no_ws, from_color, from_size, from_panel, from_part,
                             no_ws, color, size, panel, part
                     ) dc
                     group by
                         ws, color, size, panel, nama_part
+                    having
+                        (
+                            current_saldo_awal_adjustment != 0 OR
+                            qty_in != 0 OR
+                            kirim_secondary_dalam != 0 OR
+                            terima_repaired_secondary_dalam != 0 OR
+                            terima_good_secondary_dalam != 0 OR
+                            kirim_secondary_luar != 0 OR
+                            terima_repaired_secondary_luar != 0 OR
+                            terima_good_secondary_luar != 0 OR
+                            loading_qty != 0 OR
+                            current_saldo_akhir_adjustment != 0 OR
+                            adjustment != 0 OR
+                            switching_in != 0 OR
+                            switching_out != 0
+                        )
 
             ");
 
@@ -2975,6 +2989,22 @@ class DcReportController extends Controller
                     ) dc
                     group by
                         ws, color, size, panel, nama_part
+                    having
+                        (
+                            current_saldo_awal_adjustment != 0 OR
+                            qty_in != 0 OR
+                            kirim_secondary_dalam != 0 OR
+                            terima_repaired_secondary_dalam != 0 OR
+                            terima_good_secondary_dalam != 0 OR
+                            kirim_secondary_luar != 0 OR
+                            terima_repaired_secondary_luar != 0 OR
+                            terima_good_secondary_luar != 0 OR
+                            loading_qty != 0 OR
+                            current_saldo_akhir_adjustment != 0 OR
+                            adjustment != 0 OR
+                            switching_in != 0 OR
+                            switching_out != 0
+                        )
 
             ");
 

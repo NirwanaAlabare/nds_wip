@@ -4381,6 +4381,7 @@ order by a.tgl_trans asc
     }
 
 
+    // Deprecated
     public function report_mutasi_wip_cutting1(Request $request)
     {
 
@@ -5822,6 +5823,7 @@ order by a.tgl_trans asc
         );
     }
 
+    // Deprecated
     public function report_mutasi_wip_cutting_detail1(Request $request)
     {
 
@@ -7512,6 +7514,69 @@ order by a.tgl_trans asc
                                 OR SUM(qty_cut) <> 0
                                 OR SUM(qty_dc) <> 0
                                 OR ( (SUM(qty_cut_awal) - SUM(qty_dc_awal) ) + SUM(qty_cut) - SUM(qty_dc) ) <> 0
+                    ),
+                    inject_awal as (
+                        SELECT
+                            null id_so_det,
+                            buyer,
+                            ws,
+                            style,
+                            color,
+                            size,
+                            null dest,
+                            null part_id,
+                            panel,
+                            null panel_status,
+                            null part_detail_id,
+                            part nama_part,
+                            0 part_status,
+                            SUM(`in` - `out`) saldo_awal,
+                            0 qty_cut,
+                            0 as qty_dc_1,
+                            0 as qty_dc,
+                            0 as qty_replace,
+                            0 as saldo_akhir,
+                            null cancel,
+                            null cancel_h,
+                            null status
+                        from
+                            inject_mutasi_cutting
+                        WHERE
+                            tanggal < '$start_date'
+                        GROUP BY
+                            ws, color, size, panel, part
+                    ),
+
+                    inject_in as (
+                        SELECT
+                            null id_so_det,
+                            buyer,
+                            ws,
+                            style,
+                            color,
+                            size,
+                            null dest,
+                            null part_id,
+                            panel,
+                            null panel_status,
+                            null part_detail_id,
+                            part nama_part,
+                            null part_status,
+                            0 saldo_awal,
+                            SUM(`in`) qty_cut,
+                            SUM(`out`) as qty_dc_1,
+                            SUM(`out`) as qty_dc,
+                            SUM(replacement) as qty_replace,
+                            SUM(`in` - `out`) as saldo_akhir,
+                            null cancel,
+                            null cancel_h,
+                            null status
+                        from
+                            inject_mutasi_cutting
+                        WHERE
+                            tanggal between '$start_date' and '$end_date'
+                        GROUP BY
+                            ws, color, size, panel, part
                     )
 
                     SELECT
@@ -7575,6 +7640,66 @@ order by a.tgl_trans asc
                                 status
                         FROM
                                 saldo
+                        UNION ALL
+                        SELECT
+                            buyer,
+                            ws,
+                            style,
+                            color,
+                            size,
+                            dest,
+                            part_id,
+                            panel,
+                            panel_status,
+                            part_detail_id,
+                            nama_part,
+                            part_status,
+                            saldo_awal,
+                            qty_cut,
+                            qty_dc_1,
+                            qty_dc,
+                            qty_replace,
+                            saldo_akhir,
+                            0 as qty_adjustment_before,
+                            0 qty_adjustment,
+                            0 as switching_in_before,
+                            0 switching_in,
+                            0 as switching_out_before,
+                            0 switching_out,
+                            cancel,
+                            cancel_h,
+                            status
+                        FROM inject_awal
+                        UNION ALL
+                        SELECT
+                            buyer,
+                            ws,
+                            style,
+                            color,
+                            size,
+                            dest,
+                            part_id,
+                            panel,
+                            panel_status,
+                            part_detail_id,
+                            nama_part,
+                            part_status,
+                            saldo_awal,
+                            qty_cut,
+                            qty_dc_1,
+                            qty_dc,
+                            qty_replace,
+                            saldo_akhir,
+                            0 as qty_adjustment_before,
+                            0 qty_adjustment,
+                            0 as switching_in_before,
+                            0 switching_in,
+                            0 as switching_out_before,
+                            0 switching_out,
+                            cancel,
+                            cancel_h,
+                            status
+                        FROM inject_in
                         UNION ALL
                         SELECT
                             buyer,
@@ -7691,6 +7816,18 @@ order by a.tgl_trans asc
                     ) cutting
                     group by
                         ws, styleno, color, size, panel, nama_part
+                    having
+                        (
+                            saldo_awal_adjustment != 0 OR
+                            qty_cut != 0 OR
+                            qty_dc_1 != 0 OR
+                            qty_dc != 0 OR
+                            qty_replace != 0 OR
+                            qty_adjustment != 0 OR
+                            switching_in != 0 OR
+                            switching_out != 0 OR
+                            saldo_akhir_adjustment != 0
+                        )
                 ");
 
                 return DataTables::of($rawData)->toJson();
@@ -10281,6 +10418,69 @@ order by a.tgl_trans asc
                                 OR SUM(qty_cut) <> 0
                                 OR SUM(qty_dc) <> 0
                                 OR ( (SUM(qty_cut_awal) - SUM(qty_dc_awal) ) + SUM(qty_cut) - SUM(qty_dc) ) <> 0
+                    ),
+                    inject_awal as (
+                        SELECT
+                            null id_so_det,
+                            buyer,
+                            ws,
+                            style,
+                            color,
+                            size,
+                            null dest,
+                            null part_id,
+                            panel,
+                            null panel_status,
+                            null part_detail_id,
+                            part nama_part,
+                            0 part_status,
+                            SUM(`in` - `out`) saldo_awal,
+                            0 qty_cut,
+                            0 as qty_dc_1,
+                            0 as qty_dc,
+                            0 as qty_replace,
+                            0 as saldo_akhir,
+                            null cancel,
+                            null cancel_h,
+                            null status
+                        from
+                            inject_mutasi_cutting
+                        WHERE
+                            tanggal < '$start_date'
+                        GROUP BY
+                            ws, color, size, panel, part
+                    ),
+
+                    inject_in as (
+                        SELECT
+                            null id_so_det,
+                            buyer,
+                            ws,
+                            style,
+                            color,
+                            size,
+                            null dest,
+                            null part_id,
+                            panel,
+                            null panel_status,
+                            null part_detail_id,
+                            part nama_part,
+                            null part_status,
+                            0 saldo_awal,
+                            SUM(`in`) qty_cut,
+                            SUM(`out`) as qty_dc_1,
+                            SUM(`out`) as qty_dc,
+                            SUM(replacement) as qty_replace,
+                            SUM(`in` - `out`) as saldo_akhir,
+                            null cancel,
+                            null cancel_h,
+                            null status
+                        from
+                            inject_mutasi_cutting
+                        WHERE
+                            tanggal between '$start_date' and '$end_date'
+                        GROUP BY
+                            ws, color, size, panel, part
                     )
 
                     SELECT
@@ -10344,6 +10544,66 @@ order by a.tgl_trans asc
                                 status
                         FROM
                                 saldo
+                        UNION ALL
+                        SELECT
+                            buyer,
+                            ws,
+                            style,
+                            color,
+                            size,
+                            dest,
+                            part_id,
+                            panel,
+                            panel_status,
+                            part_detail_id,
+                            nama_part,
+                            part_status,
+                            saldo_awal,
+                            qty_cut,
+                            qty_dc_1,
+                            qty_dc,
+                            qty_replace,
+                            saldo_akhir,
+                            0 as qty_adjustment_before,
+                            0 qty_adjustment,
+                            0 as switching_in_before,
+                            0 switching_in,
+                            0 as switching_out_before,
+                            0 switching_out,
+                            cancel,
+                            cancel_h,
+                            status
+                        FROM inject_awal
+                        UNION ALL
+                        SELECT
+                            buyer,
+                            ws,
+                            style,
+                            color,
+                            size,
+                            dest,
+                            part_id,
+                            panel,
+                            panel_status,
+                            part_detail_id,
+                            nama_part,
+                            part_status,
+                            saldo_awal,
+                            qty_cut,
+                            qty_dc_1,
+                            qty_dc,
+                            qty_replace,
+                            saldo_akhir,
+                            0 as qty_adjustment_before,
+                            0 qty_adjustment,
+                            0 as switching_in_before,
+                            0 switching_in,
+                            0 as switching_out_before,
+                            0 switching_out,
+                            cancel,
+                            cancel_h,
+                            status
+                        FROM inject_in
                         UNION ALL
                         SELECT
                             buyer,
@@ -10460,6 +10720,18 @@ order by a.tgl_trans asc
                     ) cutting
                     group by
                         ws, styleno, color, size, panel, nama_part
+                    having
+                        (
+                            saldo_awal_adjustment != 0 OR
+                            qty_cut != 0 OR
+                            qty_dc_1 != 0 OR
+                            qty_dc != 0 OR
+                            qty_replace != 0 OR
+                            qty_adjustment != 0 OR
+                            switching_in != 0 OR
+                            switching_out != 0 OR
+                            saldo_akhir_adjustment != 0
+                        )
                 ");
 
         $fileName = 'report-mutasi-wip-cutting-detail';

@@ -173,7 +173,7 @@
                 autoWidth: false, // WAJIB false
                 deferRender: true,
 
-                processing: false,
+                processing: true,
 
                 ajax: {
                     url: '{{ route('report_mutasi_wip_cutting_detail') }}',
