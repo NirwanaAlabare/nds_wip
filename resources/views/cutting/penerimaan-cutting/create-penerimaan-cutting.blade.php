@@ -506,11 +506,12 @@
                         console.log(res);
 
                         if (res.status == false) {
-                            Swal.fire({
-                                icon: 'warning',
+                            iziToast.warning({
                                 title: 'Warning',
-                                text: res.message,
-                                confirmButtonText: 'Oke'
+                                message: res.message,
+                                position: 'topCenter',
+                                transitionIn: 'slideInRight',
+                                timeout: 2000
                             });
 
                             $("#scan_item").val('');
