@@ -1046,7 +1046,7 @@ class PartController extends Controller
             where("part_detail_id", $validatedRequest['edit_id'])->
             count();
 
-        if ($checkDc < 1 || Auth::user()->roles->whereIn("nama_role", ["superadmin"])) {
+        if ($checkDc < 1) {
             $update_part = PartDetail::where("id", $validatedRequest['edit_id'])->
                 update([
                     'tujuan' => $validatedRequest['edit_tujuan'],
