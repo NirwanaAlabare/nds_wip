@@ -892,7 +892,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         AND bpbno_int LIKE '%FG%'
                         AND bpbdate >= '{$tanggal_saldo_awal} 00:00:00'
                         AND bpbdate < '{$tgl_awal} 00:00:00'
-                        AND id_supplier NOT IN (458 , 927 , 2053)
+                        AND id_supplier IN (357, 435)
                     GROUP BY
                         id_so_det
 
@@ -942,7 +942,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         id_so_det IS NOT NULL
                         AND bpbno_int LIKE '%FG%'
                         AND bpbdate BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
-                        AND id_supplier NOT IN (458 , 927 , 2053)
+                        AND id_supplier IN (357, 435)
                     GROUP BY
                         id_so_det
                 ),
@@ -1191,7 +1191,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     AND bpbno_int LIKE '%FG%'
                     AND bpbdate >= '{$tanggal_saldo_awal} 00:00:00'
                     AND bpbdate < '{$tgl_awal} 00:00:00'
-                    AND id_supplier NOT IN (458 , 927 , 2053)
+                    AND id_supplier IN (357, 435)
                 GROUP BY
                     id_so_det
 
@@ -1241,7 +1241,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     id_so_det IS NOT NULL
                     AND bpbno_int LIKE '%FG%'
                     AND bpbdate BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
-                    AND id_supplier NOT IN (458 , 927 , 2053)
+                    AND id_supplier IN (357, 435)
                 GROUP BY
                     id_so_det
             ),
@@ -1397,12 +1397,12 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
         );
 
         $sheet->setCellStyle('A5:E5', [
-            'fill' => '#ADD8E6', 
+            'fill' => '#ADD8E6',
             'text-align' => 'center',
         ]);
 
         $sheet->setCellStyle('F5:J5', [
-            'fill' => '#90EE90', 
+            'fill' => '#90EE90',
             'text-align' => 'center',
         ]);
 
