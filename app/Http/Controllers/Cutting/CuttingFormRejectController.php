@@ -7,12 +7,15 @@ use App\Models\Cutting\FormCutReject;
 use App\Models\Cutting\FormCutRejectDetail;
 use App\Models\Cutting\FormCutRejectBarcode;
 use App\Models\Dc\DCIn;
+use App\Models\Dc\SecondaryInhouseIn;
 use App\Models\Dc\SecondaryInhouse;
 use App\Models\Dc\SecondaryIn;
 use App\Models\Dc\TrolleyStocker;
 use App\Models\Dc\LoadingLine;
 use App\Models\Part\PartDetail;
 use App\Models\Stocker\Stocker;
+use App\Models\Cutting\FormCutInputDetail;
+use App\Models\Cutting\Piping;
 use App\Models\Cutting\ScannedItem;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\Cutting\ExportCuttingFormReject;
@@ -348,14 +351,66 @@ class CuttingFormRejectController extends Controller
                 $formCutRejectRolls = FormCutRejectBarcode::where('form_id', $id)->get();
                 foreach ($formCutRejectRolls as $roll) {
 
-                    // Synchronize scanned_item table Qty
-                    $scannedItem = ScannedItem::where('id_roll', $roll->no_barcode)->first();
+                    // Check After Piping Form Cut Detail (including reject and next piping)
+                    $formCutInputDetailQuery = DB::table('form_cut_input_detail')
+                        ->selectRaw("id, id_roll, qty, created_at, 'form_cut_input_detail' as source")
+                        ->where('id_roll', $roll->no_barcode)
+                        ->where('created_at', '>=', $piping->created_at);
 
-                    if ($scannedItem) {
-                        $scannedItem->qty =
-                            ($scannedItem->qty ?? 0) + ($roll->qty_roll - $roll->sisa_kain);
+                    $formCutRejectQuery = DB::table('form_cut_alokasi_gr_panel_barcode')
+                        ->selectRaw("id, barcode as id_roll, qty_roll as qty, created_at, 'form_cut_alokasi_gr_panel_barcode' as source")
+                        ->where('barcode', $roll->no_barcode)
+                        ->where('created_at', '>=', $piping->created_at);
 
-                        $scannedItem->save();
+                    $formCutPipingQuery = DB::table('form_cut_piping')
+                        ->selectRaw("id, id_roll, qty, created_at, 'form_cut_piping' as source")
+                        ->where('id_roll', $roll->no_barcode)
+                        ->where('created_at', '>=', $piping->created_at)
+                        ->where('id', '!=', $piping->id);
+
+                    $nextRecord = $formCutInputDetailQuery
+                        ->union($formCutRejectQuery)
+                        ->union($formCutPipingQuery)
+                        ->orderBy('created_at', 'asc')
+                        ->first();
+
+                    // Strict Qty
+                    if ($nextRecord->qty > $qty) {
+                        return array(
+                            "status" => 400,
+                            "message" => "Sisa Kain tidak bisa lebih kecil dari ".$nextRecord->qty,
+                            "additional" => [],
+                        );
+                    }
+
+                    // Update After Piping Form Cut Detail (only when next usage is a gelaran)
+                    if ($nextRecord->source == 'form_cut_input_detail') {
+                            $formCutDetail = FormCutInputDetail::where('id', $nextRecord->id)->first();
+                            if ($formCutDetail) {
+                                $formCut = $formCutDetail->formCutInput;
+                                $pAct = $formCut->p_act + ($formCut->comma_p_act/100);
+                                $sambunganRoll = $formCutDetail->formCutInputDetailSambungan ? $formCutDetail->formCutInputDetailSambungan->sum("sambungan_roll") : 0;
+                                $shortRoll = (($pAct * $formCutDetail->lembar_gelaran) + $formCutDetail->sambungan + $formCutDetail->sisa_gelaran + $formCutDetail->kepala_kain + $formCutDetail->sisa_tidak_bisa + $formCutDetail->reject + $formCutDetail->piping + $formCutDetail->sisa_kain + $sambunganRoll) - $qty;
+
+                                $formCutDetail->short_roll = $shortRoll;
+                                $formCutDetail->save();
+                            }
+                    } else if ($nextRecord->source == 'form_cut_piping') {
+                        $nextPiping = Piping::where('id', $nextRecord->id)->first();
+                        if ($nextPiping) {
+                            $nextPiping->qty = $qty;
+                            $nextPiping->short_roll = ($nextPiping->piping + $nextPiping->qty_sisa) - $qty;
+                            $nextPiping->save();
+                        }
+                    } else {
+                        // Synchronize scanned_item table Qty
+                        $scannedItem = ScannedItem::where('id_roll', $roll->no_barcode)->first();
+
+                        if ($scannedItem) {
+                            $scannedItem->qty = ($scannedItem->qty ?? 0) + ($roll->qty_roll - $roll->sisa_kain);
+
+                            $scannedItem->save();
+                        }
                     }
 
                     // Delete
@@ -372,6 +427,7 @@ class CuttingFormRejectController extends Controller
                     LoadingLine::whereIn('stocker_id', $stockerIds)->delete();
                     TrolleyStocker::whereIn('stocker_id', $stockerIds)->delete();
                     DCIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+                    SecondaryInhouseIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
                     SecondaryInhouse::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
                     SecondaryIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
 
