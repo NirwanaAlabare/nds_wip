@@ -978,38 +978,314 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     msw.styleno,
                     msw.size,
                     msw.buyer
+                ),
+
+                main_select as (
+                    /* ================= MAIN SELECT ================= */
+                        select
+                        urutan, ws, color, style, a.size, buyer,
+                        sum(pl_saldo_awal) pl_saldo_awal, sum(pl_rft) pl_rft, sum(pl_reject) pl_reject, sum(pl_keluar) pl_keluar,
+                        (SUM(pl_saldo_awal) + SUM(pl_rft) + SUM(pl_reject) - SUM(pl_keluar)) pl_saldo_akhir,
+                        sum(pc_saldo_awal) pc_saldo_awal, sum(pc_terima) pc_terima,
+                        sum(pc_terima_return) pc_terima_return,
+                        sum(pc_fg_in) pc_fg_in,
+                        (sum(pc_saldo_awal) + SUM(pc_terima) + SUM(pc_terima_return) - SUM(pc_fg_in)) pc_saldo_akhir
+                        from
+                        (
+                            select * from final_query
+    
+                            UNION ALL
+    
+                            select msn.urutan, ws, color, styleno style, a.size, buyer,
+                            COALESCE(packing_saldo_awal, 0) pl_saldo_awal, COALESCE(packing_rft,0) pl_rft, 0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir,
+                            COALESCE( pc_saldo_awal, 0) pc_saldo_awal, 0 pc_terima, 0 pc_terima_return, 0 pc_fg_in, 0 pc_saldo_akhir
+                            from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+    
+                            UNION ALL
+    
+                            select msn.urutan, ws, color, styleno style, a.size, buyer,
+                            (COALESCE(packing_saldo_awal, 0)+COALESCE(packing_rft, 0)+COALESCE(packing_reject, 0)-COALESCE(packing_keluar, 0)) pl_saldo_awal,
+                            0 pl_rft,
+                            0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir,
+                            (COALESCE(pc_saldo_awal, 0)+COALESCE(pc_terima, 0)) pc_saldo_awal, 0 pc_terima, 0 pc_terima_return, 0 pc_fg_in, 0 pc_saldo_akhir
+                            from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo < '{$tgl_awal}'
+                        ) a
+                        GROUP BY urutan, ws, color, style, size, buyer ORDER BY ws, color, buyer, urutan
                 )
 
-                /* ================= MAIN SELECT ================= */
-                    select
-                    urutan, ws, color, style, a.size, buyer,
-                    sum(pl_saldo_awal) pl_saldo_awal, sum(pl_rft) pl_rft, sum(pl_reject) pl_reject, sum(pl_keluar) pl_keluar,
-                    (SUM(pl_saldo_awal) + SUM(pl_rft) + SUM(pl_reject) - SUM(pl_keluar)) pl_saldo_akhir,
-                    sum(pc_saldo_awal) pc_saldo_awal, sum(pc_terima) pc_terima,
-                    sum(pc_terima_return) pc_terima_return,
-                    sum(pc_fg_in) pc_fg_in,
-                    (sum(pc_saldo_awal) + SUM(pc_terima) + SUM(pc_terima_return) - SUM(pc_fg_in)) pc_saldo_akhir
-                    from
-                    (
-                        select * from final_query
+                select
+                urutan, ws, color, style, a.size, buyer,
+                sum(pl_saldo_awal) pl_saldo_awal, 
+                sum(pl_rft) pl_rft, 
+                sum(pl_reject) pl_reject, 
+                sum(pl_keluar) pl_keluar,
+                sum(pl_saldo_akhir) pl_saldo_akhir,
+                sum(pc_saldo_awal) pc_saldo_awal, 
+                sum(pc_terima) pc_terima,
+                sum(pc_terima_return) pc_terima_return,
+                sum(pc_fg_in) pc_fg_in,
+                sum(pc_saldo_akhir) pc_saldo_akhir,
+                SUM(qty_adjustment_before) adjustment_before,
+                SUM(switching_in_before) switching_in_before,
+                SUM(switching_out_before) switching_out_before,
+                SUM(pl_saldo_awal) + SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before) saldo_awal_adjusment,
+                SUM(qty_adjustment) qty_adjustment,
+                SUM(switching_in) switching_in,
+                SUM(switching_out) switching_out,
+                (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before)) + SUM(pl_saldo_awal) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out)) saldo_akhir_adj,
+                SUM(pc_qty_adjustment_before) pc_adjustment_before,
+                SUM(pc_switching_in_before) pc_switching_in_before,
+                SUM(pc_switching_out_before) pc_switching_out_before,
+                SUM(pc_saldo_awal) + SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) - SUM(pc_switching_out_before) pc_saldo_awal_adjusment,
+                SUM(pc_qty_adjustment) pc_qty_adjustment,
+                SUM(pc_switching_in) pc_switching_in,
+                SUM(pc_switching_out) pc_switching_out,
+                (SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) - SUM(pc_switching_out_before)) + SUM(pc_saldo_awal) + (SUM(qty_adjustment) + SUM(pc_switching_in) - SUM(pc_switching_out)) pc_saldo_akhir_adj
+                from
+                (
+                    select 
+                        main_select.*,
+                        0 as qty_adjustment_before,
+                        0 as qty_adjustment,
+                        0 as switching_in_before,
+                        0 as switching_in,
+                        0 as switching_out_before,
+                        0 as switching_out,
+                        0 as pc_qty_adjustment_before,
+                        0 as pc_qty_adjustment,
+                        0 as pc_switching_in_before,
+                        0 as pc_switching_in,
+                        0 as pc_switching_out_before,
+                        0 as pc_switching_out
+                    from main_select
 
-                        UNION ALL
-
-                        select msn.urutan, ws, color, styleno style, a.size, buyer,
-                        COALESCE(packing_saldo_awal, 0) pl_saldo_awal, COALESCE(packing_rft,0) pl_rft, 0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir,
-                        COALESCE( pc_saldo_awal, 0) pc_saldo_awal, 0 pc_terima, 0 pc_terima_return, 0 pc_fg_in, 0 pc_saldo_akhir
-                        from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
-
-                        UNION ALL
-
-                        select msn.urutan, ws, color, styleno style, a.size, buyer,
-                        (COALESCE(packing_saldo_awal, 0)+COALESCE(packing_rft, 0)+COALESCE(packing_reject, 0)-COALESCE(packing_keluar, 0)) pl_saldo_awal,
+                    UNION ALL 
+                    select 
+                        null urutan,
+                        no_ws ws,
+                        color,
+                        style,
+                        size,
+                        buyer,
+                        0 pl_saldo_awal,
                         0 pl_rft,
-                        0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir,
-                        (COALESCE(pc_saldo_awal, 0)+COALESCE(pc_terima, 0)) pc_saldo_awal, 0 pc_terima, 0 pc_terima_return, 0 pc_fg_in, 0 pc_saldo_akhir
-                        from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo < '{$tgl_awal}'
-                    ) a
-                    GROUP BY urutan, ws, color, style, size, buyer ORDER BY ws, color, buyer, urutan
+                        0 pl_reject,
+                        0 pl_keluar,
+                        0 pl_saldo_akhir,
+                        0 pc_saldo_awal,
+                        0 pc_terima,
+                        0 pc_terima_return,
+                        0 pc_fg_in,
+                        0 pc_saldo_akhir,
+                        SUM(IF(tgl_saldo < '{$tgl_awal}',qty,0)) qty_adjustment_before,
+                        SUM(IF(tgl_saldo >= '{$tgl_awal}',qty,0)) as qty_adjustment,
+                        0 switching_in_before,
+                        0 as switching_in,
+                        0 as switching_out_before,
+                        0 as switching_out,
+                        0 as pc_qty_adjustment_before,
+                        0 as pc_qty_adjustment,
+                        0 as pc_switching_in_before,
+                        0 as pc_switching_in,
+                        0 as pc_switching_out_before,
+                        0 as pc_switching_out
+                    FROM 
+                        wip_adjustment
+                    WHERE 
+                        tgl_saldo <= '{$tgl_akhir}' and 
+                        type_report = 'PACKING'
+                    GROUP BY 
+                        ws, color, size, panel, part 
+                    UNION ALL 
+                    select 
+                        null urutan,
+                        from_no_ws ws,
+                        from_color,
+                        from_style,
+                        from_size,
+                        from_buyer,
+                        0 pl_saldo_awal,
+                        0 pl_rft,
+                        0 pl_reject,
+                        0 pl_keluar,
+                        0 pl_saldo_akhir,
+                        0 pc_saldo_awal,
+                        0 pc_terima,
+                        0 pc_terima_return,
+                        0 pc_fg_in,
+                        0 pc_saldo_akhir,
+                        0 as qty_adjustment_before,
+                        0 as qty_adjustment,
+                        0 as switching_in_before,
+                        0 as switching_in,
+                        SUM(IF(from_tgl_saldo < '{$tgl_awal}',from_qty,0)) switching_out_before,
+                        SUM(IF(from_tgl_saldo >= '{$tgl_awal}',from_qty,0)) as switching_out,
+                        0 as pc_qty_adjustment_before,
+                        0 as pc_qty_adjustment,
+                        0 as pc_switching_in_before,
+                        0 as pc_switching_in,
+                        0 as pc_switching_out_before,
+                        0 as pc_switching_out
+                    FROM 
+                        wip_switching_adj
+                    where
+                        from_tgl_saldo <= '{$tgl_akhir}' and 
+                        type_report = 'PACKING'
+                    GROUP BY 
+                        from_no_ws, from_color, from_size, from_panel, from_part, no_ws, color, size, panel, part 
+                    UNION ALL 
+                    select 
+                        null urutan,
+                        no_ws ws,
+                        color,
+                        style,
+                        size,
+                        buyer,
+                        0 pl_saldo_awal,
+                        0 pl_rft,
+                        0 pl_reject,
+                        0 pl_keluar,
+                        0 pl_saldo_akhir,
+                        0 pc_saldo_awal,
+                        0 pc_terima,
+                        0 pc_terima_return,
+                        0 pc_fg_in,
+                        0 pc_saldo_akhir,
+                        0 as qty_adjustment_before,
+                        0 as qty_adjustment,
+                        SUM(IF(tgl_saldo < '{$tgl_awal}',qty,0)) switching_in_before,
+                        SUM(IF(tgl_saldo >= '{$tgl_awal}',qty,0)) as switching_in,
+                        0 as switching_out_before,
+                        0 as switching_out,
+                        0 as pc_qty_adjustment_before,
+                        0 as pc_qty_adjustment,
+                        0 as pc_switching_in_before,
+                        0 as pc_switching_in,
+                        0 as pc_switching_out_before,
+                        0 as pc_switching_out
+                    FROM 
+                        wip_switching_adj
+                    WHERE 
+                        tgl_saldo <= '{$tgl_akhir}' and 
+                        type_report = 'PACKING'
+                    GROUP BY 
+                        from_no_ws, from_color, from_size, from_panel, from_part, 
+                        no_ws, color, size, panel, part
+
+                    UNION ALL 
+                    select 
+                        null urutan,
+                        no_ws ws,
+                        color,
+                        style,
+                        size,
+                        buyer,
+                        0 pl_saldo_awal,
+                        0 pl_rft,
+                        0 pl_reject,
+                        0 pl_keluar,
+                        0 pl_saldo_akhir,
+                        0 pc_saldo_awal,
+                        0 pc_terima,
+                        0 pc_terima_return,
+                        0 pc_fg_in,
+                        0 pc_saldo_akhir,
+                        0 qty_adjustment_before,
+                        0 qty_adjustment,
+                        0 switching_in_before,
+                        0 as switching_in,
+                        0 as switching_out_before,
+                        0 as switching_out,
+                        SUM(IF(tgl_saldo < '{$tgl_awal}',qty,0)) as pc_qty_adjustment_before,
+                        SUM(IF(tgl_saldo >= '{$tgl_awal}',qty,0)) as pc_qty_adjustment,
+                        0 as pc_switching_in_before,
+                        0 as pc_switching_in,
+                        0 as pc_switching_out_before,
+                        0 as pc_switching_out
+                    FROM 
+                        wip_adjustment
+                    WHERE 
+                        tgl_saldo <= '{$tgl_akhir}' and 
+                        type_report = 'PACKING_CENTRAL'
+                    GROUP BY 
+                        ws, color, size, panel, part 
+                    UNION ALL 
+                    select 
+                        null urutan,
+                        from_no_ws ws,
+                        from_color,
+                        from_style,
+                        from_size,
+                        from_buyer,
+                        0 pl_saldo_awal,
+                        0 pl_rft,
+                        0 pl_reject,
+                        0 pl_keluar,
+                        0 pl_saldo_akhir,
+                        0 pc_saldo_awal,
+                        0 pc_terima,
+                        0 pc_terima_return,
+                        0 pc_fg_in,
+                        0 pc_saldo_akhir,
+                        0 as qty_adjustment_before,
+                        0 as qty_adjustment,
+                        0 as switching_in_before,
+                        0 as switching_in,
+                        0 as switching_out_before,
+                        0 as switching_out,
+                        0 as pc_qty_adjustment_before,
+                        0 as pc_qty_adjustment,
+                        0 as pc_switching_in_before,
+                        0 as pc_switching_in,
+                        SUM(IF(from_tgl_saldo < '{$tgl_awal}',from_qty,0)) as pc_switching_out_before,
+                        SUM(IF(from_tgl_saldo >= '{$tgl_awal}',from_qty,0)) as pc_switching_out
+                    FROM 
+                        wip_switching_adj
+                    where
+                        from_tgl_saldo <= '{$tgl_akhir}' and 
+                        type_report = 'PACKING_CENTRAL'
+                    GROUP BY 
+                        from_no_ws, from_color, from_size, from_panel, from_part, no_ws, color, size, panel, part 
+                    UNION ALL 
+                    select 
+                        null urutan,
+                        no_ws ws,
+                        color,
+                        style,
+                        size,
+                        buyer,
+                        0 pl_saldo_awal,
+                        0 pl_rft,
+                        0 pl_reject,
+                        0 pl_keluar,
+                        0 pl_saldo_akhir,
+                        0 pc_saldo_awal,
+                        0 pc_terima,
+                        0 pc_terima_return,
+                        0 pc_fg_in,
+                        0 pc_saldo_akhir,
+                        0 as qty_adjustment_before,
+                        0 as qty_adjustment,
+                        0 as switching_in_before,
+                        0 as switching_in,
+                        0 as switching_out_before,
+                        0 as switching_out,
+                        0 as pc_qty_adjustment_before,
+                        0 as pc_qty_adjustment,
+                        SUM(IF(tgl_saldo < '{$tgl_awal}',qty,0)) as pc_switching_in_before,
+                        SUM(IF(tgl_saldo >= '{$tgl_awal}',qty,0)) as pc_switching_in,
+                        0 as pc_switching_out_before,
+                        0 as pc_switching_out
+                    FROM 
+                        wip_switching_adj
+                    WHERE 
+                        tgl_saldo <= '{$tgl_akhir}' and 
+                        type_report = 'PACKING_CENTRAL'
+                    GROUP BY 
+                        from_no_ws, from_color, from_size, from_panel, from_part, 
+                        no_ws, color, size, panel, part
+                ) a
+                GROUP BY ws, color, style, size, buyer ORDER BY ws, color, buyer
             ");
 
             return DataTables::of($data_mut)->toJson();
@@ -1277,38 +1553,314 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 msw.styleno,
                 msw.size,
                 msw.buyer
+            ),
+
+            main_select as (
+                /* ================= MAIN SELECT ================= */
+                    select
+                    urutan, ws, color, style, a.size, buyer,
+                    sum(pl_saldo_awal) pl_saldo_awal, sum(pl_rft) pl_rft, sum(pl_reject) pl_reject, sum(pl_keluar) pl_keluar,
+                    (SUM(pl_saldo_awal) + SUM(pl_rft) + SUM(pl_reject) - SUM(pl_keluar)) pl_saldo_akhir,
+                    sum(pc_saldo_awal) pc_saldo_awal, sum(pc_terima) pc_terima,
+                    sum(pc_terima_return) pc_terima_return,
+                    sum(pc_fg_in) pc_fg_in,
+                    (sum(pc_saldo_awal) + SUM(pc_terima) + SUM(pc_terima_return) - SUM(pc_fg_in)) pc_saldo_akhir
+                    from
+                    (
+                        select * from final_query
+
+                        UNION ALL
+
+                        select msn.urutan, ws, color, styleno style, a.size, buyer,
+                        COALESCE(packing_saldo_awal, 0) pl_saldo_awal, COALESCE(packing_rft,0) pl_rft, 0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir,
+                        COALESCE( pc_saldo_awal, 0) pc_saldo_awal, 0 pc_terima, 0 pc_terima_return, 0 pc_fg_in, 0 pc_saldo_akhir
+                        from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+
+                        UNION ALL
+
+                        select msn.urutan, ws, color, styleno style, a.size, buyer,
+                        (COALESCE(packing_saldo_awal, 0)+COALESCE(packing_rft, 0)+COALESCE(packing_reject, 0)-COALESCE(packing_keluar, 0)) pl_saldo_awal,
+                        0 pl_rft,
+                        0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir,
+                        (COALESCE(pc_saldo_awal, 0)+COALESCE(pc_terima, 0)) pc_saldo_awal, 0 pc_terima, 0 pc_terima_return, 0 pc_fg_in, 0 pc_saldo_akhir
+                        from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo < '{$tgl_awal}'
+                    ) a
+                    GROUP BY urutan, ws, color, style, size, buyer ORDER BY ws, color, buyer, urutan
             )
 
-            /* ================= MAIN SELECT ================= */
-                select
-                urutan, ws, color, style, a.size, buyer,
-                sum(pl_saldo_awal) pl_saldo_awal, sum(pl_rft) pl_rft, sum(pl_reject) pl_reject, sum(pl_keluar) pl_keluar,
-                (SUM(pl_saldo_awal) + SUM(pl_rft) + SUM(pl_reject) - SUM(pl_keluar)) pl_saldo_akhir,
-                sum(pc_saldo_awal) pc_saldo_awal, sum(pc_terima) pc_terima,
-                sum(pc_terima_return) pc_terima_return,
-                sum(pc_fg_in) pc_fg_in,
-                (sum(pc_saldo_awal) + SUM(pc_terima) + SUM(pc_terima_return) - SUM(pc_fg_in)) pc_saldo_akhir
-                from
-                (
-                    select * from final_query
+            select
+            urutan, ws, color, style, a.size, buyer,
+            sum(pl_saldo_awal) pl_saldo_awal, 
+            sum(pl_rft) pl_rft, 
+            sum(pl_reject) pl_reject, 
+            sum(pl_keluar) pl_keluar,
+            sum(pl_saldo_akhir) pl_saldo_akhir,
+            sum(pc_saldo_awal) pc_saldo_awal, 
+            sum(pc_terima) pc_terima,
+            sum(pc_terima_return) pc_terima_return,
+            sum(pc_fg_in) pc_fg_in,
+            sum(pc_saldo_akhir) pc_saldo_akhir,
+            SUM(qty_adjustment_before) adjustment_before,
+            SUM(switching_in_before) switching_in_before,
+            SUM(switching_out_before) switching_out_before,
+            SUM(pl_saldo_awal) + SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before) saldo_awal_adjusment,
+            SUM(qty_adjustment) qty_adjustment,
+            SUM(switching_in) switching_in,
+            SUM(switching_out) switching_out,
+            (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before)) + SUM(pl_saldo_awal) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out)) saldo_akhir_adj,
+            SUM(pc_qty_adjustment_before) pc_adjustment_before,
+            SUM(pc_switching_in_before) pc_switching_in_before,
+            SUM(pc_switching_out_before) pc_switching_out_before,
+            SUM(pc_saldo_awal) + SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) - SUM(pc_switching_out_before) pc_saldo_awal_adjusment,
+            SUM(pc_qty_adjustment) pc_qty_adjustment,
+            SUM(pc_switching_in) pc_switching_in,
+            SUM(pc_switching_out) pc_switching_out,
+            (SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) - SUM(pc_switching_out_before)) + SUM(pc_saldo_awal) + (SUM(qty_adjustment) + SUM(pc_switching_in) - SUM(pc_switching_out)) pc_saldo_akhir_adj
+            from
+            (
+                select 
+                    main_select.*,
+                    0 as qty_adjustment_before,
+                    0 as qty_adjustment,
+                    0 as switching_in_before,
+                    0 as switching_in,
+                    0 as switching_out_before,
+                    0 as switching_out,
+                    0 as pc_qty_adjustment_before,
+                    0 as pc_qty_adjustment,
+                    0 as pc_switching_in_before,
+                    0 as pc_switching_in,
+                    0 as pc_switching_out_before,
+                    0 as pc_switching_out
+                from main_select
 
-                    UNION ALL
-
-                    select msn.urutan, ws, color, styleno style, a.size, buyer,
-                    COALESCE(packing_saldo_awal, 0) pl_saldo_awal, COALESCE(packing_rft,0) pl_rft, 0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir,
-                    COALESCE( pc_saldo_awal, 0) pc_saldo_awal, 0 pc_terima, 0 pc_terima_return, 0 pc_fg_in, 0 pc_saldo_akhir
-                    from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
-
-                    UNION ALL
-
-                    select msn.urutan, ws, color, styleno style, a.size, buyer,
-                    (COALESCE(packing_saldo_awal, 0)+COALESCE(packing_rft, 0)+COALESCE(packing_reject, 0)-COALESCE(packing_keluar, 0)) pl_saldo_awal,
+                UNION ALL 
+                select 
+                    null urutan,
+                    no_ws ws,
+                    color,
+                    style,
+                    size,
+                    buyer,
+                    0 pl_saldo_awal,
                     0 pl_rft,
-                    0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir,
-                    (COALESCE(pc_saldo_awal, 0)+COALESCE(pc_terima, 0)) pc_saldo_awal, 0 pc_terima, 0 pc_terima_return, 0 pc_fg_in, 0 pc_saldo_akhir
-                    from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo < '{$tgl_awal}'
-                ) a
-                GROUP BY urutan, ws, color, style, size, buyer ORDER BY ws, color, buyer, urutan
+                    0 pl_reject,
+                    0 pl_keluar,
+                    0 pl_saldo_akhir,
+                    0 pc_saldo_awal,
+                    0 pc_terima,
+                    0 pc_terima_return,
+                    0 pc_fg_in,
+                    0 pc_saldo_akhir,
+                    SUM(IF(tgl_saldo < '{$tgl_awal}',qty,0)) qty_adjustment_before,
+                    SUM(IF(tgl_saldo >= '{$tgl_awal}',qty,0)) as qty_adjustment,
+                    0 switching_in_before,
+                    0 as switching_in,
+                    0 as switching_out_before,
+                    0 as switching_out,
+                    0 as pc_qty_adjustment_before,
+                    0 as pc_qty_adjustment,
+                    0 as pc_switching_in_before,
+                    0 as pc_switching_in,
+                    0 as pc_switching_out_before,
+                    0 as pc_switching_out
+                FROM 
+                    wip_adjustment
+                WHERE 
+                    tgl_saldo <= '{$tgl_akhir}' and 
+                    type_report = 'PACKING'
+                GROUP BY 
+                    ws, color, size, panel, part 
+                UNION ALL 
+                select 
+                    null urutan,
+                    from_no_ws ws,
+                    from_color,
+                    from_style,
+                    from_size,
+                    from_buyer,
+                    0 pl_saldo_awal,
+                    0 pl_rft,
+                    0 pl_reject,
+                    0 pl_keluar,
+                    0 pl_saldo_akhir,
+                    0 pc_saldo_awal,
+                    0 pc_terima,
+                    0 pc_terima_return,
+                    0 pc_fg_in,
+                    0 pc_saldo_akhir,
+                    0 as qty_adjustment_before,
+                    0 as qty_adjustment,
+                    0 as switching_in_before,
+                    0 as switching_in,
+                    SUM(IF(from_tgl_saldo < '{$tgl_awal}',from_qty,0)) switching_out_before,
+                    SUM(IF(from_tgl_saldo >= '{$tgl_awal}',from_qty,0)) as switching_out,
+                    0 as pc_qty_adjustment_before,
+                    0 as pc_qty_adjustment,
+                    0 as pc_switching_in_before,
+                    0 as pc_switching_in,
+                    0 as pc_switching_out_before,
+                    0 as pc_switching_out
+                FROM 
+                    wip_switching_adj
+                where
+                    from_tgl_saldo <= '{$tgl_akhir}' and 
+                    type_report = 'PACKING'
+                GROUP BY 
+                    from_no_ws, from_color, from_size, from_panel, from_part, no_ws, color, size, panel, part 
+                UNION ALL 
+                select 
+                    null urutan,
+                    no_ws ws,
+                    color,
+                    style,
+                    size,
+                    buyer,
+                    0 pl_saldo_awal,
+                    0 pl_rft,
+                    0 pl_reject,
+                    0 pl_keluar,
+                    0 pl_saldo_akhir,
+                    0 pc_saldo_awal,
+                    0 pc_terima,
+                    0 pc_terima_return,
+                    0 pc_fg_in,
+                    0 pc_saldo_akhir,
+                    0 as qty_adjustment_before,
+                    0 as qty_adjustment,
+                    SUM(IF(tgl_saldo < '{$tgl_awal}',qty,0)) switching_in_before,
+                    SUM(IF(tgl_saldo >= '{$tgl_awal}',qty,0)) as switching_in,
+                    0 as switching_out_before,
+                    0 as switching_out,
+                    0 as pc_qty_adjustment_before,
+                    0 as pc_qty_adjustment,
+                    0 as pc_switching_in_before,
+                    0 as pc_switching_in,
+                    0 as pc_switching_out_before,
+                    0 as pc_switching_out
+                FROM 
+                    wip_switching_adj
+                WHERE 
+                    tgl_saldo <= '{$tgl_akhir}' and 
+                    type_report = 'PACKING'
+                GROUP BY 
+                    from_no_ws, from_color, from_size, from_panel, from_part, 
+                    no_ws, color, size, panel, part
+
+                UNION ALL 
+                select 
+                    null urutan,
+                    no_ws ws,
+                    color,
+                    style,
+                    size,
+                    buyer,
+                    0 pl_saldo_awal,
+                    0 pl_rft,
+                    0 pl_reject,
+                    0 pl_keluar,
+                    0 pl_saldo_akhir,
+                    0 pc_saldo_awal,
+                    0 pc_terima,
+                    0 pc_terima_return,
+                    0 pc_fg_in,
+                    0 pc_saldo_akhir,
+                    0 qty_adjustment_before,
+                    0 qty_adjustment,
+                    0 switching_in_before,
+                    0 as switching_in,
+                    0 as switching_out_before,
+                    0 as switching_out,
+                    SUM(IF(tgl_saldo < '{$tgl_awal}',qty,0)) as pc_qty_adjustment_before,
+                    SUM(IF(tgl_saldo >= '{$tgl_awal}',qty,0)) as pc_qty_adjustment,
+                    0 as pc_switching_in_before,
+                    0 as pc_switching_in,
+                    0 as pc_switching_out_before,
+                    0 as pc_switching_out
+                FROM 
+                    wip_adjustment
+                WHERE 
+                    tgl_saldo <= '{$tgl_akhir}' and 
+                    type_report = 'PACKING_CENTRAL'
+                GROUP BY 
+                    ws, color, size, panel, part 
+                UNION ALL 
+                select 
+                    null urutan,
+                    from_no_ws ws,
+                    from_color,
+                    from_style,
+                    from_size,
+                    from_buyer,
+                    0 pl_saldo_awal,
+                    0 pl_rft,
+                    0 pl_reject,
+                    0 pl_keluar,
+                    0 pl_saldo_akhir,
+                    0 pc_saldo_awal,
+                    0 pc_terima,
+                    0 pc_terima_return,
+                    0 pc_fg_in,
+                    0 pc_saldo_akhir,
+                    0 as qty_adjustment_before,
+                    0 as qty_adjustment,
+                    0 as switching_in_before,
+                    0 as switching_in,
+                    0 as switching_out_before,
+                    0 as switching_out,
+                    0 as pc_qty_adjustment_before,
+                    0 as pc_qty_adjustment,
+                    0 as pc_switching_in_before,
+                    0 as pc_switching_in,
+                    SUM(IF(from_tgl_saldo < '{$tgl_awal}',from_qty,0)) as pc_switching_out_before,
+                    SUM(IF(from_tgl_saldo >= '{$tgl_awal}',from_qty,0)) as pc_switching_out
+                FROM 
+                    wip_switching_adj
+                where
+                    from_tgl_saldo <= '{$tgl_akhir}' and 
+                    type_report = 'PACKING_CENTRAL'
+                GROUP BY 
+                    from_no_ws, from_color, from_size, from_panel, from_part, no_ws, color, size, panel, part 
+                UNION ALL 
+                select 
+                    null urutan,
+                    no_ws ws,
+                    color,
+                    style,
+                    size,
+                    buyer,
+                    0 pl_saldo_awal,
+                    0 pl_rft,
+                    0 pl_reject,
+                    0 pl_keluar,
+                    0 pl_saldo_akhir,
+                    0 pc_saldo_awal,
+                    0 pc_terima,
+                    0 pc_terima_return,
+                    0 pc_fg_in,
+                    0 pc_saldo_akhir,
+                    0 as qty_adjustment_before,
+                    0 as qty_adjustment,
+                    0 as switching_in_before,
+                    0 as switching_in,
+                    0 as switching_out_before,
+                    0 as switching_out,
+                    0 as pc_qty_adjustment_before,
+                    0 as pc_qty_adjustment,
+                    SUM(IF(tgl_saldo < '{$tgl_awal}',qty,0)) as pc_switching_in_before,
+                    SUM(IF(tgl_saldo >= '{$tgl_awal}',qty,0)) as pc_switching_in,
+                    0 as pc_switching_out_before,
+                    0 as pc_switching_out
+                FROM 
+                    wip_switching_adj
+                WHERE 
+                    tgl_saldo <= '{$tgl_akhir}' and 
+                    type_report = 'PACKING_CENTRAL'
+                GROUP BY 
+                    from_no_ws, from_color, from_size, from_panel, from_part, 
+                    no_ws, color, size, panel, part
+            ) a
+            GROUP BY ws, color, style, size, buyer ORDER BY ws, color, buyer
         ");
 
         $fileName = 'report-mutasi-packing-wip';
@@ -1336,8 +1888,8 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
 
         $headerTop = [
             'Jenis Produk', '', '', '', '',
-            'Packing Line', '', '', '', '',
-            'Packing Central', '', '', '', '',
+            'Packing Line', '', '', '', '', '', '', '',
+            'Packing Central', '', '', '', '', '', '', '',
         ];
 
         $sheet->writeRow(
@@ -1351,20 +1903,20 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
         );
 
         $sheet->mergeCells('A4:E4');
-        $sheet->mergeCells('F4:J4');
-        $sheet->mergeCells('K4:O4');
+        $sheet->mergeCells('F4:M4');
+        $sheet->mergeCells('N4:U4');
 
         $sheet->setCellStyle('A4:E4', [
             'fill'       => '#ADD8E6',
             'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('F4:J4', [
+        $sheet->setCellStyle('F4:M4', [
             'fill'       => '#90EE90',
             'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('K4:O4', [
+        $sheet->setCellStyle('N4:U4', [
             'fill'       => '#FAFAD2',
             'text-align' => 'center',
         ]);
@@ -1379,11 +1931,17 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             'Terima RFT',
             'Terima Reject',
             'Keluar',
+            'Adjustment',
+            'Switching IN',
+            'Switching OUT',
             'Saldo Akhir',
             'Saldo Awal',
             'Terima',
             'Terima Return',
             'Packing Scan FG In',
+            'Adjustment',
+            'Switching IN',
+            'Switching OUT',
             'Saldo Akhir',
         ];
 
@@ -1401,12 +1959,12 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('F5:J5', [
+        $sheet->setCellStyle('F5:M5', [
             'fill' => '#90EE90', 
             'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('K5:O5', [
+        $sheet->setCellStyle('N5:U5', [
             'fill' => '#FAFAD2',
             'text-align' => 'center',
         ]);
@@ -1420,17 +1978,23 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 $row->color ?? '',
                 $row->size ?? '',
 
-                (float) ($row->pl_saldo_awal ?? 0),
+                (float) ($row->saldo_awal_adjusment ?? 0),
                 (float) ($row->pl_rft ?? 0),
                 (float) ($row->pl_reject ?? 0),
                 (float) ($row->pl_keluar ?? 0),
-                (float) ($row->pl_saldo_akhir ?? 0),
+                (float) ($row->qty_adjustment ?? 0),
+                (float) ($row->switching_in ?? 0),
+                (float) ($row->switching_out ?? 0),
+                (float) ($row->saldo_akhir_adj ?? 0),
 
-                (float) ($row->pc_saldo_awal ?? 0),
+                (float) ($row->pc_saldo_awal_adjusment ?? 0),
                 (float) ($row->pc_terima ?? 0),
                 (float) ($row->pc_terima_return ?? 0),
                 (float) ($row->pc_fg_in ?? 0),
-                (float) ($row->pc_saldo_akhir ?? 0),
+                (float) ($row->pc_qty_adjustment ?? 0),
+                (float) ($row->pc_switching_in ?? 0),
+                (float) ($row->pc_switching_out ?? 0),
+                (float) ($row->pc_saldo_akhir_adj ?? 0),
             ];
 
             $sheet->writeRow(
@@ -1441,7 +2005,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             );
         }
 
-        foreach (range('A', 'O') as $col) {
+        foreach (range('A', 'U') as $col) {
             $sheet->setColWidth($col, 20);
         }
 
