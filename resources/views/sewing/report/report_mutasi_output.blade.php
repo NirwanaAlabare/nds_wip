@@ -67,17 +67,17 @@
                     <thead>
                         <tr style='text-align:center; vertical-align:middle'>
                             <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
-                            <th colspan="14" style="background-color: lightyellow; text-align:center;">Sewing</th>
-                            <th colspan="12" style="background-color: pink; text-align:center;">QC Finishing</th>
-                            <th colspan="8" style="background-color: lightsteelblue; text-align:center;">Finishing
+                            <th colspan="13" style="background-color: lightyellow; text-align:center;">Sewing</th>
+                            <th colspan="11" style="background-color: pink; text-align:center;">QC Finishing</th>
+                            <th colspan="7" style="background-color: lightsteelblue; text-align:center;">Finishing
                             </th>
-                            <th colspan="5" style="background-color: #FFE5B4; text-align:center;">Defect Sewing
+                            <th colspan="4" style="background-color: #FFE5B4; text-align:center;">Defect Sewing
                             </th>
-                            <th colspan="5" style="background-color: Lavender; text-align:center;">Defect Spotcleaning
+                            <th colspan="4" style="background-color: Lavender; text-align:center;">Defect Spotcleaning
                             </th>
-                            <th colspan="5" style="background-color: lightyellow; text-align:center;">Defect Mending
+                            <th colspan="4" style="background-color: lightyellow; text-align:center;">Defect Mending
                             </th>
-                            <th colspan="6" style="background-color: pink; text-align:center;">QC Reject</th>
+                            <th colspan="5" style="background-color: pink; text-align:center;">QC Reject</th>
                         </tr>
                         <tr>
                             <th class="text-center align-middle" style="background-color: lightblue;">Buyer</th>
@@ -103,7 +103,6 @@
                             <th class="text-center align-middle" style="background-color: lightyellow;">Reject</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Output</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Subcont Out Production</th>
-                            <th class="text-center align-middle" style="background-color: lightyellow;">Adjustment</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Saldo Akhir</th>
 
 
@@ -122,7 +121,6 @@
                             <th class="text-center align-middle" style="background-color: pink;">Defect Mending</th>
                             <th class="text-center align-middle" style="background-color: pink;">Reject</th>
                             <th class="text-center align-middle" style="background-color: pink;">Output</th>
-                            <th class="text-center align-middle" style="background-color: pink;">Adjustment</th>
                             <th class="text-center align-middle" style="background-color: pink;">Saldo Akhir</th>
 
                             <th class="text-center align-middle" style="background-color: lightsteelblue;">Saldo Awal</th>
@@ -131,28 +129,24 @@
                             <th class="text-center align-middle" style="background-color: lightsteelblue;">Defect</th>
                             <th class="text-center align-middle" style="background-color: lightsteelblue;">Reject</th>
                             <th class="text-center align-middle" style="background-color: lightsteelblue;">Output</th>
-                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Adjustment</th>
                             <th class="text-center align-middle" style="background-color: lightsteelblue;">Saldo Akhir
                             </th>
 
                             <th class="text-center align-middle" style="background-color: #FFE5B4;">Saldo Awal</th>
                             <th class="text-center align-middle" style="background-color: #FFE5B4;">Terima</th>
                             <th class="text-center align-middle" style="background-color: #FFE5B4;">Keluar</th>
-                            <th class="text-center align-middle" style="background-color: #FFE5B4;">Adjustment</th>
                             <th class="text-center align-middle" style="background-color: #FFE5B4;">Saldo Akhir
                             </th>
 
                             <th class="text-center align-middle" style="background-color: lavender;">Saldo Awal</th>
                             <th class="text-center align-middle" style="background-color: lavender;">Terima</th>
                             <th class="text-center align-middle" style="background-color: lavender;">Keluar</th>
-                            <th class="text-center align-middle" style="background-color: lavender;">Adjustment</th>
                             <th class="text-center align-middle" style="background-color: lavender;">Saldo Akhir
                             </th>
 
                             <th class="text-center align-middle" style="background-color: lightyellow;">Saldo Awal</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Terima</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Keluar</th>
-                            <th class="text-center align-middle" style="background-color: lightyellow;">Adjustment</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Saldo Akhir
                             </th>
 
@@ -161,7 +155,6 @@
                             <th class="text-center align-middle" style="background-color: pink;">Keluar Sewing</th>
                             <th class="text-center align-middle" style="background-color: pink;">Keluar Gudang Stok
                             </th>
-                            <th class="text-center align-middle" style="background-color: pink;">Adjustment</th>
                             <th class="text-center align-middle" style="background-color: pink;">Saldo Akhir
                             </th>
 
@@ -170,7 +163,7 @@
                     <tfoot>
                         <tr>
                             <th class="text-center" colspan="5">Total</th>
-                            @for ($i = 1; $i <= 55; $i++)
+                            @for ($i = 1; $i <= 48; $i++)
                                 <th></th>
                             @endfor
                         </tr>
@@ -327,9 +320,6 @@
                         data: 'qty_out_subcont'
                     },
                     {
-                        data: 'sewing_adjust'
-                    },
-                    {
                         data: 'saldo_akhir_sewing'
                     },
 
@@ -365,9 +355,6 @@
                         data: 'qty_finishing'
                     },
                     {
-                        data: 'qc_finishing_adjust'
-                    },
-                    {
                         data: 'saldo_akhir_finishing'
                     },
 
@@ -391,9 +378,6 @@
                         data: 'rft_sp'
                     },
                     {
-                        data: 'finishing_adjust'
-                    },
-                    {
                         data: 'saldo_akhir_secondary_proses'
                     },
 
@@ -406,9 +390,6 @@
                     },
                     {
                         data: 'total_input_rework_sewing'
-                    },
-                    {
-                        data: 'defect_sewing_adjust'
                     },
                     {
                         data: 'saldo_akhir_defect_sewing'
@@ -425,9 +406,6 @@
                         data: 'total_input_rework_spotcleaning'
                     },
                     {
-                        data: 'defect_spotcleaning_adjust'
-                    },
-                    {
                         data: 'saldo_akhir_defect_spotcleaning'
                     },
 
@@ -440,9 +418,6 @@
                     },
                     {
                         data: 'total_input_rework_mending'
-                    },
-                    {
-                        data: 'defect_manding_adjust'
                     },
                     {
                         data: 'saldo_akhir_mending'
@@ -462,9 +437,6 @@
                         data: 'qty_rejected'
                     },
                     {
-                        data: 'qc_reject_adjust'
-                    },
-                    {
                         data: 'saldo_akhir_qc_reject'
                     },
                 ],
@@ -480,7 +452,7 @@
                     };
 
                     // mulai kolom ke-5
-                    for (let col = 5; col <= 59; col++) {
+                    for (let col = 5; col <= 52; col++) {
                         let total = api
                             .column(col, {
                                 search: 'applied'
