@@ -150,6 +150,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/line-migration', 'lineMigration')->name("line-migration");
         Route::post('/line-migration-submit', 'lineMigrationSubmit')->name("line-migration-submit");
 
+        // Master Plan Gambar
+        Route::get('/master-plan-null-gambar', 'getMasterPlanNullGambar')->name('master-plan-null-gambar');
+        Route::post('/update-master-plan-gambar', 'updateMasterPlanGambar')->name('update-master-plan-gambar');
+
         // Modify Output Manual
         Route::get('/modify-output', 'modifyOutput')->name("modify-output");
         Route::post('/modify-output/action', 'modifyOutputAction')->name("modify-output-action");

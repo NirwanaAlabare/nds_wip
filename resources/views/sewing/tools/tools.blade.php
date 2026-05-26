@@ -117,6 +117,15 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" onclick="fixMasterPlanGambar()">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-image"></i> Fix Gambar Master Plan</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
                 <div class="col-md-12">
                     <h5 class="text-sb-secondary fw-bold mt-3">Check Data</h5>
                 </div>
@@ -563,6 +572,73 @@
                         showConfirmButton: true,
                         confirmButtonText: 'Oke',
                         confirmButtonColor: "#082149",
+                    });
+                }
+            });
+        }
+
+        function fixMasterPlanGambar() {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Mengecek data master plan...',
+                didOpen: () => { Swal.showLoading(); },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "get",
+                url: "{{ route('master-plan-null-gambar') }}",
+                dataType: "json",
+                success: function(response) {
+                    Swal.fire({
+                        title: 'Fix Gambar Master Plan',
+                        html: 'Ditemukan <b>' + response.total + '</b> master plan tanpa gambar.<br>Yakin akan mengupdate gambar dari WS yang sama?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'UPDATE',
+                        cancelButtonText: 'BATAL',
+                        confirmButtonColor: "#082149"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire({
+                                title: 'Please Wait...',
+                                html: 'Updating gambar master plan...  <br><br> <b>0</b>s elapsed...',
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                    let elapsed = 0;
+                                    const el = Swal.getPopup().querySelector("b");
+                                    setInterval(() => { el.textContent = ++elapsed; }, 1000);
+                                },
+                                allowOutsideClick: false,
+                            });
+
+                            $.ajax({
+                                type: "post",
+                                url: "{{ route('update-master-plan-gambar') }}",
+                                dataType: "json",
+                                success: function(res) {
+                                    if (res.status == 200) {
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: 'Berhasil',
+                                            html: res.message,
+                                            showConfirmButton: true,
+                                            confirmButtonText: 'Oke',
+                                            confirmButtonColor: "#082149",
+                                        });
+                                    } else {
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: 'Gagal',
+                                            html: res && res.message ? res.message : "Terjadi Kesalahan",
+                                            showConfirmButton: true,
+                                            confirmButtonText: 'Oke',
+                                            confirmButtonColor: "#082149",
+                                        });
+                                    }
+                                }
+                            });
+                        }
                     });
                 }
             });
