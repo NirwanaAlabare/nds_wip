@@ -451,6 +451,10 @@ class Marketing_CostingController extends Controller
                 'updated_at'      => now(),
             ];
 
+            if ($request->has('ga_percent')) {
+                $updateData['ga_percent'] = str_replace(',', '', $request->ga_percent);
+            }
+
             if ($request->hasFile('upload_foto')) {
                 $file = $request->file('upload_foto');
 
