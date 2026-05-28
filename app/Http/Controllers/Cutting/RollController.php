@@ -1131,7 +1131,8 @@ class RollController extends Controller
                 whs_bppb_det.qty_stok,
                 SUM(whs_bppb_det.qty_out) qty
             FROM
-                whs_bppb_det
+                laravel_nds.penerimaan_cutting
+                LEFT JOIN whs_bppb_det ON whs_bppb_det.id = penerimaan_cutting.whs_bppb_det_id
                 LEFT JOIN (SELECT jo_det.* FROM jo_det WHERE cancel != 'Y' GROUP BY id_jo) jodet ON jodet.id_jo = whs_bppb_det.id_jo
                 LEFT JOIN so ON so.id = jodet.id_so
                 LEFT JOIN act_costing ON act_costing.id = so.id_cost
@@ -1199,7 +1200,8 @@ class RollController extends Controller
                     GROUP_CONCAT(DISTINCT so_det.id ORDER BY so_det.id ASC SEPARATOR ', ') as so_det_list,
                     GROUP_CONCAT(DISTINCT so_det.size ORDER BY so_det.id ASC SEPARATOR ', ') as size_list
                 FROM
-                    whs_bppb_det
+                    laravel_nds.penerimaan_cutting
+                    LEFT JOIN whs_bppb_det ON whs_bppb_det.id = penerimaan_cutting.whs_bppb_det_id
                     LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
                     LEFT JOIN (SELECT no_barcode, id_item, no_roll_buyer FROM whs_lokasi_inmaterial where no_barcode = '" . $id . "' GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
                     LEFT JOIN masteritem ON masteritem.id_item = whs_lokasi_inmaterial.id_item

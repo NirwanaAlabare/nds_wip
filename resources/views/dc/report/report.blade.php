@@ -61,6 +61,9 @@
                             <th>Terima Repaired Sec Luar</th>
                             <th>Terima Good Sec Luar</th>
                             <th>Loading</th>
+                            <th>Switching OUT</th>
+                            <th>Switching IN</th>
+                            <th>Adjustment</th>
                             <th>Saldo Akhir</th>
                         </tr>
                     </thead>
@@ -151,6 +154,9 @@
                 { data: 'terima_good_secondary_luar', defaultContent: 0 },
                 { data: 'loading', defaultContent: 0 },
                 // { data: 'current_saldo_akhir', defaultContent: 0 },
+                { data: 'switching_out', defaultContent: 0 },
+                { data: 'switching_in', defaultContent: 0 },
+                { data: 'adjustment', defaultContent: 0 },
                 {
                     data: null,
                     render: function (data, type, row) {
@@ -243,7 +249,7 @@
                     totalSaldoAkhir += intVal(r.current_saldo_awal) + intVal(r.qty_in) - intVal(r.kirim_secondary_dalam) + intVal(r.terima_repaired_secondary_dalam) + intVal(r.terima_good_secondary_dalam) - intVal(r.kirim_secondary_luar) + intVal(r.terima_repaired_secondary_luar) + intVal(r.terima_good_secondary_luar) - intVal(r.loading);
                 });
 
-                $(api.column(16).footer()).html(totalSaldoAkhir);
+                $(api.column(19).footer()).html(totalSaldoAkhir);
             }
         });
 

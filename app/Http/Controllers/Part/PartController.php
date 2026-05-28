@@ -1145,6 +1145,17 @@ class PartController extends Controller
                     }
                 }
 
+                // Similar Recursive Call
+                $similarPartDetail = PartDetail::where("from_part_detail", $validatedRequest['edit_id'])->get();
+                if ($similarPartDetail) {
+                    foreach ($similarPartDetail as $similar) {
+                        $similarRequest = new Request(array_merge($request->all(), [
+                            'edit_id' => $similar->id,
+                        ]));
+                        $this->updatePartSecondary($similarRequest);
+                    }
+                }
+
                 return array(
                     'status' => '201',
                     'table' => 'datatable_list_part',
