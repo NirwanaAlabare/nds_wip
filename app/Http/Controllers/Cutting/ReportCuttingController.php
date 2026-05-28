@@ -10767,9 +10767,9 @@ order by a.tgl_trans asc
             'In',
             'Replacement',
             'Out',
-            'Adjustment',
-            'Switching In',
             'Switching Out',
+            'Switching In',
+            'Adjustment',
             'Saldo Akhir',
         ];
 
@@ -10795,9 +10795,9 @@ order by a.tgl_trans asc
                 (float) $row->qty_cut,
                 (float) $row->qty_replace,
                 (float) $row->qty_dc,
-                (float) $row->qty_adjustment,
-                (float) $row->switching_in,
                 (float) $row->switching_out,
+                (float) $row->switching_in,
+                (float) $row->qty_adjustment,
                 (float) $row->saldo_akhir_adjustment,
             ];
 

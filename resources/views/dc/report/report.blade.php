@@ -61,9 +61,9 @@
                             <th>Terima Repaired Sec Luar</th>
                             <th>Terima Good Sec Luar</th>
                             <th>Loading</th>
-                            <th>Adjustment</th>
-                            <th>Switching IN</th>
                             <th>Switching OUT</th>
+                            <th>Switching IN</th>
+                            <th>Adjustment</th>
                             <th>Saldo Akhir</th>
                         </tr>
                     </thead>
@@ -157,9 +157,9 @@
                 { data: 'terima_good_secondary_luar', defaultContent: 0 },
                 { data: 'loading', defaultContent: 0 },
                 // { data: 'current_saldo_akhir', defaultContent: 0 },
-                { data: 'adjustment', defaultContent: 0 },
-                { data: 'switching_in', defaultContent: 0 },
                 { data: 'switching_out', defaultContent: 0 },
+                { data: 'switching_in', defaultContent: 0 },
+                { data: 'adjustment', defaultContent: 0 },
                 {
                     data: null,
                     render: function (data, type, row) {

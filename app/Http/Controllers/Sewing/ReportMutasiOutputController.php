@@ -1395,7 +1395,7 @@ class ReportMutasiOutputController extends Controller
         b.color,
         b.size,
         sum(
-        COALESCE ( b.qty, 0 )) qty_in 
+        COALESCE ( b.qty, 0 )) qty_in
     from
         packing_in_h a
         INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb
@@ -1405,24 +1405,24 @@ class ReportMutasiOutputController extends Controller
             id_jo,
             kpno,
             styleno,
-            supplier buyer 
+            supplier buyer
         from
             act_costing ac
             inner join so on ac.id = so.id_cost
             inner join jo_det jod on so.id = jod.id_so
-            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer 
+            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer
         group by
-            id_jo 
-        ) d on d.id_jo = b.id_jo 
+            id_jo
+        ) d on d.id_jo = b.id_jo
     where
-        a.tgl_bpb < '$start_date' 
+        a.tgl_bpb < '$start_date'
         and b.status = 'Y' $filter_subcont
     GROUP BY
         a.no_po,
         kpno,
         b.color,
         b.size,
-        b.id_item 
+        b.id_item
     ),
     out_subcont_before as (
     select
@@ -1436,7 +1436,7 @@ class ReportMutasiOutputController extends Controller
         b.color,
         b.size,
         sum(
-        COALESCE ( b.qty, 0 )) qty_out 
+        COALESCE ( b.qty, 0 )) qty_out
     from
         sewing_out_h a
         INNER JOIN sewing_out_det b on b.no_bppb = a.no_bppb
@@ -1446,25 +1446,25 @@ class ReportMutasiOutputController extends Controller
             id_jo,
             kpno,
             styleno,
-            supplier buyer 
+            supplier buyer
         from
             act_costing ac
             inner join so on ac.id = so.id_cost
             inner join jo_det jod on so.id = jod.id_so
-            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer 
+            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer
         group by
-            id_jo 
+            id_jo
         ) d on d.id_jo = b.id_jo
-        INNER JOIN masteritem mi on mi.id_item = b.id_item 
+        INNER JOIN masteritem mi on mi.id_item = b.id_item
     where
-        a.tgl_bppb < '$start_date' 
+        a.tgl_bppb < '$start_date'
         and b.status = 'Y' $filter_subcont
     GROUP BY
         a.no_po,
         kpno,
         b.color,
         b.size,
-        b.id_item 
+        b.id_item
     ),
     in_subcont_trx as (
     select
@@ -1477,7 +1477,7 @@ class ReportMutasiOutputController extends Controller
         b.color,
         b.size,
         sum(
-        COALESCE ( b.qty, 0 )) qty_in 
+        COALESCE ( b.qty, 0 )) qty_in
     from
         packing_in_h a
         INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb
@@ -1487,25 +1487,25 @@ class ReportMutasiOutputController extends Controller
             id_jo,
             kpno,
             styleno,
-            supplier buyer 
+            supplier buyer
         from
             act_costing ac
             inner join so on ac.id = so.id_cost
             inner join jo_det jod on so.id = jod.id_so
-            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer 
+            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer
         group by
-            id_jo 
-        ) d on d.id_jo = b.id_jo 
+            id_jo
+        ) d on d.id_jo = b.id_jo
     where
-        a.tgl_bpb BETWEEN '$start_date' 
-        and '$end_date' 
+        a.tgl_bpb BETWEEN '$start_date'
+        and '$end_date'
         and b.status = 'Y' $filter_subcont
     GROUP BY
         a.no_po,
         kpno,
         b.color,
         b.size,
-        b.id_item 
+        b.id_item
     ),
     out_subcont_trx as (
     select
@@ -1519,7 +1519,7 @@ class ReportMutasiOutputController extends Controller
         b.color,
         b.size,
         sum(
-        COALESCE ( b.qty, 0 )) qty_out 
+        COALESCE ( b.qty, 0 )) qty_out
     from
         sewing_out_h a
         INNER JOIN sewing_out_det b on b.no_bppb = a.no_bppb
@@ -1529,26 +1529,26 @@ class ReportMutasiOutputController extends Controller
             id_jo,
             kpno,
             styleno,
-            supplier buyer 
+            supplier buyer
         from
             act_costing ac
             inner join so on ac.id = so.id_cost
             inner join jo_det jod on so.id = jod.id_so
-            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer 
+            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer
         group by
-            id_jo 
+            id_jo
         ) d on d.id_jo = b.id_jo
-        INNER JOIN masteritem mi on mi.id_item = b.id_item 
+        INNER JOIN masteritem mi on mi.id_item = b.id_item
     where
-        a.tgl_bppb BETWEEN '$start_date' 
-        and '$end_date' 
+        a.tgl_bppb BETWEEN '$start_date'
+        and '$end_date'
         and b.status = 'Y' $filter_subcont
     GROUP BY
         a.no_po,
         kpno,
         b.color,
         b.size,
-        b.id_item 
+        b.id_item
     ),
     query_fix_subcont as (
     select
@@ -1605,7 +1605,7 @@ class ReportMutasiOutputController extends Controller
         0 qty_reject_in,
         0 qty_reworked,
         0 qty_rejected,
-        0 saldo_akhir_qc_reject 
+        0 saldo_akhir_qc_reject
     from
         (
         select
@@ -1617,7 +1617,7 @@ class ReportMutasiOutputController extends Controller
             qty_in qty_in_before,
             0 qty_in,
             0 qty_out_before,
-            0 qty_out 
+            0 qty_out
         from
             in_subcont_before UNION ALL
         select
@@ -1629,7 +1629,7 @@ class ReportMutasiOutputController extends Controller
             0 qty_in_before,
             qty_in,
             0 qty_out_before,
-            0 qty_out 
+            0 qty_out
         from
             in_subcont_trx UNION ALL
         select
@@ -1641,7 +1641,7 @@ class ReportMutasiOutputController extends Controller
             0 qty_in_before,
             0 qty_in,
             qty_out qty_out_before,
-            0 qty_out 
+            0 qty_out
         from
             out_subcont_before UNION ALL
         select
@@ -1653,16 +1653,16 @@ class ReportMutasiOutputController extends Controller
             0 qty_in_before,
             0 qty_in,
             0 qty_out_before,
-            qty_out 
+            qty_out
         from
-            out_subcont_trx 
-        ) a 
+            out_subcont_trx
+        ) a
     GROUP BY
         buyer,
         ws,
         styleno,
         color,
-        size 
+        size
     ),
 
     query_final as (select
@@ -1717,7 +1717,7 @@ class ReportMutasiOutputController extends Controller
     SUM( qty_reject_in ) qty_reject_in,
     SUM( qty_reworked ) qty_reworked,
     SUM( qty_rejected ) qty_rejected,
-    SUM( saldo_akhir_qc_reject ) saldo_akhir_qc_reject 
+    SUM( saldo_akhir_qc_reject ) saldo_akhir_qc_reject
 from
     (
     select
@@ -1774,20 +1774,20 @@ from
         qty_reject_in,
         qty_reworked,
         qty_rejected,
-        saldo_akhir_qc_reject 
+        saldo_akhir_qc_reject
     from
         query_fix UNION ALL
     select
-        * 
+        *
     from
-        query_fix_subcont 
-    ) a 
+        query_fix_subcont
+    ) a
 group by
     buyer,
     ws,
     styleno,
     color,
-    size 
+    size
 order by
     buyer asc,
     ws asc,
@@ -1795,7 +1795,7 @@ order by
     size asc),
 
 
-    query_adjust as (SELECT 
+    query_adjust as (SELECT
     buyer,
     no_ws,
     style,
@@ -1804,7 +1804,7 @@ order by
 
     -- SEWING
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'SEWING'
                  AND tgl_saldo < '$start_date'
             THEN qty ELSE 0
@@ -1812,7 +1812,7 @@ order by
     ) AS sewing_adjust_before,
 
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'SEWING'
                  AND tgl_saldo >= '$start_date'
             THEN qty ELSE 0
@@ -1821,7 +1821,7 @@ order by
 
     -- QC FINISHING
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'QC FINISHING'
                  AND tgl_saldo < '$start_date'
             THEN qty ELSE 0
@@ -1829,7 +1829,7 @@ order by
     ) AS qc_finishing_adjust_before,
 
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'QC FINISHING'
                  AND tgl_saldo >= '$start_date'
             THEN qty ELSE 0
@@ -1838,7 +1838,7 @@ order by
 
     -- FINISHING
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'FINISHING'
                  AND tgl_saldo < '$start_date'
             THEN qty ELSE 0
@@ -1846,7 +1846,7 @@ order by
     ) AS finishing_adjust_before,
 
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'FINISHING'
                  AND tgl_saldo >= '$start_date'
             THEN qty ELSE 0
@@ -1855,7 +1855,7 @@ order by
 
     -- DEFECT SEWING
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'DEFECT SEWING'
                  AND tgl_saldo < '$start_date'
             THEN qty ELSE 0
@@ -1863,7 +1863,7 @@ order by
     ) AS defect_sewing_adjust_before,
 
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'DEFECT SEWING'
                  AND tgl_saldo >= '$start_date'
             THEN qty ELSE 0
@@ -1872,7 +1872,7 @@ order by
 
     -- DEFECT SPOTCLEANING
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'DEFECT SPOTCLEANING'
                  AND tgl_saldo < '$start_date'
             THEN qty ELSE 0
@@ -1880,7 +1880,7 @@ order by
     ) AS defect_spotcleaning_adjust_before,
 
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'DEFECT SPOTCLEANING'
                  AND tgl_saldo >= '$start_date'
             THEN qty ELSE 0
@@ -1889,7 +1889,7 @@ order by
 
     -- DEFECT MANDING
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'DEFECT MANDING'
                  AND tgl_saldo < '$start_date'
             THEN qty ELSE 0
@@ -1897,7 +1897,7 @@ order by
     ) AS defect_manding_adjust_before,
 
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'DEFECT MANDING'
                  AND tgl_saldo >= '$start_date'
             THEN qty ELSE 0
@@ -1906,7 +1906,7 @@ order by
 
     -- QC REJECT
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'QC REJECT'
                  AND tgl_saldo < '$start_date'
             THEN qty ELSE 0
@@ -1914,7 +1914,7 @@ order by
     ) AS qc_reject_adjust_before,
 
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'QC REJECT'
                  AND tgl_saldo >= '$start_date'
             THEN qty ELSE 0
@@ -1942,14 +1942,14 @@ GROUP BY
     size),
 
     query_switching as (
-    SELECT 
+    SELECT
         buyer,
         no_ws,
         style,
         color,
         size,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'SEWING'
                     AND tgl_saldo < '{$start_date}'
                 THEN qty
@@ -1957,7 +1957,7 @@ GROUP BY
             END
         ) AS sewing_switching_in_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'SEWING'
                     AND tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -1965,7 +1965,7 @@ GROUP BY
             END
         ) AS sewing_switching_in,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'QC FINISHING'
                     AND tgl_saldo < '{$start_date}'
                 THEN qty
@@ -1973,7 +1973,7 @@ GROUP BY
             END
         ) AS qc_finishing_switching_in_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'QC FINISHING'
                     AND tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -1981,7 +1981,7 @@ GROUP BY
             END
         ) AS qc_finishing_switching_in,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'FINISHING'
                     AND tgl_saldo < '{$start_date}'
                 THEN qty
@@ -1989,7 +1989,7 @@ GROUP BY
             END
         ) AS finishing_switching_in_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'FINISHING'
                     AND tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -1997,7 +1997,7 @@ GROUP BY
             END
         ) AS finishing_switching_in,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT SEWING'
                     AND tgl_saldo < '{$start_date}'
                 THEN qty
@@ -2005,7 +2005,7 @@ GROUP BY
             END
         ) AS defect_sewing_switching_in_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT SEWING'
                     AND tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -2013,7 +2013,7 @@ GROUP BY
             END
         ) AS defect_sewing_switching_in,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT SPOTCLEANING'
                     AND tgl_saldo < '{$start_date}'
                 THEN qty
@@ -2021,7 +2021,7 @@ GROUP BY
             END
         ) AS defect_spotcleaning_switching_in_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT SPOTCLEANING'
                     AND tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -2029,7 +2029,7 @@ GROUP BY
             END
         ) AS defect_spotcleaning_switching_in,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT MANDING'
                     AND tgl_saldo < '{$start_date}'
                 THEN qty
@@ -2037,7 +2037,7 @@ GROUP BY
             END
         ) AS defect_manding_switching_in_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT MANDING'
                     AND tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -2045,7 +2045,7 @@ GROUP BY
             END
         ) AS defect_manding_switching_in,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'QC REJECT'
                     AND tgl_saldo < '{$start_date}'
                 THEN qty
@@ -2053,7 +2053,7 @@ GROUP BY
             END
         ) AS qc_reject_switching_in_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'QC REJECT'
                     AND tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -2074,10 +2074,10 @@ GROUP BY
         0 AS defect_manding_switching_out,
         0 AS qc_reject_switching_out_before,
         0 AS qc_reject_switching_out
-    FROM 
+    FROM
         wip_switching_adj
     WHERE
-        tgl_saldo <= '{$end_date}' AND 
+        tgl_saldo <= '{$end_date}' AND
         type_report IN (
             'SEWING',
             'QC FINISHING',
@@ -2087,12 +2087,12 @@ GROUP BY
             'DEFECT MANDING',
             'QC REJECT'
         )
-    GROUP BY 
+    GROUP BY
         from_no_ws, from_color, from_size, from_panel, from_part, no_ws, color, size, panel, part
 
     UNION ALL
 
-    SELECT 
+    SELECT
         from_buyer as buyer,
         from_no_ws as no_ws,
         from_style as style,
@@ -2113,7 +2113,7 @@ GROUP BY
         0 AS qc_reject_switching_in_before,
         0 AS qc_reject_switching_in,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'SEWING'
                     AND from_tgl_saldo < '{$start_date}'
                 THEN qty
@@ -2121,7 +2121,7 @@ GROUP BY
             END
         ) AS sewing_switching_out_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'SEWING'
                     AND from_tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -2129,7 +2129,7 @@ GROUP BY
             END
         ) AS sewing_switching_out,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'QC FINISHING'
                     AND from_tgl_saldo < '{$start_date}'
                 THEN qty
@@ -2137,7 +2137,7 @@ GROUP BY
             END
         ) AS qc_finishing_switching_out_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'QC FINISHING'
                     AND from_tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -2145,7 +2145,7 @@ GROUP BY
             END
         ) AS qc_finishing_switching_out,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'FINISHING'
                     AND from_tgl_saldo < '{$start_date}'
                 THEN qty
@@ -2153,7 +2153,7 @@ GROUP BY
             END
         ) AS finishing_switching_out_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'FINISHING'
                     AND from_tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -2161,7 +2161,7 @@ GROUP BY
             END
         ) AS finishing_switching_out,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT SEWING'
                     AND from_tgl_saldo < '{$start_date}'
                 THEN qty
@@ -2169,7 +2169,7 @@ GROUP BY
             END
         ) AS defect_sewing_switching_out_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT SEWING'
                     AND from_tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -2177,7 +2177,7 @@ GROUP BY
             END
         ) AS defect_sewing_switching_out,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT SPOTCLEANING'
                     AND from_tgl_saldo < '{$start_date}'
                 THEN qty
@@ -2185,7 +2185,7 @@ GROUP BY
             END
         ) AS defect_spotcleaning_switching_out_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT SPOTCLEANING'
                     AND from_tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -2193,7 +2193,7 @@ GROUP BY
             END
         ) AS defect_spotcleaning_switching_out,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT MANDING'
                     AND from_tgl_saldo < '{$start_date}'
                 THEN qty
@@ -2201,7 +2201,7 @@ GROUP BY
             END
         ) AS defect_manding_switching_out_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT MANDING'
                     AND from_tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -2209,7 +2209,7 @@ GROUP BY
             END
         ) AS defect_manding_switching_out,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'QC REJECT'
                     AND from_tgl_saldo < '{$start_date}'
                 THEN qty
@@ -2217,17 +2217,17 @@ GROUP BY
             END
         ) AS qc_reject_switching_out_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'QC REJECT'
                     AND from_tgl_saldo >= '{$start_date}'
                 THEN qty
                 ELSE 0
             END
         ) AS qc_reject_switching_out
-    FROM 
+    FROM
         wip_switching_adj
     WHERE
-        from_tgl_saldo <= '{$end_date}' AND 
+        from_tgl_saldo <= '{$end_date}' AND
         type_report IN (
             'SEWING',
             'QC FINISHING',
@@ -2237,11 +2237,11 @@ GROUP BY
             'DEFECT MANDING',
             'QC REJECT'
         )
-    GROUP BY 
+    GROUP BY
         from_no_ws, from_color, from_size, from_panel, from_part, no_ws, color, size, panel, part
     )
-        
-    select 
+
+    select
     buyer,
     ws,
     styleno,
@@ -2327,7 +2327,7 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
  0 sewing_switching_out_before, 0 sewing_switching_out, 0 qc_finishing_switching_out_before, 0 qc_finishing_switching_out, 0 finishing_switching_out_before, 0 finishing_switching_out, 0 defect_sewing_switching_out_before, 0 defect_sewing_switching_out, 0 defect_spotcleaning_switching_out_before, 0 defect_spotcleaning_switching_out, 0 defect_manding_switching_out_before, 0 defect_manding_switching_out, 0 qc_reject_switching_out_before, 0 qc_reject_switching_out
  from query_final
  UNION ALL
- select buyer, no_ws, style, color, size, 0 saldo_awal_sewing, 0 qty_loading, 0 qty_in_subcont, 0 input_rework_sewing, 0 input_rework_spotcleaning, 0 input_rework_mending, 0 defect_sewing, 0 defect_spotcleaning, 0 defect_mending, 0 qty_sew_reject, 0 qty_sewing, 0 qty_out_subcont, 0 saldo_akhir_sewing, 0 saldo_awal_finishing, 0 input_rework_sewing_f, 0 input_rework_spotcleaning_f, 0 input_rework_mending_f, 0 defect_sewing_f, 0 defect_spotcleaning_f, 0 defect_mending_f, 0 qty_fin_reject, 0 qty_finishing, 0 saldo_akhir_finishing, 0 saldo_awal_secondary_proses, 0 total_in_sp, 0 rework_sp, 0 defect_sp, 0 reject_sp, 0 rft_sp, 0 saldo_akhir_secondary_proses, 0 saldo_awal_defect_sewing, 0 total_defect_sewing, 0 total_input_rework_sewing, 0 saldo_akhir_defect_sewing, 0 saldo_awal_defect_spotcleaning, 0 total_defect_spotcleaning, 0 total_input_rework_spotcleaning, 0 saldo_akhir_defect_spotcleaning, 0 saldo_awal_defect_mending, 0 total_defect_mending, 0 total_input_rework_mending, 0 saldo_akhir_mending, 0 saldo_awal_reject, 0 qty_reject_in, 0 qty_reworked, 0 qty_rejected, 0 saldo_akhir_qc_reject, 
+ select buyer, no_ws, style, color, size, 0 saldo_awal_sewing, 0 qty_loading, 0 qty_in_subcont, 0 input_rework_sewing, 0 input_rework_spotcleaning, 0 input_rework_mending, 0 defect_sewing, 0 defect_spotcleaning, 0 defect_mending, 0 qty_sew_reject, 0 qty_sewing, 0 qty_out_subcont, 0 saldo_akhir_sewing, 0 saldo_awal_finishing, 0 input_rework_sewing_f, 0 input_rework_spotcleaning_f, 0 input_rework_mending_f, 0 defect_sewing_f, 0 defect_spotcleaning_f, 0 defect_mending_f, 0 qty_fin_reject, 0 qty_finishing, 0 saldo_akhir_finishing, 0 saldo_awal_secondary_proses, 0 total_in_sp, 0 rework_sp, 0 defect_sp, 0 reject_sp, 0 rft_sp, 0 saldo_akhir_secondary_proses, 0 saldo_awal_defect_sewing, 0 total_defect_sewing, 0 total_input_rework_sewing, 0 saldo_akhir_defect_sewing, 0 saldo_awal_defect_spotcleaning, 0 total_defect_spotcleaning, 0 total_input_rework_spotcleaning, 0 saldo_akhir_defect_spotcleaning, 0 saldo_awal_defect_mending, 0 total_defect_mending, 0 total_input_rework_mending, 0 saldo_akhir_mending, 0 saldo_awal_reject, 0 qty_reject_in, 0 qty_reworked, 0 qty_rejected, 0 saldo_akhir_qc_reject,
  sewing_adjust_before, sewing_adjust, qc_finishing_adjust_before, qc_finishing_adjust, finishing_adjust_before, finishing_adjust, defect_sewing_adjust_before, defect_sewing_adjust, defect_spotcleaning_adjust_before, defect_spotcleaning_adjust, defect_manding_adjust_before, defect_manding_adjust, qc_reject_adjust_before, qc_reject_adjust,
  0 sewing_switching_in_before, 0 sewing_switching_in, 0 qc_finishing_switching_in_before, 0 qc_finishing_switching_in, 0 finishing_switching_in_before, 0 finishing_switching_in, 0 defect_sewing_switching_in_before, 0 defect_sewing_switching_in, 0 defect_spotcleaning_switching_in_before, 0 defect_spotcleaning_switching_in, 0 defect_manding_switching_in_before, 0 defect_manding_switching_in, 0 qc_reject_switching_in_before, 0 qc_reject_switching_in,
  0 sewing_switching_out_before, 0 sewing_switching_out, 0 qc_finishing_switching_out_before, 0 qc_finishing_switching_out, 0 finishing_switching_out_before, 0 finishing_switching_out, 0 defect_sewing_switching_out_before, 0 defect_sewing_switching_out, 0 defect_spotcleaning_switching_out_before, 0 defect_spotcleaning_switching_out, 0 defect_manding_switching_out_before, 0 defect_manding_switching_out, 0 qc_reject_switching_out_before, 0 qc_reject_switching_out
@@ -2336,7 +2336,7 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
  select buyer, no_ws, style, color, size, 0 saldo_awal_sewing, 0 qty_loading, 0 qty_in_subcont, 0 input_rework_sewing, 0 input_rework_spotcleaning, 0 input_rework_mending, 0 defect_sewing, 0 defect_spotcleaning, 0 defect_mending, 0 qty_sew_reject, 0 qty_sewing, 0 qty_out_subcont, 0 saldo_akhir_sewing, 0 saldo_awal_finishing, 0 input_rework_sewing_f, 0 input_rework_spotcleaning_f, 0 input_rework_mending_f, 0 defect_sewing_f, 0 defect_spotcleaning_f, 0 defect_mending_f, 0 qty_fin_reject, 0 qty_finishing, 0 saldo_akhir_finishing, 0 saldo_awal_secondary_proses, 0 total_in_sp, 0 rework_sp, 0 defect_sp, 0 reject_sp, 0 rft_sp, 0 saldo_akhir_secondary_proses, 0 saldo_awal_defect_sewing, 0 total_defect_sewing, 0 total_input_rework_sewing, 0 saldo_akhir_defect_sewing, 0 saldo_awal_defect_spotcleaning, 0 total_defect_spotcleaning, 0 total_input_rework_spotcleaning, 0 saldo_akhir_defect_spotcleaning, 0 saldo_awal_defect_mending, 0 total_defect_mending, 0 total_input_rework_mending, 0 saldo_akhir_mending, 0 saldo_awal_reject, 0 qty_reject_in, 0 qty_reworked, 0 qty_rejected, 0 saldo_akhir_qc_reject,
  0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_before, 0 qc_finishing_adjust, 0 finishing_adjust_before, 0 finishing_adjust, 0 defect_sewing_adjust_before, 0 defect_sewing_adjust, 0 defect_spotcleaning_adjust_before, 0 defect_spotcleaning_adjust, 0 defect_manding_adjust_before, 0 defect_manding_adjust, 0 qc_reject_adjust_before, 0 qc_reject_adjust,
  sewing_switching_in_before, sewing_switching_in, qc_finishing_switching_in_before, qc_finishing_switching_in, finishing_switching_in_before, finishing_switching_in, defect_sewing_switching_in_before, defect_sewing_switching_in, defect_spotcleaning_switching_in_before, defect_spotcleaning_switching_in, defect_manding_switching_in_before, defect_manding_switching_in, qc_reject_switching_in_before, qc_reject_switching_in,
- sewing_switching_out_before, sewing_switching_out, qc_finishing_switching_out_before, qc_finishing_switching_out, finishing_switching_out_before, finishing_switching_out, defect_sewing_switching_out_before, defect_sewing_switching_out, defect_spotcleaning_switching_out_before, defect_spotcleaning_switching_out, defect_manding_switching_out_before, defect_manding_switching_out, qc_reject_switching_out_before, qc_reject_switching_out 
+ sewing_switching_out_before, sewing_switching_out, qc_finishing_switching_out_before, qc_finishing_switching_out, finishing_switching_out_before, finishing_switching_out, defect_sewing_switching_out_before, defect_sewing_switching_out, defect_spotcleaning_switching_out_before, defect_spotcleaning_switching_out, defect_manding_switching_out_before, defect_manding_switching_out, qc_reject_switching_out_before, qc_reject_switching_out
  from query_switching
  ) a GROUP BY buyer, ws, styleno, color, size
                     ");
@@ -3713,7 +3713,7 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
         b.color,
         b.size,
         sum(
-        COALESCE ( b.qty, 0 )) qty_in 
+        COALESCE ( b.qty, 0 )) qty_in
     from
         packing_in_h a
         INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb
@@ -3723,24 +3723,24 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
             id_jo,
             kpno,
             styleno,
-            supplier buyer 
+            supplier buyer
         from
             act_costing ac
             inner join so on ac.id = so.id_cost
             inner join jo_det jod on so.id = jod.id_so
-            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer 
+            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer
         group by
-            id_jo 
-        ) d on d.id_jo = b.id_jo 
+            id_jo
+        ) d on d.id_jo = b.id_jo
     where
-        a.tgl_bpb < '$start_date' 
+        a.tgl_bpb < '$start_date'
         and b.status = 'Y' $filter_subcont
     GROUP BY
         a.no_po,
         kpno,
         b.color,
         b.size,
-        b.id_item 
+        b.id_item
     ),
     out_subcont_before as (
     select
@@ -3754,7 +3754,7 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
         b.color,
         b.size,
         sum(
-        COALESCE ( b.qty, 0 )) qty_out 
+        COALESCE ( b.qty, 0 )) qty_out
     from
         sewing_out_h a
         INNER JOIN sewing_out_det b on b.no_bppb = a.no_bppb
@@ -3764,25 +3764,25 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
             id_jo,
             kpno,
             styleno,
-            supplier buyer 
+            supplier buyer
         from
             act_costing ac
             inner join so on ac.id = so.id_cost
             inner join jo_det jod on so.id = jod.id_so
-            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer 
+            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer
         group by
-            id_jo 
+            id_jo
         ) d on d.id_jo = b.id_jo
-        INNER JOIN masteritem mi on mi.id_item = b.id_item 
+        INNER JOIN masteritem mi on mi.id_item = b.id_item
     where
-        a.tgl_bppb < '$start_date' 
+        a.tgl_bppb < '$start_date'
         and b.status = 'Y' $filter_subcont
     GROUP BY
         a.no_po,
         kpno,
         b.color,
         b.size,
-        b.id_item 
+        b.id_item
     ),
     in_subcont_trx as (
     select
@@ -3795,7 +3795,7 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
         b.color,
         b.size,
         sum(
-        COALESCE ( b.qty, 0 )) qty_in 
+        COALESCE ( b.qty, 0 )) qty_in
     from
         packing_in_h a
         INNER JOIN packing_in_det b on b.no_bpb = a.no_bpb
@@ -3805,25 +3805,25 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
             id_jo,
             kpno,
             styleno,
-            supplier buyer 
+            supplier buyer
         from
             act_costing ac
             inner join so on ac.id = so.id_cost
             inner join jo_det jod on so.id = jod.id_so
-            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer 
+            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer
         group by
-            id_jo 
-        ) d on d.id_jo = b.id_jo 
+            id_jo
+        ) d on d.id_jo = b.id_jo
     where
-        a.tgl_bpb BETWEEN '$start_date' 
-        and '$end_date' 
+        a.tgl_bpb BETWEEN '$start_date'
+        and '$end_date'
         and b.status = 'Y' $filter_subcont
     GROUP BY
         a.no_po,
         kpno,
         b.color,
         b.size,
-        b.id_item 
+        b.id_item
     ),
     out_subcont_trx as (
     select
@@ -3837,7 +3837,7 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
         b.color,
         b.size,
         sum(
-        COALESCE ( b.qty, 0 )) qty_out 
+        COALESCE ( b.qty, 0 )) qty_out
     from
         sewing_out_h a
         INNER JOIN sewing_out_det b on b.no_bppb = a.no_bppb
@@ -3847,26 +3847,26 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
             id_jo,
             kpno,
             styleno,
-            supplier buyer 
+            supplier buyer
         from
             act_costing ac
             inner join so on ac.id = so.id_cost
             inner join jo_det jod on so.id = jod.id_so
-            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer 
+            INNER JOIN mastersupplier mb on mb.id_supplier = ac.id_buyer
         group by
-            id_jo 
+            id_jo
         ) d on d.id_jo = b.id_jo
-        INNER JOIN masteritem mi on mi.id_item = b.id_item 
+        INNER JOIN masteritem mi on mi.id_item = b.id_item
     where
-        a.tgl_bppb BETWEEN '$start_date' 
-        and '$end_date' 
+        a.tgl_bppb BETWEEN '$start_date'
+        and '$end_date'
         and b.status = 'Y' $filter_subcont
     GROUP BY
         a.no_po,
         kpno,
         b.color,
         b.size,
-        b.id_item 
+        b.id_item
     ),
     query_fix_subcont as (
     select
@@ -3923,7 +3923,7 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
         0 qty_reject_in,
         0 qty_reworked,
         0 qty_rejected,
-        0 saldo_akhir_qc_reject 
+        0 saldo_akhir_qc_reject
     from
         (
         select
@@ -3935,7 +3935,7 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
             qty_in qty_in_before,
             0 qty_in,
             0 qty_out_before,
-            0 qty_out 
+            0 qty_out
         from
             in_subcont_before UNION ALL
         select
@@ -3947,7 +3947,7 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
             0 qty_in_before,
             qty_in,
             0 qty_out_before,
-            0 qty_out 
+            0 qty_out
         from
             in_subcont_trx UNION ALL
         select
@@ -3959,7 +3959,7 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
             0 qty_in_before,
             0 qty_in,
             qty_out qty_out_before,
-            0 qty_out 
+            0 qty_out
         from
             out_subcont_before UNION ALL
         select
@@ -3971,16 +3971,16 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
             0 qty_in_before,
             0 qty_in,
             0 qty_out_before,
-            qty_out 
+            qty_out
         from
-            out_subcont_trx 
-        ) a 
+            out_subcont_trx
+        ) a
     GROUP BY
         buyer,
         ws,
         styleno,
         color,
-        size 
+        size
     ),
 
     query_final as (select
@@ -4035,7 +4035,7 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
     SUM( qty_reject_in ) qty_reject_in,
     SUM( qty_reworked ) qty_reworked,
     SUM( qty_rejected ) qty_rejected,
-    SUM( saldo_akhir_qc_reject ) saldo_akhir_qc_reject 
+    SUM( saldo_akhir_qc_reject ) saldo_akhir_qc_reject
 from
     (
     select
@@ -4092,27 +4092,27 @@ from
         qty_reject_in,
         qty_reworked,
         qty_rejected,
-        saldo_akhir_qc_reject 
+        saldo_akhir_qc_reject
     from
         query_fix UNION ALL
     select
-        * 
+        *
     from
-        query_fix_subcont 
-    ) a 
+        query_fix_subcont
+    ) a
 group by
     buyer,
     ws,
     styleno,
     color,
-    size 
+    size
 order by
     buyer asc,
     ws asc,
     color asc,
     size asc),
 
-    query_adjust as (SELECT 
+    query_adjust as (SELECT
     buyer,
     no_ws,
     style,
@@ -4121,7 +4121,7 @@ order by
 
     -- SEWING
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'SEWING'
                  AND tgl_saldo < '$start_date'
             THEN qty ELSE 0
@@ -4129,7 +4129,7 @@ order by
     ) AS sewing_adjust_before,
 
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'SEWING'
                  AND tgl_saldo >= '$start_date'
             THEN qty ELSE 0
@@ -4138,7 +4138,7 @@ order by
 
     -- QC FINISHING
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'QC FINISHING'
                  AND tgl_saldo < '$start_date'
             THEN qty ELSE 0
@@ -4146,7 +4146,7 @@ order by
     ) AS qc_finishing_adjust_before,
 
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'QC FINISHING'
                  AND tgl_saldo >= '$start_date'
             THEN qty ELSE 0
@@ -4155,7 +4155,7 @@ order by
 
     -- FINISHING
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'FINISHING'
                  AND tgl_saldo < '$start_date'
             THEN qty ELSE 0
@@ -4163,7 +4163,7 @@ order by
     ) AS finishing_adjust_before,
 
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'FINISHING'
                  AND tgl_saldo >= '$start_date'
             THEN qty ELSE 0
@@ -4172,7 +4172,7 @@ order by
 
     -- DEFECT SEWING
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'DEFECT SEWING'
                  AND tgl_saldo < '$start_date'
             THEN qty ELSE 0
@@ -4180,7 +4180,7 @@ order by
     ) AS defect_sewing_adjust_before,
 
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'DEFECT SEWING'
                  AND tgl_saldo >= '$start_date'
             THEN qty ELSE 0
@@ -4189,7 +4189,7 @@ order by
 
     -- DEFECT SPOTCLEANING
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'DEFECT SPOTCLEANING'
                  AND tgl_saldo < '$start_date'
             THEN qty ELSE 0
@@ -4197,7 +4197,7 @@ order by
     ) AS defect_spotcleaning_adjust_before,
 
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'DEFECT SPOTCLEANING'
                  AND tgl_saldo >= '$start_date'
             THEN qty ELSE 0
@@ -4206,7 +4206,7 @@ order by
 
     -- DEFECT MANDING
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'DEFECT MANDING'
                  AND tgl_saldo < '$start_date'
             THEN qty ELSE 0
@@ -4214,7 +4214,7 @@ order by
     ) AS defect_manding_adjust_before,
 
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'DEFECT MANDING'
                  AND tgl_saldo >= '$start_date'
             THEN qty ELSE 0
@@ -4223,7 +4223,7 @@ order by
 
     -- QC REJECT
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'QC REJECT'
                  AND tgl_saldo < '$start_date'
             THEN qty ELSE 0
@@ -4231,7 +4231,7 @@ order by
     ) AS qc_reject_adjust_before,
 
     SUM(
-        CASE 
+        CASE
             WHEN type_report = 'QC REJECT'
                  AND tgl_saldo >= '$start_date'
             THEN qty ELSE 0
@@ -4257,16 +4257,16 @@ GROUP BY
     style,
     color,
     size),
-        
+
         query_switching as (
-    SELECT 
+    SELECT
         buyer,
         no_ws,
         style,
         color,
         size,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'SEWING'
                     AND tgl_saldo < '{$start_date}'
                 THEN qty
@@ -4274,7 +4274,7 @@ GROUP BY
             END
         ) AS sewing_switching_in_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'SEWING'
                     AND tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -4282,7 +4282,7 @@ GROUP BY
             END
         ) AS sewing_switching_in,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'QC FINISHING'
                     AND tgl_saldo < '{$start_date}'
                 THEN qty
@@ -4290,7 +4290,7 @@ GROUP BY
             END
         ) AS qc_finishing_switching_in_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'QC FINISHING'
                     AND tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -4298,7 +4298,7 @@ GROUP BY
             END
         ) AS qc_finishing_switching_in,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'FINISHING'
                     AND tgl_saldo < '{$start_date}'
                 THEN qty
@@ -4306,7 +4306,7 @@ GROUP BY
             END
         ) AS finishing_switching_in_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'FINISHING'
                     AND tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -4314,7 +4314,7 @@ GROUP BY
             END
         ) AS finishing_switching_in,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT SEWING'
                     AND tgl_saldo < '{$start_date}'
                 THEN qty
@@ -4322,7 +4322,7 @@ GROUP BY
             END
         ) AS defect_sewing_switching_in_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT SEWING'
                     AND tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -4330,7 +4330,7 @@ GROUP BY
             END
         ) AS defect_sewing_switching_in,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT SPOTCLEANING'
                     AND tgl_saldo < '{$start_date}'
                 THEN qty
@@ -4338,7 +4338,7 @@ GROUP BY
             END
         ) AS defect_spotcleaning_switching_in_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT SPOTCLEANING'
                     AND tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -4346,7 +4346,7 @@ GROUP BY
             END
         ) AS defect_spotcleaning_switching_in,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT MANDING'
                     AND tgl_saldo < '{$start_date}'
                 THEN qty
@@ -4354,7 +4354,7 @@ GROUP BY
             END
         ) AS defect_manding_switching_in_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT MANDING'
                     AND tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -4362,7 +4362,7 @@ GROUP BY
             END
         ) AS defect_manding_switching_in,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'QC REJECT'
                     AND tgl_saldo < '{$start_date}'
                 THEN qty
@@ -4370,7 +4370,7 @@ GROUP BY
             END
         ) AS qc_reject_switching_in_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'QC REJECT'
                     AND tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -4391,10 +4391,10 @@ GROUP BY
         0 AS defect_manding_switching_out,
         0 AS qc_reject_switching_out_before,
         0 AS qc_reject_switching_out
-    FROM 
+    FROM
         wip_switching_adj
     WHERE
-        tgl_saldo <= '{$end_date}' AND 
+        tgl_saldo <= '{$end_date}' AND
         type_report IN (
             'SEWING',
             'QC FINISHING',
@@ -4404,12 +4404,12 @@ GROUP BY
             'DEFECT MANDING',
             'QC REJECT'
         )
-    GROUP BY 
+    GROUP BY
         from_no_ws, from_color, from_size, from_panel, from_part, no_ws, color, size, panel, part
 
     UNION ALL
 
-    SELECT 
+    SELECT
         from_buyer as buyer,
         from_no_ws as no_ws,
         from_style as style,
@@ -4430,7 +4430,7 @@ GROUP BY
         0 AS qc_reject_switching_in_before,
         0 AS qc_reject_switching_in,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'SEWING'
                     AND from_tgl_saldo < '{$start_date}'
                 THEN qty
@@ -4438,7 +4438,7 @@ GROUP BY
             END
         ) AS sewing_switching_out_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'SEWING'
                     AND from_tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -4446,7 +4446,7 @@ GROUP BY
             END
         ) AS sewing_switching_out,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'QC FINISHING'
                     AND from_tgl_saldo < '{$start_date}'
                 THEN qty
@@ -4454,7 +4454,7 @@ GROUP BY
             END
         ) AS qc_finishing_switching_out_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'QC FINISHING'
                     AND from_tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -4462,7 +4462,7 @@ GROUP BY
             END
         ) AS qc_finishing_switching_out,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'FINISHING'
                     AND from_tgl_saldo < '{$start_date}'
                 THEN qty
@@ -4470,7 +4470,7 @@ GROUP BY
             END
         ) AS finishing_switching_out_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'FINISHING'
                     AND from_tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -4478,7 +4478,7 @@ GROUP BY
             END
         ) AS finishing_switching_out,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT SEWING'
                     AND from_tgl_saldo < '{$start_date}'
                 THEN qty
@@ -4486,7 +4486,7 @@ GROUP BY
             END
         ) AS defect_sewing_switching_out_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT SEWING'
                     AND from_tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -4494,7 +4494,7 @@ GROUP BY
             END
         ) AS defect_sewing_switching_out,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT SPOTCLEANING'
                     AND from_tgl_saldo < '{$start_date}'
                 THEN qty
@@ -4502,7 +4502,7 @@ GROUP BY
             END
         ) AS defect_spotcleaning_switching_out_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT SPOTCLEANING'
                     AND from_tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -4510,7 +4510,7 @@ GROUP BY
             END
         ) AS defect_spotcleaning_switching_out,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT MANDING'
                     AND from_tgl_saldo < '{$start_date}'
                 THEN qty
@@ -4518,7 +4518,7 @@ GROUP BY
             END
         ) AS defect_manding_switching_out_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'DEFECT MANDING'
                     AND from_tgl_saldo >= '{$start_date}'
                 THEN qty
@@ -4526,7 +4526,7 @@ GROUP BY
             END
         ) AS defect_manding_switching_out,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'QC REJECT'
                     AND from_tgl_saldo < '{$start_date}'
                 THEN qty
@@ -4534,17 +4534,17 @@ GROUP BY
             END
         ) AS qc_reject_switching_out_before,
         SUM(
-            CASE 
+            CASE
                 WHEN type_report = 'QC REJECT'
                     AND from_tgl_saldo >= '{$start_date}'
                 THEN qty
                 ELSE 0
             END
         ) AS qc_reject_switching_out
-    FROM 
+    FROM
         wip_switching_adj
     WHERE
-        from_tgl_saldo <= '{$end_date}' AND 
+        from_tgl_saldo <= '{$end_date}' AND
         type_report IN (
             'SEWING',
             'QC FINISHING',
@@ -4554,11 +4554,11 @@ GROUP BY
             'DEFECT MANDING',
             'QC REJECT'
         )
-    GROUP BY 
+    GROUP BY
         from_no_ws, from_color, from_size, from_panel, from_part, no_ws, color, size, panel, part
     )
-        
-    select 
+
+    select
     buyer,
     ws,
     styleno,
@@ -4644,7 +4644,7 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
  0 sewing_switching_out_before, 0 sewing_switching_out, 0 qc_finishing_switching_out_before, 0 qc_finishing_switching_out, 0 finishing_switching_out_before, 0 finishing_switching_out, 0 defect_sewing_switching_out_before, 0 defect_sewing_switching_out, 0 defect_spotcleaning_switching_out_before, 0 defect_spotcleaning_switching_out, 0 defect_manding_switching_out_before, 0 defect_manding_switching_out, 0 qc_reject_switching_out_before, 0 qc_reject_switching_out
  from query_final
  UNION ALL
- select buyer, no_ws, style, color, size, 0 saldo_awal_sewing, 0 qty_loading, 0 qty_in_subcont, 0 input_rework_sewing, 0 input_rework_spotcleaning, 0 input_rework_mending, 0 defect_sewing, 0 defect_spotcleaning, 0 defect_mending, 0 qty_sew_reject, 0 qty_sewing, 0 qty_out_subcont, 0 saldo_akhir_sewing, 0 saldo_awal_finishing, 0 input_rework_sewing_f, 0 input_rework_spotcleaning_f, 0 input_rework_mending_f, 0 defect_sewing_f, 0 defect_spotcleaning_f, 0 defect_mending_f, 0 qty_fin_reject, 0 qty_finishing, 0 saldo_akhir_finishing, 0 saldo_awal_secondary_proses, 0 total_in_sp, 0 rework_sp, 0 defect_sp, 0 reject_sp, 0 rft_sp, 0 saldo_akhir_secondary_proses, 0 saldo_awal_defect_sewing, 0 total_defect_sewing, 0 total_input_rework_sewing, 0 saldo_akhir_defect_sewing, 0 saldo_awal_defect_spotcleaning, 0 total_defect_spotcleaning, 0 total_input_rework_spotcleaning, 0 saldo_akhir_defect_spotcleaning, 0 saldo_awal_defect_mending, 0 total_defect_mending, 0 total_input_rework_mending, 0 saldo_akhir_mending, 0 saldo_awal_reject, 0 qty_reject_in, 0 qty_reworked, 0 qty_rejected, 0 saldo_akhir_qc_reject, 
+ select buyer, no_ws, style, color, size, 0 saldo_awal_sewing, 0 qty_loading, 0 qty_in_subcont, 0 input_rework_sewing, 0 input_rework_spotcleaning, 0 input_rework_mending, 0 defect_sewing, 0 defect_spotcleaning, 0 defect_mending, 0 qty_sew_reject, 0 qty_sewing, 0 qty_out_subcont, 0 saldo_akhir_sewing, 0 saldo_awal_finishing, 0 input_rework_sewing_f, 0 input_rework_spotcleaning_f, 0 input_rework_mending_f, 0 defect_sewing_f, 0 defect_spotcleaning_f, 0 defect_mending_f, 0 qty_fin_reject, 0 qty_finishing, 0 saldo_akhir_finishing, 0 saldo_awal_secondary_proses, 0 total_in_sp, 0 rework_sp, 0 defect_sp, 0 reject_sp, 0 rft_sp, 0 saldo_akhir_secondary_proses, 0 saldo_awal_defect_sewing, 0 total_defect_sewing, 0 total_input_rework_sewing, 0 saldo_akhir_defect_sewing, 0 saldo_awal_defect_spotcleaning, 0 total_defect_spotcleaning, 0 total_input_rework_spotcleaning, 0 saldo_akhir_defect_spotcleaning, 0 saldo_awal_defect_mending, 0 total_defect_mending, 0 total_input_rework_mending, 0 saldo_akhir_mending, 0 saldo_awal_reject, 0 qty_reject_in, 0 qty_reworked, 0 qty_rejected, 0 saldo_akhir_qc_reject,
  sewing_adjust_before, sewing_adjust, qc_finishing_adjust_before, qc_finishing_adjust, finishing_adjust_before, finishing_adjust, defect_sewing_adjust_before, defect_sewing_adjust, defect_spotcleaning_adjust_before, defect_spotcleaning_adjust, defect_manding_adjust_before, defect_manding_adjust, qc_reject_adjust_before, qc_reject_adjust,
  0 sewing_switching_in_before, 0 sewing_switching_in, 0 qc_finishing_switching_in_before, 0 qc_finishing_switching_in, 0 finishing_switching_in_before, 0 finishing_switching_in, 0 defect_sewing_switching_in_before, 0 defect_sewing_switching_in, 0 defect_spotcleaning_switching_in_before, 0 defect_spotcleaning_switching_in, 0 defect_manding_switching_in_before, 0 defect_manding_switching_in, 0 qc_reject_switching_in_before, 0 qc_reject_switching_in,
  0 sewing_switching_out_before, 0 sewing_switching_out, 0 qc_finishing_switching_out_before, 0 qc_finishing_switching_out, 0 finishing_switching_out_before, 0 finishing_switching_out, 0 defect_sewing_switching_out_before, 0 defect_sewing_switching_out, 0 defect_spotcleaning_switching_out_before, 0 defect_spotcleaning_switching_out, 0 defect_manding_switching_out_before, 0 defect_manding_switching_out, 0 qc_reject_switching_out_before, 0 qc_reject_switching_out
@@ -4653,7 +4653,7 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
  select buyer, no_ws, style, color, size, 0 saldo_awal_sewing, 0 qty_loading, 0 qty_in_subcont, 0 input_rework_sewing, 0 input_rework_spotcleaning, 0 input_rework_mending, 0 defect_sewing, 0 defect_spotcleaning, 0 defect_mending, 0 qty_sew_reject, 0 qty_sewing, 0 qty_out_subcont, 0 saldo_akhir_sewing, 0 saldo_awal_finishing, 0 input_rework_sewing_f, 0 input_rework_spotcleaning_f, 0 input_rework_mending_f, 0 defect_sewing_f, 0 defect_spotcleaning_f, 0 defect_mending_f, 0 qty_fin_reject, 0 qty_finishing, 0 saldo_akhir_finishing, 0 saldo_awal_secondary_proses, 0 total_in_sp, 0 rework_sp, 0 defect_sp, 0 reject_sp, 0 rft_sp, 0 saldo_akhir_secondary_proses, 0 saldo_awal_defect_sewing, 0 total_defect_sewing, 0 total_input_rework_sewing, 0 saldo_akhir_defect_sewing, 0 saldo_awal_defect_spotcleaning, 0 total_defect_spotcleaning, 0 total_input_rework_spotcleaning, 0 saldo_akhir_defect_spotcleaning, 0 saldo_awal_defect_mending, 0 total_defect_mending, 0 total_input_rework_mending, 0 saldo_akhir_mending, 0 saldo_awal_reject, 0 qty_reject_in, 0 qty_reworked, 0 qty_rejected, 0 saldo_akhir_qc_reject,
  0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_before, 0 qc_finishing_adjust, 0 finishing_adjust_before, 0 finishing_adjust, 0 defect_sewing_adjust_before, 0 defect_sewing_adjust, 0 defect_spotcleaning_adjust_before, 0 defect_spotcleaning_adjust, 0 defect_manding_adjust_before, 0 defect_manding_adjust, 0 qc_reject_adjust_before, 0 qc_reject_adjust,
  sewing_switching_in_before, sewing_switching_in, qc_finishing_switching_in_before, qc_finishing_switching_in, finishing_switching_in_before, finishing_switching_in, defect_sewing_switching_in_before, defect_sewing_switching_in, defect_spotcleaning_switching_in_before, defect_spotcleaning_switching_in, defect_manding_switching_in_before, defect_manding_switching_in, qc_reject_switching_in_before, qc_reject_switching_in,
- sewing_switching_out_before, sewing_switching_out, qc_finishing_switching_out_before, qc_finishing_switching_out, finishing_switching_out_before, finishing_switching_out, defect_sewing_switching_out_before, defect_sewing_switching_out, defect_spotcleaning_switching_out_before, defect_spotcleaning_switching_out, defect_manding_switching_out_before, defect_manding_switching_out, qc_reject_switching_out_before, qc_reject_switching_out 
+ sewing_switching_out_before, sewing_switching_out, qc_finishing_switching_out_before, qc_finishing_switching_out, finishing_switching_out_before, finishing_switching_out, defect_sewing_switching_out_before, defect_sewing_switching_out, defect_spotcleaning_switching_out_before, defect_spotcleaning_switching_out, defect_manding_switching_out_before, defect_manding_switching_out, qc_reject_switching_out_before, qc_reject_switching_out
  from query_switching
  ) a GROUP BY buyer, ws, styleno, color, size
         ");
@@ -4774,9 +4774,9 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
         $sheet->writeTo('O3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('P3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('Q3', 'Out Subcont')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('R3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('R3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('S3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('T3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('T3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('U3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         // QC FINISHING (V:AI = 14 kolom)
@@ -4790,9 +4790,9 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
         $sheet->writeTo('AC3', 'Defect Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('AD3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('AE3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AF3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AF3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('AG3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AH3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AH3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('AI3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         // FINISHING (AJ:AS = 10 kolom)
@@ -4802,36 +4802,36 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
         $sheet->writeTo('AM3', 'Defect')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('AN3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('AO3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AP3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AP3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('AQ3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AR3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AR3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('AS3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         // DEFECT SEWING (AT:AZ = 7 kolom)
         $sheet->writeTo('AT3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('AU3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('AV3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AW3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AW3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('AX3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AY3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AY3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('AZ3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         // DEFECT SPOTCLEANING (BA:BG = 7 kolom)
         $sheet->writeTo('BA3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('BB3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('BC3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BD3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BD3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('BE3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BF3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BF3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('BG3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         // DEFECT MENDING (BH:BN = 7 kolom)
         $sheet->writeTo('BH3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('BI3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('BJ3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BK3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BK3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('BL3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BM3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BM3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('BN3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         // QC REJECT (BO:BV = 8 kolom)
@@ -4839,9 +4839,9 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
         $sheet->writeTo('BP3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('BQ3', 'Keluar Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('BR3', 'Keluar Gudang Stok')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BS3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BS3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('BT3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BU3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BU3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('BV3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         $rowNumber = 4;
@@ -4868,9 +4868,9 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
                     $row->qty_sew_reject ?? 0,
                     $row->qty_sewing ?? 0,
                     $row->qty_out_subcont ?? 0,
-                    $row->sewing_adjust ?? 0,
-                    $row->sewing_switching_in ?? 0,
                     $row->sewing_switching_out ?? 0,
+                    $row->sewing_switching_in ?? 0,
+                    $row->sewing_adjust ?? 0,
                     $row->saldo_akhir_sewing ?? 0,
 
                     $row->saldo_awal_finishing ?? 0,
@@ -4883,9 +4883,9 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
                     $row->defect_mending_f ?? 0,
                     $row->qty_fin_reject ?? 0,
                     $row->qty_finishing ?? 0,
-                    $row->qc_finishing_adjust ?? 0,
-                    $row->qc_finishing_switching_in ?? 0,
                     $row->qc_finishing_switching_out ?? 0,
+                    $row->qc_finishing_switching_in ?? 0,
+                    $row->qc_finishing_adjust ?? 0,
                     $row->saldo_akhir_finishing ?? 0,
 
                     $row->saldo_awal_secondary_proses ?? 0,
@@ -4894,42 +4894,42 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
                     $row->defect_sp ?? 0,
                     $row->reject_sp ?? 0,
                     $row->rft_sp ?? 0,
-                    $row->finishing_adjust ?? 0,
-                    $row->finishing_switching_in ?? 0,
                     $row->finishing_switching_out ?? 0,
+                    $row->finishing_switching_in ?? 0,
+                    $row->finishing_adjust ?? 0,
                     $row->saldo_akhir_secondary_proses ?? 0,
 
                     $row->saldo_awal_defect_sewing ?? 0,
                     $row->total_defect_sewing ?? 0,
                     $row->total_input_rework_sewing ?? 0,
-                    $row->defect_sewing_adjust ?? 0,
-                    $row->defect_sewing_switching_in ?? 0,
                     $row->defect_sewing_switching_out ?? 0,
+                    $row->defect_sewing_switching_in ?? 0,
+                    $row->defect_sewing_adjust ?? 0,
                     $row->saldo_akhir_defect_sewing ?? 0,
 
                     $row->saldo_awal_defect_spotcleaning ?? 0,
                     $row->total_defect_spotcleaning ?? 0,
                     $row->total_input_rework_spotcleaning ?? 0,
-                    $row->defect_spotcleaning_adjust ?? 0,
-                    $row->defect_spotcleaning_switching_in ?? 0,
                     $row->defect_spotcleaning_switching_out ?? 0,
+                    $row->defect_spotcleaning_switching_in ?? 0,
+                    $row->defect_spotcleaning_adjust ?? 0,
                     $row->saldo_akhir_defect_spotcleaning ?? 0,
 
                     $row->saldo_awal_defect_mending ?? 0,
                     $row->total_defect_mending ?? 0,
                     $row->total_input_rework_mending ?? 0,
-                    $row->defect_manding_adjust ?? 0,
-                    $row->defect_manding_switching_in ?? 0,
                     $row->defect_manding_switching_out ?? 0,
+                    $row->defect_manding_switching_in ?? 0,
+                    $row->defect_manding_adjust ?? 0,
                     $row->saldo_akhir_mending ?? 0,
 
                     $row->saldo_awal_reject ?? 0,
                     $row->qty_reject_in ?? 0,
                     $row->qty_reworked ?? 0,
                     $row->qty_rejected ?? 0,
-                    $row->qc_reject_adjust ?? 0,
-                    $row->qc_reject_switching_in ?? 0,
                     $row->qc_reject_switching_out ?? 0,
+                    $row->qc_reject_switching_in ?? 0,
+                    $row->qc_reject_adjust ?? 0,
                     $row->saldo_akhir_qc_reject ?? 0,
                 ];
 

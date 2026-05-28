@@ -131,9 +131,9 @@
                             <th style="background-color: lightgoldenrodyellow;">Terima</th>
                             <th style="background-color: lightgoldenrodyellow;">Terima Return</th>
                             <th style="background-color: lightgoldenrodyellow;">Packing Scan FG In</th>
-                            <th style="background-color: lightgoldenrodyellow;">Adjustment</th>
-                            <th style="background-color: lightgoldenrodyellow;">Switching IN</th>
                             <th style="background-color: lightgoldenrodyellow;">Switching OUT</th>
+                            <th style="background-color: lightgoldenrodyellow;">Switching IN</th>
+                            <th style="background-color: lightgoldenrodyellow;">Adjustment</th>
                             <th style="background-color: lightgoldenrodyellow;">Saldo Akhir</th>
                         </tr>
                     </thead>
@@ -333,9 +333,9 @@
                     { data: 'pc_terima' },
                     { data: 'pc_terima_return' },
                     { data: 'pc_fg_in' },
-                    { data: 'pc_qty_adjustment' },
-                    { data: 'pc_switching_in' },
                     { data: 'pc_switching_out' },
+                    { data: 'pc_switching_in' },
+                    { data: 'pc_qty_adjustment' },
                     { data: 'pc_saldo_akhir_adj' }
                 ],
                 columnDefs: [{

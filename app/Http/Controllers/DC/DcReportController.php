@@ -3035,9 +3035,9 @@ class DcReportController extends Controller
         $sheet->writeTo('N4', 'Terima Rep Sec Luar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('O4', 'Terima Good Sec Luar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('P4', 'Loading')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('Q4', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Q4', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('R4', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('S4', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('S4', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('T4', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         // Data rows - chunk by 10,000
@@ -3103,9 +3103,9 @@ class DcReportController extends Controller
                 $sheet->writeTo('N' . $row, $repLuar)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
                 $sheet->writeTo('O' . $row, $goodLuar)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
                 $sheet->writeTo('P' . $row, $loading)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('Q' . $row, $adjustment)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
+                $sheet->writeTo('Q' . $row, $switchingOut)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
                 $sheet->writeTo('R' . $row, $switchingIn)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
-                $sheet->writeTo('S' . $row, $switchingOut)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
+                $sheet->writeTo('S' . $row, $adjustment)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
                 $sheet->writeTo('T' . $row, $saldoAkhir)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);;
 
                 $row++;
@@ -3123,9 +3123,9 @@ class DcReportController extends Controller
         $sheet->writeTo('N' . $row, $totalTerimaRepairedSecLuar)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('O' . $row, $totalTerimaGoodSecLuar)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('P' . $row, $totalLoading)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('Q' . $row, $totalAdjustment)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Q' . $row, $totalSwitchingOut)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('R' . $row, $totalSwitchingIn)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('S' . $row, $totalSwitchingOut)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('S' . $row, $totalAdjustment)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('T' . $row, $totalSaldoAkhir)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         $sheet->mergeCells('A'.$row.':G'.$row.'')->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
