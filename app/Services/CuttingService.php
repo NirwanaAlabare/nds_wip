@@ -455,8 +455,7 @@ class CuttingService
                             GROUP_CONCAT(DISTINCT so_det.id ORDER BY so_det.id ASC SEPARATOR ', ') as so_det_list,
                             GROUP_CONCAT(DISTINCT so_det.size ORDER BY so_det.id ASC SEPARATOR ', ') as size_list
                         FROM
-                            laravel_nds.penerimaan_cutting
-                            LEFT JOIN whs_bppb_det ON whs_bppb_det.id = penerimaan_cutting.whs_bppb_det_id
+                            whs_bppb_det
                             LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
                             LEFT JOIN (SELECT no_barcode, id_item, no_roll_buyer FROM whs_lokasi_inmaterial where no_barcode = '".$idRoll."' GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
                             LEFT JOIN masteritem ON masteritem.id_item = whs_lokasi_inmaterial.id_item

@@ -921,344 +921,6 @@ class GeneralController extends Controller
     }
 
     // Deprecated
-    // public function getScannedItem($id = 0, Request $request, CuttingService $cuttingService)
-    // {
-    //     // Fix Roll Qty right before the roll is used
-    //     $fixRollQty = $cuttingService->fixRollQty($id);
-
-    //     // When there is Additional Request
-    //     $newItemAdditional = "";
-    //     $itemAdditional = "";
-    //     if ($request->unit) {
-    //         $newItemAdditional .= " and whs_bppb_det.satuan = '".$request->unit."'";
-    //         $itemAdditional .= " and br.unit = '".$request->unit."'";
-    //     }
-
-    //     // When there is a certain order Request
-    //     if ($request->act_costing_id) {
-    //         $newItemAdditional .= " and (act_costing.id = '".$request->act_costing_id."' or whs_bppb_h.no_ws_aktual = '".$request->act_costing_ws."')";
-    //         $itemAdditional .= " and ac.id = '".$request->act_costing_id."'";
-    //     }
-
-    //     // if ($request->color) {
-    //     //     $newItemAdditional .= " and masteritem.color = '".$request->color."'";
-    //     // }
-
-    //     // Current Item QUERY
-    //     $newItem = DB::connection("mysql_sb")->select("
-    //         SELECT
-    //             id_roll,
-    //             id_jo,
-    //             detail_item,
-    //             detail_item_color,
-    //             detail_item_size,
-    //             id_item,
-    //             lot,
-    //             roll,
-    //             roll_buyer,
-    //             qty_stok,
-    //             SUM(qty)-COALESCE(qty_ri, 0) as qty,
-    //             unit,
-    //             rule_bom,
-    //             so_det_list,
-    //             size_list
-    //         FROM (
-    //             SELECT
-    //                 whs_bppb_det.id_roll,
-    //                 whs_bppb_det.id_jo,
-    //                 masteritem.itemdesc detail_item,
-    //                 masteritem.color detail_item_color,
-    //                 masteritem.size detail_item_size,
-    //                 whs_bppb_det.id_item,
-    //                 whs_bppb_det.no_lot lot,
-    //                 whs_bppb_det.no_roll roll,
-    //                 whs_lokasi_inmaterial.no_roll_buyer roll_buyer,
-    //                 whs_bppb_det.qty_stok,
-    //                 whs_bppb_det.qty_out qty,
-    //                 whs_bppb_det.satuan unit,
-    //                 bji.rule_bom,
-    //                 GROUP_CONCAT(DISTINCT so_det.id ORDER BY so_det.id ASC SEPARATOR ', ') as so_det_list,
-    //                 GROUP_CONCAT(DISTINCT so_det.size ORDER BY so_det.id ASC SEPARATOR ', ') as size_list
-    //             FROM
-    //                 whs_bppb_det
-    //                 LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
-    //                 LEFT JOIN (SELECT no_barcode, id_item, no_roll_buyer FROM whs_lokasi_inmaterial where no_barcode = '".$id."' GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
-    //                 LEFT JOIN masteritem ON masteritem.id_item = whs_lokasi_inmaterial.id_item
-    //                 LEFT JOIN bom_jo_item bji ON bji.id_item = masteritem.id_gen
-    //                 LEFT JOIN so_det ON so_det.id = bji.id_so_det
-    //                 LEFT JOIN so ON so.id = so_det.id_so
-    //                 LEFT JOIN act_costing ON act_costing.id = so.id_cost
-    //             WHERE
-    //                 whs_bppb_det.id_roll = '".$id."'
-    //                 AND whs_bppb_h.tujuan = 'Production - Cutting'
-    //                 AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
-    //                 AND whs_bppb_det.no_bppb LIKE '%GK/OUT%'
-    //             GROUP BY
-    //                 whs_bppb_det.id
-    //         ) item
-    //         LEFT JOIN (select a.no_barcode, (CASE WHEN supplier_in.no_barcode IS NULL THEN 0 ELSE sum(qty_aktual) END) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok LEFT JOIN (select b.no_barcode from whs_inmaterial_fabric a left join whs_lokasi_inmaterial b on b.no_dok = a.no_dok where b.no_barcode = '".$id."' and supplier != 'Production - Cutting' and b.status = 'Y' GROUP BY no_barcode) supplier_in on supplier_in.no_barcode = a.no_barcode where a.no_barcode = '".$id."' and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = item.id_roll
-    //         GROUP BY
-    //             id_roll
-    //         LIMIT 1
-    //     ");
-
-    //     // When current item
-    //     if ($newItem) {
-
-    //         // Check local stock
-    //         $scannedItem = ScannedItem::selectRaw("
-    //             scanned_item.id,
-    //             scanned_item.id_roll,
-    //             scanned_item.id_jo,
-    //             scanned_item.id_item,
-    //             scanned_item.detail_item,
-    //             scanned_item.detail_item_color,
-    //             scanned_item.detail_item_size,
-    //             scanned_item.color,
-    //             scanned_item.lot,
-    //             scanned_item.roll,
-    //             scanned_item.roll_buyer,
-    //             scanned_item.qty,
-    //             scanned_item.qty_stok,
-    //             scanned_item.qty_in,
-    //             COALESCE(pemakaian.total_pemakaian, scanned_item.qty_pakai) qty_pakai,
-    //             scanned_item.unit,
-    //             scanned_item.berat_amparan,
-    //             scanned_item.so_det_list,
-    //             scanned_item.size_list
-    //         ")->
-    //         leftJoin(DB::raw("
-    //             (
-    //                 select
-    //                     id_roll,
-    //                     max( qty_awal ) qty_awal,
-    //                     sum( total_pemakaian ) total_pemakaian
-    //                 from
-    //                     (
-    //                         SELECT
-    //                             id_roll,
-    //                             max( qty ) qty_awal,
-    //                             sum( COALESCE(total_pemakaian_roll, 0) + COALESCE(sisa_kain, 0) ) total_pemakaian
-    //                         FROM
-    //                             form_cut_input_detail
-    //                         WHERE
-    //                             id_roll = '".$id."'
-    //                         GROUP BY
-    //                             id_roll
-    //                         UNION
-    //                         SELECT
-    //                             id_roll,
-    //                             max( qty ) qty_awal,
-    //                             sum( COALESCE(piping, 0) + COALESCE(qty_sisa, 0) ) total_pemakaian
-    //                         FROM
-    //                             form_cut_piping
-    //                         WHERE
-    //                             id_roll = '".$id."'
-    //                         GROUP BY
-    //                             id_roll
-    //                         UNION
-    //                         SELECT
-    //                             barcode id_roll,
-    //                             max( qty_roll ) qty_awal,
-    //                             sum( COALESCE(qty_pakai, 0) + COALESCE(sisa_kain, 0) ) total_pemakaian
-    //                         FROM
-    //                             form_cut_reject_barcode
-    //                         WHERE
-    //                             barcode = '".$id."'
-    //                         GROUP BY
-    //                             barcode
-    //                     ) pemakaian
-    //                 group by
-    //                     id_roll
-    //             ) pemakaian
-    //         "), "pemakaian.id_roll", "=", "scanned_item.id_roll")->
-    //         where('scanned_item.id_roll', $id)->
-    //         where('scanned_item.id_item', $newItem[0]->id_item)->
-    //         first();
-
-    //         // When there is local stock
-    //         if ($scannedItem) {
-
-    //             // Update local stock
-    //             $scannedItemUpdate = ScannedItem::where("id_roll", $id)->first();
-
-    //             $newItemQtyStok = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($newItem[0]->qty_stok * 0.9144, 2) : $newItem[0]->qty_stok;
-    //             $newItemQty = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($newItem[0]->qty * 0.9144, 2) : $newItem[0]->qty;
-    //             $newItemUnit = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? 'METER' : $newItem[0]->unit;
-
-    //             if ($scannedItemUpdate) {
-
-    //                 // Update local stock qty & specs
-    //                 $scannedItemUpdate->qty_stok = $newItemQtyStok;
-    //                 $scannedItemUpdate->qty_in = $newItemQty;
-    //                 $scannedItemUpdate->qty = ($scannedItem->qty_pakai > 0 ? floatval(($newItemQty - $scannedItem->qty_in) + $scannedItem->qty) : $newItemQty);
-    //                 $scannedItemUpdate->so_det_list = $newItem[0]->so_det_list;
-    //                 $scannedItemUpdate->size_list = $newItem[0]->size_list;
-    //                 $scannedItemUpdate->save();
-
-    //                 if (floatval($scannedItemUpdate->qty) > 0) {
-    //                     return json_encode($scannedItemUpdate);
-    //                 }
-    //             }
-
-    //             // Return the message when it was because of roll exhausted on other form
-    //             $formCutInputDetail = FormCutInputDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
-    //             if ($formCutInputDetail) {
-    //                 return "Roll sudah terpakai di form '".$formCutInputDetail->no_form_cut_input."'";
-    //             } else {
-    //                 $formCutPieceDetail = FormCutPieceDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
-
-    //                 if ($formCutPieceDetail) {
-    //                     return "Roll sudah terpakai di form '".($formCutPieceDetail->formCutPiece ? $formCutPieceDetail->formCutpiece->no_form : "-")."'";
-    //                 }
-    //             }
-    //         } else {
-
-    //             // When there ain't no local stock
-    //             if ($newItem[0]->unit != "PCS" || $newItem[0]->unit != "PCE") {
-    //                 $newItemQtyStok = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? round($newItem[0]->qty_stok * 0.9144, 2) : $newItem[0]->qty_stok;
-    //                 $newItemQty = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? round($newItem[0]->qty * 0.9144, 2) : $newItem[0]->qty;
-    //                 $newItemUnit = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? 'METER' : $newItem[0]->unit;
-    //             } else {
-    //                 $newItemQtyStok = $newItem[0]->qty_stok;
-    //                 $newItemQty = $newItem[0]->qty;
-    //                 $newItemUnit = $newItem[0]->unit;
-    //             }
-
-    //             // Create Local Stock
-    //             ScannedItem::create(
-    //                 [
-    //                     "id_roll" => strtoupper($id),
-    //                     "id_item" => $newItem[0]->id_item,
-    //                     "id_jo" => $newItem[0]->id_jo,
-    //                     "color" => '-',
-    //                     "detail_item" => $newItem[0]->detail_item,
-    //                     "detail_item_color" => $newItem[0]->detail_item_color,
-    //                     "detail_item_size" => $newItem[0]->detail_item_size,
-    //                     "lot" => $newItem[0]->lot,
-    //                     "roll" => $newItem[0]->roll,
-    //                     "roll_buyer" => $newItem[0]->roll_buyer,
-    //                     "qty" => $newItemQty,
-    //                     "qty_stok" => $newItemQtyStok,
-    //                     "qty_in" => $newItemQty,
-    //                     "qty_pakai" => 0,
-    //                     "unit" => $newItemUnit,
-    //                     "rule_bom" => $newItem[0]->rule_bom,
-    //                     "so_det_list" => $newItem[0]->so_det_list,
-    //                     "size_list" => $newItem[0]->size_list,
-    //                     "created_by" => Auth::user()->id,
-    //                     "created_by_username" => Auth::user()->username
-    //                 ]
-    //             );
-    //         }
-
-    //         // Return it
-    //         return json_encode($newItem ? $newItem[0] : null);
-    //     }
-
-    //     // From here it's just the old way (the flow might change), it maybe deprecated soon (need to make sure about it tho)
-    //     $item = DB::connection("mysql_sb")->select("
-    //         SELECT
-    //             br.id id_roll,
-    //             mi.id_item,
-    //             mi.itemdesc detail_item,
-    //             mi.color detail_item_color,
-    //             mi.size detail_item_size,
-    //             goods_code,
-    //             supplier,
-    //             bpbno_int,
-    //             pono,
-    //             invno,
-    //             ac.kpno,
-    //             roll_no roll,
-    //             roll_qty qty,
-    //             lot_no lot,
-    //             bpb.unit,
-    //             kode_rak
-    //         FROM
-    //             bpb_roll br
-    //             INNER JOIN bpb_roll_h brh ON br.id_h = brh.id
-    //             INNER JOIN masteritem mi ON brh.id_item = mi.id_item
-    //             INNER JOIN bpb ON brh.bpbno = bpb.bpbno AND brh.id_jo = bpb.id_jo AND brh.id_item = bpb.id_item
-    //             INNER JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
-    //             INNER JOIN jo_det jd ON brh.id_jo = jd.id_jo
-    //             INNER JOIN so ON jd.id_so = so.id
-    //             INNER JOIN act_costing ac ON so.id_cost = ac.id
-    //             INNER JOIN master_rak mr ON br.id_rak_loc = mr.id
-    //         WHERE
-    //             br.id = '" . $id . "'
-    //             AND cast(roll_qty AS DECIMAL ( 11, 3 )) > 0.000
-    //             ".$itemAdditional."
-    //         GROUP BY
-    //             br.id
-    //         LIMIT 1
-    //     ");
-    //     if ($item) {
-    //         $scannedItem = ScannedItem::where('id_roll', $id)->where('id_item', $item[0]->id_item)->first();
-
-    //         if ($scannedItem) {
-
-    //             $scannedItemUpdate = ScannedItem::where("id_roll", $id)->first();
-
-    //             if (($item[0]->unit != "PCS" || $item[0]->unit != "PCE")) {
-    //                 $itemQtyStok = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($item[0]->qty * 0.9144, 2) : $item[0]->qty;
-    //                 $itemQty = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($item[0]->qty * 0.9144, 2) : $item[0]->qty;
-    //                 $itemUnit = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? 'METER' : $item[0]->unit;
-    //             } else {
-    //                 $itemQtyStok = $item[0]->qty;
-    //                 $itemQty = $item[0]->qty;
-    //                 $itemUnit = $item[0]->unit;
-    //             }
-
-    //             if ($scannedItemUpdate) {
-    //                 $scannedItemUpdate->qty_stok = $itemQtyStok;
-    //                 $scannedItemUpdate->qty_in = $itemQty;
-    //                 $scannedItemUpdate->qty = floatval(($itemQty - $scannedItem->qty_in) + $scannedItem->qty);
-    //                 $scannedItemUpdate->save();
-
-    //                 if ($scannedItemUpdate->qty > 0) {
-    //                     return json_encode($scannedItemUpdate);
-    //                 }
-    //             }
-
-    //             $formCutInputDetail = FormCutInputDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
-
-    //             if ($formCutInputDetail) {
-    //                 return "Roll sudah terpakai di form '".$formCutInputDetail->no_form_cut_input."'";
-    //             }
-    //         } else {
-    //             $itemQtyStok = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD")) ? round($item[0]->qty_stok * 0.9144, 2) : $item[0]->qty_stok;
-    //             $itemQty = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD")) ? round($item[0]->qty * 0.9144, 2) : $item[0]->qty;
-    //             $itemUnit = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD")) ? 'METER' : $item[0]->unit;
-
-    //             $itemData = ScannedItem::create(
-    //                 [
-    //                     "id_roll" => strtoupper($id),
-    //                     "id_item" => $item[0]->id_item,
-    //                     "color" => '-',
-    //                     "detail_item" => $item[0]->detail_item,
-    //                     "detail_item_color" => $item[0]->detail_item_color,
-    //                     "detail_item_size" => $item[0]->detail_item_size,
-    //                     "lot" => $item[0]->lot,
-    //                     "roll" => $item[0]->roll,
-    //                     "roll_buyer" => $item[0]->roll_buyer,
-    //                     "qty" => $itemQty,
-    //                     "qty_stok" => $itemQtyStok,
-    //                     "qty_in" => $itemQty,
-    //                     "qty_pakai" => 0,
-    //                     "unit" => $itemUnit,
-    //                     "created_by" => Auth::user()->id,
-    //                     "created_by_username" => Auth::user()->username,
-    //                 ]
-    //             );
-    //         }
-
-    //         return json_encode($item ? $item[0] : null);
-    //     }
-
-    //     return null;
-    // }
-
     public function getScannedItem($id = 0, Request $request, CuttingService $cuttingService)
     {
         // Fix Roll Qty right before the roll is used
@@ -1318,8 +980,7 @@ class GeneralController extends Controller
                     GROUP_CONCAT(DISTINCT so_det.id ORDER BY so_det.id ASC SEPARATOR ', ') as so_det_list,
                     GROUP_CONCAT(DISTINCT so_det.size ORDER BY so_det.id ASC SEPARATOR ', ') as size_list
                 FROM
-                    laravel_nds.penerimaan_cutting
-                    LEFT JOIN whs_bppb_det ON whs_bppb_det.id = penerimaan_cutting.whs_bppb_det_id
+                    whs_bppb_det
                     LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
                     LEFT JOIN (SELECT no_barcode, id_item, no_roll_buyer FROM whs_lokasi_inmaterial where no_barcode = '".$id."' GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
                     LEFT JOIN masteritem ON masteritem.id_item = whs_lokasi_inmaterial.id_item
@@ -1597,6 +1258,345 @@ class GeneralController extends Controller
 
         return null;
     }
+
+    // public function getScannedItem($id = 0, Request $request, CuttingService $cuttingService)
+    // {
+    //     // Fix Roll Qty right before the roll is used
+    //     $fixRollQty = $cuttingService->fixRollQty($id);
+
+    //     // When there is Additional Request
+    //     $newItemAdditional = "";
+    //     $itemAdditional = "";
+    //     if ($request->unit) {
+    //         $newItemAdditional .= " and whs_bppb_det.satuan = '".$request->unit."'";
+    //         $itemAdditional .= " and br.unit = '".$request->unit."'";
+    //     }
+
+    //     // When there is a certain order Request
+    //     if ($request->act_costing_id) {
+    //         $newItemAdditional .= " and (act_costing.id = '".$request->act_costing_id."' or whs_bppb_h.no_ws_aktual = '".$request->act_costing_ws."')";
+    //         $itemAdditional .= " and ac.id = '".$request->act_costing_id."'";
+    //     }
+
+    //     // if ($request->color) {
+    //     //     $newItemAdditional .= " and masteritem.color = '".$request->color."'";
+    //     // }
+
+    //     // Current Item QUERY
+    //     $newItem = DB::connection("mysql_sb")->select("
+    //         SELECT
+    //             id_roll,
+    //             id_jo,
+    //             detail_item,
+    //             detail_item_color,
+    //             detail_item_size,
+    //             id_item,
+    //             lot,
+    //             roll,
+    //             roll_buyer,
+    //             qty_stok,
+    //             SUM(qty)-COALESCE(qty_ri, 0) as qty,
+    //             unit,
+    //             rule_bom,
+    //             so_det_list,
+    //             size_list
+    //         FROM (
+    //             SELECT
+    //                 whs_bppb_det.id_roll,
+    //                 whs_bppb_det.id_jo,
+    //                 masteritem.itemdesc detail_item,
+    //                 masteritem.color detail_item_color,
+    //                 masteritem.size detail_item_size,
+    //                 whs_bppb_det.id_item,
+    //                 whs_bppb_det.no_lot lot,
+    //                 whs_bppb_det.no_roll roll,
+    //                 whs_lokasi_inmaterial.no_roll_buyer roll_buyer,
+    //                 whs_bppb_det.qty_stok,
+    //                 whs_bppb_det.qty_out qty,
+    //                 whs_bppb_det.satuan unit,
+    //                 bji.rule_bom,
+    //                 GROUP_CONCAT(DISTINCT so_det.id ORDER BY so_det.id ASC SEPARATOR ', ') as so_det_list,
+    //                 GROUP_CONCAT(DISTINCT so_det.size ORDER BY so_det.id ASC SEPARATOR ', ') as size_list
+    //             FROM
+    //                 laravel_nds.penerimaan_cutting
+    //                 LEFT JOIN whs_bppb_det ON whs_bppb_det.id = penerimaan_cutting.whs_bppb_det_id
+    //                 LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
+    //                 LEFT JOIN (SELECT no_barcode, id_item, no_roll_buyer FROM whs_lokasi_inmaterial where no_barcode = '".$id."' GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+    //                 LEFT JOIN masteritem ON masteritem.id_item = whs_lokasi_inmaterial.id_item
+    //                 LEFT JOIN bom_jo_item bji ON bji.id_item = masteritem.id_gen
+    //                 LEFT JOIN so_det ON so_det.id = bji.id_so_det
+    //                 LEFT JOIN so ON so.id = so_det.id_so
+    //                 LEFT JOIN act_costing ON act_costing.id = so.id_cost
+    //             WHERE
+    //                 whs_bppb_det.id_roll = '".$id."'
+    //                 AND whs_bppb_h.tujuan = 'Production - Cutting'
+    //                 AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
+    //                 AND whs_bppb_det.no_bppb LIKE '%GK/OUT%'
+    //             GROUP BY
+    //                 whs_bppb_det.id
+    //         ) item
+    //         LEFT JOIN (select a.no_barcode, (CASE WHEN supplier_in.no_barcode IS NULL THEN 0 ELSE sum(qty_aktual) END) qty_ri from whs_lokasi_inmaterial a INNER JOIN whs_inmaterial_fabric b on b.no_dok = a.no_dok LEFT JOIN (select b.no_barcode from whs_inmaterial_fabric a left join whs_lokasi_inmaterial b on b.no_dok = a.no_dok where b.no_barcode = '".$id."' and supplier != 'Production - Cutting' and b.status = 'Y' GROUP BY no_barcode) supplier_in on supplier_in.no_barcode = a.no_barcode where a.no_barcode = '".$id."' and supplier = 'Production - Cutting' and a.status = 'Y' GROUP BY no_barcode) as ri on ri.no_barcode = item.id_roll
+    //         GROUP BY
+    //             id_roll
+    //         LIMIT 1
+    //     ");
+
+    //     // When current item
+    //     if ($newItem) {
+
+    //         // Check local stock
+    //         $scannedItem = ScannedItem::selectRaw("
+    //             scanned_item.id,
+    //             scanned_item.id_roll,
+    //             scanned_item.id_jo,
+    //             scanned_item.id_item,
+    //             scanned_item.detail_item,
+    //             scanned_item.detail_item_color,
+    //             scanned_item.detail_item_size,
+    //             scanned_item.color,
+    //             scanned_item.lot,
+    //             scanned_item.roll,
+    //             scanned_item.roll_buyer,
+    //             scanned_item.qty,
+    //             scanned_item.qty_stok,
+    //             scanned_item.qty_in,
+    //             COALESCE(pemakaian.total_pemakaian, scanned_item.qty_pakai) qty_pakai,
+    //             scanned_item.unit,
+    //             scanned_item.berat_amparan,
+    //             scanned_item.so_det_list,
+    //             scanned_item.size_list
+    //         ")->
+    //         leftJoin(DB::raw("
+    //             (
+    //                 select
+    //                     id_roll,
+    //                     max( qty_awal ) qty_awal,
+    //                     sum( total_pemakaian ) total_pemakaian
+    //                 from
+    //                     (
+    //                         SELECT
+    //                             id_roll,
+    //                             max( qty ) qty_awal,
+    //                             sum( COALESCE(total_pemakaian_roll, 0) + COALESCE(sisa_kain, 0) ) total_pemakaian
+    //                         FROM
+    //                             form_cut_input_detail
+    //                         WHERE
+    //                             id_roll = '".$id."'
+    //                         GROUP BY
+    //                             id_roll
+    //                         UNION
+    //                         SELECT
+    //                             id_roll,
+    //                             max( qty ) qty_awal,
+    //                             sum( COALESCE(piping, 0) + COALESCE(qty_sisa, 0) ) total_pemakaian
+    //                         FROM
+    //                             form_cut_piping
+    //                         WHERE
+    //                             id_roll = '".$id."'
+    //                         GROUP BY
+    //                             id_roll
+    //                         UNION
+    //                         SELECT
+    //                             barcode id_roll,
+    //                             max( qty_roll ) qty_awal,
+    //                             sum( COALESCE(qty_pakai, 0) + COALESCE(sisa_kain, 0) ) total_pemakaian
+    //                         FROM
+    //                             form_cut_reject_barcode
+    //                         WHERE
+    //                             barcode = '".$id."'
+    //                         GROUP BY
+    //                             barcode
+    //                     ) pemakaian
+    //                 group by
+    //                     id_roll
+    //             ) pemakaian
+    //         "), "pemakaian.id_roll", "=", "scanned_item.id_roll")->
+    //         where('scanned_item.id_roll', $id)->
+    //         where('scanned_item.id_item', $newItem[0]->id_item)->
+    //         first();
+
+    //         // When there is local stock
+    //         if ($scannedItem) {
+
+    //             // Update local stock
+    //             $scannedItemUpdate = ScannedItem::where("id_roll", $id)->first();
+
+    //             $newItemQtyStok = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($newItem[0]->qty_stok * 0.9144, 2) : $newItem[0]->qty_stok;
+    //             $newItemQty = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($newItem[0]->qty * 0.9144, 2) : $newItem[0]->qty;
+    //             $newItemUnit = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? 'METER' : $newItem[0]->unit;
+
+    //             if ($scannedItemUpdate) {
+
+    //                 // Update local stock qty & specs
+    //                 $scannedItemUpdate->qty_stok = $newItemQtyStok;
+    //                 $scannedItemUpdate->qty_in = $newItemQty;
+    //                 $scannedItemUpdate->qty = ($scannedItem->qty_pakai > 0 ? floatval(($newItemQty - $scannedItem->qty_in) + $scannedItem->qty) : $newItemQty);
+    //                 $scannedItemUpdate->so_det_list = $newItem[0]->so_det_list;
+    //                 $scannedItemUpdate->size_list = $newItem[0]->size_list;
+    //                 $scannedItemUpdate->save();
+
+    //                 if (floatval($scannedItemUpdate->qty) > 0) {
+    //                     return json_encode($scannedItemUpdate);
+    //                 }
+    //             }
+
+    //             // Return the message when it was because of roll exhausted on other form
+    //             $formCutInputDetail = FormCutInputDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
+    //             if ($formCutInputDetail) {
+    //                 return "Roll sudah terpakai di form '".$formCutInputDetail->no_form_cut_input."'";
+    //             } else {
+    //                 $formCutPieceDetail = FormCutPieceDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
+
+    //                 if ($formCutPieceDetail) {
+    //                     return "Roll sudah terpakai di form '".($formCutPieceDetail->formCutPiece ? $formCutPieceDetail->formCutpiece->no_form : "-")."'";
+    //                 }
+    //             }
+    //         } else {
+
+    //             // When there ain't no local stock
+    //             if ($newItem[0]->unit != "PCS" || $newItem[0]->unit != "PCE") {
+    //                 $newItemQtyStok = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? round($newItem[0]->qty_stok * 0.9144, 2) : $newItem[0]->qty_stok;
+    //                 $newItemQty = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? round($newItem[0]->qty * 0.9144, 2) : $newItem[0]->qty;
+    //                 $newItemUnit = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? 'METER' : $newItem[0]->unit;
+    //             } else {
+    //                 $newItemQtyStok = $newItem[0]->qty_stok;
+    //                 $newItemQty = $newItem[0]->qty;
+    //                 $newItemUnit = $newItem[0]->unit;
+    //             }
+
+    //             // Create Local Stock
+    //             ScannedItem::create(
+    //                 [
+    //                     "id_roll" => strtoupper($id),
+    //                     "id_item" => $newItem[0]->id_item,
+    //                     "id_jo" => $newItem[0]->id_jo,
+    //                     "color" => '-',
+    //                     "detail_item" => $newItem[0]->detail_item,
+    //                     "detail_item_color" => $newItem[0]->detail_item_color,
+    //                     "detail_item_size" => $newItem[0]->detail_item_size,
+    //                     "lot" => $newItem[0]->lot,
+    //                     "roll" => $newItem[0]->roll,
+    //                     "roll_buyer" => $newItem[0]->roll_buyer,
+    //                     "qty" => $newItemQty,
+    //                     "qty_stok" => $newItemQtyStok,
+    //                     "qty_in" => $newItemQty,
+    //                     "qty_pakai" => 0,
+    //                     "unit" => $newItemUnit,
+    //                     "rule_bom" => $newItem[0]->rule_bom,
+    //                     "so_det_list" => $newItem[0]->so_det_list,
+    //                     "size_list" => $newItem[0]->size_list,
+    //                     "created_by" => Auth::user()->id,
+    //                     "created_by_username" => Auth::user()->username
+    //                 ]
+    //             );
+    //         }
+
+    //         // Return it
+    //         return json_encode($newItem ? $newItem[0] : null);
+    //     }
+
+    //     // From here it's just the old way (the flow might change), it maybe deprecated soon (need to make sure about it tho)
+    //     $item = DB::connection("mysql_sb")->select("
+    //         SELECT
+    //             br.id id_roll,
+    //             mi.id_item,
+    //             mi.itemdesc detail_item,
+    //             mi.color detail_item_color,
+    //             mi.size detail_item_size,
+    //             goods_code,
+    //             supplier,
+    //             bpbno_int,
+    //             pono,
+    //             invno,
+    //             ac.kpno,
+    //             roll_no roll,
+    //             roll_qty qty,
+    //             lot_no lot,
+    //             bpb.unit,
+    //             kode_rak
+    //         FROM
+    //             bpb_roll br
+    //             INNER JOIN bpb_roll_h brh ON br.id_h = brh.id
+    //             INNER JOIN masteritem mi ON brh.id_item = mi.id_item
+    //             INNER JOIN bpb ON brh.bpbno = bpb.bpbno AND brh.id_jo = bpb.id_jo AND brh.id_item = bpb.id_item
+    //             INNER JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
+    //             INNER JOIN jo_det jd ON brh.id_jo = jd.id_jo
+    //             INNER JOIN so ON jd.id_so = so.id
+    //             INNER JOIN act_costing ac ON so.id_cost = ac.id
+    //             INNER JOIN master_rak mr ON br.id_rak_loc = mr.id
+    //         WHERE
+    //             br.id = '" . $id . "'
+    //             AND cast(roll_qty AS DECIMAL ( 11, 3 )) > 0.000
+    //             ".$itemAdditional."
+    //         GROUP BY
+    //             br.id
+    //         LIMIT 1
+    //     ");
+    //     if ($item) {
+    //         $scannedItem = ScannedItem::where('id_roll', $id)->where('id_item', $item[0]->id_item)->first();
+
+    //         if ($scannedItem) {
+
+    //             $scannedItemUpdate = ScannedItem::where("id_roll", $id)->first();
+
+    //             if (($item[0]->unit != "PCS" || $item[0]->unit != "PCE")) {
+    //                 $itemQtyStok = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($item[0]->qty * 0.9144, 2) : $item[0]->qty;
+    //                 $itemQty = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($item[0]->qty * 0.9144, 2) : $item[0]->qty;
+    //                 $itemUnit = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? 'METER' : $item[0]->unit;
+    //             } else {
+    //                 $itemQtyStok = $item[0]->qty;
+    //                 $itemQty = $item[0]->qty;
+    //                 $itemUnit = $item[0]->unit;
+    //             }
+
+    //             if ($scannedItemUpdate) {
+    //                 $scannedItemUpdate->qty_stok = $itemQtyStok;
+    //                 $scannedItemUpdate->qty_in = $itemQty;
+    //                 $scannedItemUpdate->qty = floatval(($itemQty - $scannedItem->qty_in) + $scannedItem->qty);
+    //                 $scannedItemUpdate->save();
+
+    //                 if ($scannedItemUpdate->qty > 0) {
+    //                     return json_encode($scannedItemUpdate);
+    //                 }
+    //             }
+
+    //             $formCutInputDetail = FormCutInputDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
+
+    //             if ($formCutInputDetail) {
+    //                 return "Roll sudah terpakai di form '".$formCutInputDetail->no_form_cut_input."'";
+    //             }
+    //         } else {
+    //             $itemQtyStok = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD")) ? round($item[0]->qty_stok * 0.9144, 2) : $item[0]->qty_stok;
+    //             $itemQty = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD")) ? round($item[0]->qty * 0.9144, 2) : $item[0]->qty;
+    //             $itemUnit = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD")) ? 'METER' : $item[0]->unit;
+
+    //             $itemData = ScannedItem::create(
+    //                 [
+    //                     "id_roll" => strtoupper($id),
+    //                     "id_item" => $item[0]->id_item,
+    //                     "color" => '-',
+    //                     "detail_item" => $item[0]->detail_item,
+    //                     "detail_item_color" => $item[0]->detail_item_color,
+    //                     "detail_item_size" => $item[0]->detail_item_size,
+    //                     "lot" => $item[0]->lot,
+    //                     "roll" => $item[0]->roll,
+    //                     "roll_buyer" => $item[0]->roll_buyer,
+    //                     "qty" => $itemQty,
+    //                     "qty_stok" => $itemQtyStok,
+    //                     "qty_in" => $itemQty,
+    //                     "qty_pakai" => 0,
+    //                     "unit" => $itemUnit,
+    //                     "created_by" => Auth::user()->id,
+    //                     "created_by_username" => Auth::user()->username,
+    //                 ]
+    //             );
+    //         }
+
+    //         return json_encode($item ? $item[0] : null);
+    //     }
+
+    //     return null;
+    // }
 
     public function getItem(Request $request) {
         $additional = "";
