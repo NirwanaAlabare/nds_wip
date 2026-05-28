@@ -5039,14 +5039,8 @@ class SewingToolsController extends Controller
 
         $data = DB::connection("mysql_sb")->select("
             SELECT
-                no,
-                DATE_FORMAT(tgl_saldo, '%d-%m-%Y') AS tgl_saldo,
-                type_saldo,
-                buyer,
-                ws,
-                styleno,
-                color,
-                size
+                *,
+                DATE_FORMAT(tgl_saldo, '%d-%m-%Y') AS tgl_saldo
             FROM
                 inject_mutasi_sewing
             WHERE

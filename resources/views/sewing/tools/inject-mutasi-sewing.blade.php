@@ -169,6 +169,9 @@
                 <table class="table table-bordered table-sm" id="list-table">
                     <thead>
                         <tr>
+                            <th class="text-center">
+                                <input type="checkbox" id="check_all">
+                            </th>
                             <th>Tgl Saldo</th>
                             <th>Type Saldo</th>
                             <th>Buyer</th>
@@ -176,9 +179,37 @@
                             <th>Style</th>
                             <th>Color</th>
                             <th>Size</th>
-                            <th class="text-center">
-                                <input type="checkbox" id="check_all">
-                            </th>
+                            <th>Qty Loading</th>
+                            <th>Input Rework Sewing</th>
+                            <th>Input Rework Spotcleaning</th>
+                            <th>Input Rework Mending</th>
+                            <th>Defect Sewing</th>
+                            <th>Defect Spotcleaning</th>
+                            <th>Defect Mending</th>
+                            <th>Qty Sew Reject</th>
+                            <th>Qty Sewing</th>
+                            <th>Input Rework Sewing F</th>
+                            <th>Input Rework Spotcleaning F</th>
+                            <th>Input Rework Mending F</th>
+                            <th>Defect Sewing F</th>
+                            <th>Defect Spotcleaning F</th>
+                            <th>Defect Mending F</th>
+                            <th>Qty Fin Reject</th>
+                            <th>Qty Finishing</th>
+                            <th>Total In SP</th>
+                            <th>Rework SP</th>
+                            <th>Defect SP</th>
+                            <th>Reject SP</th>
+                            <th>RFT SP</th>
+                            <th>Total Defect Sewing</th>
+                            <th>Total Input Rework Sewing</th>
+                            <th>Total Defect Spotcleaning</th>
+                            <th>Total Input Rework Spotcleaning</th>
+                            <th>Total Defect Mending</th>
+                            <th>Total Input Rework Mending</th>
+                            <th>Qty Reject In</th>
+                            <th>Qty Rejected</th>
+                            <th>Qty Reworked</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -258,13 +289,6 @@
                 },
             },
             columns: [
-                { data: "tgl_saldo" },
-                { data: "type_saldo" },
-                { data: "buyer" },
-                { data: "ws" },
-                { data: "styleno" },
-                { data: "color" },
-                { data: "size" },
                 { 
                     data: null,
                     className: 'text-center',
@@ -279,6 +303,44 @@
                         `;
                     }
                 },
+                { data: "tgl_saldo" },
+                { data: "type_saldo" },
+                { data: "buyer" },
+                { data: "ws" },
+                { data: "styleno" },
+                { data: "color" },
+                { data: "size" },
+                { data: 'qty_loading' },
+                { data: 'input_rework_sewing' },
+                { data: 'input_rework_spotcleaning' },
+                { data: 'input_rework_mending' },
+                { data: 'defect_sewing' },
+                { data: 'defect_spotcleaning' },
+                { data: 'defect_mending' },
+                { data: 'qty_sew_reject' },
+                { data: 'qty_sewing' },
+                { data: 'input_rework_sewing_f' },
+                { data: 'input_rework_spotcleaning_f' },
+                { data: 'input_rework_mending_f' },
+                { data: 'defect_sewing_f' },
+                { data: 'defect_spotcleaning_f' },
+                { data: 'defect_mending_f' },
+                { data: 'qty_fin_reject' },
+                { data: 'qty_finishing' },
+                { data: 'total_in_sp' },
+                { data: 'rework_sp' },
+                { data: 'defect_sp' },
+                { data: 'reject_sp' },
+                { data: 'rft_sp' },
+                { data: 'total_defect_sewing' },
+                { data: 'total_input_rework_sewing' },
+                { data: 'total_defect_spotcleaning' },
+                { data: 'total_input_rework_spotcleaning' },
+                { data: 'total_defect_mending' },
+                { data: 'total_input_rework_mending' },
+                { data: 'qty_reject_in' },
+                { data: 'qty_rejected' },
+                { data: 'qty_reworked' },
             ],
             columnDefs: [
                 {
