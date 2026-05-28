@@ -2241,12 +2241,12 @@ GROUP BY
         from_no_ws, from_color, from_size, from_panel, from_part, no_ws, color, size, panel, part
     )
         
-        select 
-        buyer,
-ws,
-styleno,
-color,
-size,
+    select 
+    buyer,
+    ws,
+    styleno,
+    color,
+    size,
 
 SUM(saldo_awal_sewing + COALESCE(sewing_adjust_before,0) + COALESCE(sewing_switching_in_before,0) - COALESCE(sewing_switching_out_before,0)) saldo_awal_sewing,
 SUM(qty_loading) qty_loading,
@@ -4258,7 +4258,7 @@ GROUP BY
     color,
     size),
         
-    query_switching as (
+        query_switching as (
     SELECT 
         buyer,
         no_ws,
@@ -4558,12 +4558,12 @@ GROUP BY
         from_no_ws, from_color, from_size, from_panel, from_part, no_ws, color, size, panel, part
     )
         
-        select 
-        buyer,
-ws,
-styleno,
-color,
-size,
+    select 
+    buyer,
+    ws,
+    styleno,
+    color,
+    size,
 
 SUM(saldo_awal_sewing + COALESCE(sewing_adjust_before,0) + COALESCE(sewing_switching_in_before,0) - COALESCE(sewing_switching_out_before,0)) saldo_awal_sewing,
 SUM(qty_loading) qty_loading,

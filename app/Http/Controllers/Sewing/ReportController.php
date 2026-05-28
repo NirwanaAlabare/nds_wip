@@ -53,7 +53,7 @@ class ReportController extends Controller
             }
         } else {
             if ($range == "custom") {
-                return Excel::download(new OutputExportCustomRange($dateFrom, $dateTo, $subtype, $search, $group), 'output_export.xlsx');
+                return Excel::download(new OutputExportCustomRange($dateFrom, $dateTo, $subtype, $search, $group, $range), 'output_export.xlsx');
             }
         }
 
