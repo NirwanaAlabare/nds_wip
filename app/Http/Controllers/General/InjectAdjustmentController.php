@@ -15,17 +15,17 @@ use Yajra\DataTables\Facades\DataTables;
 class InjectAdjustmentController extends Controller
 {
 
-    public function injectAdjustment() {
+    public function index() {
         return view("general.tools.inject-adjustment");
     }
 
-    public function contohUploadImportInjectAdjustment()
+    public function contohUploadImport()
     {
         $path = public_path('assets/example/contoh-import-inject-adjustment.xlsx');
         return response()->download($path);
     }
 
-    public function importDataInjectAdjustment(Request $request)
+    public function importData(Request $request)
     {
         $file = $request->file('file');
 
@@ -56,7 +56,7 @@ class InjectAdjustmentController extends Controller
         ]);
     }
 
-    public function storeInjectAdjustment(Request $request)
+    public function store(Request $request)
     {
         $source = $request->source;
         $items = $request->items;
@@ -77,6 +77,7 @@ class InjectAdjustmentController extends Controller
                     'panel' => $item['panel'],
                     'part' => $item['part'],
                     'qty' => $item['qty'],
+                    'status' => 'Y'
                 ]);
             }else{
                 DB::connection('mysql_sb')
@@ -92,6 +93,7 @@ class InjectAdjustmentController extends Controller
                     'panel' => $item['panel'],
                     'part' => $item['part'],
                     'qty' => $item['qty'],
+                    'status' => 'Y'
                 ]);
             }
         }
@@ -102,7 +104,7 @@ class InjectAdjustmentController extends Controller
         ]);
     }
 
-    public function deleteInjectAdjustment(Request $request)
+    public function delete(Request $request)
     {
         if($request->source == 'NDS'){
             DB::connection('mysql')
@@ -122,7 +124,7 @@ class InjectAdjustmentController extends Controller
         ]);
     }
 
-    public function getDataInjectAdjustment(Request $request)
+    public function getData(Request $request)
     {
         $tglAwal = $request->dateFrom;
         $tglAkhir = $request->dateTo;
