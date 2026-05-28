@@ -98,9 +98,9 @@
                             <th class="text-center align-middle" style="background-color: lightyellow;">Reject</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Output</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Subcont Out Production</th>
-                            <th class="text-center align-middle" style="background-color: lightyellow;">Adjustment</th>
-                            <th class="text-center align-middle" style="background-color: lightyellow;">Switching IN</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Switching OUT</th>
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Switching IN</th>
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Adjustment</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Saldo Akhir</th>
 
                             <th class="text-center align-middle" style="background-color: pink;">Saldo Awal</th>
@@ -113,9 +113,9 @@
                             <th class="text-center align-middle" style="background-color: pink;">Defect Mending</th>
                             <th class="text-center align-middle" style="background-color: pink;">Reject</th>
                             <th class="text-center align-middle" style="background-color: pink;">Output</th>
-                            <th class="text-center align-middle" style="background-color: pink;">Adjustment</th>
-                            <th class="text-center align-middle" style="background-color: pink;">Switching IN</th>
                             <th class="text-center align-middle" style="background-color: pink;">Switching OUT</th>
+                            <th class="text-center align-middle" style="background-color: pink;">Switching IN</th>
+                            <th class="text-center align-middle" style="background-color: pink;">Adjustment</th>
                             <th class="text-center align-middle" style="background-color: pink;">Saldo Akhir</th>
 
                             <th class="text-center align-middle" style="background-color: lightsteelblue;">Saldo Awal</th>
@@ -124,9 +124,9 @@
                             <th class="text-center align-middle" style="background-color: lightsteelblue;">Defect</th>
                             <th class="text-center align-middle" style="background-color: lightsteelblue;">Reject</th>
                             <th class="text-center align-middle" style="background-color: lightsteelblue;">Output</th>
-                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Adjustment</th>
-                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Switching IN</th>
                             <th class="text-center align-middle" style="background-color: lightsteelblue;">Switching OUT</th>
+                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Switching IN</th>
+                            <th class="text-center align-middle" style="background-color: lightsteelblue;">Adjustment</th>
                             <th class="text-center align-middle" style="background-color: lightsteelblue;">Saldo Akhir</th>
 
                             <th class="text-center align-middle" style="background-color: #FFE5B4;">Saldo Awal</th>
@@ -140,26 +140,26 @@
                             <th class="text-center align-middle" style="background-color: lavender;">Saldo Awal</th>
                             <th class="text-center align-middle" style="background-color: lavender;">Terima</th>
                             <th class="text-center align-middle" style="background-color: lavender;">Keluar</th>
-                            <th class="text-center align-middle" style="background-color: lavender;">Adjustment</th>
-                            <th class="text-center align-middle" style="background-color: lavender;">Switching IN</th>
                             <th class="text-center align-middle" style="background-color: lavender;">Switching OUT</th>
+                            <th class="text-center align-middle" style="background-color: lavender;">Switching IN</th>
+                            <th class="text-center align-middle" style="background-color: lavender;">Adjustment</th>
                             <th class="text-center align-middle" style="background-color: lavender;">Saldo Akhir</th>
 
                             <th class="text-center align-middle" style="background-color: lightyellow;">Saldo Awal</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Terima</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Keluar</th>
-                            <th class="text-center align-middle" style="background-color: lightyellow;">Adjustment</th>
-                            <th class="text-center align-middle" style="background-color: lightyellow;">Switching IN</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Switching OUT</th>
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Switching IN</th>
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Adjustment</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Saldo Akhir</th>
 
                             <th class="text-center align-middle" style="background-color: pink;">Saldo Awal</th>
                             <th class="text-center align-middle" style="background-color: pink;">Terima</th>
                             <th class="text-center align-middle" style="background-color: pink;">Keluar Sewing</th>
                             <th class="text-center align-middle" style="background-color: pink;">Keluar Gudang Stok</th>
-                            <th class="text-center align-middle" style="background-color: pink;">Adjustment</th>
-                            <th class="text-center align-middle" style="background-color: pink;">Switching IN</th>
                             <th class="text-center align-middle" style="background-color: pink;">Switching OUT</th>
+                            <th class="text-center align-middle" style="background-color: pink;">Switching IN</th>
+                            <th class="text-center align-middle" style="background-color: pink;">Adjustment</th>
                             <th class="text-center align-middle" style="background-color: pink;">Saldo Akhir</th>
 
                         </tr>
@@ -324,13 +324,13 @@
                         data: 'qty_out_subcont'
                     },
                     {
-                        data: 'sewing_adjust'
+                        data: 'sewing_switching_out'
                     },
                     {
                         data: 'sewing_switching_in'
                     },
                     {
-                        data: 'sewing_switching_out'
+                        data: 'sewing_adjust'
                     },
                     {
                         data: 'saldo_akhir_sewing'
@@ -368,13 +368,13 @@
                         data: 'qty_finishing'
                     },
                     {
-                        data: 'qc_finishing_adjust'
+                        data: 'qc_finishing_switching_out'
                     },
                     {
                         data: 'qc_finishing_switching_in'
                     },
                     {
-                        data: 'qc_finishing_switching_out'
+                        data: 'qc_finishing_adjust'
                     },
                     {
                         data: 'saldo_akhir_finishing'
@@ -400,13 +400,13 @@
                         data: 'rft_sp'
                     },
                     {
-                        data: 'finishing_adjust'
+                        data: 'finishing_switching_out'
                     },
                     {
                         data: 'finishing_switching_in'
                     },
                     {
-                        data: 'finishing_switching_out'
+                        data: 'finishing_adjust'
                     },
                     {
                         data: 'saldo_akhir_secondary_proses'
@@ -423,13 +423,13 @@
                         data: 'total_input_rework_sewing'
                     },
                     {
-                        data: 'defect_sewing_adjust'
+                        data: 'defect_sewing_switching_out'
                     },
                     {
                         data: 'defect_sewing_switching_in'
                     },
                     {
-                        data: 'defect_sewing_switching_out'
+                        data: 'defect_sewing_adjust'
                     },
                     {
                         data: 'saldo_akhir_defect_sewing'
@@ -446,13 +446,13 @@
                         data: 'total_input_rework_spotcleaning'
                     },
                     {
-                        data: 'defect_spotcleaning_adjust'
+                        data: 'defect_spotcleaning_switching_out'
                     },
                     {
                         data: 'defect_spotcleaning_switching_in'
                     },
                     {
-                        data: 'defect_spotcleaning_switching_out'
+                        data: 'defect_spotcleaning_adjust'
                     },
                     {
                         data: 'saldo_akhir_defect_spotcleaning'
@@ -469,13 +469,13 @@
                         data: 'total_input_rework_mending'
                     },
                     {
-                        data: 'defect_manding_adjust'
+                        data: 'defect_manding_switching_out'
                     },
                     {
                         data: 'defect_manding_switching_in'
                     },
                     {
-                        data: 'defect_manding_switching_out'
+                        data: 'defect_manding_adjust'
                     },
                     {
                         data: 'saldo_akhir_mending'
@@ -495,13 +495,13 @@
                         data: 'qty_rejected'
                     },
                     {
-                        data: 'qc_reject_adjust'
+                        data: 'qc_reject_switching_out'
                     },
                     {
                         data: 'qc_reject_switching_in'
                     },
                     {
-                        data: 'qc_reject_switching_out'
+                        data: 'qc_reject_adjust'
                     },
                     {
                         data: 'saldo_akhir_qc_reject'

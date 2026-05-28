@@ -513,7 +513,7 @@ class ReportCuttingController extends Controller
             //             cutting.satuan
             //         FROM
             //             whs_bppb_h a
-            //             INNER JOIN ( SELECT bppbno, bppbdate FROM bppb_req WHERE bppbno LIKE '%RQ-F%' AND id_supplier = '432' AND bppbdate between '".$start_date."' and '".$dateTo."'  GROUP BY bppbno ) b ON b.bppbno = a.no_req
+            //             INNER JOIN ( SELECT bppbno, bppbdate FROM bppb_req WHERE bppbno LIKE '%RQ-F%' AND id_supplier = '432' AND bppbdate between '".$dateFrom."' and '".$dateTo."'  GROUP BY bppbno ) b ON b.bppbno = a.no_req
             //             INNER JOIN ( select whs_bppb_det.id_roll, whs_bppb_det.id_item, whs_bppb_det.no_bppb, whs_bppb_det.satuan, whs_bppb_det.qty_out, COUNT(form_cut_input_detail.id) total_roll, MAX(CAST(form_cut_input_detail.qty as decimal(11,3))) total_qty, SUM(form_cut_input_detail.total_pemakaian_roll) total_pemakaian_roll from whs_bppb_det inner join form_cut_input_detail on form_cut_input_detail.id_roll = whs_bppb_det.id_roll group by whs_bppb_det.id_roll ) as cutting on cutting.no_bppb = a.no_bppb
             //         WHERE
             //             a.STATUS != 'Cancel'
@@ -10767,9 +10767,9 @@ order by a.tgl_trans asc
             'In',
             'Replacement',
             'Out',
-            'Adjustment',
-            'Switching In',
             'Switching Out',
+            'Switching In',
+            'Adjustment',
             'Saldo Akhir',
         ];
 
@@ -10795,9 +10795,9 @@ order by a.tgl_trans asc
                 (float) $row->qty_cut,
                 (float) $row->qty_replace,
                 (float) $row->qty_dc,
-                (float) $row->qty_adjustment,
-                (float) $row->switching_in,
                 (float) $row->switching_out,
+                (float) $row->switching_in,
+                (float) $row->qty_adjustment,
                 (float) $row->saldo_akhir_adjustment,
             ];
 

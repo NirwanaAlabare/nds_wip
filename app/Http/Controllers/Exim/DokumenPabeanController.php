@@ -29,38 +29,58 @@ class DokumenPabeanController extends Controller
         $jenis = $request->input('jenis', 'Pemasukan');
 
         $jenis_bc = $request->input('jenis_bc', 'BC 4.0');
+        $status_ceisa = $request->input('status_ceisa', '');
 
         if ($request->ajax()) {
             if ($jenis == 'Pemasukan') {
-                $tbl = 'bpb';
-                $fldtgl = 'bpbdate';
-                $fltanggalpar = 'bpbno';
-                $fltanggal = DB::raw("IF(a.bpbno_int != '', a.bpbno_int, a.bpbno) as trx_no");
+                $tbl       = 'bpb';
+                $fldtgl    = 'bpbdate';
+                $fldno     = 'bpbno';
+                $fldno_int = 'bpbno_int';
             } else {
-                $tbl = 'bppb';
-                $fldtgl = 'bppbdate';
-                $fltanggalpar = 'bppbno';
-                $fltanggal = DB::raw("IF(a.bppbno_int != '', a.bppbno_int, a.bppbno) as trx_no");
+                $tbl       = 'bppb';
+                $fldtgl    = 'bppbdate';
+                $fldno     = 'bppbno';
+                $fldno_int = 'bppbno_int';
             }
 
-            $data = $db->table($tbl . ' as a')
-                ->join('mastersupplier as ms', 'a.id_supplier', '=', 'ms.id_supplier')
-                ->select(
-                    'a.*',
-                    'ms.supplier',
-                    "a.{$fldtgl} as tanggal",
-                    $fltanggal,
-                    "a.{$fltanggalpar} as trx_no_par"
-                )
-                ->whereBetween("a.{$fldtgl}", [$tgl_awal, $tgl_akhir]);
+            $selectTrx = DB::raw("IF({$tbl}.{$fldno_int} != '', {$tbl}.{$fldno_int}, {$tbl}.{$fldno}) as trx_no");
 
+            $data = $db->table($tbl)
+                ->join('mastersupplier as ms', "{$tbl}.id_supplier", '=', 'ms.id_supplier')
+                ->leftJoin('bpb_ceisa as bc', function($join) use ($tbl, $fldno, $fldno_int) {
+                    $join->on("bc.bpbno", '=', "{$tbl}.{$fldno}")
+                         ->orOn("bc.bpbno", '=', "{$tbl}.{$fldno_int}");
+                })
+                ->select(
+                    "{$tbl}.*",
+                    'ms.supplier',
+                    "{$tbl}.{$fldtgl} as tanggal",
+                    $selectTrx,
+                    "{$tbl}.{$fldno} as trx_no_par",
+                    'bc.status as ceisa_status',
+                    'bc.nomor_aju as nomor_aju_ceisa',
+                    'bc.tanggal_aju as tanggal_aju_ceisa'
+                )
+                ->whereBetween("{$tbl}.{$fldtgl}", [$tgl_awal, $tgl_akhir]);
 
             if (!empty($jenis_bc)) {
-                $data->where('a.jenis_dok', $jenis_bc);
+                $data->where("{$tbl}.jenis_dok", $jenis_bc);
             }
 
-            $data->groupBy("a.{$fltanggalpar}")
-                 ->orderBy("a.{$fldtgl}", 'desc');
+            if (!empty($status_ceisa)) {
+                if ($status_ceisa == 'sent') {
+                    $data->where('bc.status', 1);
+                } elseif ($status_ceisa == 'unsent') {
+                    $data->where(function($q) {
+                        $q->whereNull('bc.status')
+                          ->orWhere('bc.status', '!=', 1);
+                    });
+                }
+            }
+
+            $data->groupBy("{$tbl}.{$fldno}")
+                 ->orderBy("{$tbl}.{$fldtgl}", 'desc');
 
             return DataTables::of($data)
                 ->addIndexColumn()
@@ -78,26 +98,44 @@ class DokumenPabeanController extends Controller
                 })
                 ->addColumn('action', function($row) use ($jenis) {
                     $editUrl = route('dokumen-pabean-edit', ['id' => $row->trx_no_par, 'trx' => $jenis]);
-                    $noAju = $row->nomor_aju ?? '';
+                    $noAju = $row->nomor_aju_ceisa ?? '';
                     $tglAju = ($row->tanggal_aju && $row->tanggal_aju != '0000-00-00') ? $row->tanggal_aju : '';
 
                     $btn = '<div class="d-flex justify-content-center">';
                     $btn .= '<a href="' . $editUrl . '" class="btn btn-sm btn-info mr-1" title="Edit Dokumen"><i class="fas fa-edit"></i></a>';
 
                     if($row->jenis_dok == 'BC 4.0' && $jenis == 'Pemasukan') {
-                        $btn .= '<button type="button" class="btn btn-sm btn-success mr-1 btn-kirim"
+                        if($row->ceisa_status == 1) {
+                            $btn .= '<button type="button" class="btn btn-sm btn-secondary mr-1 btn-status" title="Sudah dikirim ke CEISA" data-noaju="' . $noAju . '"><i class="fas fa-check"></i></button>';
+                        } else {
+                            $btn .= '<button type="button" class="btn btn-sm btn-success mr-1 btn-kirim"
                                 data-id="' . $row->trx_no_par . '"
                                 data-noaju="' . $noAju . '"
                                 data-tglaju="' . $tglAju . '"
                                 title="Kirim ke CEISA"><i class="fas fa-paper-plane"></i></button>';
-                        // $btn .= '<button type="button" class="btn btn-sm btn-secondary btn-sync"
-                        //         data-id="' . $noAju . '"
-                        //         title="Cek Status Draft"><i class="fas fa-sync"></i></button>';
+                        }
                     }
 
                     $btn .= '</div>';
 
                     return $btn;
+                })
+                ->filterColumn('trx_no', function ($query, $keyword) use ($tbl, $fldno, $fldno_int) {
+                    $query->where(function ($q) use ($keyword, $tbl, $fldno, $fldno_int) {
+                        $q->where("{$tbl}.{$fldno}", 'LIKE', "%{$keyword}%")
+                          ->orWhere("{$tbl}.{$fldno_int}", 'LIKE', "%{$keyword}%");
+                    });
+                })
+                ->filterColumn('supplier', function ($query, $keyword) {
+                    $query->where('ms.supplier', 'LIKE', "%{$keyword}%");
+                })
+                ->filterColumn('nomor_aju_ceisa', function ($query, $keyword) {
+                    $query->where('bc.nomor_aju', 'LIKE', "%{$keyword}%");
+                })
+                ->filterColumn('pono', function ($query, $keyword) use ($jenis, $tbl) {
+                    if ($jenis == 'Pemasukan') {
+                        $query->where("{$tbl}.pono", 'LIKE', "%{$keyword}%");
+                    }
                 })
                 ->rawColumns(['action'])
                 ->make(true);
@@ -110,6 +148,7 @@ class DokumenPabeanController extends Controller
             "containerFluid" => true,
             "jenis"          => $jenis,
             "jenis_bc"       => $jenis_bc,
+            "status_ceisa"   => $status_ceisa,
             "tgl_awal"       => $tgl_awal,
             "tgl_akhir"      => $tgl_akhir
         ]);
@@ -132,39 +171,44 @@ class DokumenPabeanController extends Controller
             }
 
             $ceisaInfo = $db->table('bpb_ceisa')->where('bpbno', $id)->first();
+
+            if(!$ceisaInfo) {
+                throw new \Exception("Data CEISA untuk transaksi ini tidak ditemukan. Pastikan data sudah disiapkan sebelum mengirim ke CEISA.");
+            }
+
             $draft = json_decode($ceisaInfo->payload_json ?? '{}', true);
 
 
             $tanggalAju = date('Y-m-d');
             $nomorAju = $ceisaInfo->nomor_aju ?? '';
 
-            if (empty($nomorAju) || strlen($nomorAju) != 26) {
-                $currentYear  = date('Y');
-                $today        = date('Ymd');
-                $kodeKantor   = !empty($draft['kodeKantor']) ? $draft['kodeKantor'] : '050100';
-                $kodeDokumen  = '40';
-                $idPerusahaan = 'NIW345';
+            // if (empty($nomorAju) || strlen($nomorAju) != 26) {
+            //     $currentYear  = date('Y');
+            //     $today        = date('Ymd');
+            //     $kodeKantor   = !empty($draft['kodeKantor']) ? $draft['kodeKantor'] : '050100';
+            //     $kodeDokumen  = '40';
+            //     $idPerusahaan = 'NIW345';
 
-                $prefixSearch = $kodeKantor . $kodeDokumen . $idPerusahaan . $currentYear;
+            //     $prefixSearch = $kodeKantor . $kodeDokumen . $idPerusahaan . $currentYear;
 
-                $lastData = $db->table('bpb_ceisa')
-                    ->where('nomor_aju', 'like', $prefixSearch . '%')
-                    ->orderBy('nomor_aju', 'desc')
-                    ->first();
+            //     $lastData = $db->table('bpb_ceisa')
+            //         ->where('nomor_aju', 'like', $prefixSearch . '%')
+            //         ->orderBy('nomor_aju', 'desc')
+            //         ->first();
 
-                $nextSequence = 1;
-                if ($lastData && !empty($lastData->nomor_aju)) {
-                    $lastSequence = (int) substr($lastData->nomor_aju, -6);
-                    $nextSequence = $lastSequence + 1;
+            //     $nextSequence = 1;
+            //     if ($lastData && !empty($lastData->nomor_aju)) {
+            //         $lastSequence = (int) substr($lastData->nomor_aju, -6);
+            //         $nextSequence = $lastSequence + 1;
 
-                    $lastYearSaved = substr($lastData->nomor_aju, 12, 4);
-                    if ($lastYearSaved !== $currentYear) {
-                        $nextSequence = 1;
-                    }
-                }
+            //         $lastYearSaved = substr($lastData->nomor_aju, 12, 4);
+            //         if ($lastYearSaved !== $currentYear) {
+            //             $nextSequence = 1;
+            //         }
+            //     }
 
-                $nomorAju = $kodeKantor . $kodeDokumen . $idPerusahaan . $today . str_pad($nextSequence, 6, '0', STR_PAD_LEFT);
-            }
+            //     $nomorAju = $kodeKantor . $kodeDokumen . $idPerusahaan . $today . str_pad($nextSequence, 6, '0', STR_PAD_LEFT);
+            // }
 
 
             $payloadDokumen = [];
@@ -345,7 +389,7 @@ class DokumenPabeanController extends Controller
                 "idPengguna"           => "",
                 "jabatanTtd"           => $draft['jabatanTtd'] ?? "EXIM STAFF",
                 "namaTtd"              => $draft['namaTtd'] ?? "USER EXIM",
-                "nik"                  => "123456789012345",
+                "nik"                  => "",
                 "kodeKantor"           => $draft['kodeKantor'] ?? "050100",
                 "kotaTtd"              => $draft['kotaTtd'] ?? "BANDUNG",
                 "jumlahKontainer"      => (int) ($draft['jumlahKontainer'] ?? 0),
@@ -434,6 +478,7 @@ class DokumenPabeanController extends Controller
                 $db->table('bpb_ceisa')->where('bpbno', $id)->update([
                     'nomor_aju'   => $nomorAju,
                     'tanggal_aju' => $tanggalAju,
+                    'status'      => 1,
                     'updated_at'  => \Carbon\Carbon::now()
                 ]);
 
@@ -610,19 +655,14 @@ class DokumenPabeanController extends Controller
     public function getDraftData($noAju)
     {
         try {
-            if (empty($noAju) || $noAju == '-' || $noAju == 'undefined') {
-                return response()->json([
-                    'status' => 400,
-                    'message' => 'Nomor Aju tidak valid. Pastikan dokumen sudah dikirim ke CEISA.'
-                ], 400);
-            }
+
             $responseCeisa = $this->ceisaService->getStatusDraft($noAju);
 
-            if ($responseCeisa && isset($responseCeisa['status']) && strtolower($responseCeisa['status']) == 'ok') {
+            if ($responseCeisa && isset($responseCeisa['status']) && in_array(strtolower($responseCeisa['status']), ['ok', 'success'])) {
                 return response()->json([
                     'status'         => 200,
                     'message'        => 'Status draft berhasil ditarik dari CEISA!',
-                    'ceisa_response' => $responseCeisa['data']
+                    'ceisa_response' => $responseCeisa
                 ]);
             } else {
                 return response()->json([
@@ -633,6 +673,122 @@ class DokumenPabeanController extends Controller
             }
 
         } catch (\Exception $e) {
+            return response()->json([
+                'status'  => 500,
+                'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getStatusPeriode(Request $request)
+    {
+        try {
+            $tgl_awal  = $request->input('tgl_awal',  date('Y-m-d', strtotime('-30 days')));
+            $tgl_akhir = $request->input('tgl_akhir', date('Y-m-d'));
+
+            $responseCeisa = $this->ceisaService->cekStatus();
+            if (!$responseCeisa || !in_array(strtolower($responseCeisa['status'] ?? ''), ['ok', 'success'])) {
+                return response()->json([
+                    'status'  => 422,
+                    'message' => 'Gagal mengambil data dari server CEISA.',
+                    'raw'     => $responseCeisa
+                ], 422);
+            }
+
+            $dataStatus = $responseCeisa['dataStatus'] ?? [];
+            $dataRespon = $responseCeisa['dataRespon']  ?? [];
+
+            $awal  = \Carbon\Carbon::parse($tgl_awal)->startOfDay();
+            $akhir = \Carbon\Carbon::parse($tgl_akhir)->endOfDay();
+
+
+            // Filter dataStatus berdasarkan waktuStatus dalam range tanggal
+            $filteredStatus = array_filter($dataStatus, function ($item) use ($awal, $akhir) {
+                if (empty($item['waktuStatus'])) return false;
+                try {
+                    $waktu = \Carbon\Carbon::parse($item['waktuStatus']);
+                    return $waktu->between($awal, $akhir);
+                } catch (\Exception $e) {
+                    return false;
+                }
+            });
+
+            // Filter dataRespon berdasarkan waktuRespon dalam range tanggal
+            $filteredRespon = array_filter($dataRespon, function ($item) use ($awal, $akhir) {
+                if (empty($item['waktuRespon'])) return false;
+                try {
+                    $waktu = \Carbon\Carbon::parse($item['waktuRespon']);
+                    return $waktu->between($awal, $akhir);
+                } catch (\Exception $e) {
+                    return false;
+                }
+            });
+
+            // Group by nomorAju untuk status
+            $grouped = [];
+            foreach ($filteredStatus as $item) {
+                $noAju = $item['nomorAju'] ?? 'UNKNOWN';
+                if (!isset($grouped[$noAju])) {
+                    $grouped[$noAju] = [
+                        'nomorAju'     => $noAju,
+                        'nomorDaftar'  => $item['nomorDaftar']  ?? null,
+                        'tanggalDaftar'=> $item['tanggalDaftar'] ?? null,
+                        'statusList'   => [],
+                        'responList'   => [],
+                    ];
+                }
+                $grouped[$noAju]['statusList'][] = $item;
+                // Update nomorDaftar jika ada
+                if (!empty($item['nomorDaftar'])) {
+                    $grouped[$noAju]['nomorDaftar']   = $item['nomorDaftar'];
+                    $grouped[$noAju]['tanggalDaftar'] = $item['tanggalDaftar'] ?? null;
+                }
+            }
+
+            // Tambahkan dataRespon ke dalam group yang cocok
+            foreach ($filteredRespon as $item) {
+                $noAju = $item['nomorAju'] ?? 'UNKNOWN';
+                if (!isset($grouped[$noAju])) {
+                    $grouped[$noAju] = [
+                        'nomorAju'      => $noAju,
+                        'nomorDaftar'   => $item['nomorDaftar']  ?? null,
+                        'tanggalDaftar' => $item['tanggalDaftar'] ?? null,
+                        'statusList'    => [],
+                        'responList'    => [],
+                    ];
+                }
+                $grouped[$noAju]['responList'][] = $item;
+            }
+
+            // Sort each group's statusList descending by waktuStatus
+            foreach ($grouped as &$grp) {
+                usort($grp['statusList'], function ($a, $b) {
+                    return strcmp($b['waktuStatus'] ?? '', $a['waktuStatus'] ?? '');
+                });
+                usort($grp['responList'], function ($a, $b) {
+                    return strcmp($b['waktuRespon'] ?? '', $a['waktuRespon'] ?? '');
+                });
+            }
+            unset($grp);
+
+            // Sort groups by latest waktuStatus descending
+            uasort($grouped, function ($a, $b) {
+                $aTime = $a['statusList'][0]['waktuStatus'] ?? '0000-00-00';
+                $bTime = $b['statusList'][0]['waktuStatus'] ?? '0000-00-00';
+                return strcmp($bTime, $aTime);
+            });
+
+            return response()->json([
+                'status'    => 200,
+                'message'   => 'Berhasil mengambil status periode dari CEISA.',
+                'tgl_awal'  => $tgl_awal,
+                'tgl_akhir' => $tgl_akhir,
+                'total'     => count($grouped),
+                'data'      => array_values($grouped),
+            ]);
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('CEISA getStatusPeriode Error: ' . $e->getMessage());
             return response()->json([
                 'status'  => 500,
                 'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()

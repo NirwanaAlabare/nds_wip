@@ -5331,4 +5331,37 @@ class SewingToolsController extends Controller
             'message' => "Fix selesai.<br><b>$fixed</b> output berhasil diperbaiki &mdash; <b>$created</b> master plan baru dibuat &mdash; <b>$failed</b> output gagal.",
         );
     }
+
+    public function getMasterPlanNullGambar()
+    {
+        $data = MasterPlan::whereNull('gambar')
+            ->orWhere('gambar', '')
+            ->get();
+
+        return array(
+            'status' => 200,
+            'data' => $data,
+            'total' => $data->count(),
+        );
+    }
+
+    public function updateMasterPlanGambar()
+    {
+        $affected = DB::connection('mysql_sb')->update("
+            UPDATE master_plan
+            LEFT JOIN (
+                SELECT id_ws, gambar FROM master_plan
+                WHERE gambar IS NOT NULL AND gambar != ''
+                GROUP BY id_ws
+            ) mp ON mp.id_ws = master_plan.id_ws
+            SET master_plan.gambar = mp.gambar
+            WHERE master_plan.gambar IS NULL OR master_plan.gambar = ''
+        ");
+
+        return array(
+            'status' => 200,
+            'message' => $affected . ' data master plan berhasil diupdate gambar.',
+            'additional' => [],
+        );
+    }
 }
