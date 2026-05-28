@@ -5823,12 +5823,8 @@ order by a.tgl_trans asc
         );
     }
 
-<<<<<<< HEAD
     // Deprecated
     public function report_mutasi_wip_cutting_detail1(Request $request)
-=======
-    public function report_mutasi_wip_cutting_detail(Request $request)
->>>>>>> main
     {
 
         $start_date = $request->input('start_date'); // example: 9 (September)
@@ -8683,7 +8679,7 @@ order by a.tgl_trans asc
     //     return Excel::download(new export_excel_report_mut_wip_cutting_detail($request->start_date, $request->end_date), 'Laporan Mutasi WIP Cutting Detail.xlsx');
     // }
 
-    public function export_excel_report_mut_wip_cutting_detail(Request $request)
+    public function export_excel_report_mut_wip_cutting_detail1(Request $request)
     {
         $start_date = $request->start_date;
         $end_date = $request->end_date;
