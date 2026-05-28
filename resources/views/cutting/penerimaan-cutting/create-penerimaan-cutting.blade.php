@@ -485,11 +485,12 @@
                 });
 
                 if (isExist) {
-                    Swal.fire({
-                        icon: 'warning',
+                    iziToast.warning({
                         title: 'Duplicate!',
-                        text: 'Barcode sudah ada di list!',
-                        confirmButtonText: 'Oke'
+                        message: 'Barcode sudah ada di list!',
+                        position: 'topCenter',
+                        transitionIn: 'slideInRight',
+                        timeout: 2000
                     });
 
                     $("#scan_item").val('');
@@ -505,11 +506,12 @@
                         console.log(res);
 
                         if (res.status == false) {
-                            Swal.fire({
-                                icon: 'warning',
+                            iziToast.warning({
                                 title: 'Warning',
-                                text: res.message,
-                                confirmButtonText: 'Oke'
+                                message: res.message,
+                                position: 'topCenter',
+                                transitionIn: 'slideInRight',
+                                timeout: 2000
                             });
 
                             $("#scan_item").val('');
@@ -566,13 +568,12 @@
                             $("#scan_item").val('');
 
                         } else {
-                            Swal.fire({
-                                icon: 'error',
+                            iziToast.error({
                                 title: 'Gagal',
-                                text: res ? res : 'Roll tidak tersedia.',
-                                showCancelButton: false,
-                                showConfirmButton: true,
-                                confirmButtonText: 'Oke',
+                                message: res ? res : 'Roll tidak tersedia.',
+                                position: 'topCenter',
+                                transitionIn: 'slideInRight',
+                                timeout: 2000
                             });
 
                             // calculatePipingRoll();
@@ -583,13 +584,12 @@
                     error: function(jqXHR) {
                         console.log(jqXHR);
 
-                        Swal.fire({
-                            icon: 'error',
+                        iziToast.error({
                             title: 'Gagal',
-                            text: jqXHR.responseText ? jqXHR.responseText : 'Roll tidak tersedia.',
-                            showCancelButton: false,
-                            showConfirmButton: true,
-                            confirmButtonText: 'Oke',
+                            message: jqXHR.responseText ? jqXHR.responseText : 'Roll tidak tersedia.',
+                            position: 'topCenter',
+                            transitionIn: 'slideInRight',
+                            timeout: 2000
                         });
 
                         document.getElementById("loading").classList.add("d-none");
@@ -597,13 +597,12 @@
                 });
             }
 
-            return Swal.fire({
-                icon: 'error',
+            return iziToast.error({
                 title: 'Gagal',
-                text: 'Item tidak ditemukan',
-                showCancelButton: false,
-                showConfirmButton: true,
-                confirmButtonText: 'Oke',
+                message: 'Item tidak ditemukan',
+                position: 'topCenter',
+                transitionIn: 'slideInRight',
+                timeout: 2000
             });
         }
 

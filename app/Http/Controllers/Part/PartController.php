@@ -825,11 +825,13 @@ class PartController extends Controller
             //     where id = '$request->txtpart'");
 
         // Cek apakah part sudah memiliki part_form (sudah digunakan di form cut)
-        if (PartForm::where('part_id', $request->id)->exists()) {
-            return array(
-                'icon' => 'salah',
-                'msg'  => 'Part sudah memiliki Form Cut, tidak dapat menambah Part Detail.',
-            );
+        if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() < 1) {
+            if (PartForm::where('part_id', $request->id)->exists()) {
+                return array(
+                    'icon' => 'salah',
+                    'msg'  => 'Part sudah memiliki Form Cut, tidak dapat menambah Part Detail.',
+                );
+            }
         }
 
         // IF COMPLEMENT
@@ -862,6 +864,13 @@ class PartController extends Controller
                         'tujuan' => $currentFromPartDetail->tujuan,
                         "created_by" => Auth::user()->id,
                         "created_by_username" => Auth::user()->username,
+                    ]);
+
+                    // Logging
+                    Log::channel("storePartDetailSecondary")->info([
+                        "Creating Data",
+                        "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                        $createNewPartDetail
                     ]);
 
                     if ($createNewPartDetail) {
@@ -936,6 +945,13 @@ class PartController extends Controller
                     'tujuan' => $validatedRequest['tujuan'],
                     "created_by" => Auth::user()->id,
                     "created_by_username" => Auth::user()->username,
+                ]);
+
+                // Logging
+                Log::channel("storePartDetailSecondary")->info([
+                    "Creating Data",
+                    "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                    $createNewPartDetail
                 ]);
 
                 if ($createNewPartDetail) {
@@ -1013,12 +1029,24 @@ class PartController extends Controller
             "edit_tujuan" => "required",
         ]);
 
+        Log::channel('updatePartSecondary')->info([
+            "Updating Data",
+            "By " . (Auth::user() ? Auth::user()->id . " " . Auth::user()->username : "System"),
+            "edit_id"             => $validatedRequest['edit_id'],
+            "edit_tujuan"         => $validatedRequest['edit_tujuan'],
+            "edit_master_part_id" => $request->edit_master_part_id,
+            "edit_cons"           => $request->edit_cons,
+            "edit_urutan"         => $request->edit_urutan,
+            "edit_part_status"    => $request->edit_part_status,
+            "edit_item"           => $request->edit_item,
+        ]);
+
         // Phase 1
         $checkDc = DcIn::leftJoin("stocker_input", "stocker_input.id_qr_stocker", "=", "dc_in_input.id_qr_stocker")->
             where("part_detail_id", $validatedRequest['edit_id'])->
             count();
 
-        if ($checkDc < 1 || Auth::user()->roles->whereIn("nama_role", ["superadmin"])) {
+        if ($checkDc < 1) {
             $update_part = PartDetail::where("id", $validatedRequest['edit_id'])->
                 update([
                     'tujuan' => $validatedRequest['edit_tujuan'],
@@ -1106,6 +1134,15 @@ class PartController extends Controller
                     }
 
                     PartDetailItem::upsert($partItemData, ['part_detail_id', 'bom_jo_item_id'], ["updated_at"]);
+
+                    // Similar Recursive Call
+                    $similarPartDetail = PartDetail::where("from_part_detail", $validatedRequest['edit_id'])->first();
+                    if ($similarPartDetail) {
+                        $similarRequest = new Request(array_merge($request->all(), [
+                            'edit_id' => $similarPartDetail->id,
+                        ]));
+                        $this->updatePartSecondary($similarRequest);
+                    }
                 }
 
                 return array(
@@ -1723,14 +1760,16 @@ class PartController extends Controller
 
         $partDetail = PartDetail::with('masterPart')->find($id);
 
-        if ($partDetail && PartForm::where('part_id', $partDetail->part_id)->exists()) {
-            return array(
-                'status' => 400,
-                'message' => 'Part sudah memiliki Form Cut, tidak dapat dihapus.',
-                'redirect' => '',
-                'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
-                'additional' => [],
-            );
+        if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() < 1) {
+            if ($partDetail && PartForm::where('part_id', $partDetail->part_id)->exists()) {
+                return array(
+                    'status' => 400,
+                    'message' => 'Part sudah memiliki Form Cut, tidak dapat dihapus.',
+                    'redirect' => '',
+                    'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
+                    'additional' => [],
+                );
+            }
         }
 
         if ($partDetail->delete()) {

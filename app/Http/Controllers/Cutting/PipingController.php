@@ -237,6 +237,18 @@ class PipingController extends Controller
                         $formCutDetail->short_roll = $shortRoll;
                         $formCutDetail->save();
                     }
+                } elseif ($nextRecord->source == 'form_cut_piping') {
+                    $nextPiping = Piping::where('id', $nextRecord->id)->first();
+                    if ($nextPiping) {
+                        $nextPiping->qty = $qty;
+                        $nextPiping->short_roll = $qty - $nextPiping->piping - $nextPiping->qty_sisa;
+                        $nextPiping->save();
+                    }
+                } else {
+                    // Update Scanned Item Qty when next usage is GR panel
+                    ScannedItem::where("id_roll", $validatedRequest["edit_id_roll"])->update([
+                        "qty" => $qty
+                    ]);
                 }
             } else {
 

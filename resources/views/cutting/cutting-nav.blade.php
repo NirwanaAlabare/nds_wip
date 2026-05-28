@@ -161,12 +161,12 @@
                         Ganti Reject Panel <i class="fa fa-list"></i>
                     </a>
                 </li>
-                <li>
+                {{-- <li>
                     <a href="{{ route('report_mutasi_wip_cutting') }}"
                         class="dropdown-item {{ $routeName == 'report_mutasi_wip_cutting' ? 'active' : '' }}">
                         Mutasi WIP Cutting <i class="fa fa-list"></i>
                     </a>
-                </li>
+                </li> --}}
                 <li>
                     <a href="{{ route('report_mutasi_wip_cutting_detail') }}"
                         class="dropdown-item {{ $routeName == 'report_mutasi_wip_cutting_detail' ? 'active' : '' }}">
@@ -179,12 +179,12 @@
                         Pengeluaran Cutting <i class="fa fa-list"></i>
                     </a>
                 </li>
-                <li>
+                {{-- <li>
                     <a href="{{ route('report_pengeluaran_cutting_panel') }}"
                         class="dropdown-item {{ $routeName == 'report_pengeluaran_cutting_panel' ? 'active' : '' }}">
                         Pengeluaran Cutting Panel <i class="fa fa-list"></i>
                     </a>
-                </li>
+                </li> --}}
                 <li>
                     <a href="{{ route('report_return_fabric_cutting') }}"
                         class="dropdown-item {{ $routeName == 'report_return_fabric_cutting' ? 'active' : '' }}">

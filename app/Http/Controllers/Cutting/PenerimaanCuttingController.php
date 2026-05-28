@@ -314,6 +314,7 @@ class PenerimaanCuttingController extends Controller
                 }
             )
             ->where('id_roll', $id)
+            ->where('whs_bppb_det.no_bppb', 'NOT LIKE', 'MT/%')
             ->orderBy('id', 'DESC')
             ->first();
 
