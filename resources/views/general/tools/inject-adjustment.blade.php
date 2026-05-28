@@ -65,7 +65,7 @@
     <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold">
-                <i class="fa-solid fa-diagram-project"></i> Inject Adjustment Sewing
+                <i class="fa-solid fa-diagram-project"></i> Inject Adjustment
             </h5>
         </div>
 
@@ -79,7 +79,7 @@
             </a>
 
             <a class="btn btn-outline-warning btn-sm"
-                href="{{ route('contoh-upload-import-inject-adjustment-sewing') }}">
+                href="{{ route('contoh-upload-import-inject-adjustment') }}">
                 <i class="fas fa-file-download fa-sm"></i>
                 Contoh Upload
             </a>
@@ -178,7 +178,7 @@
     <div class="modal fade" id="importExcel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
-            <form method="post" action="{{ route('import-data-inject-adjustment-sewing') }}" enctype="multipart/form-data"
+            <form method="post" action="{{ route('import-data-inject-adjustment') }}" enctype="multipart/form-data"
                 onsubmit="submitUploadForm(this, event)">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
@@ -235,7 +235,7 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '{{ route('get-data-inject-adjustment-sewing') }}',
+                url: '{{ route('get-data-inject-adjustment') }}',
                 dataType: 'json',
                 dataSrc: 'data',
                 scrollY: '400px',
@@ -357,7 +357,7 @@
             }
 
             $.ajax({
-                url: "{{ route('store-inject-adjustment-sewing') }}",
+                url: "{{ route('store-inject-adjustment') }}",
                 type: "POST",
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -415,7 +415,7 @@
                 if (result.isConfirmed) {
 
                     $.ajax({
-                        url: "{{ route('delete-inject-adjustment-sewing') }}",
+                        url: "{{ route('delete-inject-adjustment') }}",
                         type: "POST",
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

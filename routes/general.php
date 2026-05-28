@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\General\GeneralController;
+use App\Http\Controllers\General\InjectAdjustmentController;
 use App\Http\Controllers\General\TrackController;
 use App\Http\Controllers\General\WorksheetController;
 
@@ -109,5 +110,14 @@ Route::middleware('auth')->group(function () {
         // get worksheet
         Route::get('/', 'index')->name('worksheet');
         Route::post('/print-qr', 'printQr')->name('worksheet-print-qr');
+    });
+
+    Route::controller(InjectAdjustmentController::class)->prefix("inject-adjustment")->group(function () {
+        Route::get('/', 'injectAdjustment')->name("inject-adjustment");
+        Route::get('/contoh-upload-import', 'contohUploadImportInjectAdjustment')->name('contoh-upload-import-inject-adjustment');
+        Route::post('/import-data', 'importDataInjectAdjustment')->name('import-data-inject-adjustment');
+        Route::post('/store', 'storeInjectAdjustment')->name('store-inject-adjustment');
+        Route::post('/delete', 'deleteInjectAdjustment')->name('delete-inject-adjustment');
+        Route::post('/get-data', 'getDataInjectAdjustment')->name('get-data-inject-adjustment');
     });
 });
