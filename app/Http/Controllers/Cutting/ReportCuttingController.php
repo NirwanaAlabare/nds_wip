@@ -10677,7 +10677,6 @@ order by a.tgl_trans asc
                             type_report = 'CUTTING' and
                             status = 'Y'
                         GROUP BY
-                            no_ws, style, color, size, panel, part,
                             from_no_ws, from_style, from_color, from_size, from_panel, from_part
                         UNION ALL
                         SELECT
@@ -10715,11 +10714,10 @@ order by a.tgl_trans asc
                             type_report = 'CUTTING' and
                             status = 'Y'
                         GROUP BY
-                            no_ws, style, color, size, panel, part,
-                            from_no_ws, from_style, from_color, from_size, from_panel, from_part
+                            no_ws, style, color, size, panel, part
                     ) cutting
                     group by
-                        ws, styleno, color, size, panel, nama_part
+                        ws, styleno, color, size, panel, COALESCE(nama_part, '')
                     having
                         (
                             saldo_awal_adjustment != 0 OR

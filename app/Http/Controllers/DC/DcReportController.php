@@ -1484,7 +1484,7 @@ class DcReportController extends Controller
                             no_ws, color, size, panel, part
                     ) dc
                     group by
-                        ws, color, size, panel, nama_part
+                        ws, color, size, panel, COALESCE(nama_part, '')
                     having
                         (
                             current_saldo_awal_adjustment != 0 OR
@@ -2950,8 +2950,7 @@ class DcReportController extends Controller
                             from_tgl_saldo <= '$dateTo' and
                             type_report = 'DC'
                         GROUP BY
-                            from_no_ws, from_color, from_size, from_panel, from_part,
-                            no_ws, color, size, panel, part
+                            from_no_ws, from_color, from_size, from_panel, from_part
                         UNION ALL
                         select
                             null stockers,
@@ -2984,11 +2983,10 @@ class DcReportController extends Controller
                             tgl_saldo <= '$dateTo' and
                             type_report = 'DC'
                         GROUP BY
-                            from_no_ws, from_color, from_size, from_panel, from_part,
                             no_ws, color, size, panel, part
                     ) dc
                     group by
-                        ws, color, size, panel, nama_part
+                        ws, color, size, panel, COALESCE(nama_part, '')
                     having
                         (
                             current_saldo_awal_adjustment != 0 OR
@@ -3005,7 +3003,6 @@ class DcReportController extends Controller
                             switching_in != 0 OR
                             switching_out != 0
                         )
-
             ");
 
 
