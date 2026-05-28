@@ -91,7 +91,8 @@
                         <th width="18%">Nama Barang</th>
                         <th width="10%">Qty</th>
                         <th width="8%">Satuan</th>
-                        <th width="8%">WS</th>
+                        <th width="8%">WS Asal</th>
+                        <th width="8%">WS Tujuan</th>
                         <th width="8%">Status</th>
                         <th width="8%">Act</th>
                     </tr>
@@ -147,7 +148,8 @@
                 {data: 'nama_barang', name: 'bsd.nama_barang'},
                 {data: 'qty', name: 'bsd.qty', className: 'text-right'},
                 {data: 'satuan', name: 'bsd.satuan', className: 'text-center'},
-                {data: 'ws', name: 'bsd.ws', className: 'text-center'},
+                {data: 'ws_asal', name: 'bsd.ws_asal', className: 'text-center'},
+                {data: 'ws_tujuan', name: 'bsd.ws_tujuan', className: 'text-center'},
                 {
                     data: 'status',
                     name: 'bs.status',

@@ -21,7 +21,6 @@
         <form action="{{ route('update-costing-header', $costing->id) }}" method="POST" id="form-header" enctype="multipart/form-data">
             @csrf
             @method('PUT')
-
             <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Buyer Name</label>
@@ -449,8 +448,8 @@
                 <thead class="bg-light text-center">
                     <tr>
                         <th width="5%">NO</th>
-                        <th width="35%">ITEM</th>
-                        <th width="10%">ALLOW (%)</th>
+                        <th width="30%">ITEM</th>
+                        <th width="15%">ALLOW (%)</th>
                         <th width="15%">VALUE IDR</th>
                         <th width="15%">VALUE USD</th>
                         <th width="10%">%</th>
@@ -485,7 +484,7 @@
                     </tr>
                     <tr>
                         <td colspan="2" class="text-left">G&A</td>
-                        <td class="text-center">3%</td>
+                        <td class="text-center"><input type="text" id="ga_percent" name="ga_percent" class="form-control form-control-sm d-inline-block text-center input-decimal" style="width: 120px;" value="{{$costing->ga_percent ?? '3.00' }}">%</td>
                         <td class="text-right" id="val-ga-idr">0.00</td>
                         <td class="text-right" id="val-ga-usd">0.00</td>
                         <td class="text-center pct-ga fw-bold">0%</td>
@@ -702,17 +701,21 @@
 
     function autosave_header() {
         let form = $('#form-header');
+        let formData = new FormData(form[0]);
+
+        formData.append('ga_percent', $('#ga_percent').val());
+
         $.ajax({
             url: form.attr('action'),
             type: 'POST',
-            data: new FormData(form[0]),
+            data: formData,
             processData: false,
             contentType: false,
             success: function(res) {
-                console.log("Berhasil");
+                console.log("Header & G&A berhasil di-autosave!");
             },
             error: function() {
-                console.error("Gagal");
+                console.error("Gagal autosave");
             }
         });
     }
@@ -819,6 +822,18 @@
             autosave_header();
         });
 
+        let typingTimer;
+        let doneTypingInterval = 2000;
+
+        $('#ga_percent').on('input', function() {
+            calculate_summary();
+
+            clearTimeout(typingTimer);
+
+            typingTimer = setTimeout(function() {
+                autosave_header();
+            }, doneTypingInterval);
+        });
 
         $('#vat').on('change', function() {
             let val = parseFloat($(this).val()) || 0;
@@ -1534,6 +1549,7 @@
         });
 
     function calculate_summary() {
+
         let order_qty = parseFloat($('#qty').val().replace(/,/g, '')) || 0;
         let rate_from_idr = parseFloat($('#rate_from_idr').val()) || 0;
 
@@ -1655,8 +1671,9 @@
         let base_ga_idr = base_material_idr + cat_totals['Manufacturing'].idr + tot_other_idr;
         let base_ga_usd = base_material_usd + cat_totals['Manufacturing'].usd + tot_other_usd;
 
-        let ga_idr = base_ga_idr * 0.03;
-        let ga_usd = base_ga_usd * 0.03;
+        let input_ga_pct = parseFloat($('#ga_percent').val()) || 0;
+        let ga_idr = base_ga_idr * (input_ga_pct / 100);
+        let ga_usd = base_ga_usd * (input_ga_pct / 100);
 
         let grand_idr = base_ga_idr + ga_idr;
         let grand_usd = grand_idr / rate_from_idr;

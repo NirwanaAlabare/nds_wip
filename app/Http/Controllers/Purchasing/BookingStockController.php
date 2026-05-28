@@ -34,7 +34,8 @@ class BookingStockController extends Controller
                     'bsd.nama_barang',
                     'bsd.satuan',
                     'bsd.qty',
-                    'bsd.ws',
+                    'bsd.ws_asal',
+                    'bsd.ws_tujuan',
                     'bs.keterangan',
                 );
 
@@ -69,6 +70,12 @@ class BookingStockController extends Controller
                     $qty = floatval($row->qty);
                     $satuan = $row->satuan ?? '';
                     return number_format($qty, 2) . ' ' . $satuan;
+                })
+                ->addColumn('ws_asal', function ($row) {
+                    return $row->ws_asal;
+                })
+                ->addColumn('ws_tujuan', function ($row) {
+                    return $row->ws_tujuan;
                 })
                 ->addColumn('action', function ($row) {
                     $btnDelete = '<button type="button" class="btn btn-sm btn-danger" onclick="deleteBooking('.$row->id_detail.')" title="Hapus Item"><i class="fas fa-trash"></i></button>';
@@ -109,7 +116,7 @@ class BookingStockController extends Controller
         }
         $no_booking = $prefix . $nextNum;
 
-         $units = DB::connection('mysql_sb')->table('masterpilihan')
+        $units = DB::connection('mysql_sb')->table('masterpilihan')
            ->where('kode_pilihan', 'Satuan')
            ->get();
 
@@ -122,8 +129,14 @@ class BookingStockController extends Controller
             'no_booking' => $no_booking,
             'units' => $units,
             'containerFluid' => true,
-            'ws_list' => $ws_list
+            'ws_list' => $ws_list,
+            // 'ws_asal' => $ws_asal
         ]);
+    }
+
+    public function getWsAsal() {
+        $ws_asal = DB::connection('mysql_sb')->table('data_stock_fabric')->groupBy('id_jo')->get();
+        return response()->json($ws_asal);
     }
 
     public function store(Request $request)
@@ -147,7 +160,8 @@ class BookingStockController extends Controller
                     'nama_barang' => $request->nama_barang[$key],
                     'qty' => $request->qty_det[$key],
                     'satuan' => $request->satuan_det[$key],
-                    'ws' => $request->ws_det[$key],
+                    'ws_asal' => $request->ws_asal_det[$key],
+                    'ws_tujuan' => $request->ws_tujuan_det[$key],
                     'created_at' => now(),
                 ]);
             }
@@ -217,7 +231,8 @@ class BookingStockController extends Controller
                 'bsd.nama_barang',
                 'bsd.satuan',
                 'bsd.qty',
-                'bsd.ws'
+                'bsd.ws_asal',
+                'bsd.ws_tujuan'
             );
 
         if ($tgl_awal && $tgl_akhir) {

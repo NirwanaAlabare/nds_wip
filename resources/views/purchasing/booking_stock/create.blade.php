@@ -53,13 +53,13 @@
             </div>
 
             <div class="row bg-light p-3 border rounded shadow-sm mb-4">
-                <div class="col-md-5 mb-3">
+                <div class="col-md-3 mb-3">
                     <label class="small fw-bold">Nama Barang</label>
                     <select id="id_item" name="id_item" class="form-control select2bs4">
                         <option value="">-- Pilih Item --</option>
                     </select>
                 </div>
-                <div class="col-md-2 mb-3">
+                <div class="col-md-1 mb-3">
                     <label class="small fw-bold">Qty</label>
                     <input type="text" id="qty" name="qty" class="form-control form-control-sm text-right" placeholder="0" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                 </div>
@@ -73,9 +73,15 @@
                     </select>
                 </div>
                 <div class="col-md-3 mb-3">
-                    <label class="small fw-bold">WS</label>
-                    <select id="ws" name="ws" class="form-control select2bs4">
-                        <option value="">-- Pilih WS --</option>
+                    <label class="small fw-bold">WS Asal</label>
+                    <select id="ws_asal" name="ws_asal" class="form-control select2bs4">
+                        <option value="">-- Pilih WS Asal --</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="small fw-bold">WS Tujuan</label>
+                    <select id="ws_tujuan" name="ws_tujuan" class="form-control select2bs4">
+                        <option value="">-- Pilih WS Tujuan --</option>
                         @foreach($ws_list as $ws)
                             <option value="{{ $ws->kpno }}">{{ $ws->kpno }}</option>
                         @endforeach
@@ -101,7 +107,8 @@
                             <th width="35%">Nama Barang</th>
                             <th width="10%">Qty</th>
                             <th width="10%">Satuan</th>
-                            <th width="15%">WS</th>
+                            <th width="15%">WS Asal</th>
+                            <th width="15%">WS Tujuan</th>
                             <th width="5%">Act</th>
                         </tr>
                     </thead>
@@ -208,9 +215,10 @@
         let name_item = $('#id_item option:selected').text();
         let qty = $('#qty').val();
         let satuan = $('#satuan').val();
-        let ws = $('#ws').val();
+        let ws_asal = $('#ws_asal').val();
+        let ws_tujuan = $('#ws_tujuan').val();
 
-        if(!id_item || !qty || !ws) {
+        if(!id_item || !qty || !ws_asal || !ws_tujuan) {
             Swal.fire('Error', 'Lengkapi data item, qty, dan WS sebelum klik Add!', 'error');
             return;
         }
@@ -223,7 +231,8 @@
                 <td>${name_item} <input type="hidden" name="nama_barang[]" value="${name_item}"></td>
                 <td class="text-center">${qty} <input type="hidden" name="qty_det[]" value="${qty}"></td>
                 <td class="text-center">${satuan} <input type="hidden" name="satuan_det[]" value="${satuan}"></td>
-                <td class="text-center">${ws} <input type="hidden" name="ws_det[]" value="${ws}"></td>
+                <td class="text-center">${ws_asal} <input type="text" name="ws_asal_det[]" value="${ws_asal}"></td>
+                <td class="text-center">${ws_tujuan} <input type="text" name="ws_tujuan_det[]" value="${ws_tujuan}"></td>
                 <td class="text-center">
                     <button type="button" class="btn btn-xs btn-danger" onclick="removeRow(this)"><i class="fas fa-trash"></i></button>
                 </td>
@@ -307,5 +316,27 @@
             }
         });
     }
+
+    function loadWSAsal() {
+        let url = '{{ route("booking-stock-get-ws-asal") }}';
+        $.ajax({
+            url: url,
+            type: "GET",
+            success: function(res) {
+                let selectWsAsal = $('#ws_asal');
+                if(res.length > 0) {
+                    $.each(res, function(index, ws) {
+                        selectWsAsal.append(`<option value="${ws.kpno}">${ws.kpno}</option>`);
+                    });
+                }
+                selectWsAsal.trigger('change');
+            },
+            error: function() {
+                Swal.fire('Error', 'Gagal menarik data WS Asal dari server.', 'error');
+            }
+        });
+    }
+
+    loadWSAsal();
 </script>
 @endsection
