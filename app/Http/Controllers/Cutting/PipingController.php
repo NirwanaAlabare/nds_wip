@@ -241,7 +241,7 @@ class PipingController extends Controller
                     $nextPiping = Piping::where('id', $nextRecord->id)->first();
                     if ($nextPiping) {
                         $nextPiping->qty = $qty;
-                        $nextPiping->short_roll = ($nextPiping->piping + $nextPiping->qty_sisa) - $qty;
+                        $nextPiping->short_roll = $qty - $nextPiping->piping - $nextPiping->qty_sisa;
                         $nextPiping->save();
                     }
                 } else {
