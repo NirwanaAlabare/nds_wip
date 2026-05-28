@@ -194,6 +194,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/store-inject-mutasi-sewing', 'storeInjectMutasiSewing')->name('store-inject-mutasi-sewing');
         Route::post('/delete-inject-mutasi-sewing', 'deleteInjectMutasiSewing')->name('delete-inject-mutasi-sewing');
         Route::post('/get-data-inject-mutasi-sewing', 'getDataInjectMutasiSewing')->name('get-data-inject-mutasi-sewing');
+
+        Route::get('/inject-adjustment-sewing', 'injectAdjustmentSewing')->name("inject-adjustment-sewing");
+        Route::get('/contoh-upload-import-inject-adjustment-sewing', 'contohUploadImportInjectAdjustmentSewing')->name('contoh-upload-import-inject-adjustment-sewing');
+        Route::post('/import-data-inject-adjustment-sewing', 'importDataInjectAdjustmentSewing')->name('import-data-inject-adjustment-sewing');
+        Route::post('/store-inject-adjustment-sewing', 'storeInjectAdjustmentSewing')->name('store-inject-adjustment-sewing');
+        Route::post('/delete-inject-adjustment-sewing', 'deleteInjectAdjustmentSewing')->name('delete-inject-adjustment-sewing');
+        Route::post('/get-data-inject-adjustment-sewing', 'getDataInjectAdjustmentSewing')->name('get-data-inject-adjustment-sewing');
     });
 
     // Reporting
