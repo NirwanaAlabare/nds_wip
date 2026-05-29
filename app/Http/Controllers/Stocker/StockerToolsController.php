@@ -515,7 +515,7 @@ class StockerToolsController extends Controller
             ->leftJoin('part', 'part.id', '=', 'part_detail.part_id')
             ->leftJoin('master_part', 'master_part.id', '=', 'part_detail.master_part_id')
             ->whereNotNull('stocker_input.part_detail_id')
-            ->whereRaw('(part.act_costing_ws != stocker_input.act_costing_ws OR part.id IS NULL)')
+            ->whereRaw('(part_detail.id IS NULL OR part.id IS NULL OR part.act_costing_ws != stocker_input.act_costing_ws)')
             ->orderBy('stocker_input.created_at', 'desc');
 
         return DataTables::eloquent($data)->make(true);

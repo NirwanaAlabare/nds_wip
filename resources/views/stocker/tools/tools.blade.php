@@ -194,7 +194,7 @@
                     <a href="{{ route('check-stocker-tidak-valid') }}" class="home-item">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-triangle-exclamation"></i> Check Stocker Tidak Valid</h5>
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-triangle-exclamation"></i> Check Stocker Tanpa Form</h5>
                             </div>
                         </div>
                     </a>
