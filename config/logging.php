@@ -268,5 +268,12 @@ return [
             'level' => 'debug',
             'days' => 30,
         ],
+
+        'updateDcTransaction' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/updateDcTransaction/updateDcTransaction.log'),
+            'level' => 'debug',
+            'days' => 30,
+        ],
     ],
 ];

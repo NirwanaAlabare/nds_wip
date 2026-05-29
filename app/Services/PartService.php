@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Part\Part;
 use DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class PartService
 {
@@ -61,5 +63,161 @@ class PartService
                 "status" => 200,
                 "message" => "Validasi."
             );
+    }
+
+    public function updateDcTransaction($partDetailID)
+    {
+        $actor = Auth::user() ? Auth::user()->id . " " . Auth::user()->username : "System";
+
+        Log::channel("updateDcTransaction")->info("Starting updateDcTransaction", [
+            "part_detail_id" => $partDetailID,
+            "by" => $actor,
+        ]);
+
+        // Check Part Detail
+        $partDetail = PartDetail::where("id", $partDetailID)->first();
+
+        if (!$partDetail) {
+            Log::channel("updateDcTransaction")->warning("Part Detail not found", [
+                "part_detail_id" => $partDetailID,
+            ]);
+            return;
+        }
+
+        // Part Detail Secondary
+        $partDetailSecondary = PartDetailSecondary::select("part_detail_secondary.part_detail_id", "master_secondary.id as master_secondary_id", "master_secondary.tujuan", "master_secondary.proses", 'part_detail_secondary.urutan')->leftJoin("master_secondary", "master_secondary.id", "=", "part_detail_secondary.master_secondary_id")->where("part_detail_id", $partDetail->id)->orderBy("urutan asc")->get();
+        if ($partDetailSecondary->count() < 1) {
+            $partDetailSecondary = PartDetail::selectRaw("part_detail.id as part_detail_id, master_secondary.id as master_secondary_id, master_secondary.tujuan, master_secondary.proses, 0 as urutan")->leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->where("id", $partDetail->id)->get();
+        }
+
+        Log::channel("updateDcTransaction")->info("Part Detail Secondary loaded", [
+            "part_detail_id" => $partDetail->id,
+            "secondary_count" => $partDetailSecondary->count(),
+            "secondaries" => $partDetailSecondary->toArray(),
+        ]);
+
+        // Secondary Dalam dan Luar
+        $withSecondaryInhouse = $partDetailSecondary->where("tujuan", "SECONDARY DALAM")->count();
+        $withSecondaryIn = $partDetailSecondary->where("tujuan", "SECONDARY LUAR")->count();
+
+        // Loop over Stockers
+        $stockers = Stocker::where("part_detail_id", $partDetail->id)->get();
+
+        Log::channel("updateDcTransaction")->info("Processing Stockers", [
+            "part_detail_id" => $partDetail->id,
+            "stocker_count" => $stockers->count(),
+            "with_secondary_inhouse" => $withSecondaryInhouse,
+            "with_secondary_in" => $withSecondaryIn,
+        ]);
+
+        foreach ($stockers as $stocker) {
+            // Stocker Update
+            if ($stocker->urutan > 0) {
+                $currentPartDetailSecondary = $partDetailSecondary->where("urutan", $stocker->urutan+1)->first();
+                if (!$currentPartDetailSecondary) {
+                    $currentPartDetailSecondary = $partDetailSecondary->where("urutan", $stocker->urutan)->first();
+                }
+            } else {
+                $currentPartDetailSecondary = $partDetailSecondary->first();
+            }
+
+            Log::channel("updateDcTransaction")->info("Updating Stocker", [
+                "stocker_id" => $stocker->id,
+                "id_qr_stocker" => $stocker->id_qr_stocker,
+                "urutan" => $stocker->urutan,
+                "tujuan_lama" => $stocker->tujuan,
+                "tujuan_baru" => $currentPartDetailSecondary->tujuan ?? null,
+                "tempat_lama" => $stocker->tempat,
+                "tempat_baru" => $currentPartDetailSecondary->proses ?? null,
+            ]);
+
+            // Update Part Detail Secondary Tujuan
+            $stocker->tujuan = $currentPartDetailSecondary->tujuan;
+            $stocker->tempat = $currentPartDetailSecondary->proses;
+            $stocker->save();
+
+            // Delete Secondary Dalam
+            if ($withSecondaryInhouse < 1) {
+                Log::channel("updateDcTransaction")->info("Deleting Secondary Inhouse (Dalam)", [
+                    "id_qr_stocker" => $stocker->id_qr_stocker,
+                ]);
+
+                // Secondary Inhouse IN
+                $deleteSecondaryInhouseIn = SecondaryInhouseIn::where("id_qr_stocker", $stocker->id_qr_stocker)->delete();
+
+                // Get Secondary Inhouse OUT
+                $getSecondaryInhouse = SecondaryInhouse::where("id_qr_stocker", $stocker->id_qr_stocker)->get();
+
+                Log::channel("updateDcTransaction")->info("Secondary Inhouse OUT found", [
+                    "id_qr_stocker" => $stocker->id_qr_stocker,
+                    "count" => $getSecondaryInhouse->count(),
+                ]);
+
+                // Delete Secondary Inhouse OUT & Secondary IN
+                foreach ($getSecondaryInhouse as $secInhouse) {
+                    // Secondary IN
+                    $deleteSecondaryIn = SecondaryIn::where("id_qr_stocker", $stocker->id_qr_stocker)->whereRaw("IFNULL(urutan, '-')", ($secInhouse->urutan ?? '-'))->delete();
+                    $deleteSecondaryInhouse = $secInhouse->delete();
+
+                    Log::channel("updateDcTransaction")->info("Deleted Secondary Inhouse OUT & Secondary IN", [
+                        "id_qr_stocker" => $stocker->id_qr_stocker,
+                        "urutan" => $secInhouse->urutan ?? null,
+                    ]);
+                }
+            }
+
+            // Delete Secondary Luar
+            if ($withSecondaryIn < 1) {
+                Log::channel("updateDcTransaction")->info("Processing Secondary Luar deletion", [
+                    "id_qr_stocker" => $stocker->id_qr_stocker,
+                ]);
+
+                // Secondary IN
+                $secondaryIn = SecondaryIn::where("id_qr_stocker", $stocker->id_qr_stocker)->get();
+
+                foreach ($secondaryIn as $sec) {
+                    // Check Secondary Inhouse
+                    $totalSecondaryInhouse = SecondaryInhouse::where("id_qr_stocker", $stocker->id_qr_stocker)->whereRaw("IFNULL(urutan, '-')", ($sec->urutan ?? '-'))->count();
+
+                    // When it doesn't have secondary inhouse then it is secondary luar
+                    if ($totalSecondaryInhouse < 1) {
+                        $deleteSecondaryIn = $sec->delete();
+
+                        Log::channel("updateDcTransaction")->info("Deleted Secondary Luar", [
+                            "id_qr_stocker" => $stocker->id_qr_stocker,
+                            "secondary_in_id" => $sec->id,
+                        ]);
+                    }
+                }
+            }
+
+            // Update DC
+            $dc = DCIn::where("id_qr_stocker", $stocker->id_qr_stocker)->first();
+
+            if ($dc) {
+                $firstPartDetailSecondary = $partDetailSecondary->first();
+
+                Log::channel("updateDcTransaction")->info("Updating DC", [
+                    "id_qr_stocker" => $stocker->id_qr_stocker,
+                    "dc_id" => $dc->id,
+                    "tujuan_lama" => $dc->tujuan,
+                    "tujuan_baru" => $firstPartDetailSecondary->tujuan ?? null,
+                    "lokasi_lama" => $dc->lokasi,
+                    "lokasi_baru" => $firstPartDetailSecondary->proses ?? null,
+                ]);
+
+                $dc->tujuan = $firstPartDetailSecondary->tujuan;
+                $dc->lokasi = $firstPartDetailSecondary->proses;
+                $dc->save();
+            } else {
+                Log::channel("updateDcTransaction")->info("No DC found for stocker", [
+                    "id_qr_stocker" => $stocker->id_qr_stocker,
+                ]);
+            }
+        }
+
+        Log::channel("updateDcTransaction")->info("Finished updateDcTransaction", [
+            "part_detail_id" => $partDetailID,
+        ]);
     }
 }

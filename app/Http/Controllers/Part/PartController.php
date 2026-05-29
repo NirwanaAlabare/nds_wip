@@ -1075,7 +1075,7 @@ class PartController extends Controller
         return null;
     }
 
-    public function updatePartSecondary(Request $request)
+    public function updatePartSecondary(Request $request, PartService $partService)
     {
         $validatedRequest = $request->validate([
             "edit_id" => "required",
@@ -1187,15 +1187,6 @@ class PartController extends Controller
                     }
 
                     PartDetailItem::upsert($partItemData, ['part_detail_id', 'bom_jo_item_id'], ["updated_at"]);
-
-                    // Similar Recursive Call
-                    $similarPartDetail = PartDetail::where("from_part_detail", $validatedRequest['edit_id'])->first();
-                    if ($similarPartDetail) {
-                        $similarRequest = new Request(array_merge($request->all(), [
-                            'edit_id' => $similarPartDetail->id,
-                        ]));
-                        $this->updatePartSecondary($similarRequest);
-                    }
                 }
 
                 // Similar Recursive Call
@@ -1205,9 +1196,11 @@ class PartController extends Controller
                         $similarRequest = new Request(array_merge($request->all(), [
                             'edit_id' => $similar->id,
                         ]));
-                        $this->updatePartSecondary($similarRequest);
+                        $this->updatePartSecondary($validatedRequest['edit_id']);
                     }
                 }
+
+                $partService->updateDcTransaction();
 
                 return array(
                     'status' => '201',

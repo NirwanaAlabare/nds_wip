@@ -194,7 +194,7 @@
                     <a href="{{ route('check-stocker-tidak-valid') }}" class="home-item">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-triangle-exclamation"></i> Check Stocker Tanpa Form</h5>
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-triangle-exclamation"></i> Check Stocker Without Form</h5>
                             </div>
                         </div>
                     </a>
@@ -203,7 +203,7 @@
                     <a href="{{ route('check-stocker-by-filter') }}" class="home-item">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-filter"></i> Check Stocker by WS/Color/Size</h5>
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-filter"></i> Check Stocker Sequence</h5>
                             </div>
                         </div>
                     </a>
