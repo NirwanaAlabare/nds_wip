@@ -73,7 +73,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
         {
             $i++;
 
-            $tanggal = $row[0];
+            $tanggalStocker = $row[0];
             $actCostingWs = $row[1];
             $color = $row[2];
             $size = $row[3];
@@ -83,16 +83,17 @@ class ImportStockerManual implements ToCollection, WithStartRow
             $stockerQty = $row[8];
             $stockerNotes = $row[9];
             $stockerStatus = $row[10];
-            $dcQty = $row[11];
-            $secInhouseInQty = $row[12];
-            $secInhouseOutQty = $row[13];
-            $secInQty = $row[14];
-            $wipOutQty = $row[15];
-            $wipOutTanggal = $row[16];
-            $loadingQty = $row[17];
-            $loadingTanggal = $row[18];
-            $loadingLine = $row[19];
-            $loadingBon = $row[20];
+            $tanggal = $row[11];
+            $dcQty = $row[12];
+            $secInhouseInQty = $row[13];
+            $secInhouseOutQty = $row[14];
+            $secInQty = $row[15];
+            $wipOutQty = $row[16];
+            $wipOutTanggal = $row[17];
+            $loadingQty = $row[18];
+            $loadingTanggal = $row[19];
+            $loadingLine = $row[20];
+            $loadingBon = $row[21];
 
             $orderInfo = DB::connection("mysql_sb")->select("
                 SELECT
@@ -225,7 +226,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
                         'status' => $stockerStatus,
                         'created_by' => Auth::user()->id,
                         'created_by_username' => Auth::user()->username,
-                        'created_at' => Carbon::instance(dateConvert($tanggal))->format('Y-m-d')." 01:00:00",
+                        'created_at' => Carbon::instance(dateConvert($tanggalStocker))->format('Y-m-d')." 01:00:00",
                     ]);
 
                     if ($createStocker) {
@@ -304,7 +305,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
                             $convertedDateWipOut = dateConvert($wipOutTanggal);
 
                             // Optionally format date with Carbon
-                            $dateWipOut = Carbon::instance($convertedDate);
+                            $dateWipOut = Carbon::instance($convertedDateWipOut);
                             $formattedDateWipOut = $dateWipOut->format('Y-m-d');
                             $prefixDateWipOut = $dateWipOut->format('my');
                             $monthWipOut = $dateWipOut->format('m');
