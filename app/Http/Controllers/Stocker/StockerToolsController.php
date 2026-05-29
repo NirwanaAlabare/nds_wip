@@ -327,6 +327,55 @@ class StockerToolsController extends Controller
         return $pdf->download(str_replace("/", "_", $fileName));
     }
 
+    public function previewImportStockerManual(Request $request)
+    {
+        $this->validate($request, [
+            'file' => 'required|mimes:xlsx,xls,csv'
+        ]);
+
+        $rows = Excel::toArray([], $request->file('file'));
+
+        $data = [];
+
+        foreach ($rows[0] as $i => $row) {
+
+            // skip header
+            if ($i == 0) {
+                continue;
+            }
+
+            $data[] = [
+                'tanggal'             => $row[0] ?? '',
+                'ws'                  => $row[1] ?? '',
+                'color'               => $row[2] ?? '',
+                'size'                => $row[3] ?? '',
+                'panel'               => $row[4] ?? '',
+                'part_detail'         => $row[5] ?? '',
+                'proses'              => $row[6] ?? '',
+                'shade'               => $row[7] ?? '',
+                'qty_stocker'         => $row[8] ?? '',
+                'notes'               => $row[9] ?? '',
+                'status'              => $row[10] ?? '',
+                'tanggal_proses_dc'  => $row[11] ?? '',
+                'dc_qty'              => $row[12] ?? '',
+                'in_secondary_qty'   => $row[13] ?? '',
+                'out_secondary_qty'  => $row[14] ?? '',
+                'secondary_in_qty'   => $row[15] ?? '',
+                'wip_out'             => $row[16] ?? '',
+                'tanggal_wip_out'    => $row[17] ?? '',
+                'loading_line_qty'   => $row[18] ?? '',
+                'tanggal_loading'    => $row[19] ?? '',
+                'loading_line'        => $row[20] ?? '',
+                'no_bon_loading'      => $row[21] ?? '',
+            ];
+        }
+
+        return response()->json([
+            'status' => 200,
+            'data' => $data
+        ]);
+    }
+    
     public function importStockerManual(Request $request)
     {
         // validasi

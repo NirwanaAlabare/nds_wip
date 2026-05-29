@@ -126,6 +126,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/reset-redundant-stocker', 'resetRedundantStocker')->name('reset-redundant-stocker');
         Route::post('/restore-stocker-log', 'restoreStockerLog')->name('restore-stocker-log');
 
+        Route::post('/preview-import-stocker-manual', 'previewImportStockerManual')->name('preview-import-stocker-manual');
         Route::post('/import-stocker-manual', 'importStockerManual')->name('import-stocker-manual');
 
         Route::post('/rearrange-groups', 'rearrangeGroups')->name('rearrange-groups');
