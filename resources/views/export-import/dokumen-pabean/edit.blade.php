@@ -582,6 +582,25 @@
             $(this).tab('show');
         });
 
+        function hitungNilaiPungutan() {
+            let total = 0;
+            $('input[name^="barang["][name$="][hargaPenyerahan]"]').each(function() {
+                let val = parseFloat($(this).val()) || 0;
+                total += val;
+            });
+
+            let formattedTotal = Number.isInteger(total) ? total : total.toFixed(2);
+
+            $('input[name="pungutan[nilai]"]').val(formattedTotal);
+            $('input[name="hargaPenyerahan"]').val(formattedTotal);
+        }
+
+        $(document).on('input', 'input[name^="barang["][name$="][hargaPenyerahan]"]', function() {
+            hitungNilaiPungutan();
+        });
+
+        hitungNilaiPungutan();
+
         const optDokumenHtml = `
             <option value="">-- Pilih Kode --</option>
             @foreach($referensiDokumen as $val => $text)

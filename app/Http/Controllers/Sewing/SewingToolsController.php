@@ -2,48 +2,49 @@
 
 namespace App\Http\Controllers\Sewing;
 
+use \avadim\FastExcelLaravel\Excel as FastExcel;
+use App\Exports\Sewing\CheckOutputDetailListExport;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\PPIC_MasterSOController;
+use App\Models\OutputPackingNds;
 use App\Models\PPICMasterSo;
 use App\Models\SignalBit\ActCosting;
-use App\Models\SignalBit\SoDet;
-use App\Models\SignalBit\MasterPlan;
-use App\Models\SignalBit\Rft;
 use App\Models\SignalBit\Defect;
-use App\Models\SignalBit\Rework;
-use App\Models\SignalBit\Reject;
-use App\Models\SignalBit\RftPacking;
+use App\Models\SignalBit\DefectInOut;
 use App\Models\SignalBit\DefectPacking;
-use App\Models\SignalBit\ReworkPacking;
-use App\Models\SignalBit\RejectPacking;
-use App\Models\SignalBit\RftPackingPo;
-use App\Models\SignalBit\Undo;
-use App\Models\SignalBit\UndoPacking;
-use App\Models\SignalBit\UndoPackingPo;
-use App\Models\SignalBit\UserLine;
-use App\Models\SignalBit\UserSbWip;
+use App\Models\SignalBit\MasterPlan;
+use App\Models\SignalBit\OutputGudangStok;
+use App\Models\SignalBit\Reject;
 use App\Models\SignalBit\RejectIn;
 use App\Models\SignalBit\RejectInDetail;
 use App\Models\SignalBit\RejectInDetailPosition;
 use App\Models\SignalBit\RejectOut;
 use App\Models\SignalBit\RejectOutDetail;
-use App\Models\SignalBit\OutputGudangStok;
-use App\Models\SignalBit\DefectInOut;
-use App\Models\SignalBit\SewingSecondaryMaster;
+use App\Models\SignalBit\RejectPacking;
+use App\Models\SignalBit\Rework;
+use App\Models\SignalBit\ReworkPacking;
+use App\Models\SignalBit\Rft;
+use App\Models\SignalBit\RftPacking;
+use App\Models\SignalBit\RftPackingPo;
 use App\Models\SignalBit\SewingSecondaryIn;
-use App\Models\OutputPackingNds;
+use App\Models\SignalBit\SewingSecondaryMaster;
+use App\Models\SignalBit\SoDet;
+use App\Models\SignalBit\Undo;
+use App\Models\SignalBit\UndoPacking;
+use App\Models\SignalBit\UndoPackingPo;
+use App\Models\SignalBit\UserLine;
+use App\Models\SignalBit\UserSbWip;
 use App\Models\Stocker\YearSequence;
 use App\Services\SewingService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
-use Yajra\DataTables\Facades\DataTables;
-use App\Exports\Sewing\CheckOutputDetailListExport;
 use Carbon\Carbon;
-use \avadim\FastExcelLaravel\Excel as FastExcel;
 use DB;
 use Excel;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use PDF;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
+use Yajra\DataTables\Facades\DataTables;
 
 class SewingToolsController extends Controller
 {
@@ -4891,6 +4892,164 @@ class SewingToolsController extends Controller
         $fileName = str_replace("/", "-", ('Line Label.pdf'));
 
         return $pdf->download(str_replace("/", "_", $fileName));
+    }
+
+    public function injectMutasiSewing() {
+        return view("sewing.tools.inject-mutasi-sewing", ['page' => 'dashboard-sewing-eff']);
+    }
+
+    public function contohUploadImportInjectMutasiSewing()
+    {
+        $path = public_path('assets/example/contoh-import-inject-mutasi-sewing.xlsx');
+        return response()->download($path);
+    }
+
+    public function importDataInjectMutasiSewing(Request $request)
+    {
+        $file = $request->file('file');
+
+        $rows = Excel::toArray([], $file)[0];
+
+        $data = [];
+
+        foreach ($rows as $i => $row) {
+            if ($i == 0) continue;
+
+            $data[] = [
+                'tgl_saldo'                       => Date::excelToDateTimeObject($row[0])->format('d-m-Y'),
+                'type_saldo'                      => $row[1] ?? null,
+                'buyer'                           => $row[2] ?? null,
+                'ws'                              => $row[3] ?? null,
+                'styleno'                         => $row[4] ?? null,
+                'color'                           => $row[5] ?? null,
+                'size'                            => $row[6] ?? null,
+                'qty_loading'                     => $row[7] ?? null,
+                'input_rework_sewing'             => $row[8] ?? null,
+                'input_rework_spotcleaning'       => $row[9] ?? null,
+                'input_rework_mending'            => $row[10] ?? null,
+                'defect_sewing'                   => $row[11] ?? null,
+                'defect_spotcleaning'             => $row[12] ?? null,
+                'defect_mending'                  => $row[13] ?? null,
+                'qty_sew_reject'                  => $row[14] ?? null,
+                'qty_sewing'                      => $row[15] ?? null,
+                'input_rework_sewing_f'           => $row[16] ?? null,
+                'input_rework_spotcleaning_f'     => $row[17] ?? null,
+                'input_rework_mending_f'          => $row[18] ?? null,
+                'defect_sewing_f'                 => $row[19] ?? null,
+                'defect_spotcleaning_f'           => $row[20] ?? null,
+                'defect_mending_f'                => $row[21] ?? null,
+                'qty_fin_reject'                  => $row[22] ?? null,
+                'qty_finishing'                   => $row[23] ?? null,
+                'total_in_sp'                     => $row[24] ?? null,
+                'rework_sp'                       => $row[25] ?? null,
+                'defect_sp'                       => $row[26] ?? null,
+                'reject_sp'                       => $row[27] ?? null,
+                'rft_sp'                          => $row[28] ?? null,
+                'total_defect_sewing'             => $row[29] ?? null,
+                'total_input_rework_sewing'       => $row[30] ?? null,
+                'total_defect_spotcleaning'       => $row[31] ?? null,
+                'total_input_rework_spotcleaning' => $row[32] ?? null,
+                'total_defect_mending'            => $row[33] ?? null,
+                'total_input_rework_mending'      => $row[34] ?? null,
+                'qty_reject_in'                   => $row[35] ?? null,
+                'qty_rejected'                    => $row[36] ?? null,
+                'qty_reworked'                    => $row[37] ?? null,
+            ];
+        }
+
+        return response()->json([
+            'status' => 200,
+            'data' => $data
+        ]);
+    }
+
+    public function storeInjectMutasiSewing(Request $request)
+    {
+        $items = $request->items;
+
+        foreach ($items as $item) {
+
+            DB::connection('mysql_sb')
+            ->table('inject_mutasi_sewing')
+            ->insert([
+                'tgl_saldo' => date('Y-m-d', strtotime($item['tgl_saldo'])),
+                'type_saldo' => $item['type_saldo'],
+                'buyer' => $item['buyer'],
+                'ws' => $item['ws'],
+                'styleno' => $item['styleno'],
+                'color' => $item['color'],
+                'size' => $item['size'],
+                'qty_loading' => $item['qty_loading'],
+                'input_rework_sewing' => $item['input_rework_sewing'],
+                'input_rework_spotcleaning' => $item['input_rework_spotcleaning'],
+                'input_rework_mending' => $item['input_rework_mending'],
+                'defect_sewing' => $item['defect_sewing'],
+                'defect_spotcleaning' => $item['defect_spotcleaning'],
+                'defect_mending' => $item['defect_mending'],
+                'qty_sew_reject' => $item['qty_sew_reject'],
+                'qty_sewing' => $item['qty_sewing'],
+                'input_rework_sewing_f' => $item['input_rework_sewing_f'],
+                'input_rework_spotcleaning_f' => $item['input_rework_spotcleaning_f'],
+                'input_rework_mending_f' => $item['input_rework_mending_f'],
+                'defect_sewing_f' => $item['defect_sewing_f'],
+                'defect_spotcleaning_f' => $item['defect_spotcleaning_f'],
+                'defect_mending_f' => $item['defect_mending_f'],
+                'qty_fin_reject' => $item['qty_fin_reject'],
+                'qty_finishing' => $item['qty_finishing'],
+                'total_in_sp' => $item['total_in_sp'],
+                'rework_sp' => $item['rework_sp'],
+                'defect_sp' => $item['defect_sp'],
+                'reject_sp' => $item['reject_sp'],
+                'rft_sp' => $item['rft_sp'],
+                'total_defect_sewing' => $item['total_defect_sewing'],
+                'total_input_rework_sewing' => $item['total_input_rework_sewing'],
+                'total_defect_spotcleaning' => $item['total_defect_spotcleaning'],
+                'total_input_rework_spotcleaning' => $item['total_input_rework_spotcleaning'],
+                'total_defect_mending' => $item['total_defect_mending'],
+                'total_input_rework_mending' => $item['total_input_rework_mending'],
+                'qty_reject_in' => $item['qty_reject_in'],
+                'qty_rejected' => $item['qty_rejected'],
+                'qty_reworked' => $item['qty_reworked'],
+            ]);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Data berhasil disimpan'
+        ]);
+    }
+
+    public function deleteInjectMutasiSewing(Request $request)
+    {
+        DB::connection('mysql_sb')
+            ->table('inject_mutasi_sewing')
+            ->whereIn('no', $request->ids)
+            ->delete();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Data berhasil dihapus'
+        ]);
+    }
+
+    public function getDataInjectMutasiSewing(Request $request)
+    {
+        $tglAwal = $request->dateFrom;
+        $tglAkhir = $request->dateTo;
+
+        $data = DB::connection("mysql_sb")->select("
+            SELECT
+                *,
+                DATE_FORMAT(tgl_saldo, '%d-%m-%Y') AS tgl_saldo
+            FROM
+                inject_mutasi_sewing
+            WHERE
+                tgl_saldo BETWEEN '$tglAwal' AND '$tglAkhir'
+            ORDER BY
+                no DESC
+        ");
+
+        return Datatables::of($data)->toJson();
     }
 
     public function modifyPackingPo() {

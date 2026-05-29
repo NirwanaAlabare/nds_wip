@@ -88,57 +88,21 @@ limit 10");
 
     public function show_tot_dash_fg_ekspedisi(Request $request)
     {
-
-        //         SELECT
-        // sum(tot_karton_non) tot_karton_non,
-        // sum(tot_karton_lok) tot_karton_lok,
-        // sum(tot_karton) tot_karton
-        // FROM
-        // (
-        // SELECT COUNT(*) OVER () as tot_karton_non, '0' tot_karton_lok,  '0' tot_karton
-        // FROM fg_fg_in a
-        // left join fg_fg_out b on a.id = b.id_fg_in
-        // WHERE a.lokasi = '-' and a.status = 'NORMAL' and b.id_fg_in is null
-        // group by a.po, a.no_carton
-        // UNION
-        // SELECT '0' tot_karton_non,'0' tot_karton_lok,count(*) over ()  tot_karton FROM fg_fg_in a
-        // left join fg_fg_out b on a.id = b.id_fg_in
-        // where a.status = 'NORMAL' and b.id_fg_in is null
-        // group by a.po, a.no_carton
-        // UNION
-        // SELECT '0' tot_karton_non, count(*) over ()  tot_karton_lok, '0' tot_karton FROM fg_fg_in a
-        // left join fg_fg_out b on a.id = b.id_fg_in
-        // where a.status = 'NORMAL' and a.lokasi != '-' and b.id_fg_in is null
-        // group by a.po, a.no_carton
-        // ) td
-
-        $data_header = DB::select("SELECT
-sum(tot_karton_non) tot_karton_non,
-sum(tot_karton_lok) tot_karton_lok,
-sum(tot_karton) tot_karton
-FROM
-(
-select count(*) as tot_karton_non, '0' tot_karton_lok,  '0' tot_karton from (
-select a.* FROM fg_fg_in a
-left join fg_fg_out b on a.id = b.id_fg_in
-WHERE a.lokasi = '-' and a.status = 'NORMAL' and b.id_fg_in is null and month(tgl_penerimaan) = month(curdate()) and year(tgl_penerimaan) = year(curdate())
-group by a.po, a.no_carton
-) a
-UNION
-SELECT '0' tot_karton_non,'0' tot_karton_lok,count(*) tot_karton from (
-SELECT a.* FROM fg_fg_in a
-left join fg_fg_out b on a.id = b.id_fg_in
-where a.status = 'NORMAL' and b.id_fg_in is null and month(tgl_penerimaan) = month(curdate()) and year(tgl_penerimaan) = year(curdate())
-group by a.po, a.no_carton
-)b
-UNION
-SELECT '0' tot_karton_non, count(*) tot_karton_lok, '0' tot_karton FROM (
-SELECT a.* FROM fg_fg_in a
-left join fg_fg_out b on a.id = b.id_fg_in
-where a.status = 'NORMAL' and a.lokasi != '-' and b.id_fg_in is null and month(tgl_penerimaan) = month(curdate()) and year(tgl_penerimaan) = year(curdate())
-group by a.po, a.no_carton
-) c
-) td
+        $data_header = DB::select("
+SELECT
+    SUM(lokasi = '-') AS tot_karton_non,
+    SUM(lokasi != '-') AS tot_karton_lok,
+    COUNT(*) AS tot_karton
+FROM (
+    SELECT a.lokasi
+    FROM fg_fg_in a
+    LEFT JOIN fg_fg_out b ON a.id = b.id_fg_in AND b.status = 'NORMAL'
+    WHERE a.status = 'NORMAL'
+        AND b.id_fg_in IS NULL
+        AND MONTH(a.tgl_penerimaan) = MONTH(CURDATE())
+        AND YEAR(a.tgl_penerimaan) = YEAR(CURDATE())
+    GROUP BY a.po, a.no_carton, a.lokasi
+) t
         ");
 
         return json_encode($data_header ? $data_header[0] : null);
@@ -147,17 +111,14 @@ group by a.po, a.no_carton
 
     public function getws_dashboard_ekspedisi(Request $request)
     {
-        $data_ws = DB::select("SELECT ws isi, ws tampil
-        FROM (
-select * from fg_fg_in a where status = 'NORMAL' ) a
-left join
-(
-select * from fg_fg_out where status = 'NORMAL'
-) b on a.id = b.id_fg_in
-left join master_sb_ws m on a.id_so_det = m.id_so_det
-where b.id_fg_in is null and m.buyer = '" . $request->cbobuyer . "'
-group by m.ws
-        ");
+        $data_ws = DB::select("SELECT m.ws isi, m.ws tampil
+        FROM fg_fg_in a
+        LEFT JOIN fg_fg_out b ON a.id = b.id_fg_in AND b.status = 'NORMAL'
+        LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+        WHERE a.status = 'NORMAL' AND b.id_fg_in IS NULL AND m.buyer = ?
+        GROUP BY m.ws
+        ORDER BY m.ws ASC
+        ", [$request->cbobuyer]);
 
         $html = "<option value=''>Pilih WS</option>";
 
@@ -170,18 +131,14 @@ group by m.ws
 
     public function getpo_dashboard_ekspedisi(Request $request)
     {
-        $data_po = DB::select("SELECT po isi, po tampil
-        FROM (
-select * from fg_fg_in a where status = 'NORMAL' ) a
-left join
-(
-select id_fg_in from fg_fg_out where status = 'NORMAL'
-) b on a.id = b.id_fg_in
-left join master_sb_ws m on a.id_so_det = m.id_so_det
-where b.id_fg_in is null and m.buyer = '" . $request->cbobuyer . "'
-group by po
-order by po asc
-        ");
+        $data_po = DB::select("SELECT a.po isi, a.po tampil
+        FROM fg_fg_in a
+        LEFT JOIN fg_fg_out b ON a.id = b.id_fg_in AND b.status = 'NORMAL'
+        LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+        WHERE a.status = 'NORMAL' AND b.id_fg_in IS NULL AND m.buyer = ?
+        GROUP BY a.po
+        ORDER BY a.po ASC
+        ", [$request->cbobuyer]);
 
         $html = "<option value=''>Pilih PO</option>";
 
@@ -197,65 +154,43 @@ order by po asc
         $buyer = $request->buyer;
         $po = $request->po;
         $ws = $request->ws;
-        $no_karton = $request->no_karton;
-        $no_karton = str_replace(' ', '', $no_karton);
-
-        if (strpos($no_karton, '-') !== false) {
-            $no_karton = str_replace(' ', '', $no_karton);
-            $cekArray = explode('-', $no_karton);
-            $no_awal = $cekArray[0];
-            $no_akhir = $cekArray[1];
-            if ($no_karton == "" || $no_karton == null) {
-                $add_no_karton = "";
-            } else {
-                $add_no_karton = "and cast(a.no_carton as INT) >= '$no_awal' and cast(a.no_carton as INT) <= '$no_akhir'";
-            }
-        } else {
-            if ($no_karton == "" || $no_karton == null) {
-                $add_no_karton = "";
-            } else {
-                $add_no_karton = "and cast(a.no_carton as INT) = '$no_karton'";
-            }
-        }
-
-
-        if ($ws == "" || $ws == null) {
-            $add_ws = "";
-        } else {
-            $add_ws = "and m.ws = '$ws'";
-        }
-
-        if ($po == "" || $po == null) {
-            $add_po = "";
-        } else {
-            $add_po = "and a.po = '$po'";
-        }
+        $no_karton = str_replace(' ', '', $request->no_karton);
 
         if ($request->ajax()) {
+            $bindings = [];
+            $where = "a.status = 'NORMAL' AND b.id_fg_in IS NULL AND m.buyer = ?";
+            $bindings[] = $buyer;
+
+            if (!empty($ws)) {
+                $where .= " AND m.ws = ?";
+                $bindings[] = $ws;
+            }
+
+            if (!empty($po)) {
+                $where .= " AND a.po = ?";
+                $bindings[] = $po;
+            }
+
+            if (strpos($no_karton, '-') !== false) {
+                $parts = explode('-', $no_karton);
+                $where .= " AND CAST(a.no_carton AS UNSIGNED) BETWEEN ? AND ?";
+                $bindings[] = (int) $parts[0];
+                $bindings[] = (int) $parts[1];
+            } elseif (!empty($no_karton)) {
+                $where .= " AND CAST(a.no_carton AS UNSIGNED) = ?";
+                $bindings[] = (int) $no_karton;
+            }
+
             $data_det = DB::select("SELECT
-m.buyer,
-m.ws,
-m.color,
-m.size,
-m.dest,
-a.po,
-a.no_carton,
-a.notes,
-a.qty,
-a.lokasi,
-p.tgl_shipment
-FROM
-(
-select * from fg_fg_in a where status = 'NORMAL' ) a
-left join
-(
-select id_fg_in from fg_fg_out where status = 'NORMAL'
-) b on a.id = b.id_fg_in
-left join master_sb_ws m on a.id_so_det = m.id_so_det
-left join ppic_master_so p on a.id_ppic_master_so = p.id
-where b.id_fg_in is null and m.buyer = '$buyer' $add_ws $add_po $add_no_karton
-order by ws asc, po asc, color asc, size asc
-        ");
+m.buyer, m.ws, m.color, m.size, m.dest,
+a.po, a.no_carton, a.notes, a.qty, a.lokasi, p.tgl_shipment
+FROM fg_fg_in a
+LEFT JOIN fg_fg_out b ON a.id = b.id_fg_in AND b.status = 'NORMAL'
+LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+LEFT JOIN ppic_master_so p ON a.id_ppic_master_so = p.id
+WHERE $where
+ORDER BY m.ws ASC, a.po ASC, m.color ASC, m.size ASC
+            ", $bindings);
             return DataTables::of($data_det)->toJson();
         }
     }

@@ -187,6 +187,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/modify-packing-po', 'modifyPackingPo')->name('modify-packing-po');
         Route::put('/modify-packing-po/update', 'modifyPackingPoUpdate')->name('modify-packing-po-update');
         Route::post('/modify-packing-po/delete', 'modifyPackingPoDelete')->name('modify-packing-po-delete');
+
+        Route::get('/inject-mutasi-sewing', 'injectMutasiSewing')->name("inject-mutasi-sewing");
+        Route::get('/contoh-upload-import-inject-mutasi-sewing', 'contohUploadImportInjectMutasiSewing')->name('contoh-upload-import-inject-mutasi-sewing');
+        Route::post('/import-data-inject-mutasi-sewing', 'importDataInjectMutasiSewing')->name('import-data-inject-mutasi-sewing');
+        Route::post('/store-inject-mutasi-sewing', 'storeInjectMutasiSewing')->name('store-inject-mutasi-sewing');
+        Route::post('/delete-inject-mutasi-sewing', 'deleteInjectMutasiSewing')->name('delete-inject-mutasi-sewing');
+        Route::post('/get-data-inject-mutasi-sewing', 'getDataInjectMutasiSewing')->name('get-data-inject-mutasi-sewing');
     });
 
     // Reporting

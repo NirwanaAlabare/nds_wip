@@ -49,26 +49,34 @@ order by a.created_at desc
             return DataTables::of($data_input)->toJson();
         }
 
-        $data_po = DB::select("SELECT
-a.po,
-concat(a.po,'_',a.dest) isi,
-concat(a.po, ' - ',a.dest,' - ', m.buyer) tampil
-from ppic_master_so a
-inner join master_sb_ws m on a.id_so_det = m.id_so_det
-where po is not null and tgl_shipment >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
-group by po
-        ");
-
-
         return view(
             'finish_good.finish_good_penerimaan',
             [
                 'page' => 'dashboard_finish_good',
                 "subPageGroup" => "finish_good_penerimaan",
                 "subPage" => "finish_good_penerimaan",
-                "data_po" => $data_po
             ]
         );
+    }
+
+    public function search_po(Request $request)
+    {
+        $term = $request->q ?? '';
+        $data = DB::select("
+            SELECT
+                concat(a.po,'_',a.dest) AS id,
+                concat(a.po, ' - ', a.dest, ' - ', m.buyer) AS text
+            FROM ppic_master_so a
+            INNER JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+            WHERE a.po IS NOT NULL
+                AND a.tgl_shipment >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+                AND (a.po LIKE ? OR m.buyer LIKE ?)
+            GROUP BY a.po, a.dest, m.buyer
+            ORDER BY a.po ASC
+            LIMIT 50
+        ", ["%{$term}%", "%{$term}%"]);
+
+        return response()->json(['results' => $data]);
     }
 
     public function fg_in_getno_carton(Request $request)
@@ -251,45 +259,53 @@ having coalesce(sum(qty),0) = coalesce(sum(tot_scan),0) and coalesce(sum(tot_sca
         }
 
 
-        $no_carton = $request->cbo_no_carton;
-
         if ($request->ajax()) {
 
-            $data_preview = DB::select("WITH pl as (
-select * from packing_master_packing_list where  po = '$po' and dest = '$dest' and no_carton = '$no_carton'
+            $data_preview = DB::select("WITH pl AS (
+    SELECT * FROM packing_master_packing_list
+    WHERE po = '$po' AND dest = '$dest'
 ),
-a as (
-select id_ppic, no_carton, count(*)tot_scan from packing_packing_out_scan a
-where po = '$po' and dest = '$dest' and no_carton = '$no_carton'
-group by id_ppic, no_carton
+a AS (
+    SELECT id_ppic, no_carton, COUNT(*) AS tot_scan
+    FROM packing_packing_out_scan
+    WHERE po = '$po' AND dest = '$dest'
+    GROUP BY id_ppic, no_carton
 ),
-b as (
-select id_ppic_master_so, no_carton, sum(qty)tot_fg from fg_fg_in where po = '$po' and dest = '$dest' and no_carton = '$no_carton' and status = 'NORMAL'
-group by id_ppic_master_so, no_carton
+b AS (
+    SELECT id_ppic_master_so, no_carton, SUM(qty) AS tot_fg
+    FROM fg_fg_in
+    WHERE po = '$po' AND dest = '$dest' AND status = 'NORMAL'
+    GROUP BY id_ppic_master_so, no_carton
 )
-
 SELECT
-pl.id_so_det,
-pl.no_carton,
-pl.barcode,
-pl.po,
-pl.dest,
-m.color,
-m.size,
-m.ws,
-coalesce(a.tot_scan,0) - coalesce(tot_fg,0) qty,
-'PCS' unit,
-m.dest,
-price,
-m.curr,
-pl.id_ppic_master_so
+    pl.id_so_det,
+    pl.no_carton,
+    pl.barcode,
+    pl.po,
+    pl.dest,
+    m.color,
+    m.size,
+    m.ws,
+    pl.qty,
+    a.tot_scan,
+    COALESCE(b.tot_fg, 0)                       AS tot_fg,
+    a.tot_scan - COALESCE(b.tot_fg, 0)          AS selisih,
+    'PCS'                                        AS unit,
+    m.dest,
+    m.price,
+    m.curr,
+    pl.id_ppic_master_so
 FROM pl
-left join a on pl.id_ppic_master_so = a.id_ppic and pl.no_carton = a.no_carton
-left join b on pl.id_ppic_master_so = b.id_ppic_master_so and pl.no_carton = b.no_carton
-inner join ppic_master_so p on pl.id_ppic_master_so = p.id
-inner join master_sb_ws m on pl.id_so_det = m.id_so_det
-group by m.id_so_det
-having coalesce(sum(pl.qty),0) = coalesce(sum(tot_scan),0) and coalesce(sum(tot_scan),0) - coalesce(sum(tot_fg),0) != '0'
+LEFT JOIN a  ON pl.id_ppic_master_so = a.id_ppic
+             AND pl.no_carton = a.no_carton
+LEFT JOIN b  ON pl.id_ppic_master_so = b.id_ppic_master_so
+             AND pl.no_carton = b.no_carton
+INNER JOIN ppic_master_so p  ON pl.id_ppic_master_so = p.id
+INNER JOIN master_sb_ws m    ON pl.id_so_det = m.id_so_det
+WHERE pl.qty = a.tot_scan                        -- carton sudah full scan
+  AND COALESCE(b.tot_fg, 0) < a.tot_scan        -- tapi fg belum full
+GROUP BY pl.no_carton, m.id_so_det
+ORDER BY pl.no_carton
             ");
 
             // SELECT
@@ -335,8 +351,6 @@ having coalesce(sum(pl.qty),0) = coalesce(sum(tot_scan),0) and coalesce(sum(tot_
         $timestamp = Carbon::now();
         $user = Auth::user()->name;
         $tgl_skrg = date('Y-m-d');
-        $no_carton = $request->cbo_no_carton;
-
         $poArray = explode('_', $_POST['cbopo']);
         $po = $poArray[0];
         $dest = $poArray[1];
@@ -366,22 +380,28 @@ having coalesce(sum(pl.qty),0) = coalesce(sum(tot_scan),0) and coalesce(sum(tot_
             $bpbno_int = $cek_no_sb[0]->bpbno_int;
         }
 
-        $JmlArray               = $_POST['txtqty'];
-        $id_so_detArray         = $_POST['id_so_det'];
-        $priceArray             = $_POST['price'];
-        $currArray              = $_POST['curr'];
-        $id_ppic_master_soArray = $_POST['id_ppic_master_so'];
-        $barcodeArray           = $_POST['barcode'];
+        $JmlArray               = $_POST['txtqty'] ?? [];
+        $id_so_detArray         = $_POST['id_so_det'] ?? [];
+        $priceArray             = $_POST['price'] ?? [];
+        $currArray              = $_POST['curr'] ?? [];
+        $id_ppic_master_soArray = $_POST['id_ppic_master_so'] ?? [];
+        $barcodeArray           = $_POST['barcode'] ?? [];
+        $no_cartonArray         = $_POST['no_carton'] ?? [];
         $tgl_penerimaan         = date('Y-m-d');
+        $insert_fg_in_sb        = false;
 
         foreach ($JmlArray as $key => $value) {
-            if ($value != '0' && $value != '') {
-                $txtqty         = $JmlArray[$key];
-                $id_so_det      = $id_so_detArray[$key];
-                $price          = $priceArray[$key];
-                $curr           = $currArray[$key];
-                $id_ppic_master_so         = $id_ppic_master_soArray[$key];
-                $barcode          = $barcodeArray[$key]; {
+            if (
+                $value != '0' && $value != ''
+                && isset($no_cartonArray[$key], $id_so_detArray[$key], $barcodeArray[$key])
+            ) {
+                $txtqty            = $JmlArray[$key];
+                $id_so_det         = $id_so_detArray[$key];
+                $price             = $priceArray[$key];
+                $curr              = $currArray[$key];
+                $id_ppic_master_so = $id_ppic_master_soArray[$key];
+                $barcode           = $barcodeArray[$key];
+                $no_carton         = $no_cartonArray[$key]; {
                     $cek = DB::connection('mysql_sb')->select("select count(id_so_det) cek from masterstyle where id_so_det = '$id_so_det'");
                     $cek_data = $cek[0]->cek;
                     if ($cek_data == '0') {
@@ -421,7 +441,7 @@ having coalesce(sum(pl.qty),0) = coalesce(sum(tot_scan),0) and coalesce(sum(tot_
             }
         }
 
-        if ($insert_fg_in_sb != '') {
+        if ($insert_fg_in_sb !== false) {
             return array(
                 "status" => 201,
                 "message" => 'No Transaksi :
@@ -429,7 +449,7 @@ having coalesce(sum(pl.qty),0) = coalesce(sum(tot_scan),0) and coalesce(sum(tot_
                  Sudah Terbuat',
                 "additional" => [],
                 'table' => 'datatable_preview',
-                "callback" => "getno_carton();dataTableReload();"
+                "callback" => "dataTablePreviewReload();dataTableReload();"
             );
         } else {
             return array(
