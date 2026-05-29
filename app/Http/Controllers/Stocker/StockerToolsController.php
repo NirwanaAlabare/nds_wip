@@ -549,9 +549,12 @@ class StockerToolsController extends Controller
                 stocker_input.id_qr_stocker,
                 form_cut_input.no_form,
                 stocker_input.so_det_id,
-                stocker_input.act_costing_ws stocker_ws,
-                part.act_costing_ws part_ws,
+                stocker_input.part_detail_id,
+                part.id part_id,
+                part.panel,
                 master_part.nama_part part_name,
+                part.act_costing_ws part_ws,
+                stocker_input.act_costing_ws stocker_ws,
                 stocker_input.notes,
                 stocker_input.cancel,
                 stocker_input.created_at
@@ -561,7 +564,7 @@ class StockerToolsController extends Controller
             ->leftJoin('part', 'part.id', '=', 'part_detail.part_id')
             ->leftJoin('master_part', 'master_part.id', '=', 'part_detail.master_part_id')
             ->whereNotNull('stocker_input.part_detail_id')
-            ->whereColumn('part.act_costing_ws', '!=', 'stocker_input.act_costing_ws')
+            ->whereRaw('(part_detail.id IS NULL OR part.id IS NULL OR part.act_costing_ws != stocker_input.act_costing_ws)')
             ->orderBy('stocker_input.created_at', 'desc');
 
         return DataTables::eloquent($data)->make(true);

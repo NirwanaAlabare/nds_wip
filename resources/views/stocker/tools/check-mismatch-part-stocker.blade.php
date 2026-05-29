@@ -14,7 +14,7 @@
 
     <div class="card card-sb">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="card-title fw-bold mb-0">Stocker dengan Part WS tidak sesuai Stocker WS</h5>
+            <h5 class="card-title fw-bold mb-0">Stocker dengan Part tidak sesuai</h5>
             <span class="badge bg-danger" id="total-badge">0 data</span>
         </div>
         <div class="card-body">
@@ -26,9 +26,12 @@
                             <th>ID QR Stocker</th>
                             <th>No. Form</th>
                             <th>So Det ID</th>
-                            <th>Part Name</th>
-                            <th>WS Stocker</th>
+                            <th>Part Detail ID</th>
+                            <th>Part ID</th>
+                            <th>Panel</th>
+                            <th>Part</th>
                             <th>WS Part</th>
+                            <th>WS Stocker</th>
                             <th>Notes</th>
                             <th>Cancel</th>
                             <th>Created At</th>
@@ -67,12 +70,15 @@
                     { data: 'id_qr_stocker', defaultContent: '-' },
                     { data: 'no_form', defaultContent: '-' },
                     { data: 'so_det_id', defaultContent: '-', className: 'text-center' },
+                    { data: 'part_detail_id', defaultContent: '-', className: 'text-center' },
+                    { data: 'part_id', defaultContent: '-', className: 'text-center' },
+                    { data: 'panel', defaultContent: '-' },
                     { data: 'part_name', defaultContent: '-' },
-                    { data: 'stocker_ws', defaultContent: '-', className: 'text-center', render: function (d) {
-                        return d ? '<span class="badge bg-primary">' + d + '</span>' : '-';
-                    }},
                     { data: 'part_ws', defaultContent: '-', className: 'text-center', render: function (d) {
                         return d ? '<span class="badge bg-warning text-dark">' + d + '</span>' : '-';
+                    }},
+                    { data: 'stocker_ws', defaultContent: '-', className: 'text-center', render: function (d) {
+                        return d ? '<span class="badge bg-primary">' + d + '</span>' : '-';
                     }},
                     { data: 'notes', defaultContent: '-' },
                     { data: 'cancel', defaultContent: '-', className: 'text-center', render: function (d) {

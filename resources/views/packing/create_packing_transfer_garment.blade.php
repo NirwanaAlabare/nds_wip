@@ -131,6 +131,22 @@
             text-align: center;
         }
 
+        /* ── Select2: teks sekunder tetap terbaca saat item di-highlight (bg biru) ── */
+        .select2-results__option--highlighted .opt-secondary {
+            color: rgba(255, 255, 255, 0.82) !important;
+        }
+        .select2-results__option--highlighted .opt-badge-green {
+            background: rgba(255,255,255,0.25) !important;
+            color: #fff !important;
+        }
+        .select2-results__option--highlighted .opt-badge-red {
+            background: rgba(255,255,255,0.25) !important;
+            color: #fff !important;
+        }
+        .select2-results__option--highlighted .opt-primary {
+            color: #fff !important;
+        }
+
         /* ── Table ── */
         #datatable_tmp thead th {
             background: #f1f3f5;
@@ -360,10 +376,8 @@
             const styleno     = el.data('styleno')     || '';
             const stylenoProd = el.data('stylenoprod') || '';
             return $(`<div style="padding:2px 0;line-height:1.4">
-                <div style="font-weight:700;font-size:.88rem;color:#212529">${option.id}</div>
-                <div style="font-size:.75rem;color:#6c757d">${styleno}
-                    ${stylenoProd ? '<span style="color:#adb5bd"> · </span>' + stylenoProd : ''}
-                </div>
+                <div class="opt-primary" style="font-weight:700;font-size:.88rem;color:#212529">${option.id}</div>
+                <div class="opt-secondary" style="font-size:.75rem;color:#6c757d">${styleno}${stylenoProd ? ' · ' + stylenoProd : ''}</div>
             </div>`);
         }
         function poSelection(option) {
@@ -393,13 +407,13 @@
             const dest    = el.data('dest')  || '-';
             const qty     = el.data('qty')   !== undefined ? el.data('qty') : selisih;
             const badge   = isMinus
-                ? `<span style="background:#dc3545;color:#fff;border-radius:4px;padding:1px 6px;font-size:.7rem;font-weight:700">${selisih} PCS</span>`
-                : `<span style="background:#d1fae5;color:#065f46;border-radius:4px;padding:1px 6px;font-size:.7rem;font-weight:700">${qty} PCS</span>`;
+                ? `<span class="opt-badge-red" style="background:#dc3545;color:#fff;border-radius:4px;padding:1px 6px;font-size:.7rem;font-weight:700">${selisih} PCS</span>`
+                : `<span class="opt-badge-green" style="background:#d1fae5;color:#065f46;border-radius:4px;padding:1px 6px;font-size:.7rem;font-weight:700">${qty} PCS</span>`;
             return $(`<div style="padding:2px 0;line-height:1.5">
-                <div style="font-weight:700;font-size:.88rem;color:${isMinus ? '#dc3545' : '#212529'}">
-                    ${ws} <span style="color:#6c757d;font-weight:400;font-size:.8rem">· ${color} / ${size}</span>
+                <div class="opt-primary" style="font-weight:700;font-size:.88rem;color:${isMinus ? '#dc3545' : '#212529'}">
+                    ${ws} <span class="opt-secondary" style="color:#6c757d;font-weight:400;font-size:.8rem">· ${color} / ${size}</span>
                 </div>
-                <div style="font-size:.75rem;color:#6c757d;display:flex;justify-content:space-between;align-items:center;margin-top:1px">
+                <div class="opt-secondary" style="font-size:.75rem;color:#6c757d;display:flex;justify-content:space-between;align-items:center;margin-top:1px">
                     <span>Dest: ${dest}</span>${badge}
                 </div>
             </div>`);

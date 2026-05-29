@@ -261,5 +261,12 @@ return [
             'level' => 'debug',
             'days' => 30,
         ],
+
+        'destroyPart' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/destroyPart/destroyPart.log'),
+            'level' => 'debug',
+            'days' => 30,
+        ],
     ],
 ];
