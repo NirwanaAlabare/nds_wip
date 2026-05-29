@@ -307,7 +307,7 @@
     </div>
 
     {{-- Import Manual --}}
-    <div class="modal fade" id="importExcel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    {{-- <div class="modal fade" id="importExcel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <form method="post" action="{{ route('import-stocker-manual') }}" enctype="multipart/form-data" onsubmit="submitImportStockerManual(this, event)">
                 <div class="modal-content">
@@ -327,6 +327,84 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
                         <button type="submit" class="btn btn-sb toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Import</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div> --}}
+
+    <div class="modal fade" id="importExcel" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <form id="formImportExcel" enctype="multipart/form-data">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h5 class="modal-title">
+                            Import Stocker Manual
+                        </h5>
+                        <button type="button" class="close" data-bs-dismiss="modal"> <span>&times;</span></button>
+                    </div>
+
+                    <div class="modal-body">
+                        {{ csrf_field() }}
+                        <label class="drop-container">
+                            <input type="file" name="file" id="fileImport" required>
+                        </label>
+                        <a href="{{ asset('example/contoh-import-stocker-manual.xlsx') }}" download class="btn btn-sb-secondary btn-sm">
+                            <i class="fa fa-download"></i> Contoh Excel
+                        </a>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                            <i class="fa fa-window-close"></i> Close
+                        </button>
+
+                        <button type="button" class="btn btn-primary" onclick="previewImportStockerManual()">
+                            <i class="fa fa-thumbs-up" aria-hidden="true"></i> Import
+                        </button>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12 table-responsive">
+                                <table class="table table-bordered w-100" id="datatable-import-stocker-manual">
+                                    <thead>
+                                        <tr>
+                                            <th>Tanggal</th>
+                                            <th>WS</th>
+                                            <th>Color</th>
+                                            <th>Size</th>
+                                            <th>Panel</th>
+                                            <th>Part Detail</th>
+                                            <th>Proses</th>
+                                            <th>Shade</th>
+                                            <th>Qty Stocker</th>
+                                            <th>Notes</th>
+                                            <th>Status</th>
+                                            <th>Tanggal Proses DC</th>
+                                            <th>DC Qty</th>
+                                            <th>In Secondary Qty</th>
+                                            <th>Out Secondary Qty</th>
+                                            <th>Secondary In Qty</th>
+                                            <th>WIP Out</th>
+                                            <th>Tanggal WIP Out</th>
+                                            <th>Loading Line Qty</th>
+                                            <th>Tanggal Loading</th>
+                                            <th>Loading Line</th>
+                                            <th>No Bon Loading</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <input type="hidden" name="items" id="items">
+
+                        <div class="col-12 col-md-6 offset-md-3 mt-3 text-center">
+                            <button type="button" class="btn btn-success w-100" id="btnSimpan" onclick="saveImportStockerManual()">
+                                <i class="fa fa-save"></i> SIMPAN
+                            </button>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -1189,6 +1267,147 @@
                         $("#size"+suffix).prop("disabled", false);
                     }
                 },
+            });
+        }
+
+        // INIT DATATABLE IMPORT STOCKER MANUAL
+        let tableImportStockerManual = $('#datatable-import-stocker-manual').DataTable({
+            paging: true,
+            searching: true,
+            ordering: false,
+            info: true,
+            autoWidth: false,
+            responsive: true
+        });
+
+        // PREVIEW IMPORT STOCKER MANUAL
+        function previewImportStockerManual()
+        {
+            let form = document.getElementById('formImportExcel');
+            let formData = new FormData(form);
+
+            $.ajax({
+                url: "{{ route('preview-import-stocker-manual') }}",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function(){
+                    Swal.fire({
+                        title: 'Loading...',
+                        text: 'Sedang preview data',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                },
+                success: function(response){
+                    Swal.close();
+
+                    tableImportStockerManual.clear().draw();
+
+                    response.data.forEach((item) => {
+                        tableImportStockerManual.row.add([
+                            item.tanggal,
+                            item.ws,
+                            item.color,
+                            item.size,
+                            item.panel,
+                            item.part_detail,
+                            item.proses,
+                            item.shade,
+                            item.qty_stocker,
+                            item.notes,
+                            item.status,
+                            item.tanggal_proses_dc,
+                            item.dc_qty,
+                            item.in_secondary_qty,
+                            item.out_secondary_qty,
+                            item.secondary_in_qty,
+                            item.wip_out,
+                            item.tanggal_wip_out,
+                            item.loading_line_qty,
+                            item.tanggal_loading,
+                            item.loading_line,
+                            item.no_bon_loading
+                        ]).draw(false);
+                    });
+
+                    $('#items').val(JSON.stringify(response.data));
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Preview berhasil ditampilkan',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                },
+                error: function(xhr){
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Preview gagal'
+                    });
+                }
+            });
+        }
+
+        // SAVE IMPORT STOCKER MANUAL
+        function saveImportStockerManual()
+        {
+            if (tableImportStockerManual.rows().count() == 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Warning',
+                    text: 'Data masih kosong!'
+                });
+                return;
+            }
+
+            let form = document.getElementById('formImportExcel');
+            let formData = new FormData(form);
+
+            $.ajax({
+                url: "{{ route('import-stocker-manual') }}",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function(){
+                    Swal.fire({
+                        title: 'Loading...',
+                        text: 'Sedang menyimpan data',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                },
+                success: function(response){
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: response.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+
+                    tableImportStockerManual.clear().draw();
+
+                    $('#formImportExcel')[0].reset();
+                    $('#items').val('');
+
+                    $('#importExcel').modal('hide');
+                },
+                error: function(xhr){
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Gagal simpan data'
+                    });
+                }
             });
         }
     </script>
