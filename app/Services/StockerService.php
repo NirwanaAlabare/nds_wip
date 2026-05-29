@@ -646,6 +646,7 @@ class StockerService
                     return !is_null($item->group_stocker);
                 })->count();
 
+                $incompleteModSizeQty = [];
                 foreach ($stockerForm as $key => $stocker) {
                     // Qty Ply
                     $lembarGelaran = 1;
@@ -663,13 +664,24 @@ class StockerService
                             if ($currentModifySizeQty > 0) {
                                 $modifyThis = $modifySizeQty->where("group_stocker", $stocker->group_stocker)->where("so_det_id", $stocker->so_det_id)->first();
                             } else {
-                                if ($stockerForm->min("group_stocker") == $stocker->group) {
+                                if ($stockerForm->min("group_stocker") == $stocker->group_stocker) {
                                     $modifyThis = $modifySizeQty->where("so_det_id", $stocker->so_det_id)->first();
                                 }
                             }
 
                             if ($modifyThis) {
                                 $lembarGelaran = ($stocker->qty_ply < 1 ? 0 : $lembarGelaran) + $modifyThis->difference_qty;
+                                if ($lembarGelaran < 0) {
+                                    array_push($incompleteModSizeQty, [
+                                        "form_cut_id"    => $stocker->form_cut_id,
+                                        "so_det_id"      => $stocker->so_det_id,
+                                        'part_detail_id' => $stocker->part_detail_id,
+                                        'shade'          => $stocker->shade,
+                                        "group_stocker"  => $stocker->group_stocker,
+                                        "ratio"          => $stocker->ratio+1,
+                                        "qty"            => $lembarGelaran,
+                                    ]);
+                                }
                             }
                         }
 
@@ -699,7 +711,8 @@ class StockerService
 
                     // Stocker Range
                     $stocker->range_awal = $rangeAwal;
-                    $stocker->range_akhir = $stocker->range_akhir = isset($sizeRangeAkhir[$stocker->so_det_id]) ? $sizeRangeAkhir[$stocker->so_det_id] : $rangeAwal + $lembarGelaran;
+                    $stocker->range_akhir = isset($sizeRangeAkhir[$stocker->so_det_id]) ? $sizeRangeAkhir[$stocker->so_det_id] : $rangeAwal + $lembarGelaran;
+
                     $stocker->save();
 
                     $checkFormRatio = $stocker->formCut && $stocker->formCut->marker && $stocker->formCut->markerDetails ? $stocker->formCut->marker->markerDetails()->where("so_det_id", $stocker->so_det_id)->orderBy("ratio", "desc")->first() : null;
@@ -709,11 +722,13 @@ class StockerService
 
                     if (
                         // Qty minimal : 0
-                        ($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1)
+                        ($stocker->qty_ply_mod != null && $stocker->qty_ply_mod < 1)
                         // Part not match
-                        // || ($formPartWs && $formPartWs != $stocker->act_costing_ws)
+                        || ($formPartWs && $formPartWs != $stocker->act_costing_ws)
                         // Ratio  exceed
                         || ($maxFormRatio && $stocker->ratio > $maxFormRatio && !isset($separate))
+                        // Range
+                        || ($stocker->range_awal > $stocker->range_akhir)
                     ) {
                         $stocker->cancel = "Y";
                         $stocker->save();
@@ -721,7 +736,12 @@ class StockerService
                         $stocker->cancel = "N";
                         $stocker->save();
                     }
+
+                    \Log::info([$stocker, $rangeAwal, isset($sizeRangeAkhir[$stocker->so_det_id]) ? $sizeRangeAkhir[$stocker->so_det_id] : $rangeAwal + $lembarGelaran]);
                 }
+
+                $emptyArr = [];
+                $this->modifyIncompleteModSizeQty($incompleteModSizeQty, $emptyArr);
 
                 // Stocker Additional
                 $stockerFormAdd = Stocker::selectRaw("stocker_input.*, master_sb_ws.dest")->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->where("form_cut_id", $formCut->id_form)->whereRaw("notes LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'")->whereNotNull("stocker_input.id_qr_stocker")->whereNull("stocker_input.stocker_reject")->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("so_det_id", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
@@ -751,7 +771,7 @@ class StockerService
                             if ($currentModifySizeQty > 0) {
                                 $modifyThis = $modifySizeQty->where("group_stocker", $stocker->group_stocker)->where("size", $stocker->size)->where("dest", $stocker->dest)->first();
                             } else {
-                                if ($stockerFormAdd->min("group_stocker") == $stocker->group) {
+                                if ($stockerFormAdd->min("group_stocker") == $stocker->group_stocker) {
                                     $modifyThis = $modifySizeQty->where("size", $stocker->size)->where("dest", $stocker->dest)->first();
                                 }
                             }
@@ -796,12 +816,14 @@ class StockerService
                     $maxFormRatio = $checkFormRatio ? ($checkFormRatio->ratio ?? null) : null;
 
                     if (
-                        // Qty minimal : 1
-                        $stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1
+                        // Qty minimal : 0
+                        ($stocker->qty_ply_mod != null && $stocker->qty_ply_mod < 1)
                         // Part not match
-                        // || ($formPartWs && $formPartWs != $stocker->act_costing_ws)
-                        // Ratio  Exceed
+                        || ($formPartWs && $formPartWs != $stocker->act_costing_ws)
+                        // Ratio  exceed
                         || ($maxFormRatio && $stocker->ratio > $maxFormRatio && !isset($separate))
+                        // Range
+                        || ($stocker->range_awal > $stocker->range_akhir)
                     ) {
                         $stocker->cancel = "Y";
                         $stocker->save();
@@ -810,7 +832,7 @@ class StockerService
                         $stocker->save();
                     }
 
-                    // \Log::info([$stocker, $rangeAwalAdd, isset($sizeRangeAkhirAdd[$stocker->so_det_id]) ? $sizeRangeAkhirAdd[$stocker->so_det_id] : $rangeAwalAdd + $lembarGelaran]);
+                    \Log::info([$stocker, $rangeAwalAdd, isset($sizeRangeAkhirAdd[$stocker->so_det_id]) ? $sizeRangeAkhirAdd[$stocker->so_det_id] : $rangeAwalAdd + $lembarGelaran]);
                 }
 
                 // Adjust numbering data
@@ -950,5 +972,141 @@ class StockerService
         }
 
         return $log;
+    }
+
+    /**
+     * Handle incomplete modify size qty — when a mod adjustment exceeds the stocker's range,
+     * the overflow cascades to adjacent stockers (lower ratio first, then higher).
+     *
+     * @param  array  $incompleteModSizeQty  Entries where the mod qty exceeded the stocker's capacity
+     * @param  array  &$storeItemArr         New stockers not yet persisted; modified in-place
+     */
+    public function modifyIncompleteModSizeQty(array $incompleteModSizeQty, array &$storeItemArr): void
+    {
+        // **INFO** Incomplete modify size qty is when the modify size qty exceeding it's stocker (example : stocker is (10) but modify size qty is (-15), so it should consume the stocker before it, because there still be (-5) on (10 - 15))
+        // This logic is to handle the incomplete modify size qty
+
+        for ($i = 0; $i < count($incompleteModSizeQty); $i++) {
+            $criteria = $incompleteModSizeQty[$i];
+
+            $currentStocker = Stocker::whereRaw("
+                part_detail_id = '".$criteria['part_detail_id']."' and
+                form_cut_id = '".$criteria['form_cut_id']."' and
+                so_det_id = '".$criteria['so_det_id']."' and
+                shade = '".$criteria['shade']."' and
+                group_stocker = '".$criteria['group_stocker']."' and
+                ratio < '".$criteria['ratio']."' AND
+                stocker_reject IS NULL AND
+                (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
+            ")->first();
+
+            if (!$currentStocker) {
+                $currentStocker = Stocker::whereRaw("
+                    part_detail_id = '".$criteria['part_detail_id']."' and
+                    form_cut_id = '".$criteria['form_cut_id']."' and
+                    so_det_id = '".$criteria['so_det_id']."' and
+                    shade = '".$criteria['shade']."' and
+                    group_stocker = '".$criteria['group_stocker']."' and
+                    ratio > '".$criteria['ratio']."' AND
+                    stocker_reject IS NULL AND
+                    (notes IS NULL OR (notes NOT LIKE '%ADDITIONAL%' AND notes NOT LIKE '%CANCEL%'))
+                ")->first();
+            }
+
+            if ($currentStocker) {
+                $currentStocker->qty_ply_mod = $currentStocker->qty_ply + $criteria['qty'];
+                $currentStocker->range_akhir = $currentStocker->range_akhir + $criteria['qty'];
+
+                if ($currentStocker->range_awal > $currentStocker->range_akhir) {
+                    $currentStocker->cancel = 'Y';
+
+                    array_push($incompleteModSizeQty, [
+                        "form_cut_id"    => $currentStocker->form_cut_id,
+                        "so_det_id"      => $currentStocker->so_det_id,
+                        'part_detail_id' => $currentStocker->part_detail_id,
+                        'shade'          => $currentStocker->shade,
+                        "group_stocker"  => $currentStocker->group_stocker,
+                        "ratio"          => $currentStocker->ratio,
+                        "qty"            => ($currentStocker->range_akhir - $currentStocker->range_awal),
+                    ]);
+                } else {
+                    $currentStocker->cancel = 'N';
+                }
+                $currentStocker->save();
+            } else {
+                // Fall back to new stockers not yet saved to DB
+                $found = null;
+
+                foreach ($storeItemArr as &$item) {
+                    if (
+                        $item['part_detail_id'] === $criteria['part_detail_id'] &&
+                        $item['form_cut_id']    === $criteria['form_cut_id'] &&
+                        $item['so_det_id']      === $criteria['so_det_id'] &&
+                        $item['shade']          === $criteria['shade'] &&
+                        $item['group_stocker']  === $criteria['group_stocker'] &&
+                        $item['ratio'] < $criteria['ratio']
+                    ) {
+                        $item['qty_ply_mod'] = ($item['qty_ply_mod'] ? $item['qty_ply_mod'] : $item['qty_ply']) + $criteria['qty'];
+                        $item['range_akhir'] = $item['range_akhir'] + $criteria['qty'];
+
+                        if ($item['range_awal'] > $item['range_akhir']) {
+                            $item['cancel'] = 'y';
+
+                            array_push($incompleteModSizeQty, [
+                                "form_cut_id"    => $item['form_cut_id'],
+                                "so_det_id"      => $item['so_det_id'],
+                                'part_detail_id' => $item['part_detail_id'],
+                                'shade'          => $item['shade'],
+                                "group_stocker"  => $item['group_stocker'],
+                                "ratio"          => $item['ratio'],
+                                "qty"            => $item['range_akhir'] - $item['range_awal'],
+                            ]);
+                        } else {
+                            $item['cancel'] = 'n';
+                        }
+
+                        $found = $item;
+                        break;
+                    }
+                }
+
+                if (!$found) {
+                    foreach ($storeItemArr as &$item) {
+                        if (
+                            $item['part_detail_id'] === $criteria['part_detail_id'] &&
+                            $item['form_cut_id']    === $criteria['form_cut_id'] &&
+                            $item['so_det_id']      === $criteria['so_det_id'] &&
+                            $item['shade']          === $criteria['shade'] &&
+                            $item['group_stocker']  === $criteria['group_stocker'] &&
+                            $item['ratio'] > $criteria['ratio']
+                        ) {
+                            $item['qty_ply_mod'] = $item['qty_ply'] + $criteria['qty'];
+                            $item['range_akhir'] = $item['range_akhir'] + $criteria['qty'];
+
+                            if ($item['range_awal'] > $item['range_akhir']) {
+                                $item['cancel'] = 'y';
+
+                                array_push($incompleteModSizeQty, [
+                                    "form_cut_id"    => $item['form_cut_id'],
+                                    "so_det_id"      => $item['so_det_id'],
+                                    'part_detail_id' => $item['part_detail_id'],
+                                    'shade'          => $item['shade'],
+                                    "group_stocker"  => $item['group_stocker'],
+                                    "ratio"          => $item['ratio'],
+                                    "qty"            => ($item['range_akhir'] - $item['range_awal']),
+                                ]);
+                            } else {
+                                $item['cancel'] = 'n';
+                            }
+
+                            $found = $item;
+                            break;
+                        }
+                    }
+                }
+
+                unset($item);
+            }
+        }
     }
 }
