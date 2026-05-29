@@ -2304,7 +2304,7 @@ class StockerController extends Controller
             }
 
             if ($currentStocker) {
-                $currentStocker->qty_ply_mod = ($currentStocker->qty_ply_mod ? $currentStocker->qty_ply_mod : $currentStocker->qty_ply) + $incompleteModSizeQty[$i]['qty'];
+                $currentStocker->qty_ply_mod = $currentStocker->qty_ply + $incompleteModSizeQty[$i]['qty'];
                 $currentStocker->range_akhir = $currentStocker->range_akhir + $incompleteModSizeQty[$i]["qty"];
                 if ($currentStocker->range_awal > $currentStocker->range_akhir) {
                     $currentStocker->cancel = 'Y';
@@ -2646,7 +2646,7 @@ class StockerController extends Controller
             }
 
             if ($currentStocker) {
-                $currentStocker->qty_ply_mod = ($currentStocker->qty_ply_mod ? $currentStocker->qty_ply_mod : $currentStocker->qty_ply) + $incompleteModSizeQty[$i]['qty'];
+                $currentStocker->qty_ply_mod = $currentStocker->qty_ply + $incompleteModSizeQty[$i]['qty'];
                 $currentStocker->range_akhir = $currentStocker->range_akhir + $incompleteModSizeQty[$i]["qty"];
                 if ($currentStocker->range_awal > $currentStocker->range_akhir) {
                     $currentStocker->cancel = 'Y';
