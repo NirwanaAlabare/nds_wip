@@ -447,6 +447,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/delete-redundant-roll', 'deleteRedundantRoll')->name('delete-redundant-roll');
 
             // Import Cutting Manual
+            Route::post('/preview-import-cutting-manual', 'previewImportCuttingManual')->name('preview-import-cutting-manual');
             Route::post('/import-cutting-manual', 'importCuttingManual')->name('import-cutting-manual');
 
             // Import Saldo Awal Cutting Manual
