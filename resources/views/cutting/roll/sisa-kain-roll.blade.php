@@ -225,7 +225,7 @@
                                 document.getElementById("style").value = res.style;
                                 document.getElementById("color").value = res.color;
                                 document.getElementById("lot").value = res.lot;
-                                document.getElementById("no_roll").value = res.no_roll;
+                                document.getElementById("no_roll").value = res.roll;
                                 document.getElementById("sisa_kain").value = res.qty;
                                 document.getElementById("unit").innerText = res.unit;
 

@@ -13,6 +13,7 @@ class CeisaService
     protected $password;
     protected $apiKey;
     protected $idPerusahaan;
+    protected $idPlatform;
 
     public function __construct()
     {
@@ -21,6 +22,7 @@ class CeisaService
         $this->password     = config('ceisa.password_dev');
         $this->apiKey       = config('ceisa.api_key_dev');
         $this->idPerusahaan = config('ceisa.id_perusahaan_dev');
+        $this->idPlatform   = config('ceisa.id_platform_dev');
     }
 
     /**
@@ -33,7 +35,7 @@ class CeisaService
         }
 
         return Cache::remember('ceisa_access_token', 3500, function () {
-            $response = Http::post("{$this->baseUrl}/nle-oauth/v1/user/login", [
+            $response = Http::withoutVerifying()->post("{$this->baseUrl}/nle-oauth/v1/user/login", [
                 'username' => $this->username,
                 'password' => $this->password,
             ]);
@@ -46,47 +48,61 @@ class CeisaService
         });
     }
 
-    /**
-     * Helper Method: Mengirim request HTTP dengan auto-retry jika token kedaluwarsa.
-     */
-    protected function requestWithRetry($method, $url, $options = [], $retry = true)
+    protected function requestWithRetry($method, $url, $data = [], $retry = true)
     {
         $token = $this->getToken();
 
-        $response = Http::withHeaders([
+
+        $headers = [
             'Authorization'    => 'Bearer ' . $token,
             'Beacukai-Api-Key' => $this->apiKey,
             'Content-Type'     => 'application/json',
             'Accept'           => 'application/json',
-        ])->send($method, $url, $options);
+        ];
+
+
+
+        $request = Http::withoutVerifying()->withHeaders($headers);
+
+        // GET: $data dikirim sebagai query string
+        // POST/PUT/PATCH: $data dikirim sebagai JSON body
+        if (strtoupper($method) === 'GET') {
+            $response = $request->get($url, $data);
+        } else {
+            $response = $request->withBody(json_encode($data), 'application/json')
+                                ->send($method, $url);
+        }
 
         $body = $response->json();
 
-        // Deteksi jika server CEISA merespon token invalid/expired (HTTP 401 ATAU response json berisi error)
-        $isInvalidToken = $response->status() === 401 || (isset($body['error']) && $body['error'] === 'invalid_token');
+        // Deteksi jika server CEISA merespon token invalid/expired
+        $isInvalidToken = $response->status() === 401
+            || (isset($body['error']) && $body['error'] === 'invalid_token');
 
         if ($isInvalidToken && $retry) {
             Log::warning('CEISA Token expired/invalid. Mencoba refresh token dan mengulangi request...');
-
-            // Hapus token lama dari cache dan ambil token baru
             $this->getToken(true);
-
-            // Jalankan ulang request dengan token yang baru (set parameter retry = false untuk cegah loop tanpa henti)
-            return $this->requestWithRetry($method, $url, $options, false);
+            return $this->requestWithRetry($method, $url, $data, false);
         }
 
         return $response;
     }
 
+    /**
+     * Cek status koneksi ke CEISA
+     */
     public function cekStatus()
     {
         $response = $this->requestWithRetry('GET', "{$this->baseUrl}/openapi/status", [
-            'query' => ['idPerusahaan' => $this->idPerusahaan]
+            'idPerusahaan' => $this->idPerusahaan
         ]);
 
         return $response->json();
     }
 
+    /**
+     * Cek kurs
+     */
     public function cekKurs($kurs)
     {
         $response = $this->requestWithRetry('GET', "{$this->baseUrl}/openapi/kurs/{$kurs}");
@@ -94,11 +110,16 @@ class CeisaService
         return $response->json();
     }
 
+    /**
+     * Kirim dokumen ke CEISA.
+     */
     public function kirimDokumen($payload, $isFinal = 'false')
     {
-        $response = $this->requestWithRetry('POST', "{$this->baseUrl}/openapi/document?isFinal={$isFinal}", [
-            'json' => $payload
-        ]);
+        $response = $this->requestWithRetry(
+            'POST',
+            "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
+            $payload
+        );
 
         return [
             'status_code' => $response->status(),
@@ -107,15 +128,26 @@ class CeisaService
         ];
     }
 
-    public function getStatusDraft($nomorAju)
+    /**
+     * Ambil status/riwayat dokumen berdasarkan nomor aju (26 digit).
+     */
+    public function getStatusDraft($noAju)
     {
         try {
-            $response = $this->requestWithRetry('GET', "{$this->baseUrl}/v1/temp/{$nomorAju}");
+            $response = $this->requestWithRetry(
+                'GET',
+                "{$this->baseUrl}/openapi/status/{$noAju}"
+            );
+
+            Log::info('CEISA getStatusDraft response', [
+                'http_status' => $response->status(),
+                'body'        => $response->json()
+            ]);
 
             return $response->json();
         } catch (\Exception $e) {
             Log::error('CEISA API Get Status Error: ' . $e->getMessage());
-            return null;
+            throw $e;
         }
     }
 }

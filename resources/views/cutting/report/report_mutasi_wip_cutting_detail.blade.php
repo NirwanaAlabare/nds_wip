@@ -88,6 +88,9 @@
                             <th class="text-center align-middle">In</th>
                             <th class="text-center align-middle">Replacement</th>
                             <th class="text-center align-middle">Out</th>
+                            <th class="text-center align-middle">Switching OUT</th>
+                            <th class="text-center align-middle">Switching IN</th>
+                            <th class="text-center align-middle">Adjustment</th>
                             <th class="text-center align-middle">Saldo Akhir</th>
                         </tr>
                     </thead>
@@ -170,7 +173,7 @@
                 autoWidth: false, // WAJIB false
                 deferRender: true,
 
-                processing: false,
+                processing: true,
 
                 ajax: {
                     url: '{{ route('report_mutasi_wip_cutting_detail') }}',
@@ -226,7 +229,19 @@
                         className: 'text-end'
                     },
                     {
-                        data: 'saldo_akhir',
+                        data: 'switching_out',
+                        className: 'text-end'
+                    },
+                    {
+                        data: 'switching_in',
+                        className: 'text-end'
+                    },
+                    {
+                        data: 'qty_adjustment',
+                        className: 'text-end'
+                    },
+                    {
+                        data: 'saldo_akhir_adjustment',
                         className: 'text-end'
                     },
                 ],

@@ -118,8 +118,7 @@
         <div class="card-header bg-sb">
             <h5 class="card-title fw-bold mb-0">  Tambah Item Baru</h5>
             <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
-                </button>
+                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
             </div>
         </div>
         <div class="card-body">
@@ -197,7 +196,56 @@
                 </button>
             </div>
 
-            <div class="table-responsive border rounded">
+            <div class="row mb-3" id="batch-fill-section" style="display: none;">
+                <div class="col-md-12">
+                    <div class="p-3 border rounded" style="background-color: #f0f4ff;">
+
+                        {{-- Filter Color + Size: hanya untuk Per Color Range Size --}}
+                        <div id="batch-filter-row" class="align-items-center mb-2" style="display: none; gap: 8px;">
+                            <small class="fw-bold text-muted text-nowrap"> Filter:</small>
+                            <div style="flex: 1; min-width: 0;">
+                                <select id="batch_color" class="form-control form-control-sm" multiple>
+                                </select>
+                            </div>
+                            <button type="button" class="btn btn-xs btn-outline-secondary text-nowrap" style="font-size:11px; padding: 2px 7px; white-space:nowrap;" onclick="selectAllBatch('batch_color')" title="Pilih semua color">
+                                All
+                            </button>
+                            <div style="flex: 1; min-width: 0;">
+                                <select id="batch_size" class="form-control form-control-sm" multiple>
+                                </select>
+                            </div>
+                            <button type="button" class="btn btn-xs btn-outline-secondary text-nowrap" style="font-size:11px; padding: 2px 7px; white-space:nowrap;" onclick="selectAllBatch('batch_size')" title="Pilih semua size">
+                                All
+                            </button>
+                        </div>
+
+                        <div class="d-flex align-items-center" style="gap: 10px;">
+                            <small class="fw-bold text-muted text-nowrap">Item:</small>
+                            <div style="flex: 3;">
+                                <select id="batch_item" class="form-control form-control-sm">
+                                    <option value="">-- Pilih Item (opsional) --</option>
+                                </select>
+                            </div>
+                            <small class="fw-bold text-muted text-nowrap">Cons:</small>
+                            <div style="flex: 1;">
+                                <input type="number" step="0.0001" id="batch_cons" class="form-control form-control-sm text-center qty_input" placeholder="0.0000">
+                            </div>
+                            <div class="flex-shrink-0">
+                                <button type="button" class="btn btn-sm text-white fw-bold shadow-sm btn-success" onclick="applyBatch()">
+                                    <i class="fas fa-magic"></i> Ubah Terpilih
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive border rounded" style="position: relative;">
+                {{-- Loading overlay --}}
+                <div id="table-loading-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.85); z-index:20; align-items:center; justify-content:center; flex-direction:column;">
+                    <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+                    <div class="mt-2 small fw-bold text-primary" id="table-loading-text">Memuat data...</div>
+                </div>
                 <table class="table table-bordered table-sm w-100 mb-0" id="itemTable">
                     <thead class="bg-light text-center">
                         <tr>
@@ -205,7 +253,6 @@
                             <th width="22%">Color | Size</th>
                             <th>Item</th>
                             <th width="15%">Cons</th>
-                            {{-- <th width="15%">Price</th> --}}
                             <th width="5%">Act</th>
                         </tr>
                     </thead>
@@ -226,8 +273,7 @@
     <div class="card-header bg-sb">
         <h5 class="card-title fw-bold mb-0">BOM Detail Material & Manufacturing</h5>
         <div class="card-tools">
-            <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
-            </button>
+            <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
         </div>
     </div>
     <div class="card-body">
@@ -426,6 +472,7 @@
 <script>
     let bom_id = {{ $bom->id }};
     let table_add_item = null;
+    let currentRule = '';
 
     $(document).ready(function() {
         $('.select2bs4').select2({ theme: 'bootstrap4' });
@@ -561,6 +608,7 @@
             $("#itemTable tbody").empty();
             $('#check-all-input').prop('checked', false);
             $('#btn-hapus-batch-input').hide();
+            $('#batch-fill-section').hide();
             return;
         }
 
@@ -574,8 +622,12 @@
             $("#itemTable tbody").empty();
             $('#check-all-input').prop('checked', false);
             $('#btn-hapus-batch-input').hide();
+            $('#batch-fill-section').hide();
             return;
         }
+
+        // Tampilkan loading sebelum AJAX
+        showTableLoading('Mengambil data dari server...');
 
         $.post("{{ route('get-list-data-bom') }}", {
             _token: "{{ csrf_token() }}",
@@ -587,6 +639,40 @@
             tbody.empty();
             $('#check-all-input').prop('checked', false);
             $('#btn-hapus-batch-input').hide();
+
+            // Simpan rule aktif secara global
+            currentRule = rule;
+
+            // Tampilkan batch-fill-section sesuai rule
+            if (rule === "All Color All Size") {
+                $('#batch-filter-row').hide();
+                $('#batch-fill-section').hide();
+
+            } else if (rule === "All Color Range Size" || rule === "Per Color All Size") {
+                $('#batch-filter-row').hide();
+                $('#batch-fill-section').fadeIn();
+
+            } else {
+                // Rule 4 (Per Color Range Size): Tampilkan filter Color + Size (multiselect)
+                if ($('#batch_color').data('select2')) $('#batch_color').select2('destroy');
+                if ($('#batch_size').data('select2'))  $('#batch_size').select2('destroy');
+
+                let colorHtml = '';
+                selected_colors.forEach(c => {
+                    colorHtml += `<option value="${c.id}">${c.text}</option>`;
+                });
+
+                let sizeHtml = '';
+                selected_sizes.forEach(s => {
+                    sizeHtml += `<option value="${s.id}">${s.text}</option>`;
+                });
+
+                $('#batch_color').html(colorHtml).select2({ theme: 'bootstrap4', width: '100%', placeholder: '-- Filter Color --', allowClear: true, multiple: true });
+                $('#batch_size').html(sizeHtml).select2({ theme: 'bootstrap4', width: '100%', placeholder: '-- Filter Size --', allowClear: true, multiple: true });
+
+                $('#batch-filter-row').css('display', 'flex');
+                $('#batch-fill-section').fadeIn();
+            }
 
             let rows = [];
             if (rule === "All Color All Size") {
@@ -603,29 +689,31 @@
 
             let existingMap = res.existing || {};
 
+            // ── Optimasi: pre-build base item options HTML sekali saja ──
+            let baseItemOptions = '<option value="">Pilih Item</option>';
+            res.items.forEach(i => {
+                baseItemOptions += `<option value="${i.isi}">${i.tampil}</option>`;
+            });
+
+            // Build semua HTML sekaligus (bukan append 1-1) → jauh lebih cepat
+            showTableLoading(`Membangun ${rows.length} baris...`);
+            let allRowsHtml = '';
             rows.forEach((data, index) => {
-                let idx = index + 1;
-
-                let cIdStr = data.color_id !== null ? data.color_id : 'null';
-                let sIdStr = data.size_id !== null ? data.size_id : 'null';
-                let lookupKey = `${cIdStr}_${sIdStr}`;
-
-                let savedData = existingMap[lookupKey];
+                let idx       = index + 1;
+                let cIdStr    = data.color_id !== null ? data.color_id : 'null';
+                let sIdStr    = data.size_id  !== null ? data.size_id  : 'null';
+                let savedData = existingMap[`${cIdStr}_${sIdStr}`];
 
                 let selectedItemId = savedData ? savedData.id_item : null;
-                let savedQty   = (savedData && savedData.qty > 0) ? parseFloat(savedData.qty).toFixed(4) : '';
-                let savedPrice = (savedData && savedData.price > 0) ? parseFloat(savedData.price).toFixed(4) : '';
+                let savedQty       = (savedData && savedData.qty > 0) ? parseFloat(savedData.qty).toFixed(4) : '';
 
-                let itemOptionsHtml = '<option value="">Pilih Item</option>';
-                res.items.forEach(i => {
-                    let isSelected = (i.isi == selectedItemId) ? 'selected' : '';
-                    itemOptionsHtml += `<option value="${i.isi}" ${isSelected}>${i.tampil}</option>`;
-                });
+                // Inject 'selected' ke option yang sudah tersimpan
+                let itemOptionsHtml = selectedItemId
+                    ? baseItemOptions.replace(`value="${selectedItemId}"`, `value="${selectedItemId}" selected`)
+                    : baseItemOptions;
 
-                let row = `<tr>
-                    <td class="text-center align-middle">
-                        <input type="checkbox" class="check-input-row">
-                    </td>
+                allRowsHtml += `<tr>
+                    <td class="text-center align-middle"><input type="checkbox" class="check-input-row"></td>
                     <td class="align-middle">
                         <input type="hidden" name="id_color[${idx}]" value="${data.color_id ?? ''}">
                         <input type="hidden" name="id_size[${idx}]" value="${data.size_id ?? ''}">
@@ -634,22 +722,187 @@
                     <td><select name="id_item[${idx}]" class="form-control select2-item">${itemOptionsHtml}</select></td>
                     <td><input type="number" step="0.0001" name="qty_input[${idx}]" class="form-control form-control-sm text-center qty_input" placeholder="0.0000" value="${savedQty}"></td>
                     <td class="text-center align-middle">
-                        <button type="button" class="btn btn-sm btn-danger btn-hapus-row" title="Hapus Baris Ini">
-                            <i class="fas fa-times"></i>
-                        </button>
+                        <button type="button" class="btn btn-sm btn-danger btn-hapus-row" title="Hapus Baris Ini"><i class="fas fa-times"></i></button>
                     </td>
                 </tr>`;
-                tbody.append(row);
-                // <td><input type="number" step="0.0001" name="price_input[${idx}]" class="form-control form-control-sm text-center price_input" placeholder="0.0000" value="${savedPrice}"></td>
-
             });
 
-            $('.select2-item').select2({ theme: 'bootstrap4', width: '100%' });
+            // Set HTML sekaligus, lebih cepat dari append per-baris
+            tbody.html(allRowsHtml);
+
+            // ── Init select2 per-chunk agar tidak freeze UI ──
+            showTableLoading(`Menginisialisasi ${rows.length} baris...`);
+            let selectElements = $('.select2-item').toArray();
+            initSelect2Chunked(selectElements, 15, function() {
+                // Batch item select2
+                let batchItemHtml = '<option value="">-- Pilih Item (opsional) --</option>';
+                res.items.forEach(i => {
+                    batchItemHtml += `<option value="${i.isi}">${i.tampil}</option>`;
+                });
+                if ($('#batch_item').data('select2')) $('#batch_item').select2('destroy');
+                $('#batch_item').html(batchItemHtml).select2({ theme: 'bootstrap4', width: '100%', placeholder: '-- Pilih Item (opsional) --', allowClear: true });
+
+                hideTableLoading();
+            });
+        }).fail(function() {
+            hideTableLoading();
+            iziToast.error({ title: 'Error', message: 'Gagal mengambil data. Silakan coba lagi.', position: 'topRight' });
         });
     }
 
+    // Helper: tampilkan / sembunyikan loading overlay di atas tabel
+    function showTableLoading(text) {
+        $('#table-loading-text').text(text || 'Memproses...');
+        $('#table-loading-overlay').css('display', 'flex');
+    }
+    function hideTableLoading() {
+        $('#table-loading-overlay').fadeOut(200);
+    }
+
+    // Helper: init select2 secara bertahap (chunk) agar tidak freeze UI
+    function initSelect2Chunked(elements, chunkSize, onDone) {
+        let i = 0;
+        function processNext() {
+            if (i >= elements.length) {
+                if (onDone) onDone();
+                return;
+            }
+            let end = Math.min(i + chunkSize, elements.length);
+            for (; i < end; i++) {
+                $(elements[i]).select2({ theme: 'bootstrap4', width: '100%' });
+            }
+            if (i < elements.length) {
+                showTableLoading(`Menginisialisasi baris ${i} / ${elements.length}...`);
+            }
+            setTimeout(processNext, 0);
+        }
+        processNext();
+    }
+
+    function applyBatch() {
+        let item_val     = $('#batch_item').val();
+        let cons_val     = $('#batch_cons').val();
+        let checked_rows = $('.check-input-row:checked');
+        let target_rows  = [];
+
+        $('#batch_color, #batch_size').removeClass('disabled').prop('disabled', false);
+
+        // Wajib isi salah satu
+        if (!item_val && !cons_val) {
+            Swal.fire('Peringatan', 'Silakan pilih Item dan/atau isi Cons terlebih dahulu!', 'warning');
+            return;
+        }
+
+        if (currentRule === 'Per Color Range Size') {
+            // Rule 4: gunakan filter Color dan/atau Size (multiselect)
+            let color_vals = $('#batch_color').val() || [];  // array of selected color IDs
+            let size_vals  = $('#batch_size').val()  || [];  // array of selected size IDs
+
+            if (color_vals.length > 0 || size_vals.length > 0) {
+                $('#itemTable tbody tr').each(function() {
+                    let row_color = $(this).find('input[name^="id_color"]').val();
+                    let row_size  = $(this).find('input[name^="id_size"]').val();
+
+                    // colorMatch: tidak ada filter color dipilih, ATAU row color ada di pilihan
+                    let colorMatch = (color_vals.length === 0) || color_vals.includes(String(row_color));
+                    // sizeMatch: tidak ada filter size dipilih, ATAU row size ada di pilihan
+                    let sizeMatch  = (size_vals.length  === 0) || size_vals.includes(String(row_size));
+
+                    if (colorMatch && sizeMatch) {
+                        target_rows.push($(this));
+                    }
+                });
+
+                if (target_rows.length === 0) {
+                    Swal.fire('Info', 'Tidak ada baris yang cocok dengan filter yang dipilih.', 'info');
+                    return;
+                }
+
+            } else if (checked_rows.length > 0) {
+                checked_rows.each(function() {
+                    target_rows.push($(this).closest('tr'));
+                });
+
+            } else {
+                Swal.fire('Peringatan', 'Pilih filter Color/Size atau centang baris terlebih dahulu!', 'warning');
+                return;
+            }
+
+        } else {
+            // Rule 2 & 3: gunakan baris tercentang, atau semua baris jika tidak ada
+            if (checked_rows.length > 0) {
+                checked_rows.each(function() {
+                    target_rows.push($(this).closest('tr'));
+                });
+            } else {
+                $('#itemTable tbody tr').each(function() {
+                    target_rows.push($(this));
+                });
+                if (target_rows.length === 0) {
+                    Swal.fire('Info', 'Tidak ada baris di tabel.', 'info');
+                    return;
+                }
+            }
+        }
+
+        let applied = [];
+
+        // ── Jalankan apply secara chunked agar tidak freeze UI ──
+        showTableLoading(`Menerapkan ke ${target_rows.length} baris...`);
+
+        let idx = 0;
+        function applyChunk() {
+            let end = Math.min(idx + 20, target_rows.length);
+            for (; idx < end; idx++) {
+                let tr = $(target_rows[idx]);
+                if (item_val) {
+                    tr.find('select[name^="id_item"]').val(item_val).trigger('change');
+                }
+                if (cons_val) {
+                    tr.find('.qty_input').val(parseFloat(cons_val));
+                }
+                applied.push(target_rows[idx]);
+            }
+            if (idx < target_rows.length) {
+                showTableLoading(`Menerapkan baris ${idx} / ${target_rows.length}...`);
+                setTimeout(applyChunk, 0);
+            } else {
+                // Semua selesai
+                hideTableLoading();
+
+                // Reset batch inputs
+                if ($('#batch_item').data('select2')) $('#batch_item').val('').trigger('change');
+                $('#batch_cons').val('');
+                if ($('#batch_color').data('select2')) $('#batch_color').val([]).trigger('change');
+                if ($('#batch_size').data('select2'))  $('#batch_size').val([]).trigger('change');
+                $('#check-all-input').prop('checked', false);
+                $('.check-input-row').prop('checked', false);
+                batch_delete();
+
+                let msg = [];
+                if (item_val) msg.push('Item');
+                if (cons_val) msg.push('Cons');
+                iziToast.success({
+                    title: 'Berhasil',
+                    message: `${msg.join(' & ')} berhasil diterapkan ke ${applied.length} baris`,
+                    position: 'topRight'
+                });
+            }
+        }
+        setTimeout(applyChunk, 50); // delay kecil agar loading sempat muncul
+    }
+
+    // Pilih semua opsi pada multiselect filter (batch_color / batch_size)
+    function selectAllBatch(selectId) {
+        let allValues = $(`#${selectId} option`).map(function() {
+            return $(this).val();
+        }).get().filter(v => v !== '');
+
+        $(`#${selectId}`).val(allValues).trigger('change');
+    }
 
     function batch_delete() {
+
         let checkedCount = $('.check-input-row:checked').length;
         if (checkedCount > 0) {
             $('#count-input-selected').text(checkedCount);
@@ -662,6 +915,13 @@
     $('#check-all-input').on('click', function() {
         let isChecked = $(this).is(':checked');
         $('.check-input-row').prop('checked', isChecked);
+        $('#batch_color, #batch_size').val('').trigger('change');
+
+        if(isChecked) {
+            $('#batch_color, #batch_size').addClass('disabled').prop('disabled', true);
+        }else{
+            $('#batch_color, #batch_size').removeClass('disabled').prop('disabled', false);
+        }
         batch_delete();
     });
 
@@ -669,26 +929,26 @@
         let total = $('.check-input-row').length;
         let checked = $('.check-input-row:checked').length;
         $('#check-all-input').prop('checked', total === checked && total > 0);
+        if(checked > 0) {
+            $('#batch_color, #batch_size').val('').trigger('change');
+            $('#batch_color, #batch_size').addClass('disabled').prop('disabled', true);
+        }else{
+            $('#batch_color, #batch_size').removeClass('disabled').prop('disabled', false);
+        }
         batch_delete();
     });
 
     $('#btn-hapus-batch-input').on('click', function() {
         $('.check-input-row:checked').closest('tr').fadeOut(300, function() {
             $(this).remove();
-
             $('#check-all-input').prop('checked', false);
             batch_delete();
         });
     });
 
-    $(document).on('click', '.btn-hapus-row', function() {
-        $(this).closest('tr').remove();
-        batch_delete();
-    });
-
     function submit_form(form) {
         let content = $('#item_contents').val();
-        let contentText = $('#item_contents option:selected').text().toLowerCase(); // Ambil teks item content
+        let contentText = $('#item_contents option:selected').text().toLowerCase();
         let rule = $('#rule_bom').val();
         let category = $('#category').val();
         let shell = $('#shell').val();
@@ -757,6 +1017,7 @@
                             $('#item_contents, #rule_bom, #unit, #shell, select[name="id_supplier"]').val('').trigger('change');
                             $(form).find('textarea[name="notes"]').val('');
                             $("#itemTable tbody").empty();
+                            $('#batch-fill-section').hide();
 
                             load_items(bom_id);
                         } else {
@@ -770,7 +1031,6 @@
             }
         });
     }
-
 
     function load_items(id_header) {
         if (!id_header) return;
@@ -982,6 +1242,7 @@
             $('#item_contents').html('<option value="">Pilih Kategori Terlebih Dahulu</option>').prop('disabled', true);
             $('#rule_bom').html('<option value="">Pilih Rule</option>');
             $("#itemTable tbody").empty();
+            $('#batch-fill-section').hide();
             return;
         }
 
@@ -1001,6 +1262,7 @@
             $('#item_contents').html(res).prop('disabled', false).trigger('change');
             $('#rule_bom').html('<option value="">Pilih Rule</option>');
             $("#itemTable tbody").empty();
+            $('#batch-fill-section').hide();
         }).fail(function() {
             Swal.fire('Error', 'Gagal mengambil data item contents', 'error');
             $('#item_contents').html('<option value="">Pilih Kategori Terlebih Dahulu</option>').prop('disabled', true);
@@ -1091,6 +1353,5 @@
             }
         });
     }
-
 </script>
 @endsection

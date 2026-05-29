@@ -108,8 +108,8 @@
                     <thead>
                         <tr style='text-align:center; vertical-align:middle'>
                             <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
-                            <th colspan="5" style="background-color: lightgreen; text-align:center;">Packing Line</th>
-                            <th colspan="5" style="background-color: lightgoldenrodyellow; text-align:center;">Packing Central</th>
+                            <th colspan="8" style="background-color: lightgreen; text-align:center;">Packing Line</th>
+                            <th colspan="8" style="background-color: lightgoldenrodyellow; text-align:center;">Packing Central</th>
                         </tr>
                         <tr style='text-align:center; vertical-align:middle'>
                             <th style="background-color: lightblue;">WS</th>
@@ -122,12 +122,18 @@
                             <th style="background-color: lightgreen;">Terima RFT</th>
                             <th style="background-color: lightgreen;">Terima Reject</th>
                             <th style="background-color: lightgreen;">Keluar</th>
+                            <th style="background-color: lightgreen;">Adjustment</th>
+                            <th style="background-color: lightgreen;">Switching IN</th>
+                            <th style="background-color: lightgreen;">Switching OUT</th>
                             <th style="background-color: lightgreen;">Saldo Akhir</th>
 
                             <th style="background-color: lightgoldenrodyellow;">Saldo Awal</th>
                             <th style="background-color: lightgoldenrodyellow;">Terima</th>
                             <th style="background-color: lightgoldenrodyellow;">Terima Return</th>
                             <th style="background-color: lightgoldenrodyellow;">Packing Scan FG In</th>
+                            <th style="background-color: lightgoldenrodyellow;">Switching OUT</th>
+                            <th style="background-color: lightgoldenrodyellow;">Switching IN</th>
+                            <th style="background-color: lightgoldenrodyellow;">Adjustment</th>
                             <th style="background-color: lightgoldenrodyellow;">Saldo Akhir</th>
                         </tr>
                     </thead>
@@ -315,16 +321,22 @@
                     { data: 'style' },
                     { data: 'color' },
                     { data: 'size' },
-                    { data: 'pl_saldo_awal' },
+                    { data: 'saldo_awal_adjusment' },
                     { data: 'pl_rft' },
                     { data: 'pl_reject' },
                     { data: 'pl_keluar' },
-                    { data: 'pl_saldo_akhir' },
-                    { data: 'pc_saldo_awal' },
+                    { data: 'qty_adjustment' },
+                    { data: 'switching_in' },
+                    { data: 'switching_out' },
+                    { data: 'saldo_akhir_adj' },
+                    { data: 'pc_saldo_awal_adjusment' },
                     { data: 'pc_terima' },
                     { data: 'pc_terima_return' },
                     { data: 'pc_fg_in' },
-                    { data: 'pc_saldo_akhir' }
+                    { data: 'pc_switching_out' },
+                    { data: 'pc_switching_in' },
+                    { data: 'pc_qty_adjustment' },
+                    { data: 'pc_saldo_akhir_adj' }
                 ],
                 columnDefs: [{
                     "className": "align-middle",

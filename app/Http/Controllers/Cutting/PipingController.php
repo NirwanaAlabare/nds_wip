@@ -296,24 +296,59 @@ class PipingController extends Controller
             if ($piping) {
                 $qty = $piping->qty;
 
-                // Check After Piping Form Cut Detail
-                $formCutDetail = FormCutInputDetail::where("id_roll", $piping->id_roll)->where("created_at", ">=", $piping->created_at)->orderBy("form_cut_input_detail.created_at", "asc")->first();
+                // Check After Piping Form Cut Detail (including reject and next piping)
+                $formCutInputDetailQuery = DB::table('form_cut_input_detail')
+                    ->selectRaw("id, id_roll, qty, created_at, 'form_cut_input_detail' as source")
+                    ->where('id_roll', $piping->id_roll)
+                    ->where('created_at', '>=', $piping->created_at);
 
-                if ($formCutDetail) {
+                $formCutRejectQuery = DB::table('form_cut_alokasi_gr_panel_barcode')
+                    ->selectRaw("id, barcode as id_roll, qty_roll as qty, created_at, 'form_cut_alokasi_gr_panel_barcode' as source")
+                    ->where('barcode', $piping->id_roll)
+                    ->where('created_at', '>=', $piping->created_at);
 
-                    // Update After Piping Form Cut Detail
-                    $formCut = $formCutDetail->formCutInput;
-                    $pAct = $formCut->p_act + ($formCut->comma_p_act/100);
-                    $sambunganRoll = $formCutDetail->formCutInputDetailSambungan ? $formCutDetail->formCutInputDetailSambungan->sum("sambungan_roll") : 0;
-                    $shortRoll = (($pAct * $formCutDetail->lembar_gelaran) + $formCutDetail->sambungan + $formCutDetail->sisa_gelaran + $formCutDetail->kepala_kain + $formCutDetail->sisa_tidak_bisa + $formCutDetail->reject + $formCutDetail->piping + $formCutDetail->sisa_kain + $sambunganRoll) - $qty;
+                $formCutPipingQuery = DB::table('form_cut_piping')
+                    ->selectRaw("id, id_roll, qty, created_at, 'form_cut_piping' as source")
+                    ->where('id_roll', $piping->id_roll)
+                    ->where('created_at', '>=', $piping->created_at)
+                    ->where('id', '!=', $piping->id);
 
-                    $formCutDetail->qty = $qty;
-                    $formCutDetail->shortRoll = $shortRoll;
-                    $formCutDetail->save();
+                $nextRecord = $formCutInputDetailQuery
+                    ->union($formCutRejectQuery)
+                    ->union($formCutPipingQuery)
+                    ->orderBy('created_at', 'asc')
+                    ->first();
+
+                if ($nextRecord) {
+
+                    if ($nextRecord->source == 'form_cut_input_detail') {
+                        $formCutDetail = FormCutInputDetail::where('id', $nextRecord->id)->first();
+                        if ($formCutDetail) {
+                            $formCut = $formCutDetail->formCutInput;
+                            $pAct = $formCut->p_act + ($formCut->comma_p_act/100);
+                            $sambunganRoll = $formCutDetail->formCutInputDetailSambungan ? $formCutDetail->formCutInputDetailSambungan->sum("sambungan_roll") : 0;
+                            $shortRoll = (($pAct * $formCutDetail->lembar_gelaran) + $formCutDetail->sambungan + $formCutDetail->sisa_gelaran + $formCutDetail->kepala_kain + $formCutDetail->sisa_tidak_bisa + $formCutDetail->reject + $formCutDetail->piping + $formCutDetail->sisa_kain + $sambunganRoll) - $qty;
+
+                            $formCutDetail->short_roll = $shortRoll;
+                            $formCutDetail->save();
+                        }
+                    } elseif ($nextRecord->source == 'form_cut_piping') {
+                        $nextPiping = Piping::where('id', $nextRecord->id)->first();
+                        if ($nextPiping) {
+                            $nextPiping->qty = $qty;
+                            $nextPiping->short_roll = ($nextPiping->piping + $nextPiping->qty_sisa) - $qty;
+                            $nextPiping->save();
+                        }
+                    } else {
+                        // Update Scanned Item Qty when next usage is GR panel
+                        ScannedItem::where("id_roll", $piping->id_roll)->update([
+                            "qty" => $qty
+                        ]);
+                    }
                 } else {
 
                     // Update Scanned Item Qty
-                    $updateScannedItem = ScannedItem::where("id_roll", $piping->id_roll)->update([
+                    ScannedItem::where("id_roll", $piping->id_roll)->update([
                         "qty" => $qty
                     ]);
                 }

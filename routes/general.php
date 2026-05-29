@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\General\GeneralController;
+use App\Http\Controllers\General\InjectAdjustmentController;
+use App\Http\Controllers\General\SwitchingController;
 use App\Http\Controllers\General\TrackController;
 use App\Http\Controllers\General\WorksheetController;
 
@@ -109,5 +111,20 @@ Route::middleware('auth')->group(function () {
         // get worksheet
         Route::get('/', 'index')->name('worksheet');
         Route::post('/print-qr', 'printQr')->name('worksheet-print-qr');
+    });
+
+    Route::controller(InjectAdjustmentController::class)->prefix("inject-adjustment")->group(function () {
+        Route::get('/', 'index')->name("inject-adjustment");
+        Route::get('/contoh-upload-import', 'contohUploadImport')->name('contoh-upload-import-inject-adjustment');
+        Route::post('/import-data', 'importData')->name('import-data-inject-adjustment');
+        Route::post('/store', 'store')->name('store-inject-adjustment');
+        Route::post('/delete', 'delete')->name('delete-inject-adjustment');
+        Route::post('/get-data', 'getData')->name('get-data-inject-adjustment');
+    });
+
+    Route::controller(SwitchingController::class)->prefix("switching")->group(function () {
+        Route::get('/', 'index')->name("switching");
+        Route::post('/store', 'store')->name('store-switching');
+        Route::post('/delete', 'delete')->name('delete-switching');
     });
 });
