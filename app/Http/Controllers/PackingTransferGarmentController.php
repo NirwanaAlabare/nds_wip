@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
-use DB;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ExportLaporanTrfGarment;
@@ -106,54 +106,67 @@ order by isi asc");
 
     public function get_po(Request $request)
     {
-        $tgl_skrg = date('Y-m-d');
-        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-150 days'));
-        $data_po = DB::select("SELECT
-        po isi,
-        CONCAT(po, ' ( ', styleno, ' ) ', '( ', a.styleno_prod , ' )') tampil
-        from
-        (
-        select po,ws,color,size, styleno,styleno_prod from ppic_master_so p
-        inner join master_sb_ws m on p.id_so_det = m.id_so_det
-        group by ws, color, size, po
-        ) a
-        inner join
-        (
-                select ws,color,size,so_det_id from (
-                        select so_det_id from
-                        output_rfts_packing a
-                        where a.created_at >= '$tgl_skrg_min_sebulan' and a.created_by = '" . $request->cbo_line . "'
-                        group by so_det_id
-                ) a
-                        inner join master_sb_ws m on a.so_det_id = m.id_so_det
-                group by so_det_id
+        $line = $request->cbo_line;
+        $tgl_shipment_min_setahun = date('Y-m-d', strtotime('-360 days'));
 
-        ) b on a.ws = b.ws and a.color = b.color and a.size = b.size
-        group by po, styleno
+        if ($line) {
+            // Filter by line: only POs that have output from this line
+            $data_po = DB::select("
+                SELECT p.po AS isi, m.styleno, m.styleno_prod
+                FROM (
+                    SELECT DISTINCT po_id
+                    FROM signalbit_erp.output_rfts_packing_po
+                    WHERE created_by_line = '$line'
+                ) o
+                INNER JOIN ppic_master_so p ON o.po_id = p.id
+                INNER JOIN master_sb_ws m ON p.id_so_det = m.id_so_det
+                WHERE tgl_shipment >= '$tgl_shipment_min_setahun'
+                GROUP BY p.po
+                ORDER BY p.po ASC
+            ");
+        } else {
+            // No line filter: show all POs
+            $data_po = DB::select("
+                SELECT p.po isi, m.styleno, m.styleno_prod
+                FROM ppic_master_so p
+                INNER JOIN master_sb_ws m ON p.id_so_det = m.id_so_det
+                WHERE tgl_shipment >= '$tgl_shipment_min_setahun'
+                GROUP BY p.po
+                ORDER BY p.po ASC
+            ");
+        }
+
+        $html = "<option value=''>-- Pilih PO --</option>";
+        foreach ($data_po as $datapo) {
+            $styleno     = htmlspecialchars($datapo->styleno      ?? '');
+            $stylenoProd = htmlspecialchars($datapo->styleno_prod ?? '');
+            $html .= "<option value='{$datapo->isi}'"
+                   . " data-styleno='{$styleno}'"
+                   . " data-stylenoprod='{$stylenoProd}'>"
+                   . "{$datapo->isi}"
+                   . "</option>";
+        }
+
+        return $html;
+    }
+
+    public function get_line_by_po(Request $request)
+    {
+        $po = $request->cbo_po;
+
+        // Cari lines yang punya output untuk PO ini via output_rfts_packing_po
+        $data_line = DB::select("
+            SELECT DISTINCT o.created_by_line isi, o.created_by_line tampil
+            FROM signalbit_erp.output_rfts_packing_po o
+            INNER JOIN ppic_master_so p ON o.po_id = p.id
+            WHERE p.po = '$po'
+            AND o.created_by_line IS NOT NULL
+            ORDER BY o.created_by_line ASC
         ");
 
-        // $data_po = DB::select("SELECT
-        // p.po isi,
-        // CONCAT(p.po, ' ( ', p.styleno, ' ) ', '( ', p.styleno_prod , ' )') tampil
-        // from
-        // (
-        // select ws,color,size,so_det_id from output_rfts_packing a
-        // inner join master_sb_ws m on a.so_det_id = m.id_so_det
-        // where a.created_by = '" . $request->cbo_line . "' and a.updated_at >= '$tgl_skrg_min_sebulan' AND a.updated_at <= '$tgl_skrg'
-        // group by so_det_id
-        // ) a
-        // inner join (select p.*, m.styleno, m.styleno_prod, m.ws, m.color, m.size from ppic_master_so p
-        // inner join master_sb_ws m on p.id_so_det = m.id_so_det where tgl_shipment >= '$tgl_skrg_min_sebulan')
-        // p on a.ws = p.ws and a.color = p.color and a.size = p.size
-        // group by po, p.styleno
-        // ");
-
-
-
-        $html = "<option value=''>Pilih PO</option>";
-
-        foreach ($data_po as $datapo) {
-            $html .= " <option value='" . $datapo->isi . "'>" . $datapo->tampil . "</option> ";
+        $html = '<option value="">-- Pilih Line --</option>';
+        foreach ($data_line as $d) {
+            $html .= "<option value='{$d->isi}'>{$d->tampil}</option>";
         }
 
         return $html;
@@ -161,176 +174,67 @@ order by isi asc");
 
     public function get_garment(Request $request)
     {
-        $data_garment = DB::select("SELECT
-p.id isi,
-concat (p.ws, ' - ',p.id_so_det,' - ', p.product_item, ' - ', p.color, ' - ', p.size, ' - ',p.dest, ' => ', coalesce(qty_sisa,0), ' PCS' ) tampil
- from
-(
-select p.*, m.color, m.size, m.ws, m.product_item from ppic_master_so p
-inner join master_sb_ws m on p.id_so_det = m.id_so_det
-where p.po = '" . $request->cbo_po . "'
-) p
-left join (
-select
-m_trans.id_so_det,
+        $po = $request->cbo_po;
+        $line = $request->cbo_line;
+
+        $data_garment = DB::select("WITH m as (
+SELECT a.po_id, a.created_by_line AS line, COUNT(*) AS qty_packing_line
+FROM signalbit_erp.output_rfts_packing_po a
+INNER JOIN laravel_nds.ppic_master_so p ON a.po_id = p.id
+WHERE po = '$po' and a.created_by_line = '$line'
+GROUP BY a.po_id
+),
+g AS (
+    SELECT id_ppic_master_so, line, SUM(qty) AS qty_trf_gmt
+    FROM packing_trf_garment a
+		INNER JOIN ppic_master_so p on a.id_ppic_master_so = p.id
+		WHERE a.po = '$po' and line = '$line'
+    GROUP BY id_ppic_master_so, line
+),
+c AS (
+    SELECT po_id as id_ppic_master_so, line, qty_packing_line AS qty_packing, 0 AS qty_trf_gmt FROM m
+    UNION ALL
+    SELECT id_ppic_master_so, line, 0, qty_trf_gmt FROM g
+)
+
+SELECT
+id_ppic_master_so isi,
+m.ws,
 m.color,
 m.size,
-m.ws,
-m.dest,
-coalesce(sum(qty_p_line) - sum(qty_trf_garment) - sum(qty_tmp),0) qty_sisa
-from
-(
-select a.so_det_id id_so_det,count(so_det_id) qty_p_line, '0' qty_trf_garment, '0' qty_tmp
-FROM output_rfts_packing a
-where created_by = '" . $request->cbo_line . "'
-group by so_det_id
-union
-select id_so_det, '0' qty_p_line, sum(qty) qty_trf_garment , '0' qty_tmp
-from packing_trf_garment
-where line = '" . $request->cbo_line . "'
-group by id_so_det
-union
-select id_so_det, '0' qty_p_line, '0' qty_trf_garment, sum(qty_tmp_trf_garment) qty_tmp from packing_trf_garment_tmp tmp
-inner join ppic_master_so p on tmp.id_ppic_master_so = p.id
-where line = '" . $request->cbo_line . "'
-) m_trans
-inner join master_sb_ws m on m_trans.id_so_det = m.id_so_det
-group by color, ws, size
-) c on p.ws = c.ws and p.color = c.color and p.size = c.size
-left join master_size_new msn on p.size = msn.size
-order by p.ws asc, p.color asc, urutan asc
+p.dest,
+coalesce(SUM(qty_packing) - SUM(qty_trf_gmt),0) AS qty_sisa,
+line,
+SUM(qty_packing)            AS qty_packing,
+SUM(qty_trf_gmt)            AS qty_trf_gmt,
+SUM(qty_packing) - SUM(qty_trf_gmt) AS selisih
+FROM c
+left join ppic_master_so p on c.id_ppic_master_so = p.id
+left join master_sb_ws m on p.id_so_det = m.id_so_det
+left join master_size_new msn on m.size = msn.size
+group by id_ppic_master_so
+order by ws asc, color asc, urutan asc
+
 ");
-
-        // SELECT
-        // p.id isi,
-        // concat (p.ws, ' - ', p.color, ' - ', p.size, ' - ',p.dest, ' => ', coalesce(qty_sisa,0), ' PCS' ) tampil
-        // from
-        // (
-        // select p.*, m.color, m.size, m.ws from ppic_master_so p
-        // inner join master_sb_ws m on p.id_so_det = m.id_so_det
-        // where p.po = '" . $request->cbo_po . "'
-        // ) p
-        // left join
-        // (
-        // select
-        // m_trans.id_so_det,
-        // m.color,
-        // m.size,
-        // m.ws,
-        // coalesce(sum(qty_p_line) - sum(qty_trf_garment) - sum(qty_tmp),0) qty_sisa
-        // from
-        // (
-        // select a.so_det_id id_so_det,count(so_det_id) qty_p_line, '0' qty_trf_garment, '0' qty_tmp
-        // FROM output_rfts_packing a
-        // where created_by = '" . $request->cbo_line . "'
-        // group by so_det_id
-        // union
-        // select id_so_det, '0' qty_p_line, sum(qty) qty_trf_garment , '0' qty_tmp
-        // from packing_trf_garment
-        // where line = '" . $request->cbo_line . "'
-        // group by id_so_det
-        // union
-        // select id_so_det, '0' qty_p_line, '0' qty_trf_garment, sum(qty_tmp_trf_garment) qty_tmp from packing_trf_garment_tmp tmp
-        // inner join ppic_master_so p on tmp.id_ppic_master_so = p.id
-        // where line = '" . $request->cbo_line . "'
-        // ) m_trans
-        // left join master_sb_ws m on m_trans.id_so_det = m.id_so_det
-        // group by id_so_det
-        // ) c on p.ws = c.ws and p.color = c.color and p.size = c.size
-        // left join master_size_new msn on p.size = msn.size
-        // order by p.ws asc, p.color asc, urutan asc
-
-
-        // SELECT p.id isi,
-        // concat (p.ws, ' - ', p.color, ' - ', p.size, ' - ', p.barcode, ' - ', p.dest, ' => ', qty_sisa ) tampil
-        //  from
-        // (
-        // select p.*, m.color, m.size, m.ws from ppic_master_so p
-        // inner join master_sb_ws m on p.id_so_det = m.id_so_det
-        // where p.po = '" . $request->cbo_po . "'
-        // ) p
-        // left join (
-        // select
-        // m_trans.id_so_det,
-        // m.color,
-        // m.size,
-        // p.po,
-        // sum(qty_p_line) - sum(qty_trf_garment) - sum(qty_tmp) qty_sisa
-        // from
-        // (
-        // select a.so_det_id id_so_det,count(so_det_id) qty_p_line, '0' qty_trf_garment, '0' qty_tmp
-        // FROM output_rfts_packing a
-        // where created_by = '" . $request->cbo_line . "'
-        // group by so_det_id
-        // union
-        // select id_so_det, '0' qty_p_line, sum(qty) qty_trf_garment , '0' qty_tmp
-        // from packing_trf_garment
-        // where line = '" . $request->cbo_line . "'
-        // group by id_so_det
-        // union
-        // select id_so_det, '0' qty_p_line, '0' qty_trf_garment, sum(qty_tmp_trf_garment) qty_tmp from packing_trf_garment_tmp tmp
-        // inner join ppic_master_so p on tmp.id_ppic_master_so = p.id
-        // where line = '" . $request->cbo_line . "') m_trans
-        // left join master_sb_ws m on m_trans.id_so_det = m.id_so_det
-        // left join ppic_master_so p on m_trans.id_so_det = p.id_so_det
-        // where m_trans.id_so_det != '' and p.po = '" . $request->cbo_po . "'
-        // group by m_trans.id_so_det
-        // ) tg on p.color = tg.color and p.size = tg.size and p.po = tg.po
-        // inner join master_size_new msn on p.size = msn.size
-        // where qty_sisa != 'null'
-        // group by p.id
-        // order by p.color asc, msn.urutan asc
-
-
-        // backup
-        // SELECT
-        //             p.id isi,
-        //             concat (m.ws, ' - ', m.color, ' - ', m.size, ' => ', sum(qty_p_line) - sum(qty_trf_garment) -  sum(qty_tmp), ' PCS' ) tampil
-        //             from
-        //     (
-        // select a.so_det_id id_so_det,count(so_det_id) qty_p_line, '0' qty_trf_garment, '0' qty_tmp
-        // FROM output_rfts_packing a
-        // where created_by = '" . $request->cbo_line . "'
-        // group by so_det_id
-        // union
-        // select id_so_det, '0' qty_p_line, sum(qty) qty_trf_garment , '0' qty_tmp
-        // from packing_trf_garment
-        // where line = '" . $request->cbo_line . "'
-        // group by id_so_det
-        // union
-        // select id_so_det, '0' qty_p_line, '0' qty_trf_garment, sum(qty_tmp_trf_garment) qty_tmp from packing_trf_garment_tmp tmp
-        // inner join ppic_master_so p on tmp.id_ppic_master_so = p.id
-        // where line = '" . $request->cbo_line . "'
-        // group by id_so_det
-        // ) a
-        // left join ppic_master_so p on a.id_so_det = p.id_so_det
-        // left join master_sb_ws m on p.id_so_det = m.id_so_det
-        // where p.po = '" . $request->cbo_po . "'
-        // group by a.id_so_det
-
-
-        // SELECT p.id isi,
-        // concat(m.ws, ' - ', m.color, ' - ', m.size, ' => ', count(so_det_id) - coalesce(tmp.tot_tmp,0) - coalesce(ptg.tot_in,0) , ' PCS' ) tampil
-        // FROM output_rfts_packing a
-        // left join ppic_master_so p on a.so_det_id = p.id_so_det
-        // left join master_sb_ws m on a.so_det_id = m.id_so_det
-        // left join
-        //     (
-        //         select sum(qty_tmp_trf_garment) tot_tmp,id_ppic_master_so from packing_trf_garment_tmp group by id_ppic_master_so
-        //     ) tmp on p.id = tmp.id_ppic_master_so
-        // left join
-        //     (
-        //         select sum(qty) tot_in,id_ppic_master_so from packing_trf_garment group by id_ppic_master_so
-        //     ) ptg on p.id = ptg.id_ppic_master_so
-        // where sewing_line = '" . $request->cbo_line . "' and p.po = '" . $request->cbo_po . "'
-        // group by a.so_det_id, p.po, p.barcode
-        // having po is not null
-
 
         $html = "<option value=''>Pilih Garment</option>";
 
         foreach ($data_garment as $datagarment) {
-            $html .= " <option value='" . $datagarment->isi . "'>" . $datagarment->tampil . "</option> ";
+            $selisih = $datagarment->selisih ?? 0;
+            $ws      = htmlspecialchars($datagarment->ws    ?? '');
+            $color   = htmlspecialchars($datagarment->color ?? '');
+            $size    = htmlspecialchars($datagarment->size  ?? '');
+            $dest    = htmlspecialchars($datagarment->dest  ?? '');
+            $qtySisa = $datagarment->qty_sisa ?? 0;
+            $html .= "<option value='{$datagarment->isi}'"
+                   . " data-selisih='{$selisih}'"
+                   . " data-ws='{$ws}'"
+                   . " data-color='{$color}'"
+                   . " data-size='{$size}'"
+                   . " data-dest='{$dest}'"
+                   . " data-qty='{$qtySisa}'>"
+                   . "{$ws} / {$color} / {$size}"   // tampil ringkas, detail via template
+                   . "</option>";
         }
 
         return $html;
@@ -341,10 +245,10 @@ order by p.ws asc, p.color asc, urutan asc
         $user = Auth::user()->name;
         $timestamp = Carbon::now();
         $validatedRequest = $request->validate([
-            "cboline" => "required",
-            "cbopo" => "required",
-            "cbogarment" => "required",
-            "txtqty" => "required",
+            "cboline"   => "required",
+            "cbopo"     => "required",
+            "cbogarment"=> "required",
+            "txtqty"    => "required|numeric|min:1",
         ]);
 
         // $cek_data = DB::select("
