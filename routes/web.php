@@ -870,6 +870,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(FinishGoodPenerimaanController::class)->prefix("finish_good_penerimaan")->middleware('finishgood')->group(function () {
         Route::get('/', 'index')->name('finish_good_penerimaan');
         Route::get('/fg_in_getno_carton', 'fg_in_getno_carton')->name('fg_in_getno_carton');
+        Route::get('/search_po', 'search_po')->name('fg_in_search_po');
         Route::get('/show_preview_fg_in', 'show_preview_fg_in')->name('show_preview_fg_in');
         Route::get('/create', 'create')->name('create_penerimaan_finish_good');
         Route::post('/store', 'store')->name('store-fg-in');
@@ -1176,6 +1177,9 @@ Route::middleware('auth')->group(function () {
     // Dashboard
     Route::controller(QCInspectDashboardController::class)->middleware('warehouse')->group(function () {
         Route::get('/dashboard_qc_inspect', 'dashboard_qc_inspect')->name('dashboard-qc-inspect');
+        Route::get('/show_tot_dash_qc_inspect', 'show_tot_dash_qc_inspect')->name('show_tot_dash_qc_inspect');
+        Route::get('/get_detail_dashboard_qc_inspect', 'get_detail_dashboard_qc_inspect')->name('get_detail_dashboard_qc_inspect');
+        Route::get('/getws_dashboard_qc_inspect', 'getws_dashboard_qc_inspect')->name('getws_dashboard_qc_inspect');
     });
 
     // Master QC Inspect

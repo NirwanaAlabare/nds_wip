@@ -29,12 +29,20 @@
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Awal</b></small></label>
                     <input type="date" class="form-control form-control-sm " id="tgl-awal" name="tgl_awal"
-                        oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
+                        value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Akhir</b></small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
+                        value="{{ date('Y-m-d') }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><small><b>&nbsp;</b></small></label>
+                    <div>
+                        <button onclick="dataTableReload()" class="btn btn-primary btn-sm">
+                            <i class="fas fa-search fa-sm"></i> Search
+                        </button>
+                    </div>
                 </div>
                 <div class="mb-3">
                     <a onclick="export_excel_list()" class="btn btn-outline-success position-relative btn-sm">
