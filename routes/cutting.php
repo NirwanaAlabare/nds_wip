@@ -281,6 +281,7 @@ Route::middleware('auth')->group(function () {
             Route::put('/update/detail', 'updateDetail')->name('update-cutting-piece-detail');
             Route::delete('/destroy/{id?}', 'destroy')->name('destroy-cutting-piece');
             Route::delete('/delete/detail', 'deleteDetail')->name('delete-cutting-piece-detail');
+            Route::post('/update-process-status', 'updateProcessStatus')->name('update-process-status-cutting-piece');
 
             // add-on
             Route::get('/stock', 'stock')->name('stock-cutting-piece');

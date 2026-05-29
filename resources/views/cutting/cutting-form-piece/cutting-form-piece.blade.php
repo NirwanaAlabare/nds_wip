@@ -57,6 +57,43 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="modalEditProcessStatus" tabindex="-1">
+        <div class="modal-dialog">
+            <form id="formEditProcessStatus">
+                @csrf
+                <input type="hidden" name="id" id="modal_id">
+                <div class="modal-content">
+                    <div class="modal-header" style="background:#082149;">
+                        <h5 class="modal-title text-white">Edit Process & Status</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label>Process</label>
+                            <select name="process" id="modal_process" class="form-control">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Status</label>
+                            <select name="status" id="modal_status" class="form-control">
+                                <option value="complete">Complete</option>
+                                <option value="incomplete">Incomplete</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">
+                            Simpan
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -148,9 +185,23 @@
                         // let buttonDetail = `<a href="{{ route('show-cutting-piece') }}/`+data+`" class="btn btn-sb btn-sm mx-1"><i class="fa fa-search"></i></a>`;
                         let buttonDetail = "";
                         let buttonEdit = `<a href="`+editRoute+`/`+data+`" class="btn btn-primary btn-sm mx-1" data-bs-toggle="tooltip" data-bs-title="Ubah Form PCS"><i class="fa fa-edit"></i></a>`;
+                        let buttonEditProcessStatus = `
+                            <button type="button"
+                                class="btn btn-warning btn-sm mx-1"
+                                data-bs-toggle="tooltip"
+                                data-bs-title="Ubah Proses dan Status"
+                                onclick="openModalEditProcessStatus(this)"
+                                data-id="` + data + `"
+                                data-process="` + row.process + `"
+                                data-status="` + row.status + `"
+                                ` + (row.has_stocker_input == 1 ? 'disabled' : '') + `>
+                                <i class="fa fa-gear"></i>
+                            </button>
+                        `;
                         let buttonDelete = `<a href='javascript:void(0);' class='btn btn-danger btn-sm mx-1' data-bs-toggle="tooltip" data-bs-title="Hapus Form PCS" data='`+JSON.stringify(row)+`' data-url='`+'{{ route('destroy-cutting-piece') }}'+`/`+data+`' onclick='deleteData(this);'><i class='fa fa-trash'></i></a>`;
 
-                        return buttonDetail+buttonEdit+(isAdmin > 0 ? buttonDelete : '');
+                        // return buttonDetail+buttonEdit+(isAdmin > 0 ? buttonDelete : '');
+                        return buttonDetail + buttonEdit + (isAdmin > 0 ? buttonEditProcessStatus : '') + (isAdmin > 0 ? buttonDelete : '');
                     }
                 },
                 {
@@ -192,6 +243,50 @@
         function cuttingPieceTableReload() {
             $("#cutting-piece-table").DataTable().ajax.reload();
         }
+
+        function openModalEditProcessStatus(element)
+        {
+            let id = $(element).data('id');
+            let process = $(element).data('process');
+            let status = $(element).data('status');
+
+            $('#modal_id').val(id);
+            $('#modal_process').val(process);
+            $('#modal_status').val(status);
+
+            $('#modalEditProcessStatus').modal('show');
+        }
+
+        $('#formEditProcessStatus').submit(function(e) {
+            e.preventDefault();
+
+            $.ajax({
+                url: "{{ route('update-process-status-cutting-piece') }}",
+                type: "POST",
+                data: $(this).serialize(),
+
+                success: function(res) {
+                    $('#modalEditProcessStatus').modal('hide');
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Process & Status berhasil diupdate',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+
+                    $('#cutting-piece-table').DataTable().ajax.reload(null, false);
+                },
+                error: function(xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal update data'
+                    });
+                }
+            });
+        });
 
         // function exportExcel (elm) {
         //     elm.setAttribute('disabled', 'true');
