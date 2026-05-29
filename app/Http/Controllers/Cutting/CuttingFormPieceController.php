@@ -34,7 +34,19 @@ class CuttingFormPieceController extends Controller
             $dateFrom = $request->dateFrom ? $request->dateFrom : date("Y-m-d");
             $dateTo = $request->dateTo ? $request->dateTo : date("Y-m-d");
 
-            $formCutPiece = FormCutPiece::whereNull("tanggal")->orWhereBetween("tanggal", [$dateFrom, $dateTo]);
+            // $formCutPiece = FormCutPiece::whereNull("tanggal")->orWhereBetween("tanggal", [$dateFrom, $dateTo]);
+            $formCutPiece = FormCutPiece::selectRaw("
+                form_cut_piece.*,
+                EXISTS (
+                    SELECT 1
+                    FROM stocker_input
+                    WHERE stocker_input.form_piece_id = form_cut_piece.id
+                ) as has_stocker_input
+            ")
+            ->where(function($q) use ($dateFrom, $dateTo) {
+                $q->whereNull("tanggal")
+                ->orWhereBetween("tanggal", [$dateFrom, $dateTo]);
+            });
 
             return DataTables::eloquent($formCutPiece)->
                 addColumn('sizes', function ($row) {
@@ -1118,6 +1130,22 @@ class CuttingFormPieceController extends Controller
     //         'data' => $data
     //     ]);
     // }
+
+    public function updateProcessStatus(Request $request)
+    {
+        DB::table('form_cut_piece')
+            ->where('id', $request->id)
+            ->update([
+                'process' => $request->process,
+                'status' => $request->status,
+                'updated_at' => now()
+            ]);
+
+        return array(
+            "status" => 200,
+            "message" => "Process Form Cut Piece berhasil diupdate.",
+        );
+    }
 
     public function exportExcel(Request $request) {
         return Excel::download(new ExportCuttingFormReject($request->dateFrom, $request->dateTo), 'Report Cutting.xlsx');
