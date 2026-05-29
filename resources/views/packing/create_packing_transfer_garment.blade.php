@@ -510,12 +510,13 @@
                 reloadGarment();
             });
 
-            // Garment dipilih: kelola state step 3→4 + block jika minus
+            // Garment dipilih: kelola state step 3→4
             $('#cbogarment').on('change', function() {
-                const val = $(this).val();
+                const val     = $(this).val();
                 const selisih = parseInt($('#cbogarment option:selected').data('selisih') ?? 0);
-                const isMinus = val && selisih < 0;
-                const canInput = val && !isMinus;
+                // const isMinus  = val && selisih < 0;
+                // const canInput = val && !isMinus;
+                const canInput = !!val;   // sementara semua garment bisa diinput
 
                 $('#txtqty').prop('disabled', !canInput);
                 $('#btn-tambah').prop('disabled', !canInput);
@@ -525,27 +526,26 @@
                     $('#badge3').removeClass('st-active st-locked').addClass('st-done')
                         .html('<i class="fas fa-check" style="font-size:13px"></i>');
                     $('#line3').addClass('done');
-                    $('#badge4').removeClass('st-locked').addClass(canInput ? 'st-active' : 'st-locked')
-                        .html('4');
+                    $('#badge4').removeClass('st-locked').addClass('st-active').html('4');
                 } else {
                     $('#badge3').removeClass('st-done').addClass('st-active').html('3');
                     $('#line3').removeClass('done');
                     $('#badge4').removeClass('st-active st-done').addClass('st-locked').html('4');
                 }
 
-                if (isMinus) {
-                    document.getElementById('txtqty').value = '';
-                    iziToast.error({
-                        title: 'Tidak Bisa Input!',
-                        message: 'Qty sisa garment ini MINUS (' + selisih +
-                            ' PCS). Input diblokir.',
-                        position: 'topCenter',
-                        timeout: 5000,
-                    });
-                } else if (canInput) {
-                    // Set max sesuai sisa stok garment yang dipilih
+                // if (isMinus) {
+                //     document.getElementById('txtqty').value = '';
+                //     iziToast.error({
+                //         title: 'Tidak Bisa Input!',
+                //         message: 'Qty sisa garment ini MINUS (' + selisih + ' PCS). Input diblokir.',
+                //         position: 'topCenter',
+                //         timeout: 5000,
+                //     });
+                // } else if (canInput) {
+                if (canInput) {
                     $('#txtqty').attr('max', selisih).focus().select();
                 }
+                // }
             });
 
             // Enter on qty = Tambah
@@ -810,17 +810,17 @@
                 iziToast.warning({ message: 'Qty harus diisi', position: 'topCenter' });
                 return;
             }
-            const selisihGarment = parseInt($('#cbogarment option:selected').data('selisih') ?? 0);
-            if (parseInt(txtqty) > selisihGarment) {
-                iziToast.warning({
-                    title: 'Qty Melebihi Sisa!',
-                    message: 'Maksimal ' + selisihGarment + ' PCS untuk garment ini.',
-                    position: 'topCenter',
-                    timeout: 4000,
-                });
-                $('#txtqty').focus().select();
-                return;
-            }
+            // const selisihGarment = parseInt($('#cbogarment option:selected').data('selisih') ?? 0);
+            // if (parseInt(txtqty) > selisihGarment) {
+            //     iziToast.warning({
+            //         title: 'Qty Melebihi Sisa!',
+            //         message: 'Maksimal ' + selisihGarment + ' PCS untuk garment ini.',
+            //         position: 'topCenter',
+            //         timeout: 4000,
+            //     });
+            //     $('#txtqty').focus().select();
+            //     return;
+            // }
 
             $.ajax({
                 type: 'post',
