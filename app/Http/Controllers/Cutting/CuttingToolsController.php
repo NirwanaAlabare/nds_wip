@@ -885,6 +885,39 @@ class CuttingToolsController extends Controller
         ]);
     }
 
+    public function previewImportCuttingManual(Request $request)
+    {
+        $this->validate($request, [
+            'file' => 'required|mimes:xlsx,xls,csv'
+        ]);
+
+        $rows = Excel::toArray([], $request->file('file'));
+
+        $data = [];
+
+        foreach ($rows[0] as $i => $row) {
+
+            // skip header
+            if ($i == 0) {
+                continue;
+            }
+
+            $data[] = [
+                'tanggal' => $row[0] ?? '',
+                'ws'       => $row[1] ?? '',
+                'color'    => $row[2] ?? '',
+                'size'     => $row[3] ?? '',
+                'panel'    => $row[4] ?? '',
+                'qty'      => $row[5] ?? '',
+            ];
+        }
+
+        return response()->json([
+            'status' => 200,
+            'data' => $data
+        ]);
+    }
+
     public function importCuttingManual(Request $request)
     {
         // validasi

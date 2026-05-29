@@ -541,26 +541,62 @@
     </div>
 
     {{-- Import Manual --}}
-    <div class="modal fade" id="importExcel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <form method="post" action="{{ route('import-cutting-manual') }}" enctype="multipart/form-data" onsubmit="submitImportCuttingManual(this, event)">
+    <div class="modal fade" id="importExcel" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <form id="formImportExcel" enctype="multipart/form-data">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
-                        <h5 class="modal-title" id="exampleModalLabel">Import Cutting Manual</h5>
-                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <h5 class="modal-title">
+                            Import Cutting Manual
+                        </h5>
+                        <button type="button" class="close" data-bs-dismiss="modal"> <span>&times;</span></button>
                     </div>
+
                     <div class="modal-body">
                         {{ csrf_field() }}
-                        <label for="images" class="drop-container" id="dropcontainer">
-                            <input type="file" name="file" required="required">
+                        <label class="drop-container">
+                            <input type="file" name="file" id="fileImport" required>
                         </label>
-                        <a href="{{ asset('example/contoh-import-cutting-manual.xlsx') }}" download class="btn btn-sb-secondary btn-sm"><i class="fa fa-solid fa-download"></i> Contoh Excel</a>
+                        <a href="{{ asset('example/contoh-import-cutting-manual.xlsx') }}" download class="btn btn-sb-secondary btn-sm">
+                            <i class="fa fa-download"></i> Contoh Excel
+                        </a>
                     </div>
+
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
-                        <button type="submit" class="btn btn-sb toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Import</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                            <i class="fa fa-window-close"></i> Close
+                        </button>
+
+                        <button type="button" class="btn btn-primary" onclick="previewImportCuttingManual()">
+                            <i class="fa fa-thumbs-up" aria-hidden="true"></i> Import
+                        </button>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12 table-responsive">
+                                <table class="table table-bordered w-100" id="datatable-import-cutting-manual">
+                                    <thead>
+                                        <tr>
+                                            <th>Tanggal</th>
+                                            <th>WS</th>
+                                            <th>Color</th>
+                                            <th>Size</th>
+                                            <th>Panel</th>
+                                            <th>Qty</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <input type="hidden" name="items" id="items">
+
+                        <div class="col-12 col-md-6 offset-md-3 mt-3 text-center">
+                            <button type="button" class="btn btn-success w-100" id="btnSimpan" onclick="saveImportCuttingManual()">
+                                <i class="fa fa-save"></i> SIMPAN
+                            </button>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -1842,6 +1878,131 @@
                         });
                     }
                 });
+            });
+        }
+
+        // INIT DATATABLE IMPORT CUTTING MANUAL
+        let tableImportCuttingManual = $('#datatable-import-cutting-manual').DataTable({
+            paging: true,
+            searching: true,
+            ordering: false,
+            info: true,
+            autoWidth: false,
+            responsive: true
+        });
+
+        // PREVIEW IMPORT CUTTING MANUAL
+        function previewImportCuttingManual()
+        {
+            let form = document.getElementById('formImportExcel');
+            let formData = new FormData(form);
+
+            $.ajax({
+                url: "{{ route('preview-import-cutting-manual') }}",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function(){
+                    Swal.fire({
+                        title: 'Loading...',
+                        text: 'Sedang preview data',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                },
+                success: function(response){
+                    Swal.close();
+
+                    tableImportCuttingManual.clear().draw();
+
+                    response.data.forEach((item) => {
+                        tableImportCuttingManual.row.add([
+                            item.tanggal,
+                            item.ws,
+                            item.color,
+                            item.size,
+                            item.panel,
+                            item.qty
+                        ]).draw(false);
+                    });
+
+                    $('#items').val(JSON.stringify(response.data));
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Preview berhasil ditampilkan',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                },
+                error: function(xhr){
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Preview gagal'
+                    });
+                }
+            });
+        }
+
+        // SAVE IMPORT CUTTING MANUAL
+        function saveImportCuttingManual()
+        {
+            if (tableImportCuttingManual.rows().count() == 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Warning',
+                    text: 'Data masih kosong!'
+                });
+                return;
+            }
+
+            let form = document.getElementById('formImportExcel');
+            let formData = new FormData(form);
+
+            $.ajax({
+                url: "{{ route('import-cutting-manual') }}",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function(){
+                    Swal.fire({
+                        title: 'Loading...',
+                        text: 'Sedang menyimpan data',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                },
+                success: function(response){
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: response.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+
+                    tableImportCuttingManual.clear().draw();
+
+                    $('#formImportExcel')[0].reset();
+                    $('#items').val('');
+
+                    $('#importExcel').modal('hide');
+                },
+                error: function(xhr){
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Gagal simpan data'
+                    });
+                }
             });
         }
     </script>

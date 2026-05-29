@@ -653,6 +653,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('transfer-garment');
         Route::get('/create', 'create')->name('create-transfer-garment');
         Route::get('/get_po', 'get_po')->name('get_po');
+        Route::get('/get_line_by_po', 'get_line_by_po')->name('get_line_by_po');
         Route::get('/get_garment', 'get_garment')->name('get_garment');
         Route::post('/store_tmp_trf_garment', 'store_tmp_trf_garment')->name('store_tmp_trf_garment');
         Route::get('/show_tmp_trf_garment', 'show_tmp_trf_garment')->name('show_tmp_trf_garment');
