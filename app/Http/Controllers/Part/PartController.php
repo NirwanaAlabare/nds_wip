@@ -584,21 +584,74 @@ class PartController extends Controller
      */
     public function destroy(Part $part, $id = 0)
     {
+        // Check Part Form
         $countPartForm = PartForm::where("part_id", $id)->count();
 
-        if ($countPartForm < 1 || Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) {
-            $deletePartForm = PartForm::where("part_id", $id)->delete();
+        if ($countPartForm < 1) {
 
-            $deletePart = Part::where("id", $id)->delete();
+            // Get Part Detail IDs
+            $partDetailIds = PartDetail::where("part_id", $id)->get()->pluck("id")->toArray();
+            $linkedPartDetailIds = PartDetail::whereIn("from_part_detail", $partDetailIds)->get()->pluck("id")->toArray();
 
-            if ($deletePart) {
-                return array(
-                    'status' => 200,
-                    'message' => 'Part berhasil dihapus',
-                    'redirect' => '',
-                    'table' => 'datatable-part',
-                    'additional' => [],
-                );
+            $partDetailIds = array_unique(array_merge($partDetailIds, $linkedPartDetailIds));
+
+            // Get
+            $stockers = Stocker::whereIn("part_detail_id", $partDetailIds)->get();
+
+            if ($stockers->count() < 1) {
+                // Delete Stocker when bypass
+                $stockerIdQrs = $stockers->pluck('id_qr_stocker')->toArray();
+                $stockerIds = $stockers->pluck('id')->toArray();
+
+                // Log the deletion
+                Log::channel('destroyPart')->info([
+                    "Deleting Stocker Data",
+                    "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                    DB::table("part")->where("id", $id)->first(),
+                    DB::table("part_form")->where("part_id", $id)->get(),
+                    DB::table("part_detail")->where("part_detail_id", $partDetailIds)->get(),
+                    DB::table("part_detail_secondary")->where("part_detail_id", $partDetailIds)->get(),
+                    DB::table("stocker_input")->whereIn('id', $stockerIds)->get(),
+                    DB::table("dc_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                    DB::table("secondary_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                    DB::table("secondary_inhouse_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                    DB::table("secondary_inhouse_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                    DB::table("rack_detail_stocker")->whereIn('stocker_id', $stockerIds)->get(),
+                    DB::table("trolley_stocker")->whereIn('stocker_id', $stockerIds)->get(),
+                    DB::table("loading_line")->whereIn('stocker_id', $stockerIds)->get()
+                ]);
+
+                // Delete Stocker Process When bypass
+                $deleteStocker = Stocker::whereIn('id', $stockerIds)->delete();
+                $deleteDc = DCIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+                $deleteSecondaryIn = SecondaryIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+                $deleteSecondaryInHouseIn = SecondaryInHouseIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+                $deleteSecondaryInHouse = SecondaryInHouse::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+                $deleteRackDetailStocker = RackDetailStocker::whereIn('stocker_id', $stockerIds)->delete();
+                $deleteTrolleyStocker = TrolleyStocker::whereIn('stocker_id', $stockerIds)->delete();
+                $deleteLoadingLine = LoadingLine::whereIn('stocker_id', $stockerIds)->delete();
+
+                // Delete Part Form when bypass
+                $deletePartForm = PartForm::where("part_id", $id)->delete();
+
+                // Delete Part Detail Secondary
+                $deletePartDetailSecondary = PartDetailSecondary::whereIn("part_detail_id", $partDetailIds)->delete();
+
+                // Delete Part Detail
+                $deletePartDetail = PartDetail::whereIn("part_detail_id", $partDetailIds)->delete();
+
+                // Delete Part
+                $deletePart = Part::where("id", $id)->delete();
+
+                if ($deletePart) {
+                    return array(
+                        'status' => 200,
+                        'message' => 'Part berhasil dihapus',
+                        'redirect' => '',
+                        'table' => 'datatable-part',
+                        'additional' => [],
+                    );
+                }
             }
         }
 
