@@ -348,30 +348,80 @@
             document.querySelector('.select2-search__field').focus();
         });
 
-        // Semua select pakai bootstrap4 theme
-        $('.select2bs4').not('#cbogarment').not('#cbo_filter_color').not('#cbo_filter_size')
-            .select2({
-                theme: 'bootstrap4'
-            });
-        $('#cbo_filter_color, #cbo_filter_size').select2({
-            theme: 'bootstrap4'
-        });
+        // Semua select pakai bootstrap4 theme (kecuali yang punya template custom)
+        $('.select2bs4').not('#cbogarment').not('#cbopo').not('#cbo_filter_color').not('#cbo_filter_size')
+            .select2({ theme: 'bootstrap4' });
+        $('#cbo_filter_color, #cbo_filter_size').select2({ theme: 'bootstrap4' });
 
-        // cbogarment: warnai merah kalau selisih minus
+        // ── Template PO dropdown ──
+        function poTemplate(option) {
+            if (!option.id) return option.text;
+            const el          = $(option.element);
+            const styleno     = el.data('styleno')     || '';
+            const stylenoProd = el.data('stylenoprod') || '';
+            return $(`<div style="padding:2px 0;line-height:1.4">
+                <div style="font-weight:700;font-size:.88rem;color:#212529">${option.id}</div>
+                <div style="font-size:.75rem;color:#6c757d">${styleno}
+                    ${stylenoProd ? '<span style="color:#adb5bd"> · </span>' + stylenoProd : ''}
+                </div>
+            </div>`);
+        }
+        function poSelection(option) {
+            if (!option.id) return option.text;
+            const el      = $(option.element);
+            const styleno = el.data('styleno') || '';
+            return $(`<span><strong>${option.id}</strong>${styleno ? ' <small style="color:#6c757d">— ' + styleno + '</small>' : ''}</span>`);
+        }
+        function initPoSelect2() {
+            $('#cbopo').select2({
+                theme: 'bootstrap4',
+                templateResult:    poTemplate,
+                templateSelection: poSelection,
+            });
+        }
+        initPoSelect2();
+
+        // Template dropdown list garment — 2 baris, mobile friendly
         function garmentTemplate(option) {
             if (!option.id) return option.text;
-            const selisih = parseInt($(option.element).data('selisih') ?? 0);
-            const color = selisih < 0 ? '#dc3545' : 'inherit';
-            const weight = selisih < 0 ? '600' : 'normal';
-            return $('<span>').css({
-                color: color,
-                fontWeight: weight
-            }).text(option.text);
+            const el      = $(option.element);
+            const selisih = parseInt(el.data('selisih') ?? 0);
+            const isMinus = selisih < 0;
+            const ws      = el.data('ws')    || '-';
+            const color   = el.data('color') || '-';
+            const size    = el.data('size')  || '-';
+            const dest    = el.data('dest')  || '-';
+            const qty     = el.data('qty')   !== undefined ? el.data('qty') : selisih;
+            const badge   = isMinus
+                ? `<span style="background:#dc3545;color:#fff;border-radius:4px;padding:1px 6px;font-size:.7rem;font-weight:700">${selisih} PCS</span>`
+                : `<span style="background:#d1fae5;color:#065f46;border-radius:4px;padding:1px 6px;font-size:.7rem;font-weight:700">${qty} PCS</span>`;
+            return $(`<div style="padding:2px 0;line-height:1.5">
+                <div style="font-weight:700;font-size:.88rem;color:${isMinus ? '#dc3545' : '#212529'}">
+                    ${ws} <span style="color:#6c757d;font-weight:400;font-size:.8rem">· ${color} / ${size}</span>
+                </div>
+                <div style="font-size:.75rem;color:#6c757d;display:flex;justify-content:space-between;align-items:center;margin-top:1px">
+                    <span>Dest: ${dest}</span>${badge}
+                </div>
+            </div>`);
         }
+
+        // Template teks di kotak select setelah item dipilih
+        function garmentSelection(option) {
+            if (!option.id) return option.text;
+            const el      = $(option.element);
+            const selisih = parseInt(el.data('selisih') ?? 0);
+            const ws      = el.data('ws')    || '';
+            const color   = el.data('color') || '';
+            const size    = el.data('size')  || '';
+            const qty     = el.data('qty')   !== undefined ? el.data('qty') : selisih;
+            const css     = selisih < 0 ? 'color:#dc3545;font-weight:700' : '';
+            return $(`<span style="${css}">${ws} · ${color} / ${size} — ${qty} PCS</span>`);
+        }
+
         $('#cbogarment').select2({
             theme: 'bootstrap4',
             templateResult: garmentTemplate,
-            templateSelection: garmentTemplate,
+            templateSelection: garmentSelection,
         });
     </script>
     <script>
@@ -580,12 +630,11 @@
             const html = $.ajax({
                 type: 'GET',
                 url: '{{ route('get_po') }}',
-                data: {
-                    cbo_line: ''
-                },
+                data: { cbo_line: '' },
                 async: false,
             }).responseText;
-            $('#cbopo').html(html).val('').trigger('change.select2');
+            $('#cbopo').html(html).val('');
+            initPoSelect2();
             updating = false;
         }
 
@@ -594,12 +643,11 @@
             const html = $.ajax({
                 type: 'GET',
                 url: '{{ route('get_po') }}',
-                data: {
-                    cbo_line: line
-                },
+                data: { cbo_line: line },
                 async: false,
             }).responseText;
-            $('#cbopo').html(html).val('').trigger('change.select2');
+            $('#cbopo').html(html).val('');
+            initPoSelect2();
             updating = false;
         }
 
@@ -659,11 +707,14 @@
             allGarments = [];
             $tmp.find('option[value!=""]').each(function() {
                 allGarments.push({
-                    isi: $(this).val(),
-                    tampil: $(this).text(),
+                    isi:     $(this).val(),
+                    tampil:  $(this).text(),
                     selisih: parseInt($(this).data('selisih') ?? 0),
-                    color: $(this).data('color') ?? '',
-                    size: $(this).data('size') ?? '',
+                    ws:      $(this).data('ws')    ?? '',
+                    color:   $(this).data('color') ?? '',
+                    size:    $(this).data('size')  ?? '',
+                    dest:    $(this).data('dest')  ?? '',
+                    qty:     $(this).data('qty')   ?? 0,
                 });
             });
 
@@ -695,8 +746,14 @@
 
             let html = '<option value="">-- Pilih Garment --</option>';
             filtered.forEach(g => {
-                html +=
-                    `<option value="${g.isi}" data-selisih="${g.selisih}" data-color="${g.color}" data-size="${g.size}">${g.tampil}</option>`;
+                html += `<option value="${g.isi}"`
+                      + ` data-selisih="${g.selisih}"`
+                      + ` data-ws="${g.ws}"`
+                      + ` data-color="${g.color}"`
+                      + ` data-size="${g.size}"`
+                      + ` data-dest="${g.dest}"`
+                      + ` data-qty="${g.qty}">`
+                      + `${g.ws} / ${g.color} / ${g.size}</option>`;
             });
 
             $('#cbogarment').html(html).val('').select2({

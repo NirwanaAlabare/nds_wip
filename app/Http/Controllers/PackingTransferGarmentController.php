@@ -112,31 +112,25 @@ order by isi asc");
         if ($line) {
             // Filter by line: only POs that have output from this line
             $data_po = DB::select("
-SELECT
-    p.po AS isi,
-		po_id,
-    CONCAT(p.po, ' ( ', m.styleno, ' ) ( ', m.styleno_prod, ' )') AS tampil
-FROM (
-    SELECT DISTINCT po_id
-    FROM signalbit_erp.output_rfts_packing_po
-    WHERE created_by_line = '$line'
-) o
-INNER JOIN ppic_master_so p ON o.po_id = p.id
-INNER JOIN master_sb_ws m ON p.id_so_det = m.id_so_det
-where tgl_shipment >= '$tgl_shipment_min_setahun'
-group by p.po
-ORDER BY p.po ASC;
-
+                SELECT p.po AS isi, m.styleno, m.styleno_prod
+                FROM (
+                    SELECT DISTINCT po_id
+                    FROM signalbit_erp.output_rfts_packing_po
+                    WHERE created_by_line = '$line'
+                ) o
+                INNER JOIN ppic_master_so p ON o.po_id = p.id
+                INNER JOIN master_sb_ws m ON p.id_so_det = m.id_so_det
+                WHERE tgl_shipment >= '$tgl_shipment_min_setahun'
+                GROUP BY p.po
+                ORDER BY p.po ASC
             ");
         } else {
             // No line filter: show all POs
             $data_po = DB::select("
-                SELECT
-                    p.po isi,
-                    CONCAT(p.po, ' ( ', m.styleno, ' ) ', '( ', m.styleno_prod, ' )') tampil
+                SELECT p.po isi, m.styleno, m.styleno_prod
                 FROM ppic_master_so p
                 INNER JOIN master_sb_ws m ON p.id_so_det = m.id_so_det
-                where tgl_shipment >= '$tgl_shipment_min_setahun'
+                WHERE tgl_shipment >= '$tgl_shipment_min_setahun'
                 GROUP BY p.po
                 ORDER BY p.po ASC
             ");
@@ -144,7 +138,13 @@ ORDER BY p.po ASC;
 
         $html = "<option value=''>-- Pilih PO --</option>";
         foreach ($data_po as $datapo) {
-            $html .= "<option value='{$datapo->isi}'>{$datapo->tampil}</option>";
+            $styleno     = htmlspecialchars($datapo->styleno      ?? '');
+            $stylenoProd = htmlspecialchars($datapo->styleno_prod ?? '');
+            $html .= "<option value='{$datapo->isi}'"
+                   . " data-styleno='{$styleno}'"
+                   . " data-stylenoprod='{$stylenoProd}'>"
+                   . "{$datapo->isi}"
+                   . "</option>";
         }
 
         return $html;
@@ -199,9 +199,11 @@ c AS (
 
 SELECT
 id_ppic_master_so isi,
-concat (m.ws, ' - ',p.id_so_det,' - ', m.product_item, ' - ', m.color, ' - ', m.size, ' - ',p.dest, ' => ', coalesce(SUM(qty_packing) - SUM(qty_trf_gmt),0), ' PCS' ) tampil,
+m.ws,
 m.color,
 m.size,
+p.dest,
+coalesce(SUM(qty_packing) - SUM(qty_trf_gmt),0) AS qty_sisa,
 line,
 SUM(qty_packing)            AS qty_packing,
 SUM(qty_trf_gmt)            AS qty_trf_gmt,
@@ -219,13 +221,19 @@ order by ws asc, color asc, urutan asc
 
         foreach ($data_garment as $datagarment) {
             $selisih = $datagarment->selisih ?? 0;
+            $ws      = htmlspecialchars($datagarment->ws    ?? '');
             $color   = htmlspecialchars($datagarment->color ?? '');
             $size    = htmlspecialchars($datagarment->size  ?? '');
+            $dest    = htmlspecialchars($datagarment->dest  ?? '');
+            $qtySisa = $datagarment->qty_sisa ?? 0;
             $html .= "<option value='{$datagarment->isi}'"
                    . " data-selisih='{$selisih}'"
+                   . " data-ws='{$ws}'"
                    . " data-color='{$color}'"
-                   . " data-size='{$size}'>"
-                   . $datagarment->tampil
+                   . " data-size='{$size}'"
+                   . " data-dest='{$dest}'"
+                   . " data-qty='{$qtySisa}'>"
+                   . "{$ws} / {$color} / {$size}"   // tampil ringkas, detail via template
                    . "</option>";
         }
 
