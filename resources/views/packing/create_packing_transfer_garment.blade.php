@@ -135,14 +135,17 @@
         .select2-results__option--highlighted .opt-secondary {
             color: rgba(255, 255, 255, 0.82) !important;
         }
+
         .select2-results__option--highlighted .opt-badge-green {
-            background: rgba(255,255,255,0.25) !important;
+            background: rgba(255, 255, 255, 0.25) !important;
             color: #fff !important;
         }
+
         .select2-results__option--highlighted .opt-badge-red {
-            background: rgba(255,255,255,0.25) !important;
+            background: rgba(255, 255, 255, 0.25) !important;
             color: #fff !important;
         }
+
         .select2-results__option--highlighted .opt-primary {
             color: #fff !important;
         }
@@ -366,30 +369,38 @@
 
         // Semua select pakai bootstrap4 theme (kecuali yang punya template custom)
         $('.select2bs4').not('#cbogarment').not('#cbopo').not('#cbo_filter_color').not('#cbo_filter_size')
-            .select2({ theme: 'bootstrap4' });
-        $('#cbo_filter_color, #cbo_filter_size').select2({ theme: 'bootstrap4' });
+            .select2({
+                theme: 'bootstrap4'
+            });
+        $('#cbo_filter_color, #cbo_filter_size').select2({
+            theme: 'bootstrap4'
+        });
 
         // ── Template PO dropdown ──
         function poTemplate(option) {
             if (!option.id) return option.text;
-            const el          = $(option.element);
-            const styleno     = el.data('styleno')     || '';
+            const el = $(option.element);
+            const styleno = el.data('styleno') || '';
             const stylenoProd = el.data('stylenoprod') || '';
             return $(`<div style="padding:2px 0;line-height:1.4">
                 <div class="opt-primary" style="font-weight:700;font-size:.88rem;color:#212529">${option.id}</div>
                 <div class="opt-secondary" style="font-size:.75rem;color:#6c757d">${styleno}${stylenoProd ? ' · ' + stylenoProd : ''}</div>
             </div>`);
         }
+
         function poSelection(option) {
             if (!option.id) return option.text;
-            const el      = $(option.element);
+            const el = $(option.element);
             const styleno = el.data('styleno') || '';
-            return $(`<span><strong>${option.id}</strong>${styleno ? ' <small style="color:#6c757d">— ' + styleno + '</small>' : ''}</span>`);
+            return $(
+                `<span><strong>${option.id}</strong>${styleno ? ' <small style="color:#6c757d">— ' + styleno + '</small>' : ''}</span>`
+                );
         }
+
         function initPoSelect2() {
             $('#cbopo').select2({
                 theme: 'bootstrap4',
-                templateResult:    poTemplate,
+                templateResult: poTemplate,
                 templateSelection: poSelection,
             });
         }
@@ -398,17 +409,17 @@
         // Template dropdown list garment — 2 baris, mobile friendly
         function garmentTemplate(option) {
             if (!option.id) return option.text;
-            const el      = $(option.element);
+            const el = $(option.element);
             const selisih = parseInt(el.data('selisih') ?? 0);
             const isMinus = selisih < 0;
-            const ws      = el.data('ws')    || '-';
-            const color   = el.data('color') || '-';
-            const size    = el.data('size')  || '-';
-            const dest    = el.data('dest')  || '-';
-            const qty     = el.data('qty')   !== undefined ? el.data('qty') : selisih;
-            const badge   = isMinus
-                ? `<span class="opt-badge-red" style="background:#dc3545;color:#fff;border-radius:4px;padding:1px 6px;font-size:.7rem;font-weight:700">${selisih} PCS</span>`
-                : `<span class="opt-badge-green" style="background:#d1fae5;color:#065f46;border-radius:4px;padding:1px 6px;font-size:.7rem;font-weight:700">${qty} PCS</span>`;
+            const ws = el.data('ws') || '-';
+            const color = el.data('color') || '-';
+            const size = el.data('size') || '-';
+            const dest = el.data('dest') || '-';
+            const qty = el.data('qty') !== undefined ? el.data('qty') : selisih;
+            const badge = isMinus ?
+                `<span class="opt-badge-red" style="background:#dc3545;color:#fff;border-radius:4px;padding:1px 6px;font-size:.7rem;font-weight:700">${selisih} PCS</span>` :
+                `<span class="opt-badge-green" style="background:#d1fae5;color:#065f46;border-radius:4px;padding:1px 6px;font-size:.7rem;font-weight:700">${qty} PCS</span>`;
             return $(`<div style="padding:2px 0;line-height:1.5">
                 <div class="opt-primary" style="font-weight:700;font-size:.88rem;color:${isMinus ? '#dc3545' : '#212529'}">
                     ${ws} <span class="opt-secondary" style="color:#6c757d;font-weight:400;font-size:.8rem">· ${color} / ${size}</span>
@@ -422,13 +433,13 @@
         // Template teks di kotak select setelah item dipilih
         function garmentSelection(option) {
             if (!option.id) return option.text;
-            const el      = $(option.element);
+            const el = $(option.element);
             const selisih = parseInt(el.data('selisih') ?? 0);
-            const ws      = el.data('ws')    || '';
-            const color   = el.data('color') || '';
-            const size    = el.data('size')  || '';
-            const qty     = el.data('qty')   !== undefined ? el.data('qty') : selisih;
-            const css     = selisih < 0 ? 'color:#dc3545;font-weight:700' : '';
+            const ws = el.data('ws') || '';
+            const color = el.data('color') || '';
+            const size = el.data('size') || '';
+            const qty = el.data('qty') !== undefined ? el.data('qty') : selisih;
+            const css = selisih < 0 ? 'color:#dc3545;font-weight:700' : '';
             return $(`<span style="${css}">${ws} · ${color} / ${size} — ${qty} PCS</span>`);
         }
 
@@ -510,13 +521,12 @@
                 reloadGarment();
             });
 
-            // Garment dipilih: kelola state step 3→4
+            // Garment dipilih: kelola state step 3→4 + block jika minus
             $('#cbogarment').on('change', function() {
-                const val     = $(this).val();
-                const selisih = parseInt($('#cbogarment option:selected').data('selisih') ?? 0);
-                // const isMinus  = val && selisih < 0;
-                // const canInput = val && !isMinus;
-                const canInput = !!val;   // sementara semua garment bisa diinput
+                const val      = $(this).val();
+                const selisih  = parseInt($('#cbogarment option:selected').data('selisih') ?? 0);
+                const isMinus  = val && selisih < 0;
+                const canInput = val && !isMinus;
 
                 $('#txtqty').prop('disabled', !canInput);
                 $('#btn-tambah').prop('disabled', !canInput);
@@ -526,26 +536,24 @@
                     $('#badge3').removeClass('st-active st-locked').addClass('st-done')
                         .html('<i class="fas fa-check" style="font-size:13px"></i>');
                     $('#line3').addClass('done');
-                    $('#badge4').removeClass('st-locked').addClass('st-active').html('4');
+                    $('#badge4').removeClass('st-locked').addClass(canInput ? 'st-active' : 'st-locked').html('4');
                 } else {
                     $('#badge3').removeClass('st-done').addClass('st-active').html('3');
                     $('#line3').removeClass('done');
                     $('#badge4').removeClass('st-active st-done').addClass('st-locked').html('4');
                 }
 
-                // if (isMinus) {
-                //     document.getElementById('txtqty').value = '';
-                //     iziToast.error({
-                //         title: 'Tidak Bisa Input!',
-                //         message: 'Qty sisa garment ini MINUS (' + selisih + ' PCS). Input diblokir.',
-                //         position: 'topCenter',
-                //         timeout: 5000,
-                //     });
-                // } else if (canInput) {
-                if (canInput) {
+                if (isMinus) {
+                    document.getElementById('txtqty').value = '';
+                    iziToast.error({
+                        title: 'Tidak Bisa Input!',
+                        message: 'Qty sisa garment ini MINUS (' + selisih + ' PCS). Input diblokir.',
+                        position: 'topCenter',
+                        timeout: 5000,
+                    });
+                } else if (canInput) {
                     $('#txtqty').attr('max', selisih).focus().select();
                 }
-                // }
             });
 
             // Enter on qty = Tambah
@@ -644,7 +652,9 @@
             const html = $.ajax({
                 type: 'GET',
                 url: '{{ route('get_po') }}',
-                data: { cbo_line: '' },
+                data: {
+                    cbo_line: ''
+                },
                 async: false,
             }).responseText;
             $('#cbopo').html(html).val('');
@@ -657,7 +667,9 @@
             const html = $.ajax({
                 type: 'GET',
                 url: '{{ route('get_po') }}',
-                data: { cbo_line: line },
+                data: {
+                    cbo_line: line
+                },
                 async: false,
             }).responseText;
             $('#cbopo').html(html).val('');
@@ -721,14 +733,14 @@
             allGarments = [];
             $tmp.find('option[value!=""]').each(function() {
                 allGarments.push({
-                    isi:     $(this).val(),
-                    tampil:  $(this).text(),
+                    isi: $(this).val(),
+                    tampil: $(this).text(),
                     selisih: parseInt($(this).data('selisih') ?? 0),
-                    ws:      $(this).data('ws')    ?? '',
-                    color:   $(this).data('color') ?? '',
-                    size:    $(this).data('size')  ?? '',
-                    dest:    $(this).data('dest')  ?? '',
-                    qty:     $(this).data('qty')   ?? 0,
+                    ws: $(this).data('ws') ?? '',
+                    color: $(this).data('color') ?? '',
+                    size: $(this).data('size') ?? '',
+                    dest: $(this).data('dest') ?? '',
+                    qty: $(this).data('qty') ?? 0,
                 });
             });
 
@@ -760,14 +772,14 @@
 
             let html = '<option value="">-- Pilih Garment --</option>';
             filtered.forEach(g => {
-                html += `<option value="${g.isi}"`
-                      + ` data-selisih="${g.selisih}"`
-                      + ` data-ws="${g.ws}"`
-                      + ` data-color="${g.color}"`
-                      + ` data-size="${g.size}"`
-                      + ` data-dest="${g.dest}"`
-                      + ` data-qty="${g.qty}">`
-                      + `${g.ws} / ${g.color} / ${g.size}</option>`;
+                html += `<option value="${g.isi}"` +
+                    ` data-selisih="${g.selisih}"` +
+                    ` data-ws="${g.ws}"` +
+                    ` data-color="${g.color}"` +
+                    ` data-size="${g.size}"` +
+                    ` data-dest="${g.dest}"` +
+                    ` data-qty="${g.qty}">` +
+                    `${g.ws} / ${g.color} / ${g.size}</option>`;
             });
 
             $('#cbogarment').html(html).val('').select2({
@@ -807,20 +819,23 @@
                 return;
             }
             if (!txtqty || txtqty <= 0) {
-                iziToast.warning({ message: 'Qty harus diisi', position: 'topCenter' });
+                iziToast.warning({
+                    message: 'Qty harus diisi',
+                    position: 'topCenter'
+                });
                 return;
             }
-            // const selisihGarment = parseInt($('#cbogarment option:selected').data('selisih') ?? 0);
-            // if (parseInt(txtqty) > selisihGarment) {
-            //     iziToast.warning({
-            //         title: 'Qty Melebihi Sisa!',
-            //         message: 'Maksimal ' + selisihGarment + ' PCS untuk garment ini.',
-            //         position: 'topCenter',
-            //         timeout: 4000,
-            //     });
-            //     $('#txtqty').focus().select();
-            //     return;
-            // }
+            const selisihGarment = parseInt($('#cbogarment option:selected').data('selisih') ?? 0);
+            if (parseInt(txtqty) > selisihGarment) {
+                iziToast.warning({
+                    title: 'Qty Melebihi Sisa!',
+                    message: 'Maksimal ' + selisihGarment + ' PCS untuk garment ini.',
+                    position: 'topCenter',
+                    timeout: 4000,
+                });
+                $('#txtqty').focus().select();
+                return;
+            }
 
             $.ajax({
                 type: 'post',
