@@ -27,63 +27,82 @@
                     <div class="col-md-5">
                         <div class="form-group">
                             <label class="form-label"><small><b>No. PO</b></small></label>
-                            <select class="form-control select2bs4 form-control-sm" id="cbopo" name="cbopo"
-                                style="width: 100%;" onchange="getno_carton();dataTablePreviewReload();">
-                                <option selected="selected" value="" disabled="true">Pilih No. PO</option>
-                                @foreach ($data_po as $datapo)
-                                    <option value="{{ $datapo->isi }}">
-                                        {{ $datapo->tampil }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <select class="form-control form-control-sm" id="cbopo" name="cbopo"
+                                style="width: 100%;"></select>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label class="form-label"><small><b>No. Carton</b></small></label>
-                            <select class='form-control select2bs4 form-control-sm rounded' style='width: 100%;'
-                                name='cbo_no_carton' id='cbo_no_carton' onchange="dataTablePreviewReload()"></select>
+
+                </div>
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <label class="mb-0">Preview</label>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-bold">Total Karton Dipilih :</span>
+                            <input type="text" id="total_carton_selected"
+                                class="form-control form-control-sm text-center fw-bold" style="width:70px;" readonly
+                                value="0">
+                            <span class="fw-bold">Karton</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-bold">Total Qty Dipilih :</span>
+                            <input type="text" id="total_qty_selected"
+                                class="form-control form-control-sm text-center fw-bold" style="width:90px;" readonly
+                                value="0">
+                            <span class="fw-bold">PCS</span>
                         </div>
                     </div>
                 </div>
-                <label>Preview</label>
-                <div class="table-responsive">
-                    <table id="datatable_preview" class="table table-bordered table-striped w-100 text-nowrap">
-                        <thead>
-                            <tr>
-                                <th>No. Carton</th>
-                                <th>PO</th>
-                                <th>Barcode</th>
-                                <th>WS</th>
-                                <th>Color</th>
-                                <th>Size</th>
-                                <th>Dest</th>
-                                <th>Qty Sisa</th>
-                                <th>Input</th>
-                                <th>Unit</th>
-                            </tr>
-                        </thead>
-                        <tfoot>
-                            <tr>
-                                <th colspan="7"></th>
-                                <th></th>
-                                <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                        id = 'total_qty_chk'> </th>
-                                <th>PCS</th>
-                            </tr>
-                        </tfoot>
-                    </table>
+                <div class="position-relative">
+                    <div id="preview-loading"
+                        class="d-none position-absolute w-100 h-100 d-flex align-items-center justify-content-center"
+                        style="top:0;left:0;background:rgba(255,255,255,0.75);z-index:10;">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <div class="mt-1 small fw-bold text-primary">Memuat data...</div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="datatable_preview" class="table table-bordered w-100 text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <input class="form-check checkbox-xl" type="checkbox" onclick="togglePreview(this);"
+                                            checked>
+                                    </th>
+                                    <th>No. Carton</th>
+                                    <th>PO</th>
+                                    <th>Barcode</th>
+                                    <th>WS</th>
+                                    <th>Color</th>
+                                    <th>Size</th>
+                                    <th>Dest</th>
+                                    <th>Qty Sisa</th>
+                                    <th>Input</th>
+                                    <th>Unit</th>
+                                </tr>
+                            </thead>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="8"></th>
+                                    <th></th>
+                                    <th> <input type = 'text' class="form-control form-control-sm" style="width:75px"
+                                            readonly id = 'total_qty_chk'> </th>
+                                    <th>PCS</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
                 </div>
                 <div class="d-flex justify-content-between">
                     <div class="p-2 bd-highlight">
                         <a class="btn btn-outline-warning" onclick="undo()">
-                            <i class="fas fa-sync-alt
-                fa-spin"></i>
+                            <i class="fas fa-sync-alt fa-spin"></i>
                             Undo
                         </a>
                     </div>
                     <div class="p-2 bd-highlight">
-                        <button type="submit" class="btn btn-outline-success"><i class="fas fa-check"></i> Simpan </button>
+                        <button type="button" onclick="confirmAndSave()" class="btn btn-outline-success"><i
+                                class="fas fa-check"></i> Simpan </button>
                     </div>
                 </div>
             </div>
@@ -97,21 +116,30 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Awal</b></small></label>
-                    <input type="date" class="form-control form-control-sm " id="tgl-awal" name="tgl_awal"
-                        oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
+                        value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Akhir</b></small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
+                        value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
+                    <label class="form-label d-block"><small>&nbsp;</small></label>
+                    <a onclick="dataTableReload()" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-search fa-sm"></i>
+                        Cari
+                    </a>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label d-block"><small>&nbsp;</small></label>
                     <a onclick="export_excel_list()" class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel List
                     </a>
                 </div>
                 <div class="mb-3">
+                    <label class="form-label d-block"><small>&nbsp;</small></label>
                     <a onclick="export_excel_summary()" class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel Summary
@@ -162,6 +190,11 @@
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <style>
+        .checkbox-xl .form-check-input {
+            scale: 1.5;
+        }
+    </style>
     <script>
         // Select2 Autofocus
         $(document).on('select2:open', () => {
@@ -171,9 +204,30 @@
         // Initialize Select2 Elements
         $('.select2').select2();
 
-        // Initialize Select2BS4 Elements
-        $('.select2bs4').select2({
+        // PO dropdown — AJAX search, tidak load semua data sekaligus
+        $('#cbopo').select2({
             theme: 'bootstrap4',
+            placeholder: 'Ketik untuk cari No. PO...',
+            allowClear: true,
+            minimumInputLength: 0,
+            ajax: {
+                url: '{{ route('fg_in_search_po') }}',
+                dataType: 'json',
+                delay: 300,
+                data: function(params) {
+                    return {
+                        q: params.term || ''
+                    };
+                },
+                processResults: function(data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true,
+            },
+        }).on('change', function() {
+            dataTablePreviewReload();
         });
     </script>
     <script>
@@ -184,33 +238,15 @@
     <script>
         $(document).ready(() => {
             dataTableReload();
-            $("#cbopo").val('').trigger('change');
             startCalc();
         });
-
-        function getno_carton() {
-            let cbopo = $('#cbopo').val();
-
-            $.ajax({
-                type: "GET",
-                url: '{{ route('fg_in_getno_carton') }}',
-                data: {
-                    cbopo: cbopo
-                },
-                success: function(res) {
-                    if (res) {
-                        $('#cbo_no_carton').html(res);
-                    }
-                }
-            });
-        }
-
 
         function dataTableReload() {
             datatable.ajax.reload();
         }
 
         function dataTablePreviewReload() {
+            $('#preview-loading').removeClass('d-none').addClass('d-flex');
             datatable_preview.ajax.reload();
         }
 
@@ -355,7 +391,6 @@
                 var api = this.api(),
                     data;
 
-                // converting to interger to find total
                 var intVal = function(i) {
                     return typeof i === 'string' ?
                         i.replace(/[\$,]/g, '') * 1 :
@@ -363,24 +398,29 @@
                         i : 0;
                 };
 
-                // computing column Total of the complete result
                 var sumTotal = api
-                    .column(6)
+                    .column(8)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
 
-                // Update footer by showing the total with the reference of the column index
-                $(api.column(0).footer()).html('Total');
-                $(api.column(6).footer()).html(sumTotal);
+                $(api.column(1).footer()).html('Total');
+                $(api.column(8).footer()).html(sumTotal);
+            },
+            drawCallback: function() {
+                $('#preview-loading').removeClass('d-flex').addClass('d-none');
+                findTotal();
             },
             ordering: false,
             processing: true,
             serverSide: true,
             paging: false,
             destroy: true,
-            autoWidth: true,
+            autoWidth: false,
+            scrollY: '400px',
+            scrollX: true,
+            scrollCollapse: true,
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -390,10 +430,13 @@
                 dataSrc: 'data',
                 data: function(d) {
                     d.cbopo = $('#cbopo').val();
-                    d.cbo_no_carton = $('#cbo_no_carton').val();
                 },
             },
             columns: [{
+                    data: null,
+                    orderable: false,
+                },
+                {
                     data: 'no_carton',
                 },
                 {
@@ -425,39 +468,71 @@
                 },
             ],
 
+            createdRow: function(row, data, dataIndex) {
+                if (parseInt(data.qty) > 0) {
+                    $(row).css('background-color', '#cfe2ff');
+                }
+            },
             columnDefs: [{
                     "className": "align-middle",
                     "targets": "_all"
                 },
                 {
-                    targets: [8],
+                    targets: [0],
                     render: (data, type, row, meta) => {
+                        let ck = row.no_carton + '__' + row.id_so_det;
+                        let isZero = row.qty == 0;
+                        return `
+                        <div class="form-check checkbox-xl" style="text-align:center">
+                            <input class="form-check-input row-check" type="checkbox"
+                                data-ck="${ck}" ${isZero ? 'disabled' : 'checked'}>
+                        </div>`;
+                    }
+                },
+                {
+                    targets: [9],
+                    render: (data, type, row, meta) => {
+                        let ck = row.no_carton + '__' + row.id_so_det;
+                        let isZero = row.qty == 0;
+                        let dis = isZero ? 'disabled' : '';
                         return `
                         <div>
-                            <input type="number" class="form-control form-control-sm input" style="width:75px" id="txtqty[` +
-                            row
-                            .id_so_det + `]"
-                            name="txtqty[` + row.id_so_det + `]" value = "` + row.qty +
-                            `" autocomplete="off"  max = "` + row
-                            .qty + `" min = "0" onFocus="startCalc();" onBlur="stopCalc();" />
+                            <input type="number" class="form-control form-control-sm input" style="width:75px"
+                            id="txtqty[${ck}]" name="txtqty[${ck}]"
+                            value="${row.qty}" autocomplete="off" readonly ${dis}/>
                         </div>
                         <div>
-                            <input type="hidden" size="4" id="id_so_det[` + row.id_so_det + `]"
-                            name="id_so_det[` + row.id_so_det + `]" value = "` + row.id_so_det + `"/>
-                            <input type="hidden" size="4" id="price[` + row.id_so_det + `]"
-                            name="price[` + row.id_so_det + `]" value = "` + row.price + `"/>
-                            <input type="hidden" size="4" id="curr[` + row.id_so_det + `]"
-                            name="curr[` + row.id_so_det + `]" value = "` + row.curr + `"/>
-                            <input type="hidden" size="4" id="id_ppic_master_so[` + row.id_so_det + `]"
-                            name="id_ppic_master_so[` + row.id_so_det + `]" value = "` + row.id_ppic_master_so + `"/>
-                            <input type="hidden" size="4" id="barcode[` + row.id_so_det + `]"
-                            name="barcode[` + row.id_so_det + `]" value = "` + row.barcode + `"/>
+                            <input type="hidden" name="id_so_det[${ck}]" value="${row.id_so_det}" ${dis}/>
+                            <input type="hidden" name="price[${ck}]" value="${row.price}" ${dis}/>
+                            <input type="hidden" name="curr[${ck}]" value="${row.curr}" ${dis}/>
+                            <input type="hidden" name="id_ppic_master_so[${ck}]" value="${row.id_ppic_master_so}" ${dis}/>
+                            <input type="hidden" name="barcode[${ck}]" value="${row.barcode}" ${dis}/>
+                            <input type="hidden" name="no_carton[${ck}]" value="${row.no_carton}" ${dis}/>
                         </div>
                         `;
                     }
                 },
             ]
 
+        });
+
+        function togglePreview(source) {
+            $('#datatable_preview .row-check:not(:disabled)').each(function() {
+                $(this).prop('checked', source.checked).trigger('change');
+            });
+        }
+
+        $(document).on('change', '#datatable_preview .row-check', function() {
+            let ck = $(this).data('ck');
+            let disabled = !$(this).is(':checked');
+            $(`[name="txtqty[${ck}]"]`).prop('disabled', disabled);
+            $(`[name="id_so_det[${ck}]"]`).prop('disabled', disabled);
+            $(`[name="price[${ck}]"]`).prop('disabled', disabled);
+            $(`[name="curr[${ck}]"]`).prop('disabled', disabled);
+            $(`[name="id_ppic_master_so[${ck}]"]`).prop('disabled', disabled);
+            $(`[name="barcode[${ck}]"]`).prop('disabled', disabled);
+            $(`[name="no_carton[${ck}]"]`).prop('disabled', disabled);
+            findTotal();
         });
 
         function startCalc() {
@@ -468,14 +543,94 @@
             var arr = document.getElementsByClassName('form-control form-control-sm input');
             var tot = 0;
             for (var i = 0; i < arr.length; i++) {
-                if (parseInt(arr[i].value))
+                if (!arr[i].disabled && parseInt(arr[i].value))
                     tot += parseInt(arr[i].value);
             }
             document.getElementById('total_qty_chk').value = tot;
+            document.getElementById('total_qty_selected').value = tot;
+
+            var cartons = new Set();
+            $('#datatable_preview .row-check:checked:not(:disabled)').each(function() {
+                var ck = $(this).data('ck');
+                if (ck) cartons.add(ck.toString().split('__')[0]);
+            });
+            document.getElementById('total_carton_selected').value = cartons.size;
         }
 
         function stopCalc() {
             clearInterval(interval);
+        }
+
+        function confirmAndSave() {
+            let cartonMap = {};
+            let totalQty = 0;
+
+            $('#datatable_preview .row-check:checked:not(:disabled)').each(function() {
+                let ck = $(this).data('ck');
+                let noCarton = ck.toString().split('__')[0];
+                let qty = parseInt($(`[name="txtqty[${ck}]"]`).val()) || 0;
+
+                if (cartonMap[noCarton] === undefined) {
+                    cartonMap[noCarton] = 0;
+                }
+                cartonMap[noCarton] += qty;
+                totalQty += qty;
+            });
+
+            let cartonList = Object.keys(cartonMap);
+
+            if (cartonList.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tidak ada karton dipilih!',
+                    text: 'Pilih minimal satu karton untuk disimpan.'
+                });
+                return;
+            }
+
+            let tableRows = cartonList.map((noCarton, idx) =>
+                `<tr>
+                    <td class="text-center">${idx + 1}</td>
+                    <td class="fw-bold">${noCarton}</td>
+                    <td class="text-center">${cartonMap[noCarton].toLocaleString()}</td>
+                </tr>`
+            ).join('');
+
+            let html = `
+                <div style="max-height:350px; overflow-y:auto;">
+                    <table class="table table-bordered table-sm mb-0">
+                        <thead class="table-primary">
+                            <tr>
+                                <th class="text-center" style="width:40px">No</th>
+                                <th class="text-center">No. Carton</th>
+                                <th class="text-center" style="width:80px">Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
+                        <tfoot>
+                            <tr class="table-success fw-bold">
+                                <td colspan="2" class="text-end">Total (${cartonList.length} Karton)</td>
+                                <td class="text-center">${totalQty.toLocaleString()} PCS</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>`;
+
+            Swal.fire({
+                title: '<i class="fas fa-boxes"></i> Konfirmasi Simpan',
+                html: html,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-check"></i> Ya, Simpan',
+                cancelButtonText: '<i class="fas fa-times"></i> Batal',
+                width: '500px',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('#form').off('submit').submit();
+                }
+            });
         }
 
         function export_excel_list() {

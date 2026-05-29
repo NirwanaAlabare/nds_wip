@@ -382,32 +382,30 @@
 
         function getws() {
             let cbobuyer = $('#cbobuyer').val();
-            let html = $.ajax({
+            $.ajax({
                 type: "GET",
                 url: '{{ route('getws_dashboard_ekspedisi') }}',
-                data: {
-                    cbobuyer: cbobuyer
-                },
-                async: false
-            }).responseText;
-            if (html != "") {
-                $("#cbows").html(html);
-            }
+                data: { cbobuyer: cbobuyer },
+                success: function(html) {
+                    if (html !== "") {
+                        $("#cbows").html(html).trigger('change');
+                    }
+                }
+            });
         };
 
         function getpo() {
             let cbobuyer = $('#cbobuyer').val();
-            let html = $.ajax({
+            $.ajax({
                 type: "GET",
                 url: '{{ route('getpo_dashboard_ekspedisi') }}',
-                data: {
-                    cbobuyer: cbobuyer
-                },
-                async: false
-            }).responseText;
-            if (html != "") {
-                $("#cbopo").html(html);
-            }
+                data: { cbobuyer: cbobuyer },
+                success: function(html) {
+                    if (html !== "") {
+                        $("#cbopo").html(html).trigger('change');
+                    }
+                }
+            });
         };
     </script>
 @endsection
