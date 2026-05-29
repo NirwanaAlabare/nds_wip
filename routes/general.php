@@ -126,5 +126,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name("switching");
         Route::post('/store', 'store')->name('store-switching');
         Route::post('/delete', 'delete')->name('delete-switching');
+        Route::post('/get-data', 'getData')->name('get-data-switching');
+        Route::post('/get-data-color', 'getDataColor')->name('get-data-color-switching');
+        Route::post('/get-data-size', 'getDataSize')->name('get-data-size-switching');
+        Route::post('/get-data-panel', 'getDataPanel')->name('get-data-panel-switching');
+        Route::post('/get-data-part', 'getDataPart')->name('get-data-part-switching');
     });
 });
