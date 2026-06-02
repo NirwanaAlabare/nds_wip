@@ -61,7 +61,7 @@
         </h5>
     </div>
 
-    <form action="{{ route('dokumen-pabean-update_draft', $header->bpbno) }}" method="POST" id="form-edit-ceisa">
+    <form action="{{ route('dokumen-pabean-update_draft_bc23', $header->bpbno) }}" method="POST" id="form-edit-bc23">
         @csrf
         @method('PUT')
         <div class="card-body">
@@ -104,39 +104,123 @@
                             <input type="text" name="kodeKantor" class="form-control form-control-sm" value="{{ $dataDetail['kodeKantor'] ?? '050500' }}">
                         </div>
                         <div class="col-md-3 form-group">
-                            <label>Tujuan Pengiriman</label>
-                            @php
-                                $listTujuan = [
-                                    '1' => 'PENYERAHAN BKP', '2' => 'PENYERAHAN JKP', '3' => 'RETUR',
-                                    '4' => 'NON PENYERAHAN', '5' => 'LAINNYA'
-                                ];
-                                $tujuanTerpilih = $dataDetail['kodeTujuanPengiriman'] ?? '1';
-                            @endphp
-                            <select name="kodeTujuanPengiriman" class="form-control form-control-sm select2bs4">
-                                <option value="">Pilih Tujuan Pengiriman</option>
-                                @foreach($listTujuan as $key => $text)
-                                    <option value="{{ $key }}" {{ $tujuanTerpilih == $key ? 'selected' : '' }}>{{ $key }} - {{ $text }}</option>
-                                @endforeach
+                            <label>Kode Jenis TPB</label>
+                            <input type="text" name="kodeJenisTpb" class="form-control form-control-sm" value="{{ $dataDetail['kodeJenisTpb'] ?? '1' }}">
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label>Tujuan</label>
+                            <input type="text" name="kodeTujuanTpb" class="form-control form-control-sm" value="{{ $dataDetail['kodeTujuanTpb'] ?? '' }}" placeholder="contoh: 1 / 2 / dll">
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label>Kantor Bongkar</label>
+                            <input type="text" name="kodeKantorBongkar" class="form-control form-control-sm" value="{{ $dataDetail['kodeKantorBongkar'] ?? '' }}" placeholder="Kode KPPBC Bongkar">
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label>Pelabuhan Bongkar</label>
+                            <select name="kodePelBongkar" class="form-control form-control-sm select2-pelabuhan">
+                                @if(!empty($dataDetail['kodePelBongkar']))
+                                    <option value="{{ $dataDetail['kodePelBongkar'] }}" selected>{{ $dataDetail['kodePelBongkar'] }}</option>
+                                @endif
                             </select>
                         </div>
+                        <div class="col-md-3 form-group">
+                            <label>NDPBM (Kurs)</label>
+                            <input type="text" inputmode="decimal" name="ndpbm" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['ndpbm'] ?? '' }}" placeholder="contoh: 15000.0000">
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label>Kode Tutup PU</label>
+                            <select name="kodeTutupPu" class="form-control form-control-sm select2bs4">
+                                <option value="">-- Pilih --</option>
+                                <option value="11" {{ ($dataDetail['kodeTutupPu'] ?? '') == '11' ? 'selected' : '' }}>BC 1.1</option>
+                                <option value="12" {{ ($dataDetail['kodeTutupPu'] ?? '') == '12' ? 'selected' : '' }}>BC 1.2</option>
+                                <option value="14" {{ ($dataDetail['kodeTutupPu'] ?? '') == '14' ? 'selected' : '' }}>BC 1.4</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label>Tanggal Tiba</label>
+                            <input type="date" name="tanggalTiba" class="form-control form-control-sm" value="{{ $dataDetail['tanggalTiba'] ?? '' }}">
+                        </div>
+                        {{-- <div class="col-md-3 form-group">
+                            <label>Cara Bayar</label>
+                            <select name="kodeCaraBayar" class="form-control form-control-sm select2bs4">
+                                <option value="">-- Pilih Cara Bayar --</option>
+                                <option value="1" {{ ($dataDetail['kodeCaraBayar'] ?? '') == '1' ? 'selected' : '' }}>1 - BIASA/TUNAI</option>
+                                <option value="2" {{ ($dataDetail['kodeCaraBayar'] ?? '') == '2' ? 'selected' : '' }}>2 - BERKALA</option>
+                                <option value="3" {{ ($dataDetail['kodeCaraBayar'] ?? '') == '3' ? 'selected' : '' }}>3 - DENGAN JAMINAN</option>
+                                <option value="4" {{ ($dataDetail['kodeCaraBayar'] ?? '') == '4' ? 'selected' : '' }}>4 - PERHITUNGAN KEMUDIAN</option>
+                                <option value="5" {{ ($dataDetail['kodeCaraBayar'] ?? '') == '5' ? 'selected' : '' }}>5 - KONSINYASI (CONSIGNMENT)</option>
+                                <option value="6" {{ ($dataDetail['kodeCaraBayar'] ?? '') == '6' ? 'selected' : '' }}>6 - USANCE LETTER OF CREDIT</option>
+                                <option value="7" {{ ($dataDetail['kodeCaraBayar'] ?? '') == '7' ? 'selected' : '' }}>7 - RED CLAUSE LETTER OF CREDIT</option>
+                                <option value="8" {{ ($dataDetail['kodeCaraBayar'] ?? '') == '8' ? 'selected' : '' }}>8 - INTER-COMPANY ACCOUNT</option>
+                                <option value="9" {{ ($dataDetail['kodeCaraBayar'] ?? '') == '9' ? 'selected' : '' }}>9 - GABUNGAN/LAINNYA</option>
+                                <option value="10" {{ ($dataDetail['kodeCaraBayar'] ?? '') == '10' ? 'selected' : '' }}>10 - PEMBAYARAN KEMUDIAN (OPEN ACCOUNT) SECARA BERTAHAP</option>
+                                <option value="11" {{ ($dataDetail['kodeCaraBayar'] ?? '') == '11' ? 'selected' : '' }}>11 - PEMBAYARAN KEMUDIAN (OPEN ACCOUNT) SECARA TUNAI</option>
+                                <option value="12" {{ ($dataDetail['kodeCaraBayar'] ?? '') == '12' ? 'selected' : '' }}>12 - DILAKUKAN DI DN DENGAN PEMBAYARAN UANG TUNAI</option>
+                                <option value="13" {{ ($dataDetail['kodeCaraBayar'] ?? '') == '13' ? 'selected' : '' }}>13 - DILAKUKAN DI DN DENGAN PEMBAYARAN MELALUI TELEGRAPH</option>
+                                <option value="14" {{ ($dataDetail['kodeCaraBayar'] ?? '') == '14' ? 'selected' : '' }}>14 - DILAKUKAN TANPA PEMBAYARAN</option>
+                                <option value="15" {{ ($dataDetail['kodeCaraBayar'] ?? '') == '15' ? 'selected' : '' }}>15 - PEMBAYARAN DIMUKA (ADVANCE PAYMENT)</option>
+                                <option value="16" {{ ($dataDetail['kodeCaraBayar'] ?? '') == '16' ? 'selected' : '' }}>16 - SIGHT LETTER OF CREDIT</option>
+                                <option value="17" {{ ($dataDetail['kodeCaraBayar'] ?? '') == '17' ? 'selected' : '' }}>17 - INKASO (COLLECTION DRAFT)</option>
+                            </select>
+                        </div> --}}
+                        {{-- <div class="col-md-3 form-group">
+                            <label>Jenis Prosedur</label>
+                            <select name="kodeJenisProsedur" class="form-control form-control-sm select2bs4">
+                                <option value="">-- Pilih Jenis Prosedur --</option>
+                                <option value="1" {{ ($dataDetail['kodeJenisProsedur'] ?? '') == '1' ? 'selected' : '' }}>1 - PROSEDUR BIASA</option>
+                                <option value="2" {{ ($dataDetail['kodeJenisProsedur'] ?? '') == '2' ? 'selected' : '' }}>2 - PROSEDUR BERKALA</option>
+                            </select>
+                        </div> --}}
+                    </div>
+
+                    <div class="section-title">Dokumen BC</div>
+                    <div class="row">
+                        <div class="col-md-3 form-group"><label>Nomor BC</label><input type="text" name="nomorBc11" class="form-control form-control-sm" value="{{ $dataDetail['nomorBc11'] ?? '' }}"></div>
+                        <div class="col-md-3 form-group"><label>Tanggal BC</label><input type="date" name="tanggalBc11" class="form-control form-control-sm" value="{{ $dataDetail['tanggalBc11'] ?? '' }}"></div>
+                        <div class="col-md-3 form-group"><label>Pos BC</label><input type="text" name="posBc11" class="form-control form-control-sm" value="{{ $dataDetail['posBc11'] ?? '' }}"></div>
+                        <div class="col-md-3 form-group"><label>Subpos BC</label><input type="text" name="subposBc11" class="form-control form-control-sm" value="{{ $dataDetail['subposBc11'] ?? '' }}"></div>
                     </div>
 
                     <div class="section-title">Data Nilai & Fisik</div>
                     <div class="row">
-                        <div class="col-md-2 form-group"><label>Bruto (Kg)</label><input type="text" inputmode="decimal" name="bruto" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['bruto'] ?? $header->berat_kotor ?? "" }}" placeholder="contoh: 125.5000"></div>
-                        <div class="col-md-2 form-group"><label>Netto (Kg)</label><input type="text" inputmode="decimal" name="netto" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['netto'] ?? $header->berat_bersih ?? "" }}" placeholder="contoh: 120.0000"></div>
-                        <div class="col-md-2 form-group"><label>Volume (M3)</label><input type="text" inputmode="decimal" name="volume" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['volume'] ?? "" }}" placeholder="contoh: 0.5000"></div>
-                        <div class="col-md-3 form-group"><label>Harga Penyerahan (Rp)</label><input type="text" inputmode="decimal" name="hargaPenyerahan" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['hargaPenyerahan'] ?? "" }}" placeholder="contoh: 5000000.00"></div>
-                        <div class="col-md-3 form-group"><label>CIF (Rp)</label><input type="text" inputmode="decimal" name="cif" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['cif'] ?? "" }}" placeholder="contoh: 5000000.00"></div>
+                        <div class="col-md-2 form-group">
+                            <label>Kode Harga</label>
+                            <select name="kodeIncoterm" class="form-control form-control-sm select2bs4">
+                                <option value="">-- Pilih --</option>
+                                <option value="CFR" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'CFR' ? 'selected' : '' }}>CFR - Cost and Freight</option>
+                                <option value="CIF" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'CIF' ? 'selected' : '' }}>CIF - Cost, Insurance and Freight</option>
+                                <option value="CIP" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'CIP' ? 'selected' : '' }}>CIP - Carriage and Insurance Paid to</option>
+                                <option value="CPT" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'CPT' ? 'selected' : '' }}>CPT - Carriage Paid To</option>
+                                <option value="DAF" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'DAF' ? 'selected' : '' }}>DAF - Delivered At Frontier</option>
+                                <option value="DAP" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'DAP' ? 'selected' : '' }}>DAP - Delivered At Place</option>
+                                <option value="DAT" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'DAT' ? 'selected' : '' }}>DAT - Delivered At Terminal</option>
+                                <option value="DDP" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'DDP' ? 'selected' : '' }}>DDP - Delivered Duty Paid</option>
+                                <option value="DDU" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'DDU' ? 'selected' : '' }}>DDU - Delivered Duty Unpaid</option>
+                                <option value="DEQ" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'DEQ' ? 'selected' : '' }}>DEQ - Delivered Ex Quay</option>
+                                <option value="DES" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'DES' ? 'selected' : '' }}>DES - Delivered Ex Ship</option>
+                                <option value="EXW" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'EXW' ? 'selected' : '' }}>EXW - Ex Works</option>
+                                <option value="FAS" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'FAS' ? 'selected' : '' }}>FAS - Free Alongside Ship</option>
+                                <option value="FCA" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'FCA' ? 'selected' : '' }}>FCA - Free Carrier</option>
+                                <option value="FOB" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'FOB' ? 'selected' : '' }}>FOB - Free on Board</option>
+                                <option value="LAN" {{ ($dataDetail['kodeIncoterm'] ?? '') == 'LAN' ? 'selected' : '' }}>LAN - LAINNYA</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 form-group"><label>Bruto (Kg)</label><input type="text" inputmode="decimal" name="bruto" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['bruto'] ?? $header->berat_kotor ?? "" }}"></div>
+                        <div class="col-md-2 form-group"><label>Netto (Kg)</label><input type="text" inputmode="decimal" name="netto" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['netto'] ?? $header->berat_bersih ?? "" }}"></div>
+                        {{-- <div class="col-md-2 form-group"><label>Volume (M3)</label><input type="text" inputmode="decimal" name="volume" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['volume'] ?? "" }}"></div> --}}
+                        <div class="col-md-3 form-group"><label>FOB</label><input type="text" inputmode="decimal" name="fob" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['fob'] ?? "" }}"></div>
+                        <div class="col-md-3 form-group"><label>Freight</label><input type="text" inputmode="decimal" name="freight" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['freight'] ?? "" }}"></div>
                     </div>
-
                     <div class="row">
-                        <div class="col-md-2 form-group"><label>Asuransi (Rp)</label><input type="text" inputmode="decimal" name="asuransi" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['asuransi'] ?? "" }}" placeholder="contoh: 50000.00"></div>
-                        <div class="col-md-2 form-group"><label>Freight (Rp)</label><input type="text" inputmode="decimal" name="freight" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['freight'] ?? "" }}" placeholder="contoh: 200000.00"></div>
-                        <div class="col-md-2 form-group"><label>Biaya Tambahan (Rp)</label><input type="text" inputmode="decimal" name="biayaTambahan" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['biayaTambahan'] ?? "" }}" placeholder="contoh: 0.00"></div>
-                        <div class="col-md-2 form-group"><label>Biaya Pengurang (Rp)</label><input type="text" inputmode="decimal" name="biayaPengurang" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['biayaPengurang'] ?? "" }}" placeholder="contoh: 0.00"></div>
-                        <div class="col-md-2 form-group"><label>Uang Muka (Rp)</label><input type="text" inputmode="decimal" name="uangMuka" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['uangMuka'] ?? "" }}" placeholder="contoh: 0.00"></div>
-                        <div class="col-md-2 form-group"><label>Nilai Jasa (Rp)</label><input type="text" inputmode="decimal" name="nilaiJasa" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['nilaiJasa'] ?? "" }}" placeholder="contoh: 0.00"></div>
+                        <div class="col-md-2 form-group"><label>Asuransi</label><input type="text" inputmode="decimal" name="asuransi" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['asuransi'] ?? "" }}"></div>
+                        <div class="col-md-2 form-group"><label>CIF</label><input type="text" inputmode="decimal" name="cif" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['cif'] ?? "" }}"></div>
+                        <div class="col-md-2 form-group"><label>Harga Penyerahan</label><input type="text" inputmode="decimal" name="hargaPenyerahan" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['hargaPenyerahan'] ?? "" }}"></div>
+                        <div class="col-md-2 form-group"><label>Biaya Tambahan</label><input type="text" inputmode="decimal" name="biayaTambahan" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['biayaTambahan'] ?? "" }}"></div>
+                        <div class="col-md-2 form-group"><label>Biaya Pengurang</label><input type="text" inputmode="decimal" name="biayaPengurang" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['biayaPengurang'] ?? "" }}"></div>
+                        {{-- <div class="col-md-2 form-group"><label>Uang Muka</label><input type="text" inputmode="decimal" name="uangMuka" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['uangMuka'] ?? "" }}"></div> --}}
+                        {{-- <div class="col-md-2 form-group"><label>Nilai Jasa</label><input type="text" inputmode="decimal" name="nilaiJasa" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['nilaiJasa'] ?? "" }}"></div> --}}
+                        <div class="col-md-2 form-group"><label>Nilai Barang</label><input type="text" inputmode="decimal" name="nilaiBarang" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['nilaiBarang'] ?? "" }}"></div>
+                        {{-- <div class="col-md-2 form-group"><label>Diskon</label><input type="text" inputmode="decimal" name="diskon" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['diskon'] ?? "" }}"></div> --}}
                     </div>
 
                     <div class="section-title">Penandatangan</div>
@@ -196,6 +280,266 @@
                                                 <input type="text" name="barang[{{ $index }}][kodeBarang]" class="form-control form-control-sm" value="{{ $draftItem['kodeBarang'] ?? $item->id_item ?? '' }}">
                                             </div>
                                             <div class="form-group mb-2">
+                                                <label class="small mb-0">Negara Asal</label>
+                                                <select name="barang[{{ $index }}][kodeNegaraAsal]" class="form-control form-control-sm select2bs4" id="kode_negara">
+                                                    <option value="">-- Pilih Negara --</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'AD' ? 'selected' : '' }} value="AD">AD - ANDORRA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'AE' ? 'selected' : '' }} value="AE">AE - UNITED ARAB EMIRATES</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'AF' ? 'selected' : '' }} value="AF">AF - AFGHANISTAN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'AG' ? 'selected' : '' }} value="AG">AG - ANTIGUA AND BARBUDA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'AI' ? 'selected' : '' }} value="AI">AI - ANGUILLA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'AL' ? 'selected' : '' }} value="AL">AL - ALBANIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'AM' ? 'selected' : '' }} value="AM">AM - ARMENIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'AN' ? 'selected' : '' }} value="AN">AN - NETHERLANDS ANTILLES</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'AO' ? 'selected' : '' }} value="AO">AO - ANGOLA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'AQ' ? 'selected' : '' }} value="AQ">AQ - ANTARCTICA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'AR' ? 'selected' : '' }} value="AR">AR - ARGENTINA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'AS' ? 'selected' : '' }} value="AS">AS - AMERICAN SAMOA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'AT' ? 'selected' : '' }} value="AT">AT - AUSTRIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'AU' ? 'selected' : '' }} value="AU">AU - AUSTRALIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'AW' ? 'selected' : '' }} value="AW">AW - ARUBA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'AX' ? 'selected' : '' }} value="AX">AX - Aland Islands</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'AZ' ? 'selected' : '' }} value="AZ">AZ - AZERBAIJAN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BA' ? 'selected' : '' }} value="BA">BA - BOSNIA AND HERZEGOVINA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BB' ? 'selected' : '' }} value="BB">BB - BARBADOS</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BD' ? 'selected' : '' }} value="BD">BD - BANGLADESH</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BE' ? 'selected' : '' }} value="BE">BE - BELGIUM</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BF' ? 'selected' : '' }} value="BF">BF - BURKINA FASO</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BG' ? 'selected' : '' }} value="BG">BG - BULGARIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BH' ? 'selected' : '' }} value="BH">BH - BAHRAIN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BI' ? 'selected' : '' }} value="BI">BI - BURUNDI</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BJ' ? 'selected' : '' }} value="BJ">BJ - BENIN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BL' ? 'selected' : '' }} value="BL">BL - Saint Barthelemy</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BM' ? 'selected' : '' }} value="BM">BM - BERMUDA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BN' ? 'selected' : '' }} value="BN">BN - BRUNEI DARUSSALAM</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BO' ? 'selected' : '' }} value="BO">BO - BOLIVIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BQ' ? 'selected' : '' }} value="BQ">BQ - Bonaire, Sint Eustatius and Saba</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BR' ? 'selected' : '' }} value="BR">BR - BRAZIL</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BS' ? 'selected' : '' }} value="BS">BS - BAHAMAS</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BT' ? 'selected' : '' }} value="BT">BT - BHUTAN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BV' ? 'selected' : '' }} value="BV">BV - BOUVET ISLAND</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BW' ? 'selected' : '' }} value="BW">BW - BOTSWANA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BY' ? 'selected' : '' }} value="BY">BY - BELARUS</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'BZ' ? 'selected' : '' }} value="BZ">BZ - BELIZE</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'CA' ? 'selected' : '' }} value="CA">CA - CANADA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'CC' ? 'selected' : '' }} value="CC">CC - COCOS (KEELING) ISLANDS</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'CD' ? 'selected' : '' }} value="CD">CD - CONGO, THE DEMOCRATIC REPUBLIC OF THE</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'CF' ? 'selected' : '' }} value="CF">CF - CENTRAL AFRICAN REPUBLIC</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'CG' ? 'selected' : '' }} value="CG">CG - CONGO</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'CH' ? 'selected' : '' }} value="CH">CH - SWITZERLAND</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'CI' ? 'selected' : '' }} value="CI">CI - COTE D'IVOIRE</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'CK' ? 'selected' : '' }} value="CK">CK - COOK ISLANDS</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'CL' ? 'selected' : '' }} value="CL">CL - CHILE</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'CM' ? 'selected' : '' }} value="CM">CM - CAMEROON</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'CN' ? 'selected' : '' }} value="CN">CN - CHINA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'CO' ? 'selected' : '' }} value="CO">CO - COLOMBIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'CR' ? 'selected' : '' }} value="CR">CR - COSTA RICA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'CS' ? 'selected' : '' }} value="CS">CS - FORMER CZECHOSLOVAKIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'CU' ? 'selected' : '' }} value="CU">CU - CUBA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'CV' ? 'selected' : '' }} value="CV">CV - CAPE VERDE</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'CW' ? 'selected' : '' }} value="CW">CW - Curacao</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'CX' ? 'selected' : '' }} value="CX">CX - CHRISTMAS ISLAND</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'CY' ? 'selected' : '' }} value="CY">CY - CYPRUS</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'CZ' ? 'selected' : '' }} value="CZ">CZ - CZECH REPUBLIC</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'DE' ? 'selected' : '' }} value="DE">DE - GERMANY</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'DJ' ? 'selected' : '' }} value="DJ">DJ - DJIBOUTI</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'DK' ? 'selected' : '' }} value="DK">DK - DENMARK</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'DM' ? 'selected' : '' }} value="DM">DM - DOMINICA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'DO' ? 'selected' : '' }} value="DO">DO - DOMINICAN REPUBLIC</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'DZ' ? 'selected' : '' }} value="DZ">DZ - ALGERIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'EC' ? 'selected' : '' }} value="EC">EC - ECUADOR</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'EE' ? 'selected' : '' }} value="EE">EE - ESTONIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'EG' ? 'selected' : '' }} value="EG">EG - EGYPT</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'EH' ? 'selected' : '' }} value="EH">EH - WESTERN SAHARA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'ER' ? 'selected' : '' }} value="ER">ER - ERITREA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'ES' ? 'selected' : '' }} value="ES">ES - SPAIN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'ET' ? 'selected' : '' }} value="ET">ET - ETHIOPIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'FI' ? 'selected' : '' }} value="FI">FI - FINLAND</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'FJ' ? 'selected' : '' }} value="FJ">FJ - FIJI</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'FK' ? 'selected' : '' }} value="FK">FK - FALKLAND ISLANDS (MALVINAS)</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'FM' ? 'selected' : '' }} value="FM">FM - MICRONESIA, FEDERATED STATES OF</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'FO' ? 'selected' : '' }} value="FO">FO - FAROE ISLANDS</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'FR' ? 'selected' : '' }} value="FR">FR - FRANCE</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'GA' ? 'selected' : '' }} value="GA">GA - GABON</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'GB' ? 'selected' : '' }} value="GB">GB - UNITED KINGDOM</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'GD' ? 'selected' : '' }} value="GD">GD - GRENADA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'GE' ? 'selected' : '' }} value="GE">GE - GEORGIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'GF' ? 'selected' : '' }} value="GF">GF - FRENCH GUIANA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'GG' ? 'selected' : '' }} value="GG">GG - Guernsey</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'GH' ? 'selected' : '' }} value="GH">GH - GHANA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'GI' ? 'selected' : '' }} value="GI">GI - GIBRALTAR</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'GL' ? 'selected' : '' }} value="GL">GL - GREENLAND</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'GM' ? 'selected' : '' }} value="GM">GM - GAMBIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'GN' ? 'selected' : '' }} value="GN">GN - GUINEA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'GP' ? 'selected' : '' }} value="GP">GP - GUADELOUPE</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'GQ' ? 'selected' : '' }} value="GQ">GQ - EQUATORIAL GUINEA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'GR' ? 'selected' : '' }} value="GR">GR - GREECE</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'GS' ? 'selected' : '' }} value="GS">GS - SOUTH GEORGIA AND THE SOUTH SANDWICH ISL</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'GT' ? 'selected' : '' }} value="GT">GT - GUATEMALA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'GU' ? 'selected' : '' }} value="GU">GU - GUAM</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'GW' ? 'selected' : '' }} value="GW">GW - GUINEA-BISSAU</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'GY' ? 'selected' : '' }} value="GY">GY - GUYANA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'HK' ? 'selected' : '' }} value="HK">HK - HONG KONG</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'HM' ? 'selected' : '' }} value="HM">HM - HEARD ISLAND AND MCDONALD ISLANDS</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'HN' ? 'selected' : '' }} value="HN">HN - HONDURAS</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'HR' ? 'selected' : '' }} value="HR">HR - CROATIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'HT' ? 'selected' : '' }} value="HT">HT - HAITI</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'HU' ? 'selected' : '' }} value="HU">HU - HUNGARY</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'ID' ? 'selected' : '' }} value="ID">ID - INDONESIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'IE' ? 'selected' : '' }} value="IE">IE - IRELAND</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'IL' ? 'selected' : '' }} value="IL">IL - ISRAEL</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'IM' ? 'selected' : '' }} value="IM">IM - Isle of Man</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'IN' ? 'selected' : '' }} value="IN">IN - INDIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'IO' ? 'selected' : '' }} value="IO">IO - BRITISH INDIAN OCEAN TERRITORY</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'IQ' ? 'selected' : '' }} value="IQ">IQ - IRAQ</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'IR' ? 'selected' : '' }} value="IR">IR - IRAN, ISLAMIC REPUBLIC OF</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'IS' ? 'selected' : '' }} value="IS">IS - ICELAND</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'IT' ? 'selected' : '' }} value="IT">IT - ITALY</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'JE' ? 'selected' : '' }} value="JE">JE - Jersey</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'JM' ? 'selected' : '' }} value="JM">JM - JAMAICA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'JO' ? 'selected' : '' }} value="JO">JO - JORDAN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'JP' ? 'selected' : '' }} value="JP">JP - JAPAN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'KE' ? 'selected' : '' }} value="KE">KE - KENYA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'KG' ? 'selected' : '' }} value="KG">KG - KYRGYZSTAN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'KH' ? 'selected' : '' }} value="KH">KH - CAMBODIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'KI' ? 'selected' : '' }} value="KI">KI - KIRIBATI</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'KM' ? 'selected' : '' }} value="KM">KM - COMOROS</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'KN' ? 'selected' : '' }} value="KN">KN - SAINT KITTS AND NEVIS</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'KP' ? 'selected' : '' }} value="KP">KP - KOREA, DEMOCRATIC PEOPLE'S REPUBLIC OF</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'KR' ? 'selected' : '' }} value="KR">KR - KOREA, REPUBLIC OF</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'KW' ? 'selected' : '' }} value="KW">KW - KUWAIT</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'KY' ? 'selected' : '' }} value="KY">KY - CAYMAN ISLANDS</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'KZ' ? 'selected' : '' }} value="KZ">KZ - KAZAKSTAN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'LA' ? 'selected' : '' }} value="LA">LA - LAO PEOPLE'S DEMOCRATIC REPUBLIC</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'LB' ? 'selected' : '' }} value="LB">LB - LEBANON</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'LC' ? 'selected' : '' }} value="LC">LC - SAINT LUCIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'LI' ? 'selected' : '' }} value="LI">LI - LIECHTENSTEIN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'LK' ? 'selected' : '' }} value="LK">LK - SRI LANKA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'LR' ? 'selected' : '' }} value="LR">LR - LIBERIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'LS' ? 'selected' : '' }} value="LS">LS - LESOTHO</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'LT' ? 'selected' : '' }} value="LT">LT - LITHUANIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'LU' ? 'selected' : '' }} value="LU">LU - LUXEMBOURG</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'LV' ? 'selected' : '' }} value="LV">LV - LATVIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'LY' ? 'selected' : '' }} value="LY">LY - LIBYAN ARAB JAMAHIRIYA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MA' ? 'selected' : '' }} value="MA">MA - MOROCCO</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MC' ? 'selected' : '' }} value="MC">MC - MONACO</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MD' ? 'selected' : '' }} value="MD">MD - MOLDOVA, REPUBLIC OF</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'ME' ? 'selected' : '' }} value="ME">ME - Montenegro</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MF' ? 'selected' : '' }} value="MF">MF - Saint Martin (French Part)</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MG' ? 'selected' : '' }} value="MG">MG - MADAGASCAR</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MH' ? 'selected' : '' }} value="MH">MH - MARSHALL ISLANDS</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MK' ? 'selected' : '' }} value="MK">MK - MACEDONIA, THE FORMER YUGOSLAV REPUBLIC</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'ML' ? 'selected' : '' }} value="ML">ML - MALI</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MM' ? 'selected' : '' }} value="MM">MM - MYANMAR</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MN' ? 'selected' : '' }} value="MN">MN - MONGOLIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MO' ? 'selected' : '' }} value="MO">MO - MACAU</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MP' ? 'selected' : '' }} value="MP">MP - NORTHERN MARIANA ISLANDS</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MQ' ? 'selected' : '' }} value="MQ">MQ - MARTINIQUE</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MR' ? 'selected' : '' }} value="MR">MR - MAURITANIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MS' ? 'selected' : '' }} value="MS">MS - MONTSERRAT</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MT' ? 'selected' : '' }} value="MT">MT - MALTA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MU' ? 'selected' : '' }} value="MU">MU - MAURITIUS</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MV' ? 'selected' : '' }} value="MV">MV - MALDIVES</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MW' ? 'selected' : '' }} value="MW">MW - MALAWI</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MX' ? 'selected' : '' }} value="MX">MX - MEXICO</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MY' ? 'selected' : '' }} value="MY">MY - MALAYSIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'MZ' ? 'selected' : '' }} value="MZ">MZ - MOZAMBIQUE</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'NA' ? 'selected' : '' }} value="NA">NA - NAMIBIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'NC' ? 'selected' : '' }} value="NC">NC - NEW CALEDONIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'NE' ? 'selected' : '' }} value="NE">NE - NIGER</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'NF' ? 'selected' : '' }} value="NF">NF - NORFOLK ISLAND</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'NG' ? 'selected' : '' }} value="NG">NG - NIGERIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'NI' ? 'selected' : '' }} value="NI">NI - NICARAGUA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'NL' ? 'selected' : '' }} value="NL">NL - NETHERLANDS</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'NO' ? 'selected' : '' }} value="NO">NO - NORWAY</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'NP' ? 'selected' : '' }} value="NP">NP - NEPAL</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'NR' ? 'selected' : '' }} value="NR">NR - NAURU</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'NU' ? 'selected' : '' }} value="NU">NU - NIUE</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'NZ' ? 'selected' : '' }} value="NZ">NZ - NEW ZEALAND</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'OM' ? 'selected' : '' }} value="OM">OM - OMAN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'PA' ? 'selected' : '' }} value="PA">PA - PANAMA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'PE' ? 'selected' : '' }} value="PE">PE - PERU</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'PF' ? 'selected' : '' }} value="PF">PF - FRENCH POLYNESIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'PG' ? 'selected' : '' }} value="PG">PG - PAPUA NEW GUINEA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'PH' ? 'selected' : '' }} value="PH">PH - PHILIPPINES</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'PK' ? 'selected' : '' }} value="PK">PK - PAKISTAN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'PL' ? 'selected' : '' }} value="PL">PL - POLAND</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'PM' ? 'selected' : '' }} value="PM">PM - SAINT PIERRE AND MIQUELON</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'PN' ? 'selected' : '' }} value="PN">PN - PITCAIRN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'PR' ? 'selected' : '' }} value="PR">PR - PUERTO RICO</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'PS' ? 'selected' : '' }} value="PS">PS - PALESTINIAN TERRITORY, OCCUPIED</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'PT' ? 'selected' : '' }} value="PT">PT - PORTUGAL</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'PW' ? 'selected' : '' }} value="PW">PW - PALAU</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'PY' ? 'selected' : '' }} value="PY">PY - PARAGUAY</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'QA' ? 'selected' : '' }} value="QA">QA - QATAR</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'RE' ? 'selected' : '' }} value="RE">RE - REUNION</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'RO' ? 'selected' : '' }} value="RO">RO - ROMANIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'RS' ? 'selected' : '' }} value="RS">RS - SERBIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'RU' ? 'selected' : '' }} value="RU">RU - RUSSIAN FEDERATION</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'RW' ? 'selected' : '' }} value="RW">RW - RWANDA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'SA' ? 'selected' : '' }} value="SA">SA - SAUDI ARABIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'SB' ? 'selected' : '' }} value="SB">SB - SOLOMON ISLANDS</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'SC' ? 'selected' : '' }} value="SC">SC - SEYCHELLES</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'SD' ? 'selected' : '' }} value="SD">SD - SUDAN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'SE' ? 'selected' : '' }} value="SE">SE - SWEDEN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'SG' ? 'selected' : '' }} value="SG">SG - SINGAPORE</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'SH' ? 'selected' : '' }} value="SH">SH - SAINT HELENA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'SI' ? 'selected' : '' }} value="SI">SI - SLOVENIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'SJ' ? 'selected' : '' }} value="SJ">SJ - SVALBARD AND JAN MAYEN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'SK' ? 'selected' : '' }} value="SK">SK - SLOVAKIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'SL' ? 'selected' : '' }} value="SL">SL - SIERRA LEONE</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'SM' ? 'selected' : '' }} value="SM">SM - SAN MARINO</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'SN' ? 'selected' : '' }} value="SN">SN - SENEGAL</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'SO' ? 'selected' : '' }} value="SO">SO - SOMALIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'SR' ? 'selected' : '' }} value="SR">SR - SURINAME</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'SS' ? 'selected' : '' }} value="SS">SS - South Sudan</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'ST' ? 'selected' : '' }} value="ST">ST - SAO TOME AND PRINCIPE</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'SV' ? 'selected' : '' }} value="SV">SV - EL SALVADOR</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'SX' ? 'selected' : '' }} value="SX">SX - Sint Maarten (Dutch Part)</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'SY' ? 'selected' : '' }} value="SY">SY - SYRIAN ARAB REPUBLIC</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'SZ' ? 'selected' : '' }} value="SZ">SZ - SWAZILAND</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'TC' ? 'selected' : '' }} value="TC">TC - TURKS AND CAICOS ISLANDS</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'TD' ? 'selected' : '' }} value="TD">TD - CHAD</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'TF' ? 'selected' : '' }} value="TF">TF - FRENCH SOUTHERN TERRITORIES</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'TG' ? 'selected' : '' }} value="TG">TG - TOGO</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'TH' ? 'selected' : '' }} value="TH">TH - THAILAND</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'TJ' ? 'selected' : '' }} value="TJ">TJ - TAJIKISTAN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'TK' ? 'selected' : '' }} value="TK">TK - TOKELAU</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'TL' ? 'selected' : '' }} value="TL">TL - Timor-Leste</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'TM' ? 'selected' : '' }} value="TM">TM - TURKMENISTAN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'TN' ? 'selected' : '' }} value="TN">TN - TUNISIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'TO' ? 'selected' : '' }} value="TO">TO - TONGA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'TP' ? 'selected' : '' }} value="TP">TP - EAST TIMOR</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'TR' ? 'selected' : '' }} value="TR">TR - TURKEY</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'TT' ? 'selected' : '' }} value="TT">TT - TRINIDAD AND TOBAGO</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'TV' ? 'selected' : '' }} value="TV">TV - TUVALU</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'TW' ? 'selected' : '' }} value="TW">TW - TAIWAN, PROVINCE OF CHINA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'TZ' ? 'selected' : '' }} value="TZ">TZ - TANZANIA, UNITED REPUBLIC OF</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'UA' ? 'selected' : '' }} value="UA">UA - UKRAINE</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'UG' ? 'selected' : '' }} value="UG">UG - UGANDA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'UM' ? 'selected' : '' }} value="UM">UM - UNITED STATES MINOR OUTLYING ISLANDS</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'US' ? 'selected' : '' }} value="US">US - UNITED STATES</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'UY' ? 'selected' : '' }} value="UY">UY - URUGUAY</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'UZ' ? 'selected' : '' }} value="UZ">UZ - UZBEKISTAN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'VA' ? 'selected' : '' }} value="VA">VA - HOLY SEE (VATICAN CITY STATE)</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'VC' ? 'selected' : '' }} value="VC">VC - SAINT VINCENT AND THE GRENADINES</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'VE' ? 'selected' : '' }} value="VE">VE - VENEZUELA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'VG' ? 'selected' : '' }} value="VG">VG - VIRGIN ISLANDS, BRITISH</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'VI' ? 'selected' : '' }} value="VI">VI - VIRGIN ISLANDS, U.S.</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'VN' ? 'selected' : '' }} value="VN">VN - VIET NAM</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'VU' ? 'selected' : '' }} value="VU">VU - VANUATU</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'WF' ? 'selected' : '' }} value="WF">WF - WALLIS AND FUTUNA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'WS' ? 'selected' : '' }} value="WS">WS - SAMOA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'XZ' ? 'selected' : '' }} value="XZ">XZ - KOSOVO</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'YE' ? 'selected' : '' }} value="YE">YE - YEMEN</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'YT' ? 'selected' : '' }} value="YT">YT - MAYOTTE</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'YU' ? 'selected' : '' }} value="YU">YU - YUGOSLAVIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'ZA' ? 'selected' : '' }} value="ZA">ZA - SOUTH AFRICA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'ZM' ? 'selected' : '' }} value="ZM">ZM - ZAMBIA</option>
+                                                    <option {{ ($draftItem['kodeNegaraAsal'] ?? '') == 'ZW' ? 'selected' : '' }} value="ZW">ZW - ZIMBABWE</option>
+                                                    </select>
+                                            </div>
+                                            <div class="form-group mb-2">
                                                 <label class="small mb-0">Uraian Jenis Barang</label>
                                                 <textarea name="barang[{{ $index }}][uraian]" class="form-control form-control-sm" rows="2">{{ $draftItem['uraian'] ?? $item->itemdesc }}</textarea>
                                             </div>
@@ -211,9 +555,16 @@
                                                 <label class="small mb-0">Ukuran</label>
                                                 <input type="text" name="barang[{{ $index }}][ukuran]" class="form-control form-control-sm" value="{{ $draftItem['ukuran'] ?? '' }}">
                                             </div>
-                                            <div class="form-group mb-0">
+                                            <div class="form-group mb-2">
                                                 <label class="small mb-0">Spesifikasi Lain</label>
                                                 <input type="text" name="barang[{{ $index }}][spesifikasiLain]" class="form-control form-control-sm" value="{{ $draftItem['spesifikasiLain'] ?? $item->remark ?? '-' }}">
+                                            </div>
+                                            <div class="form-group mb-0">
+                                                <label class="small mb-0">Asal Bahan Baku</label>
+                                                <select name="barang[{{ $index }}][kodeAsalBahanBaku]" class="form-control form-control-sm">
+                                                    <option value="0" {{ ($draftItem['kodeAsalBahanBaku'] ?? '0') == '0' ? 'selected' : '' }}>0 - Impor</option>
+                                                    <option value="1" {{ ($draftItem['kodeAsalBahanBaku'] ?? '') == '1' ? 'selected' : '' }}>1 - Lokal</option>
+                                                </select>
                                             </div>
                                         </div>
 
@@ -251,64 +602,146 @@
                                                 </div>
                                             </div>
 
-                                            <div class="form-group mb-2">
+                                            {{-- <div class="form-group mb-2">
                                                 <label class="small mb-0">Volume (M3)</label>
                                                 <input type="text" inputmode="decimal" name="barang[{{ $index }}][volume]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['volume'] ?? "" }}" placeholder="contoh: 0.0500">
+                                            </div> --}}
+                                            <div class="form-group mb-2">
+                                                <label class="small mb-0">Berat Bersih / Netto (Kg)</label>
+                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][netto]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['netto'] ?? "" }}">
                                             </div>
                                             <div class="form-group mb-0">
-                                                <label class="small mb-0">Berat Bersih / Netto (Kg)</label>
-                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][netto]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['netto'] ?? "" }}" placeholder="contoh: 12.5000">
+                                                <label class="small mb-0">Jumlah Bahan Baku</label>
+                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][jumlahBahanBaku]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['jumlahBahanBaku'] ?? "" }}">
                                             </div>
                                         </div>
 
                                         <div class="col-md-2 border-left">
                                             <div class="border-bottom fw-bold mb-2 pb-1" style="font-size: 12px; color: #003366;">Harga</div>
                                             <div class="form-group mb-2">
-                                                <label class="small mb-0">Harga Satuan (Rp)</label>
-                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][hargaSatuan]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['hargaSatuan'] ?? (float) $item->price }}" placeholder="contoh: 15000.00">
+                                                <label class="small mb-0">Harga Satuan</label>
+                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][hargaSatuan]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['hargaSatuan'] ?? (float) $item->price }}" placeholder="contoh: 1500.0000">
                                             </div>
                                             <div class="form-group mb-2">
-                                                <label class="small mb-0 fw-bold">Harga Penyerahan/Jual</label>
-                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][hargaPenyerahan]" class="form-control form-control-sm fw-bold input-decimal" value="{{ $draftItem['hargaPenyerahan'] ?? (float) ($item->qty * $item->price) }}" placeholder="contoh: 1500000.00">
+                                                <label class="small mb-0 fw-bold">Harga Penyerahan</label>
+                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][hargaPenyerahan]" class="form-control form-control-sm fw-bold input-decimal" value="{{ $draftItem['hargaPenyerahan'] ?? (float) ($item->qty * $item->price) }}" placeholder="contoh: 150000.0000">
                                             </div>
                                             <div class="form-group mb-2">
-                                                <label class="small mb-0">Nilai Jasa/Penggantian</label>
-                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][nilaiJasa]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['nilaiJasa'] ?? "" }}" placeholder="contoh: 0.00 (isi 0 jika tidak ada)">
+                                                <label class="small mb-0">Harga Perolehan</label>
+                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][hargaPerolehan]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['hargaPerolehan'] ?? '' }}" placeholder="contoh: 150000.0000">
                                             </div>
-                                            <div class="form-group mb-0">
+                                            <div class="form-group mb-2">
+                                                <label class="small mb-0">CIF</label>
+                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][cif]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['cif'] ?? '' }}">
+                                            </div>
+                                            <div class="form-group mb-2">
+                                                <label class="small mb-0">CIF Rupiah</label>
+                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][cifRupiah]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['cifRupiah'] ?? '' }}">
+                                            </div>
+                                            <div class="form-group mb-2">
+                                                <label class="small mb-0">FOB</label>
+                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][fob]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['fob'] ?? '' }}">
+                                            </div>
+                                            <div class="form-group mb-2">
+                                                <label class="small mb-0">Freight</label>
+                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][freight]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['freight'] ?? '' }}">
+                                            </div>
+                                            <div class="form-group mb-2">
+                                                <label class="small mb-0">Asuransi</label>
+                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][asuransi]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['asuransi'] ?? '' }}">
+                                            </div>
+                                            <div class="form-group mb-2">
                                                 <label class="small mb-0">Diskon</label>
-                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][diskon]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['diskon'] ?? "" }}" placeholder="contoh: 0.00 (isi 0 jika tidak ada)">
+                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][diskon]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['diskon'] ?? '' }}">
                                             </div>
+                                            <div class="form-group mb-2">
+                                                <label class="small mb-0">NDPBM</label>
+                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][ndpbm]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['ndpbm'] ?? '' }}">
+                                            </div>
+                                            <div class="form-group mb-2">
+                                                <label class="small mb-0">Nilai Barang</label>
+                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][nilaiBarang]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['nilaiBarang'] ?? '' }}">
+                                            </div>
+                                            {{-- <div class="form-group mb-0">
+                                                <label class="small mb-0">Nilai Jasa</label>
+                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][nilaiJasa]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['nilaiJasa'] ?? '' }}">
+                                            </div> --}}
                                         </div>
 
                                         <div class="col-md-3 border-left">
                                             <div class="border-bottom fw-bold mb-2 pb-1" style="font-size: 12px; color: #003366;">Pungutan (Tarif)</div>
                                             @php
-                                                $tarif = $draftItem['barangTarif'][0] ?? [];
+                                                $tarif = $draftItem['barangTarif'] ?? [];
+                                                // Defaults if not set
+                                                $bm = $tarif[0] ?? ['kodeJenisPungutan' => 'BM', 'tarif' => 0, 'tarifFasilitas' => 100, 'kodeFasilitasTarif' => '3'];
+                                                $pph = $tarif[1] ?? ['kodeJenisPungutan' => 'PPH', 'tarif' => 0, 'tarifFasilitas' => 100, 'kodeFasilitasTarif' => '3'];
+                                                $ppn = $tarif[2] ?? ['kodeJenisPungutan' => 'PPN', 'tarif' => 11, 'tarifFasilitas' => 100, 'kodeFasilitasTarif' => '3'];
                                             @endphp
-                                            <div class="row">
-                                                <div class="col-4 form-group mb-2 pr-1">
-                                                    <label class="small mb-0">Jenis</label>
-                                                    <input type="text" name="barang[{{ $index }}][barangTarif][kodeJenisPungutan]" class="form-control form-control-sm" value="{{ $tarif['kodeJenisPungutan'] ?? 'PPN' }}">
-                                                </div>
-                                                <div class="col-4 form-group mb-2 px-1">
-                                                    <label class="small mb-0">Tarif (%)</label>
-                                                    <input type="text" inputmode="decimal" name="barang[{{ $index }}][barangTarif][tarif]" class="form-control form-control-sm input-decimal" value="{{ $tarif['tarif'] ?? 11 }}">
-                                                </div>
-                                                <div class="col-4 form-group mb-2 pl-1">
-                                                    <label class="small mb-0">Fas. (%)</label>
-                                                    <input type="text" inputmode="decimal" name="barang[{{ $index }}][barangTarif][tarifFasilitas]" class="form-control form-control-sm input-decimal" value="{{ $tarif['tarifFasilitas'] ?? 0 }}">
+
+                                            <!-- Tarif BM -->
+                                            <div class="mb-3 border-bottom pb-2">
+                                                <label class="small mb-0 fw-bold">BM</label>
+                                                <input type="hidden" name="barang[{{ $index }}][barangTarif][0][kodeJenisPungutan]" value="BM">
+                                                <select name="barang[{{ $index }}][barangTarif][0][kodeFasilitasTarif]" class="form-control form-control-sm mb-2 px-1 select2bs4">
+                                                    <option value="" {{ ($bm['kodeFasilitasTarif'] ?? '') == '' ? 'selected' : '' }}>-- Pilih Fasilitas --</option>
+                                                    <option value="3" {{ ($bm['kodeFasilitasTarif'] ?? '3') == '3' ? 'selected' : '' }}>3-Ditangguhkan</option>
+                                                    <option value="5" {{ ($bm['kodeFasilitasTarif'] ?? '5') == '5' ? 'selected' : '' }}>5-Dibebaskan</option>
+                                                    <option value="6" {{ ($bm['kodeFasilitasTarif'] ?? '6') == '6' ? 'selected' : '' }}>6-Tidak Dipungut</option>
+                                                </select>
+                                                <div class="row">
+                                                    <div class="col-6 pr-1">
+                                                        <label class="small mb-0">Tarif (%)</label>
+                                                        <input type="text" inputmode="decimal" name="barang[{{ $index }}][barangTarif][0][tarif]" class="form-control form-control-sm input-decimal" value="{{ $bm['tarif'] ?? 0 }}">
+                                                    </div>
+                                                    <div class="col-6 pl-1">
+                                                        <label class="small mb-0">Fas. (%)</label>
+                                                        <input type="text" inputmode="decimal" name="barang[{{ $index }}][barangTarif][0][tarifFasilitas]" class="form-control form-control-sm input-decimal" value="{{ $bm['tarifFasilitas'] ?? 100 }}">
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            <div class="form-group mb-2">
-                                                <label class="small mb-0">Kode Fasilitas</label>
-                                                <select name="barang[{{ $index }}][barangTarif][kodeFasilitasTarif]" class="form-control form-control-sm">
-                                                    <option value="3" {{ ($tarif['kodeFasilitasTarif'] ?? '3') == '3' ? 'selected' : '' }}>3 - DITANGGUHKAN</option>
-                                                    <option value="5" {{ ($tarif['kodeFasilitasTarif'] ?? '') == '5' ? 'selected' : '' }}>5 - DIBEBASKAN</option>
-                                                    <option value="6" {{ ($tarif['kodeFasilitasTarif'] ?? '') == '6' ? 'selected' : '' }}>6 - TIDAK DIPUNGUT</option>
-                                                    <option value="7" {{ ($tarif['kodeFasilitasTarif'] ?? '') == '7' ? 'selected' : '' }}>7 - SUDAH DI LUNASI</option>
+                                            <!-- Tarif PPH -->
+                                            <div class="mb-3 border-bottom pb-2">
+                                                <label class="small mb-0 fw-bold">PPH</label>
+                                                <input type="hidden" name="barang[{{ $index }}][barangTarif][1][kodeJenisPungutan]" value="PPH">
+                                                <select name="barang[{{ $index }}][barangTarif][1][kodeFasilitasTarif]" class="form-control form-control-sm mb-2 px-1 select2bs4">
+                                                    <option value="" {{ ($pph['kodeFasilitasTarif'] ?? '') == '' ? 'selected' : '' }}>-- Pilih Fasilitas --</option>
+                                                    <option value="3" {{ ($pph['kodeFasilitasTarif'] ?? '3') == '3' ? 'selected' : '' }}>3-Ditangguhkan</option>
+                                                    <option value="5" {{ ($pph['kodeFasilitasTarif'] ?? '5') == '5' ? 'selected' : '' }}>5-Dibebaskan</option>
+                                                    <option value="6" {{ ($pph['kodeFasilitasTarif'] ?? '6') == '6' ? 'selected' : '' }}>6-Tidak Dipungut</option>
                                                 </select>
+                                                <div class="row">
+                                                    <div class="col-6 pr-1">
+                                                        <label class="small mb-0">Tarif (%)</label>
+                                                        <input type="text" inputmode="decimal" name="barang[{{ $index }}][barangTarif][1][tarif]" class="form-control form-control-sm input-decimal" value="{{ $pph['tarif'] ?? 0 }}">
+                                                    </div>
+                                                    <div class="col-6 pl-1">
+                                                        <label class="small mb-0">Fas. (%)</label>
+                                                        <input type="text" inputmode="decimal" name="barang[{{ $index }}][barangTarif][1][tarifFasilitas]" class="form-control form-control-sm input-decimal" value="{{ $pph['tarifFasilitas'] ?? 100 }}">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Tarif PPN -->
+                                            <div class="mb-2">
+                                                <label class="small mb-0 fw-bold">PPN</label>
+                                                <input type="hidden" name="barang[{{ $index }}][barangTarif][2][kodeJenisPungutan]" value="PPN">
+                                                <select name="barang[{{ $index }}][barangTarif][2][kodeFasilitasTarif]" class="form-control form-control-sm mb-2 px-1 select2bs4">
+                                                    <option value="" {{ ($ppn['kodeFasilitasTarif'] ?? '') == '' ? 'selected' : '' }}>-- Pilih Fasilitas --</option>
+                                                    <option value="3" {{ ($ppn['kodeFasilitasTarif'] ?? '3') == '3' ? 'selected' : '' }}>3-Ditangguhkan</option>
+                                                    <option value="5" {{ ($ppn['kodeFasilitasTarif'] ?? '5') == '5' ? 'selected' : '' }}>5-Dibebaskan</option>
+                                                    <option value="6" {{ ($ppn['kodeFasilitasTarif'] ?? '6') == '6' ? 'selected' : '' }}>6-Tidak Dipungut</option>
+                                                </select>
+                                                <div class="row">
+                                                    <div class="col-6 pr-1">
+                                                        <label class="small mb-0">Tarif (%)</label>
+                                                        <input type="text" inputmode="decimal" name="barang[{{ $index }}][barangTarif][2][tarif]" class="form-control form-control-sm input-decimal" value="{{ $ppn['tarif'] ?? 11 }}">
+                                                    </div>
+                                                    <div class="col-6 pl-1">
+                                                        <label class="small mb-0">Fas. (%)</label>
+                                                        <input type="text" inputmode="decimal" name="barang[{{ $index }}][barangTarif][2][tarifFasilitas]" class="form-control form-control-sm input-decimal" value="{{ $ppn['tarifFasilitas'] ?? 100 }}">
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -323,26 +756,32 @@
                 <div class="tab-pane fade" id="tab-entitas" role="tabpanel">
                     <div class="section-title"><i class="fas fa-building"></i> Entitas Pengusaha TPB (Kode: 3)</div>
                     <div class="row">
-                        <div class="col-md-4 form-group"><label>Nama Entitas</label><input type="text" name="entitas[3][namaEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['namaEntitas'] ?? 'NIRWANA ALABARE GARMENT' }}"></div>
-                        <div class="col-md-4 form-group"><label>NPWP (15/16 Digit)</label><input type="text" name="entitas[3][nomorIdentitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['nomorIdentitas'] ?? '0745406926444000000000' }}"></div>
-                        <div class="col-md-4 form-group"><label>NIB</label><input type="text" name="entitas[3][nibEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['nibEntitas'] ?? '0220103231143' }}"></div>
-                        <div class="col-md-8 form-group"><label>Alamat</label><input type="text" name="entitas[3][alamatEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['alamatEntitas'] ?? 'JL. RAYA RANCAEKEK MAJALAYA NO. 289 RT. 001 RW. 007' }}"></div>
-                        <div class="col-md-4 form-group"><label>No. Izin TPB</label><input type="text" name="entitas[3][nomorIjinEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['nomorIjinEntitas'] ?? '16/MK/WBC.09/2026' }}"></div>
+                        <div class="col-md-4 form-group"><label>Nama Entitas</label><input type="text" name="entitas[0][namaEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][0]['namaEntitas'] ?? 'NIRWANA ALABARE GARMENT' }}"></div>
+                        <div class="col-md-4 form-group"><label>NPWP (15/16 Digit)</label><input type="text" name="entitas[0][nomorIdentitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][0]['nomorIdentitas'] ?? '0745406926444000000000' }}"></div>
+                        <div class="col-md-4 form-group"><label>NIB</label><input type="text" name="entitas[0][nibEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][0]['nibEntitas'] ?? '0220103231143' }}"></div>
+                        <div class="col-md-8 form-group"><label>Alamat</label><input type="text" name="entitas[0][alamatEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][0]['alamatEntitas'] ?? 'JL. RAYA RANCAEKEK MAJALAYA NO. 289 RT. 001 RW. 007' }}"></div>
+                        <div class="col-md-4 form-group"><label>No. Izin TPB</label><input type="text" name="entitas[0][nomorIjinEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][0]['nomorIjinEntitas'] ?? '16/MK/WBC.09/2026' }}"></div>
+                        <div class="col-md-4 form-group"><label>Tgl. Izin TPB</label><input type="date" name="entitas[0][tanggalIjinEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][0]['tanggalIjinEntitas'] ?? '2026-01-20' }}"></div>
                     </div>
 
-                    <div class="section-title"><i class="fas fa-truck-loading"></i> Entitas Pengirim (Kode: 9)</div>
+                    <div class="section-title"><i class="fas fa-truck-loading"></i> Entitas Pemasok (Kode: 5)</div>
                     <div class="row">
-                        <div class="col-md-4 form-group"><label>Nama Entitas</label><input type="text" name="entitas[9][namaEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][9]['namaEntitas'] ?? $header->supplier ?? '' }}"></div>
-                        <div class="col-md-4 form-group"><label>NPWP</label><input type="text" name="entitas[9][nomorIdentitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][9]['nomorIdentitas'] ?? $header->npwp_supplier ?? '' }}"></div>
-                        <div class="col-md-4 form-group"><label>Status</label><input type="text" name="entitas[9][kodeStatus]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][9]['kodeStatus'] ?? '5' }}"></div>
-                        <div class="col-md-12 form-group"><label>Alamat</label><input type="text" name="entitas[9][alamatEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][9]['alamatEntitas'] ?? $header->alamat_supplier ?? '' }}"></div>
+                        <div class="col-md-4 form-group"><label>Nama Entitas</label><input type="text" name="entitas[1][namaEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][1]['namaEntitas'] ?? $header->supplier ?? '' }}"></div>
+                        <div class="col-md-4 form-group"><label>Kode Negara</label>
+                            <select name="entitas[1][kodeNegara]" class="form-control form-control-sm select2bs4">
+                                @include('export-import.dokumen-pabean.options_negara', ['selected' => $dataDetail['entitas'][1]['kodeNegara'] ?? 'ID'])
+                            </select>
+                        </div>
+                        <div class="col-md-12 form-group"><label>Alamat</label><input type="text" name="entitas[1][alamatEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][1]['alamatEntitas'] ?? $header->alamat_supplier ?? '' }}"></div>
                     </div>
 
                     <div class="section-title"><i class="fas fa-user-tag"></i> Entitas Pemilik Barang (Kode: 7)</div>
                     <div class="row">
-                        <div class="col-md-4 form-group"><label>Nama Entitas</label><input type="text" name="entitas[7][namaEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][7]['namaEntitas'] ?? '' }}"></div>
-                        <div class="col-md-4 form-group"><label>NPWP</label><input type="text" name="entitas[7][nomorIdentitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][7]['nomorIdentitas'] ?? '' }}"></div>
-                        <div class="col-md-4 form-group"><label>Alamat</label><input type="text" name="entitas[7][alamatEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][7]['alamatEntitas'] ?? '' }}"></div>
+                        <div class="col-md-4 form-group"><label>Nama Entitas</label><input type="text" name="entitas[2][namaEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][2]['namaEntitas'] ?? $header->supplier ?? '' }}"></div>
+                        <div class="col-md-4 form-group"><label>NPWP</label><input type="text" name="entitas[2][nomorIdentitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][2]['nomorIdentitas'] ?? $header->npwp_supplier ?? '' }}"></div>
+                        <div class="col-md-4 form-group"><label>Jenis API</label><input type="text" name="entitas[2][kodeJenisApi]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][2]['kodeJenisApi'] ?? '2' }}"></div>
+                        <div class="col-md-8 form-group"><label>Alamat</label><input type="text" name="entitas[2][alamatEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][2]['alamatEntitas'] ?? $header->alamat_supplier ?? '' }}"></div>
+                        <div class="col-md-4 form-group"><label>Tgl Izin Entitas</label><input type="date" name="entitas[2][tanggalIjinEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][2]['tanggalIjinEntitas'] ?? '' }}"></div>
                     </div>
                 </div>
 
@@ -351,22 +790,32 @@
                     <div class="section-title mt-0">Pengangkut & Pungutan</div>
                     <div class="row mb-3">
                         <div class="col-md-3 form-group"><label>Nama Pengangkut</label><input type="text" name="pengangkut[nama]" class="form-control form-control-sm" value="{{ $dataDetail['pengangkut']['nama'] ?? 'TRUK' }}"></div>
+                        <div class="col-md-3 form-group"><label>Nomor Polisi</label><input type="text" name="pengangkut[nomor]" class="form-control form-control-sm" value="{{ $dataDetail['pengangkut']['nomor'] ?? $header->nomor_mobil ?? '' }}"></div>
                         <div class="col-md-3 form-group"><label>Kode Bendera</label>
                             <select name="pengangkut[kodeBendera]" class="form-control form-control-sm select2bs4">
                                 @include('export-import.dokumen-pabean.options_negara', ['selected' => $dataDetail['pengangkut']['kodeBendera'] ?? 'ID'])
                             </select>
                         </div>
-                        <div class="col-md-3 form-group"><label>Nomor Polisi</label><input type="text" name="pengangkut[nomor]" class="form-control form-control-sm" value="{{ $dataDetail['pengangkut']['nomor'] ?? $header->nomor_mobil ?? '' }}"></div>
+                        <div class="col-md-3 form-group"><label>Cara Angkut</label>
+                            <select name="pengangkut[kodeCaraAngkut]" class="form-control form-control-sm select2bs4">
+                                <option value="">-- Pilih Cara Angkut --</option>
+                                <option value="1" {{ ($dataDetail['pengangkut']['kodeCaraAngkut'] ?? '') == '1' ? 'selected' : '' }}>1 - LAUT</option>
+                                <option value="2" {{ ($dataDetail['pengangkut']['kodeCaraAngkut'] ?? '') == '2' ? 'selected' : '' }}>2 - KERETA API</option>
+                                <option value="3" {{ ($dataDetail['pengangkut']['kodeCaraAngkut'] ?? '') == '3' ? 'selected' : '' }}>3 - DARAT</option>
+                                <option value="4" {{ ($dataDetail['pengangkut']['kodeCaraAngkut'] ?? '') == '4' ? 'selected' : '' }}>4 - UDARA</option>
+                                <option value="5" {{ ($dataDetail['pengangkut']['kodeCaraAngkut'] ?? '') == '5' ? 'selected' : '' }}>5 - POS</option>
+                                <option value="6" {{ ($dataDetail['pengangkut']['kodeCaraAngkut'] ?? '') == '6' ? 'selected' : '' }}>6 - MULTIMODA</option>
+                                <option value="7" {{ ($dataDetail['pengangkut']['kodeCaraAngkut'] ?? '') == '7' ? 'selected' : '' }}>7 - INSTALASI / PIPA</option>
+                                <option value="8" {{ ($dataDetail['pengangkut']['kodeCaraAngkut'] ?? '') == '8' ? 'selected' : '' }}>8 - PERAIRAN</option>
+                                <option value="9" {{ ($dataDetail['pengangkut']['kodeCaraAngkut'] ?? '') == '9' ? 'selected' : '' }}>9 - LAINNYA</option>
+                                <option value="10" {{ ($dataDetail['pengangkut']['kodeCaraAngkut'] ?? '') == '10' ? 'selected' : '' }}>10 - INSTALASI</option>
+                                <option value="11" {{ ($dataDetail['pengangkut']['kodeCaraAngkut'] ?? '') == '11' ? 'selected' : '' }}>11 - PIPA</option>
+                                <option value="12" {{ ($dataDetail['pengangkut']['kodeCaraAngkut'] ?? '') == '12' ? 'selected' : '' }}>12 - TRANSMISI</option>
+                            </select>
+                        </div>
                         <div class="col-md-3 form-group">
                             <label>Jenis Pungutan</label>
                             @php
-                                // $listPungutan = [
-                                //     'BK' => 'Bea Keluar', 'BM' => 'Bea Masuk', 'BMAD' => 'Bea Masuk Anti Dumping', 'BMI' => 'Bea Masuk Imbalan',
-                                //     'BMKITE' => 'Bea Masuk KITE', 'BMP' => 'Bea Masuk Pembalasan', 'BMTP' => 'Bea Masuk Tindakan Pengamanan',
-                                //     'CEA' => 'Cukai Etil Alkohol', 'CMEA' => 'Cukai Minuman Mengandung Etil Alkohol', 'CTEM' => 'Cukai Tembakau',
-                                //     'DENDA' => 'Denda Administrasi Pabean', 'DS' => 'Dana Sawit', 'PNBP' => 'Penerimaan Negara Bukan Pajak',
-                                //     'PPH' => 'PPh Impor', 'PPHEKSPOR' => 'PPh Ekspor', 'PPN' => 'PPN Impor', 'PPNBM' => 'PPnBM Impor', 'PPNLOKAL' => 'PPN Dalam Negeri / Hasil Tembakau'
-                                // ];
                                 $listPungutan = [
                                     'PPN' => 'PPN Impor'
                                 ];
@@ -381,12 +830,47 @@
                         <div class="col-md-3 form-group"><label>Nilai Pungutan</label><input type="text" inputmode="decimal" name="pungutan[nilai]" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['pungutan']['nilai'] ?? "" }}"></div>
                     </div>
 
+                    <div class="row mb-3">
+                        <div class="col-md-3 form-group">
+                            <label>Pelabuhan Muat</label>
+                            <select name="kodePelMuat" class="form-control form-control-sm select2-pelabuhan">
+                                @if(!empty($dataDetail['kodePelMuat']))
+                                    <option value="{{ $dataDetail['kodePelMuat'] }}" selected>{{ $dataDetail['kodePelMuat'] }}</option>
+                                @endif
+                            </select>
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label>Pelabuhan Transit</label>
+                            <select name="kodePelTransit" class="form-control form-control-sm select2-pelabuhan">
+                                @if(!empty($dataDetail['kodePelTransit']))
+                                    <option value="{{ $dataDetail['kodePelTransit'] }}" selected>{{ $dataDetail['kodePelTransit'] }}</option>
+                                @endif
+                            </select>
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label>Pelabuhan Bongkar</label>
+                            <select name="kodePelBongkar" class="form-control form-control-sm select2-pelabuhan">
+                                @if(!empty($dataDetail['kodePelBongkar']))
+                                    <option value="{{ $dataDetail['kodePelBongkar'] }}" selected>{{ $dataDetail['kodePelBongkar'] }}</option>
+                                @endif
+                            </select>
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label>Tempat Penimbunan (TPS)</label>
+                            <select name="kodeTps" class="form-control form-control-sm select2-pelabuhan">
+                                @if(!empty($dataDetail['kodeTps']))
+                                    <option value="{{ $dataDetail['kodeTps'] }}" selected>{{ $dataDetail['kodeTps'] }}</option>
+                                @endif
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="section-title">Data Kemasan</div>
                     <div class="row mb-3">
                         <div class="col-md-12">
                             @php
                                 $kemasans = $dataDetail['kemasan'] ?? [];
-                                // Gunakan $listJenisKemasan yang sudah didefinisikan di atas (lengkap)
+
                                 if (empty($kemasans)) {
                                     $kemasans[] = ['jumlahKemasan' => $header->qty_karton ?? "", 'kodeJenisKemasan' => 'CT', 'merkKemasan' => '-'];
                                 }
@@ -488,7 +972,12 @@
                         </div>
                     </div>
 
-                    <div class="section-title">Dokumen Pendukung</div>
+                    <div class="section-title">
+                        Dokumen Pendukung <br>
+                        <small class="text-danger" style="text-transform: none; font-size: 11px; letter-spacing: 0;">
+                            * Wajib melampirkan INVOICE (380) dan B/L atau AWB (705/740)
+                        </small>
+                    </div>
                     <div class="row">
                         <div class="col-md-12">
                             @php
@@ -502,6 +991,9 @@
                                 $dokumens = [];
                                 if (!empty($dataDetail['dok']) && count($dataDetail['dok']) > 0) {
                                     $dokumens = $dataDetail['dok'];
+                                } else {
+                                    $dokumens[] = ['kode' => '380', 'nomor' => $header->invno ?? '', 'tgl' => $header->bpbdate ?? ''];
+                                    $dokumens[] = ['kode' => '740', 'nomor' => '', 'tgl' => ''];
                                 }
                             @endphp
                             <table class="table table-sm table-bordered" id="table-dokumen">
@@ -543,7 +1035,7 @@
 
         <div class="card-footer text-right bg-white border-top">
             <a href="{{ route('dokumen-pabean-index') }}" class="btn btn-default btn-sm"><i class="fas fa-arrow-left"></i> Kembali</a>
-            <button type="submit" class="btn btn-success btn-sm"><i class="fas fa-save"></i> Simpan</button>
+            <button type="submit" class="btn btn-success btn-sm"><i class="fas fa-save"></i> Simpan Draft</button>
         </div>
     </form>
 </div>
@@ -554,39 +1046,6 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     $(document).ready(function() {
-
-        $('.select2bs4').select2({ theme: 'bootstrap4', width: '100%', tags: true });
-
-        // ── Filter input angka & desimal ──────────────────────────────────
-        // Hanya izinkan angka (0-9) dan satu titik desimal
-        $(document).on('input', '.input-decimal', function () {
-            let val = $(this).val();
-            // Hapus semua karakter selain angka dan titik
-            val = val.replace(/[^0-9.]/g, '');
-            // Cegah lebih dari satu titik
-            const parts = val.split('.');
-            if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
-            $(this).val(val);
-        });
-        // Saat keluar field: trim titik di awal/akhir, kosong = biarkan kosong
-        $(document).on('blur', '.input-decimal', function () {
-            let val = $(this).val().replace(/^\./, '').replace(/\.$/, '');
-            $(this).val(val);
-        });
-        // Blokir karakter non-numerik saat keypress (e, E, +, -)
-        $(document).on('keypress', '.input-decimal', function (e) {
-            const allowed = /[0-9.]/;
-            const char = String.fromCharCode(e.which);
-            if (!allowed.test(char)) e.preventDefault();
-            // Cegah titik ke-2
-            if (char === '.' && $(this).val().includes('.')) e.preventDefault();
-        });
-        // ─────────────────────────────────────────────────────────────────
-
-        $('#ceisaTab a').on('click', function (e) {
-            e.preventDefault();
-            $(this).tab('show');
-        });
 
         function hitungNilaiPungutan() {
             let total = 0;
@@ -606,6 +1065,34 @@
         });
 
         hitungNilaiPungutan();
+
+        $('.select2bs4').select2({ theme: 'bootstrap4', width: '100%', tags: true });
+
+        $(document).on('input', '.input-decimal', function () {
+            let val = $(this).val();
+            val = val.replace(/[^0-9.]/g, '');
+            const parts = val.split('.');
+            if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+            $(this).val(val);
+        });
+
+        $(document).on('blur', '.input-decimal', function () {
+            let val = $(this).val().replace(/^\./, '').replace(/\.$/, '');
+            $(this).val(val);
+        });
+
+        $(document).on('keypress', '.input-decimal', function (e) {
+            const allowed = /[0-9.]/;
+            const char = String.fromCharCode(e.which);
+            if (!allowed.test(char)) e.preventDefault();
+            if (char === '.' && $(this).val().includes('.')) e.preventDefault();
+        });
+
+
+        $('#ceisaTab a').on('click', function (e) {
+            e.preventDefault();
+            $(this).tab('show');
+        });
 
         const optDokumenHtml = `
             <option value="">-- Pilih Kode --</option>
@@ -681,11 +1168,11 @@
         });
 
 
-        function validasiBC40() {
+        function validasiBC23() {
             let errors = [];
             let firstTab = null;
 
-            $('#form-edit-ceisa').find('input, select, textarea').each(function() {
+            $('#form-edit-bc23').find('input, select, textarea').each(function() {
                 let el = $(this);
 
                 if (el.is(':disabled') || el.is('[readonly]') || el.attr('type') === 'hidden' || el.attr('type') === 'button' || el.attr('type') === 'submit') {
@@ -713,15 +1200,6 @@
                 }
             });
 
-            let hargaOk = false;
-            $('input[name$="[hargaPenyerahan]"]').each(function() {
-                if ($(this).val() && parseFloat($(this).val()) > 0) hargaOk = true;
-            });
-            if (!hargaOk) {
-                errors.push('Harga Penyerahan/Jual (minimal 1 barang > 0)');
-                if (!firstTab) firstTab = '#tab-header';
-            }
-
             if (errors.length > 0) {
                 if (firstTab) {
                     let tabId = firstTab.replace('#tab-', '');
@@ -743,11 +1221,10 @@
             return true;
         }
 
-        $('#form-edit-ceisa').on('submit', function(e) {
+        $('#form-edit-bc23').on('submit', function(e) {
             e.preventDefault();
 
-            if (!validasiBC40()) return;
-
+            if (!validasiBC23()) return;
 
             Swal.fire({
                 title: 'Simpan Perubahan?',
@@ -782,6 +1259,36 @@
             });
         });
 
+        $('#btn-send-ceisa-bc23').on('click', function() {
+            let url = $(this).data('url');
+            Swal.fire({
+                title: 'Kirim ke CEISA?',
+                text: "Pastikan draft sudah disimpan dan valid.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#003366',
+                confirmButtonText: 'Ya, Kirim!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({ title: 'Mengirim...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+                    $.ajax({
+                        url: url,
+                        type: 'POST',
+                        data: { _token: '{{ csrf_token() }}' },
+                        success: function(response) {
+                            Swal.fire('Berhasil!', response.message, 'success').then(() => {
+                                window.location.href = "{{ route('dokumen-pabean-index') }}";
+                            });
+                        },
+                        error: function(xhr) {
+                            let msg = xhr.responseJSON?.message || 'Gagal mengirim ke CEISA.';
+                            Swal.fire('Gagal!', msg, 'error');
+                        }
+                    });
+                }
+            });
+        });
+
         $('.btn-collapse-barang').on('click', function() {
             let targetId = $(this).data('target');
             let icon = $(this).find('.icon-collapse');
@@ -794,6 +1301,29 @@
                 $(targetId).collapse('show');
                 icon.removeClass('fa-chevron-down').addClass('fa-chevron-up');
             }
+        });
+
+        $('.select2-pelabuhan').select2({
+            theme: 'bootstrap4',
+            placeholder: 'Cari Pelabuhan...',
+            allowClear: true,
+            ajax: {
+                url: '{{ route("ceisa.pelabuhan") }}',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        q: params.term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
+            },
+            minimumInputLength: 2
         });
 
     });

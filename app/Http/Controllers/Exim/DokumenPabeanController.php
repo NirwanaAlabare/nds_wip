@@ -120,10 +120,10 @@ class DokumenPabeanController extends Controller
                             data-jenis_bc="' . $row->jenis_dok . '"
                             title="Kirim ke CEISA"><i class="fas fa-paper-plane"></i></button>';
                     }
-                    
-                    if(!empty($noAju)) {
-                        $btn .= '<button type="button" class="btn btn-sm btn-danger mr-1 btn-delete-draft" title="Hapus Draft CEISA" data-noaju="' . $noAju . '"><i class="fas fa-trash"></i></button>';
-                    }
+
+                    // if(!empty($noAju)) {
+                    //     $btn .= '<button type="button" class="btn btn-sm btn-danger mr-1 btn-delete-draft" title="Hapus Draft CEISA" data-noaju="' . $noAju . '"><i class="fas fa-trash"></i></button>';
+                    // }
 
                     $btn .= '</div>';
 
@@ -187,9 +187,13 @@ class DokumenPabeanController extends Controller
 
             $draft = json_decode($ceisaInfo->payload_json ?? '{}', true);
 
-
             $tanggalAju = date('Y-m-d');
             $nomorAju = $ceisaInfo->nomor_aju ?? '';
+
+            // Generate nomor aju jika masih kosong atau tidak valid (harus 26 karakter)
+            if (empty($nomorAju) || strlen($nomorAju) !== 26) {
+                $nomorAju = $this->generateNomorAju($db);
+            }
 
             // if (empty($nomorAju) || strlen($nomorAju) != 26) {
             //     $currentYear  = date('Y');
@@ -422,37 +426,37 @@ class DokumenPabeanController extends Controller
 
                 "entitas" => [
                     [
-                        "alamatEntitas"      => $draft['entitas'][0]['alamatEntitas'] ?? "JL. RAYA RANCAEKEK MAJALAYA NO. 289 RT. 001 RW. 007",
+                        "alamatEntitas"      => $draft['entitas'][3]['alamatEntitas'] ?? "JL. RAYA RANCAEKEK MAJALAYA NO. 289 RT. 001 RW. 007",
                         "kodeEntitas"        => "3",
                         "kodeJenisIdentitas" => "5",
-                        "namaEntitas"        => $draft['entitas'][0]['namaEntitas'] ?? "NIRWANA ALABARE GARMENT",
-                        "nibEntitas"         => $draft['entitas'][0]['nibEntitas'] ?? "0220103231143",
-                        "nomorIdentitas"     => $draft['entitas'][0]['nomorIdentitas'] ?? "0745406926444000000000",
-                        "nomorIjinEntitas"   => $draft['entitas'][0]['nomorIjinEntitas'] ?? "16/MK/WBC.09/2026",
+                        "namaEntitas"        => $draft['entitas'][3]['namaEntitas'] ?? "NIRWANA ALABARE GARMENT",
+                        "nibEntitas"         => $draft['entitas'][3]['nibEntitas'] ?? "0220103231143",
+                        "nomorIdentitas"     => $draft['entitas'][3]['nomorIdentitas'] ?? "0745406926444000000000",
+                        "nomorIjinEntitas"   => $draft['entitas'][3]['nomorIjinEntitas'] ?? "16/MK/WBC.09/2026",
                         "seriEntitas"        => 1,
-                        "tanggalIjinEntitas" => $draft['entitas'][0]['tanggalIjinEntitas'] ?? "2026-01-20"
+                        "tanggalIjinEntitas" => $draft['entitas'][3]['tanggalIjinEntitas'] ?? "2026-01-20"
                     ],
                     [
-                        "alamatEntitas"      => $draft['entitas'][2]['alamatEntitas'] ?? $header->alamat_supplier ?? "",
+                        "alamatEntitas"      => $draft['entitas'][7]['alamatEntitas'] ?? $header->alamat_supplier ?? "",
                         "kodeEntitas"        => "7",
                         "kodeJenisApi"       => "2",
                         "kodeJenisIdentitas" => "5",
-                        "kodeStatus"         => $draft['entitas'][2]['kodeStatus'] ?? "5",
-                        "namaEntitas"        => $draft['entitas'][2]['namaEntitas'] ?? $header->supplier ?? "",
+                        "kodeStatus"         => $draft['entitas'][7]['kodeStatus'] ?? "5",
+                        "namaEntitas"        => $draft['entitas'][7]['namaEntitas'] ?? $header->supplier ?? "",
                         "nibEntitas"         => "",
-                        "nomorIdentitas"     => $draft['entitas'][2]['nomorIdentitas'] ?? $header->npwp_supplier ?? "",
-                        "tanggalIjinEntitas" => $draft['entitas'][2]['tanggalIjinEntitas'] ?? "",
+                        "nomorIdentitas"     => $draft['entitas'][7]['nomorIdentitas'] ?? $header->npwp_supplier ?? "",
+                        "tanggalIjinEntitas" => $draft['entitas'][7]['tanggalIjinEntitas'] ?? "",
                         "seriEntitas"        => 2
                     ],
                     [
-                        "alamatEntitas"      => $draft['entitas'][1]['alamatEntitas'] ?? $header->alamat_supplier ?? "",
+                        "alamatEntitas"      => $draft['entitas'][9]['alamatEntitas'] ?? $header->alamat_supplier ?? "",
                         "kodeEntitas"        => "9",
                         "kodeJenisApi"       => "2",
                         "kodeJenisIdentitas" => "5",
-                        "kodeStatus"         => "5",
-                        "namaEntitas"        => $draft['entitas'][1]['namaEntitas'] ?? $header->supplier ?? "",
+                        "kodeStatus"         => $draft['entitas'][9]['kodeStatus'] ?? "5",
+                        "namaEntitas"        => $draft['entitas'][9]['namaEntitas'] ?? $header->supplier ?? "",
                         "nibEntitas"         => "",
-                        "nomorIdentitas"     => $draft['entitas'][1]['nomorIdentitas'] ?? $header->npwp_supplier ?? "",
+                        "nomorIdentitas"     => $draft['entitas'][9]['nomorIdentitas'] ?? $header->npwp_supplier ?? "",
                         "seriEntitas"        => 3
                     ]
                 ],
@@ -663,6 +667,7 @@ class DokumenPabeanController extends Controller
                     'tanggal_aju'  => $request->input('tanggalAju', date('Y-m-d')),
                     'nomor_aju'    => $request->input('nomorAju'),
                     'payload_json' => json_encode($payloadJson),
+                    'jenis_bc'     => '4.0',
                     'updated_at'   => date('Y-m-d H:i:s'),
                     'bpbno_int'    => $request->input('bpbno_int') ?? null
                 ]
@@ -715,7 +720,7 @@ class DokumenPabeanController extends Controller
     {
         try {
             $result = $this->ceisaService->deleteDraft($noAju);
-            
+
             if ($result['successful'] || $result['status_code'] == 200) {
                 return response()->json([
                     'success' => true,
@@ -909,7 +914,9 @@ class DokumenPabeanController extends Controller
 
         $lastCeisa = $db->table('bpb_ceisa')
                         ->where('nomor_aju', 'like', $prefix . $currentYear . '%')
-                        ->where('jenis_bc', '23')
+                        ->where(function($q) {
+                            $q->where('jenis_bc', '2.3')->orWhere('jenis_bc', '23');
+                        })
                         ->orderBy('nomor_aju', 'desc')
                         ->first();
 
@@ -1058,6 +1065,17 @@ class DokumenPabeanController extends Controller
                 }
             }
 
+            $hasInvoice = false;
+            $hasTransport = false;
+            foreach ($payloadDokumen as $dok) {
+                if ($dok['kodeDokumen'] === '380') $hasInvoice = true;
+                if (in_array($dok['kodeDokumen'], ['705', '740', '704', '741'])) $hasTransport = true;
+            }
+
+            if (!$hasInvoice || !$hasTransport) {
+                throw new \Exception("Validasi Gagal: Dokumen BC 2.3 wajib melampirkan INVOICE (380) dan B/L atau AWB (705/740). Silakan tambahkan di tab Dokumen Pendukung.");
+            }
+
             // Build kontainer
             $payloadKontainer = [];
             $seriKont = 1;
@@ -1090,38 +1108,100 @@ class DokumenPabeanController extends Controller
 
             // Build barang BC 2.3
             $totalHargaPenyerahan = 0;
+            $totalCif = 0;
+            $totalFob = 0;
+            $totalFreight = 0;
+            $totalAsuransi = 0;
+            $totalDiskon = 0;
             $arrayBarang = [];
+
+            // Jika hanya ada 1 barang dan item kosong tapi header ada isinya, salin header ke item
+            if (count($draft['barang'] ?? []) === 1) {
+                if (empty($draft['barang'][0]['cif']) && !empty($draft['cif'])) $draft['barang'][0]['cif'] = $draft['cif'];
+                if (empty($draft['barang'][0]['fob']) && !empty($draft['fob'])) $draft['barang'][0]['fob'] = $draft['fob'];
+                if (empty($draft['barang'][0]['freight']) && !empty($draft['freight'])) $draft['barang'][0]['freight'] = $draft['freight'];
+                if (empty($draft['barang'][0]['asuransi']) && !empty($draft['asuransi'])) $draft['barang'][0]['asuransi'] = $draft['asuransi'];
+                if (empty($draft['barang'][0]['diskon']) && !empty($draft['diskon'])) $draft['barang'][0]['diskon'] = $draft['diskon'];
+            }
 
             foreach (($draft['barang'] ?? []) as $index => $brg) {
                 $hargaPenyerahanItem = (float) ($brg['hargaPenyerahan'] ?? 0);
                 $totalHargaPenyerahan += $hargaPenyerahanItem;
+                $totalCif += (float) ($brg['cif'] ?? 0);
+                $totalFob += (float) ($brg['fob'] ?? 0);
+                $totalFreight += (float) ($brg['freight'] ?? 0);
+                $totalAsuransi += (float) ($brg['asuransi'] ?? 0);
+                $totalDiskon += (float) ($brg['diskon'] ?? 0);
 
                 // Build barangTarif dari draft
                 $barangTarif = [];
                 if (!empty($brg['barangTarif']) && is_array($brg['barangTarif'])) {
                     foreach ($brg['barangTarif'] as $tarif) {
-                        $barangTarif[] = [
-                            "kodeJenisTarif"     => $tarif['kodeJenisTarif'] ?? "1",
-                            "jumlahSatuan"       => (float) ($tarif['jumlahSatuan'] ?? $brg['jumlahSatuan'] ?? 0),
-                            "kodeFasilitasTarif" => $tarif['kodeFasilitasTarif'] ?? "3",
-                            "kodeSatuanBarang"   => $tarif['kodeSatuanBarang'] ?? $brg['kodeSatuanBarang'] ?? "",
-                            "kodeJenisPungutan"  => $tarif['kodeJenisPungutan'] ?? "BM",
-                            "nilaiBayar"         => (float) ($tarif['nilaiBayar'] ?? 0),
-                            "nilaiFasilitas"     => (float) ($tarif['nilaiFasilitas'] ?? 0),
-                            "nilaiSudahDilunasi" => (float) ($tarif['nilaiSudahDilunasi'] ?? 0),
-                            "seriBarang"         => (int) ($brg['seriBarang'] ?? ($index + 1)),
-                            "tarif"              => (float) ($tarif['tarif'] ?? 0),
-                            "tarifFasilitas"     => (float) ($tarif['tarifFasilitas'] ?? 0),
-                        ];
+                            // Calculate tax amounts
+                            $kodeJenisPungutan = !empty($tarif['kodeJenisPungutan']) ? $tarif['kodeJenisPungutan'] : "BM";
+                            $kodeFasilitasTarif = !empty($tarif['kodeFasilitasTarif']) ? $tarif['kodeFasilitasTarif'] : "3";
+                            $tarifPersen = (float) ($tarif['tarif'] ?? 0);
+                            $tarifFasilitas = (float) ($tarif['tarifFasilitas'] ?? ($kodeFasilitasTarif == '1' ? 0 : 100));
+                            
+                            $cifRupiah = (float)($brg['cif'] ?? 0) * (float)($brg['ndpbm'] ?? 0);
+                            $bmAmount = $cifRupiah * ($kodeJenisPungutan == 'BM' ? $tarifPersen / 100 : 0); // Simplified estimate for BM
+                            // For PPH/PPN, base is usually (cifRupiah + BM)
+                            $nilaiDasar = ($kodeJenisPungutan == 'BM') ? $cifRupiah : ($cifRupiah + ($cifRupiah * 0.1)); // 10% BM fallback if not exact
+                            $taxAmount = $nilaiDasar * ($tarifPersen / 100);
+                            
+                            $nilaiFasilitas = 0;
+                            $nilaiBayar = 0;
+                            if ($kodeFasilitasTarif == '1') {
+                                $nilaiBayar = $taxAmount;
+                            } else {
+                                $nilaiFasilitas = $taxAmount * ($tarifFasilitas / 100);
+                                $nilaiBayar = $taxAmount - $nilaiFasilitas;
+                            }
+
+                            $kodeJenisTarif = !empty($tarif['kodeJenisTarif']) ? $tarif['kodeJenisTarif'] : "1";
+                            
+                            // User inputs override if they manually entered them
+                            $finalNilaiBayar = (float) ($tarif['nilaiBayar'] ?? 0) > 0 ? (float) ($tarif['nilaiBayar'] ?? 0) : round($nilaiBayar);
+                            $finalNilaiFasilitas = (float) ($tarif['nilaiFasilitas'] ?? 0) > 0 ? (float) ($tarif['nilaiFasilitas'] ?? 0) : round($nilaiFasilitas);
+
+                            $barangTarif[] = [
+                                "kodeJenisTarif"     => $kodeJenisTarif,
+                                "jumlahSatuan"       => (float) ($tarif['jumlahSatuan'] ?? $brg['jumlahSatuan'] ?? 0),
+                                "kodeFasilitasTarif" => $kodeFasilitasTarif,
+                                "kodeSatuanBarang"   => !empty($tarif['kodeSatuanBarang']) ? $tarif['kodeSatuanBarang'] : (!empty($brg['kodeSatuanBarang']) ? $brg['kodeSatuanBarang'] : ""),
+                                "kodeJenisPungutan"  => $kodeJenisPungutan,
+                                "nilaiBayar"         => $finalNilaiBayar,
+                                "nilaiFasilitas"     => $finalNilaiFasilitas,
+                                "nilaiSudahDilunasi" => (float) ($tarif['nilaiSudahDilunasi'] ?? 0),
+                                "seriBarang"         => (int) ($brg['seriBarang'] ?? ($index + 1)),
+                                "tarif"              => $tarifPersen,
+                                "tarifFasilitas"     => $tarifFasilitas,
+                            ];
                     }
                 }
                 if (empty($barangTarif)) {
-                    $barangTarif[] = [
-                        "kodeJenisTarif" => "1", "jumlahSatuan" => (float)($brg['jumlahSatuan'] ?? 0),
-                        "kodeFasilitasTarif" => "3", "kodeSatuanBarang" => $brg['kodeSatuanBarang'] ?? "",
-                        "kodeJenisPungutan" => "BM", "nilaiBayar" => 0, "nilaiFasilitas" => 0,
-                        "nilaiSudahDilunasi" => 0, "seriBarang" => (int)($brg['seriBarang'] ?? ($index + 1)),
-                        "tarif" => 0, "tarifFasilitas" => 0
+                    $barangTarif = [
+                        [
+                            "kodeJenisTarif" => "1", "jumlahSatuan" => (float)($brg['jumlahSatuan'] ?? 0),
+                            "kodeFasilitasTarif" => "3", "kodeSatuanBarang" => $brg['kodeSatuanBarang'] ?? "",
+                            "kodeJenisPungutan" => "BM", "nilaiBayar" => 0, "nilaiFasilitas" => 0,
+                            "nilaiSudahDilunasi" => 0, "seriBarang" => (int)($brg['seriBarang'] ?? ($index + 1)),
+                            "tarif" => 0, "tarifFasilitas" => 100
+                        ],
+                        [
+                            "kodeJenisTarif" => "1", "jumlahSatuan" => (float)($brg['jumlahSatuan'] ?? 0),
+                            "kodeFasilitasTarif" => "3", "kodeSatuanBarang" => $brg['kodeSatuanBarang'] ?? "",
+                            "kodeJenisPungutan" => "PPH", "nilaiBayar" => 0, "nilaiFasilitas" => 0,
+                            "nilaiSudahDilunasi" => 0, "seriBarang" => (int)($brg['seriBarang'] ?? ($index + 1)),
+                            "tarif" => 0, "tarifFasilitas" => 100
+                        ],
+                        [
+                            "kodeJenisTarif" => "1", "jumlahSatuan" => (float)($brg['jumlahSatuan'] ?? 0),
+                            "kodeFasilitasTarif" => "3", "kodeSatuanBarang" => $brg['kodeSatuanBarang'] ?? "",
+                            "kodeJenisPungutan" => "PPN", "nilaiBayar" => 0, "nilaiFasilitas" => 0,
+                            "nilaiSudahDilunasi" => 0, "seriBarang" => (int)($brg['seriBarang'] ?? ($index + 1)),
+                            "tarif" => 0, "tarifFasilitas" => 100
+                        ]
                     ];
                 }
 
@@ -1210,13 +1290,13 @@ class DokumenPabeanController extends Controller
             $payload = [
                 "idPlatform"       => config('ceisa.id_platform_dev', ''),
                 "asalData"         => "S",
-                "asuransi"         => (float) ($draft['asuransi'] ?? 0),
+                "asuransi"         => $totalAsuransi > 0 ? $totalAsuransi : (float) ($draft['asuransi'] ?? 0),
                 "biayaPengurang"   => (float) ($draft['biayaPengurang'] ?? 0),
                 "biayaTambahan"    => (float) ($draft['biayaTambahan'] ?? 0),
                 "bruto"            => (float) ($draft['bruto'] ?? 0),
-                "cif"              => (float) ($draft['cif'] ?? 0),
-                "fob"              => (float) ($draft['fob'] ?? 0),
-                "freight"          => (float) ($draft['freight'] ?? 0),
+                "cif"              => $totalCif > 0 ? $totalCif : (float) ($draft['cif'] ?? 0),
+                "fob"              => $totalFob > 0 ? $totalFob : (float) ($draft['fob'] ?? 0),
+                "freight"          => $totalFreight > 0 ? $totalFreight : (float) ($draft['freight'] ?? 0),
                 "hargaPenyerahan"  => (float) ($draft['hargaPenyerahan'] ?? $totalHargaPenyerahan),
                 "jabatanTtd"       => $draft['jabatanTtd'] ?? "",
                 "jumlahKontainer"  => (int) ($draft['jumlahKontainer'] ?? 0),
