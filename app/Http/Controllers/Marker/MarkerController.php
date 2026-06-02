@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Marker;
 
 use App\Http\Controllers\Controller;
+use App\Models\Cutting\FormCutInput;
 use App\Models\Marker\Marker;
 use App\Models\Marker\MarkerDetail;
+use App\Models\Stocker\Stocker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -869,7 +871,7 @@ class MarkerController extends Controller
                     'lebar_marker' => $validatedRequest['l_marker'],
                     'unit_lebar_marker' => $validatedRequest['l_unit'],
                     'gelar_qty' => $validatedRequest['gelar_marker_qty'],
-                    'gelar_qty_balance' => $validatedRequest['gelar_marker_qty'],
+                    'gelar_qty_balance' => $newBalance,
                     'po_marker' => $validatedRequest['po'],
                     'urutan_marker' => $validatedRequest['no_urut_marker'],
                     'cons_marker' => $validatedRequest['cons_marker'],
@@ -900,7 +902,7 @@ class MarkerController extends Controller
                     'lebar_marker' => $validatedRequest['l_marker'],
                     'unit_lebar_marker' => $validatedRequest['l_unit'],
                     'gelar_qty' => $validatedRequest['gelar_marker_qty'],
-                    'gelar_qty_balance' => $validatedRequest['gelar_marker_qty'],
+                    'gelar_qty_balance' => $newBalance,
                     'po_marker' => $validatedRequest['po'],
                     'urutan_marker' => $validatedRequest['no_urut_marker'],
                     'cons_marker' => $validatedRequest['cons_marker'],

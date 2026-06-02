@@ -1165,8 +1165,9 @@ class Marketing_CostingController extends Controller
         $base_ga_idr = $base_material_idr + $sum_mfg_idr + $tot_other_idr;
         $base_ga_usd = $base_material_usd + $sum_mfg_usd + $tot_other_usd;
 
-        $ga_idr = $base_ga_idr * 0.03;
-        $ga_usd = $base_ga_usd * 0.03;
+        $input_ga_pct = isset($costing->ga_percent) ? floatval($costing->ga_percent) : 3;
+        $ga_idr = $base_ga_idr * ($input_ga_pct / 100);
+        $ga_usd = $base_ga_usd * ($input_ga_pct / 100);
 
         $grand_idr = $base_ga_idr + $ga_idr;
         $grand_usd = $grand_idr / $rate_from_idr;
@@ -1332,7 +1333,7 @@ class Marketing_CostingController extends Controller
                 $row++;
 
                 $ga_pct = $pembagi_persen > 0 ? ($ga_idr / $pembagi_persen) : 0;
-                $sheet->mergeCells("A$row:C$row"); $sheet->setCellValue("A$row", "G&A (3%)")->getStyle("A$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
+                $sheet->mergeCells("A$row:C$row"); $sheet->setCellValue("A$row", "G&A (" . $input_ga_pct . "%)")->getStyle("A$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
                 $sheet->setCellValue("D$row", $ga_idr)->setCellValue("E$row", $ga_usd)->setCellValue("F$row", $ga_pct);
                 $sheet->getStyle("A$row:F$row")->applyFromArray($styleHead);
                 $sheet->getStyle("F$row")->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_PERCENTAGE_00);

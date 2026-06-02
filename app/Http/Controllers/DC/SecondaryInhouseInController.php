@@ -116,7 +116,7 @@ class SecondaryInhouseInController extends Controller
                 left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
                 left join part p_com on p_com.id = pd_com.part_id
                 left join master_part mp on mp.id = pd.master_part_id
-                left join part_detail_secondary pds on pds.part_detail_id = pd.id and pds.urutan = a.urutan
+                left join part_detail_secondary pds on pds.part_detail_id = pd.id and IFNULL(pds.urutan, '') = IFNULL(a.urutan, '')
                 left join master_secondary mms on mms.id = pds.master_secondary_id
                 left join master_secondary ms on ms.id = pd.master_secondary_id
                 left join (select id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
@@ -171,7 +171,7 @@ class SecondaryInhouseInController extends Controller
             left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
             left join part p_com on p_com.id = pd_com.part_id
             left join master_part mp on mp.id = pd.master_part_id
-            left join part_detail_secondary pds on pds.part_detail_id = pd.id
+            left join part_detail_secondary pds on pds.part_detail_id = pd.id and IFNULL(pds.urutan, '') = IFNULL(a.urutan, '')
             left join master_secondary mms on mms.id = pds.master_secondary_id
             left join master_secondary ms on ms.id = pd.master_secondary_id
             left join (select id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
@@ -1096,7 +1096,7 @@ class SecondaryInhouseInController extends Controller
             left join part p_com on p_com.id = pd_com.part_id
             left join master_part mp on mp.id = pd.master_part_id
             left join (select id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
-            left join part_detail_secondary pds on pds.part_detail_id = pd.id
+            left join part_detail_secondary pds on pds.part_detail_id = pd.id and IFNULL(pds.urutan, '') = IFNULL(a.urutan, '')
             left join master_secondary mms on mms.id = pds.master_secondary_id
             left join master_secondary ms on ms.id = pd.master_secondary_id
             where

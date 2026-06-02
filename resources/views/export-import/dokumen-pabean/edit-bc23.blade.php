@@ -173,12 +173,12 @@
                         </div> --}}
                     </div>
 
-                    <div class="section-title">Dokumen BC</div>
+                    <div class="section-title">Dokumen BC 1.1</div>
                     <div class="row">
-                        <div class="col-md-3 form-group"><label>Nomor BC</label><input type="text" name="nomorBc11" class="form-control form-control-sm" value="{{ $dataDetail['nomorBc11'] ?? '' }}"></div>
-                        <div class="col-md-3 form-group"><label>Tanggal BC</label><input type="date" name="tanggalBc11" class="form-control form-control-sm" value="{{ $dataDetail['tanggalBc11'] ?? '' }}"></div>
-                        <div class="col-md-3 form-group"><label>Pos BC</label><input type="text" name="posBc11" class="form-control form-control-sm" value="{{ $dataDetail['posBc11'] ?? '' }}"></div>
-                        <div class="col-md-3 form-group"><label>Subpos BC</label><input type="text" name="subposBc11" class="form-control form-control-sm" value="{{ $dataDetail['subposBc11'] ?? '' }}"></div>
+                        <div class="col-md-3 form-group"><label>Nomor BC 1.1</label><input type="text" name="nomorBc11" class="form-control form-control-sm" value="{{ $dataDetail['nomorBc11'] ?? '' }}"></div>
+                        <div class="col-md-3 form-group"><label>Tanggal BC 1.1</label><input type="date" name="tanggalBc11" class="form-control form-control-sm" value="{{ $dataDetail['tanggalBc11'] ?? '' }}"></div>
+                        <div class="col-md-3 form-group"><label>Pos BC 1.1</label><input type="text" name="posBc11" class="form-control form-control-sm" value="{{ $dataDetail['posBc11'] ?? '' }}"></div>
+                        <div class="col-md-3 form-group"><label>Subpos BC 1.1</label><input type="text" name="subposBc11" class="form-control form-control-sm" value="{{ $dataDetail['subposBc11'] ?? '' }}"></div>
                     </div>
 
                     <div class="section-title">Data Nilai & Fisik</div>
@@ -767,11 +767,7 @@
                     <div class="section-title"><i class="fas fa-truck-loading"></i> Entitas Pemasok (Kode: 5)</div>
                     <div class="row">
                         <div class="col-md-4 form-group"><label>Nama Entitas</label><input type="text" name="entitas[1][namaEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][1]['namaEntitas'] ?? $header->supplier ?? '' }}"></div>
-                        <div class="col-md-4 form-group"><label>Kode Negara</label>
-                            <select name="entitas[1][kodeNegara]" class="form-control form-control-sm select2bs4">
-                                @include('export-import.dokumen-pabean.options_negara', ['selected' => $dataDetail['entitas'][1]['kodeNegara'] ?? 'ID'])
-                            </select>
-                        </div>
+                        <div class="col-md-4 form-group"><label>Kode Negara</label><input type="text" name="entitas[1][kodeNegara]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][1]['kodeNegara'] ?? 'ID' }}"></div>
                         <div class="col-md-12 form-group"><label>Alamat</label><input type="text" name="entitas[1][alamatEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][1]['alamatEntitas'] ?? $header->alamat_supplier ?? '' }}"></div>
                     </div>
 
@@ -791,11 +787,7 @@
                     <div class="row mb-3">
                         <div class="col-md-3 form-group"><label>Nama Pengangkut</label><input type="text" name="pengangkut[nama]" class="form-control form-control-sm" value="{{ $dataDetail['pengangkut']['nama'] ?? 'TRUK' }}"></div>
                         <div class="col-md-3 form-group"><label>Nomor Polisi</label><input type="text" name="pengangkut[nomor]" class="form-control form-control-sm" value="{{ $dataDetail['pengangkut']['nomor'] ?? $header->nomor_mobil ?? '' }}"></div>
-                        <div class="col-md-3 form-group"><label>Kode Bendera</label>
-                            <select name="pengangkut[kodeBendera]" class="form-control form-control-sm select2bs4">
-                                @include('export-import.dokumen-pabean.options_negara', ['selected' => $dataDetail['pengangkut']['kodeBendera'] ?? 'ID'])
-                            </select>
-                        </div>
+                        <div class="col-md-3 form-group"><label>Kode Bendera</label><input type="text" name="pengangkut[kodeBendera]" class="form-control form-control-sm" value="{{ $dataDetail['pengangkut']['kodeBendera'] ?? 'ID' }}" placeholder="contoh: ID"></div>
                         <div class="col-md-3 form-group"><label>Cara Angkut</label>
                             <select name="pengangkut[kodeCaraAngkut]" class="form-control form-control-sm select2bs4">
                                 <option value="">-- Pilih Cara Angkut --</option>
@@ -831,7 +823,7 @@
                     </div>
 
                     <div class="row mb-3">
-                        <div class="col-md-3 form-group">
+                        <div class="col-md-4 form-group">
                             <label>Pelabuhan Muat</label>
                             <select name="kodePelMuat" class="form-control form-control-sm select2-pelabuhan">
                                 @if(!empty($dataDetail['kodePelMuat']))
@@ -839,7 +831,7 @@
                                 @endif
                             </select>
                         </div>
-                        <div class="col-md-3 form-group">
+                        <div class="col-md-4 form-group">
                             <label>Pelabuhan Transit</label>
                             <select name="kodePelTransit" class="form-control form-control-sm select2-pelabuhan">
                                 @if(!empty($dataDetail['kodePelTransit']))
@@ -847,15 +839,7 @@
                                 @endif
                             </select>
                         </div>
-                        <div class="col-md-3 form-group">
-                            <label>Pelabuhan Bongkar</label>
-                            <select name="kodePelBongkar" class="form-control form-control-sm select2-pelabuhan">
-                                @if(!empty($dataDetail['kodePelBongkar']))
-                                    <option value="{{ $dataDetail['kodePelBongkar'] }}" selected>{{ $dataDetail['kodePelBongkar'] }}</option>
-                                @endif
-                            </select>
-                        </div>
-                        <div class="col-md-3 form-group">
+                        <div class="col-md-4 form-group">
                             <label>Tempat Penimbunan (TPS)</label>
                             <select name="kodeTps" class="form-control form-control-sm select2-pelabuhan">
                                 @if(!empty($dataDetail['kodeTps']))
@@ -972,28 +956,19 @@
                         </div>
                     </div>
 
-                    <div class="section-title">
-                        Dokumen Pendukung <br>
-                        <small class="text-danger" style="text-transform: none; font-size: 11px; letter-spacing: 0;">
-                            * Wajib melampirkan INVOICE (380) dan B/L atau AWB (705/740)
-                        </small>
-                    </div>
+                    <div class="section-title">Dokumen Pendukung</div>
                     <div class="row">
                         <div class="col-md-12">
                             @php
                                 $referensiDokumen = [
                                     '10' => 'RKSP', '11' => 'MANIFES', '16' => 'BC 1.6', '20' => 'BC 2.0 - PIB',
                                     '23' => 'BC 2.3', '25' => 'BC 2.5', '27' => 'BC 2.7', '30' => 'BC 3.0 - PEB',
-                                    '40' => 'BC 4.0', '41' => 'BC 4.1', '217' => 'PACKING LIST', '380' => 'INVOICE', '388' => 'FAKTUR PAJAK',
-                                    '705' => 'B/L', '740' => 'Data B/L CEISA4.0 atau AWB atau DO'
+                                    '40' => 'BC 4.0', '41' => 'BC 4.1', '217' => 'PACKING LIST', '380' => 'INVOICE', '388' => 'FAKTUR PAJAK'
                                 ];
 
                                 $dokumens = [];
                                 if (!empty($dataDetail['dok']) && count($dataDetail['dok']) > 0) {
                                     $dokumens = $dataDetail['dok'];
-                                } else {
-                                    $dokumens[] = ['kode' => '380', 'nomor' => $header->invno ?? '', 'tgl' => $header->bpbdate ?? ''];
-                                    $dokumens[] = ['kode' => '740', 'nomor' => '', 'tgl' => ''];
                                 }
                             @endphp
                             <table class="table table-sm table-bordered" id="table-dokumen">
@@ -1168,63 +1143,17 @@
         });
 
 
-        function validasiBC23() {
-            let errors = [];
-            let firstTab = null;
-
-            $('#form-edit-bc23').find('input, select, textarea').each(function() {
-                let el = $(this);
-
-                if (el.is(':disabled') || el.is('[readonly]') || el.attr('type') === 'hidden' || el.attr('type') === 'button' || el.attr('type') === 'submit') {
-                    return;
-                }
-
-                let val = el.val();
-                let isEmpty = !val || val.toString().trim() === '';
-
-                if (isEmpty) {
-                    let labelText = el.closest('.form-group').find('label').first().text().trim();
-                    if (!labelText) labelText = el.attr('name');
-
-                    errors.push(labelText);
-                    el.addClass('border-danger');
-
-                    if (!firstTab) {
-                        let tabPane = el.closest('.tab-pane');
-                        if (tabPane.length) {
-                            firstTab = '#' + tabPane.attr('id');
-                        }
-                    }
-                } else {
-                    el.removeClass('border-danger');
-                }
-            });
-
-            if (errors.length > 0) {
-                if (firstTab) {
-                    let tabId = firstTab.replace('#tab-', '');
-                    $('#' + tabId + '-tab').tab('show');
-                }
-
-                let uniqueErrors = [...new Set(errors)];
-
-                Swal.fire({
-                    title: 'Field Wajib Belum Diisi!',
-                    html: '<div style="text-align:left; max-height: 250px; overflow-y: auto;">Semua isian form wajib dilengkapi:<br><ul style="margin-top:8px">' +
-                          uniqueErrors.map(e => '<li><b>' + e + '</b></li>').join('') +
-                          '</ul></div>',
-                    icon: 'error',
-                    confirmButtonColor: '#003366'
-                });
-                return false;
-            }
-            return true;
-        }
-
         $('#form-edit-bc23').on('submit', function(e) {
             e.preventDefault();
 
-            if (!validasiBC23()) return;
+            if($('input[name="pengangkut[nomor]"]').val() === ""){
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'No Polisi Pengangkut belum diisi.',
+                    icon: 'error'
+                });
+                return;
+            }
 
             Swal.fire({
                 title: 'Simpan Perubahan?',

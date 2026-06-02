@@ -151,7 +151,7 @@
                     <a href="{{ route('check-output-master-plan') }}" class="home-item">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-triangle-exclamation"></i> Check Output vs Master Plan</h5>
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-triangle-exclamation"></i> Check Mismatched Master Plan</h5>
                             </div>
                         </div>
                     </a>
