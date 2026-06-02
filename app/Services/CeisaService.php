@@ -17,12 +17,14 @@ class CeisaService
 
     public function __construct()
     {
-        $this->baseUrl      = config('ceisa.base_url_dev');
-        $this->username     = config('ceisa.username_dev');
-        $this->password     = config('ceisa.password_dev');
-        $this->apiKey       = config('ceisa.api_key_dev');
-        $this->idPerusahaan = config('ceisa.id_perusahaan_dev');
-        $this->idPlatform   = config('ceisa.id_platform_dev');
+        $env = config('ceisa.env', 'dev');
+
+        $this->baseUrl      = config("ceisa.base_url_{$env}");
+        $this->username     = config("ceisa.username_{$env}");
+        $this->password     = config("ceisa.password_{$env}");
+        $this->apiKey       = config("ceisa.api_key_{$env}");
+        $this->idPerusahaan = config("ceisa.id_perusahaan_{$env}");
+        $this->idPlatform   = config("ceisa.id_platform_{$env}");
     }
 
     /**
@@ -62,7 +64,8 @@ class CeisaService
 
 
 
-        $request = Http::withoutVerifying()->withHeaders($headers);
+        $timeout = (strtoupper($method) === 'GET') ? 3 : 15;
+        $request = Http::timeout($timeout)->withoutVerifying()->withHeaders($headers);
 
         // GET: $data dikirim sebagai query string
         // POST/PUT/PATCH: $data dikirim sebagai JSON body
