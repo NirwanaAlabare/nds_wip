@@ -351,6 +351,11 @@
                     <div class="section-title mt-0">Pengangkut & Pungutan</div>
                     <div class="row mb-3">
                         <div class="col-md-3 form-group"><label>Nama Pengangkut</label><input type="text" name="pengangkut[nama]" class="form-control form-control-sm" value="{{ $dataDetail['pengangkut']['nama'] ?? 'TRUK' }}"></div>
+                        <div class="col-md-3 form-group"><label>Kode Bendera</label>
+                            <select name="pengangkut[kodeBendera]" class="form-control form-control-sm select2bs4">
+                                @include('export-import.dokumen-pabean.options_negara', ['selected' => $dataDetail['pengangkut']['kodeBendera'] ?? 'ID'])
+                            </select>
+                        </div>
                         <div class="col-md-3 form-group"><label>Nomor Polisi</label><input type="text" name="pengangkut[nomor]" class="form-control form-control-sm" value="{{ $dataDetail['pengangkut']['nomor'] ?? $header->nomor_mobil ?? '' }}"></div>
                         <div class="col-md-3 form-group">
                             <label>Jenis Pungutan</label>
@@ -490,7 +495,8 @@
                                 $referensiDokumen = [
                                     '10' => 'RKSP', '11' => 'MANIFES', '16' => 'BC 1.6', '20' => 'BC 2.0 - PIB',
                                     '23' => 'BC 2.3', '25' => 'BC 2.5', '27' => 'BC 2.7', '30' => 'BC 3.0 - PEB',
-                                    '40' => 'BC 4.0', '41' => 'BC 4.1', '217' => 'PACKING LIST', '380' => 'INVOICE', '388' => 'FAKTUR PAJAK'
+                                    '40' => 'BC 4.0', '41' => 'BC 4.1', '217' => 'PACKING LIST', '380' => 'INVOICE', '388' => 'FAKTUR PAJAK',
+                                    '705' => 'B/L', '740' => 'Data B/L CEISA4.0 atau AWB atau DO'
                                 ];
 
                                 $dokumens = [];
@@ -675,17 +681,73 @@
         });
 
 
+        function validasiBC40() {
+            let errors = [];
+            let firstTab = null;
+
+            $('#form-edit-ceisa').find('input, select, textarea').each(function() {
+                let el = $(this);
+
+                if (el.is(':disabled') || el.is('[readonly]') || el.attr('type') === 'hidden' || el.attr('type') === 'button' || el.attr('type') === 'submit') {
+                    return;
+                }
+
+                let val = el.val();
+                let isEmpty = !val || val.toString().trim() === '';
+
+                if (isEmpty) {
+                    let labelText = el.closest('.form-group').find('label').first().text().trim();
+                    if (!labelText) labelText = el.attr('name');
+
+                    errors.push(labelText);
+                    el.addClass('border-danger');
+
+                    if (!firstTab) {
+                        let tabPane = el.closest('.tab-pane');
+                        if (tabPane.length) {
+                            firstTab = '#' + tabPane.attr('id');
+                        }
+                    }
+                } else {
+                    el.removeClass('border-danger');
+                }
+            });
+
+            let hargaOk = false;
+            $('input[name$="[hargaPenyerahan]"]').each(function() {
+                if ($(this).val() && parseFloat($(this).val()) > 0) hargaOk = true;
+            });
+            if (!hargaOk) {
+                errors.push('Harga Penyerahan/Jual (minimal 1 barang > 0)');
+                if (!firstTab) firstTab = '#tab-header';
+            }
+
+            if (errors.length > 0) {
+                if (firstTab) {
+                    let tabId = firstTab.replace('#tab-', '');
+                    $('#' + tabId + '-tab').tab('show');
+                }
+
+                let uniqueErrors = [...new Set(errors)];
+
+                Swal.fire({
+                    title: 'Field Wajib Belum Diisi!',
+                    html: '<div style="text-align:left; max-height: 250px; overflow-y: auto;">Semua isian form wajib dilengkapi:<br><ul style="margin-top:8px">' +
+                          uniqueErrors.map(e => '<li><b>' + e + '</b></li>').join('') +
+                          '</ul></div>',
+                    icon: 'error',
+                    confirmButtonColor: '#003366'
+                });
+                return false;
+            }
+            return true;
+        }
+
         $('#form-edit-ceisa').on('submit', function(e) {
             e.preventDefault();
 
-            if($('input[name="pengangkut[nomor]"]').val() === ""){
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'No Polisi Pengangkut belum diisi.',
-                    icon: 'error'
-                });
-                return;
-            }
+            if (!validasiBC40()) return;
+
 
             Swal.fire({
                 title: 'Simpan Perubahan?',
