@@ -213,9 +213,8 @@ class CuttingFormRejectController extends Controller
     public function edit(FormCutReject $formCutReject, $id = 0)
     {
         $form = FormCutReject::where("id", $id)->first();
-        $wsList = DB::table('master_sb_ws')->select('tgl_kirim', 'id_act_cost', 'ws')->distinct()->orderBy('tgl_kirim', 'desc')->limit(1000)->get();
 
-        return view("cutting.cutting-form-reject.edit-cutting-form-reject", ["page" => "dashboard-cutting", "subPageGroup" => "cutting-reject", "subPage" => "cutting-reject", "form" => $form, "wsList" => $wsList]);
+        return view("cutting.cutting-form-reject.edit-cutting-form-reject", ["page" => "dashboard-cutting", "subPageGroup" => "cutting-reject", "subPage" => "cutting-reject", "form" => $form]);
     }
 
     /**
@@ -245,60 +244,6 @@ class CuttingFormRejectController extends Controller
 
         if ($totalStocker < 1) {
             if ($validatedRequest) {
-                // DEPRECATED BACKUP 
-
-                // $updateFormCutReject = FormCutReject::where("id", $validatedRequest["id"])->update([
-                //     "no_form" => $validatedRequest["no_form"],
-                //     "tanggal" => $validatedRequest["tanggal"],
-                //     "act_costing_id" => $validatedRequest["act_costing_id"],
-                //     "act_costing_ws" => $validatedRequest["act_costing_ws"],
-                //     "buyer_id" => $validatedRequest["buyer_id"],
-                //     "buyer" => $validatedRequest["buyer"],
-                //     "style" => $validatedRequest["style"],
-                //     "color" => $validatedRequest["color"],
-                //     "panel" => $validatedRequest["panel"],
-                //     "group" => $validatedRequest["group"],
-                //     "created_by" => Auth::user()->id,
-                //     "created_by_username" => Auth::user()->username,
-                // ]);
-
-                // if ($updateFormCutReject) {
-                //     $formCutRejectDetails = [];
-
-                //     $soDet = DB::connection("mysql_sb")->table("so_det")->whereIn("id", $request["so_det_id"])->get();
-                //     for ($i = 0; $i < count($request["so_det_id"]); $i++) {
-                //         $currentSoDet = $soDet->where("id", $request["so_det_id"][$i])->first();
-
-                //         array_push($formCutRejectDetails, [
-                //             "form_id" => $validatedRequest["id"],
-                //             "so_det_id" => $request["so_det_id"][$i],
-                //             "size" => $currentSoDet->size,
-                //             "qty" => $request["qty"][$i],
-                //             "created_by" => Auth::user()->id,
-                //             "created_by" => Auth::user()->username
-                //         ]);
-                //     }
-
-                //     $upsertFormCutRejectDetail = FormCutRejectDetail::upsert($formCutRejectDetails, ['form_id', 'so_det_id'], ['qty']);
-
-                //     if ($upsertFormCutRejectDetail) {
-                //         return array(
-                //             "status" => 200,
-                //             "message" => "Form Ganti Reject Berhasil disimpan."
-                //         );
-                //     }
-
-                //     return array(
-                //         "status" => 400,
-                //         "message" => "Terjadi Kesalahan."
-                //     );
-                // }
-
-                $oldForm = FormCutReject::find($validatedRequest["id"]);
-
-                $wsChanged = $oldForm->act_costing_ws != $validatedRequest["act_costing_ws"];
-                $colorChanged = $oldForm->color != $validatedRequest["color"];
-
                 $updateFormCutReject = FormCutReject::where("id", $validatedRequest["id"])->update([
                     "no_form" => $validatedRequest["no_form"],
                     "tanggal" => $validatedRequest["tanggal"],
@@ -315,85 +260,35 @@ class CuttingFormRejectController extends Controller
                 ]);
 
                 if ($updateFormCutReject) {
+                    $formCutRejectDetails = [];
 
-                    // =====================================================
-                    // JIKA WS / COLOR BERUBAH
-                    // =====================================================
-                    if ($wsChanged || $colorChanged) {
+                    $soDet = DB::connection("mysql_sb")->table("so_det")->whereIn("id", $request["so_det_id"])->get();
+                    for ($i = 0; $i < count($request["so_det_id"]); $i++) {
+                        $currentSoDet = $soDet->where("id", $request["so_det_id"][$i])->first();
 
-                        // hapus detail lama
-                        FormCutRejectDetail::where(
-                            "form_id",
-                            $validatedRequest["id"]
-                        )->delete();
-
-                        $newDetails = [];
-
-                        $soDet = DB::connection("mysql_sb")
-                            ->table("so_det")
-                            ->whereIn("id", $request["new_so_det_id"])
-                            ->get();
-
-                        for ($i = 0; $i < count($request["new_so_det_id"]); $i++) {
-
-                            $currentSoDet = $soDet
-                                ->where("id", $request["new_so_det_id"][$i])
-                                ->first();
-
-                            $newDetails[] = [
-                                "form_id" => $validatedRequest["id"],
-                                "so_det_id" => $request["new_so_det_id"][$i],
-                                "size" => $currentSoDet->size,
-                                "qty" => $request["new_qty"][$i],
-                                "created_by" => Auth::user()->id,
-                                "created_by_username" => Auth::user()->username,
-                                "created_at" => now(),
-                                "updated_at" => now(),
-                            ];
-                        }
-
-                        FormCutRejectDetail::insert($newDetails);
+                        array_push($formCutRejectDetails, [
+                            "form_id" => $validatedRequest["id"],
+                            "so_det_id" => $request["so_det_id"][$i],
+                            "size" => $currentSoDet->size,
+                            "qty" => $request["qty"][$i],
+                            "created_by" => Auth::user()->id,
+                            "created_by" => Auth::user()->username
+                        ]);
                     }
 
-                    // =====================================================
-                    // JIKA WS / COLOR TIDAK BERUBAH
-                    // =====================================================
-                    else {
+                    $upsertFormCutRejectDetail = FormCutRejectDetail::upsert($formCutRejectDetails, ['form_id', 'so_det_id'], ['qty']);
 
-                        $formCutRejectDetails = [];
-
-                        $soDet = DB::connection("mysql_sb")
-                            ->table("so_det")
-                            ->whereIn("id", $request["so_det_id"])
-                            ->get();
-
-                        for ($i = 0; $i < count($request["so_det_id"]); $i++) {
-
-                            $currentSoDet = $soDet
-                                ->where("id", $request["so_det_id"][$i])
-                                ->first();
-
-                            $formCutRejectDetails[] = [
-                                "form_id" => $validatedRequest["id"],
-                                "so_det_id" => $request["so_det_id"][$i],
-                                "size" => $currentSoDet->size,
-                                "qty" => $request["qty"][$i],
-                                "created_by" => Auth::user()->id,
-                                "created_by_username" => Auth::user()->username,
-                            ];
-                        }
-
-                        FormCutRejectDetail::upsert(
-                            $formCutRejectDetails,
-                            ['form_id', 'so_det_id'],
-                            ['qty']
+                    if ($upsertFormCutRejectDetail) {
+                        return array(
+                            "status" => 200,
+                            "message" => "Form Ganti Reject Berhasil disimpan."
                         );
                     }
 
-                    return [
-                        "status" => 200,
-                        "message" => "Form Ganti Reject Berhasil disimpan."
-                    ];
+                    return array(
+                        "status" => 400,
+                        "message" => "Terjadi Kesalahan."
+                    );
                 }
 
                 return array(
@@ -597,18 +492,9 @@ class CuttingFormRejectController extends Controller
                 COALESCE(form_cut_reject_detail.qty, 0) qty
             ")->where("master_sb_ws.id_act_cost", $request->act_costing_id)->where("master_sb_ws.color", $request->color)->leftJoin('form_cut_reject_detail', 'form_cut_reject_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->leftJoin('form_cut_reject', 'form_cut_reject.id', '=', 'form_cut_reject_detail.form_id')->leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
 
-        if ($request->ws_change != 1) {
-            $totalFormDetail = FormCutRejectDetail::where("form_id", $request->id)->count();
-            if ($totalFormDetail > 0) {
-                $sizeQuery->where("form_cut_reject_detail.form_id", $request->id);
-            }
-        } else {
-            $soDetIds = DB::table('master_sb_ws')
-                ->where('id_act_cost', $request->act_costing_id)
-                ->where('color', $request->color)
-                ->pluck('id_so_det');
-
-            $sizeQuery->whereIn('form_cut_reject_detail.so_det_id', $soDetIds);
+        $totalFormDetail = FormCutRejectDetail::where("form_id", $request->id)->count();
+        if ($totalFormDetail > 0) {
+            $sizeQuery->where("form_cut_reject_detail.form_id", $request->id);
         }
 
         $sizes = $sizeQuery->groupBy("id_so_det")->orderBy("master_size_new.urutan")->get();
@@ -690,25 +576,5 @@ where a.form_id = '$id'
             ");
 
         return DataTables::of($data_input)->toJson();
-    }
-
-    public function getDataWs(Request $request)
-    {
-        $data = DB::table('master_sb_ws')
-            ->select(
-                'id_act_cost',
-                'ws',
-                'buyer',
-                'styleno',
-                'color'
-            )
-            ->where('ws', $request->ws)
-            ->distinct()
-            ->get();
-
-        return response()->json([
-            'status' => 200,
-            'data' => $data
-        ]);
     }
 }

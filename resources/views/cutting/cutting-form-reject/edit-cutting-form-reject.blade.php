@@ -125,15 +125,10 @@
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Worksheet</label>
-                        <input type="hidden" id="act_costing_id" name="act_costing_id" value="{{ $form->act_costing_id ?? '' }}">
-                        <select class="form-control select2bs4" id="act_costing_ws" name="act_costing_ws">
-                            @foreach($wsList as $ws)
-                                <option value="{{ $ws->ws }}"
-                                    {{ ($form->act_costing_ws ?? null) == $ws->ws ? 'selected' : '' }}>
-                                    {{ $ws->ws }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <input type="hidden" class="form-control" id="act_costing_id" name="act_costing_id"
+                            value="{{ $form->act_costing_id }}" readonly>
+                        <input type="text" class="form-control" id="act_costing_ws" name="act_costing_ws"
+                            value="{{ $form->act_costing_ws }}" readonly>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Buyer</label>
@@ -149,103 +144,41 @@
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Color</label>
-                        <select class="form-control select2bs4" id="color" name="color">
-                            <option value="{{ $form->color }}" selected>
-                                {{ $form->color }}
-                            </option>
-                        </select>
+                        <input type="text" class="form-control" id="color" name="color"
+                            value="{{ $form->color }}" readonly>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Panel</label>
-                        <select class="form-control select2bs4" id="panel" name="panel">
-                            <option value="{{ $form->panel }}" selected>
-                                {{ $form->panel }}
-                            </option>
-                        </select>
+                        <input type="text" class="form-control" id="panel" name="panel"
+                            value="{{ $form->panel }}" readonly>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Group</label>
                         <input type="text" class="form-control" id="group" name="group"
                             value="{{ $form->group }}" readonly>
                     </div>
-                    <div class="col-md-12">
-                        <div class="card card-outline mt-3">
-                            <div class="card-header">
-                                <h3 class="card-title">
-                                    Detail Size Reject
-                                </h3>
-
-                                <div class="card-tools">
-                                    <button type="button"
-                                        class="btn btn-tool"
-                                        data-card-widget="collapse">
-                                        <i class="fas fa-minus"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="card-body table-responsive">
-                                <table class="table table-bordered" id="cutting-reject-table">
-                                    <thead>
-                                        <tr>
-                                            <th>So Det ID</th>
-                                            <th>Size</th>
-                                            <th>Dest</th>
-                                            <th>Qty Output</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <td colspan="3" class="text-center">Data tidak ditemukan</td>
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <th></th>
-                                            <th></th>
-                                            <th>Total</th>
-                                            <th id="total-detail-qty">...</th>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-12 mt-1" id="newWsSection" style="display:none;">
-                        <div class="card card-outline">
-                            <div class="card-header">
-                                <h3 class="card-title">
-                                    Detail Size Reject WS Baru
-                                </h3>
-                                <div class="card-tools">
-                                    <button type="button"
-                                        class="btn btn-tool"
-                                        data-card-widget="collapse">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="card-body table-responsive">
-                                <table class="table table-bordered" id="cutting-reject-table-new" style="width:100%">
-                                    <thead>
-                                        <tr>
-                                            <th>So Det ID</th>
-                                            <th>Size</th>
-                                            <th>Dest</th>
-                                            <th>Qty Output</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <th></th>
-                                            <th></th>
-                                            <th>Total</th>
-                                            <th id="total-detail-qty-new">0</th>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        </div>
+                    <div class="col-md-12 table-responsive">
+                        <table class="table table-bordered table mt-3" id="cutting-reject-table">
+                            <thead>
+                                <tr>
+                                    <th>So Det ID</th>
+                                    <th>Size</th>
+                                    <th>Dest</th>
+                                    <th>Qty Output</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <td colspan="3" class="text-center">Data tidak ditemukan</td>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th></th>
+                                    <th></th>
+                                    <th>Total</th>
+                                    <th id="total-detail-qty">...</th>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -487,10 +420,7 @@
         $('#color').on('change', function(e) {
             if (this.value) {
                 updatePanelList();
-                // cuttingRejectTableReload();
-
-                $('#newWsSection').show();
-                cuttingRejectTableNew.ajax.reload();
+                cuttingRejectTableReload();
             }
         });
 
@@ -575,7 +505,7 @@
 
                         // select.removeAttribute("disabled");
 
-                        $("#panel").val(res[0].panel).trigger("change");
+                        $("#panel").val(res[0].color).trigger("change");
                     }
                 },
             });
@@ -592,7 +522,6 @@
                     d.id = $("#id").val();
                     d.act_costing_id = $("#act_costing_id").val();
                     d.color = $("#color").val();
-                    d.ws_change = 0;
                 },
             },
             columns: [{
@@ -644,74 +573,6 @@
             }
         });
 
-        let cuttingRejectTableNew = $("#cutting-reject-table-new").DataTable({
-            processing: true,
-            ordering: false,
-            serverSide: true,
-            paging: false,
-            searching: false,
-            ajax: {
-                url: '{{ route('get-form-reject-sizes') }}',
-                data: function(d) {
-                    d.id = $("#id").val();
-                    d.act_costing_id = $("#act_costing_id").val();
-                    d.color = $("#color").val();
-                    d.ws_change = 1;
-                },
-            },
-            columns: [{
-                    data: 'so_det_id',
-                },
-                {
-                    data: 'size',
-                },
-                {
-                    data: 'dest',
-                },
-                {
-                    data: 'qty',
-                },
-            ],
-            columnDefs: [{
-                    targets: [0],
-                    className: "d-none",
-                    render: (data, type, row, meta) => {
-
-                        return `
-                            <input type="text"
-                                class="form-control form-control-sm"
-                                name="new_so_det_id[${meta.row}]"
-                                value="${data}"
-                                readonly>
-                        `;
-                    }
-                },
-                {
-                    targets: [1, 2],
-                    className: "text-nowrap"
-                },
-                {
-                    targets: [3],
-                    className: "text-nowrap",
-                    render: (data, type, row, meta) => {
-
-                        return `
-                            <input type="number"
-                                class="form-control form-control-sm detail-qty-new"
-                                id="new_qty_${meta.row}"
-                                name="new_qty[${meta.row}]"
-                                value="${data}"
-                                onkeyup="calculateTotalDetailQtyNew()"
-                                onchange="calculateTotalDetailQtyNew()">
-                        `;
-                    }
-                }
-            ],
-            drawCallback: function() {
-                calculateTotalDetailQtyNew();
-            }
-        });
-
         function cuttingRejectTableReload() {
             $("#cutting-reject-table").DataTable().ajax.reload();
         }
@@ -741,17 +602,6 @@
             }
 
             document.getElementById("total-detail-qty").innerHTML = totalQty;
-        }
-
-        function calculateTotalDetailQtyNew() {
-
-            let total = 0;
-
-            $('.detail-qty-new').each(function() {
-                total += Number($(this).val()) || 0;
-            });
-
-            $('#total-detail-qty-new').html(total);
         }
 
 
@@ -1123,49 +973,6 @@
                     block: 'start'
                 });
             });
-        });
-
-        $('#act_costing_ws').on('change', function () {
-
-            $('#newWsSection').show();
-            cuttingRejectTableNew.ajax.reload();
-
-            let ws = $(this).val();
-            if (!ws) return;
-
-            $.ajax({
-                url: "{{ route('get-data-ws-cutting-reject') }}",
-                type: "GET",
-                data: {
-                    ws: ws
-                },
-
-                success: function(res) {
-
-                    let data = res.data;
-
-                    $('#act_costing_id').val(data[0].id_act_cost);
-                    $('#buyer').val(data[0].buyer);
-                    $('#style').val(data[0].styleno);
-
-                    // color
-                    $('#color').empty();
-                    $('#color').append(`
-                        <option value="">Pilih Color</option>
-                    `);
-
-                    $.each(data, function(index, item) {
-                        $('#color').append(`
-                            <option value="${item.color}">
-                                ${item.color}
-                            </option>
-                        `);
-                    });
-
-                    $('#color').val(data[0].color).trigger('change');
-                }
-            });
-
         });
     </script>
 @endsection

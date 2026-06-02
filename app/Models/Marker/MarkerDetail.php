@@ -5,7 +5,6 @@ namespace App\Models\Marker;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\MasterSbWs;
-use Spatie\Activitylog\Traits\LogsActivity;
 
 class MarkerDetail extends Model
 {
