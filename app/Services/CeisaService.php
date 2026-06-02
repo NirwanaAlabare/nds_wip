@@ -131,9 +131,6 @@ class CeisaService
         ];
     }
 
-    /**
-     * Ambil status/riwayat dokumen berdasarkan nomor aju (26 digit).
-     */
     public function getStatusDraft($noAju)
     {
         try {
@@ -152,5 +149,50 @@ class CeisaService
             Log::error('CEISA API Get Status Error: ' . $e->getMessage());
             throw $e;
         }
+    }
+
+    /**
+     * Kirim dokumen BC 2.3 ke CEISA.
+     */
+    public function kirimDokumenBc23($payload, $isFinal = 'false')
+    {
+        $response = $this->requestWithRetry(
+            'POST',
+            "{$this->baseUrl}/openapi/document?isFinal={$isFinal}",
+            $payload
+        );
+
+        return [
+            'status_code' => $response->status(),
+            'body'        => $response->json(),
+            'successful'  => $response->successful()
+        ];
+    }
+
+    /**
+     * Delete draft dokumen dari CEISA
+     */
+    public function deleteDraft($nomorAju)
+    {
+        $response = $this->requestWithRetry(
+            'DELETE',
+            "{$this->baseUrl}/openapi/status/{$nomorAju}"
+        );
+
+        return [
+            'status_code' => $response->status(),
+            'body'        => $response->json(),
+            'successful'  => $response->successful()
+        ];
+    }
+
+    function getPelabuhan($kata)
+    {
+        $response = $this->requestWithRetry(
+            'GET',
+            "{$this->baseUrl}/openapi/pelabuhan/kata/{$kata}"
+        );
+
+        return $response->json();
     }
 }
