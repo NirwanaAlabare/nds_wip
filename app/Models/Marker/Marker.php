@@ -8,15 +8,11 @@ use App\Models\Cutting\FormCutInput;
 
 class Marker extends Model
 {
-<<<<<<< HEAD
     use HasFactory, LogsActivity;
 
     protected static $recordEvents = ['created', 'updated', 'deleted'];
     protected static $logAttributes = ['*'];
     protected static $logOnlyDirty = true;
-=======
-    use HasFactory;
->>>>>>> parent of 1b2bbc43 (Merge branch 'main' of https://github.com/NirwanaAlabare/nds_wip)
 
     protected $table = 'marker_input';
 
