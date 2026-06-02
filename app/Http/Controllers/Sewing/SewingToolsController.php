@@ -5193,7 +5193,6 @@ class SewingToolsController extends Controller
     private function buildMissMasterPlanSql(string $dateFrom, string $dateTo, string $lineFilter): string {
         $outerSelect = "
                 'RFT' AS tipe,
-                output.kode_numbering,
                 output.id,
                 output.line,
                 output.tgl_plan,
@@ -5214,7 +5213,6 @@ class SewingToolsController extends Controller
             FROM (
                 SELECT
                     output_rfts.id,
-                    output_rfts.kode_numbering,
                     master_plan.id                                      AS plan_id,
                     master_plan.color                                   AS plan_color,
                     master_plan.id_ws                                   AS plan_act_costing_id,
@@ -5249,7 +5247,6 @@ class SewingToolsController extends Controller
             FROM (
                 SELECT
                     output_defects.id,
-                    output_defects.kode_numbering,
                     master_plan.id                                       AS plan_id,
                     master_plan.color                                    AS plan_color,
                     master_plan.id_ws                                    AS plan_act_costing_id,
@@ -5284,7 +5281,6 @@ class SewingToolsController extends Controller
             FROM (
                 SELECT
                     output_rejects.id,
-                    output_rejects.kode_numbering,
                     master_plan.id                                       AS plan_id,
                     master_plan.color                                    AS plan_color,
                     master_plan.id_ws                                    AS plan_act_costing_id,

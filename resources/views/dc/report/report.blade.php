@@ -61,8 +61,8 @@
                             <th>Terima Repaired Sec Luar</th>
                             <th>Terima Good Sec Luar</th>
                             <th>Loading</th>
-                            <th>Switching OUT</th>
-                            <th>Switching IN</th>
+                            {{-- <th>Switching OUT</th>
+                            <th>Switching IN</th> --}}
                             <th>Adjustment</th>
                             <th>Saldo Akhir</th>
                         </tr>
@@ -80,8 +80,8 @@
                             <th></th>
                             <th></th>
                             <th></th>
-                            <th></th>
-                            <th></th>
+                            {{-- <th></th>
+                            <th></th> --}}
                             <th></th>
                         </tr>
                     </tfoot>
@@ -157,8 +157,8 @@
                 { data: 'terima_good_secondary_luar', defaultContent: 0 },
                 { data: 'loading', defaultContent: 0 },
                 // { data: 'current_saldo_akhir', defaultContent: 0 },
-                { data: 'switching_out', defaultContent: 0 },
-                { data: 'switching_in', defaultContent: 0 },
+                // { data: 'switching_out', defaultContent: 0 },
+                // { data: 'switching_in', defaultContent: 0 },
                 { data: 'adjustment', defaultContent: 0 },
                 {
                     data: null,
@@ -248,8 +248,8 @@
                 $(api.column(14).footer()).html(sumCol(14));
                 $(api.column(15).footer()).html(sumCol(15));
                 $(api.column(16).footer()).html(sumCol(16));
-                $(api.column(17).footer()).html(sumCol(17));
-                $(api.column(18).footer()).html(sumCol(18));
+                // $(api.column(17).footer()).html(sumCol(17));
+                // $(api.column(18).footer()).html(sumCol(18));
 
                 let totalSaldoAkhir = 0;
 
@@ -258,7 +258,7 @@
                     totalSaldoAkhir += intVal(r.current_saldo_awal_adjustment) + intVal(r.qty_in) - intVal(r.kirim_secondary_dalam) + intVal(r.terima_repaired_secondary_dalam) + intVal(r.terima_good_secondary_dalam) - intVal(r.kirim_secondary_luar) + intVal(r.terima_repaired_secondary_luar) + intVal(r.terima_good_secondary_luar) - intVal(r.loading) + (intVal(r.adjustment) + intVal(r.switching_in) - intVal(r.switching_out));
                 });
 
-                $(api.column(19).footer()).html(totalSaldoAkhir);
+                $(api.column(16).footer()).html(totalSaldoAkhir);
             }
         });
 

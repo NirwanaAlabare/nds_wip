@@ -609,8 +609,8 @@ class PartController extends Controller
                     "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
                     DB::table("part")->where("id", $id)->first(),
                     DB::table("part_form")->where("part_id", $id)->get(),
-                    DB::table("part_detail")->where("part_detail_id", $partDetailIds)->get(),
-                    DB::table("part_detail_secondary")->where("part_detail_id", $partDetailIds)->get(),
+                    DB::table("part_detail")->whereIn("id", $partDetailIds)->get(),
+                    DB::table("part_detail_secondary")->whereIn("part_detail_id", $partDetailIds)->get(),
                     DB::table("stocker_input")->whereIn('id', $stockerIds)->get(),
                     DB::table("dc_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
                     DB::table("secondary_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
@@ -638,7 +638,7 @@ class PartController extends Controller
                 $deletePartDetailSecondary = PartDetailSecondary::whereIn("part_detail_id", $partDetailIds)->delete();
 
                 // Delete Part Detail
-                $deletePartDetail = PartDetail::whereIn("part_detail_id", $partDetailIds)->delete();
+                $deletePartDetail = PartDetail::whereIn("id", $partDetailIds)->delete();
 
                 // Delete Part
                 $deletePart = Part::where("id", $id)->delete();
@@ -652,7 +652,23 @@ class PartController extends Controller
                         'additional' => [],
                     );
                 }
+            } else {
+                return array(
+                    'status' => 400,
+                    'message' => 'Part ini memiliki data stocker terkait, hapus data stocker terlebih dahulu untuk dapat menghapus part ini',
+                    'redirect' => '',
+                    'table' => 'datatable-part',
+                    'additional' => [],
+                );
             }
+        } else {
+            return array(
+                'status' => 400,
+                'message' => 'Part ini memiliki data part form terkait, hapus data part form terlebih dahulu untuk dapat menghapus part ini',
+                'redirect' => '',
+                'table' => 'datatable-part',
+                'additional' => [],
+            );
         }
 
         return array(
@@ -885,6 +901,16 @@ class PartController extends Controller
                     'msg'  => 'Part sudah memiliki Form Cut, tidak dapat menambah Part Detail.',
                 );
             }
+        }
+
+        // Cek apakah part sudah memiliki stocker (sudah print stocker)
+        $partDetailIds = PartDetail::where("part_id", $request->id)->get()->pluck("id")->toArray();
+        $stockerCount = Stocker::whereIn("part_detail_id", $partDetailIds)->count();
+        if ($stockerCount > 0) {
+            return array(
+                'icon' => 'salah',
+                'msg'  => 'Part sudah memiliki data Stocker terkait, tidak dapat menambah Part Detail.',
+            );
         }
 
         // IF COMPLEMENT
@@ -1189,9 +1215,6 @@ class PartController extends Controller
                     PartDetailItem::upsert($partItemData, ['part_detail_id', 'bom_jo_item_id'], ["updated_at"]);
                 }
 
-                // Update DC Transaction if exist
-                $partService->updateDcTransaction($validatedRequest['edit_id']);
-
                 // Similar Recursive Call
                 $similarPartDetail = PartDetail::where("from_part_detail", $validatedRequest['edit_id'])->get();
                 if ($similarPartDetail) {
@@ -1199,9 +1222,11 @@ class PartController extends Controller
                         $similarRequest = new Request(array_merge($request->all(), [
                             'edit_id' => $similar->id,
                         ]));
-                        $this->updatePartSecondary($similarRequest);
+                        $this->updatePartSecondary($validatedRequest['edit_id']);
                     }
                 }
+
+                $partService->updateDcTransaction();
 
                 return array(
                     'status' => '201',
@@ -1277,7 +1302,6 @@ class PartController extends Controller
                         // Phase 6 (Update Part Detail)
                         PartDetail::where("id", $validatedRequest['edit_com_id'])->update([
                             "master_part_id" => $validatedRequest['edit_com_master_part_id'],
-                            "from_part_detail" => $validatedRequest['edit_com_from_part_id'],
                             "from_part_detail" => $validatedRequest['edit_com_from_part_id'],
                         ]);
 
@@ -1479,20 +1503,30 @@ class PartController extends Controller
         $exist = [];
 
         foreach ($request->partForms as $partForm) {
+
             if ($partForm['type'] == "PIECE") {
                 $isExist = PartForm::where("part_id", $request->part_id)->where("form_pcs_id", $partForm['form_id'])->count();
+                $checkStocker = Stocker::where("form_piece_id", $partForm['form_id'])->count();
             } else {
                 $isExist = PartForm::where("part_id", $request->part_id)->where("form_id", $partForm['form_id'])->count();
+                $checkStocker = Stocker::where("form_cut_id", $partForm['form_id'])->count();
             }
 
+            // Check Stocker
+            if ($checkStocker > 0) {
+                array_push($fail, ['no_form' => $partForm['no_form'], 'reason' => 'Form sudah memiliki Stocker']);
+                continue;
+            }
+
+            // If Exist then Remove
             if ($isExist > 0) {
                 if ($partForm['type'] == "PIECE") {
-                    $removeCutPlan = PartForm::where("part_id", $request->part_id)->where("form_pcs_id", $partForm['form_id'])->delete();
+                    $removePartForm = PartForm::where("part_id", $request->part_id)->where("form_pcs_id", $partForm['form_id'])->delete();
                 } else {
-                    $removeCutPlan = PartForm::where("part_id", $request->part_id)->where("form_id", $partForm['form_id'])->delete();
+                    $removePartForm = PartForm::where("part_id", $request->part_id)->where("form_id", $partForm['form_id'])->delete();
                 }
 
-                if ($removeCutPlan) {
+                if ($removePartForm) {
                     array_push($success, ['no_form' => $partForm['no_form']]);
                 } else {
                     array_push($fail, ['no_form' => $partForm['no_form']]);
@@ -1505,10 +1539,10 @@ class PartController extends Controller
         if (count($success) > 0) {
             return array(
                 'status' => 200,
-                'message' => 'Part Form berhasil disingkirkan',
+                'message' => 'Transaksi Selesai',
                 'redirect' => '',
                 'table' => 'datatable-selected',
-                'additional' => ["success" => $success, "fail" => $fail],
+                'additional' => ["success" => $success, "fail" => $fail, 'exist' => $exist],
             );
         } else {
             return array(
@@ -1516,7 +1550,7 @@ class PartController extends Controller
                 'message' => 'Data tidak ditemukan',
                 'redirect' => '',
                 'table' => 'datatable-selected',
-                'additional' => ["success" => $success, "fail" => $fail],
+                'additional' => ["success" => $success, "fail" => $fail, 'exist' => $exist],
             );
         }
     }
@@ -1735,6 +1769,7 @@ class PartController extends Controller
         $partDetail = PartDetail::with('masterPart')->find($id);
 
         if ($partDetail) {
+            // Check Part Form
             if (PartForm::where('part_id', $partDetail->part_id)->exists()) {
                 return array(
                     'status' => 400,
@@ -1776,6 +1811,7 @@ class PartController extends Controller
         $partDetail = PartDetail::with('masterPart')->find($id);
 
         if ($partDetail) {
+            // Check Part Form
             if (PartForm::where('part_id', $partDetail->part_id)->exists()) {
                 return array(
                     'status' => 400,
@@ -1818,8 +1854,10 @@ class PartController extends Controller
 
         $partDetail = PartDetail::with('masterPart')->find($id);
 
-        if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() < 1) {
-            if ($partDetail && PartForm::where('part_id', $partDetail->part_id)->exists()) {
+        if ($partDetail) {
+
+            // Check Part Form
+            if (PartForm::where('part_id', $partDetail->part_id)->exists()) {
                 return array(
                     'status' => 400,
                     'message' => 'Part sudah memiliki Form Cut, tidak dapat dihapus.',
@@ -1828,49 +1866,49 @@ class PartController extends Controller
                     'additional' => [],
                 );
             }
-        }
 
-        if ($partDetail->delete()) {
-            // Delete related stocker input
-            $stockers = Stocker::where('part_detail_id', $id)->get();
-            $stockerIdQrs = $stockers->pluck('id_qr_stocker')->toArray();
-            $stockerIds = $stockers->pluck('id')->toArray();
+            if ($partDetail->delete()) {
+                // Delete related stocker input
+                $stockers = Stocker::where('part_detail_id', $id)->get();
+                $stockerIdQrs = $stockers->pluck('id_qr_stocker')->toArray();
+                $stockerIds = $stockers->pluck('id')->toArray();
 
-            // Log the deletion
-            Log::channel('deletePartDetail')->info([
-                "Deleting Data",
-                "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
-                DB::table("part_detail")->where('id', $id)->get(),
-                DB::table("part_detail_secondary")->where('part_detail_id', $id)->get(),
-                DB::table("dc_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
-                DB::table("secondary_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
-                DB::table("secondary_inhouse_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
-                DB::table("rack_detail_stocker")->whereIn('stocker_id', $stockerIds)->get(),
-                DB::table("trolley_stocker")->whereIn('stocker_id', $stockerIds)->get(),
-                DB::table("loading_line")->whereIn('stocker_id', $stockerIds)->get()
-            ]);
+                // Log the deletion
+                Log::channel('deletePartDetail')->info([
+                    "Deleting Data",
+                    "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                    DB::table("part_detail")->where('id', $id)->get(),
+                    DB::table("part_detail_secondary")->where('part_detail_id', $id)->get(),
+                    DB::table("dc_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                    DB::table("secondary_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                    DB::table("secondary_inhouse_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                    DB::table("rack_detail_stocker")->whereIn('stocker_id', $stockerIds)->get(),
+                    DB::table("trolley_stocker")->whereIn('stocker_id', $stockerIds)->get(),
+                    DB::table("loading_line")->whereIn('stocker_id', $stockerIds)->get()
+                ]);
 
-            $deletePartDetailSecondary = PartDetailSecondary::where('part_detail_id', $id)->delete();
-            $deleteStocker = Stocker::where('part_detail_id', $id)->delete();
-            $deleteDc = DCIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
-            $deleteSecondaryIn = SecondaryIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
-            $deleteSecondaryInHouse = SecondaryInHouse::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
-            $deleteRackDetailStocker = RackDetailStocker::whereIn('stocker_id', $stockerIds)->delete();
-            $deleteTrolleyStocker = TrolleyStocker::whereIn('stocker_id', $stockerIds)->delete();
-            $deleteLoadingLine = LoadingLine::whereIn('stocker_id', $stockerIds)->delete();
+                $deletePartDetailSecondary = PartDetailSecondary::where('part_detail_id', $id)->delete();
+                $deleteStocker = Stocker::where('part_detail_id', $id)->delete();
+                $deleteDc = DCIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+                $deleteSecondaryIn = SecondaryIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+                $deleteSecondaryInHouse = SecondaryInHouse::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+                $deleteRackDetailStocker = RackDetailStocker::whereIn('stocker_id', $stockerIds)->delete();
+                $deleteTrolleyStocker = TrolleyStocker::whereIn('stocker_id', $stockerIds)->delete();
+                $deleteLoadingLine = LoadingLine::whereIn('stocker_id', $stockerIds)->delete();
 
-            return array(
-                'status' => 200,
-                'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> berhasil dihapus. <br> "'.$partDetail->id.'"',
-                'redirect' => '',
-                'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
-                'additional' => [],
-            );
+                return array(
+                    'status' => 200,
+                    'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> berhasil dihapus. <br> "'.$partDetail->id.'"',
+                    'redirect' => '',
+                    'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
+                    'additional' => [],
+                );
+            }
         }
 
         return array(
             'status' => 400,
-            'message' => 'Master Part <br> "'.$partDetail->masterPart->nama_part.'" <br> gagal dihapus. <br> "'.$partDetail->id.'"',
+            'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> gagal dihapus. <br> "'.$partDetail->id.'"',
             'redirect' => '',
             'table' => 'datatable_list_part',
             'additional' => [],

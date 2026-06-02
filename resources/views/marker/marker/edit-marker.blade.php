@@ -247,9 +247,9 @@
                         </tr>
                     </tfoot>
                 </table>
+                <button class="btn btn-sb-secondary float-end mt-3 fw-bold"><i class="fas fa-save"></i> SIMPAN</button>
             </div>
         </div>
-        <button class="btn btn-sm btn-block btn-sb-secondary my-3 fw-bold"><i class="fas fa-save"></i> SIMPAN</button>
     </form>
 @endsection
 

@@ -235,9 +235,8 @@
         $base_ga_idr = $base_material_idr + $sum_mfg_idr + $tot_other_idr;
         $base_ga_usd = $base_material_usd + $sum_mfg_usd + $tot_other_usd;
 
-        $input_ga_pct = isset($costing->ga_percent) ? floatval($costing->ga_percent) : 3.00;
-        $ga_idr = $base_ga_idr * ($input_ga_pct / 100);
-        $ga_usd = $base_ga_usd * ($input_ga_pct / 100);
+        $ga_idr = $base_ga_idr * 0.03;
+        $ga_usd = $base_ga_usd * 0.03;
 
         $grand_idr = $base_ga_idr + $ga_idr;
         $grand_usd = $grand_idr / $rate_from_idr;
@@ -403,7 +402,7 @@
                         <td class="text-center">{{ number_format($sub_persen, 2) }}%</td>
                     </tr>
                      <tr class="bg-light fw-bold">
-                        <td colspan="3" class="text-left">G&A ({{ number_format($input_ga_pct, 6) }}%)</td>
+                        <td colspan="3" class="text-left">G&A (3%)</td>
                         <td class="text-right">{{ number_format($ga_idr, 6, '.', ',') }}</td>
                         <td class="text-right">{{ number_format($ga_usd, 4, '.', ',') }}</td>
                         <td class="text-center">{{ number_format($ga_pct, 2) }}%</td>

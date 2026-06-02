@@ -287,7 +287,7 @@
                         <td style="padding: 4px;"><input type="text" id="txt_px_usd" class="form-control form-control-sm text-right bg-white" readonly value="0"></td>
                         <td style="padding: 4px;"><input type="text" id="txt_allowance" class="form-control form-control-sm text-center input-decimal calc-input" value="0"></td>
                         <td style="padding: 4px;"><input type="text" id="txt_val_idr" class="form-control form-control-sm text-right font-weight-bold bg-white input-decimal calc-input" value="0"></td>
-                        <td style="padding: 4px;"><input type="text" id="txt_val_usd" class="form-control form-control-sm text-right font-weight-bold bg-white input-decimal calc-input" value="0"></td>
+                        <td style="padding: 4px;"><input type="text" id="txt_val_usd" class="form-control form-control-sm text-right font-weight-bold bg-white input-decimal calc-input" readonly value="0"></td>
                     </tr>
                 </tbody>
             </table>
@@ -878,7 +878,7 @@
                 $('#txt_desc, #txt_price, #txt_cons , #txt_px_idr , #txt_px_usd').prop('readonly', true);
                 $('#txt_allowance').prop('readonly', false).removeClass('bg-light');
                 $('#txt_val_idr').prop('readonly', false).removeClass('bg-light text-success').addClass('bg-white');
-                $('#txt_val_usd').prop('readonly', false).removeClass('bg-light text-success').addClass('bg-white');
+                $('#txt_val_usd').prop('readonly', true).addClass('bg-light').removeClass('bg-white text-success');
                 $('#txt_price, #txt_cons, #txt_allowance, #txt_val_idr, #txt_val_usd, #txt_px_idr , #txt_px_usd').val('0');
 
             } else {
@@ -975,23 +975,14 @@
             } else {
                 $('#txt_allowance').prop('readonly', false).removeClass('bg-light');
                 $('#txt_val_idr').prop('readonly', false).removeClass('bg-light').addClass('bg-white');
-                $('#txt_val_usd').prop('readonly', false).removeClass('bg-light').addClass('bg-white');
+                $('#txt_val_usd').prop('readonly', true).addClass('bg-light').removeClass('bg-white');
+
+                let val_idr = parseFloat(String($('#txt_val_idr').val()).replace(/,/g, '')) || 0;
+                let val_usd = val_idr / rate_from_idr;
 
                 $('#txt_px_idr, #txt_px_usd').val('0').data('raw', 0);
-
-                if (document.activeElement && document.activeElement.id === 'txt_val_usd') {
-                    let val_usd = parseFloat(String($('#txt_val_usd').val()).replace(/,/g, '')) || 0;
-                    let val_idr = Math.round(val_usd * rate_from_idr);
-
-                    $('#txt_val_usd').data('raw', val_usd);
-                    $('#txt_val_idr').val(val_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', val_idr);
-                } else {
-                    let val_idr = parseFloat(String($('#txt_val_idr').val()).replace(/,/g, '')) || 0;
-                    let val_usd = val_idr / rate_from_idr;
-
-                    $('#txt_val_idr').data('raw', val_idr);
-                    $('#txt_val_usd').val(val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', val_usd);
-                }
+                $('#txt_val_idr').data('raw', val_idr);
+                $('#txt_val_usd').val(val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', val_usd);
             }
         } else {
             $('#txt_supplier, #txt_curr, #txt_unit').prop('disabled', false);
@@ -1063,23 +1054,14 @@
             else {
                 $('#m_allowance').prop('readonly', false).removeClass('bg-light');
                 $('#m_val_idr').prop('readonly', false).removeClass('bg-light text-success').addClass('bg-white');
-                $('#m_val_usd').prop('readonly', false).removeClass('bg-light text-success').addClass('bg-white');
+                $('#m_val_usd').prop('readonly', true).addClass('bg-light text-success').removeClass('bg-white');
 
+                let current_val_idr = parseFloat(String($('#m_val_idr').val()).replace(/,/g,'')) || 0;
+                let current_val_usd = current_val_idr / rate_from_idr;
+
+                $('#m_val_idr').data('raw', current_val_idr);
+                $('#m_val_usd').val(current_val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', current_val_usd);
                 $('#m_price').data('raw_idr', 0).data('raw_usd', 0);
-
-                if (document.activeElement && document.activeElement.id === 'm_val_usd') {
-                    let current_val_usd = parseFloat(String($('#m_val_usd').val()).replace(/,/g,'')) || 0;
-                    let current_val_idr = Math.round(current_val_usd * rate_from_idr);
-
-                    $('#m_val_usd').data('raw', current_val_usd);
-                    $('#m_val_idr').val(current_val_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', current_val_idr);
-                } else {
-                    let current_val_idr = parseFloat(String($('#m_val_idr').val()).replace(/,/g,'')) || 0;
-                    let current_val_usd = current_val_idr / rate_from_idr;
-
-                    $('#m_val_idr').data('raw', current_val_idr);
-                    $('#m_val_usd').val(current_val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', current_val_usd);
-                }
             }
 
         }
