@@ -1396,7 +1396,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/send/{id}', 'sendCeisa')->name('dokumen-pabean-send')->where('id', '.*');
         Route::put('/update-draft/{id}', 'updateDraft')->name('dokumen-pabean-update_draft')->where('id', '.*');
         Route::get('/get-draft-status/{noAju}', 'getDraftData')->name('dokumen-pabean-status')->where('noAju', '.*');
+        Route::delete('/delete-ceisa-draft/{noAju}', 'deleteDraft')->name('dokumen-pabean-delete-draft')->where('noAju', '.*');
         Route::get('/get-status-periode', 'getStatusPeriode')->name('dokumen-pabean-status-periode');
+
+        // BC 2.3 routes
+        Route::get('/{id}/edit-bc23', 'editBc23')->name('dokumen-pabean-edit-bc23')->where('id', '.*');
+        Route::put('/update-draft-bc23/{id}', 'updateDraftBc23')->name('dokumen-pabean-update_draft_bc23')->where('id', '.*');
+        Route::post('/send-bc23/{id}', 'sendCeisaBc23')->name('dokumen-pabean-send-bc23')->where('id', '.*');
     });
 
     // WHS Soljer
@@ -1857,4 +1863,5 @@ Route::get('/bon-mutasi', function () {
 
 Route::get('/tes-ceisa-status', [CeisaAPIController::class, 'testStatus']);
 Route::get('/tes-ceisa-kurs/{kode}', [CeisaAPIController::class, 'testKurs']);
+Route::get('/ceisa/pelabuhan', [CeisaAPIController::class, 'getPelabuhan'])->name('ceisa.pelabuhan');
 

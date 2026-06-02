@@ -533,7 +533,7 @@
                 res.available_sizes.forEach(size => {
                     headerHtml += `<th class="bg-warning text-dark text-center">${size}</th>`;
                 });
-                headerHtml += `</tr>`;
+                headerHtml += `<th class="bg-primary text-white text-center">Total</th></tr>`;
                 $('#table-preview-so thead').html(headerHtml);
 
                 let bodyHtml = '';
@@ -551,16 +551,22 @@
                             <td>${row.product_set || '-'}</td>
                             <td class="${colorErrorClass}">${row.color || '-'}</td>`;
 
+                        let rowTotal = 0;
                         res.available_sizes.forEach(size => {
                             let val = row[size];
                             let qty = val ? Number(val).toLocaleString('id-ID') : '-';
                             let isError = (row.errors && row.errors[size]) ? 'bg-danger text-white font-weight-bold' : '';
                             bodyHtml += `<td class="text-right ${isError}">${qty}</td>`;
+                            
+                            if (val && !isNaN(val)) {
+                                rowTotal += Number(val);
+                            }
                         });
-                        bodyHtml += `</tr>`;
+                        let rowTotalFormatted = rowTotal > 0 ? rowTotal.toLocaleString('id-ID') : '-';
+                        bodyHtml += `<td class="text-right fw-bold bg-light">${rowTotalFormatted}</td></tr>`;
                     });
                 } else {
-                    let colCount = 7 + (res.available_sizes ? res.available_sizes.length : 0); // Ubah jadi 7
+                    let colCount = 8 + (res.available_sizes ? res.available_sizes.length : 0); // Ubah jadi 8
                     bodyHtml = `<tr><td colspan="${colCount}" class="text-center">Belum ada data di-upload.</td></tr>`;
                 }
                 $('#table-preview-so tbody').html(bodyHtml);
@@ -575,7 +581,7 @@
                 res.available_sizes.forEach(size => {
                     footerHtml += `<th class="text-right bg-light text-dark fw-bold">0</th>`;
                 });
-                footerHtml += `</tr>`;
+                footerHtml += `<th class="text-right bg-primary text-white fw-bold">0</th></tr>`;
                 $('#table-preview-so tfoot').html(footerHtml);
 
                 $('#total_qty').val(res.total_qty || 0);
@@ -603,6 +609,10 @@
                                 let colTotal = api.column(colIndex, { search: 'applied' }).data().reduce((a, b) => intVal(a) + intVal(b), 0);
                                 $(api.column(colIndex).footer()).html(colTotal.toLocaleString('id-ID'));
                             }
+                            
+                            let grandTotalColIndex = startColIndex + numSizes;
+                            let grandTotalValue = api.column(grandTotalColIndex, { search: 'applied' }).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+                            $(api.column(grandTotalColIndex).footer()).html(grandTotalValue.toLocaleString('id-ID'));
                         },
                         "drawCallback": function(settings) {
                             let api = this.api();

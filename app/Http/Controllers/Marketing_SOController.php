@@ -2143,6 +2143,89 @@ class Marketing_SOController extends Controller
             }
         }
 
+        // Merge identical materials to avoid confusing duplicates
+        foreach ($materials_by_group as $g_name => $color_groups) {
+            $is_fabric = str_contains($g_name, 'FABRIC');
+            foreach ($color_groups as $c_name => $items) {
+                $merged = [];
+                foreach ($items as $item) {
+                    if ($is_fabric) {
+                        $key = implode('|', [
+                            trim($item->shell ?? ''),
+                            trim($item->item_name ?? ''),
+                            trim($item->description ?? ''),
+                            trim($item->color_item ?? ''),
+                            (string)(float)($item->cons ?? 0),
+                            trim($item->unit ?? ''),
+                            trim($item->product_set ?? '')
+                        ]);
+                    } else {
+                        $key = implode('|', [
+                            trim($item->item_name ?? ''),
+                            trim($item->description ?? ''),
+                            trim($item->color_item ?? ''),
+                            trim($item->size_item ?? ''),
+                            (string)(float)($item->cons ?? 0),
+                            trim($item->unit ?? ''),
+                            trim($item->product_set ?? '')
+                        ]);
+                    }
+                    
+                    if (!isset($merged[$key])) {
+                        $merged[$key] = clone $item;
+                        if ($is_fabric) {
+                            $merged[$key]->size_gmt_array = [];
+                            if (!empty($item->size_gmt) && trim($item->size_gmt) !== '-') {
+                                $merged[$key]->size_gmt_array[] = trim($item->size_gmt);
+                            }
+                        }
+                    } else {
+                        $merged[$key]->qty += $item->qty;
+                        if ($is_fabric) {
+                            $clean_size_gmt = trim($item->size_gmt ?? '');
+                            if (!empty($clean_size_gmt) && $clean_size_gmt !== '-' && !in_array($clean_size_gmt, $merged[$key]->size_gmt_array)) {
+                                $merged[$key]->size_gmt_array[] = $clean_size_gmt;
+                            }
+                        }
+                    }
+                }
+                
+                if ($is_fabric) {
+                    foreach ($merged as $k => $m) {
+                        if (count($m->size_gmt_array) > 0) {
+                            $m->size_gmt = implode(', ', $m->size_gmt_array);
+                        } else {
+                            $m->size_gmt = 'ALL SIZE';
+                        }
+                        unset($m->size_gmt_array);
+                    }
+                }
+
+                $materials_by_group[$g_name][$c_name] = array_values($merged);
+            }
+        }
+
+        foreach ($materials_mfg as $c_name => $items) {
+            $merged = [];
+            foreach ($items as $item) {
+                $key = implode('|', [
+                    trim($item->item_name ?? ''),
+                    trim($item->description ?? ''),
+                    trim($item->color_item ?? ''),
+                    trim($item->size_item ?? ''),
+                    (string)(float)($item->cons ?? 0),
+                    trim($item->unit ?? '')
+                ]);
+                
+                if (!isset($merged[$key])) {
+                    $merged[$key] = clone $item;
+                } else {
+                    $merged[$key]->qty += $item->qty;
+                }
+            }
+            $materials_mfg[$c_name] = array_values($merged);
+        }
+
         // Sorting Huruf Abjad
         foreach ($materials_by_group as $g_name => $color_groups) {
             ksort($color_groups);

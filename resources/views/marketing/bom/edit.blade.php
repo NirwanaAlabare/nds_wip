@@ -9,8 +9,8 @@
     <style>
         #itemTable { table-layout: fixed; width: 100%; }
         #itemTable td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .select2-container { width: 100% !important; }
-        .select2-selection__rendered { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 400px; }
+        #itemTable td .select2-container { width: 100% !important; }
+        .select2-selection__rendered { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
             white-space: normal !important; word-wrap: break-word !important; height: auto !important;
             line-height: 1.5 !important; padding-top: 5px !important; padding-bottom: 5px !important;
@@ -690,7 +690,7 @@
             let existingMap = res.existing || {};
 
             // ── Optimasi: pre-build base item options HTML sekali saja ──
-            let baseItemOptions = '<option value="">Pilih Item</option>';
+            let baseItemOptions = '<option value=""></option>';
             res.items.forEach(i => {
                 baseItemOptions += `<option value="${i.isi}">${i.tampil}</option>`;
             });
@@ -705,12 +705,9 @@
                 let savedData = existingMap[`${cIdStr}_${sIdStr}`];
 
                 let selectedItemId = savedData ? savedData.id_item : null;
-                let savedQty       = (savedData && savedData.qty > 0) ? parseFloat(savedData.qty).toFixed(4) : '';
+                let savedQty       = 0.0000;
 
-                // Inject 'selected' ke option yang sudah tersimpan
-                let itemOptionsHtml = selectedItemId
-                    ? baseItemOptions.replace(`value="${selectedItemId}"`, `value="${selectedItemId}" selected`)
-                    : baseItemOptions;
+                let itemOptionsHtml = baseItemOptions;
 
                 allRowsHtml += `<tr>
                     <td class="text-center align-middle"><input type="checkbox" class="check-input-row"></td>
@@ -769,7 +766,13 @@
             }
             let end = Math.min(i + chunkSize, elements.length);
             for (; i < end; i++) {
-                $(elements[i]).select2({ theme: 'bootstrap4', width: '100%' });
+                $(elements[i]).select2({
+                    theme: 'bootstrap4',
+                    width: '100%',
+                    dropdownParent: $('body'),
+                    placeholder: 'Pilih Item',
+                    allowClear: true
+                });
             }
             if (i < elements.length) {
                 showTableLoading(`Menginisialisasi baris ${i} / ${elements.length}...`);
