@@ -12,7 +12,7 @@
 
 @section('content')
     <div class="d-flex justify-content-between mb-3">
-        <h5 class="fw-bold text-sb"><i class="fa-solid fa-triangle-exclamation"></i> Check Output vs Master Plan</h5>
+        <h5 class="fw-bold text-sb"><i class="fa-solid fa-triangle-exclamation"></i> Check Mismatched Master Plan Output</h5>
         <a href="{{ route('sewing-tools') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali ke Tools</a>
     </div>
 
@@ -63,6 +63,7 @@
                         <tr class="text-center">
                             <th>No</th>
                             <th>Tipe</th>
+                            <th>Kode Numbering</th>
                             <th>Line</th>
                             <th>Tgl Plan</th>
                             <th>WS Aktual</th>
@@ -174,6 +175,7 @@
                         var color = data === 'RFT' ? 'success' : (data === 'Defect' ? 'warning' : 'danger');
                         return '<span class="badge bg-' + color + '">' + data + '</span>';
                     }},
+                    { data: 'kode_numbering', className: 'text-center' },
                     { data: 'line', className: 'text-center' },
                     { data: 'tgl_plan', className: 'text-center' },
                     { data: 'ws_actual', defaultContent: '-' },
