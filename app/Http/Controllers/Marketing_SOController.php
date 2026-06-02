@@ -1393,7 +1393,7 @@ class Marketing_SOController extends Controller
                         $mat_insert_data[] = [
                             'id_act_cost'     => $id_cost,
                             'id_item'         => $mat->item_id,
-                            'price'           => $mat->price ?? 0,
+                            'price'           => $mat->price != 0 ? $mat->price : $mat->value_idr ?? 0,
                             'cons'            => $mat->cons ?? 0,
                             'unit'            => $mat->unit ?? '',
                             'allowance'       => $mat->allowance ?? 0,
@@ -1412,7 +1412,7 @@ class Marketing_SOController extends Controller
                             'id_act_cost'     => $id_cost,
                             'id_item'         => $mfg->item_id,
                             'smv'             => null,
-                            'price'           => $mfg->price ?? 0,
+                            'price'           => $mfg->price != 0 ? $mfg->price : $mfg->value_idr ?? 0,
                             'cons'            => $mfg->cons ?? 1,
                             'unit'            => $mfg->unit ?? 'PCS',
                             'allowance'       => $mfg->allowance ?? 0,
@@ -1431,7 +1431,7 @@ class Marketing_SOController extends Controller
                             'id_act_cost'     => $id_cost,
                             'id_item'         => $oth->item_id,
                             'smv'             => null,
-                            'price'           => $oth->value_idr ?? 0,
+                            'price'           => $oth->price != 0 ? $oth->price : $oth->value_idr ?? 0,
                             'cons'            => $oth->cons ?? null,
                             'unit'            => $oth->unit ?? null,
                             'allowance'       => $oth->allowance ?? null,
@@ -2170,7 +2170,7 @@ class Marketing_SOController extends Controller
                             trim($item->product_set ?? '')
                         ]);
                     }
-                    
+
                     if (!isset($merged[$key])) {
                         $merged[$key] = clone $item;
                         if ($is_fabric) {
@@ -2189,7 +2189,7 @@ class Marketing_SOController extends Controller
                         }
                     }
                 }
-                
+
                 if ($is_fabric) {
                     foreach ($merged as $k => $m) {
                         if (count($m->size_gmt_array) > 0) {
@@ -2216,7 +2216,7 @@ class Marketing_SOController extends Controller
                     (string)(float)($item->cons ?? 0),
                     trim($item->unit ?? '')
                 ]);
-                
+
                 if (!isset($merged[$key])) {
                     $merged[$key] = clone $item;
                 } else {
