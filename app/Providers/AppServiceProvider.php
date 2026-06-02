@@ -32,8 +32,8 @@ class AppServiceProvider extends ServiceProvider
         Activity::creating(function (Activity $activity) {
             $route = request()->route();
             $activity->properties = collect($activity->properties)->merge([
-                'route'  => $route?->getName(),
-                'action' => $route?->getActionMethod(),
+                'route'  => $route ? $route->getName() : null,
+                'action' => $route ? $route->getActionMethod() : null,
                 'url'    => request()->fullUrl(),
             ]);
         });
