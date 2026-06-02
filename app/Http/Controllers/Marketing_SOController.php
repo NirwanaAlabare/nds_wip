@@ -2143,6 +2143,7 @@ class Marketing_SOController extends Controller
             }
         }
 
+<<<<<<< HEAD
         // Merge identical materials to avoid confusing duplicates
         foreach ($materials_by_group as $g_name => $color_groups) {
             $is_fabric = str_contains($g_name, 'FABRIC');
@@ -2226,6 +2227,8 @@ class Marketing_SOController extends Controller
             $materials_mfg[$c_name] = array_values($merged);
         }
 
+=======
+>>>>>>> parent of e9d21c4b (Merge branch 'main' of https://github.com/NirwanaAlabare/nds_wip)
         // Sorting Huruf Abjad
         foreach ($materials_by_group as $g_name => $color_groups) {
             ksort($color_groups);

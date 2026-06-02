@@ -2,8 +2,14 @@
 
 namespace App\Providers;
 
+<<<<<<< HEAD
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
+=======
+use App\Models\Part\Part;
+use DB;
+use Illuminate\Support\Facades\Log;
+>>>>>>> parent of e9d21c4b (Merge branch 'main' of https://github.com/NirwanaAlabare/nds_wip)
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Spatie\Activitylog\Models\Activity;

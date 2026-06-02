@@ -148,7 +148,7 @@ class DcReportController extends Controller
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                             pd.part_status = 'main'
-                                    GROUP BY s.id, sii_in.urutan
+                                    GROUP BY s.id
                                     UNION ALL
                                     SELECT
                                             sii_in.id_qr_stocker,
@@ -180,7 +180,7 @@ class DcReportController extends Controller
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                             (pd.part_status != 'main' OR pd.part_status IS NULL)
-                                    GROUP BY s.id, sii_in.urutan
+                                    GROUP BY s.id
                             ),
 
                             sii as (
@@ -214,7 +214,7 @@ class DcReportController extends Controller
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                             pd.part_status= 'main'
-                                    GROUP BY s.id, sii.urutan
+                                    GROUP BY s.id
                                     UNION ALL
                                     SELECT
                                             sii.id_qr_stocker,
@@ -245,7 +245,7 @@ class DcReportController extends Controller
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                             (pd.part_status != 'main' OR pd.part_status IS NULL)
-                                    GROUP BY s.id, sii.urutan
+                                    GROUP BY s.id
                             ),
 
                             wod as (
@@ -280,8 +280,6 @@ class DcReportController extends Controller
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                             pd.part_status= 'main'
-                                    group by
-                                            s.id
                                     UNION ALL
                                     SELECT
                                             wod.id_qr_stocker,
@@ -355,7 +353,7 @@ class DcReportController extends Controller
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                             pd.part_status= 'main' AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
-                                    GROUP BY s.id, si.urutan
+                                    GROUP BY s.id
                                     UNION ALL
                                     SELECT
                                             si.id_qr_stocker,
@@ -393,7 +391,7 @@ class DcReportController extends Controller
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                             (pd.part_status != 'main' OR pd.part_status IS NULL) AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
-                                    GROUP BY s.id, si.urutan
+                                    GROUP BY s.id
                             ),
 
                             loading_line_qty as (
@@ -742,7 +740,7 @@ class DcReportController extends Controller
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                             pd.part_status = 'main'
-                                    GROUP BY s.id, sii_in.urutan
+                                    GROUP BY s.id
                                     UNION ALL
                                     SELECT
                                             sii_in.id_qr_stocker,
@@ -773,7 +771,7 @@ class DcReportController extends Controller
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                             (pd.part_status != 'main' OR pd.part_status IS NULL)
-                                    GROUP BY s.id, sii_in.urutan
+                                    GROUP BY s.id
                             ),
 
                             sii as (
@@ -806,7 +804,7 @@ class DcReportController extends Controller
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                             pd.part_status= 'main'
-                                    GROUP BY s.id, sii.urutan
+                                    GROUP BY s.id
                                     UNION ALL
                                     SELECT
                                             sii.id_qr_stocker,
@@ -836,7 +834,7 @@ class DcReportController extends Controller
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                             (pd.part_status != 'main' OR pd.part_status IS NULL)
-                                    GROUP BY s.id, sii.urutan
+                                    GROUP BY s.id
                             ),
 
                             wod as (
@@ -870,8 +868,6 @@ class DcReportController extends Controller
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                             pd.part_status= 'main'
-                                    group by
-                                            s.id
                                     UNION ALL
                                     SELECT
                                             wod.id_qr_stocker,
@@ -943,7 +939,7 @@ class DcReportController extends Controller
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                             pd.part_status= 'main' AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
-                                    GROUP BY s.id, si.urutan
+                                    GROUP BY s.id
                                     UNION ALL
                                     SELECT
                                             si.id_qr_stocker,
@@ -980,7 +976,6 @@ class DcReportController extends Controller
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                             (pd.part_status != 'main' OR pd.part_status IS NULL) AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
-                                    GROUP BY s.id, si.urutan
                             ),
 
                             loading_line_qty as (
@@ -1655,7 +1650,7 @@ class DcReportController extends Controller
                                         (s.cancel IS NULL OR s.cancel != 'y') and
                                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                         pd.part_status = 'main'
-                                GROUP BY s.id, sii_in.urutan
+                                GROUP BY s.id
                                 UNION ALL
                                 SELECT
                                         sii_in.id_qr_stocker,
@@ -1687,7 +1682,7 @@ class DcReportController extends Controller
                                         (s.cancel IS NULL OR s.cancel != 'y') and
                                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                         (pd.part_status != 'main' OR pd.part_status IS NULL)
-                                GROUP BY s.id, sii_in.urutan
+                                GROUP BY s.id
                         ),
 
                         sii as (
@@ -1721,7 +1716,7 @@ class DcReportController extends Controller
                                         (s.cancel IS NULL OR s.cancel != 'y') and
                                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                         pd.part_status= 'main'
-                                GROUP BY s.id, sii.urutan
+                                GROUP BY s.id
                                 UNION ALL
                                 SELECT
                                         sii.id_qr_stocker,
@@ -1752,7 +1747,7 @@ class DcReportController extends Controller
                                         (s.cancel IS NULL OR s.cancel != 'y') and
                                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                         (pd.part_status != 'main' OR pd.part_status IS NULL)
-                                GROUP BY s.id, sii.urutan
+                                GROUP BY s.id
                         ),
 
                         wod as (
@@ -1787,8 +1782,6 @@ class DcReportController extends Controller
                                         (s.cancel IS NULL OR s.cancel != 'y') and
                                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                         pd.part_status= 'main'
-                                group by
-                                        s.id
                                 UNION ALL
                                 SELECT
                                         wod.id_qr_stocker,
@@ -1862,7 +1855,7 @@ class DcReportController extends Controller
                                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                         pd.part_status= 'main' AND
                                         COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
-                                GROUP BY s.id, si.urutan
+                                GROUP BY s.id
                                 UNION ALL
                                 SELECT
                                         si.id_qr_stocker,
@@ -1900,7 +1893,7 @@ class DcReportController extends Controller
                                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                         (pd.part_status != 'main' OR pd.part_status IS NULL) AND
                                         COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
-                                GROUP BY s.id, si.urutan
+                                GROUP BY s.id
                         ),
 
                         loading_line_qty as (
@@ -2249,7 +2242,7 @@ class DcReportController extends Controller
                                         (s.cancel IS NULL OR s.cancel != 'y') and
                                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                         pd.part_status = 'main'
-                                GROUP BY s.id, sii_in.urutan
+                                GROUP BY s.id
                                 UNION ALL
                                 SELECT
                                         sii_in.id_qr_stocker,
@@ -2280,7 +2273,7 @@ class DcReportController extends Controller
                                         (s.cancel IS NULL OR s.cancel != 'y') and
                                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                         (pd.part_status != 'main' OR pd.part_status IS NULL)
-                                GROUP BY s.id, sii_in.urutan
+                                GROUP BY s.id
                         ),
 
                         sii as (
@@ -2313,7 +2306,7 @@ class DcReportController extends Controller
                                         (s.cancel IS NULL OR s.cancel != 'y') and
                                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                         pd.part_status= 'main'
-                                GROUP BY s.id, sii.urutan
+                                GROUP BY s.id
                                 UNION ALL
                                 SELECT
                                         sii.id_qr_stocker,
@@ -2343,7 +2336,7 @@ class DcReportController extends Controller
                                         (s.cancel IS NULL OR s.cancel != 'y') and
                                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                         (pd.part_status != 'main' OR pd.part_status IS NULL)
-                                GROUP BY s.id, sii.urutan
+                                GROUP BY s.id
                         ),
 
                         wod as (
@@ -2377,8 +2370,6 @@ class DcReportController extends Controller
                                         (s.cancel IS NULL OR s.cancel != 'y') and
                                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                         pd.part_status= 'main'
-                                group by
-                                        s.id
                                 UNION ALL
                                 SELECT
                                         wod.id_qr_stocker,
@@ -2450,7 +2441,7 @@ class DcReportController extends Controller
                                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                         pd.part_status= 'main' AND
                                         COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
-                                GROUP BY s.id, si.urutan
+                                GROUP BY s.id
                                 UNION ALL
                                 SELECT
                                         si.id_qr_stocker,
@@ -2487,7 +2478,6 @@ class DcReportController extends Controller
                                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                         (pd.part_status != 'main' OR pd.part_status IS NULL) AND
                                         COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
-                                GROUP BY s.id, si.urutan
                         ),
 
                         loading_line_qty as (
