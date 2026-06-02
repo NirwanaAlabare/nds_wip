@@ -1189,6 +1189,9 @@ class PartController extends Controller
                     PartDetailItem::upsert($partItemData, ['part_detail_id', 'bom_jo_item_id'], ["updated_at"]);
                 }
 
+                // Update DC Transaction if exist
+                $partService->updateDcTransaction($validatedRequest['edit_id']);
+
                 // Similar Recursive Call
                 $similarPartDetail = PartDetail::where("from_part_detail", $validatedRequest['edit_id'])->get();
                 if ($similarPartDetail) {
@@ -1196,11 +1199,9 @@ class PartController extends Controller
                         $similarRequest = new Request(array_merge($request->all(), [
                             'edit_id' => $similar->id,
                         ]));
-                        $this->updatePartSecondary($validatedRequest['edit_id']);
+                        $this->updatePartSecondary($similarRequest);
                     }
                 }
-
-                $partService->updateDcTransaction();
 
                 return array(
                     'status' => '201',

@@ -3,6 +3,13 @@
 namespace App\Services;
 
 use App\Models\Part\Part;
+use App\Models\Part\PartDetail;
+use App\Models\Part\PartDetailSecondary;
+use App\Models\Stocker\Stocker;
+use App\Models\DC\DCIn;
+use App\Models\DC\SecondaryIn;
+use App\Models\DC\SecondaryInhouseIn;
+use App\Models\DC\SecondaryInhouse;
 use DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
