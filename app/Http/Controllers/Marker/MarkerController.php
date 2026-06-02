@@ -809,8 +809,10 @@ class MarkerController extends Controller
             $totalQty += $qty;
         }
 
+        $currentMarker = Marker::where('id', $id)->first();
+
         // Chained Stocker Validation
-        $formIds = FormCutInput::select("id")->where('marker_id', $id)->pluck("id")->toArray();
+        $formIds = FormCutInput::select("id")->where('id_marker', $currentMarker->kode)->pluck("id")->toArray();
         if ($formIds) {
 
             // If stocker has been generated
@@ -819,6 +821,16 @@ class MarkerController extends Controller
                 return array(
                     "status" => 400,
                     "message" => "Marker tidak dapat diupdate karena sudah diproses di Stocker",
+                    "additional" => [],
+                );
+            }
+
+            // If form has been completed
+            $completedFormCount = FormCutInput::select("id")->whereIn("id", $formIds)->where("status", "SELESAI PENGERJAAN")->count();
+            if ($completedFormCount > 0) {
+                return array(
+                    "status" => 400,
+                    "message" => "Marker tidak dapat diupdate karena sudah ada form yang selesai",
                     "additional" => [],
                 );
             }
@@ -834,7 +846,6 @@ class MarkerController extends Controller
                 where("marker_input.id", $id)->
                 get();
 
-            $currentMarker = Marker::where('id', $id)->first();
             $usedLembar = DB::table('form_cut_input')->where('id_marker', $currentMarker->kode)->sum('total_lembar');
             $newBalance = max(0, intval($validatedRequest['gelar_marker_qty']) - intval($usedLembar));
 
@@ -937,11 +948,9 @@ class MarkerController extends Controller
                 }
             }
 
-            $marker = Marker::where('id', $id)->first();
-
             return array(
                 "status" => 200,
-                "message" => "Detail Marker ".$marker->kode." berhasil di ubah <br> ".($updateMarkerPanel ? "" : "Panel Marker tidak diubah <br> (Form Marker sudah memiliki part : <br> <b>".$markerPartForm->implode("no_form", " <br> ")."</b>)"),
+                "message" => "Detail Marker ".$currentMarker->kode." berhasil di ubah <br> ".($updateMarkerPanel ? "" : "Panel Marker tidak diubah <br> (Form Marker sudah memiliki part : <br> <b>".$markerPartForm->implode("no_form", " <br> ")."</b>)"),
                 "redirect" => route('marker'),
                 "additional" => [],
             );
@@ -975,6 +984,7 @@ class MarkerController extends Controller
                     where('style', $thisMarker->style)->
                     where('color', $thisMarker->color)->
                     where('panel', $thisMarker->panel)->
+                    where('urutan_marker', '>', $thisMarker->urutan_marker)->
                     whereRaw('(cancel != "Y" OR cancel IS NULL)')->
                     update([
                         'urutan_marker' => DB::raw('(urutan_marker + 1)')
@@ -984,6 +994,7 @@ class MarkerController extends Controller
                     where('style', $thisMarker->style)->
                     where('color', $thisMarker->color)->
                     where('panel', $thisMarker->panel)->
+                    where('urutan_marker', '>', $thisMarker->urutan_marker)->
                     whereRaw('(cancel != "Y" OR cancel IS NULL)')->
                     update([
                         'urutan_marker' => DB::raw('(urutan_marker - 1)')
@@ -991,42 +1002,42 @@ class MarkerController extends Controller
             }
         }
 
-        $update_data = DB::update("
-            update marker_input set cancel = case when cancel = 'Y' then 'N' else 'Y' end
-            where id = '$request->id_c'
-        ");
+        $thisMarker->cancel = $thisMarker->cancel === 'Y' ? 'N' : 'Y';
+        $thisMarker->save();
     }
 
     public function update_marker(Request $request)
     {
-        $updateStatus = "";
-        if ($request->pilot_status) {
-            $updateStatus .= ", status_marker = '" . $request->pilot_status . "'";
+        $thisMarker = Marker::find($request->id_c);
 
-            if ($request->pilot_status == "active") {
-                $updateStatus .= ", tipe_marker = 'bulk marker', notes = 'Pilot to Bulk'";
-            }
-        }
-
-        $update_gramasi = DB::update("
-        update marker_input set
-        gramasi = '$request->txt_gramasi'
-        " . $updateStatus . "
-        where id = '$request->id_c'");
-
-        if ($update_gramasi) {
-            $kode = Marker::where('id', $request->id_c)->first();
+        if (!$thisMarker) {
             return array(
-                'status' => 200,
-                'message' => 'Data form "' . $kode->kode . '" berhasil diubah',
+                'status' => 400,
+                'message' => 'Data produksi gagal diubah',
                 'redirect' => '',
                 'table' => 'datatable',
                 'additional' => [],
             );
         }
+
+        // Update Marker Gramasi
+        $thisMarker->gramasi = $request->txt_gramasi;
+
+        // Update Marker Pilot Status
+        if ($request->pilot_status) {
+            $thisMarker->status_marker = $request->pilot_status;
+
+            if ($request->pilot_status == "active") {
+                $thisMarker->tipe_marker = 'bulk marker';
+                $thisMarker->notes = 'Pilot to Bulk';
+            }
+        }
+
+        $thisMarker->save();
+
         return array(
-            'status' => 400,
-            'message' => 'Data produksi gagal diubah',
+            'status' => 200,
+            'message' => 'Data form "' . $thisMarker->kode . '" berhasil diubah',
             'redirect' => '',
             'table' => 'datatable',
             'additional' => [],

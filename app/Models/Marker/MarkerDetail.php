@@ -5,10 +5,14 @@ namespace App\Models\Marker;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\MasterSbWs;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class MarkerDetail extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
+
+    protected static $recordEvents = ['created', 'updated', 'deleted'];
+    protected static $logAttributes = ['*'];
 
     protected $table = 'marker_input_detail';
 

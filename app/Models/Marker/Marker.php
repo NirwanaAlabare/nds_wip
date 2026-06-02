@@ -5,10 +5,14 @@ namespace App\Models\Marker;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Cutting\FormCutInput;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Marker extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
+
+    protected static $recordEvents = ['created', 'updated', 'deleted'];
+    protected static $logAttributes = ['*'];
 
     protected $table = 'marker_input';
 
