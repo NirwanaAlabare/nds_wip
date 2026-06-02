@@ -122,9 +122,9 @@
                             <th style="background-color: lightgreen;">Terima RFT</th>
                             <th style="background-color: lightgreen;">Terima Reject</th>
                             <th style="background-color: lightgreen;">Keluar</th>
-                            <th style="background-color: lightgreen;">Adjustment</th>
-                            <th style="background-color: lightgreen;">Switching IN</th>
                             <th style="background-color: lightgreen;">Switching OUT</th>
+                            <th style="background-color: lightgreen;">Switching IN</th>
+                            <th style="background-color: lightgreen;">Adjustment</th>
                             <th style="background-color: lightgreen;">Saldo Akhir</th>
 
                             <th style="background-color: lightgoldenrodyellow;">Saldo Awal</th>
@@ -325,9 +325,9 @@
                     { data: 'pl_rft' },
                     { data: 'pl_reject' },
                     { data: 'pl_keluar' },
-                    { data: 'qty_adjustment' },
-                    { data: 'switching_in' },
                     { data: 'switching_out' },
+                    { data: 'switching_in' },
+                    { data: 'qty_adjustment' },
                     { data: 'saldo_akhir_adj' },
                     { data: 'pc_saldo_awal_adjusment' },
                     { data: 'pc_terima' },
