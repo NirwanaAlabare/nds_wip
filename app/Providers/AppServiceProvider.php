@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
+use Spatie\Activitylog\Models\Activity;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,6 +28,15 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         Schema::defaultStringLength(191);
+
+        Activity::creating(function (Activity $activity) {
+            $route = request()->route();
+            $activity->properties = collect($activity->properties)->merge([
+                'route'  => $route?->getName(),
+                'action' => $route?->getActionMethod(),
+                'url'    => request()->fullUrl(),
+            ]);
+        });
 
         Blade::if('admin', function () {
             return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin");

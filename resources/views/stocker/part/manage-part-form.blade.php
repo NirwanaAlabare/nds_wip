@@ -583,6 +583,7 @@
                                     });
                                 }
 
+                                // Datatable Reload
                                 if (res.table != '') {
                                     $('#' + res.table).DataTable().ajax.reload(() => {document.getElementById('selected-row-count-2').innerText = $('#' + res.table).DataTable().rows('.selected').data().length;
                                     });
@@ -592,26 +593,32 @@
                                     });
                                 }
 
+                                // Response Message Additional
                                 if (res.additional) {
                                     let message = "";
 
                                     if (res.additional['success'].length > 0) {
                                         res.additional['success'].forEach(element => {
-                                            message += element['no_form'] +
-                                                " - Berhasil <br>";
+                                            message += "<span class='text-success'>" + element['no_form'] + " - Berhasil </span> <br>";
                                         });
                                     }
 
                                     if (res.additional['fail'].length > 0) {
                                         res.additional['fail'].forEach(element => {
-                                            message += element['no_form'] + " - Gagal <br>";
+                                            message += "<span class='text-danger'>" + element['no_form'] + " " + element['reason'] + " - Gagal </span> <br>";
                                         });
                                     }
 
-                                    if (res.additional['success'].length + res.additional['fail'].length > 1) {
+                                    if (res.additional['exist'].length > 0) {
+                                        res.additional['exist'].forEach(element => {
+                                            message += "<span class='text-warning'>" + element['no_form'] + " Tidak Ditemukan </span> <br>";
+                                        });
+                                    }
+
+                                    if (res.additional['success'].length + res.additional['fail'].length + res.additional['exist'].length > 1) {
                                         Swal.fire({
                                             icon: 'info',
-                                            title: 'Form berhasil disingkirkan',
+                                            title: res.message,
                                             html: message,
                                             showCancelButton: false,
                                             showConfirmButton: true,
