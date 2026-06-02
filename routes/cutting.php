@@ -258,7 +258,6 @@ Route::middleware('auth')->group(function () {
 
             // get sizes
             Route::get('/get-sizes', 'getSizeList')->name('get-form-reject-sizes');
-            Route::get('/get-data-ws', 'getDataWs')->name('get-data-ws-cutting-reject');
 
             // export reject
             Route::post('/export-excel', 'exportExcel')->name('export-form-reject');
