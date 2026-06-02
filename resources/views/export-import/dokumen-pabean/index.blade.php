@@ -258,7 +258,16 @@
 
     $(document).on('click', '.btn-kirim', function() {
         let trxNo = $(this).data('id');
-        let actionUrl = '{{ route("dokumen-pabean-send", ":id") }}';
+        let jenisBc = $(this).data('jenis_bc');
+        let actionUrl = '';
+        if(jenisBc === 'BC 2.3') {
+            actionUrl = '{{ route("dokumen-pabean-send-bc23", ":id") }}';
+        }
+
+        if(jenisBc === 'BC 4.0') {
+             actionUrl = '{{ route("dokumen-pabean-send", ":id") }}';
+        }
+
         actionUrl = actionUrl.replace(':id', trxNo);
 
         Swal.fire({
@@ -336,6 +345,55 @@
 
         Swal.fire({ title: 'gagal mengirim ke CEISA!', html: errorHtml, icon: 'error' });
     }
+
+    $(document).on('click', '.btn-delete-draft', function() {
+        let noAju = $(this).data('noaju');
+        let actionUrl = '{{ route("dokumen-pabean-delete-draft", ":noAju") }}';
+        actionUrl = actionUrl.replace(':noAju', noAju);
+
+        Swal.fire({
+            title: 'Hapus Draft di CEISA?',
+            text: "Draft dengan Nomor Aju " + noAju + " akan dihapus dari server Bea Cukai. Aksi ini tidak dapat dibatalkan.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-trash"></i> Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Menghapus...',
+                    text: 'Mohon tunggu',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                $.ajax({
+                    url: actionUrl,
+                    type: 'DELETE',
+                    data: {
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(res) {
+                        if(res.success) {
+                            Swal.fire('Berhasil!', res.message, 'success');
+                            refreshTable();
+                        } else {
+                            Swal.fire('Gagal!', res.message, 'error');
+                        }
+                    },
+                    error: function(xhr) {
+                        let errMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Terjadi kesalahan sistem';
+                        Swal.fire('Error!', errMsg, 'error');
+                    }
+                });
+            }
+        });
+    });
 
     $(document).on('click', '.btn-status', function() {
         let noAju = $(this).data('noaju');
