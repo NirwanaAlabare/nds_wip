@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Marker;
 
 use App\Http\Controllers\Controller;
+use App\Models\Cutting\FormCutInput;
 use App\Models\Marker\Marker;
 use App\Models\Marker\MarkerDetail;
+use App\Models\Stocker\Stocker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -807,6 +809,21 @@ class MarkerController extends Controller
             $totalQty += $qty;
         }
 
+        // Chained Stocker Validation
+        $formIds = FormCutInput::select("id")->where('marker_id', $id)->pluck("id")->toArray();
+        if ($formIds) {
+
+            // If stocker has been generated
+            $stockerCount = Stocker::whereIn("form_cut_id", $formIds)->count();
+            if ($stockerCount > 0) {
+                return array(
+                    "status" => 400,
+                    "message" => "Marker tidak dapat diupdate karena sudah diproses di Stocker",
+                    "additional" => [],
+                );
+            }
+        }
+
         $updateMarkerPanel = false;
         if ($totalQty > 0) {
 
@@ -816,6 +833,10 @@ class MarkerController extends Controller
                 join("part_form", "part_form.form_id", "=", "form_cut_input.id")->
                 where("marker_input.id", $id)->
                 get();
+
+            $currentMarker = Marker::where('id', $id)->first();
+            $usedLembar = DB::table('form_cut_input')->where('id_marker', $currentMarker->kode)->sum('total_lembar');
+            $newBalance = max(0, intval($validatedRequest['gelar_marker_qty']) - intval($usedLembar));
 
             $updateMarkerArr = [];
             if ($markerPartForm->count() < 1) {
@@ -839,7 +860,7 @@ class MarkerController extends Controller
                     'lebar_marker' => $validatedRequest['l_marker'],
                     'unit_lebar_marker' => $validatedRequest['l_unit'],
                     'gelar_qty' => $validatedRequest['gelar_marker_qty'],
-                    'gelar_qty_balance' => $validatedRequest['gelar_marker_qty'],
+                    'gelar_qty_balance' => $newBalance,
                     'po_marker' => $validatedRequest['po'],
                     'urutan_marker' => $validatedRequest['no_urut_marker'],
                     'cons_marker' => $validatedRequest['cons_marker'],
@@ -870,7 +891,7 @@ class MarkerController extends Controller
                     'lebar_marker' => $validatedRequest['l_marker'],
                     'unit_lebar_marker' => $validatedRequest['l_unit'],
                     'gelar_qty' => $validatedRequest['gelar_marker_qty'],
-                    'gelar_qty_balance' => $validatedRequest['gelar_marker_qty'],
+                    'gelar_qty_balance' => $newBalance,
                     'po_marker' => $validatedRequest['po'],
                     'urutan_marker' => $validatedRequest['no_urut_marker'],
                     'cons_marker' => $validatedRequest['cons_marker'],
