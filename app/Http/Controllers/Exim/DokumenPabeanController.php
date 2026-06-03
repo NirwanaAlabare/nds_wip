@@ -228,8 +228,10 @@ class DokumenPabeanController extends Controller
             foreach (($draft['dok'] ?? []) as $d) {
                 if (!empty($d['kode']) && !empty($d['nomor'])) {
                     $payloadDokumen[] = [
-                        "kodeDokumen" => $d['kode'], "nomorDokumen" => $d['nomor'],
-                        "seriDokumen" => $seriDok++, "tanggalDokumen" => !empty($d['tgl']) ? $d['tgl'] : date('Y-m-d')
+                        "kodeDokumen" => trim(explode(' - ', $d['kode'])[0]),
+                        "nomorDokumen" => $d['nomor'],
+                        "seriDokumen" => $seriDok++,
+                        "tanggalDokumen" => !empty($d['tgl']) ? $d['tgl'] : date('Y-m-d')
                     ];
                 }
             }
@@ -1100,7 +1102,7 @@ class DokumenPabeanController extends Controller
             foreach (($draft['dok'] ?? []) as $d) {
                 if (!empty($d['kode']) && !empty($d['nomor'])) {
                     $payloadDokumen[] = [
-                        "kodeDokumen"    => $d['kode'],
+                        "kodeDokumen"    => trim(explode(' - ', $d['kode'])[0]),
                         "nomorDokumen"   => $d['nomor'],
                         "seriDokumen"    => $seriDok++,
                         "tanggalDokumen" => !empty($d['tgl']) ? $d['tgl'] : date('Y-m-d')
@@ -1111,8 +1113,11 @@ class DokumenPabeanController extends Controller
             $hasInvoice = false;
             $hasTransport = false;
             foreach ($payloadDokumen as $dok) {
-                if ($dok['kodeDokumen'] === '380') $hasInvoice = true;
-                if (in_array($dok['kodeDokumen'], ['705', '740', '704', '741'])) $hasTransport = true;
+                $kodeStr = explode(' - ', $dok['kodeDokumen'])[0];
+                $kodeStr = trim($kodeStr);
+
+                if ($kodeStr === '380') $hasInvoice = true;
+                if (in_array($kodeStr, ['705', '740', '704', '741'])) $hasTransport = true;
             }
 
             if (!$hasInvoice || !$hasTransport) {
@@ -1172,48 +1177,80 @@ class DokumenPabeanController extends Controller
                 $totalAsuransi += (float) ($brg['asuransi'] ?? 0);
                 $totalDiskon += (float) ($brg['diskon'] ?? 0);
 
-                $barangTarif = [];
-                if (!empty($brg['barangTarif']) && is_array($brg['barangTarif'])) {
-                    foreach ($brg['barangTarif'] as $tarif) {
-                            $kodeJenisPungutan = !empty($tarif['kodeJenisPungutan']) ? $tarif['kodeJenisPungutan'] : "BM";
-                            $kodeFasilitasTarif = !empty($tarif['kodeFasilitasTarif']) ? $tarif['kodeFasilitasTarif'] : "3";
-                            $tarifPersen = (float) ($tarif['tarif'] ?? 0);
-                            $tarifFasilitas = (float) ($tarif['tarifFasilitas'] ?? ($kodeFasilitasTarif == '1' ? 0 : 100));
-
-                            $cifRupiah = (float)($brg['cif'] ?? 0) * (float)($brg['ndpbm'] ?? 0);
-                            $bmAmount = $cifRupiah * ($kodeJenisPungutan == 'BM' ? $tarifPersen / 100 : 0);
-                            $nilaiDasar = ($kodeJenisPungutan == 'BM') ? $cifRupiah : ($cifRupiah + ($cifRupiah * 0.1));
-                            $taxAmount = $nilaiDasar * ($tarifPersen / 100);
-
-                            $nilaiFasilitas = 0;
-                            $nilaiBayar = 0;
-                            if ($kodeFasilitasTarif == '1') {
-                                $nilaiBayar = $taxAmount;
-                            } else {
-                                $nilaiFasilitas = $taxAmount * ($tarifFasilitas / 100);
-                                $nilaiBayar = $taxAmount - $nilaiFasilitas;
-                            }
-
-                            $kodeJenisTarif = !empty($tarif['kodeJenisTarif']) ? $tarif['kodeJenisTarif'] : "1";
-
-                            $finalNilaiBayar = (float) ($tarif['nilaiBayar'] ?? 0) > 0 ? (float) ($tarif['nilaiBayar'] ?? 0) : round($nilaiBayar);
-                            $finalNilaiFasilitas = (float) ($tarif['nilaiFasilitas'] ?? 0) > 0 ? (float) ($tarif['nilaiFasilitas'] ?? 0) : round($nilaiFasilitas);
-
-                            $barangTarif[] = [
-                                "kodeJenisTarif"     => $kodeJenisTarif,
-                                "jumlahSatuan"       => (float) ($tarif['jumlahSatuan'] ?? $brg['jumlahSatuan'] ?? 0),
-                                "kodeFasilitasTarif" => $kodeFasilitasTarif,
-                                "kodeSatuanBarang"   => !empty($tarif['kodeSatuanBarang']) ? $tarif['kodeSatuanBarang'] : (!empty($brg['kodeSatuanBarang']) ? $brg['kodeSatuanBarang'] : ""),
-                                "kodeJenisPungutan"  => $kodeJenisPungutan,
-                                "nilaiBayar"         => $finalNilaiBayar,
-                                "nilaiFasilitas"     => $finalNilaiFasilitas,
-                                "nilaiSudahDilunasi" => (float) ($tarif['nilaiSudahDilunasi'] ?? 0),
-                                "seriBarang"         => (int) ($brg['seriBarang'] ?? ($index + 1)),
-                                "tarif"              => $tarifPersen,
-                                "tarifFasilitas"     => $tarifFasilitas,
-                            ];
+                $barangDokumen = [];
+                foreach (($brg['barangDokumen'] ?? []) as $bd) {
+                    if (!empty($bd['seriDokumen'])) {
+                        $barangDokumen[] = [
+                            "seriDokumen" => (string)$bd['seriDokumen']
+                        ];
                     }
                 }
+
+                $barangTarif = [];
+                $orderedJenis = ["BM", "PPH", "PPN", "CUKAI"];
+                $tarifMap = [];
+                
+                if (!empty($brg['barangTarif']) && is_array($brg['barangTarif'])) {
+                    foreach ($brg['barangTarif'] as $tarif) {
+                        $jenis = !empty($tarif['kodeJenisPungutan']) ? $tarif['kodeJenisPungutan'] : "";
+                        if ($jenis) $tarifMap[$jenis] = $tarif;
+                    }
+                }
+
+                foreach ($orderedJenis as $jenisPungutan) {
+                    $tarif = $tarifMap[$jenisPungutan] ?? [];
+                    
+                    if ($jenisPungutan === 'CUKAI' && empty($tarif)) {
+                        // CUKAI is often optional, but if required by tuple we can pass empty or skip
+                        // To be safe with JSON schema tuple validation (which stops at last provided item),
+                        // we can omit CUKAI if not provided.
+                        continue;
+                    }
+
+                    $kodeFasilitasTarif = !empty($tarif['kodeFasilitasTarif']) ? (string)$tarif['kodeFasilitasTarif'] : "3";
+                    $tarifPersen = (float) ($tarif['tarif'] ?? 0);
+                    $tarifFasilitas = (float) ($tarif['tarifFasilitas'] ?? ($kodeFasilitasTarif == '1' ? 0 : 100));
+
+                    $cifRupiah = (float)($brg['cif'] ?? 0) * (float)($draft['ndpbm'] ?? 0);
+                    $bmAmount = $cifRupiah * ($jenisPungutan == 'BM' ? $tarifPersen / 100 : 0);
+                    $nilaiDasar = ($jenisPungutan == 'BM') ? $cifRupiah : ($cifRupiah + $bmAmount);
+                    
+                    $taxAmount = 0;
+                    if ($jenisPungutan !== 'CUKAI') {
+                        $taxAmount = $nilaiDasar * ($tarifPersen / 100);
+                    } else {
+                        $taxAmount = (float)($tarif['nilaiBayar'] ?? 0) + (float)($tarif['nilaiFasilitas'] ?? 0);
+                    }
+
+                    $nilaiFasilitas = 0;
+                    $nilaiBayar = 0;
+                    if ($kodeFasilitasTarif == '1') {
+                        $nilaiBayar = $taxAmount;
+                    } else {
+                        $nilaiFasilitas = $taxAmount * ($tarifFasilitas / 100);
+                        $nilaiBayar = $taxAmount - $nilaiFasilitas;
+                    }
+
+                    $kodeJenisTarif = !empty($tarif['kodeJenisTarif']) ? (string)$tarif['kodeJenisTarif'] : "1";
+
+                    $finalNilaiBayar = (float) ($tarif['nilaiBayar'] ?? 0) > 0 ? (float) ($tarif['nilaiBayar'] ?? 0) : round($nilaiBayar);
+                    $finalNilaiFasilitas = (float) ($tarif['nilaiFasilitas'] ?? 0) > 0 ? (float) ($tarif['nilaiFasilitas'] ?? 0) : round($nilaiFasilitas);
+
+                    $barangTarif[] = [
+                        "kodeJenisTarif"     => $kodeJenisTarif,
+                        "jumlahSatuan"       => (float) ($tarif['jumlahSatuan'] ?? $brg['jumlahSatuan'] ?? 0),
+                        "kodeFasilitasTarif" => $kodeFasilitasTarif,
+                        "kodeSatuanBarang"   => !empty($tarif['kodeSatuanBarang']) ? $tarif['kodeSatuanBarang'] : (!empty($brg['kodeSatuanBarang']) ? $brg['kodeSatuanBarang'] : ""),
+                        "kodeJenisPungutan"  => $jenisPungutan,
+                        "nilaiBayar"         => $finalNilaiBayar,
+                        "nilaiFasilitas"     => $finalNilaiFasilitas,
+                        "nilaiSudahDilunasi" => (float) ($tarif['nilaiSudahDilunasi'] ?? 0),
+                        "seriBarang"         => (int) ($brg['seriBarang'] ?? ($index + 1)),
+                        "tarif"              => $tarifPersen,
+                        "tarifFasilitas"     => $tarifFasilitas,
+                    ];
+                }
+
                 if (empty($barangTarif)) {
                     $barangTarif = [
                         [
