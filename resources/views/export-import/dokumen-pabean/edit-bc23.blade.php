@@ -1232,10 +1232,6 @@
         });
 
 
-        $('#form-edit-bc23').on('submit', function(e) {
-            e.preventDefault();
-
-            if($('input[name="pengangkut[nomor]"]').val() === ""){
         function validasiBC23() {
             let errors = [];
             let firstTab = null;
