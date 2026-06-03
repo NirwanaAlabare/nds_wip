@@ -24,20 +24,22 @@
                     <div class="d-flex align-items-end gap-3">
                         <div>
                             <label class="form-label">Dari</label>
-                            <input type="date" class="form-control" id="dateFrom" onchange='stockerRejectTableReload()'>
+                            <input type="date" class="form-control form-control-sm" id="dateFrom" onchange='stockerRejectTableReload()'>
                         </div>
                         <span class='mb-1'> - </span>
                         <div>
                             <label class="form-label">Sampai</label>
-                            <input type="date" class="form-control" id="dateTo" onchange='stockerRejectTableReload()'>
+                            <input type="date" class="form-control form-control-sm" id="dateTo" onchange='stockerRejectTableReload()'>
                         </div>
-                    </div>
-                    <div>
-                        <a type="button" href="{{ route('create-stocker-reject') }}" class='btn btn-sb'><i class="fa fa-plus"></i> Baru</a>
+                        <button type="button" class='btn btn-sm btn-primary' onclick='stockerRejectTableReload()'><i class="fa fa-search"></i> </button>
                     </div>
                 </div>
                 <div>
-                    <button type="button" onclick="exportExcel()" class='btn btn-success'><i class="fa fa-file"></i> Export</button>
+                    <div class="d-flex justify-content-end align-items-center gap-2">
+                        <a type="button" href="{{ route('create-stocker-reject') }}" class='btn btn-sm btn-sb'><i class="fa fa-qrcode"></i> Scan</a>
+                        <a type="button" href="{{ route('list-stocker-reject') }}" class='btn btn-sm btn-sb-secondary'><i class="fa fa-square-plus"></i> Batch</a>
+                        <button type="button" onclick="exportExcel()" class='btn btn-sm btn-success'><i class="fa fa-file"></i> Export</button>
+                    </div>
                 </div>
             </div>
             <div class="table-responsive">
@@ -129,7 +131,7 @@
                     targets: [0],
                     render: (data, type, row, meta) => {
                         // conditional
-                        return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-primary btn-sm' href='{{ route("show-stocker-reject") }}/`+row.id+`/`+row.proses+`' data-bs-toggle='tooltip'><i class='fa fa-search-plus'></i></a> </div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-primary btn-sm' href='{{ route("show-stocker-reject") }}/`+row.id+`/`+row.proses+`' data-bs-toggle='tooltip'><i class="fa-solid fa-print"></i></a> </div>`;
                     }
                 },
                 {

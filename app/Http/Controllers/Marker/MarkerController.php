@@ -651,13 +651,19 @@ class MarkerController extends Controller
                     <div class='col-sm-3'>
                         <div class='form-group'>
                             <label class='form-label small'>Qty Gelar Marker</label>
-                            <input type='text' class='form-control form-control-sm' id='txtgelar' name='txtgelar'  value = '" . $datanomarker->gelar_qty . "' readonly>
+                            <div class='input-group input-group-sm'>
+                                <input type='text' class='form-control form-control-sm' id='txtgelar' name='txtgelar'  value = '" . $datanomarker->gelar_qty . "' readonly>
+                                <span class='input-group-text'>Ply</span>
+                            </div>
                         </div>
                     </div>
                     <div class='col-sm-3'>
                         <div class='form-group'>
                             <label class='form-label small'>Gramasi</label>
-                            <input type='text' class='form-control form-control-sm' id='txturutan' name='txturutan'  value = '" . $datanomarker->gramasi . "' readonly>
+                            <div class='input-group input-group-sm'>
+                                <input type='text' class='form-control form-control-sm' id='txtgramasi' name='txtgramasi' value = '" . $datanomarker->gramasi . "' readonly>
+                                <span class='input-group-text'>gr/cm²</span>
+                            </div>
                         </div>
                     </div>
                     <div class='col-sm-3'>

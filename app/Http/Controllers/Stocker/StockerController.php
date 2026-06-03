@@ -3342,7 +3342,7 @@ class StockerController extends Controller
                 })->toJson();
         }
 
-        return view("stocker.part.part", ["page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "part"]);
+        return view("marker.part.part", ["page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "part"]);
     }
 
     public function destroyPart(Part $part, $id = 0)
@@ -3545,7 +3545,7 @@ class StockerController extends Controller
 
         $masterTujuan = DB::select("select tujuan isi, tujuan tampil from master_tujuan");
 
-        return view("stocker.part.manage-part-secondary", ["part" => $part, "masterPart" => $masterPart, "masterTujuan" => $masterTujuan, "page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "part"]);
+        return view("marker.part.manage-part-secondary", ["part" => $part, "masterPart" => $masterPart, "masterTujuan" => $masterTujuan, "page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "part"]);
     }
 
     // Fixing Things...

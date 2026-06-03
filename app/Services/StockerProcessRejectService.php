@@ -251,7 +251,7 @@ class StockerProcessRejectService
                             // Secondaries Checking
                             $currentSecondary = null;
                             if ($secondaries) {
-                                $currentSecondary = $secondaries->where("urutan", $currentSecondaryInhouse->urutan)->first();
+                                $currentSecondary = $secondaries->where("urutan", $currentSecondaryIn->urutan)->first();
                                 $currentSecondary = $currentSecondary ? $currentSecondary->secondary : null;
                             } else {
                                 $currentSecondary = $secondary;

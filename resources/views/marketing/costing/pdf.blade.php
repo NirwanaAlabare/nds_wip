@@ -130,7 +130,7 @@
         $sum_fab_usd = 0; $sum_sew_usd = 0; $sum_pack_usd = 0; $sum_mfg_usd = 0; $sum_oth_norm_usd = 0;
 
         $overhead_row = null;
-        $rate_from_idr = $costing->rate_from_idr > 0 ? $costing->rate_from_idr : 15000;
+        $rate_to_idr = $costing->rate_to_idr > 0 ? $costing->rate_to_idr : 16000;
 
 
         $saved_sets = $costing->product_set ? explode(',', $costing->product_set) : [];
@@ -206,7 +206,7 @@
                 if (str_contains(strtoupper($det->nama_item), 'OVERHEAD')) {
                     $overhead_row = $det;
                 } else {
-                    $det->value_usd = $det->value_idr / $rate_from_idr;
+                    $det->value_usd = $det->value_idr / $rate_to_idr;
                     $sum_oth_norm_idr += $det->value_idr;
                     $sum_oth_norm_usd += $det->value_usd;
                 }
@@ -240,7 +240,7 @@
         $ga_usd = $base_ga_usd * ($input_ga_pct / 100);
 
         $grand_idr = $base_ga_idr + $ga_idr;
-        $grand_usd = $grand_idr / $rate_from_idr;
+        $grand_usd = $grand_idr / $rate_to_idr;
 
         $pembagi_persen = $grand_idr;
 

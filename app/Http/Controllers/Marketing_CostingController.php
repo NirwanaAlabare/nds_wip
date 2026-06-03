@@ -468,9 +468,22 @@ class Marketing_CostingController extends Controller
 
             $db->table('act_costing_new')->where('id', $id)->update($updateData);
 
+            if ($request->ajax()) {
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Data berhasil di update'
+                ]);
+            }
+
             return redirect()->back()->with('success', 'Data berhasil di update');
 
         } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'status' => 500,
+                    'message' => 'Gagal update: ' . $e->getMessage()
+                ]);
+            }
             return redirect()->back()->with('error', 'Gagal update: ' . $e->getMessage());
         }
     }
@@ -1065,7 +1078,7 @@ class Marketing_CostingController extends Controller
         $sum_fab_usd = 0; $sum_sew_usd = 0; $sum_pack_usd = 0; $sum_mfg_usd = 0; $sum_oth_norm_usd = 0;
         $overhead_row = null;
 
-        $rate_from_idr = $costing->rate_from_idr > 0 ? $costing->rate_from_idr : 15000;
+        $rate_to_idr = $costing->rate_to_idr > 0 ? $costing->rate_to_idr : 0;
 
         $saved_sets = $costing->product_set ? explode(',', $costing->product_set) : [];
         $saved_sets = array_map('trim', $saved_sets);
@@ -1139,7 +1152,7 @@ class Marketing_CostingController extends Controller
                 if (str_contains(strtoupper($det->nama_item), 'OVERHEAD')) {
                     $overhead_row = $det;
                 } else {
-                    $det->value_usd = $det->value_idr / $rate_from_idr;
+                    $det->value_usd = $det->value_idr / $rate_to_idr;
                     $sum_oth_norm_idr += $det->value_idr;
                     $sum_oth_norm_usd += $det->value_usd;
                 }
@@ -1170,7 +1183,7 @@ class Marketing_CostingController extends Controller
         $ga_usd = $base_ga_usd * ($input_ga_pct / 100);
 
         $grand_idr = $base_ga_idr + $ga_idr;
-        $grand_usd = $grand_idr / $rate_from_idr;
+        $grand_usd = $grand_idr / $rate_to_idr;
 
         $pembagi_persen = $grand_idr;
 
