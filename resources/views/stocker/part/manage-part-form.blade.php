@@ -15,7 +15,7 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title fw-bold">
-                    <i class="fa fa-folder-plus fa-sm"></i> Tambah Form ke Part
+                    <i class="fa-solid fa-file-circle-plus"></i> Tambah Form ke Part
                 </h5>
                 <a href="{{ route('part') }}" class="btn btn-sm btn-primary">
                     <i class="fa fa-reply"></i> Kembali ke Part
@@ -126,6 +126,7 @@
                                     <th>Size Ratio</th>
                                     <th>Marker</th>
                                     <th>WS</th>
+                                    <th>Type</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -136,7 +137,7 @@
             </div>
         </div>
         <div class="col-12 mb-3">
-            <div class="card card-info h-100">
+            <div class="card card-success h-100">
                 <div class="card-header">
                     <h5 class="card-title mb-0 fw-bold" style="padding-bottom: 2px">
                         <i class="fa fa-check"></i> Form Cut In :
@@ -148,7 +149,7 @@
                             <p class="mb-0">Form yang dipilih : <span class="fw-bold" id="selected-row-count-1">0</span></p>
                         </div>
                         <div class="col-6">
-                            <button class="btn btn-danger btn-sm float-end fw-bold" onclick="removePartForm()">
+                            <button class="btn btn-primary btn-sm float-end fw-bold" onclick="removePartForm()">
                                 <i class="fa fa-arrow-left fa-sm"></i> FORM OUT
                             </button>
                         </div>
@@ -168,6 +169,7 @@
                                     <th>Size Ratio</th>
                                     <th>Marker</th>
                                     <th>WS</th>
+                                    <th>Type</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -197,11 +199,6 @@
         $('.select2bs4').select2({
             theme: 'bootstrap4'
         })
-
-        //Reset Form
-        if (document.getElementById('store-cut-plan')) {
-            document.getElementById('store-cut-plan').reset();
-        }
 
         var id = document.getElementById("id").value;
         var ws = document.getElementById("ws").value;
@@ -255,6 +252,9 @@
                 {
                     data: 'act_costing_ws'
                 },
+                {
+                    data: 'type'
+                },
             ],
             columnDefs: [
                 {
@@ -272,8 +272,7 @@
                             color = '#2243d6';
                         }
 
-                        return data ? "<span style='color: " + color + "' >" + data.toUpperCase() +
-                            "</span>" : "<span style=' color: " + color + "'>-</span>"
+                        return data ? "<span style='color: " + color + "' >" + data.toUpperCase() + "</span>" : "<span style=' color: " + color + "'>-</span>"
                     }
                 },
                 {
@@ -334,13 +333,16 @@
         function addToPartForm(element) {
             element.setAttribute('disabled', true);
 
+            document.getElementById("loading").classList.remove("d-none");
+
             let selectedForm = $('#datatable-select').DataTable().rows('.selected').data();
             let partForms = [];
             for (let key in selectedForm) {
                 if (!isNaN(key)) {
                     partForms.push({
                         form_id: selectedForm[key]['id'],
-                        no_form: selectedForm[key]['no_form']
+                        no_form: selectedForm[key]['no_form'],
+                        type: selectedForm[key]['type']
                     });
                 }
             }
@@ -354,6 +356,8 @@
                         partForms: partForms
                     },
                     success: function(res) {
+                        document.getElementById("loading").classList.add("d-none");
+
                         element.removeAttribute('disabled');
 
                         if (res.status == 200) {
@@ -414,6 +418,8 @@
                         }
                     },
                     error: function(jqXHR) {
+                        document.getElementById("loading").classList.add("d-none");
+
                         element.removeAttribute('disabled');
 
                         let res = jqXHR.responseJSON;
@@ -431,6 +437,8 @@
                     }
                 })
             } else {
+                document.getElementById("loading").classList.add("d-none");
+
                 element.removeAttribute('disabled');
 
                 Swal.fire({
@@ -492,21 +500,48 @@
                 {
                     data: 'ws'
                 },
+                {
+                    data: 'type'
+                },
             ],
             columnDefs: [
                 {
-                    targets: [2],
+                    targets: "_all",
+                    className: "text-nowrap"
+                },
+                {
+                    targets: [1],
+                    className: "text-nowrap",
                     render: (data, type, row, meta) => {
+                        if (data) {
+                            if (row.type == 'PIECE') {
+                                return `
+                                    <a href='{{ route('process-cutting-piece') }}/ `+row.id+`' target='_blank'>`+data+`</a>
+                                `;
+                            }
+                        }
 
+                        return data ? data : '-';
+                    }
+                },
+                {
+                    targets: [2],
+                    className: "text-nowrap",
+                    render: (data, type, row, meta) => {
                         return data ? data.toUpperCase() : "-";
                     }
                 },
                 {
                     targets: [9],
+                    className: "text-nowrap",
                     render: (data, type, row, meta) => {
-                        return `
-                            <a href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'>`+data+`</a>
-                        `;
+                        if (data) {
+                            return `
+                                <a href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'>`+data+`</a>
+                            `;
+                        }
+
+                        return data ? data : '-';
                     }
                 },
             ]
@@ -545,7 +580,8 @@
                 if (!isNaN(key)) {
                     partForms.push({
                         form_id: selectedForm[key]['id'],
-                        no_form: selectedForm[key]['no_form']
+                        no_form: selectedForm[key]['no_form'],
+                        type: selectedForm[key]['type']
                     });
                 }
             }
@@ -561,6 +597,8 @@
                     confirmButtonColor: "#d33141",
                 }).then(async (result) => {
                     if (result.isConfirmed) {
+                        document.getElementById("loading").classList.remove("d-none");
+
                         $.ajax({
                             type: "DELETE",
                             url: '{!! route('destroy-part-form') !!}',
@@ -569,6 +607,8 @@
                                 partForms: partForms
                             },
                             success: function(res) {
+                                document.getElementById("loading").classList.add("d-none");
+
                                 if (res.status == 200) {
                                     iziToast.success({
                                         title: 'Success',
@@ -583,7 +623,6 @@
                                     });
                                 }
 
-                                // Datatable Reload
                                 if (res.table != '') {
                                     $('#' + res.table).DataTable().ajax.reload(() => {document.getElementById('selected-row-count-2').innerText = $('#' + res.table).DataTable().rows('.selected').data().length;
                                     });
@@ -593,32 +632,26 @@
                                     });
                                 }
 
-                                // Response Message Additional
                                 if (res.additional) {
                                     let message = "";
 
                                     if (res.additional['success'].length > 0) {
                                         res.additional['success'].forEach(element => {
-                                            message += "<span class='text-success'>" + element['no_form'] + " - Berhasil </span> <br>";
+                                            message += element['no_form'] +
+                                                " - Berhasil <br>";
                                         });
                                     }
 
                                     if (res.additional['fail'].length > 0) {
                                         res.additional['fail'].forEach(element => {
-                                            message += "<span class='text-danger'>" + element['no_form'] + " " + element['reason'] + " - Gagal </span> <br>";
+                                            message += element['no_form'] + " - Gagal <br>";
                                         });
                                     }
 
-                                    if (res.additional['exist'].length > 0) {
-                                        res.additional['exist'].forEach(element => {
-                                            message += "<span class='text-warning'>" + element['no_form'] + " Tidak Ditemukan </span> <br>";
-                                        });
-                                    }
-
-                                    if (res.additional['success'].length + res.additional['fail'].length + res.additional['exist'].length > 1) {
+                                    if (res.additional['success'].length + res.additional['fail'].length > 1) {
                                         Swal.fire({
                                             icon: 'info',
-                                            title: res.message,
+                                            title: 'Form berhasil disingkirkan',
                                             html: message,
                                             showCancelButton: false,
                                             showConfirmButton: true,
@@ -628,6 +661,8 @@
                                 }
                             },
                             error: function(jqXHR) {
+                                document.getElementById("loading").classList.add("d-none");
+
                                 let res = jqXHR.responseJSON;
                                 let message = '';
 

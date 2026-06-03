@@ -5,13 +5,13 @@
         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
             <li>
                 <a href="{{ route('master-part') }}"
-                    class="dropdown-item {{ $routeName == 'master-part' ? 'active' : '' }}">
+                    class="dropdown-item {{ $routeName == 'master-part' ? 'active' : '' }}" target="_blank">
                     Master Part <i class="fa-regular fa-square-plus"></i>
                 </a>
             </li>
             <li>
                 <a href="{{ route('master-secondary') }}"
-                    class="dropdown-item {{ $routeName == 'master-secondary' ? 'active' : '' }}">
+                    class="dropdown-item {{ $routeName == 'master-secondary' ? 'active' : '' }}" target="_blank">
                     Master Secondary <i class="fa-regular fa-square-plus"></i>
                 </a>
             </li>
@@ -19,12 +19,11 @@
     </li>
 
     <li class="nav-item dropdown">
-        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
-            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-stocker' ? 'active' : '' }}">Process</a>
+        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-stocker' ? 'active' : '' }}">Process</a>
         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
             <li>
-                <a href="{{ route('stocker-part') }}"
-                    class="dropdown-item {{ $subPage == 'part' ? 'active' : '' }}">
+                <a href="{{ route('part') }}"
+                    class="dropdown-item {{ $subPage == 'part' ? 'active' : '' }}" target="_blank">
                     Part <i class="fas fa-th fa-sm"></i>
                 </a>
             </li>

@@ -1277,7 +1277,7 @@ class PartController extends Controller
                 if ($fromPartDetail) {
                     // Phase 4 (Delete Part Detail's old Secondaries)
                     $deletePartDetailSecondary = PartDetailSecondary::where("part_detail_id", $validatedRequest['edit_com_id'])->delete();
-                    if ($deletePartDetailSecondary) {
+                    // if ($deletePartDetailSecondary) {
                         // Phase 5 (Create New Part Detail's Secondaries)
                         $partDetailSecondaryData = [];
                         $batch = Str::uuid();
@@ -1327,10 +1327,10 @@ class PartController extends Controller
 
                         $status = "200";
                         $message = 'Data Part Secondary "' . $validatedRequest["edit_com_id"] . '" berhasil disimpan.';
-                    } else {
-                        $status = "400";
-                        $message = 'Data Part Secondary Tujuan "' . $validatedRequest["edit_com_id"] . '" tidak ditemukan.';
-                    }
+                    // } else {
+                    //     $status = "400";
+                    //     $message = 'Data Part Secondary Tujuan "' . $validatedRequest["edit_com_id"] . '" tidak ditemukan.';
+                    // }
                 } else {
                     $status = "400";
                     $message = 'Data Part Secondary "' . $validatedRequest["edit_com_id"] . '" gagal dihapus.';
