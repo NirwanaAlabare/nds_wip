@@ -1244,6 +1244,44 @@
                 return;
             }
 
+            let isValid = true;
+            let errMsg = '';
+            $(this).find('select[name*="[posTarif]"], select[name*="[kodeNegaraAsal]"], select[name*="[kodeAsalBahanBaku]"], select[name*="[kodeSatuanBarang]"], select[name*="[kodeJenisKemasan]"]').each(function() {
+                if ($(this).val() === '' || $(this).val() === null) {
+                    isValid = false;
+                    let label = $(this).closest('.form-group').find('label').text() || 'Dropdown di bagian Barang';
+                    errMsg = label + ' belum dipilih. Silakan melengkapi isian dropdown.';
+
+                    if ($(this).hasClass('select2bs4') || $(this).hasClass('select2-hidden-accessible')) {
+                        $(this).next('.select2-container').find('.select2-selection').css('border-color', 'red');
+                        let tabPane = $(this).closest('.tab-pane');
+                        if(tabPane.length) {
+                            let tabId = tabPane.attr('id');
+                            $('#' + tabId + '-tab').tab('show');
+                        }
+                    } else {
+                        $(this).addClass('border-danger');
+                    }
+
+                    return false;
+                } else {
+                    if ($(this).hasClass('select2bs4') || $(this).hasClass('select2-hidden-accessible')) {
+                        $(this).next('.select2-container').find('.select2-selection').css('border-color', '');
+                    } else {
+                        $(this).removeClass('border-danger');
+                    }
+                }
+            });
+
+            if (!isValid) {
+                Swal.fire({
+                    title: 'Form Belum Lengkap!',
+                    text: errMsg,
+                    icon: 'warning'
+                });
+                return;
+            }
+
             Swal.fire({
                 title: 'Simpan Perubahan?',
                 text: "Data akan dikirim tanpa memuat ulang halaman.",
