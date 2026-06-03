@@ -4669,24 +4669,24 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
         // Headers
         // Merge cell
         $sheet->mergeCells('A2:E2');
-        $sheet->mergeCells('F2:U2');
-        $sheet->mergeCells('V2:AI2');
-        $sheet->mergeCells('AJ2:AS2');
-        $sheet->mergeCells('AT2:AZ2');
-        $sheet->mergeCells('BA2:BG2');
-        $sheet->mergeCells('BH2:BN2');
-        $sheet->mergeCells('BO2:BV2');
+        $sheet->mergeCells('F2:S2');
+        $sheet->mergeCells('T2:AE2');
+        $sheet->mergeCells('AF2:AM2');
+        $sheet->mergeCells('AN2:AR2');
+        $sheet->mergeCells('AS2:AW2');
+        $sheet->mergeCells('AX2:BB2');
+        $sheet->mergeCells('BC2:BH2');
 
         // Isi value + apply bold + border
         $headers = [
             'A2:E2'   => 'Jenis Produk',
-            'F2:U2'   => 'Sewing',
-            'V2:AI2'  => 'QC Finishing',
-            'AJ2:AS2' => 'Finishing',
-            'AT2:AZ2' => 'Defect Sewing',
-            'BA2:BG2' => 'Defect Spotcleaning',
-            'BH2:BN2' => 'Defect Mending',
-            'BO2:BV2' => 'QC Reject',
+            'F2:S2'   => 'Sewing',
+            'T2:AE2'  => 'QC Finishing',
+            'AF2:AM2' => 'Finishing',
+            'AN2:AR2' => 'Defect Sewing',
+            'AS2:AW2' => 'Defect Spotcleaning',
+            'AX2:BB2' => 'Defect Mending',
+            'BC2:BH2' => 'QC Reject',
         ];
 
         foreach ($headers as $range => $value) {
