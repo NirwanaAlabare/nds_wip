@@ -396,6 +396,23 @@
                         }
 
                         if (res.status === 200 || res.status === 206) {
+                            // Update selectedRows untuk item yang berhasil:
+                            // generated_qty += balance yang baru disimpan, balance = 0
+                            successItems.forEach(function (r) {
+                                let key = Object.keys(selectedRows).find(k =>
+                                    selectedRows[k].id_qr_stocker === r.id_qr_stocker
+                                );
+                                if (key) {
+                                    let saved = parseInt(selectedRows[key].qty_reject_balance) || 0;
+                                    selectedRows[key].generated_qty_reject =
+                                        (parseInt(selectedRows[key].generated_qty_reject) || 0) + saved;
+                                    selectedRows[key].qty_reject_balance = 0;
+                                }
+                            });
+
+                            // Re-render card agar nilai terupdate sebelum Swal muncul
+                            renderSelectedCard();
+
                             let icon     = res.status === 200 ? 'success' : 'warning';
                             let failHtml = failItems.length > 0
                                 ? `<hr><b>Gagal:</b><br>` + failItems.map(r => `${r.id_qr_stocker}: ${r.message}`).join('<br>')
