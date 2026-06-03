@@ -128,6 +128,8 @@
                                 <th>Qty Reject In</th>
                                 <th>Qty Rejected</th>
                                 <th>Qty Reworked</th>
+                                <th>Packing Terima</th>
+                                <th>Packing Packing Scan</th>
                             </tr>
                         </thead>
                     </table>
@@ -141,7 +143,7 @@
             </div>
         </div>
     </div>
-        
+
     <div class="card">
         <div class="card-header bg-sb-secondary">
             <h5 class="card-title">
@@ -210,6 +212,8 @@
                             <th>Qty Reject In</th>
                             <th>Qty Rejected</th>
                             <th>Qty Reworked</th>
+                            <th>Packing Terima</th>
+                            <th>Packing Packing Scan</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -289,15 +293,15 @@
                 },
             },
             columns: [
-                { 
+                {
                     data: null,
                     className: 'text-center',
                     orderable: false,
                     render: function (data, type, row) {
                         return `
-                            <input 
-                                type="checkbox" 
-                                class="row-check" 
+                            <input
+                                type="checkbox"
+                                class="row-check"
                                 value="${row.no}"
                             >
                         `;
@@ -341,6 +345,8 @@
                 { data: 'qty_reject_in' },
                 { data: 'qty_rejected' },
                 { data: 'qty_reworked' },
+                { data: 'pc_terima' },
+                { data: 'pc_packing_scan' },
             ],
             columnDefs: [
                 {
@@ -408,6 +414,8 @@
                 { data: 'qty_reject_in' },
                 { data: 'qty_rejected' },
                 { data: 'qty_reworked' },
+                { data: 'pc_terima' },
+                { data: 'pc_packing_scan' },
             ]
         });
 
@@ -468,6 +476,8 @@
                                 qty_reject_in: item.qty_reject_in,
                                 qty_rejected: item.qty_rejected,
                                 qty_reworked: item.qty_reworked,
+                                pc_terima: item.pc_terima,
+                                pc_packing_scan: item.pc_packing_scan,
                             }).draw(false);
                         });
 
