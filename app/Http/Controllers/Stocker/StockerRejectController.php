@@ -46,8 +46,9 @@ class StockerRejectController extends Controller
                         NULL AS secondary_in_id,
                         stocker_input.id_qr_stocker,
                         GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
-                        stocker_input.act_costing_ws,
-                        stocker_input.color,
+                        master_sb_ws.ws act_costing_ws,
+                        master_sb_ws.styleno style,
+                        master_sb_ws.color,
                         COALESCE(master_sb_ws.size, stocker_input.size) size,
                         'DC In' AS proses,
                         COALESCE( ( dc_in_input.qty_reject - dc_in_input.qty_replace ) ) qty_reject,
@@ -85,15 +86,16 @@ class StockerRejectController extends Controller
                 UNION ALL
                     -- secondary_inhouse_input
                     SELECT
-                        tgl_trans tanggal,
+                       tgl_trans tanggal,
                         secondary_inhouse_input.id as id,
                         NULL dc_in_id,
                         secondary_inhouse_input.id secondary_inhouse_id,
                         NULL AS secondary_in_id,
                         stocker_input.id_qr_stocker,
                         GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
-                        stocker_input.act_costing_ws,
-                        stocker_input.color,
+                        master_sb_ws.ws act_costing_ws,
+                        master_sb_ws.styleno style,
+                        master_sb_ws.color,
                         COALESCE(master_sb_ws.size, stocker_input.size) size,
                         'Secondary Inhouse' AS proses,
                         COALESCE( ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) ) qty_reject,
@@ -138,8 +140,9 @@ class StockerRejectController extends Controller
                         secondary_in_input.id AS secondary_in_id,
                         stocker_input.id_qr_stocker,
                         GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
-                        stocker_input.act_costing_ws,
-                        stocker_input.color,
+                        master_sb_ws.ws act_costing_ws,
+                        master_sb_ws.styleno style,
+                        master_sb_ws.color,
                         COALESCE(master_sb_ws.size, stocker_input.size) size,
                         'Secondary In' AS proses,
                         COALESCE( ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) ) qty_reject,
@@ -272,8 +275,9 @@ class StockerRejectController extends Controller
                     NULL AS secondary_in_id,
                     stocker_input.id_qr_stocker,
                     GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
-                    stocker_input.act_costing_ws,
-                    stocker_input.color,
+                    master_sb_ws.ws act_costing_ws,
+                    master_sb_ws.styleno style,
+                    master_sb_ws.color,
                     COALESCE(master_sb_ws.size, stocker_input.size) size,
                     'DC In' AS proses,
                     ( dc_in_input.qty_reject - dc_in_input.qty_replace ) qty_reject
@@ -303,8 +307,9 @@ class StockerRejectController extends Controller
                     NULL AS secondary_in_id,
                     stocker_input.id_qr_stocker,
                     GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
-                    stocker_input.act_costing_ws,
-                    stocker_input.color,
+                    master_sb_ws.ws act_costing_ws,
+                    master_sb_ws.styleno style,
+                    master_sb_ws.color,
                     COALESCE(master_sb_ws.size, stocker_input.size) size,
                     'Secondary Inhouse' AS proses,
                     ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) qty_reject
@@ -334,8 +339,9 @@ class StockerRejectController extends Controller
                     secondary_in_input.id AS secondary_in_id,
                     stocker_input.id_qr_stocker,
                     GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
-                    stocker_input.act_costing_ws,
-                    stocker_input.color,
+                    master_sb_ws.ws act_costing_ws,
+                    master_sb_ws.styleno style,
+                    master_sb_ws.color,
                     COALESCE(master_sb_ws.size, stocker_input.size) size,
                     'Secondary In' AS proses,
                     ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) qty_reject
@@ -669,6 +675,314 @@ class StockerRejectController extends Controller
         //
     }
 
+    public function listStockerReject(Request $request)
+    {
+        if ($request->ajax()) {
+            $ws    = $request->ws    ?: '-';
+            $color = $request->color ?: null;
+            $size  = $request->size  ?: null; // array of so_det_id
+
+            // Build optional filter clauses
+            $wsFilter    = $ws    ? " AND master_sb_ws.id_act_cost = '".$ws."'"                                              : "";
+            $colorFilter = $color ? " AND stocker_input.color = '".$color."'"                                                : "";
+            $sizeFilter  = ($size && is_array($size) && count($size) > 0) ? " AND stocker_input.so_det_id IN ('".implode("','", $size)."')" : "";
+
+            $data = DB::select("
+                SELECT
+                        *
+                FROM
+                (
+                        -- dc_in_input
+                        SELECT
+                                tgl_trans tanggal,
+                                dc_in_input.id as id,
+                                dc_in_input.id dc_in_id,
+                                NULL AS secondary_inhouse_id,
+                                NULL AS secondary_in_id,
+                                stocker_input.id_qr_stocker,
+                                GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
+                                CONCAT(stocker_input.id_qr_stocker, ' | ', master_part.nama_part) stocker_part,
+                                GROUP_CONCAT( CONCAT(similar_stocker.id_qr_stocker, ' | ', similar_master_part.nama_part) ) AS similar_stocker_part,
+                                master_sb_ws.ws act_costing_ws,
+                                master_sb_ws.styleno style,
+                                master_sb_ws.color,
+                                COALESCE(master_sb_ws.size, stocker_input.size) size,
+                                'DC In' AS proses,
+                                COALESCE( ( dc_in_input.qty_reject - dc_in_input.qty_replace ) ) qty_reject,
+                                COALESCE( stocker_reject.generated_qty_reject, 0 ) generated_qty_reject,
+                                ( COALESCE( ( dc_in_input.qty_reject - dc_in_input.qty_replace ), 0) - COALESCE(stocker_reject.generated_qty_reject, 0) ) qty_reject_balance
+                        FROM
+                                dc_in_input
+                                LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = dc_in_input.id_qr_stocker
+                                LEFT JOIN stocker_input AS similar_stocker ON similar_stocker.form_cut_id = stocker_input.form_cut_id
+                                AND similar_stocker.so_det_id = stocker_input.so_det_id
+                                AND similar_stocker.shade = stocker_input.shade
+                                AND similar_stocker.group_stocker = stocker_input.group_stocker
+                                AND similar_stocker.ratio = stocker_input.ratio
+                                AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
+                                AND similar_stocker.stocker_reject is null
+                                LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                                LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                                LEFT JOIN part_detail similar_part_detail ON similar_part_detail.id = similar_stocker.part_detail_id
+                                LEFT JOIN master_part similar_master_part ON similar_master_part.id = similar_part_detail.master_part_id
+                                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                                LEFT JOIN (
+                                        SELECT
+                                                stocker_reject.*,
+                                                SUM(stocker_reject.qty_reject) generated_qty_reject
+                                        FROM
+                                                dc_in_input
+                                                INNER JOIN stocker_reject ON stocker_reject.dc_in_id = dc_in_input.id
+                                        WHERE
+                                                ( dc_in_input.qty_reject - dc_in_input.qty_replace ) > 0
+                                        GROUP BY
+                                                dc_in_input.id
+                                ) stocker_reject ON stocker_reject.dc_in_id = dc_in_input.id
+                        WHERE
+                                ( dc_in_input.qty_reject - dc_in_input.qty_replace ) > 0
+                                ".$wsFilter.$colorFilter.$sizeFilter."
+                        GROUP BY
+                                dc_in_input.id
+                UNION ALL
+                        -- secondary_inhouse_input
+                        SELECT
+                                tgl_trans tanggal,
+                                secondary_inhouse_input.id as id,
+                                NULL dc_in_id,
+                                secondary_inhouse_input.id secondary_inhouse_id,
+                                NULL AS secondary_in_id,
+                                stocker_input.id_qr_stocker,
+                                GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
+                                CONCAT(stocker_input.id_qr_stocker, ' | ', master_part.nama_part) stocker_part,
+                                GROUP_CONCAT( CONCAT(similar_stocker.id_qr_stocker, ' | ', similar_master_part.nama_part) ) AS similar_stocker_part,
+                                master_sb_ws.ws act_costing_ws,
+                                master_sb_ws.styleno style,
+                                master_sb_ws.color,
+                                COALESCE(master_sb_ws.size, stocker_input.size) size,
+                                'Secondary Inhouse' AS proses,
+                                COALESCE( ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) ) qty_reject,
+                                COALESCE( stocker_reject.generated_qty_reject, 0 ) generated_qty_reject,
+                                ( COALESCE( ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ), 0) - COALESCE(stocker_reject.generated_qty_reject, 0) ) qty_reject_balance
+                        FROM
+                                secondary_inhouse_input
+                                LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_inhouse_input.id_qr_stocker
+                                LEFT JOIN stocker_input AS similar_stocker ON similar_stocker.form_cut_id = stocker_input.form_cut_id
+                                AND similar_stocker.so_det_id = stocker_input.so_det_id
+                                AND similar_stocker.shade = stocker_input.shade
+                                AND similar_stocker.group_stocker = stocker_input.group_stocker
+                                AND similar_stocker.ratio = stocker_input.ratio
+                                AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
+                                AND similar_stocker.stocker_reject is null
+                                LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                                LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                                LEFT JOIN part_detail similar_part_detail ON similar_part_detail.id = similar_stocker.part_detail_id
+                                LEFT JOIN master_part similar_master_part ON similar_master_part.id = similar_part_detail.master_part_id
+                                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                                LEFT JOIN (
+                                        SELECT
+                                                stocker_reject.*,
+                                                SUM(stocker_reject.qty_reject) generated_qty_reject
+                                        FROM
+                                                secondary_inhouse_input
+                                                INNER JOIN stocker_reject ON stocker_reject.secondary_inhouse_id = secondary_inhouse_input.id
+                                        WHERE
+                                                ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) > 0
+                                        GROUP BY
+                                                secondary_inhouse_input.id
+                                ) stocker_reject ON stocker_reject.secondary_inhouse_id = secondary_inhouse_input.id
+                        WHERE
+                                ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) > 0
+                                ".$wsFilter.$colorFilter.$sizeFilter."
+                        GROUP BY
+                                secondary_inhouse_input.id
+                UNION ALL
+                        -- secondary_in_input
+                        SELECT
+                                tgl_trans tanggal,
+                                secondary_in_input.id AS id,
+                                NULL dc_in_id,
+                                NULL secondary_inhouse_id,
+                                secondary_in_input.id AS secondary_in_id,
+                                stocker_input.id_qr_stocker,
+                                GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
+                                CONCAT(stocker_input.id_qr_stocker, ' | ', master_part.nama_part) stocker_part,
+                                GROUP_CONCAT( CONCAT(similar_stocker.id_qr_stocker, ' | ', similar_master_part.nama_part) ) AS similar_stocker_part,
+                                master_sb_ws.ws act_costing_ws,
+                                master_sb_ws.styleno style,
+                                master_sb_ws.color,
+                                COALESCE(master_sb_ws.size, stocker_input.size) size,
+                                'Secondary In' AS proses,
+                                COALESCE( ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) ) qty_reject,
+                                COALESCE( stocker_reject.generated_qty_reject, 0 ) generated_qty_reject,
+                                ( COALESCE( ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ), 0) - COALESCE(stocker_reject.generated_qty_reject, 0) ) qty_reject_balance
+                        FROM
+                                secondary_in_input
+                                LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_in_input.id_qr_stocker
+                                LEFT JOIN stocker_input AS similar_stocker ON similar_stocker.form_cut_id = stocker_input.form_cut_id
+                                AND similar_stocker.so_det_id = stocker_input.so_det_id
+                                AND similar_stocker.shade = stocker_input.shade
+                                AND similar_stocker.group_stocker = stocker_input.group_stocker
+                                AND similar_stocker.ratio = stocker_input.ratio
+                                AND similar_stocker.id_qr_stocker != stocker_input.id_qr_stocker
+                                AND similar_stocker.stocker_reject is null
+                                LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                                LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                                LEFT JOIN part_detail similar_part_detail ON similar_part_detail.id = similar_stocker.part_detail_id
+                                LEFT JOIN master_part similar_master_part ON similar_master_part.id = similar_part_detail.master_part_id
+                                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                                LEFT JOIN (
+                                        SELECT
+                                                stocker_reject.*,
+                                                SUM(stocker_reject.qty_reject) generated_qty_reject
+                                        FROM
+                                                secondary_in_input
+                                                INNER JOIN stocker_reject ON stocker_reject.secondary_in_id = secondary_in_input.id
+                                        WHERE
+                                                ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) > 0
+                                        GROUP BY
+                                                secondary_in_input.id
+                                ) stocker_reject ON stocker_reject.secondary_in_id = secondary_in_input.id
+                        WHERE
+                                ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) > 0
+                                ".$wsFilter.$colorFilter.$sizeFilter."
+                        GROUP BY
+                                secondary_in_input.id
+                ) dc_reject_transaction
+            ");
+
+            return Datatables::of($data)->toJson();
+        }
+
+        $orders = DB::connection("mysql_sb")->table("act_costing")
+            ->selectRaw("act_costing.id, act_costing.kpno as ws, act_costing.styleno as style")
+            ->where('status', '!=', 'CANCEL')
+            ->where('cost_date', '>=', '2023-01-01')
+            ->where('type_ws', 'STD')
+            ->orderBy('cost_date', 'desc')
+            ->orderBy('kpno', 'asc')
+            ->groupBy('kpno')
+            ->get();
+
+        return view('stocker.stocker.stocker-reject.list-stocker-reject', [
+            'page'         => 'dashboard-dc',
+            'subPageGroup' => 'stocker-reject',
+            'subPage'      => 'list-stocker-reject',
+            'containerFluid' => true,
+            'orders'       => $orders,
+        ]);
+    }
+
+     public function storeStockerProcessRejectBatch(Request $request, StockerProcessRejectService $stockerProcessRejectService)
+    {
+        $items = $request->input('items', []);
+
+        if (empty($items)) {
+            return response()->json([
+                'status'  => 400,
+                'message' => 'Tidak ada stocker reject yang dipilih.',
+            ]);
+        }
+
+        $results   = [];
+        $successCount = 0;
+        $failCount    = 0;
+
+        foreach ($items as $item) {
+            $dcInId             = $item['dc_in_id']             ?? null;
+            $secondaryInhouseId = $item['secondary_inhouse_id'] ?? null;
+            $secondaryInId      = $item['secondary_in_id']      ?? null;
+            $idQrStocker        = $item['id_qr_stocker']        ?? null;
+            $qtyInput           = $item['qty_reject_balance']   ?? 0;
+
+            if (!$idQrStocker || $qtyInput <= 0) {
+                $results[] = ['id_qr_stocker' => $idQrStocker, 'status' => 400, 'message' => 'Qty balance 0 atau stocker tidak valid.'];
+                $failCount++;
+                continue;
+            }
+
+            // Ambil stocker asal
+            $originalStocker = Stocker::where('id_qr_stocker', $idQrStocker)->first();
+            if (!$originalStocker) {
+                $results[] = ['id_qr_stocker' => $idQrStocker, 'status' => 400, 'message' => 'Stocker asal tidak ditemukan.'];
+                $failCount++;
+                continue;
+            }
+
+            // Ambil semua similar stocker yang belum di-reject
+            $similarStockers = Stocker::where('form_cut_id',    $originalStocker->form_cut_id)
+                ->where('so_det_id',      $originalStocker->so_det_id)
+                ->where('shade',          $originalStocker->shade)
+                ->where('group_stocker',  $originalStocker->group_stocker)
+                ->where('ratio',          $originalStocker->ratio)
+                ->whereNull('stocker_reject')
+                ->get();
+
+            if ($similarStockers->isEmpty()) {
+                $results[] = ['id_qr_stocker' => $idQrStocker, 'status' => 400, 'message' => 'Tidak ada similar stocker tersedia.'];
+                $failCount++;
+                continue;
+            }
+
+            // Build request data untuk service (format sesuai storeStockerProcessReject)
+            $stockerIds     = [];
+            $partDetailIds  = [0 => null]; // index mulai dari 1
+            $soDotIds       = [0 => null];
+            $shades         = [0 => null];
+            $groupStockers  = [0 => null];
+            $sizes          = [0 => null];
+
+            foreach ($similarStockers as $idx => $s) {
+                $i = $idx + 1;
+                $stockerIds[]         = $s->id;
+                $partDetailIds[$i]    = $s->part_detail_id;
+                $soDotIds[$i]         = $s->so_det_id;
+                $shades[$i]           = $s->shade;
+                $groupStockers[$i]    = $s->group_stocker;
+                $sizes[$i]            = $s->size;
+            }
+
+            $mockRequest = new Request([
+                'dc_in_id'             => $dcInId,
+                'secondary_inhouse_id' => $secondaryInhouseId,
+                'secondary_in_id'      => $secondaryInId,
+                'qty_input'            => $qtyInput,
+                'stocker_id'           => $stockerIds,
+                'part_detail_id'       => $partDetailIds,
+                'form_cut_id'          => $originalStocker->form_cut_id,
+                'so_det_id'            => $soDotIds,
+                'act_costing_ws'       => $originalStocker->act_costing_ws,
+                'color'                => $originalStocker->color,
+                'panel'                => $originalStocker->panel,
+                'shade'                => $shades,
+                'group_stocker'        => $groupStockers,
+                'size'                 => $sizes,
+            ]);
+
+            $result = $stockerProcessRejectService->storeStockerProcessReject($mockRequest, true);
+
+            // Tentukan show_id dan proses untuk URL detail
+            $showId = $dcInId ?? $secondaryInhouseId ?? $secondaryInId;
+            $proses = $dcInId ? 'DC In' : ($secondaryInhouseId ? 'Secondary Inhouse' : 'Secondary In');
+
+            $result['id_qr_stocker'] = $idQrStocker;
+            $result['show_id']       = $showId;
+            $result['proses']        = $proses;
+            $results[] = $result;
+
+            if (($result['status'] ?? 400) === 200) {
+                $successCount++;
+            } else {
+                $failCount++;
+            }
+        }
+
+        return response()->json([
+            'status'       => $failCount === 0 ? 200 : ($successCount > 0 ? 206 : 400),
+            'message'      => "{$successCount} berhasil, {$failCount} gagal.",
+            'results'      => $results,
+        ]);
+    }
+
     public function exportStockerReject(Request $request)
     {
         $dateFrom = $request->dateFrom ? $request->dateFrom : date("Y-m-d");
@@ -709,8 +1023,9 @@ class StockerRejectController extends Controller
                         NULL AS secondary_in_id,
                         stocker_input.id_qr_stocker,
                         GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
-                        stocker_input.act_costing_ws,
-                        stocker_input.color,
+                        master_sb_ws.ws act_costing_ws,
+                        master_sb_ws.styleno style,
+                        master_sb_ws.color,
                         COALESCE(master_sb_ws.size, stocker_input.size) size,
                         'DC In' AS proses,
                         COALESCE( ( dc_in_input.qty_reject - dc_in_input.qty_replace ) ) qty_reject,
@@ -755,8 +1070,9 @@ class StockerRejectController extends Controller
                         NULL AS secondary_in_id,
                         stocker_input.id_qr_stocker,
                         GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
-                        stocker_input.act_costing_ws,
-                        stocker_input.color,
+                        master_sb_ws.ws act_costing_ws,
+                        master_sb_ws.styleno style,
+                        master_sb_ws.color,
                         COALESCE(master_sb_ws.size, stocker_input.size) size,
                         'Secondary Inhouse' AS proses,
                         COALESCE( ( secondary_inhouse_input.qty_reject - secondary_inhouse_input.qty_replace ) ) qty_reject,
@@ -801,8 +1117,9 @@ class StockerRejectController extends Controller
                         secondary_in_input.id AS secondary_in_id,
                         stocker_input.id_qr_stocker,
                         GROUP_CONCAT( similar_stocker.id_qr_stocker ) AS id_qr_similar_stocker,
-                        stocker_input.act_costing_ws,
-                        stocker_input.color,
+                        master_sb_ws.ws act_costing_ws,
+                        master_sb_ws.styleno style,
+                        master_sb_ws.color,
                         COALESCE(master_sb_ws.size, stocker_input.size) size,
                         'Secondary In' AS proses,
                         COALESCE( ( secondary_in_input.qty_reject - secondary_in_input.qty_replace ) ) qty_reject,

@@ -44,7 +44,7 @@
             <li>
                 <a href="{{ route('stocker-reject') }}"
                     class="dropdown-item {{ $subPage == 'stocker-reject' ? 'active' : '' }}">
-                Stocker Ganti Reject <i class="fa-solid fa-ticket"></i>
+                    Stocker Ganti Reject <i class="fa-solid fa-ticket"></i>
                 </a>
             </li>
         </ul>

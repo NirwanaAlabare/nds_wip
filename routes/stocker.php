@@ -105,12 +105,14 @@ Route::middleware('auth')->group(function () {
     // Stocker Reject
     Route::controller(StockerRejectController::class)->prefix('stocker-reject')->middleware('role:stocker,dc')->group(function () {
         Route::get('/index', 'index')->name('stocker-reject');
+        Route::get('/list', 'listStockerReject')->name('list-stocker-reject');
         Route::get('/get-stocker-reject', 'getStockerReject')->name('get-stocker-reject');
         Route::get('/get-stocker-reject-process', 'getStockerRejectProcess')->name('get-stocker-reject-process');
         Route::get('/show/{id?}/{process?}', 'show')->name('show-stocker-reject');
         Route::get('/create', 'create')->name('create-stocker-reject');
         Route::post('/print-stocker-process-reject/{id?}', 'printStocker')->name('print-stocker-process-reject');
         Route::post('/store', 'storeStockerProcessReject')->name('store-stocker-reject');
+        Route::post('/store-batch', 'storeStockerProcessRejectBatch')->name('store-stocker-reject-batch');
 
         Route::post('/export', 'exportStockerReject')->name('export-stocker-reject');
     });
