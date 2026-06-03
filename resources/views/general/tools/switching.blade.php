@@ -688,7 +688,11 @@
         }
 
         function listTableReload() {
-            listTable.ajax.reload();
+            showLoading();
+
+            listTable.ajax.reload(function () {
+                hideLoading();
+            });
         }
 
         $(document).on('click', '#btnSimpan', function () {
@@ -770,6 +774,7 @@
                 data: formData,
 
                 beforeSend: function () {
+                    showLoading();
                     $('#btnSimpan').prop('disabled', true);
                 },
 
@@ -807,6 +812,7 @@
                 },
 
                 complete: function () {
+                    hideLoading();
                     $('#btnSimpan').prop('disabled', false);
                 }
             });
