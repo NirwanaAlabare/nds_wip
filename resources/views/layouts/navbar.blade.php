@@ -594,6 +594,12 @@
                                     <i class="fa-solid fa-shuffle"></i> Track Packing Output
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('wip_packing_line') }}"
+                                    class="dropdown-item {{ $subPage == 'wip_packing_line' ? 'active' : '' }}">
+                                    <i class="fa-solid fa-shuffle"></i> WIP Packing Line
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif
@@ -969,7 +975,7 @@
                                     Approval Costing <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>
-                             <li>
+                            <li>
                                 <a href="{{ route('master-bom') }}"
                                     class="dropdown-item {{ $subPage == 'marketing-master-bom' ? 'active' : '' }}">
                                     BOM <i class="fa-solid fa-list-ul fa-sm"></i>
@@ -1044,36 +1050,32 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('report_gr_panel') }}"
-                                    target="_blank" rel="noopener noreferrer"
+                                <a href="{{ route('report_gr_panel') }}" target="_blank" rel="noopener noreferrer"
                                     class="dropdown-item {{ $routeName == 'report_gr_panel' ? 'active' : '' }}">
                                     Cutting - Ganti Reject Panel
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('report-cutting') }}"
-                                    target="_blank" rel="noopener noreferrer"
+                                <a href="{{ route('report-cutting') }}" target="_blank" rel="noopener noreferrer"
                                     class="dropdown-item {{ $routeName == 'report-cutting' ? 'active' : '' }}">
                                     Cutting - Output Cutting
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('dc-in') }}"
-                                    target="_blank" rel="noopener noreferrer"
+                                <a href="{{ route('dc-in') }}" target="_blank" rel="noopener noreferrer"
                                     class="dropdown-item {{ $routeName == 'dc-in' ? 'active' : '' }}">
                                     DC - DC IN
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('secondary-inhouse-in') }}"
-                                    target="_blank" rel="noopener noreferrer"
+                                <a href="{{ route('secondary-inhouse-in') }}" target="_blank"
+                                    rel="noopener noreferrer"
                                     class="dropdown-item {{ $routeName == 'secondary-inhouse-in' ? 'active' : '' }}">
                                     DC - IN Secondary Dalam
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('secondary-in') }}"
-                                    target="_blank" rel="noopener noreferrer"
+                                <a href="{{ route('secondary-in') }}" target="_blank" rel="noopener noreferrer"
                                     class="dropdown-item {{ $routeName == 'secondary-in' ? 'active' : '' }}">
                                     DC - Secondary IN
                                 </a>
@@ -1086,36 +1088,33 @@
                             class="nav-link dropdown-toggle">Pengeluaran</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
-                                <a href="{{ route('lap_pemakaian') }}" target="_blank"
-                                    rel="noopener noreferrer"
+                                <a href="{{ route('lap_pemakaian') }}" target="_blank" rel="noopener noreferrer"
                                     class="dropdown-item {{ $routeName == 'lap_pemakaian' ? 'active' : '' }}">
                                     Cutting - Manajemen Roll
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('lap-det-pemasukanroll') }}"
-                                    target="_blank" rel="noopener noreferrer"
+                                <a href="{{ route('lap-det-pemasukanroll') }}" target="_blank"
+                                    rel="noopener noreferrer"
                                     class="dropdown-item {{ $routeName == 'lap-det-pemasukanroll' ? 'active' : '' }}">
                                     Warehouse Fabric - Pemasukan Detail Roll
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('secondary-inhouse') }}"
-                                    target="_blank" rel="noopener noreferrer"
+                                <a href="{{ route('secondary-inhouse') }}" target="_blank"
+                                    rel="noopener noreferrer"
                                     class="dropdown-item {{ $routeName == 'secondary-inhouse' ? 'active' : '' }}">
                                     DC - OUT Secondary Dalam
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('loading_out') }}"
-                                    target="_blank" rel="noopener noreferrer"
+                                <a href="{{ route('loading_out') }}" target="_blank" rel="noopener noreferrer"
                                     class="dropdown-item {{ $routeName == 'loading_out' ? 'active' : '' }}">
                                     DC - Loading Out / WIP Out
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('loading-line') }}"
-                                    target="_blank" rel="noopener noreferrer"
+                                <a href="{{ route('loading-line') }}" target="_blank" rel="noopener noreferrer"
                                     class="dropdown-item {{ $routeName == 'loading-line' ? 'active' : '' }}">
                                     DC - Loading Line
                                 </a>
@@ -1150,8 +1149,8 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('report_cutting_mutasi_fabric_proporsional') }}"
-                                    target="_blank" rel="noopener noreferrer"
+                                <a href="{{ route('report_cutting_mutasi_fabric_proporsional') }}" target="_blank"
+                                    rel="noopener noreferrer"
                                     class="dropdown-item {{ $routeName == 'report_cutting_mutasi_fabric_proporsional' ? 'active' : '' }}">
                                     Cutting - Mutasi Fabric Proporsional
                                 </a>
@@ -1164,8 +1163,7 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('dc-report') }}" target="_blank"
-                                    rel="noopener noreferrer"
+                                <a href="{{ route('dc-report') }}" target="_blank" rel="noopener noreferrer"
                                     class="dropdown-item {{ $routeName == 'dc-report' ? 'active' : '' }}">
                                     DC - Report WIP DC
                                 </a>
