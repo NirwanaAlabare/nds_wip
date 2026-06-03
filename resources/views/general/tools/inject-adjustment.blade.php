@@ -281,7 +281,11 @@
         });
 
         function listTableReload() {
-            listTable.ajax.reload();
+            showLoading();
+
+            listTable.ajax.reload(function () {
+                hideLoading();
+            });
         }
 
         function OpenModal() {
@@ -319,6 +323,9 @@
                 data: formData,
                 processData: false,
                 contentType: false,
+                beforeSend: function () {
+                    showLoading();
+                },
                 success: function(res) {
                     if (res.status === 200) {
 
@@ -344,6 +351,9 @@
                 },
                 error: function() {
                     Swal.fire('Error', 'Import gagal', 'error');
+                },
+                complete: function () {
+                    hideLoading();
                 }
             });
         }
@@ -367,6 +377,7 @@
                     items: data
                 },
                 beforeSend: function () {
+                    showLoading();
                     $('#btnSimpan').prop('disabled', true);
                 },
                 success: function (res) {
@@ -380,6 +391,7 @@
                     Swal.fire('Error', 'Gagal simpan data', 'error');
                 },
                 complete: function () {
+                    hideLoading();
                     $('#btnSimpan').prop('disabled', false);
                 }
             });
