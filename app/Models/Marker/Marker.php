@@ -13,6 +13,7 @@ class Marker extends Model
 
     protected static $recordEvents = ['created', 'updated', 'deleted'];
     protected static $logAttributes = ['*'];
+    protected static $logOnlyDirty = true;
 
     protected $table = 'marker_input';
 

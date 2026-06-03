@@ -362,7 +362,7 @@
                     act_costing_id: $('#ws_id').val(),
                     color: $('#color_select2').val(),
                 },
-                success: function (res) {
+                success: async function (res) {
                     if (res) {
                         // Update this step
                         document.getElementById('panel_id').innerHTML = res;
@@ -372,6 +372,10 @@
 
                         // Close step before
                         $("#color_select2").prop("disabled", true);
+
+                        // Set Default Value
+                        await $('#panel_id').val($('#panel_id_default').val()).trigger('change');
+                        await $('#panel').val($('#panel_default').val()).trigger('change');
                     }
                 },
             });

@@ -147,10 +147,10 @@
                                     <td>{{ $number->year_sequence_number }}</td>
                                     <td>{{ $number->size }}</td>
                                     <td>{{ $number->dest }}</td>
-                                    <td>{{ $thisOutput?->sewing_line ?? '-' }}</td>
-                                    <td>{{ $thisOutput?->sewing_update ?? '-' }}</td>
-                                    <td>{{ $thisOutput?->packing_line ?? '-' }}</td>
-                                    <td>{{ $thisOutput?->packing_update ?? '-' }}</td>
+                                    <td>{{ $thisOutput->sewing_line ?? '-' }}</td>
+                                    <td>{{ $thisOutput->sewing_update ?? '-' }}</td>
+                                    <td>{{ $thisOutput->packing_line ?? '-' }}</td>
+                                    <td>{{ $thisOutput->packing_update ?? '-' }}</td>
                                 </tr>
                             @empty
                                 <tr>

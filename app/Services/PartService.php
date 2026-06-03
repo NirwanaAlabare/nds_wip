@@ -12,6 +12,8 @@ use App\Models\DC\SecondaryInhouseIn;
 use App\Models\DC\SecondaryInhouse;
 use DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Auth;
 
 class PartService
@@ -92,7 +94,7 @@ class PartService
         }
 
         // Part Detail Secondary
-        $partDetailSecondary = PartDetailSecondary::select("part_detail_secondary.part_detail_id", "master_secondary.id as master_secondary_id", "master_secondary.tujuan", "master_secondary.proses", 'part_detail_secondary.urutan')->leftJoin("master_secondary", "master_secondary.id", "=", "part_detail_secondary.master_secondary_id")->where("part_detail_id", $partDetail->id)->orderBy("urutan asc")->get();
+        $partDetailSecondary = PartDetailSecondary::select("part_detail_secondary.part_detail_id", "master_secondary.id as master_secondary_id", "master_secondary.tujuan", "master_secondary.proses", 'part_detail_secondary.urutan')->leftJoin("master_secondary", "master_secondary.id", "=", "part_detail_secondary.master_secondary_id")->where("part_detail_id", $partDetail->id)->orderBy("urutan", "asc")->get();
         if ($partDetailSecondary->count() < 1) {
             $partDetailSecondary = PartDetail::selectRaw("part_detail.id as part_detail_id, master_secondary.id as master_secondary_id, master_secondary.tujuan, master_secondary.proses, 0 as urutan")->leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->where("id", $partDetail->id)->get();
         }
@@ -163,7 +165,7 @@ class PartService
                 // Delete Secondary Inhouse OUT & Secondary IN
                 foreach ($getSecondaryInhouse as $secInhouse) {
                     // Secondary IN
-                    $deleteSecondaryIn = SecondaryIn::where("id_qr_stocker", $stocker->id_qr_stocker)->whereRaw("IFNULL(urutan, '-')", ($secInhouse->urutan ?? '-'))->delete();
+                    $deleteSecondaryIn = SecondaryIn::where("id_qr_stocker", $stocker->id_qr_stocker)->where(DB::raw("IFNULL(urutan, '-')"), ($secInhouse->urutan ?? '-'))->delete();
                     $deleteSecondaryInhouse = $secInhouse->delete();
 
                     Log::channel("updateDcTransaction")->info("Deleted Secondary Inhouse OUT & Secondary IN", [
@@ -184,7 +186,7 @@ class PartService
 
                 foreach ($secondaryIn as $sec) {
                     // Check Secondary Inhouse
-                    $totalSecondaryInhouse = SecondaryInhouse::where("id_qr_stocker", $stocker->id_qr_stocker)->whereRaw("IFNULL(urutan, '-')", ($sec->urutan ?? '-'))->count();
+                    $totalSecondaryInhouse = SecondaryInhouse::where("id_qr_stocker", $stocker->id_qr_stocker)->where(DB::raw("IFNULL(urutan, '-')"), ($sec->urutan ?? '-'))->count();
 
                     // When it doesn't have secondary inhouse then it is secondary luar
                     if ($totalSecondaryInhouse < 1) {

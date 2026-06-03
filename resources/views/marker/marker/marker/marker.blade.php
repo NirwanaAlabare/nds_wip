@@ -99,14 +99,17 @@
                             <div class='col-sm-12'>
                                 <div class='form-group'>
                                     <label class='form-label'><small class="fw-bold">Kode</small></label>
-                                    <input type='text' class='form-control' id='txtkode_marker_edit' name='txtkode_marker_edit' value = '' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txtkode_marker_edit' name='txtkode_marker_edit' value = '' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-12'>
                                 <div class='form-group'>
                                     <label class='form-label'><small class="fw-bold">Gramasi</small></label>
-                                    <input type='number' class='form-control' id='txt_gramasi' name='txt_gramasi' value = ''>
-                                    <input type='hidden' class='form-control' id='id_c' name='id_c' value = ''>
+                                    <div class="input-group input-group-sm">
+                                        <input type='number' class='form-control form-control-sm' id='txt_gramasi' name='txt_gramasi' value = ''>
+                                        <span class="input-group-text">gr/cm²</span>
+                                    </div>
+                                    <input type='hidden' class='form-control form-control-sm' id='id_c' name='id_c' value = ''>
                                 </div>
                             </div>
                             {{-- Pilot Section --}}
@@ -135,14 +138,18 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-sm-12 d-none" id="advanced-edit-section">
-                                <a href="" class="btn btn-sb-secondary btn-sm btn-block" id="advanced-edit-link"><i class="fas fa-edit"></i> Ubah Detail Marker</a>
-                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fas fa-times"></i> Tutup</button>
-                        <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Simpan</button>
+                        <div class="d-flex justify-content-between w-100">
+                            <div class="d-none" id="advanced-edit-section">
+                                <a href="" class="btn btn-sb-secondary" id="advanced-edit-link"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ubah Detail Marker</a>
+                            </div>
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fas fa-times"></i> Tutup</button>
+                                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Simpan</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

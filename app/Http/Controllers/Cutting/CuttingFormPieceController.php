@@ -511,7 +511,7 @@ class CuttingFormPieceController extends Controller
         $cuttingFormPiece = FormCutPiece::find($id);
         $wsList = DB::table('master_sb_ws')->select('tgl_kirim', 'id_act_cost', 'ws')->distinct()->orderBy('tgl_kirim', 'desc')->limit(1000)->get();
 
-        if ($cuttingFormPiece->status < 3 || $cuttingFormPiece->status != 'complete') {
+        if ($cuttingFormPiece->process < 3 || $cuttingFormPiece->status != 'complete') {
             return redirect()->route("process-cutting-piece", ["id" => $cuttingFormPiece->id]);
         }
 
