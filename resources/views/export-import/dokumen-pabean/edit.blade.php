@@ -820,7 +820,8 @@
 
                 Swal.fire({
                     title: 'Field Wajib Belum Diisi!',
-                    html: '<div style="text-align:left; max-height: 250px; overflow-y: auto;">Semua isian form wajib dilengkapi:<br><ul style="margin-top:8px">' +
+                    html: '<div style="text-align:left; font-size:14px; max-height: 250px; overflow-y: auto;">' +
+                          'Terdapat inputan yang masih kosong. Silakan isi <b>-</b> untuk teks kosong, <b>0</b> untuk angka, dan jangan biarkan dropdown default:<br><ul style="margin-top:8px">' +
                           uniqueErrors.map(e => '<li><b>' + e + '</b></li>').join('') +
                           '</ul></div>',
                     icon: 'error',
