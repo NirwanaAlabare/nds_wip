@@ -1438,8 +1438,8 @@ class ReportMutasiOutputController extends Controller
         sum(
         COALESCE ( b.qty, 0 )) qty_out
     from
-        sewing_out_h a
-        INNER JOIN sewing_out_det b on b.no_bppb = a.no_bppb
+        packing_out_h a
+        INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb
         INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier
         left join (
         select
@@ -1521,8 +1521,8 @@ class ReportMutasiOutputController extends Controller
         sum(
         COALESCE ( b.qty, 0 )) qty_out
     from
-        sewing_out_h a
-        INNER JOIN sewing_out_det b on b.no_bppb = a.no_bppb
+        packing_out_h a
+        INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb
         INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier
         left join (
         select
@@ -3756,8 +3756,8 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
         sum(
         COALESCE ( b.qty, 0 )) qty_out
     from
-        sewing_out_h a
-        INNER JOIN sewing_out_det b on b.no_bppb = a.no_bppb
+        packing_out_h a
+        INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb
         INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier
         left join (
         select
@@ -3839,8 +3839,8 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
         sum(
         COALESCE ( b.qty, 0 )) qty_out
     from
-        sewing_out_h a
-        INNER JOIN sewing_out_det b on b.no_bppb = a.no_bppb
+        packing_out_h a
+        INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb
         INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier
         left join (
         select
@@ -4761,7 +4761,7 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
         $sheet->writeTo('D3', 'Color')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('E3', 'Size')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        // SEWING (F:U = 16 kolom)
+        // SEWING (F:S = 14 kolom)
         $sheet->writeTo('F3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('G3', 'Terima Loading')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('H3', 'In Subcont')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
@@ -4774,75 +4774,75 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
         $sheet->writeTo('O3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('P3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('Q3', 'Out Subcont')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('R3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('S3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('T3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('U3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('R3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('S3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('R3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('S3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        // QC FINISHING (V:AI = 14 kolom)
-        $sheet->writeTo('V3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('W3', 'Terima Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('X3', 'Output Rework Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('Y3', 'Output Rework Spotcleaning')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('Z3', 'Output Rework Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AA3', 'Defect Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AB3', 'Defect Spotcleaning')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AC3', 'Defect Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AD3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AE3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AF3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AG3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AH3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AI3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // QC FINISHING (T:AE = 12 kolom)
+        $sheet->writeTo('T3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('U3', 'Terima Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('V3', 'Output Rework Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('W3', 'Output Rework Spotcleaning')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('X3', 'Output Rework Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Y3', 'Defect Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Z3', 'Defect Spotcleaning')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AA3', 'Defect Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AB3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AC3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('AF3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('AG3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AD3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AE3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        // FINISHING (AJ:AS = 10 kolom)
-        $sheet->writeTo('AJ3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AK3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AL3', 'Rework')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AM3', 'Defect')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AN3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AO3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AP3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AQ3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AR3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AS3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // FINISHING (AF:AM = 8 kolom)
+        $sheet->writeTo('AF3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AG3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AH3', 'Rework')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AI3', 'Defect')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AJ3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AK3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('AP3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('AQ3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AL3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AM3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        // DEFECT SEWING (AT:AZ = 7 kolom)
-        $sheet->writeTo('AT3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AU3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AV3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AW3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AX3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AY3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AZ3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // DEFECT SEWING (AN:AR = 5 kolom)
+        $sheet->writeTo('AN3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AO3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AP3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('AW3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('AX3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AQ3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AR3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        // DEFECT SPOTCLEANING (BA:BG = 7 kolom)
-        $sheet->writeTo('BA3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BB3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BC3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BD3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BE3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BF3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BG3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // DEFECT SPOTCLEANING (AS:AW = 5 kolom)
+        $sheet->writeTo('AS3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AT3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AU3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('BD3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('BE3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AV3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AW3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        // DEFECT MENDING (BH:BN = 7 kolom)
-        $sheet->writeTo('BH3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BI3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BJ3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BK3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BL3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BM3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BN3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // DEFECT MENDING (AX:BB = 5 kolom)
+        $sheet->writeTo('AX3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AY3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AZ3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('BK3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('BL3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BA3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BB3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        // QC REJECT (BO:BV = 8 kolom)
-        $sheet->writeTo('BO3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BP3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BQ3', 'Keluar Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BR3', 'Keluar Gudang Stok')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BS3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BT3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BU3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BV3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // QC REJECT (BC:BH = 6 kolom)
+        $sheet->writeTo('BC3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BD3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BE3', 'Keluar Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BF3', 'Keluar Gudang Stok')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('BS3', 'Switching OUT')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // $sheet->writeTo('BT3', 'Switching IN')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BG3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BH3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         $rowNumber = 4;
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$rowNumber) {
@@ -4856,6 +4856,7 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
                     $row->color ?? "-",
                     $row->size ?? "-",
 
+                    // SEWING (14 kolom)
                     $row->saldo_awal_sewing ?? 0,
                     $row->qty_loading ?? 0,
                     $row->qty_in_subcont ?? 0,
@@ -4868,11 +4869,12 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
                     $row->qty_sew_reject ?? 0,
                     $row->qty_sewing ?? 0,
                     $row->qty_out_subcont ?? 0,
-                    $row->sewing_switching_out ?? 0,
-                    $row->sewing_switching_in ?? 0,
+                    // $row->sewing_switching_out ?? 0,
+                    // $row->sewing_switching_in ?? 0,
                     $row->sewing_adjust ?? 0,
                     $row->saldo_akhir_sewing ?? 0,
 
+                    // QC FINISHING (12 kolom)
                     $row->saldo_awal_finishing ?? 0,
                     $row->qty_sewing ?? 0,
                     $row->input_rework_sewing_f ?? 0,
@@ -4883,76 +4885,77 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
                     $row->defect_mending_f ?? 0,
                     $row->qty_fin_reject ?? 0,
                     $row->qty_finishing ?? 0,
-                    $row->qc_finishing_switching_out ?? 0,
-                    $row->qc_finishing_switching_in ?? 0,
+                    // $row->qc_finishing_switching_out ?? 0,
+                    // $row->qc_finishing_switching_in ?? 0,
                     $row->qc_finishing_adjust ?? 0,
                     $row->saldo_akhir_finishing ?? 0,
 
+                    // FINISHING (8 kolom)
                     $row->saldo_awal_secondary_proses ?? 0,
                     $row->total_in_sp ?? 0,
                     $row->rework_sp ?? 0,
                     $row->defect_sp ?? 0,
                     $row->reject_sp ?? 0,
                     $row->rft_sp ?? 0,
-                    $row->finishing_switching_out ?? 0,
-                    $row->finishing_switching_in ?? 0,
+                    // $row->finishing_switching_out ?? 0,
+                    // $row->finishing_switching_in ?? 0,
                     $row->finishing_adjust ?? 0,
                     $row->saldo_akhir_secondary_proses ?? 0,
 
+                    // DEFECT SEWING (5 kolom)
                     $row->saldo_awal_defect_sewing ?? 0,
                     $row->total_defect_sewing ?? 0,
                     $row->total_input_rework_sewing ?? 0,
-                    $row->defect_sewing_switching_out ?? 0,
-                    $row->defect_sewing_switching_in ?? 0,
+                    // $row->defect_sewing_switching_out ?? 0,
+                    // $row->defect_sewing_switching_in ?? 0,
                     $row->defect_sewing_adjust ?? 0,
                     $row->saldo_akhir_defect_sewing ?? 0,
 
+                    // DEFECT SPOTCLEANING (5 kolom)
                     $row->saldo_awal_defect_spotcleaning ?? 0,
                     $row->total_defect_spotcleaning ?? 0,
                     $row->total_input_rework_spotcleaning ?? 0,
-                    $row->defect_spotcleaning_switching_out ?? 0,
-                    $row->defect_spotcleaning_switching_in ?? 0,
+                    // $row->defect_spotcleaning_switching_out ?? 0,
+                    // $row->defect_spotcleaning_switching_in ?? 0,
                     $row->defect_spotcleaning_adjust ?? 0,
                     $row->saldo_akhir_defect_spotcleaning ?? 0,
 
+                    // DEFECT MENDING (5 kolom)
                     $row->saldo_awal_defect_mending ?? 0,
                     $row->total_defect_mending ?? 0,
                     $row->total_input_rework_mending ?? 0,
-                    $row->defect_manding_switching_out ?? 0,
-                    $row->defect_manding_switching_in ?? 0,
+                    // $row->defect_manding_switching_out ?? 0,
+                    // $row->defect_manding_switching_in ?? 0,
                     $row->defect_manding_adjust ?? 0,
                     $row->saldo_akhir_mending ?? 0,
 
+                    // QC REJECT (6 kolom)
                     $row->saldo_awal_reject ?? 0,
                     $row->qty_reject_in ?? 0,
                     $row->qty_reworked ?? 0,
                     $row->qty_rejected ?? 0,
-                    $row->qc_reject_switching_out ?? 0,
-                    $row->qc_reject_switching_in ?? 0,
+                    // $row->qc_reject_switching_out ?? 0,
+                    // $row->qc_reject_switching_in ?? 0,
                     $row->qc_reject_adjust ?? 0,
                     $row->saldo_akhir_qc_reject ?? 0,
                 ];
 
-                // $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-                // tulis row
                 $sheet->writeRow($rowArr, [
                     'border'     => 'thin',
                     'text-align' => 'left'
                 ]);
 
-                // override kanan
                 for ($col = 6; $col <= count($rowArr); $col++) {
                     $cell = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col) . $rowNumber;
 
                     $val = $rowArr[$col - 1] ?? '';
 
-                    // amanin dulu
                     if (!is_scalar($val) || $val === null) {
                         $val = '';
                     }
 
                     $sheet->writeTo($cell, (float) $val, [
-                        'text-align' => 'right',
+                        'text-align'    => 'right',
                         'number-format' => '#,##0'
                     ]);
                 }
