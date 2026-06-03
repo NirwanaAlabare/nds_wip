@@ -273,7 +273,7 @@ class GeneralController extends Controller
         // When there is marker filter
         $thisMarkerDetail = MarkerDetail::where("marker_id", $request->marker_id)->count();
         if ($thisMarkerDetail > 0) {
-            $sizeQuery->where("marker_input_detail.marker_id", $request->marker_id);
+            $sizeQuery->whereRaw("(marker_input_detail.id is null OR marker_input_detail.marker_id = '".$request->marker_id."')");
         }
 
         $sizes = $sizeQuery->groupBy("id_so_det")->orderBy("master_size_new.urutan")->get();

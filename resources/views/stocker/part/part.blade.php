@@ -11,24 +11,26 @@
     {{-- Part Data --}}
     <div class="card">
         <div class="card-header bg-sb text-light">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-th fa-sm"></i> Part</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-th fa-sm"></i> Part Group</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-part') }}" class="btn btn-success btn-sm mb-3">
-                <i class="fas fa-plus"></i>
-                Baru
-            </a>
-            <div class="d-flex align-items-end gap-3 mb-3">
-                <div>
-                    <label class="form-label"><small>Tanggal Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="datatablePartReload()">
-                </div>
-                <div>
-                    <label class="form-label"><small>Tanggal Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatablePartReload()">
-                </div>
-                <div>
+            <div class="d-flex justify-content-between align-items-end mb-3 gap-3">
+                <div class="d-flex align-items-end gap-3 ">
+                    <div>
+                        <label class="form-label small">Tanggal Awal</label>
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="datatablePartReload()">
+                    </div>
+                    <div>
+                        <label class="form-label small">Tanggal Akhir</label>
+                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatablePartReload()">
+                    </div>
                     <button class="btn btn-primary btn-sm" onclick="datatablePartReload()"><i class="fa fa-search"></i></button>
+                </div>
+                <div class="d-flex align-items-end gap-1">
+                    <a href="{{ route('create-part') }}" data-bs-toggle="tooltip" data-bs-title="Buat Part Group Baru" class="btn btn-success btn-sm">
+                        <i class="fas fa-plus"></i>
+                    </a>
+                    <button class="btn btn-sb-secondary btn-sm" data-bs-toggle="tooltip" data-bs-title="Refresh Data" onclick="datatablePartReload()"><i class="fa fa-rotate"></i></button>
                 </div>
             </div>
             <div class="table-responsive">
@@ -42,6 +44,7 @@
                             <th>Style</th>
                             <th>Color</th>
                             <th>Panel</th>
+                            <th>Status</th>
                             <th>Part</th>
                             <th>Total Form</th>
                         </tr>
@@ -92,7 +95,7 @@
                                 <input type="text" class="form-control" name="detail_part" id="detail_part_details" value="" readonly>
                             </div>
                         </div>
-                        <div class="col-md-6 col-lg-4 ">
+                        <div class="col-md-6 col-lg-4">
                             <div class="row">
                                 {{-- <div class="col-md-6"> --}}
                                 <div class="col-md-12">
@@ -125,7 +128,6 @@
                                             <th>No. Marker</th>
                                             <th>No. WS</th>
                                             <th>Buyer</th>
-                                            <th>Type</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -201,6 +203,9 @@
                     data: 'panel'
                 },
                 {
+                    data: 'panel_status'
+                },
+                {
                     data: 'part_details',
                     searchable: false
                 },
@@ -216,16 +221,16 @@
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <buton type="button" onclick='showPartForm(` + JSON.stringify(row) + `)' class='btn btn-primary btn-sm'>
+                                <buton type="button" data-bs-toggle='tooltip' data-bs-title='Detail Part' onclick='showPartForm(` + JSON.stringify(row) + `)' class='btn btn-primary btn-sm'>
                                     <i class='fa fa-search'></i>
                                 </buton>
-                                <a href='{{ route('manage-part-secondary') }}/` + row['id'] + `' class='btn btn-info btn-sm'>
+                                <a data-bs-toggle='tooltip' data-bs-title='Atur Proses Part' href='{{ route('manage-part-secondary') }}/` + row['id'] + `' class='btn btn-info btn-sm'>
                                     <i class='fa fa-plus-circle'></i>
                                 </a>
-                                <a href='{{ route('manage-part-form') }}/` + row['id'] + `' class='btn btn-success btn-sm'>
+                                <a data-bs-toggle='tooltip' data-bs-title='Atur Form Part' href='{{ route('manage-part-form') }}/` + row['id'] + `' class='btn btn-success btn-sm'>
                                     <i class="fa-solid fa-file-circle-plus"></i>
                                 </a>
-                                <a class='btn btn-danger btn-sm' data='` + JSON.stringify(row) + `' data-url='{{ route('destroy-part') }}/` + row['id'] + `' onclick='deleteData(this)'>
+                                <a data-bs-toggle='tooltip' data-bs-title='Hapus Part' class='btn btn-danger btn-sm' data='` + JSON.stringify(row) + `' data-url='{{ route('destroy-part') }}/` + row['id'] + `' onclick='deleteData(this)'>
                                     <i class='fa fa-trash'></i>
                                 </a>
                             </div>
@@ -233,8 +238,7 @@
                     }
                 },
                 {
-                    // No. Meja Column
-                    targets: [5],
+                    targets: [6],
                     render: (data, type, row, meta) => {
                         var color = '#2b2f3a';
                         if (row.sisa == '0') {
@@ -350,7 +354,8 @@
                     searchable: false
                 },
                 {
-                    data: 'marker_details'
+                    data: 'marker_details',
+                    searchable: false
                 },
                 {
                     data: 'id_marker'
@@ -360,9 +365,6 @@
                 },
                 {
                     data: 'buyer'
-                },
-                {
-                    data: 'type'
                 },
             ],
             columnDefs: [
@@ -387,21 +389,6 @@
                                 </a>
                             </div>
                         `;
-                    }
-                },
-                // No. Form Column
-                {
-                    targets: [2],
-                    render: (data, type, row, meta) => {
-                        if (data) {
-                            if (row.type == 'PIECE') {
-                                return `
-                                    <a href='{{ route('process-cutting-piece') }}/ `+row.form_cut_id+`' target='_blank'>`+data+`</a>
-                                `;
-                            }
-                        }
-
-                        return data ? data : "-";
                     }
                 },
                 // No. Meja Column
@@ -433,7 +420,7 @@
         // Datatable Part Detail Form Header Column Filter
         $('#datatable-part-form thead tr').clone(true).appendTo('#datatable-part-form thead');
         $('#datatable-part-form thead tr:eq(1) th').each(function(i) {
-            if (i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 9 || i == 10 || i == 11 || i == 12) {
+            if (i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 10 || i == 11 || i == 12) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
 
