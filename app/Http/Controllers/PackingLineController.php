@@ -120,6 +120,7 @@ class PackingLineController extends Controller
             )
             SELECT
                 mut.so_det_id,
+                ws,
                 COALESCE(d.buyer,   '-') AS buyer,
                 COALESCE(d.color,   '-') AS color,
                 COALESCE(d.size,    '-') AS size,
@@ -130,9 +131,10 @@ class PackingLineController extends Controller
                 SUM(sa) + SUM(qty_packing_line) - SUM(qty_trf_gmt) AS selisih
             FROM mut
             LEFT JOIN laravel_nds.master_sb_ws d ON mut.so_det_id = d.id_so_det
+            LEFT JOIN laravel_nds.master_size_new msn on d.size = msn.size
             WHERE mut.line IS NOT NULL AND mut.line != ''
-            GROUP BY mut.so_det_id, d.buyer, d.color, d.size, d.styleno
-            ORDER BY d.color, d.size
+            GROUP BY mut.so_det_id
+            ORDER BY ws asc, d.color asc, urutan asc
         ");
             });
 
@@ -287,21 +289,23 @@ class PackingLineController extends Controller
                 SELECT id_ppic_master_so, po, line, so_det_id, 0, 0, qty_trf_gmt FROM g
             )
             SELECT
-                mut.line,
-                mut.po,
+                mut.so_det_id,
+                line,
+                ws,
                 COALESCE(d.buyer,   '-') AS buyer,
-                COALESCE(d.styleno, '-') AS styleno,
                 COALESCE(d.color,   '-') AS color,
                 COALESCE(d.size,    '-') AS size,
+                COALESCE(d.styleno, '-') AS styleno,
                 SUM(sa)                                             AS qty_sa,
                 SUM(qty_packing_line)                               AS qty_output,
                 SUM(qty_trf_gmt)                                    AS qty_trf,
                 SUM(sa) + SUM(qty_packing_line) - SUM(qty_trf_gmt) AS selisih
             FROM mut
             LEFT JOIN laravel_nds.master_sb_ws d ON mut.so_det_id = d.id_so_det
+            LEFT JOIN laravel_nds.master_size_new msn on d.size = msn.size
             WHERE mut.line IS NOT NULL AND mut.line != ''
-            GROUP BY mut.line, mut.po, mut.so_det_id, d.buyer, d.styleno, d.color, d.size
-            ORDER BY mut.line, mut.po, d.color, d.size
+            GROUP BY mut.so_det_id,po, line
+            ORDER BY  line, po, ws,  d.color, urutan
         ");
 
         $filename = 'WIP_Packing_Line_' . $today;
@@ -314,9 +318,14 @@ class PackingLineController extends Controller
 
         /* ── Header ── */
         $sheet->writeRow(
-            ['Line', 'PO', 'Buyer', 'Style', 'Color', 'Size', 'SA', 'Output ▲', 'Transfer ▼', 'WIP'],
-            ['font-style' => 'bold', 'border' => 'thin', 'halign' => 'center',
-             'fill' => '#3A0CA3', 'color' => '#FFFFFF']
+            ['Line', 'PO', 'Buyer', 'WS', 'Style', 'Color', 'Size', 'SA', 'Output ▲', 'Transfer ▼', 'WIP'],
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+                'halign'     => 'center',
+                'fill'       => '#3A0CA3',
+                'color'      => '#FFFFFF',
+            ]
         );
 
         /* ── Data rows (mulai baris 4: title, kosong, header) ── */
@@ -330,6 +339,7 @@ class PackingLineController extends Controller
                     $row->line    ?? '-',
                     $row->po      ?? '-',
                     $row->buyer   ?? '-',
+                    $row->ws      ?? '-',
                     $row->styleno ?? '-',
                     $row->color   ?? '-',
                     $row->size    ?? '-',
@@ -341,13 +351,26 @@ class PackingLineController extends Controller
                 ['border' => 'thin']
             );
 
-            $sheet->setCellStyle('J' . $rowNum, ['color' => $wipColor, 'font-style' => 'bold']);
+            $sheet->setCellStyle('K' . $rowNum, ['color' => $wipColor, 'font-style' => 'bold']);
             $rowNum++;
         }
 
         /* ── Column widths ── */
-        foreach (['A' => 16, 'B' => 14, 'C' => 22, 'D' => 20, 'E' => 18, 'F' => 10,
-                  'G' => 12, 'H' => 12, 'I' => 14, 'J' => 12] as $col => $width) {
+        foreach (
+            [
+                'A' => 16,
+                'B' => 14,
+                'C' => 22,
+                'D' => 16,
+                'E' => 20,
+                'F' => 18,
+                'G' => 10,
+                'H' => 12,
+                'I' => 12,
+                'J' => 14,
+                'K' => 12,
+            ] as $col => $width
+        ) {
             $sheet->setColWidth($col, $width);
         }
 
