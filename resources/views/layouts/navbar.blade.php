@@ -1093,6 +1093,13 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('report_return_fabric_cutting') }}" target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="dropdown-item {{ $routeName == 'report_return_fabric_cutting' ? 'active' : '' }}">
+                                    Cutting - Return Fabric Cutting
+                                </a>
+                            </li>
+                            <li>
                                 <a href="{{ route('lap-det-pemasukanroll') }}"
                                     target="_blank" rel="noopener noreferrer"
                                     class="dropdown-item {{ $routeName == 'lap-det-pemasukanroll' ? 'active' : '' }}">
@@ -1161,13 +1168,6 @@
                                     rel="noopener noreferrer"
                                     class="dropdown-item {{ $routeName == 'report_mutasi_wip_cutting' ? 'active' : '' }}">
                                     Cutting - Mutasi WIP Cutting
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('report_return_fabric_cutting') }}" target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="dropdown-item {{ $routeName == 'report_return_fabric_cutting' ? 'active' : '' }}">
-                                    Cutting - Return Fabric Cutting
                                 </a>
                             </li>
                             <li>
