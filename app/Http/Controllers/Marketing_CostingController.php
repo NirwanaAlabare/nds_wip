@@ -468,9 +468,22 @@ class Marketing_CostingController extends Controller
 
             $db->table('act_costing_new')->where('id', $id)->update($updateData);
 
+            if ($request->ajax()) {
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Data berhasil di update'
+                ]);
+            }
+
             return redirect()->back()->with('success', 'Data berhasil di update');
 
         } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'status' => 500,
+                    'message' => 'Gagal update: ' . $e->getMessage()
+                ]);
+            }
             return redirect()->back()->with('error', 'Gagal update: ' . $e->getMessage());
         }
     }
