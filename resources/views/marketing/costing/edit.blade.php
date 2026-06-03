@@ -953,7 +953,6 @@
 
     function calculate_template() {
         let rate_to_idr = parseFloat($('#rate_to_idr').val()) || 0;
-        let rate_from_idr = parseFloat($('#rate_from_idr').val()) || 0;
 
         let cat = $('#category').val();
         let curr = $('#txt_curr option:selected').text().trim().toUpperCase();
@@ -981,13 +980,13 @@
 
                 if (document.activeElement && document.activeElement.id === 'txt_val_usd') {
                     let val_usd = parseFloat(String($('#txt_val_usd').val()).replace(/,/g, '')) || 0;
-                    let val_idr = Math.round(val_usd * rate_from_idr);
+                    let val_idr = Math.round(val_usd * rate_to_idr);
 
                     $('#txt_val_usd').data('raw', val_usd);
                     $('#txt_val_idr').val(val_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', val_idr);
                 } else {
                     let val_idr = parseFloat(String($('#txt_val_idr').val()).replace(/,/g, '')) || 0;
-                    let val_usd = val_idr / rate_from_idr;
+                    let val_usd = val_idr / rate_to_idr;
 
                     $('#txt_val_idr').data('raw', val_idr);
                     $('#txt_val_usd').val(val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', val_usd);
@@ -1002,7 +1001,7 @@
             $('#txt_val_idr, #txt_val_usd').prop('readonly', true).addClass('bg-light').removeClass('bg-white');
 
             let px_idr = 0; let px_usd = 0;
-            if (curr === 'IDR') { px_idr = price; px_usd = price / rate_from_idr; }
+            if (curr === 'IDR') { px_idr = price; px_usd = price / rate_to_idr; }
             else { px_usd = price; px_idr = price * rate_to_idr; }
 
             let allow = 1 + (allow_pct / 100);
@@ -1018,7 +1017,6 @@
 
     function calculate_modal() {
         let rate_to_idr = parseFloat($('#rate_to_idr').val()) || 0;
-        let rate_from_idr = parseFloat($('#rate_from_idr').val()) || 0;
 
         let cat = $('#m_category').val();
         let allow_pct = parseFloat($('#m_allowance').val()) || 0;
@@ -1069,13 +1067,13 @@
 
                 if (document.activeElement && document.activeElement.id === 'm_val_usd') {
                     let current_val_usd = parseFloat(String($('#m_val_usd').val()).replace(/,/g,'')) || 0;
-                    let current_val_idr = Math.round(current_val_usd * rate_from_idr);
+                    let current_val_idr = Math.round(current_val_usd * rate_to_idr);
 
                     $('#m_val_usd').data('raw', current_val_usd);
                     $('#m_val_idr').val(current_val_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', current_val_idr);
                 } else {
                     let current_val_idr = parseFloat(String($('#m_val_idr').val()).replace(/,/g,'')) || 0;
-                    let current_val_usd = current_val_idr / rate_from_idr;
+                    let current_val_usd = current_val_idr / rate_to_idr;
 
                     $('#m_val_idr').data('raw', current_val_idr);
                     $('#m_val_usd').val(current_val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', current_val_usd);
@@ -1098,7 +1096,7 @@
             let px_idr = 0; let px_usd = 0;
 
             if (curr === 'IDR') {
-                px_idr = price; px_usd = price / rate_from_idr;
+                px_idr = price; px_usd = price / rate_to_idr;
             } else {
                 px_usd = price; px_idr = price * rate_to_idr;
             }
@@ -1569,7 +1567,7 @@
     function calculate_summary() {
 
         let order_qty = parseFloat($('#qty').val().replace(/,/g, '')) || 0;
-        let rate_from_idr = parseFloat($('#rate_from_idr').val()) || 0;
+        let rate_to_idr = parseFloat($('#rate_to_idr').val()) || 0;
 
         let cat_totals = {
             'Fabric': { idr: 0, usd: 0, val: 0, bom: 0, prefix: 'fab', sets: {} },
@@ -1650,7 +1648,7 @@
             if (name.includes('OVERHEAD')) {
                 overhead_row = $(this);
             } else {
-                let val_usd = val_idr / rate_from_idr;
+                let val_usd = val_idr / rate_to_idr;
                 $(this).find('.val-usd-td-other').data('val', val_usd).text(val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4}));
                 $(this).find('.allow-td').text(allow_val > 0 ? allow_val.toFixed(2) + '%' : '');
 
@@ -1694,7 +1692,7 @@
         let ga_usd = base_ga_usd * (input_ga_pct / 100);
 
         let grand_idr = base_ga_idr + ga_idr;
-        let grand_usd = grand_idr / rate_from_idr;
+        let grand_usd = grand_idr / rate_to_idr;
 
         $('#val-ga-idr').text(ga_idr.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
         $('#val-ga-usd').text(ga_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4}));
@@ -1800,7 +1798,7 @@
             let oh_multiplier = 1 + (oh_allow_pct / 100);
 
             suggest_idr = diff_total / (oh_multiplier * 1.03);
-            suggest_usd = suggest_idr / rate_from_idr;
+            suggest_usd = suggest_idr / rate_to_idr;
         }
 
         $('#grand-tot-idr').text(grand_idr.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
