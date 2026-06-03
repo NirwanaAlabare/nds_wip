@@ -1438,8 +1438,8 @@ class ReportMutasiOutputController extends Controller
         sum(
         COALESCE ( b.qty, 0 )) qty_out
     from
-        sewing_out_h a
-        INNER JOIN sewing_out_det b on b.no_bppb = a.no_bppb
+        packing_out_h a
+        INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb
         INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier
         left join (
         select
@@ -1521,8 +1521,8 @@ class ReportMutasiOutputController extends Controller
         sum(
         COALESCE ( b.qty, 0 )) qty_out
     from
-        sewing_out_h a
-        INNER JOIN sewing_out_det b on b.no_bppb = a.no_bppb
+        packing_out_h a
+        INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb
         INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier
         left join (
         select
@@ -3756,8 +3756,8 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
         sum(
         COALESCE ( b.qty, 0 )) qty_out
     from
-        sewing_out_h a
-        INNER JOIN sewing_out_det b on b.no_bppb = a.no_bppb
+        packing_out_h a
+        INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb
         INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier
         left join (
         select
@@ -3839,8 +3839,8 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
         sum(
         COALESCE ( b.qty, 0 )) qty_out
     from
-        sewing_out_h a
-        INNER JOIN sewing_out_det b on b.no_bppb = a.no_bppb
+        packing_out_h a
+        INNER JOIN packing_out_det b on b.no_bppb = a.no_bppb
         INNER JOIN mastersupplier c on c.id_supplier = a.id_supplier
         left join (
         select

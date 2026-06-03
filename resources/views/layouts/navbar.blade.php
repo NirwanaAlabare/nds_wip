@@ -1164,6 +1164,13 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('report_return_fabric_cutting') }}" target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="dropdown-item {{ $routeName == 'report_return_fabric_cutting' ? 'active' : '' }}">
+                                    Cutting - Return Fabric Cutting
+                                </a>
+                            </li>
+                            <li>
                                 <a href="{{ route('dc-report') }}" target="_blank"
                                     rel="noopener noreferrer"
                                     class="dropdown-item {{ $routeName == 'dc-report' ? 'active' : '' }}">

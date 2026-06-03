@@ -1232,55 +1232,79 @@
         });
 
 
-        $('#form-edit-bc23').on('submit', function(e) {
-            e.preventDefault();
+        function validasiBC23() {
+            let errors = [];
+            let firstTab = null;
 
-            if($('input[name="pengangkut[nomor]"]').val() === ""){
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'No Polisi Pengangkut belum diisi.',
-                    icon: 'error'
-                });
-                return;
-            }
+            $('#form-edit-bc23').find('input, select, textarea').each(function() {
+                let el = $(this);
 
-            let isValid = true;
-            let errMsg = '';
-            $(this).find('select[name*="[posTarif]"], select[name*="[kodeNegaraAsal]"], select[name*="[kodeAsalBahanBaku]"], select[name*="[kodeSatuanBarang]"], select[name*="[kodeJenisKemasan]"]').each(function() {
-                if ($(this).val() === '' || $(this).val() === null) {
-                    isValid = false;
-                    let label = $(this).closest('.form-group').find('label').text() || 'Dropdown di bagian Barang';
-                    errMsg = label + ' belum dipilih. Silakan melengkapi isian dropdown.';
+                if (el.is(':disabled') || el.is('[readonly]') || el.attr('type') === 'hidden' || el.attr('type') === 'button' || el.attr('type') === 'submit' || el.attr('type') === 'search') {
+                    return;
+                }
 
-                    if ($(this).hasClass('select2bs4') || $(this).hasClass('select2-hidden-accessible')) {
-                        $(this).next('.select2-container').find('.select2-selection').css('border-color', 'red');
-                        let tabPane = $(this).closest('.tab-pane');
-                        if(tabPane.length) {
-                            let tabId = tabPane.attr('id');
-                            $('#' + tabId + '-tab').tab('show');
-                        }
-                    } else {
-                        $(this).addClass('border-danger');
+                let val = el.val();
+                let isEmpty = !val || val.toString().trim() === '';
+
+                if (isEmpty) {
+                    let labelText = el.closest('.form-group').find('label').first().text().trim() || el.closest('th').text().trim() || el.attr('name');
+
+                    // If it's in a table (like barang, kontainer, kemasan) we can append a bit of context
+                    if (el.closest('tr').length && !el.closest('.form-group').length) {
+                        let header = el.closest('table').find('thead th').eq(el.closest('td').index()).text().trim();
+                        if(header) labelText = header + " (" + el.attr('name') + ")";
                     }
 
-                    return false;
-                } else {
-                    if ($(this).hasClass('select2bs4') || $(this).hasClass('select2-hidden-accessible')) {
-                        $(this).next('.select2-container').find('.select2-selection').css('border-color', '');
+                    errors.push(labelText);
+
+                    if (el.hasClass('select2bs4') || el.hasClass('select2-hidden-accessible')) {
+                        el.next('.select2-container').find('.select2-selection').css('border-color', 'red');
                     } else {
-                        $(this).removeClass('border-danger');
+                        el.addClass('border-danger');
+                    }
+
+                    if (!firstTab) {
+                        let tabPane = el.closest('.tab-pane');
+                        if (tabPane.length) {
+                            firstTab = '#' + tabPane.attr('id');
+                        }
+                    }
+                } else {
+                    if (el.hasClass('select2bs4') || el.hasClass('select2-hidden-accessible')) {
+                        el.next('.select2-container').find('.select2-selection').css('border-color', '');
+                    } else {
+                        el.removeClass('border-danger');
                     }
                 }
             });
 
-            if (!isValid) {
+            if (errors.length > 0) {
+                if (firstTab) {
+                    let tabId = firstTab.replace('#tab-', '');
+                    $('#' + tabId + '-tab').tab('show');
+                }
+
+                let uniqueErrors = [...new Set(errors)];
+
                 Swal.fire({
-                    title: 'Form Belum Lengkap!',
-                    text: errMsg,
-                    icon: 'warning'
+                    title: 'Field Wajib Belum Diisi!',
+                    html: '<div style="text-align:left; font-size:14px; max-height: 250px; overflow-y: auto;">' +
+                          'Terdapat inputan yang masih kosong. Silakan isi terlebih dahulu:<br><ul style="margin-top:8px">' +
+                          uniqueErrors.map(e => '<li><b>' + e + '</b></li>').join('') +
+                          '</ul></div>',
+                    icon: 'error',
+                    confirmButtonColor: '#003366'
                 });
-                return;
+                return false;
             }
+
+            return true;
+        }
+
+        $('#form-edit-bc23').on('submit', function(e) {
+            e.preventDefault();
+
+            if (!validasiBC23()) return;
 
             Swal.fire({
                 title: 'Simpan Perubahan?',
@@ -1316,6 +1340,11 @@
         });
 
         $('#btn-send-ceisa-bc23').on('click', function() {
+            // Lakukan validasi form terlebih dahulu sebelum mengirim ke CEISA
+            if (!validasiBC23()) {
+                return;
+            }
+
             let url = $(this).data('url');
             Swal.fire({
                 title: 'Kirim ke CEISA?',
