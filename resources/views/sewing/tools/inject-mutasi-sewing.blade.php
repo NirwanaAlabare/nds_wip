@@ -87,7 +87,7 @@
         <div class="card-body">
             <div class="row align-items-end">
                 <div class="col-md-12 table-responsive">
-                    <table class="table table-bordered w-100 table" id="datatable">
+                    <table class="table table-bordered w-100 table-sm" id="datatable">
                         <thead>
                             <tr>
                                 <th>Tgl Saldo</th>
@@ -154,22 +154,25 @@
             </h5>
         </div>
         <div class="card-body">
-            <div class="d-flex align-items-end gap-3 mb-3">
-            <div>
-                <label class="form-label"><small>Tanggal Awal</small></label>
-                <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}">
+            <div class="d-flex justify-content-end align-items-end gap-3 mb-3">
+                <div>
+                    <label class="form-label"><small>Tanggal Awal</small></label>
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}">
+                </div>
+                <div>
+                    <label class="form-label"><small>Tanggal Akhir</small></label>
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
+                </div>
+                <div>
+                    <button class="btn btn-primary btn-sm" onclick="listTableReload()"> <i class="fa fa-search"></i> </button>
+                </div>
+                <div>
+                    <button class="btn btn-success btn-sm" onclick="exportListData()"> <i class="fa fa-file-excel"></i> Export </button>
+                </div>
+                <div class="ms-auto">
+                    <button type="button" class="btn btn-danger btn-sm" id="btnDeleteSelected" style="display:none;"> <i class="fa fa-trash"></i> Delete </button>
+                </div>
             </div>
-            <div>
-                <label class="form-label"><small>Tanggal Akhir</small></label>
-                <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
-            </div>
-            <div>
-                <button class="btn btn-primary btn-sm" onclick="listTableReload()"> <i class="fa fa-search"></i> </button>
-            </div>
-            <div class="ms-auto">
-                <button type="button" class="btn btn-danger btn-sm" id="btnDeleteSelected" style="display:none;"> <i class="fa fa-trash"></i> Delete </button>
-            </div>
-        </div>
             <div class="table-responsive">
                 <table class="table table-bordered table-sm" id="list-table">
                     <thead>
@@ -280,6 +283,27 @@
             theme: 'bootstrap4'
         })
 
+        // Helper: tambah header filter input ke DataTable
+        function addHeaderFilter(tableInstance, tableId, skipCols) {
+            skipCols = skipCols || [];
+            let $thead = $(tableId + ' thead');
+            $thead.find('tr.filter-row').remove();
+            let $filterRow = $thead.find('tr:first').clone(false).addClass('filter-row');
+            $filterRow.find('th').each(function (i) {
+                if (skipCols.includes(i)) {
+                    $(this).html('');
+                    return;
+                }
+                $(this).html('<input type="text" class="form-control form-control-sm" placeholder="" style="width:100%;min-width:60px;">');
+                $('input', this).on('keyup change', function () {
+                    if (tableInstance.column(i).search() !== this.value) {
+                        tableInstance.column(i).search(this.value).draw();
+                    }
+                });
+            });
+            $thead.append($filterRow);
+        }
+
         let listTable = $("#list-table").DataTable({
             ordering: false,
             processing: true,
@@ -365,6 +389,29 @@
                 },
             ]
         });
+        addHeaderFilter(listTable, '#list-table', [0]); // skip kolom checkbox (index 0)
+
+        function exportListData() {
+            let params = new URLSearchParams({
+                dateFrom : $('#tgl-awal').val(),
+                dateTo   : $('#tgl-akhir').val(),
+            });
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Menyiapkan file Excel...',
+                didOpen: () => { Swal.showLoading(); },
+                allowOutsideClick: false,
+            });
+
+            let a = document.createElement('a');
+            a.href = '{{ route("export-inject-mutasi-sewing") }}?' + params.toString();
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            setTimeout(() => Swal.close(), 1500);
+        }
 
         function listTableReload() {
             showLoading();
@@ -430,6 +477,7 @@
                 { data: 'pc_packing_scan' },
             ]
         });
+        addHeaderFilter(table_detail_item, '#datatable', []); // semua kolom bisa difilter
 
         function submitUploadForm(form, event) {
             event.preventDefault();
@@ -497,6 +545,7 @@
                         });
 
                         $('#importExcel').modal('hide');
+                        addHeaderFilter(table_detail_item, '#datatable', []);
 
                         Swal.fire('Success', 'Data berhasil diimport', 'success');
                     }
