@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Marker\MarkerController;
+use App\Http\Controllers\Marker\MarkerToolsController;
 
 
 Route::middleware('auth')->group(function () {
@@ -30,5 +31,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-count', 'getCount')->name('get-marker-count');
         // get number
         Route::get('/get-number', 'getNumber')->name('get-marker-number');
+    });
+
+    Route::controller(MarkerToolsController::class)->prefix("marker/tools")->middleware('role:marker')->group(function () {
+        Route::get('/', 'index')->name('marker-tools');
+        Route::get('/activity-log', 'getMarkerActivityLog')->name('marker-activity-log');
+        Route::get('/activity-log/export', 'exportMarkerActivityLog')->name('marker-activity-log-export');
     });
 });
