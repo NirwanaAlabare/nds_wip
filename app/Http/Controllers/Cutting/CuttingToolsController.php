@@ -1414,9 +1414,62 @@ class CuttingToolsController extends Controller
             WHERE activity_log.subject_type LIKE ?
                 AND activity_log.description = COALESCE(NULLIF(?, ''), activity_log.description)
                 AND DATE(activity_log.created_at) BETWEEN ? AND ?
-        ", ['%' . $type . '%', $request->activity, $request->tanggal_awal, $request->tanggal_akhir]);
+        ", [
+            '%' . $type . '%',
+            $request->activity,
+            $request->tanggal_awal,
+            $request->tanggal_akhir
+        ]);
 
-        return DataTables::of($data)->toJson();
+        return DataTables::of($data)
+            ->addColumn('properties_formatted', function ($row) {
+
+                $props = json_decode($row->properties, true);
+
+                if (!$props) {
+                    return '-';
+                }
+
+                $attributes = $props['attributes'] ?? [];
+                $old        = $props['old'] ?? [];
+
+                $lines = [];
+
+                $keys = array_unique(
+                    array_merge(
+                        array_keys($attributes),
+                        array_keys($old)
+                    )
+                );
+
+                foreach ($keys as $key) {
+                    $newVal = $attributes[$key] ?? null;
+                    $oldVal = $old[$key] ?? null;
+
+                    if (
+                        $oldVal !== null &&
+                        $newVal !== null &&
+                        $oldVal != $newVal
+                    ) {
+                        $lines[] = "<b>{$key}</b>: <span class='text-muted'>"
+                            . e($oldVal)
+                            . "</span> → <span class='text-primary'>"
+                            . e($newVal)
+                            . "</span>";
+                    } elseif (
+                        $newVal !== null &&
+                        $oldVal === null
+                    ) {
+                        $lines[] = "<b>{$key}</b>: <span class='text-success'>"
+                            . e($newVal)
+                            . "</span>";
+                    }
+                }
+
+                return implode('<br>', $lines) ?: '-';
+            })
+            ->rawColumns(['properties_formatted'])
+            ->toJson();
     }
 
     public function getLogsCuttingActivity(Request $request)

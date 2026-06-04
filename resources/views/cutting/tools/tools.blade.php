@@ -776,6 +776,7 @@
                                             <th>Tanggal</th>
                                             <th>Activity</th>
                                             <th>Type</th>
+                                            <th>Properties</th>
                                             <th>User</th>
                                         </tr>
                                     </thead>
@@ -2150,6 +2151,19 @@
         }
 
         // Log Cutting
+        $(document).on('click', '.btn-toggle-properties-cutting', function (e) {
+            e.preventDefault();
+            let $wrap = $(this).prev('.properties-cutting-wrap');
+            let expanded = $wrap.data('expanded');
+            if (expanded) {
+                $wrap.css('max-height', '42px').data('expanded', false);
+                $(this).html('<i class="fas fa-chevron-down fa-xs"></i> Lihat');
+            } else {
+                $wrap.css('max-height', $wrap[0].scrollHeight + 'px').data('expanded', true);
+                $(this).html('<i class="fas fa-chevron-up fa-xs"></i> Sembunyikan');
+            }
+        });
+        
         $('#logs_cutting_subject_type').on('change', function() {
             loadActivity();
             logsCuttingReload()
@@ -2200,9 +2214,33 @@
                         data: 'subject_type'
                     },
                     {
+                        data: 'properties_formatted',
+                        orderable: false,
+                        searchable: false,
+                    },
+                    {
                         data: 'user_name'
                     }
-                ]
+                ],
+                columnDefs: [
+                    {
+                        targets: [3],
+                        render: (data) => {
+                            if (!data || data === '-') return '-';
+                            return `
+                                <div class="properties-cutting-wrap" style="max-height:45px;overflow:hidden;transition:max-height .3s ease;">
+                                    <small>${data}</small>
+                                </div>
+                                <a href="#" class="btn-toggle-properties-cutting text-primary" style="font-size:11px;cursor:pointer;">
+                                    <i class="fas fa-chevron-down fa-xs"></i> Lihat
+                                </a>`;
+                        },
+                    },
+                    {
+                        targets: '_all',
+                        defaultContent: '-',
+                    },
+                ],
             });
         }
 
