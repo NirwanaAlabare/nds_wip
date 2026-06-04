@@ -1395,6 +1395,48 @@ class CuttingToolsController extends Controller
 
     public function getLogsCutting(Request $request)
     {
+        if ($request->subject_type == 'form_cut_input') {
+            $type = 'FormCutInput';
+        } else {
+            $type = '';
+        }
+
+        $data = DB::select("
+            SELECT
+                activity_log.created_at,
+                activity_log.description as activity,
+                SUBSTRING_INDEX(activity_log.subject_type, '\\\\', -1) AS subject_type,
+                activity_log.properties,
+                users.username AS user_name
+            FROM activity_log
+            LEFT JOIN users
+                ON users.id = activity_log.causer_id
+            WHERE activity_log.subject_type LIKE ?
+                AND activity_log.description = COALESCE(NULLIF(?, ''), activity_log.description)
+                AND DATE(activity_log.created_at) BETWEEN ? AND ?
+        ", ['%' . $type . '%', $request->activity, $request->tanggal_awal, $request->tanggal_akhir]);
+
+        return DataTables::of($data)->toJson();
+    }
+
+    public function getLogsCuttingActivity(Request $request)
+    {
+        if ($request->subject_type == 'form_cut_input') {
+            $type = 'FormCutInput';
+        } else {
+            return response()->json([]);
+        }
+
+        $data = DB::table('activity_log')
+            ->where('subject_type', 'like', '%' . $type . '%')
+            ->distinct()
+            ->pluck('description');
+
+        return response()->json($data);
+    }
+
+    public function getLogsCuttingPiece(Request $request)
+    {
         if($request->subject_type == 'form_cut_piece'){
             $type = 'CuttingFormPiece';
         }else{
@@ -1420,12 +1462,10 @@ class CuttingToolsController extends Controller
         return DataTables::of($data)->toJson();
     }
 
-    public function getLogsCuttingActivity(Request $request)
+    public function getLogsCuttingPieceActivity(Request $request)
     {
         if ($request->subject_type == 'form_cut_piece') {
             $type = 'CuttingFormPiece';
-        } elseif ($request->subject_type == 'form_cut_input') {
-            $type = 'CuttingFormInput';
         } else {
             return response()->json([]);
         }
