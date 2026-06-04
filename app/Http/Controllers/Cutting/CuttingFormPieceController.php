@@ -201,6 +201,11 @@ class CuttingFormPieceController extends Controller
                 ]);
 
                 if ($storeFormCutPiece) {
+                    logHistory(
+                        $storeFormCutPiece->id,
+                        $storeFormCutPiece->toArray()
+                    );
+
                     session(['currentFormCutPiece' => $storeFormCutPiece->id]);
 
                     return array(
@@ -287,6 +292,13 @@ class CuttingFormPieceController extends Controller
                         ]);
 
                         if ($updateFormCutPiece) {
+
+                            $dataLog = FormCutPiece::where("id", $validatedRequest["id"])->first();
+                            logHistory(
+                                $dataLog->id,
+                                $dataLog->toArray()
+                            );
+
                             $thisFormCutPieceDetail = FormCutPieceDetail::with("scannedItem")->where("id", $storeFormCutPieceDetail->id)->first();
 
                             return array(
@@ -377,6 +389,12 @@ class CuttingFormPieceController extends Controller
                         // // finishing
                         // $this->finishProcess($validatedRequest["id"]);
 
+                        $dataLog = FormCutPiece::where("id", $validatedRequest["id"])->first();
+                        logHistory(
+                            $dataLog->id,
+                            $dataLog->toArray()
+                        );
+
                         return array(
                             "status" => 200,
                             "message" => "Data Cutting Pcs berhasil disimpan.",
@@ -399,6 +417,12 @@ class CuttingFormPieceController extends Controller
                     "waktu_selesai" => Carbon::now(),
                     "status" => 'complete',
                 ]);
+
+                $dataLog = FormCutPiece::where("id", $validatedRequest["id"])->first();
+                logHistory(
+                    $dataLog->id,
+                    $dataLog->toArray()
+                );
 
                 session()->forget('currentFormCutPiece');
 
@@ -465,6 +489,11 @@ class CuttingFormPieceController extends Controller
             $currentForm->waktu_selesai = Carbon::now();
             $currentForm->status = "complete";
             $currentForm->save();
+
+            logHistory(
+                $currentForm->id,
+                $currentForm->toArray()
+            );
 
             return true;
         }
@@ -615,6 +644,11 @@ class CuttingFormPieceController extends Controller
 
                 if ($updateFormCutPiece) {
                     $updatedFormCutPiece = FormCutPiece::where("id", $validatedRequest["id"])->where("no_form", $validatedRequest["no_form"])->first();
+
+                    logHistory(
+                        $updatedFormCutPiece->id,
+                        $updatedFormCutPiece->toArray()
+                    );
 
                     session(['currentFormCutPiece' => $updatedFormCutPiece->id]);
 
@@ -979,6 +1013,11 @@ class CuttingFormPieceController extends Controller
                         ]);
                     }
 
+                    logHistory(
+                        $id,
+                        $formCutPieceDetails->toArray()
+                    );
+
                     FormCutPieceDetail::whereIn("id", $formCutPieceDetailIds)->delete();
                     FormCutPieceDetailSize::whereIn("id", $formCutPieceDetailSizeIds)->delete();
                 }
@@ -1144,6 +1183,15 @@ class CuttingFormPieceController extends Controller
                 'status' => $request->status,
                 'updated_at' => now()
             ]);
+
+        $data = DB::table('form_cut_piece')
+            ->where('id', $request->id)
+            ->first();
+
+        logHistory(
+            $data->id,
+            (array) $data
+        );
 
         return array(
             "status" => 200,

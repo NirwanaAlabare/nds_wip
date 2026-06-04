@@ -258,10 +258,12 @@
                         <div class="spinner-border spinner-border-sm me-2"></div> Memuat detail...
                     </div>
                     <div id="modal-table-wrap" style="display:none;">
+                        <div style="overflow-y:auto; max-height:calc(100vh - 320px);">
                         <table class="table table-bordered table-hover table-sm mb-0" style="font-size:13px;">
-                            <thead class="table-dark">
+                            <thead class="table-dark" style="position:sticky;top:0;z-index:5;">
                                 <tr>
                                     <th>Buyer</th>
+                                    <th>WS</th>
                                     <th>Style</th>
                                     <th>Color</th>
                                     <th>Size</th>
@@ -272,9 +274,9 @@
                                 </tr>
                             </thead>
                             <tbody id="modal-tbody"></tbody>
-                            <tfoot>
+                            <tfoot style="position:sticky;bottom:0;z-index:5;">
                                 <tr class="fw-bold table-secondary">
-                                    <td colspan="4">Total</td>
+                                    <td colspan="5">Total</td>
                                     <td class="text-end" id="ft-sa">0</td>
                                     <td class="text-end" id="ft-out">0</td>
                                     <td class="text-end" id="ft-trf">0</td>
@@ -282,6 +284,7 @@
                                 </tr>
                             </tfoot>
                         </table>
+                        </div>
                     </div>
                     <div id="modal-empty" style="display:none;" class="text-center py-4 text-muted">Tidak ada data detail.</div>
                 </div>
@@ -425,6 +428,7 @@ function openDetail(el) {
                 $('#modal-tbody').append(
                     '<tr>' +
                     '<td>' + r.buyer   + '</td>' +
+                    '<td>' + r.ws      + '</td>' +
                     '<td>' + r.styleno + '</td>' +
                     '<td>' + r.color   + '</td>' +
                     '<td>' + r.size    + '</td>' +
