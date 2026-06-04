@@ -476,5 +476,9 @@ Route::middleware('auth')->group(function () {
             Route::get('/check-empty-piece-detail', 'checkEmptyPieceDetail')->name('check-empty-piece-detail');
             Route::post('/check-empty-piece-detail-list', 'checkEmptyPieceDetailList')->name('check-empty-piece-detail-list');
             Route::post('/delete-empty-piece-detail', 'deleteEmptyPieceDetail')->name('delete-empty-piece-detail');
+
+            // Logs cutting
+            Route::get('/get-logs-cutting', 'getLogsCutting')->name('get-logs-cutting');
+            Route::get('/get-logs-cutting-activity', 'getLogsCuttingActivity')->name('get-logs-cutting-activity');
         });
 });

@@ -1392,4 +1392,49 @@ class CuttingToolsController extends Controller
             ];
         }
     }
+
+    public function getLogsCutting(Request $request)
+    {
+        if($request->subject_type == 'form_cut_piece'){
+            $type = 'CuttingFormPiece';
+        }else{
+            $type = '';
+        }
+
+        $data = DB::select("
+            SELECT
+                activity_log_history.created_at,
+                activity_log_history.activity,
+                activity_log_history.subject_type,
+                activity_log_history.route_name,
+                activity_log_history.properties,
+                users.username AS user_name
+            FROM activity_log_history
+            LEFT JOIN users
+                ON users.id = activity_log_history.user_id
+            WHERE activity_log_history.subject_type = ? 
+                AND activity_log_history.activity = COALESCE(NULLIF(?, ''), activity_log_history.activity)
+                AND DATE(activity_log_history.created_at) BETWEEN ? AND ?
+        ", [$type, $request->activity, $request->tanggal_awal, $request->tanggal_akhir]);
+
+        return DataTables::of($data)->toJson();
+    }
+
+    public function getLogsCuttingActivity(Request $request)
+    {
+        if ($request->subject_type == 'form_cut_piece') {
+            $type = 'CuttingFormPiece';
+        } elseif ($request->subject_type == 'form_cut_input') {
+            $type = 'CuttingFormInput';
+        } else {
+            return response()->json([]);
+        }
+
+        $data = DB::table('activity_log_history')
+            ->where('subject_type', $type)
+            ->distinct()
+            ->pluck('activity');
+
+        return response()->json($data);
+    }
 }
