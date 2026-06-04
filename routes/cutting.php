@@ -480,5 +480,9 @@ Route::middleware('auth')->group(function () {
             // Logs cutting
             Route::get('/get-logs-cutting', 'getLogsCutting')->name('get-logs-cutting');
             Route::get('/get-logs-cutting-activity', 'getLogsCuttingActivity')->name('get-logs-cutting-activity');
+
+            // Logs cutting piece
+            Route::get('/get-logs-cutting-piece', 'getLogsCuttingPiece')->name('get-logs-cutting-piece');
+            Route::get('/get-logs-cutting-piece-activity', 'getLogsCuttingPieceActivity')->name('get-logs-cutting-piece-activity');
         });
 });
