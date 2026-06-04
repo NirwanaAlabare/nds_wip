@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\ActivityLogHistory;
+
 function is_decimal($val)
 {
     return is_numeric($val) && floor($val) != $val;
@@ -142,4 +144,35 @@ function addQuotesAround($inputStr)
     $result = implode(', ', $parts);
 
     return $result;  // Return the result without an extra comma at the end
+}
+
+function logHistory($subjectId = null, array $properties = [])
+{
+    $route = request()->route();
+    $action = $route ? $route->getActionName() : null;
+
+    $activity = null;
+    $subjectType = null;
+
+    if ($action && strpos($action, '@') !== false) {
+
+        list($controller, $method) = explode('@', $action);
+
+        $activity = $method;
+
+        $subjectType = str_replace(
+            'Controller',
+            '',
+            class_basename($controller)
+        );
+    }
+
+    ActivityLogHistory::create([
+        'activity'     => $activity,
+        'subject_type' => $subjectType,
+        'subject_id'   => $subjectId,
+        'route_name'   => $route ? $route->getName() : null,
+        'properties'   => $properties,
+        'user_id'      => auth()->id(),
+    ]);
 }

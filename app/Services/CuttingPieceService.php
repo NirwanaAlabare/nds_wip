@@ -168,6 +168,11 @@ class CuttingPieceService
             // Update Chained Qty
             $this->fixChainedQty($formDetail->id, $diffQty);
 
+            logHistory(
+                $formDetail->id,
+                $formDetail->toArray()
+            );
+
             return "Form {$form->no_form} berhasil diubah <br>$updateMessage";
         });
     }
@@ -265,6 +270,11 @@ class CuttingPieceService
             ]);
 
             $this->fixChainedQty($formDetail->id, $qtyUsageBefore);
+
+            logHistory(
+                $formDetail->id,
+                $formDetail->toArray()
+            );
 
             FormCutPieceDetailSize::where("form_detail_id", $formDetail->id)->delete();
             $formDetail->delete();
