@@ -1125,7 +1125,7 @@ class PartController extends Controller
             where("part_detail_id", $validatedRequest['edit_id'])->
             count();
 
-        if ($checkDc < 1) {
+        if ($checkDc < 1 || (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0)) {
             $update_part = PartDetail::where("id", $validatedRequest['edit_id'])->
                 update([
                     'tujuan' => $validatedRequest['edit_tujuan'],
@@ -1218,14 +1218,16 @@ class PartController extends Controller
                 // Update DC Transaction if exist
                 $partService->updateDcTransaction($validatedRequest['edit_id']);
 
-                // Similar Recursive Call
+                // Similar Recursive Call — propagate secondary changes to complement parts
                 $similarPartDetail = PartDetail::where("from_part_detail", $validatedRequest['edit_id'])->get();
                 if ($similarPartDetail) {
                     foreach ($similarPartDetail as $similar) {
-                        $similarRequest = new Request(array_merge($request->all(), [
-                            'edit_id' => $similar->id,
-                        ]));
-                        $this->updatePartSecondary($similarRequest);
+                        $similarRequest = new Request([
+                            'edit_com_id'             => $similar->id,
+                            'edit_com_master_part_id' => $similar->master_part_id,
+                            'edit_com_from_part_id'   => $validatedRequest['edit_id'],
+                        ]);
+                        $this->updatePartSecondaryComplement($similarRequest);
                     }
                 }
 

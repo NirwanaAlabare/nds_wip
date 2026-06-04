@@ -58,6 +58,13 @@ table tr.selected td{
     color: inherit !important;
 }
 
+table tr.selected span{
+    background-color: inherit !important;
+    color: inherit !important;
+    padding: 2px 5px !important;
+    border-radius: 3px !important;
+}
+
 /* Vertical Table */
 table.vertical thead {
     float: left;
