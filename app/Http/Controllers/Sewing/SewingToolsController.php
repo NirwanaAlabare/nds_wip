@@ -4954,6 +4954,11 @@ class SewingToolsController extends Controller
                 'qty_reject_in'                   => $row[35] ?? null,
                 'qty_rejected'                    => $row[36] ?? null,
                 'qty_reworked'                    => $row[37] ?? null,
+                'packing_rft'                     => $row[38] ?? null,
+                'packing_reject'                  => $row[39] ?? null,
+                'packing_keluar'                  => $row[40] ?? null,
+                'pc_terima'                       => $row[41] ?? null,
+                'pc_packing_scan'                 => $row[42] ?? null,
             ];
         }
 
@@ -5010,6 +5015,11 @@ class SewingToolsController extends Controller
                 'qty_reject_in' => $item['qty_reject_in'],
                 'qty_rejected' => $item['qty_rejected'],
                 'qty_reworked' => $item['qty_reworked'],
+                'packing_rft' => $item['packing_rft'],
+                'packing_reject' => $item['packing_reject'],
+                'packing_keluar' => $item['packing_keluar'],
+                'pc_terima' => $item['pc_terima'],
+                'pc_packing_scan' => $item['pc_packing_scan'],
             ]);
         }
 
@@ -5050,6 +5060,113 @@ class SewingToolsController extends Controller
         ");
 
         return Datatables::of($data)->toJson();
+    }
+
+    public function exportDataInjectMutasiSewing(Request $request)
+    {
+        ini_set('max_execution_time', 3600);
+
+        $tglAwal  = $request->dateFrom ?? date('Y-m-d');
+        $tglAkhir = $request->dateTo   ?? date('Y-m-d');
+
+        $data = DB::connection("mysql_sb")->select("
+            SELECT *
+            FROM inject_mutasi_sewing
+            WHERE tgl_saldo BETWEEN '$tglAwal' AND '$tglAkhir'
+            ORDER BY no DESC
+        ");
+
+        $excel = FastExcel::create('Inject Mutasi Sewing');
+        $sheet = $excel->getSheet();
+
+        $sheet->writeTo('A1', 'Data Inject Mutasi Sewing', ['font-size' => 14, 'font-bold' => true]);
+        $sheet->mergeCells('A1:AR1');
+
+        $sheet->writeTo('A2', 'Periode : ' . $tglAwal . ' s/d ' . $tglAkhir);
+        $sheet->mergeCells('A2:AR2');
+
+        $headers = [
+            'A3' => 'Tgl Saldo',              'B3' => 'Type Saldo',
+            'C3' => 'Buyer',                   'D3' => 'WS',
+            'E3' => 'Style',                   'F3' => 'Color',
+            'G3' => 'Size',                    'H3' => 'Qty Loading',
+            'I3' => 'Input Rework Sewing',     'J3' => 'Input Rework Spotcleaning',
+            'K3' => 'Input Rework Mending',    'L3' => 'Defect Sewing',
+            'M3' => 'Defect Spotcleaning',     'N3' => 'Defect Mending',
+            'O3' => 'Qty Sew Reject',          'P3' => 'Qty Sewing',
+            'Q3' => 'Input Rework Sewing F',   'R3' => 'Input Rework Spotcleaning F',
+            'S3' => 'Input Rework Mending F',  'T3' => 'Defect Sewing F',
+            'U3' => 'Defect Spotcleaning F',   'V3' => 'Defect Mending F',
+            'W3' => 'Qty Fin Reject',          'X3' => 'Qty Finishing',
+            'Y3' => 'Total In SP',             'Z3' => 'Rework SP',
+            'AA3' => 'Defect SP',              'AB3' => 'Reject SP',
+            'AC3' => 'RFT SP',                 'AD3' => 'Total Defect Sewing',
+            'AE3' => 'Total Input Rework Sewing', 'AF3' => 'Total Defect Spotcleaning',
+            'AG3' => 'Total Input Rework Spotcleaning', 'AH3' => 'Total Defect Mending',
+            'AI3' => 'Total Input Rework Mending', 'AJ3' => 'Qty Reject In',
+            'AK3' => 'Qty Rejected',           'AL3' => 'Qty Reworked',
+            'AM3' => 'Packing RFT',            'AN3' => 'Packing Reject',
+            'AO3' => 'Packing Keluar',         'AP3' => 'Packing Central Terima',
+            'AQ3' => 'Packing Central Packing Scan',
+        ];
+
+        foreach ($headers as $cell => $label) {
+            $sheet->writeTo($cell, $label)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        }
+
+        $sheet->writeAreas();
+
+        foreach ($data as $row) {
+            $sheet->writeRow([
+                $row->tgl_saldo                       ?? '-',
+                $row->type_saldo                      ?? '-',
+                $row->buyer                           ?? '-',
+                $row->ws                              ?? '-',
+                $row->styleno                         ?? '-',
+                $row->color                           ?? '-',
+                $row->size                            ?? '-',
+                $row->qty_loading                     ?? 0,
+                $row->input_rework_sewing             ?? 0,
+                $row->input_rework_spotcleaning       ?? 0,
+                $row->input_rework_mending            ?? 0,
+                $row->defect_sewing                   ?? 0,
+                $row->defect_spotcleaning             ?? 0,
+                $row->defect_mending                  ?? 0,
+                $row->qty_sew_reject                  ?? 0,
+                $row->qty_sewing                      ?? 0,
+                $row->input_rework_sewing_f           ?? 0,
+                $row->input_rework_spotcleaning_f     ?? 0,
+                $row->input_rework_mending_f          ?? 0,
+                $row->defect_sewing_f                 ?? 0,
+                $row->defect_spotcleaning_f           ?? 0,
+                $row->defect_mending_f                ?? 0,
+                $row->qty_fin_reject                  ?? 0,
+                $row->qty_finishing                   ?? 0,
+                $row->total_in_sp                     ?? 0,
+                $row->rework_sp                       ?? 0,
+                $row->defect_sp                       ?? 0,
+                $row->reject_sp                       ?? 0,
+                $row->rft_sp                          ?? 0,
+                $row->total_defect_sewing             ?? 0,
+                $row->total_input_rework_sewing       ?? 0,
+                $row->total_defect_spotcleaning       ?? 0,
+                $row->total_input_rework_spotcleaning ?? 0,
+                $row->total_defect_mending            ?? 0,
+                $row->total_input_rework_mending      ?? 0,
+                $row->qty_reject_in                   ?? 0,
+                $row->qty_rejected                    ?? 0,
+                $row->qty_reworked                    ?? 0,
+                $row->packing_rft                     ?? 0,
+                $row->packing_reject                  ?? 0,
+                $row->packing_keluar                  ?? 0,
+                $row->pc_terima                       ?? 0,
+                $row->pc_packing_scan                 ?? 0,
+            ])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        }
+
+        $filename = 'Inject_Mutasi_Sewing_' . $tglAwal . '_sd_' . $tglAkhir . '.xlsx';
+
+        return $excel->download($filename);
     }
 
     public function modifyPackingPo() {
@@ -5437,7 +5554,10 @@ class SewingToolsController extends Controller
 
                 $updated = DB::connection("mysql_sb")->table($outputTable)
                     ->where('id', $row->id)
-                    ->update(['master_plan_id' => $targetPlanId]);
+                    ->update([
+                        'master_plan_id' => $targetPlanId,
+                        'updated_at'     => DB::raw('updated_at'),
+                    ]);
 
                 if ($updated) {
                     $fixed++;

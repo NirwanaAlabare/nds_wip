@@ -408,10 +408,10 @@ class RollController extends Controller
                     0 lebar_actual,
                     '-' unit_lebar_actual,
                     form_cut_piece_detail.id_roll,
-                    scanned_item.id_item,
-                    scanned_item.detail_item,
-                    COALESCE ( scanned_item.roll_buyer, scanned_item.roll ) roll,
-                    scanned_item.lot,
+                    COALESCE(scanned_item.id_item, form_cut_piece_detail.id_item ) id_item,
+                    COALESCE(scanned_item.detail_item, form_cut_piece_detail.detail_item ) detail_item,
+                    COALESCE(COALESCE ( scanned_item.roll_buyer, scanned_item.roll ), COALESCE ( form_cut_piece_detail.roll_buyer, form_cut_piece_detail.roll )) roll,
+                    COALESCE(scanned_item.lot, form_cut_piece_detail.lot ) lot,
                     '-' group_roll,
                     ( CASE WHEN form_cut_piece_detail.qty >= COALESCE ( scanned_item.qty_in, 0 ) THEN 'Roll Utuh' ELSE 'Sisa Kain' END ) status_roll,
                     COALESCE ( scanned_item.qty_in, form_cut_piece_detail.qty ) qty_awal,
@@ -449,8 +449,7 @@ class RollController extends Controller
                     LEFT JOIN ( SELECT * FROM master_sb_ws GROUP BY id_act_cost ) master_sb_ws ON master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
                     LEFT JOIN scanned_item ON scanned_item.id_roll = form_cut_piece_detail.id_roll
                 WHERE
-                    scanned_item.id_item IS NOT NULL
-                    AND form_cut_piece_detail.STATUS = 'complete'
+                    form_cut_piece_detail.STATUS = 'complete'
                     " . $additionalQuery2 . "
                     " . $keywordQuery2 . "
                 GROUP BY
@@ -798,10 +797,10 @@ class RollController extends Controller
                     0 lebar_actual,
                     '-' unit_lebar_actual,
                     form_cut_piece_detail.id_roll,
-                    scanned_item.id_item,
-                    scanned_item.detail_item,
-                    COALESCE ( scanned_item.roll_buyer, scanned_item.roll ) roll,
-                    scanned_item.lot,
+                    COALESCE(scanned_item.id_item, form_cut_piece_detail.id_item ) id_item,
+                    COALESCE(scanned_item.detail_item, form_cut_piece_detail.detail_item ) detail_item,
+                    COALESCE(COALESCE ( scanned_item.roll_buyer, scanned_item.roll ), COALESCE ( form_cut_piece_detail.roll_buyer, form_cut_piece_detail.roll )) roll,
+                    COALESCE(scanned_item.lot, form_cut_piece_detail.lot ) lot,
                     '-' group_roll,
                     ( CASE WHEN form_cut_piece_detail.qty >= COALESCE ( scanned_item.qty_in, 0 ) THEN 'Roll Utuh' ELSE 'Sisa Kain' END ) status_roll,
                     COALESCE ( scanned_item.qty_in, form_cut_piece_detail.qty ) qty_awal,
@@ -839,8 +838,7 @@ class RollController extends Controller
                     LEFT JOIN ( SELECT * FROM master_sb_ws GROUP BY id_act_cost ) master_sb_ws ON master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
                     LEFT JOIN scanned_item ON scanned_item.id_roll = form_cut_piece_detail.id_roll
                 WHERE
-                    scanned_item.id_item IS NOT NULL
-                    AND form_cut_piece_detail.STATUS = 'complete'
+                    form_cut_piece_detail.STATUS = 'complete'
                     " . $additionalQuery2 . "
                 GROUP BY
                     form_cut_piece_detail.id
