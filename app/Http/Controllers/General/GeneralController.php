@@ -345,7 +345,7 @@ class GeneralController extends Controller
                     inner join masteritem mi on k.id_item = mi.id_gen
                     inner join masterpanel mp on k.id_panel = mp.id
                 where ac.id = '" . $request->act_costing_id . "' and sd.color = '" . $request->color . "' and mp.nama_panel ='" . $request->panel . "' and k.status = 'M'
-                and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
+                and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F' and (k.cons > 0 and k.unit is not null)
                 group by sd.color, k.id_item, k.unit
                 limit 1
             ");
