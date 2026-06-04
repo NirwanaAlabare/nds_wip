@@ -4954,8 +4954,11 @@ class SewingToolsController extends Controller
                 'qty_reject_in'                   => $row[35] ?? null,
                 'qty_rejected'                    => $row[36] ?? null,
                 'qty_reworked'                    => $row[37] ?? null,
-                'pc_terima'                       => $row[38] ?? null,
-                'pc_packing_scan'                 => $row[39] ?? null,
+                'packing_rft'                     => $row[38] ?? null,
+                'packing_reject'                  => $row[39] ?? null,
+                'packing_keluar'                  => $row[40] ?? null,
+                'pc_terima'                       => $row[41] ?? null,
+                'pc_packing_scan'                 => $row[42] ?? null,
             ];
         }
 
@@ -5012,6 +5015,9 @@ class SewingToolsController extends Controller
                 'qty_reject_in' => $item['qty_reject_in'],
                 'qty_rejected' => $item['qty_rejected'],
                 'qty_reworked' => $item['qty_reworked'],
+                'packing_rft' => $item['packing_rft'],
+                'packing_reject' => $item['packing_reject'],
+                'packing_keluar' => $item['packing_keluar'],
                 'pc_terima' => $item['pc_terima'],
                 'pc_packing_scan' => $item['pc_packing_scan'],
             ]);

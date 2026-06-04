@@ -128,8 +128,11 @@
                                 <th>Qty Reject In</th>
                                 <th>Qty Rejected</th>
                                 <th>Qty Reworked</th>
-                                <th>Packing Terima</th>
-                                <th>Packing Packing Scan</th>
+                                <th>Packing RFT</th>
+                                <th>Packing Reject</th>
+                                <th>Packing Keluar</th>
+                                <th>Packing Central Terima</th>
+                                <th>Packing Central Packing Scan</th>
                             </tr>
                         </thead>
                     </table>
@@ -212,8 +215,11 @@
                             <th>Qty Reject In</th>
                             <th>Qty Rejected</th>
                             <th>Qty Reworked</th>
-                            <th>Packing Terima</th>
-                            <th>Packing Packing Scan</th>
+                            <th>Packing RFT</th>
+                            <th>Packing Reject</th>
+                            <th>Packing Keluar</th>
+                            <th>Packing Central Terima</th>
+                            <th>Packing Central Packing Scan</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -345,6 +351,9 @@
                 { data: 'qty_reject_in' },
                 { data: 'qty_rejected' },
                 { data: 'qty_reworked' },
+                { data: 'packing_rft' },
+                { data: 'packing_reject' },
+                { data: 'packing_keluar' },
                 { data: 'pc_terima' },
                 { data: 'pc_packing_scan' },
             ],
@@ -414,6 +423,9 @@
                 { data: 'qty_reject_in' },
                 { data: 'qty_rejected' },
                 { data: 'qty_reworked' },
+                { data: 'packing_rft' },
+                { data: 'packing_reject' },
+                { data: 'packing_keluar' },
                 { data: 'pc_terima' },
                 { data: 'pc_packing_scan' },
             ]
@@ -476,6 +488,9 @@
                                 qty_reject_in: item.qty_reject_in,
                                 qty_rejected: item.qty_rejected,
                                 qty_reworked: item.qty_reworked,
+                                packing_rft: item.packing_rft,
+                                packing_reject: item.packing_reject,
+                                packing_keluar: item.packing_keluar,
                                 pc_terima: item.pc_terima,
                                 pc_packing_scan: item.pc_packing_scan,
                             }).draw(false);
