@@ -1887,22 +1887,22 @@ order by
         END
     ) AS defect_spotcleaning_adjust,
 
-    -- DEFECT MANDING
+    -- DEFECT MENDING
     SUM(
         CASE
-            WHEN type_report = 'DEFECT MANDING'
+            WHEN type_report = 'DEFECT MENDING'
                  AND tgl_saldo < '$start_date'
             THEN qty ELSE 0
         END
-    ) AS defect_manding_adjust_before,
+    ) AS defect_mending_adjust_before,
 
     SUM(
         CASE
-            WHEN type_report = 'DEFECT MANDING'
+            WHEN type_report = 'DEFECT MENDING'
                  AND tgl_saldo >= '$start_date'
             THEN qty ELSE 0
         END
-    ) AS defect_manding_adjust,
+    ) AS defect_mending_adjust,
 
     -- QC REJECT
     SUM(
@@ -1929,7 +1929,7 @@ AND type_report IN (
     'FINISHING',
     'DEFECT SEWING',
     'DEFECT SPOTCLEANING',
-    'DEFECT MANDING',
+    'DEFECT MENDING',
     'QC REJECT'
 )
 AND status = 'Y'
@@ -2030,20 +2030,20 @@ GROUP BY
         ) AS defect_spotcleaning_switching_in,
         SUM(
             CASE
-                WHEN type_report = 'DEFECT MANDING'
+                WHEN type_report = 'DEFECT MENDING'
                     AND tgl_saldo < '{$start_date}'
                 THEN qty
                 ELSE 0
             END
-        ) AS defect_manding_switching_in_before,
+        ) AS defect_mending_switching_in_before,
         SUM(
             CASE
-                WHEN type_report = 'DEFECT MANDING'
+                WHEN type_report = 'DEFECT MENDING'
                     AND tgl_saldo >= '{$start_date}'
                 THEN qty
                 ELSE 0
             END
-        ) AS defect_manding_switching_in,
+        ) AS defect_mending_switching_in,
         SUM(
             CASE
                 WHEN type_report = 'QC REJECT'
@@ -2070,8 +2070,8 @@ GROUP BY
         0 AS defect_sewing_switching_out,
         0 AS defect_spotcleaning_switching_out_before,
         0 AS defect_spotcleaning_switching_out,
-        0 AS defect_manding_switching_out_before,
-        0 AS defect_manding_switching_out,
+        0 AS defect_mending_switching_out_before,
+        0 AS defect_mending_switching_out,
         0 AS qc_reject_switching_out_before,
         0 AS qc_reject_switching_out
     FROM
@@ -2084,7 +2084,7 @@ GROUP BY
             'FINISHING',
             'DEFECT SEWING',
             'DEFECT SPOTCLEANING',
-            'DEFECT MANDING',
+            'DEFECT MENDING',
             'QC REJECT'
         )
     GROUP BY
@@ -2108,8 +2108,8 @@ GROUP BY
         0 AS defect_sewing_switching_in,
         0 AS defect_spotcleaning_switching_in_before,
         0 AS defect_spotcleaning_switching_in,
-        0 AS defect_manding_switching_in_before,
-        0 AS defect_manding_switching_in,
+        0 AS defect_mending_switching_in_before,
+        0 AS defect_mending_switching_in,
         0 AS qc_reject_switching_in_before,
         0 AS qc_reject_switching_in,
         SUM(
@@ -2194,20 +2194,20 @@ GROUP BY
         ) AS defect_spotcleaning_switching_out,
         SUM(
             CASE
-                WHEN type_report = 'DEFECT MANDING'
+                WHEN type_report = 'DEFECT MENDING'
                     AND from_tgl_saldo < '{$start_date}'
                 THEN qty
                 ELSE 0
             END
-        ) AS defect_manding_switching_out_before,
+        ) AS defect_mending_switching_out_before,
         SUM(
             CASE
-                WHEN type_report = 'DEFECT MANDING'
+                WHEN type_report = 'DEFECT MENDING'
                     AND from_tgl_saldo >= '{$start_date}'
                 THEN qty
                 ELSE 0
             END
-        ) AS defect_manding_switching_out,
+        ) AS defect_mending_switching_out,
         SUM(
             CASE
                 WHEN type_report = 'QC REJECT'
@@ -2234,7 +2234,7 @@ GROUP BY
             'FINISHING',
             'DEFECT SEWING',
             'DEFECT SPOTCLEANING',
-            'DEFECT MANDING',
+            'DEFECT MENDING',
             'QC REJECT'
         )
     GROUP BY
@@ -2306,13 +2306,13 @@ SUM(COALESCE(defect_spotcleaning_switching_in,0)) defect_spotcleaning_switching_
 SUM(COALESCE(defect_spotcleaning_switching_out,0)) defect_spotcleaning_switching_out,
 SUM(saldo_akhir_defect_spotcleaning + COALESCE(defect_spotcleaning_adjust_before,0) + COALESCE(defect_spotcleaning_switching_in_before,0) - COALESCE(defect_spotcleaning_switching_out_before,0) + COALESCE(defect_spotcleaning_adjust,0) + COALESCE(defect_spotcleaning_switching_in,0) - COALESCE(defect_spotcleaning_switching_out,0)) saldo_akhir_defect_spotcleaning,
 
-SUM(saldo_awal_defect_mending + COALESCE(defect_manding_adjust_before,0) + COALESCE(defect_manding_switching_in_before,0) - COALESCE(defect_manding_switching_out_before,0)) saldo_awal_defect_mending,
+SUM(saldo_awal_defect_mending + COALESCE(defect_mending_adjust_before,0) + COALESCE(defect_mending_switching_in_before,0) - COALESCE(defect_mending_switching_out_before,0)) saldo_awal_defect_mending,
 SUM(total_defect_mending) total_defect_mending,
 SUM(total_input_rework_mending) total_input_rework_mending,
-SUM(COALESCE(defect_manding_adjust,0)) defect_manding_adjust,
-SUM(COALESCE(defect_manding_switching_in,0)) defect_manding_switching_in,
-SUM(COALESCE(defect_manding_switching_out,0)) defect_manding_switching_out,
-SUM(saldo_akhir_mending + COALESCE(defect_manding_adjust_before,0) + COALESCE(defect_manding_switching_in_before,0) - COALESCE(defect_manding_switching_out_before,0) + COALESCE(defect_manding_adjust,0) + COALESCE(defect_manding_switching_in,0) - COALESCE(defect_manding_switching_out,0)) saldo_akhir_mending,
+SUM(COALESCE(defect_mending_adjust,0)) defect_mending_adjust,
+SUM(COALESCE(defect_mending_switching_in,0)) defect_mending_switching_in,
+SUM(COALESCE(defect_mending_switching_out,0)) defect_mending_switching_out,
+SUM(saldo_akhir_mending + COALESCE(defect_mending_adjust_before,0) + COALESCE(defect_mending_switching_in_before,0) - COALESCE(defect_mending_switching_out_before,0) + COALESCE(defect_mending_adjust,0) + COALESCE(defect_mending_switching_in,0) - COALESCE(defect_mending_switching_out,0)) saldo_akhir_mending,
 
 SUM(saldo_awal_reject + COALESCE(qc_reject_adjust_before,0) + COALESCE(qc_reject_switching_in_before,0) - COALESCE(qc_reject_switching_out_before,0)) saldo_awal_reject,
 SUM(qty_reject_in) qty_reject_in,
@@ -2322,21 +2322,21 @@ SUM(COALESCE(qc_reject_adjust,0)) qc_reject_adjust,
 SUM(COALESCE(qc_reject_switching_in,0)) qc_reject_switching_in,
 SUM(COALESCE(qc_reject_switching_out,0)) qc_reject_switching_out,
 SUM(saldo_akhir_qc_reject + COALESCE(qc_reject_adjust_before,0) + COALESCE(qc_reject_switching_in_before,0) - COALESCE(qc_reject_switching_out_before,0) + COALESCE(qc_reject_adjust,0) + COALESCE(qc_reject_switching_in,0) - COALESCE(qc_reject_switching_out,0)) saldo_akhir_qc_reject
-FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_before, 0 qc_finishing_adjust, 0 finishing_adjust_before, 0 finishing_adjust, 0 defect_sewing_adjust_before, 0 defect_sewing_adjust, 0 defect_spotcleaning_adjust_before, 0 defect_spotcleaning_adjust, 0 defect_manding_adjust_before, 0 defect_manding_adjust, 0 qc_reject_adjust_before, 0 qc_reject_adjust,
- 0 sewing_switching_in_before, 0 sewing_switching_in, 0 qc_finishing_switching_in_before, 0 qc_finishing_switching_in, 0 finishing_switching_in_before, 0 finishing_switching_in, 0 defect_sewing_switching_in_before, 0 defect_sewing_switching_in, 0 defect_spotcleaning_switching_in_before, 0 defect_spotcleaning_switching_in, 0 defect_manding_switching_in_before, 0 defect_manding_switching_in, 0 qc_reject_switching_in_before, 0 qc_reject_switching_in,
- 0 sewing_switching_out_before, 0 sewing_switching_out, 0 qc_finishing_switching_out_before, 0 qc_finishing_switching_out, 0 finishing_switching_out_before, 0 finishing_switching_out, 0 defect_sewing_switching_out_before, 0 defect_sewing_switching_out, 0 defect_spotcleaning_switching_out_before, 0 defect_spotcleaning_switching_out, 0 defect_manding_switching_out_before, 0 defect_manding_switching_out, 0 qc_reject_switching_out_before, 0 qc_reject_switching_out
+FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_before, 0 qc_finishing_adjust, 0 finishing_adjust_before, 0 finishing_adjust, 0 defect_sewing_adjust_before, 0 defect_sewing_adjust, 0 defect_spotcleaning_adjust_before, 0 defect_spotcleaning_adjust, 0 defect_mending_adjust_before, 0 defect_mending_adjust, 0 qc_reject_adjust_before, 0 qc_reject_adjust,
+ 0 sewing_switching_in_before, 0 sewing_switching_in, 0 qc_finishing_switching_in_before, 0 qc_finishing_switching_in, 0 finishing_switching_in_before, 0 finishing_switching_in, 0 defect_sewing_switching_in_before, 0 defect_sewing_switching_in, 0 defect_spotcleaning_switching_in_before, 0 defect_spotcleaning_switching_in, 0 defect_mending_switching_in_before, 0 defect_mending_switching_in, 0 qc_reject_switching_in_before, 0 qc_reject_switching_in,
+ 0 sewing_switching_out_before, 0 sewing_switching_out, 0 qc_finishing_switching_out_before, 0 qc_finishing_switching_out, 0 finishing_switching_out_before, 0 finishing_switching_out, 0 defect_sewing_switching_out_before, 0 defect_sewing_switching_out, 0 defect_spotcleaning_switching_out_before, 0 defect_spotcleaning_switching_out, 0 defect_mending_switching_out_before, 0 defect_mending_switching_out, 0 qc_reject_switching_out_before, 0 qc_reject_switching_out
  from query_final
  UNION ALL
  select buyer, no_ws, style, color, size, 0 saldo_awal_sewing, 0 qty_loading, 0 qty_in_subcont, 0 input_rework_sewing, 0 input_rework_spotcleaning, 0 input_rework_mending, 0 defect_sewing, 0 defect_spotcleaning, 0 defect_mending, 0 qty_sew_reject, 0 qty_sewing, 0 qty_out_subcont, 0 saldo_akhir_sewing, 0 saldo_awal_finishing, 0 input_rework_sewing_f, 0 input_rework_spotcleaning_f, 0 input_rework_mending_f, 0 defect_sewing_f, 0 defect_spotcleaning_f, 0 defect_mending_f, 0 qty_fin_reject, 0 qty_finishing, 0 saldo_akhir_finishing, 0 saldo_awal_secondary_proses, 0 total_in_sp, 0 rework_sp, 0 defect_sp, 0 reject_sp, 0 rft_sp, 0 saldo_akhir_secondary_proses, 0 saldo_awal_defect_sewing, 0 total_defect_sewing, 0 total_input_rework_sewing, 0 saldo_akhir_defect_sewing, 0 saldo_awal_defect_spotcleaning, 0 total_defect_spotcleaning, 0 total_input_rework_spotcleaning, 0 saldo_akhir_defect_spotcleaning, 0 saldo_awal_defect_mending, 0 total_defect_mending, 0 total_input_rework_mending, 0 saldo_akhir_mending, 0 saldo_awal_reject, 0 qty_reject_in, 0 qty_reworked, 0 qty_rejected, 0 saldo_akhir_qc_reject,
- sewing_adjust_before, sewing_adjust, qc_finishing_adjust_before, qc_finishing_adjust, finishing_adjust_before, finishing_adjust, defect_sewing_adjust_before, defect_sewing_adjust, defect_spotcleaning_adjust_before, defect_spotcleaning_adjust, defect_manding_adjust_before, defect_manding_adjust, qc_reject_adjust_before, qc_reject_adjust,
- 0 sewing_switching_in_before, 0 sewing_switching_in, 0 qc_finishing_switching_in_before, 0 qc_finishing_switching_in, 0 finishing_switching_in_before, 0 finishing_switching_in, 0 defect_sewing_switching_in_before, 0 defect_sewing_switching_in, 0 defect_spotcleaning_switching_in_before, 0 defect_spotcleaning_switching_in, 0 defect_manding_switching_in_before, 0 defect_manding_switching_in, 0 qc_reject_switching_in_before, 0 qc_reject_switching_in,
- 0 sewing_switching_out_before, 0 sewing_switching_out, 0 qc_finishing_switching_out_before, 0 qc_finishing_switching_out, 0 finishing_switching_out_before, 0 finishing_switching_out, 0 defect_sewing_switching_out_before, 0 defect_sewing_switching_out, 0 defect_spotcleaning_switching_out_before, 0 defect_spotcleaning_switching_out, 0 defect_manding_switching_out_before, 0 defect_manding_switching_out, 0 qc_reject_switching_out_before, 0 qc_reject_switching_out
+ sewing_adjust_before, sewing_adjust, qc_finishing_adjust_before, qc_finishing_adjust, finishing_adjust_before, finishing_adjust, defect_sewing_adjust_before, defect_sewing_adjust, defect_spotcleaning_adjust_before, defect_spotcleaning_adjust, defect_mending_adjust_before, defect_mending_adjust, qc_reject_adjust_before, qc_reject_adjust,
+ 0 sewing_switching_in_before, 0 sewing_switching_in, 0 qc_finishing_switching_in_before, 0 qc_finishing_switching_in, 0 finishing_switching_in_before, 0 finishing_switching_in, 0 defect_sewing_switching_in_before, 0 defect_sewing_switching_in, 0 defect_spotcleaning_switching_in_before, 0 defect_spotcleaning_switching_in, 0 defect_mending_switching_in_before, 0 defect_mending_switching_in, 0 qc_reject_switching_in_before, 0 qc_reject_switching_in,
+ 0 sewing_switching_out_before, 0 sewing_switching_out, 0 qc_finishing_switching_out_before, 0 qc_finishing_switching_out, 0 finishing_switching_out_before, 0 finishing_switching_out, 0 defect_sewing_switching_out_before, 0 defect_sewing_switching_out, 0 defect_spotcleaning_switching_out_before, 0 defect_spotcleaning_switching_out, 0 defect_mending_switching_out_before, 0 defect_mending_switching_out, 0 qc_reject_switching_out_before, 0 qc_reject_switching_out
  from query_adjust
  UNION ALL
  select buyer, no_ws, style, color, size, 0 saldo_awal_sewing, 0 qty_loading, 0 qty_in_subcont, 0 input_rework_sewing, 0 input_rework_spotcleaning, 0 input_rework_mending, 0 defect_sewing, 0 defect_spotcleaning, 0 defect_mending, 0 qty_sew_reject, 0 qty_sewing, 0 qty_out_subcont, 0 saldo_akhir_sewing, 0 saldo_awal_finishing, 0 input_rework_sewing_f, 0 input_rework_spotcleaning_f, 0 input_rework_mending_f, 0 defect_sewing_f, 0 defect_spotcleaning_f, 0 defect_mending_f, 0 qty_fin_reject, 0 qty_finishing, 0 saldo_akhir_finishing, 0 saldo_awal_secondary_proses, 0 total_in_sp, 0 rework_sp, 0 defect_sp, 0 reject_sp, 0 rft_sp, 0 saldo_akhir_secondary_proses, 0 saldo_awal_defect_sewing, 0 total_defect_sewing, 0 total_input_rework_sewing, 0 saldo_akhir_defect_sewing, 0 saldo_awal_defect_spotcleaning, 0 total_defect_spotcleaning, 0 total_input_rework_spotcleaning, 0 saldo_akhir_defect_spotcleaning, 0 saldo_awal_defect_mending, 0 total_defect_mending, 0 total_input_rework_mending, 0 saldo_akhir_mending, 0 saldo_awal_reject, 0 qty_reject_in, 0 qty_reworked, 0 qty_rejected, 0 saldo_akhir_qc_reject,
- 0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_before, 0 qc_finishing_adjust, 0 finishing_adjust_before, 0 finishing_adjust, 0 defect_sewing_adjust_before, 0 defect_sewing_adjust, 0 defect_spotcleaning_adjust_before, 0 defect_spotcleaning_adjust, 0 defect_manding_adjust_before, 0 defect_manding_adjust, 0 qc_reject_adjust_before, 0 qc_reject_adjust,
- sewing_switching_in_before, sewing_switching_in, qc_finishing_switching_in_before, qc_finishing_switching_in, finishing_switching_in_before, finishing_switching_in, defect_sewing_switching_in_before, defect_sewing_switching_in, defect_spotcleaning_switching_in_before, defect_spotcleaning_switching_in, defect_manding_switching_in_before, defect_manding_switching_in, qc_reject_switching_in_before, qc_reject_switching_in,
- sewing_switching_out_before, sewing_switching_out, qc_finishing_switching_out_before, qc_finishing_switching_out, finishing_switching_out_before, finishing_switching_out, defect_sewing_switching_out_before, defect_sewing_switching_out, defect_spotcleaning_switching_out_before, defect_spotcleaning_switching_out, defect_manding_switching_out_before, defect_manding_switching_out, qc_reject_switching_out_before, qc_reject_switching_out
+ 0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_before, 0 qc_finishing_adjust, 0 finishing_adjust_before, 0 finishing_adjust, 0 defect_sewing_adjust_before, 0 defect_sewing_adjust, 0 defect_spotcleaning_adjust_before, 0 defect_spotcleaning_adjust, 0 defect_mending_adjust_before, 0 defect_mending_adjust, 0 qc_reject_adjust_before, 0 qc_reject_adjust,
+ sewing_switching_in_before, sewing_switching_in, qc_finishing_switching_in_before, qc_finishing_switching_in, finishing_switching_in_before, finishing_switching_in, defect_sewing_switching_in_before, defect_sewing_switching_in, defect_spotcleaning_switching_in_before, defect_spotcleaning_switching_in, defect_mending_switching_in_before, defect_mending_switching_in, qc_reject_switching_in_before, qc_reject_switching_in,
+ sewing_switching_out_before, sewing_switching_out, qc_finishing_switching_out_before, qc_finishing_switching_out, finishing_switching_out_before, finishing_switching_out, defect_sewing_switching_out_before, defect_sewing_switching_out, defect_spotcleaning_switching_out_before, defect_spotcleaning_switching_out, defect_mending_switching_out_before, defect_mending_switching_out, qc_reject_switching_out_before, qc_reject_switching_out
  from query_switching
  ) a GROUP BY buyer, ws, styleno, color, size
                     ");
@@ -4204,22 +4204,22 @@ order by
         END
     ) AS defect_spotcleaning_adjust,
 
-    -- DEFECT MANDING
+    -- DEFECT MENDING
     SUM(
         CASE
-            WHEN type_report = 'DEFECT MANDING'
+            WHEN type_report = 'DEFECT MENDING'
                  AND tgl_saldo < '$start_date'
             THEN qty ELSE 0
         END
-    ) AS defect_manding_adjust_before,
+    ) AS defect_mending_adjust_before,
 
     SUM(
         CASE
-            WHEN type_report = 'DEFECT MANDING'
+            WHEN type_report = 'DEFECT MENDING'
                  AND tgl_saldo >= '$start_date'
             THEN qty ELSE 0
         END
-    ) AS defect_manding_adjust,
+    ) AS defect_mending_adjust,
 
     -- QC REJECT
     SUM(
@@ -4246,7 +4246,7 @@ AND type_report IN (
     'FINISHING',
     'DEFECT SEWING',
     'DEFECT SPOTCLEANING',
-    'DEFECT MANDING',
+    'DEFECT MENDING',
     'QC REJECT'
 )
 AND status = 'Y'
@@ -4347,20 +4347,20 @@ GROUP BY
         ) AS defect_spotcleaning_switching_in,
         SUM(
             CASE
-                WHEN type_report = 'DEFECT MANDING'
+                WHEN type_report = 'DEFECT MENDING'
                     AND tgl_saldo < '{$start_date}'
                 THEN qty
                 ELSE 0
             END
-        ) AS defect_manding_switching_in_before,
+        ) AS defect_mending_switching_in_before,
         SUM(
             CASE
-                WHEN type_report = 'DEFECT MANDING'
+                WHEN type_report = 'DEFECT MENDING'
                     AND tgl_saldo >= '{$start_date}'
                 THEN qty
                 ELSE 0
             END
-        ) AS defect_manding_switching_in,
+        ) AS defect_mending_switching_in,
         SUM(
             CASE
                 WHEN type_report = 'QC REJECT'
@@ -4387,8 +4387,8 @@ GROUP BY
         0 AS defect_sewing_switching_out,
         0 AS defect_spotcleaning_switching_out_before,
         0 AS defect_spotcleaning_switching_out,
-        0 AS defect_manding_switching_out_before,
-        0 AS defect_manding_switching_out,
+        0 AS defect_mending_switching_out_before,
+        0 AS defect_mending_switching_out,
         0 AS qc_reject_switching_out_before,
         0 AS qc_reject_switching_out
     FROM
@@ -4401,7 +4401,7 @@ GROUP BY
             'FINISHING',
             'DEFECT SEWING',
             'DEFECT SPOTCLEANING',
-            'DEFECT MANDING',
+            'DEFECT MENDING',
             'QC REJECT'
         )
     GROUP BY
@@ -4425,8 +4425,8 @@ GROUP BY
         0 AS defect_sewing_switching_in,
         0 AS defect_spotcleaning_switching_in_before,
         0 AS defect_spotcleaning_switching_in,
-        0 AS defect_manding_switching_in_before,
-        0 AS defect_manding_switching_in,
+        0 AS defect_mending_switching_in_before,
+        0 AS defect_mending_switching_in,
         0 AS qc_reject_switching_in_before,
         0 AS qc_reject_switching_in,
         SUM(
@@ -4511,20 +4511,20 @@ GROUP BY
         ) AS defect_spotcleaning_switching_out,
         SUM(
             CASE
-                WHEN type_report = 'DEFECT MANDING'
+                WHEN type_report = 'DEFECT MENDING'
                     AND from_tgl_saldo < '{$start_date}'
                 THEN qty
                 ELSE 0
             END
-        ) AS defect_manding_switching_out_before,
+        ) AS defect_mending_switching_out_before,
         SUM(
             CASE
-                WHEN type_report = 'DEFECT MANDING'
+                WHEN type_report = 'DEFECT MENDING'
                     AND from_tgl_saldo >= '{$start_date}'
                 THEN qty
                 ELSE 0
             END
-        ) AS defect_manding_switching_out,
+        ) AS defect_mending_switching_out,
         SUM(
             CASE
                 WHEN type_report = 'QC REJECT'
@@ -4551,7 +4551,7 @@ GROUP BY
             'FINISHING',
             'DEFECT SEWING',
             'DEFECT SPOTCLEANING',
-            'DEFECT MANDING',
+            'DEFECT MENDING',
             'QC REJECT'
         )
     GROUP BY
@@ -4623,13 +4623,13 @@ SUM(COALESCE(defect_spotcleaning_switching_in,0)) defect_spotcleaning_switching_
 SUM(COALESCE(defect_spotcleaning_switching_out,0)) defect_spotcleaning_switching_out,
 SUM(saldo_akhir_defect_spotcleaning + COALESCE(defect_spotcleaning_adjust_before,0) + COALESCE(defect_spotcleaning_switching_in_before,0) - COALESCE(defect_spotcleaning_switching_out_before,0) + COALESCE(defect_spotcleaning_adjust,0) + COALESCE(defect_spotcleaning_switching_in,0) - COALESCE(defect_spotcleaning_switching_out,0)) saldo_akhir_defect_spotcleaning,
 
-SUM(saldo_awal_defect_mending + COALESCE(defect_manding_adjust_before,0) + COALESCE(defect_manding_switching_in_before,0) - COALESCE(defect_manding_switching_out_before,0)) saldo_awal_defect_mending,
+SUM(saldo_awal_defect_mending + COALESCE(defect_mending_adjust_before,0) + COALESCE(defect_mending_switching_in_before,0) - COALESCE(defect_mending_switching_out_before,0)) saldo_awal_defect_mending,
 SUM(total_defect_mending) total_defect_mending,
 SUM(total_input_rework_mending) total_input_rework_mending,
-SUM(COALESCE(defect_manding_adjust,0)) defect_manding_adjust,
-SUM(COALESCE(defect_manding_switching_in,0)) defect_manding_switching_in,
-SUM(COALESCE(defect_manding_switching_out,0)) defect_manding_switching_out,
-SUM(saldo_akhir_mending + COALESCE(defect_manding_adjust_before,0) + COALESCE(defect_manding_switching_in_before,0) - COALESCE(defect_manding_switching_out_before,0) + COALESCE(defect_manding_adjust,0) + COALESCE(defect_manding_switching_in,0) - COALESCE(defect_manding_switching_out,0)) saldo_akhir_mending,
+SUM(COALESCE(defect_mending_adjust,0)) defect_mending_adjust,
+SUM(COALESCE(defect_mending_switching_in,0)) defect_mending_switching_in,
+SUM(COALESCE(defect_mending_switching_out,0)) defect_mending_switching_out,
+SUM(saldo_akhir_mending + COALESCE(defect_mending_adjust_before,0) + COALESCE(defect_mending_switching_in_before,0) - COALESCE(defect_mending_switching_out_before,0) + COALESCE(defect_mending_adjust,0) + COALESCE(defect_mending_switching_in,0) - COALESCE(defect_mending_switching_out,0)) saldo_akhir_mending,
 
 SUM(saldo_awal_reject + COALESCE(qc_reject_adjust_before,0) + COALESCE(qc_reject_switching_in_before,0) - COALESCE(qc_reject_switching_out_before,0)) saldo_awal_reject,
 SUM(qty_reject_in) qty_reject_in,
@@ -4639,21 +4639,21 @@ SUM(COALESCE(qc_reject_adjust,0)) qc_reject_adjust,
 SUM(COALESCE(qc_reject_switching_in,0)) qc_reject_switching_in,
 SUM(COALESCE(qc_reject_switching_out,0)) qc_reject_switching_out,
 SUM(saldo_akhir_qc_reject + COALESCE(qc_reject_adjust_before,0) + COALESCE(qc_reject_switching_in_before,0) - COALESCE(qc_reject_switching_out_before,0) + COALESCE(qc_reject_adjust,0) + COALESCE(qc_reject_switching_in,0) - COALESCE(qc_reject_switching_out,0)) saldo_akhir_qc_reject
-FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_before, 0 qc_finishing_adjust, 0 finishing_adjust_before, 0 finishing_adjust, 0 defect_sewing_adjust_before, 0 defect_sewing_adjust, 0 defect_spotcleaning_adjust_before, 0 defect_spotcleaning_adjust, 0 defect_manding_adjust_before, 0 defect_manding_adjust, 0 qc_reject_adjust_before, 0 qc_reject_adjust,
- 0 sewing_switching_in_before, 0 sewing_switching_in, 0 qc_finishing_switching_in_before, 0 qc_finishing_switching_in, 0 finishing_switching_in_before, 0 finishing_switching_in, 0 defect_sewing_switching_in_before, 0 defect_sewing_switching_in, 0 defect_spotcleaning_switching_in_before, 0 defect_spotcleaning_switching_in, 0 defect_manding_switching_in_before, 0 defect_manding_switching_in, 0 qc_reject_switching_in_before, 0 qc_reject_switching_in,
- 0 sewing_switching_out_before, 0 sewing_switching_out, 0 qc_finishing_switching_out_before, 0 qc_finishing_switching_out, 0 finishing_switching_out_before, 0 finishing_switching_out, 0 defect_sewing_switching_out_before, 0 defect_sewing_switching_out, 0 defect_spotcleaning_switching_out_before, 0 defect_spotcleaning_switching_out, 0 defect_manding_switching_out_before, 0 defect_manding_switching_out, 0 qc_reject_switching_out_before, 0 qc_reject_switching_out
+FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_before, 0 qc_finishing_adjust, 0 finishing_adjust_before, 0 finishing_adjust, 0 defect_sewing_adjust_before, 0 defect_sewing_adjust, 0 defect_spotcleaning_adjust_before, 0 defect_spotcleaning_adjust, 0 defect_mending_adjust_before, 0 defect_mending_adjust, 0 qc_reject_adjust_before, 0 qc_reject_adjust,
+ 0 sewing_switching_in_before, 0 sewing_switching_in, 0 qc_finishing_switching_in_before, 0 qc_finishing_switching_in, 0 finishing_switching_in_before, 0 finishing_switching_in, 0 defect_sewing_switching_in_before, 0 defect_sewing_switching_in, 0 defect_spotcleaning_switching_in_before, 0 defect_spotcleaning_switching_in, 0 defect_mending_switching_in_before, 0 defect_mending_switching_in, 0 qc_reject_switching_in_before, 0 qc_reject_switching_in,
+ 0 sewing_switching_out_before, 0 sewing_switching_out, 0 qc_finishing_switching_out_before, 0 qc_finishing_switching_out, 0 finishing_switching_out_before, 0 finishing_switching_out, 0 defect_sewing_switching_out_before, 0 defect_sewing_switching_out, 0 defect_spotcleaning_switching_out_before, 0 defect_spotcleaning_switching_out, 0 defect_mending_switching_out_before, 0 defect_mending_switching_out, 0 qc_reject_switching_out_before, 0 qc_reject_switching_out
  from query_final
  UNION ALL
  select buyer, no_ws, style, color, size, 0 saldo_awal_sewing, 0 qty_loading, 0 qty_in_subcont, 0 input_rework_sewing, 0 input_rework_spotcleaning, 0 input_rework_mending, 0 defect_sewing, 0 defect_spotcleaning, 0 defect_mending, 0 qty_sew_reject, 0 qty_sewing, 0 qty_out_subcont, 0 saldo_akhir_sewing, 0 saldo_awal_finishing, 0 input_rework_sewing_f, 0 input_rework_spotcleaning_f, 0 input_rework_mending_f, 0 defect_sewing_f, 0 defect_spotcleaning_f, 0 defect_mending_f, 0 qty_fin_reject, 0 qty_finishing, 0 saldo_akhir_finishing, 0 saldo_awal_secondary_proses, 0 total_in_sp, 0 rework_sp, 0 defect_sp, 0 reject_sp, 0 rft_sp, 0 saldo_akhir_secondary_proses, 0 saldo_awal_defect_sewing, 0 total_defect_sewing, 0 total_input_rework_sewing, 0 saldo_akhir_defect_sewing, 0 saldo_awal_defect_spotcleaning, 0 total_defect_spotcleaning, 0 total_input_rework_spotcleaning, 0 saldo_akhir_defect_spotcleaning, 0 saldo_awal_defect_mending, 0 total_defect_mending, 0 total_input_rework_mending, 0 saldo_akhir_mending, 0 saldo_awal_reject, 0 qty_reject_in, 0 qty_reworked, 0 qty_rejected, 0 saldo_akhir_qc_reject,
- sewing_adjust_before, sewing_adjust, qc_finishing_adjust_before, qc_finishing_adjust, finishing_adjust_before, finishing_adjust, defect_sewing_adjust_before, defect_sewing_adjust, defect_spotcleaning_adjust_before, defect_spotcleaning_adjust, defect_manding_adjust_before, defect_manding_adjust, qc_reject_adjust_before, qc_reject_adjust,
- 0 sewing_switching_in_before, 0 sewing_switching_in, 0 qc_finishing_switching_in_before, 0 qc_finishing_switching_in, 0 finishing_switching_in_before, 0 finishing_switching_in, 0 defect_sewing_switching_in_before, 0 defect_sewing_switching_in, 0 defect_spotcleaning_switching_in_before, 0 defect_spotcleaning_switching_in, 0 defect_manding_switching_in_before, 0 defect_manding_switching_in, 0 qc_reject_switching_in_before, 0 qc_reject_switching_in,
- 0 sewing_switching_out_before, 0 sewing_switching_out, 0 qc_finishing_switching_out_before, 0 qc_finishing_switching_out, 0 finishing_switching_out_before, 0 finishing_switching_out, 0 defect_sewing_switching_out_before, 0 defect_sewing_switching_out, 0 defect_spotcleaning_switching_out_before, 0 defect_spotcleaning_switching_out, 0 defect_manding_switching_out_before, 0 defect_manding_switching_out, 0 qc_reject_switching_out_before, 0 qc_reject_switching_out
+ sewing_adjust_before, sewing_adjust, qc_finishing_adjust_before, qc_finishing_adjust, finishing_adjust_before, finishing_adjust, defect_sewing_adjust_before, defect_sewing_adjust, defect_spotcleaning_adjust_before, defect_spotcleaning_adjust, defect_mending_adjust_before, defect_mending_adjust, qc_reject_adjust_before, qc_reject_adjust,
+ 0 sewing_switching_in_before, 0 sewing_switching_in, 0 qc_finishing_switching_in_before, 0 qc_finishing_switching_in, 0 finishing_switching_in_before, 0 finishing_switching_in, 0 defect_sewing_switching_in_before, 0 defect_sewing_switching_in, 0 defect_spotcleaning_switching_in_before, 0 defect_spotcleaning_switching_in, 0 defect_mending_switching_in_before, 0 defect_mending_switching_in, 0 qc_reject_switching_in_before, 0 qc_reject_switching_in,
+ 0 sewing_switching_out_before, 0 sewing_switching_out, 0 qc_finishing_switching_out_before, 0 qc_finishing_switching_out, 0 finishing_switching_out_before, 0 finishing_switching_out, 0 defect_sewing_switching_out_before, 0 defect_sewing_switching_out, 0 defect_spotcleaning_switching_out_before, 0 defect_spotcleaning_switching_out, 0 defect_mending_switching_out_before, 0 defect_mending_switching_out, 0 qc_reject_switching_out_before, 0 qc_reject_switching_out
  from query_adjust
  UNION ALL
  select buyer, no_ws, style, color, size, 0 saldo_awal_sewing, 0 qty_loading, 0 qty_in_subcont, 0 input_rework_sewing, 0 input_rework_spotcleaning, 0 input_rework_mending, 0 defect_sewing, 0 defect_spotcleaning, 0 defect_mending, 0 qty_sew_reject, 0 qty_sewing, 0 qty_out_subcont, 0 saldo_akhir_sewing, 0 saldo_awal_finishing, 0 input_rework_sewing_f, 0 input_rework_spotcleaning_f, 0 input_rework_mending_f, 0 defect_sewing_f, 0 defect_spotcleaning_f, 0 defect_mending_f, 0 qty_fin_reject, 0 qty_finishing, 0 saldo_akhir_finishing, 0 saldo_awal_secondary_proses, 0 total_in_sp, 0 rework_sp, 0 defect_sp, 0 reject_sp, 0 rft_sp, 0 saldo_akhir_secondary_proses, 0 saldo_awal_defect_sewing, 0 total_defect_sewing, 0 total_input_rework_sewing, 0 saldo_akhir_defect_sewing, 0 saldo_awal_defect_spotcleaning, 0 total_defect_spotcleaning, 0 total_input_rework_spotcleaning, 0 saldo_akhir_defect_spotcleaning, 0 saldo_awal_defect_mending, 0 total_defect_mending, 0 total_input_rework_mending, 0 saldo_akhir_mending, 0 saldo_awal_reject, 0 qty_reject_in, 0 qty_reworked, 0 qty_rejected, 0 saldo_akhir_qc_reject,
- 0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_before, 0 qc_finishing_adjust, 0 finishing_adjust_before, 0 finishing_adjust, 0 defect_sewing_adjust_before, 0 defect_sewing_adjust, 0 defect_spotcleaning_adjust_before, 0 defect_spotcleaning_adjust, 0 defect_manding_adjust_before, 0 defect_manding_adjust, 0 qc_reject_adjust_before, 0 qc_reject_adjust,
- sewing_switching_in_before, sewing_switching_in, qc_finishing_switching_in_before, qc_finishing_switching_in, finishing_switching_in_before, finishing_switching_in, defect_sewing_switching_in_before, defect_sewing_switching_in, defect_spotcleaning_switching_in_before, defect_spotcleaning_switching_in, defect_manding_switching_in_before, defect_manding_switching_in, qc_reject_switching_in_before, qc_reject_switching_in,
- sewing_switching_out_before, sewing_switching_out, qc_finishing_switching_out_before, qc_finishing_switching_out, finishing_switching_out_before, finishing_switching_out, defect_sewing_switching_out_before, defect_sewing_switching_out, defect_spotcleaning_switching_out_before, defect_spotcleaning_switching_out, defect_manding_switching_out_before, defect_manding_switching_out, qc_reject_switching_out_before, qc_reject_switching_out
+ 0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_before, 0 qc_finishing_adjust, 0 finishing_adjust_before, 0 finishing_adjust, 0 defect_sewing_adjust_before, 0 defect_sewing_adjust, 0 defect_spotcleaning_adjust_before, 0 defect_spotcleaning_adjust, 0 defect_mending_adjust_before, 0 defect_mending_adjust, 0 qc_reject_adjust_before, 0 qc_reject_adjust,
+ sewing_switching_in_before, sewing_switching_in, qc_finishing_switching_in_before, qc_finishing_switching_in, finishing_switching_in_before, finishing_switching_in, defect_sewing_switching_in_before, defect_sewing_switching_in, defect_spotcleaning_switching_in_before, defect_spotcleaning_switching_in, defect_mending_switching_in_before, defect_mending_switching_in, qc_reject_switching_in_before, qc_reject_switching_in,
+ sewing_switching_out_before, sewing_switching_out, qc_finishing_switching_out_before, qc_finishing_switching_out, finishing_switching_out_before, finishing_switching_out, defect_sewing_switching_out_before, defect_sewing_switching_out, defect_spotcleaning_switching_out_before, defect_spotcleaning_switching_out, defect_mending_switching_out_before, defect_mending_switching_out, qc_reject_switching_out_before, qc_reject_switching_out
  from query_switching
  ) a GROUP BY buyer, ws, styleno, color, size
         ");
@@ -4664,29 +4664,29 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
 
         // Title
         $sheet->writeTo('A1', 'Report Mutasi WIP Sewing ' . Carbon::parse($start_date)->format('d-m-Y') . ' - ' . Carbon::parse($end_date)->format('d-m-Y'), ['font-size' => 12]);
-        $sheet->mergeCells('A1:BA1');
+        $sheet->mergeCells('A1:BH1');
 
         // Headers
         // Merge cell
         $sheet->mergeCells('A2:E2');
-        $sheet->mergeCells('F2:R2');
-        $sheet->mergeCells('S2:AC2');
-        $sheet->mergeCells('AD2:AJ2');
-        $sheet->mergeCells('AK2:AN2');
-        $sheet->mergeCells('AO2:AR2');
-        $sheet->mergeCells('AS2:AV2');
-        $sheet->mergeCells('AW2:BA2');
+        $sheet->mergeCells('F2:S2');
+        $sheet->mergeCells('T2:AE2');
+        $sheet->mergeCells('AF2:AM2');
+        $sheet->mergeCells('AN2:AR2');
+        $sheet->mergeCells('AS2:AW2');
+        $sheet->mergeCells('AX2:BB2');
+        $sheet->mergeCells('BC2:BH2');
 
         // Isi value + apply bold + border
         $headers = [
             'A2:E2'   => 'Jenis Produk',
-            'F2:R2'   => 'Sewing',
-            'S2:AC2'  => 'QC Finishing',
-            'AD2:AJ2' => 'Finishing',
-            'AK2:AN2' => 'Defect Sewing',
-            'AO2:AR2' => 'Defect Spotcleaning',
-            'AS2:AV2' => 'Defect Mending',
-            'AW2:BA2' => 'QC Reject',
+            'F2:S2'   => 'Sewing',
+            'T2:AE2'  => 'QC Finishing',
+            'AF2:AM2' => 'Finishing',
+            'AN2:AR2' => 'Defect Sewing',
+            'AS2:AW2' => 'Defect Spotcleaning',
+            'AX2:BB2' => 'Defect Mending',
+            'BC2:BH2' => 'QC Reject',
         ];
 
         foreach ($headers as $range => $value) {
@@ -4761,7 +4761,7 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
         $sheet->writeTo('D3', 'Color')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('E3', 'Size')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        // SEWING (F:R = 13 kolom)
+        // SEWING (F:S = 14 kolom)
         $sheet->writeTo('F3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('G3', 'Terima Loading')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('H3', 'In Subcont')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
@@ -4774,61 +4774,61 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
         $sheet->writeTo('O3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('P3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('Q3', 'Out Subcont')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        // $sheet->writeTo('R3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('R3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('R3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('S3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        // QC FINISHING (S:AC = 11 kolom)
-        $sheet->writeTo('S3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('T3', 'Terima Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('U3', 'Output Rework Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('V3', 'Output Rework Spotcleaning')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('W3', 'Output Rework Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('X3', 'Defect Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('Y3', 'Defect Spotcleaning')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('Z3', 'Defect Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AA3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AB3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        // $sheet->writeTo('AC3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AC3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // QC FINISHING (T:AE = 12 kolom)
+        $sheet->writeTo('T3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('U3', 'Terima Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('V3', 'Output Rework Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('W3', 'Output Rework Spotcleaning')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('X3', 'Output Rework Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Y3', 'Defect Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Z3', 'Defect Spotcleaning')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AA3', 'Defect Mending')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AB3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AC3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AD3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AE3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        // FINISHING (AD:AJ = 7 kolom)
-        $sheet->writeTo('AD3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AE3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AF3', 'Rework')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AG3', 'Defect')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AH3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AI3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        // $sheet->writeTo('AJ3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AJ3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // FINISHING (AF:AM = 8 kolom)
+        $sheet->writeTo('AF3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AG3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AH3', 'Rework')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AI3', 'Defect')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AJ3', 'Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AK3', 'Output')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AL3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AM3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        // DEFECT SEWING (AK:AN = 4 kolom)
-        $sheet->writeTo('AK3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AL3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AM3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        // $sheet->writeTo('AN3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AN3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-
-        // DEFECT SPOTCLEANING (AO:AR = 4 kolom)
-        $sheet->writeTo('AO3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AP3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AQ3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        // $sheet->writeTo('AR3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // DEFECT SEWING (AN:AR = 5 kolom)
+        $sheet->writeTo('AN3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AO3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AP3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AQ3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('AR3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        // DEFECT MENDING (AS:AV = 4 kolom)
+        // DEFECT SPOTCLEANING (AS:AW = 5 kolom)
         $sheet->writeTo('AS3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('AT3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('AU3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        // $sheet->writeTo('AV3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AV3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AV3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AW3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        // QC REJECT (AW:BA = 5 kolom)
-        $sheet->writeTo('AW3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AX3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AY3', 'Keluar Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('AZ3', 'Keluar Gudang Stok')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        // $sheet->writeTo('BA3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('BA3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // DEFECT MENDING (AX:BB = 5 kolom)
+        $sheet->writeTo('AX3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AY3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('AZ3', 'Keluar')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BA3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BB3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+        // QC REJECT (BC:BH = 6 kolom)
+        $sheet->writeTo('BC3', 'Saldo Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BD3', 'Terima')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BE3', 'Keluar Sewing')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BF3', 'Keluar Gudang Stok')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BG3', 'Adjustment')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('BH3', 'Saldo Akhir')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         $rowNumber = 4;
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet, &$rowNumber) {
@@ -4842,7 +4842,7 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
                     $row->color ?? "-",
                     $row->size ?? "-",
 
-                    // SEWING (13 kolom)
+                    // SEWING (14 kolom)
                     $row->saldo_awal_sewing ?? 0,
                     $row->qty_loading ?? 0,
                     $row->qty_in_subcont ?? 0,
@@ -4855,10 +4855,10 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
                     $row->qty_sew_reject ?? 0,
                     $row->qty_sewing ?? 0,
                     $row->qty_out_subcont ?? 0,
-                    // $row->sewing_adjust ?? 0,
+                    $row->sewing_adjust ?? 0,
                     $row->saldo_akhir_sewing ?? 0,
 
-                    // QC FINISHING (11 kolom)
+                    // QC FINISHING (12 kolom)
                     $row->saldo_awal_finishing ?? 0,
                     $row->qty_sewing ?? 0,
                     $row->input_rework_sewing_f ?? 0,
@@ -4869,46 +4869,46 @@ FROM (select *,0 sewing_adjust_before, 0 sewing_adjust, 0 qc_finishing_adjust_be
                     $row->defect_mending_f ?? 0,
                     $row->qty_fin_reject ?? 0,
                     $row->qty_finishing ?? 0,
-                    // $row->qc_finishing_adjust ?? 0,
+                    $row->qc_finishing_adjust ?? 0,
                     $row->saldo_akhir_finishing ?? 0,
 
-                    // FINISHING (7 kolom)
+                    // FINISHING (8 kolom)
                     $row->saldo_awal_secondary_proses ?? 0,
                     $row->total_in_sp ?? 0,
                     $row->rework_sp ?? 0,
                     $row->defect_sp ?? 0,
                     $row->reject_sp ?? 0,
                     $row->rft_sp ?? 0,
-                    // $row->finishing_adjust ?? 0,
+                    $row->finishing_adjust ?? 0,
                     $row->saldo_akhir_secondary_proses ?? 0,
 
-                    // DEFECT SEWING (4 kolom)
+                    // DEFECT SEWING (5 kolom)
                     $row->saldo_awal_defect_sewing ?? 0,
                     $row->total_defect_sewing ?? 0,
                     $row->total_input_rework_sewing ?? 0,
-                    // $row->defect_sewing_adjust ?? 0,
+                    $row->defect_sewing_adjust ?? 0,
                     $row->saldo_akhir_defect_sewing ?? 0,
 
-                    // DEFECT SPOTCLEANING (4 kolom)
+                    // DEFECT SPOTCLEANING (5 kolom)
                     $row->saldo_awal_defect_spotcleaning ?? 0,
                     $row->total_defect_spotcleaning ?? 0,
                     $row->total_input_rework_spotcleaning ?? 0,
-                    // $row->defect_spotcleaning_adjust ?? 0,
+                    $row->defect_spotcleaning_adjust ?? 0,
                     $row->saldo_akhir_defect_spotcleaning ?? 0,
 
-                    // DEFECT MENDING (4 kolom)
+                    // DEFECT MENDING (5 kolom)
                     $row->saldo_awal_defect_mending ?? 0,
                     $row->total_defect_mending ?? 0,
                     $row->total_input_rework_mending ?? 0,
-                    // $row->defect_manding_adjust ?? 0,
+                    $row->defect_mending_adjust ?? 0,
                     $row->saldo_akhir_mending ?? 0,
 
-                    // QC REJECT (5 kolom)
+                    // QC REJECT (6 kolom)
                     $row->saldo_awal_reject ?? 0,
                     $row->qty_reject_in ?? 0,
                     $row->qty_reworked ?? 0,
                     $row->qty_rejected ?? 0,
-                    // $row->qc_reject_adjust ?? 0,
+                    $row->qc_reject_adjust ?? 0,
                     $row->saldo_akhir_qc_reject ?? 0,
                 ];
 
