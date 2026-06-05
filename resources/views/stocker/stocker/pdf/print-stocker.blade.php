@@ -81,8 +81,8 @@
                 <td colspan="2">Bundle Qty : {{ $dataStocker->bundle_qty }}</td>
             </tr>
             <tr>
-                <td style="width: 30%;">Size : {{ $dataStocker->size }}</td>
-                <td style="width: 70%;"> Country : {{ $dataStocker->dest }}</td>
+                <td style="width: 50%;">Size : {{ $dataStocker->size }}</td>
+                <td style="width: 50%;"> Country : {{ strtoupper(substr($dataStocker->dest, 0, 30)).(strlen($dataStocker->dest) > 30 ? '...' : '') }}</td>
             </tr>
             <tr>
                 <td colspan="2">Range : {{ $dataStocker->range_awal." - ".$dataStocker->range_akhir }}</td>
