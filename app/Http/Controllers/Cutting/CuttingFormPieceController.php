@@ -989,6 +989,13 @@ class CuttingFormPieceController extends Controller
             first();
 
         if (!$stocker) {
+
+            $dataLog = FormCutPiece::where("id", $id)->first();
+            logHistory(
+                $dataLog->id,
+                $dataLog->toArray()
+            );
+            
             $deleteFormCutPiece = FormCutPiece::where("id", $id)->delete();
 
             if ($deleteFormCutPiece) {
@@ -1012,11 +1019,6 @@ class CuttingFormPieceController extends Controller
                             "qty_pakai" => DB::raw("qty_pakai - ".$d->qty_pemakaian),
                         ]);
                     }
-
-                    logHistory(
-                        $id,
-                        $formCutPieceDetails->toArray()
-                    );
 
                     FormCutPieceDetail::whereIn("id", $formCutPieceDetailIds)->delete();
                     FormCutPieceDetailSize::whereIn("id", $formCutPieceDetailSizeIds)->delete();
