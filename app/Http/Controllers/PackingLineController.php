@@ -88,7 +88,7 @@ class PackingLineController extends Controller
                   AND YEAR(p.tgl_shipment) >= 2026
                   AND p.po = '$po_esc'
                   AND a.created_by_line = '$line_esc'
-                GROUP BY a.po_id, p.po, a.created_by_line, a.so_det_id
+                GROUP BY a.po_id, a.created_by_line, a.so_det_id
             ),
             g AS (
                 SELECT
@@ -103,7 +103,7 @@ class PackingLineController extends Controller
                   AND YEAR(p.tgl_shipment) >= 2026
                   AND a.po = '$po_esc'
                   AND a.line = '$line_esc'
-                GROUP BY a.id_ppic_master_so, a.po, a.line, a.id_so_det
+                GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
             ),
             mut AS (
                 SELECT
@@ -162,7 +162,7 @@ class PackingLineController extends Controller
                 INNER JOIN laravel_nds.ppic_master_so p ON a.po_id = p.id
                 WHERE a.updated_at BETWEEN '$today' AND '$todayEnd'
                   AND YEAR(p.tgl_shipment) >= 2026
-                GROUP BY a.po_id, p.po, a.created_by_line, a.so_det_id
+                GROUP BY a.po_id, a.created_by_line, a.so_det_id
             ),
             g AS (
                 SELECT
@@ -175,7 +175,7 @@ class PackingLineController extends Controller
                 INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
                 WHERE a.tgl_trans = '$today'
                   AND YEAR(p.tgl_shipment) >= 2026
-                GROUP BY a.id_ppic_master_so, a.po, a.line, a.id_so_det
+                GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
             ),
             mut AS (
                 SELECT
@@ -260,7 +260,7 @@ class PackingLineController extends Controller
                 INNER JOIN laravel_nds.ppic_master_so p ON a.po_id = p.id
                 WHERE a.updated_at BETWEEN '$today' AND '$todayEnd'
                   AND YEAR(p.tgl_shipment) >= 2026
-                GROUP BY a.po_id, p.po, a.created_by_line, a.so_det_id
+                GROUP BY a.po_id, a.created_by_line, a.so_det_id
             ),
             g AS (
                 SELECT
@@ -273,7 +273,7 @@ class PackingLineController extends Controller
                 INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
                 WHERE a.tgl_trans = '$today'
                   AND YEAR(p.tgl_shipment) >= 2026
-                GROUP BY a.id_ppic_master_so, a.po, a.line, a.id_so_det
+                GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
             ),
             mut AS (
                 SELECT
@@ -290,6 +290,7 @@ class PackingLineController extends Controller
             )
             SELECT
                 mut.so_det_id,
+                po,
                 line,
                 ws,
                 COALESCE(d.buyer,   '-') AS buyer,

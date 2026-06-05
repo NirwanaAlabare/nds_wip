@@ -136,7 +136,7 @@ class MarkerController extends Controller
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
-        return view('marker.marker.create-marker', ['orders' => $orders, 'page' => 'dashboard-marker', "subPageGroup" => "proses-marker", "subPage" => "marker"]);
+        return view('marker.marker.create-marker.create-marker', ['orders' => $orders, 'page' => 'dashboard-marker', "subPageGroup" => "proses-marker", "subPage" => "marker"]);
     }
 
     public function getOrderInfo(Request $request)
@@ -768,7 +768,7 @@ class MarkerController extends Controller
     {
         $marker = Marker::where('id', $id)->first();
 
-        return view('marker.marker.edit-marker', ['page' => 'dashboard-marker', "subPageGroup" => "proses-marker", "subPage" => "marker", 'marker' => $marker]);
+        return view('marker.marker.edit-marker.edit-marker', ['page' => 'dashboard-marker', "subPageGroup" => "proses-marker", "subPage" => "marker", 'marker' => $marker]);
     }
 
     /**
@@ -1101,7 +1101,7 @@ class MarkerController extends Controller
         if ($markerData) {
             // generate pdf
             PDF::setOption(['dpi' => 150]);
-            $pdf = PDF::loadView('marker.marker.pdf.print-marker', ["markerData" => $markerData, "actCostingData" => $actCostingData, "soDetData" => $soDetData, "orderQty" => $orderQty])->setPaper('a4', 'landscape');
+            $pdf = PDF::loadView('marker.marker.marker.pdf.print-marker', ["markerData" => $markerData, "actCostingData" => $actCostingData, "soDetData" => $soDetData, "orderQty" => $orderQty])->setPaper('a4', 'landscape');
 
             $fileName = 'stocker-' . str_replace("/", "_", $kodeMarker) . '.pdf';
 
@@ -1112,7 +1112,7 @@ class MarkerController extends Controller
     public function fixMarkerBalanceQty() {
         ini_set("maximum_execution_time", 3600);
 
-        $markers = Marker::selectRaw("
+        $markerForms = Marker::selectRaw("
                 id,
                 tgl_cutting,
                 DATE_FORMAT(tgl_cutting, '%d-%m-%Y') tgl_cut_fix,
@@ -1158,15 +1158,15 @@ class MarkerController extends Controller
             where("gelar_qty_balance", "!=", DB::raw("(gelar_qty - b.total_lembar)"))->
             get();
 
-        foreach ($markers as $marker) {
-            $thisMarker = Marker::where("id", $marker->id)->first();
-            $thisMarker->gelar_qty_balance = $marker->gelar_qty - $marker->total_lembar;
+        foreach ($markerForms as $markerForm) {
+            $thisMarker = Marker::where("id", $markerForm->id)->first();
+            $thisMarker->gelar_qty_balance = $markerForm->gelar_qty - $markerForm->total_lembar;
             $thisMarker->save();
         }
 
         return array(
             "status" => 200,
-            "message" => $markers->count()." Balance Marker telah berhasil dihitung ulang.",
+            "message" => $markerForms->count()." Balance Marker telah berhasil dihitung ulang.",
             "redirect" => '',
             "additional" => []
         );
