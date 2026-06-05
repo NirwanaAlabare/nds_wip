@@ -97,7 +97,8 @@
             <tr>
                 <td style="border: none;border-left: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;white-space: nowrap;">Worksheet</td>
                 <td style="border: none;border-left: none; border-top: 0.75px solid; border-bottom: 0.75px solid;text-align: center;width: auto;">:</td>
-                <td colspan="6" style="border: none;border-right: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;">{{ $dataStocker->act_costing_ws }}</td>
+                <td colspan="2" style="border: none;border-right: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;">{{ $dataStocker->act_costing_ws }}</td>
+                <td colspan="4" style="border: none; border-top: 0.75px solid; border-bottom: 0.75px solid; border-right: 0.75px solid;">{{ $dataStocker->part_detail_notes }}</td>
             </tr>
             <tr>
                 <td style="border: none;border-left: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;white-space: nowrap;">Panel</td>
