@@ -997,8 +997,8 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                             UNION ALL
 
                             select msn.urutan, ws, color, styleno style, a.size, buyer,
-                            COALESCE(packing_saldo_awal, 0) pl_saldo_awal, COALESCE(packing_rft,0) pl_rft, 0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir,
-                            COALESCE( pc_saldo_awal, 0) pc_saldo_awal, 0 pc_terima, 0 pc_terima_return, 0 pc_fg_in, 0 pc_saldo_akhir
+                            COALESCE(packing_saldo_awal, 0) pl_saldo_awal, COALESCE(packing_rft,0) pl_rft, COALESCE(packing_reject, 0) pl_reject,  COALESCE(packing_keluar, 0) pl_keluar, 0 pl_saldo_akhir,
+                            COALESCE( pc_saldo_awal, 0) pc_saldo_awal,  COALESCE( pc_terima, 0) pc_terima, 0 pc_terima_return,  COALESCE( pc_packing_scan, 0) pc_fg_in, 0 pc_saldo_akhir
                             from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
 
                             UNION ALL
@@ -1572,8 +1572,8 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         UNION ALL
 
                         select msn.urutan, ws, color, styleno style, a.size, buyer,
-                        COALESCE(packing_saldo_awal, 0) pl_saldo_awal, COALESCE(packing_rft,0) pl_rft, 0 pl_reject, 0 pl_keluar, 0 pl_saldo_akhir,
-                        COALESCE( pc_saldo_awal, 0) pc_saldo_awal, 0 pc_terima, 0 pc_terima_return, 0 pc_fg_in, 0 pc_saldo_akhir
+                        COALESCE(packing_saldo_awal, 0) pl_saldo_awal, COALESCE(packing_rft,0) pl_rft, COALESCE(packing_reject, 0) pl_reject,  COALESCE(packing_keluar, 0) pl_keluar, 0 pl_saldo_akhir,
+                        COALESCE( pc_saldo_awal, 0) pc_saldo_awal,  COALESCE( pc_terima, 0) pc_terima, 0 pc_terima_return,  COALESCE( pc_packing_scan, 0) pc_fg_in, 0 pc_saldo_akhir
                         from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
 
                         UNION ALL
