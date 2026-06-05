@@ -795,7 +795,9 @@ class SpreadingController extends Controller
                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
             WHERE
                 DATE(form_cut_piece.waktu_selesai) between '".$dateFrom."' and '".$dateTo."' and
-                form_cut_piece_detail.status = 'complete'
+                form_cut_piece_detail.status = 'complete' and form_cut_piece_detail.id not in (
+                    7207
+                )
             GROUP BY
                 form_cut_piece.id,
                 form_cut_piece_detail.group_stocker,
