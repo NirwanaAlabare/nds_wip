@@ -272,8 +272,8 @@ class CuttingPieceService
             $this->fixChainedQty($formDetail->id, $qtyUsageBefore);
 
             logHistory(
-                $form->id,
-                $form->toArray()
+                $formDetail->id,
+                $formDetail->toArray()
             );
 
             FormCutPieceDetailSize::where("form_detail_id", $formDetail->id)->delete();
