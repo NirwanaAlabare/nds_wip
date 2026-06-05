@@ -66,7 +66,7 @@ class ExportLaporanPPICTracking implements FromView, WithEvents, ShouldAutoSize
                 inner join so on sd.id_so = so.id
                 inner join act_costing ac on so.id_cost = ac.id
                 inner join mastersupplier ms on ac.id_buyer = ms.id_supplier
-                inner join master_size_new msn on sd.size = msn.size
+                left join master_size_new msn on sd.size = msn.size
                 where ms.supplier = '$this->buyer' ".$filterKpno."
                 group by ac.kpno, sd.color, sd.size, ac.styleno
                 order by ac.kpno asc, sd.color asc, msn.urutan asc
@@ -204,9 +204,13 @@ class ExportLaporanPPICTracking implements FromView, WithEvents, ShouldAutoSize
             '0' tot_p_line,
             '0' qty_trf_garment,
             '0' qty_packing_in,
-            count(o.id) qty_packing_out
-            from packing_packing_out_scan o
-            inner join ppic_master_so p on o.barcode = p.barcode and o.po = p.po
+            sum(o.qty_packing_out) qty_packing_out
+            from
+                (
+                    select count(barcode) qty_packing_out,po, barcode, dest from packing_packing_out_scan
+                    group by barcode, po, dest
+                ) o
+            inner join ppic_master_so p on o.barcode = p.barcode and o.po = p.po and o.dest = p.dest
             inner join master_sb_ws m on p.id_so_det = m.id_so_det
             where m.buyer = '$this->buyer' ".$filterWs."
             group by ws, color, size
