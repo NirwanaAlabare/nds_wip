@@ -393,4 +393,17 @@ order by created_at desc
     {
         return Excel::download(new ExportLaporanPackingIn($request->from, $request->to), 'Laporan_Packing_In.xlsx');
     }
+
+
+    public function packing_central_switching(Request $request)
+    {
+        return view(
+            'packing.packing_central_switching',
+            [
+                'page' => 'dashboard-packing',
+                "subPageGroup" => "packing-packing-in",
+                "subPage" => "packing_central_switching"
+            ]
+        );
+    }
 }
