@@ -586,6 +586,7 @@ class StockerService
 
                     if ($separate) {
                         $lembarGelaran = $separate->qty;
+                        $stocker->qty_ply_mod = null;
                     }
 
                     if (isset($sizeRangeAkhir[$stocker->so_det_id]) && ($currentStockerSize != $stocker->so_det_id)) {
@@ -690,6 +691,7 @@ class StockerService
 
                         if ($separate) {
                             $lembarGelaran = $separate->qty;
+                            $stocker->qty_ply_mod = null;
                         }
 
                         if (isset($sizeRangeAkhir[$stocker->so_det_id]) && ($currentStockerSize != $stocker->so_det_id || $currentStockerGroup != $stocker->group_stocker || $currentStockerRatio != $stocker->ratio)) {
@@ -785,6 +787,7 @@ class StockerService
                         $separate = StockerSeparateDetail::selectRaw("stocker_separate_detail.*")->leftJoin("stocker_separate", "stocker_separate.id", "=", "stocker_separate_detail.separate_id")->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_separate.so_det_id")->where("form_cut_id", $formCut->id_form)->where("master_sb_ws.size", $stocker->size)->where("group_stocker", $stocker->group_stocker)->where("group_roll", $stocker->shade)->where("urutan", $stocker->ratio)->first();
                         if ($separate) {
                             $lembarGelaran = $separate->qty;
+                            $stocker->qty_ply_mod = null;
                         }
 
                         // Set Size Range Akhir

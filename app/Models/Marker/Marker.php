@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Cutting\FormCutInput;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\Models\Activity;
 
 class Marker extends Model
 {
@@ -22,6 +23,16 @@ class Marker extends Model
     /**
      * Get the marker details for the marker.
      */
+    public function tapActivity(Activity $activity, string $eventName): void
+    {
+        $route = request()->route();
+        $activity->properties = $activity->properties->merge([
+            'route'  => $route ? $route->getName() : null,
+            'action' => $route ? $route->getActionMethod() : null,
+            'url'    => request()->fullUrl(),
+        ]);
+    }
+
     public function markerDetails()
     {
         return $this->hasMany(MarkerDetail::class, 'marker_id', 'id');

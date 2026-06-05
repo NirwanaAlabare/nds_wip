@@ -35,4 +35,14 @@
             </li>
         </ul>
     </li>
+
+@endrole
+
+@role('superadmin')
+    <li class="nav-item">
+        <a href="{{ route('marker-tools') }}"
+            class="nav-link {{ $routeName == 'marker-tools' ? 'active' : '' }}" target="_blank">
+            <i class="fa-solid fa-toolbox"></i>
+        </a>
+    </li>
 @endrole

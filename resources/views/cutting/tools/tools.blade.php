@@ -160,6 +160,7 @@
                         </div>
                     </a>
                 </div>
+                
                 <div class="col-md-12">
                     <h5 class="text-sb-secondary fw-bold mt-3">Mismatch</h5>
                 </div>
@@ -168,6 +169,28 @@
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="text-sb mb-0"><i class="fa-solid fa-triangle-exclamation"></i> Form Cut Piece Empty Size</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-12">
+                    <h5 class="text-sb-secondary fw-bold mt-3">Logs</h5>
+                </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" onclick="openLogsCutting()">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Logs Cutting</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" onclick="openLogsCuttingPiece()">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Logs Cutting Piece</h5>
                             </div>
                         </div>
                     </a>
@@ -701,6 +724,127 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
                         <button type="submit" class="btn btn-sb toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Inject</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal fade" id="logsCutting" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <form id="formLogsCutting" enctype="multipart/form-data">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h5 class="modal-title">
+                            Logs Cutting
+                        </h5>
+                        <button type="button" class="close" data-bs-dismiss="modal"> <span>&times;</span></button>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label>Tanggal Awal</label>
+                                <input type="date" class="form-control" name="logs_cutting_tanggal_awal" id="logs_cutting_tanggal_awal" value="{{ date('Y-m-d') }}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label>Tanggal Akhir</label>
+                                <input type="date" class="form-control" name="logs_cutting_tanggal_akhir" id="logs_cutting_tanggal_akhir" value="{{ date('Y-m-d') }}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label>Type</label>
+                                <select class="form-control select2bs4" name="logs_cutting_subject_type" id="logs_cutting_subject_type">
+                                    <option value="form_cut_input">Form Cutting</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label>Activity</label>
+                                <select class="form-control select2bs4" name="logs_cutting_activity" id="logs_cutting_activity">
+                                    <option value="">Semua</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 table-responsive">
+                                <table class="table table-bordered w-100" id="datatable-logs-cutting">
+                                    <thead>
+                                        <tr>
+                                            <th>Tanggal</th>
+                                            <th>Activity</th>
+                                            <th>Type</th>
+                                            <th>Properties</th>
+                                            <th>User</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal fade" id="logsCuttingPiece" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <form id="formLogsCuttingPiece" enctype="multipart/form-data">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h5 class="modal-title">
+                            Logs Cutting Piece
+                        </h5>
+                        <button type="button" class="close" data-bs-dismiss="modal"> <span>&times;</span></button>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label>Tanggal Awal</label>
+                                <input type="date" class="form-control" name="logs_cutting_piece_tanggal_awal" id="logs_cutting_piece_tanggal_awal" value="{{ date('Y-m-d') }}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label>Tanggal Akhir</label>
+                                <input type="date" class="form-control" name="logs_cutting_piece_tanggal_akhir" id="logs_cutting_piece_tanggal_akhir" value="{{ date('Y-m-d') }}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label>Type</label>
+                                <select class="form-control select2bs4" name="logs_cutting_piece_subject_type" id="logs_cutting_piece_subject_type">
+                                    <option value="form_cut_piece">Form Cut Piece</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label>Activity</label>
+                                <select class="form-control select2bs4" name="logs_cutting_piece_activity" id="logs_cutting_piece_activity">
+                                    <option value="">Semua</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 table-responsive">
+                                <table class="table table-bordered w-100" id="datatable-logs-cutting-piece">
+                                    <thead>
+                                        <tr>
+                                            <th>Tanggal</th>
+                                            <th>Activity</th>
+                                            <th>Type</th>
+                                            <th>Route</th>
+                                            <th>Properties</th>
+                                            <th>User</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -2002,6 +2146,236 @@
                         title: 'Gagal',
                         text: 'Gagal simpan data'
                     });
+                }
+            });
+        }
+
+        // Log Cutting
+        $(document).on('click', '.btn-toggle-properties-cutting', function (e) {
+            e.preventDefault();
+            let $wrap = $(this).prev('.properties-cutting-wrap');
+            let expanded = $wrap.data('expanded');
+            if (expanded) {
+                $wrap.css('max-height', '42px').data('expanded', false);
+                $(this).html('<i class="fas fa-chevron-down fa-xs"></i> Lihat');
+            } else {
+                $wrap.css('max-height', $wrap[0].scrollHeight + 'px').data('expanded', true);
+                $(this).html('<i class="fas fa-chevron-up fa-xs"></i> Sembunyikan');
+            }
+        });
+        
+        $('#logs_cutting_subject_type').on('change', function() {
+            loadActivity();
+            logsCuttingReload()
+        });
+
+        $('#logs_cutting_tanggal_awal, #logs_cutting_tanggal_akhir, #logs_cutting_activity').on('change', function () {
+            logsCuttingReload();
+        });
+
+        function openLogsCutting() {
+            $('#logsCutting').modal('show');
+
+            logsCuttingReload();
+            loadActivity();
+        }
+
+        let logsCuttingTable = null;
+
+        function logsCuttingReload() {
+            if ($.fn.DataTable.isDataTable('#datatable-logs-cutting')) {
+                $('#datatable-logs-cutting').DataTable().ajax.reload();
+                return;
+            }
+
+            logsCuttingTable = $('#datatable-logs-cutting').DataTable({
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                order: [[0, 'desc']],
+                ajax: {
+                    url: "{{ route('get-logs-cutting') }}",
+                    type: "GET",
+                    data: function(d) {
+                        d.tanggal_awal = $('#logs_cutting_tanggal_awal').val();
+                        d.tanggal_akhir = $('#logs_cutting_tanggal_akhir').val();
+                        d.subject_type = $('#logs_cutting_subject_type').val();
+                        d.activity = $('#logs_cutting_activity').val();
+                    }
+                },
+                columns: [
+                    {
+                        data: 'created_at'
+                    },
+                    {
+                        data: 'activity'
+                    },
+                    {
+                        data: 'subject_type'
+                    },
+                    {
+                        data: 'properties_formatted',
+                        orderable: false,
+                        searchable: false,
+                    },
+                    {
+                        data: 'user_name'
+                    }
+                ],
+                columnDefs: [
+                    {
+                        targets: [3],
+                        render: (data) => {
+                            if (!data || data === '-') return '-';
+                            return `
+                                <div class="properties-cutting-wrap" style="max-height:45px;overflow:hidden;transition:max-height .3s ease;">
+                                    <small>${data}</small>
+                                </div>
+                                <a href="#" class="btn-toggle-properties-cutting text-primary" style="font-size:11px;cursor:pointer;">
+                                    <i class="fas fa-chevron-down fa-xs"></i> Lihat
+                                </a>`;
+                        },
+                    },
+                    {
+                        targets: '_all',
+                        defaultContent: '-',
+                    },
+                ],
+            });
+        }
+
+        function loadActivity() {
+            $.ajax({
+                url: "{{ route('get-logs-cutting-activity') }}",
+                type: "GET",
+                data: {
+                    subject_type: $('#logs_cutting_subject_type').val()
+                },
+                success: function(res) {
+
+                    let html = '<option value="">Semua</option>';
+
+                    $.each(res, function(i, item) {
+                        html += `<option value="${item}">${item}</option>`;
+                    });
+
+                    $('#logs_cutting_activity').html(html);
+                }
+            });
+        }
+
+        // Log Cutting Piece
+        $(document).on('click', '.btn-toggle-properties-cutting-piece', function (e) {
+            e.preventDefault();
+            let $wrap = $(this).prev('.properties-cutting-piece-wrap');
+            let expanded = $wrap.data('expanded');
+            if (expanded) {
+                $wrap.css('max-height', '42px').data('expanded', false);
+                $(this).html('<i class="fas fa-chevron-down fa-xs"></i> Lihat');
+            } else {
+                $wrap.css('max-height', $wrap[0].scrollHeight + 'px').data('expanded', true);
+                $(this).html('<i class="fas fa-chevron-up fa-xs"></i> Sembunyikan');
+            }
+        });
+        $('#logs_cutting_piece_subject_type').on('change', function() {
+            loadPieceActivity();
+            logsCuttingPieceReload()
+        });
+
+        $('#logs_cutting_piece_tanggal_awal, #logs_cutting_piece_tanggal_akhir, #logs_cutting_piece_activity').on('change', function () {
+            logsCuttingPieceReload();
+        });
+
+        function openLogsCuttingPiece() {
+            $('#logsCuttingPiece').modal('show');
+
+            logsCuttingPieceReload();
+            loadPieceActivity();
+        }
+
+        let logsCuttingPieceTable = null;
+
+        function logsCuttingPieceReload() {
+            if ($.fn.DataTable.isDataTable('#datatable-logs-cutting-piece')) {
+                $('#datatable-logs-cutting-piece').DataTable().ajax.reload();
+                return;
+            }
+
+            logsCuttingPieceTable = $('#datatable-logs-cutting-piece').DataTable({
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                order: [[0, 'desc']],
+                ajax: {
+                    url: "{{ route('get-logs-cutting-piece') }}",
+                    type: "GET",
+                    data: function(d) {
+                        d.tanggal_awal = $('#logs_cutting_piece_tanggal_awal').val();
+                        d.tanggal_akhir = $('#logs_cutting_piece_tanggal_akhir').val();
+                        d.subject_type = $('#logs_cutting_piece_subject_type').val();
+                        d.activity = $('#logs_cutting_piece_activity').val();
+                    }
+                },
+                columns: [
+                    {
+                        data: 'created_at'
+                    },
+                    {
+                        data: 'activity'
+                    },
+                    {
+                        data: 'subject_type'
+                    },
+                    {
+                        data: 'route_name'
+                    },
+                    {
+                        data: 'properties_formatted',
+                        orderable: false,
+                        searchable: false,
+                    },
+                    {
+                        data: 'user_name'
+                    }
+                ],
+                columnDefs: [
+                    {
+                        targets: [4],
+                        render: (data) => {
+                            if (!data || data === '-') return '-';
+                            return `
+                                <div class="properties-cutting-piece-wrap" style="max-height:45px;overflow:hidden;transition:max-height .3s ease;">
+                                    <small>${data}</small>
+                                </div>
+                                <a href="#" class="btn-toggle-properties-cutting-piece text-primary" style="font-size:11px;cursor:pointer;">
+                                    <i class="fas fa-chevron-down fa-xs"></i> Lihat
+                                </a>`;
+                        },
+                    },
+                    {
+                        targets: '_all',
+                        defaultContent: '-',
+                    },
+                ],
+            });
+        }
+
+        function loadPieceActivity() {
+            $.ajax({
+                url: "{{ route('get-logs-cutting-piece-activity') }}",
+                type: "GET",
+                data: {
+                    subject_type: $('#logs_cutting_piece_subject_type').val()
+                },
+                success: function(res) {
+
+                    let html = '<option value="">Semua</option>';
+
+                    $.each(res, function(i, item) {
+                        html += `<option value="${item}">${item}</option>`;
+                    });
+
+                    $('#logs_cutting_piece_activity').html(html);
                 }
             });
         }

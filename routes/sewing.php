@@ -194,6 +194,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/store-inject-mutasi-sewing', 'storeInjectMutasiSewing')->name('store-inject-mutasi-sewing');
         Route::post('/delete-inject-mutasi-sewing', 'deleteInjectMutasiSewing')->name('delete-inject-mutasi-sewing');
         Route::post('/get-data-inject-mutasi-sewing', 'getDataInjectMutasiSewing')->name('get-data-inject-mutasi-sewing');
+        Route::get('/export-inject-mutasi-sewing', 'exportDataInjectMutasiSewing')->name('export-inject-mutasi-sewing');
     });
 
     // Reporting

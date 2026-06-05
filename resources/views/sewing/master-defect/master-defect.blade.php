@@ -93,6 +93,7 @@
                                 <option value="SEWING">SEWING</option>
                                 <option value="MENDING">MENDING</option>
                                 <option value="SPOTCLEANING">SPOTCLEANING</option>
+                                <option value="SHADING">SHADING</option>
                             </select>
                         </div>
                     </div>
@@ -151,6 +152,7 @@
                                 <option value="SEWING">SEWING</option>
                                 <option value="MENDING">MENDING</option>
                                 <option value="SPOTCLEANING">SPOTCLEANING</option>
+                                <option value="SHADING">SHADING</option>
                             </select>
                         </div>
                     </div>

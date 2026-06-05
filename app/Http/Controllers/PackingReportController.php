@@ -1032,7 +1032,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 SUM(qty_adjustment) qty_adjustment,
                 SUM(switching_in) switching_in,
                 SUM(switching_out) switching_out,
-                (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before)) + SUM(pl_saldo_awal) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out)) saldo_akhir_adj,
+                (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before)) + SUM(pl_saldo_akhir) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out)) saldo_akhir_adj,
                 SUM(pc_qty_adjustment_before) pc_adjustment_before,
                 SUM(pc_switching_in_before) pc_switching_in_before,
                 SUM(pc_switching_out_before) pc_switching_out_before,
@@ -1040,7 +1040,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 SUM(pc_qty_adjustment) pc_qty_adjustment,
                 SUM(pc_switching_in) pc_switching_in,
                 SUM(pc_switching_out) pc_switching_out,
-                (SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) - SUM(pc_switching_out_before)) + SUM(pc_saldo_awal) + (SUM(qty_adjustment) + SUM(pc_switching_in) - SUM(pc_switching_out)) pc_saldo_akhir_adj
+                (SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) - SUM(pc_switching_out_before)) + SUM(pc_saldo_akhir) + (SUM(pc_qty_adjustment) + SUM(pc_switching_in) - SUM(pc_switching_out)) pc_saldo_akhir_adj
                 from
                 (
                     select
@@ -1607,7 +1607,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             SUM(qty_adjustment) qty_adjustment,
             SUM(switching_in) switching_in,
             SUM(switching_out) switching_out,
-            (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before)) + SUM(pl_saldo_awal) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out)) saldo_akhir_adj,
+            (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before)) + SUM(pl_saldo_akhir) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out)) saldo_akhir_adj,
             SUM(pc_qty_adjustment_before) pc_adjustment_before,
             SUM(pc_switching_in_before) pc_switching_in_before,
             SUM(pc_switching_out_before) pc_switching_out_before,
@@ -1615,7 +1615,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             SUM(pc_qty_adjustment) pc_qty_adjustment,
             SUM(pc_switching_in) pc_switching_in,
             SUM(pc_switching_out) pc_switching_out,
-            (SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) - SUM(pc_switching_out_before)) + SUM(pc_saldo_awal) + (SUM(qty_adjustment) + SUM(pc_switching_in) - SUM(pc_switching_out)) pc_saldo_akhir_adj
+            (SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) - SUM(pc_switching_out_before)) + SUM(pc_saldo_akhir) + (SUM(pc_qty_adjustment) + SUM(pc_switching_in) - SUM(pc_switching_out)) pc_saldo_akhir_adj
             from
             (
                 select

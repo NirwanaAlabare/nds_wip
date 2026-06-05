@@ -1392,4 +1392,175 @@ class CuttingToolsController extends Controller
             ];
         }
     }
+
+    public function getLogsCutting(Request $request)
+    {
+        if ($request->subject_type == 'form_cut_input') {
+            $type = 'FormCutInput';
+        } else {
+            $type = '';
+        }
+
+        $data = DB::select("
+            SELECT
+                activity_log.created_at,
+                activity_log.description as activity,
+                SUBSTRING_INDEX(activity_log.subject_type, '\\\\', -1) AS subject_type,
+                activity_log.properties,
+                users.username AS user_name
+            FROM activity_log
+            LEFT JOIN users
+                ON users.id = activity_log.causer_id
+            WHERE activity_log.subject_type LIKE ?
+                AND activity_log.description = COALESCE(NULLIF(?, ''), activity_log.description)
+                AND DATE(activity_log.created_at) BETWEEN ? AND ?
+        ", [
+            '%' . $type . '%',
+            $request->activity,
+            $request->tanggal_awal,
+            $request->tanggal_akhir
+        ]);
+
+        return DataTables::of($data)
+            ->addColumn('properties_formatted', function ($row) {
+
+                $props = json_decode($row->properties, true);
+
+                if (!$props) {
+                    return '-';
+                }
+
+                $attributes = $props['attributes'] ?? [];
+                $old        = $props['old'] ?? [];
+
+                $lines = [];
+
+                $keys = array_unique(
+                    array_merge(
+                        array_keys($attributes),
+                        array_keys($old)
+                    )
+                );
+
+                foreach ($keys as $key) {
+                    $newVal = $attributes[$key] ?? null;
+                    $oldVal = $old[$key] ?? null;
+
+                    if (
+                        $oldVal !== null &&
+                        $newVal !== null &&
+                        $oldVal != $newVal
+                    ) {
+                        $lines[] = "<b>{$key}</b>: <span class='text-muted'>"
+                            . e($oldVal)
+                            . "</span> → <span class='text-primary'>"
+                            . e($newVal)
+                            . "</span>";
+                    } elseif (
+                        $newVal !== null &&
+                        $oldVal === null
+                    ) {
+                        $lines[] = "<b>{$key}</b>: <span class='text-success'>"
+                            . e($newVal)
+                            . "</span>";
+                    }
+                }
+
+                return implode('<br>', $lines) ?: '-';
+            })
+            ->rawColumns(['properties_formatted'])
+            ->toJson();
+    }
+
+    public function getLogsCuttingActivity(Request $request)
+    {
+        if ($request->subject_type == 'form_cut_input') {
+            $type = 'FormCutInput';
+        } else {
+            return response()->json([]);
+        }
+
+        $data = DB::table('activity_log')
+            ->where('subject_type', 'like', '%' . $type . '%')
+            ->distinct()
+            ->pluck('description');
+
+        return response()->json($data);
+    }
+
+    public function getLogsCuttingPiece(Request $request)
+    {
+        if ($request->subject_type == 'form_cut_piece') {
+            $type = 'CuttingFormPiece';
+        } else {
+            $type = '';
+        }
+
+        $data = DB::select("
+            SELECT
+                activity_log_history.created_at,
+                activity_log_history.activity,
+                activity_log_history.subject_type,
+                activity_log_history.route_name,
+                activity_log_history.properties,
+                users.username AS user_name
+            FROM activity_log_history
+            LEFT JOIN users
+                ON users.id = activity_log_history.user_id
+            WHERE activity_log_history.subject_type = ?
+                AND activity_log_history.activity = COALESCE(NULLIF(?, ''), activity_log_history.activity)
+                AND DATE(activity_log_history.created_at) BETWEEN ? AND ?
+        ", [
+            $type,
+            $request->activity,
+            $request->tanggal_awal,
+            $request->tanggal_akhir
+        ]);
+
+        return DataTables::of($data)
+            ->addColumn('properties_formatted', function ($row) {
+
+    $props = json_decode($row->properties, true);
+
+    if (!$props) {
+        return '-';
+    }
+
+    $lines = [];
+
+    foreach ($props as $key => $value) {
+
+        if (is_array($value)) {
+            $value = json_encode($value, JSON_PRETTY_PRINT);
+        }
+
+        if ($value === null || $value === '') {
+            continue;
+        }
+
+        $lines[] = '<b>' . ucwords(str_replace('_', ' ', $key)) . '</b>: '
+            . e((string) $value);
+    }
+
+    return implode('<br>', $lines);
+})
+            ->rawColumns(['properties_formatted'])
+            ->toJson();
+    }
+
+    public function getLogsCuttingPieceActivity(Request $request)
+    {
+        if ($request->subject_type == 'form_cut_piece') {
+            $type = 'CuttingFormPiece';
+        } else {
+            return response()->json([]);
+        }
+
+        $data = DB::table('activity_log_history')
+            ->where('subject_type', $type)
+            ->distinct()
+            ->pluck('activity');
+
+        return response()->json($data);
+    }
 }
