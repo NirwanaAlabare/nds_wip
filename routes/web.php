@@ -679,6 +679,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/show_preview_packing_in', 'show_preview_packing_in')->name('show_preview_packing_in');
         Route::post('/store', 'store')->name('store-packing-packing-in');
         Route::get('/export_excel_packing_in', 'export_excel_packing_in')->name('export_excel_packing_in');
+        Route::get('/packing_central_switching', 'packing_central_switching')->name('packing_central_switching');
     });
 
     // Packing Out

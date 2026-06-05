@@ -1490,9 +1490,9 @@ class CuttingToolsController extends Controller
 
     public function getLogsCuttingPiece(Request $request)
     {
-        if($request->subject_type == 'form_cut_piece'){
+        if ($request->subject_type == 'form_cut_piece') {
             $type = 'CuttingFormPiece';
-        }else{
+        } else {
             $type = '';
         }
 
@@ -1507,12 +1507,45 @@ class CuttingToolsController extends Controller
             FROM activity_log_history
             LEFT JOIN users
                 ON users.id = activity_log_history.user_id
-            WHERE activity_log_history.subject_type = ? 
+            WHERE activity_log_history.subject_type = ?
                 AND activity_log_history.activity = COALESCE(NULLIF(?, ''), activity_log_history.activity)
                 AND DATE(activity_log_history.created_at) BETWEEN ? AND ?
-        ", [$type, $request->activity, $request->tanggal_awal, $request->tanggal_akhir]);
+        ", [
+            $type,
+            $request->activity,
+            $request->tanggal_awal,
+            $request->tanggal_akhir
+        ]);
 
-        return DataTables::of($data)->toJson();
+        return DataTables::of($data)
+            ->addColumn('properties_formatted', function ($row) {
+
+    $props = json_decode($row->properties, true);
+
+    if (!$props) {
+        return '-';
+    }
+
+    $lines = [];
+
+    foreach ($props as $key => $value) {
+
+        if (is_array($value)) {
+            $value = json_encode($value, JSON_PRETTY_PRINT);
+        }
+
+        if ($value === null || $value === '') {
+            continue;
+        }
+
+        $lines[] = '<b>' . ucwords(str_replace('_', ' ', $key)) . '</b>: '
+            . e((string) $value);
+    }
+
+    return implode('<br>', $lines);
+})
+            ->rawColumns(['properties_formatted'])
+            ->toJson();
     }
 
     public function getLogsCuttingPieceActivity(Request $request)
