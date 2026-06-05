@@ -126,7 +126,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-3">
+                            <div class="col-2">
                                 <label><small><b>Cons</b></small></label>
                                 <div class="input-group mb-3">
                                     <input type="text" class="form-control" name="txtcons" id="txtcons">
@@ -140,7 +140,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-3" id="parent-detail">
+                            <div class="col-2" id="parent-detail">
                                 <label class="form-label"><small><b>Item</b></small></label>
                                 <select class="form-control select2bs4 part-item-list" style="border-radius: 0 3px 3px 0;" name="item[]" id="item" multiple>
                                     @foreach ($partItemList as $partItem)
@@ -155,6 +155,10 @@
                                     <option value="NON SECONDARY">NON SECONDARY</option>
                                     <option value="SECONDARY">SECONDARY</option>
                                 </select>
+                            </div>
+                            <div class="col-2">
+                                <label class="form-label"><small><b>Notes</b></small></label>
+                                <input type="text" class="form-control" name="notes" id="notes">
                             </div>
                             <div class="col-6 d-none" id="non_secondary_container">
                                 <label class="form-label"><small><b>Proses</b></small></label>
@@ -225,6 +229,7 @@
                                     <th>Proses</th>
                                     <th>Status</th>
                                     <th>Item</th>
+                                    <th>Notes</th>
                                     <th>Active</th>
                                 </tr>
                             </thead>
@@ -441,6 +446,10 @@
                                     <option value="{{ $partItem->id }}">{{ $partItem->itemdesc }}</option>
                                 @endforeach
                             </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Notes</label>
+                            <input class="form-control" id="edit_notes" name="edit_notes"></input>
                         </div>
                         {{-- <div class="mb-3">
                             <label class="form-label">Tujuan</label>
@@ -813,6 +822,9 @@
                         data: 'item',
                     },
                     {
+                        data: 'notes',
+                    },
+                    {
                         data: 'status',
                     },
                 ],
@@ -866,6 +878,7 @@
             // New
             let tujuan = document.getElementById('tujuan') ? document.getElementById('tujuan').value : '';
             let urutan = document.getElementById('urutan') ? document.getElementById('urutan').value : '';
+            let notes = document.getElementById('notes') ? document.getElementById('notes').value : '';
 
             // Loading
             document.getElementById("loading").classList.remove("d-none");
@@ -879,7 +892,8 @@
                     txtcons: txtcons,
                     txtconsunit: txtconsunit,
                     tujuan: tujuan,
-                    urutan: urutan
+                    urutan: urutan,
+                    notes: notes
                 },
                 success: function(response) {
                     document.getElementById("loading").classList.add("d-none");

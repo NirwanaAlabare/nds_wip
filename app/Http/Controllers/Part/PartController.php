@@ -941,6 +941,7 @@ class PartController extends Controller
                         'cons' => $currentFromPartDetail->cons,
                         'unit' => $currentFromPartDetail->unit,
                         'tujuan' => $currentFromPartDetail->tujuan,
+                        'notes' => $request->notes,
                         "created_by" => Auth::user()->id,
                         "created_by_username" => Auth::user()->username,
                     ]);
@@ -1118,6 +1119,7 @@ class PartController extends Controller
             "edit_urutan"         => $request->edit_urutan,
             "edit_part_status"    => $request->edit_part_status,
             "edit_item"           => $request->edit_item,
+            "edit_notes"          => $request->edit_notes,
         ]);
 
         // Phase 1
@@ -1213,6 +1215,13 @@ class PartController extends Controller
                     }
 
                     PartDetailItem::upsert($partItemData, ['part_detail_id', 'bom_jo_item_id'], ["updated_at"]);
+                }
+
+                // Phase 6 (Update Notes)
+                if ($request->edit_notes && $request->edit_notes != $partDetail->notes) {
+                    $updatePartDetail = $partDetail->update([
+                        "notes" => $request->edit_notes
+                    ]);
                 }
 
                 // Update DC Transaction if exist
@@ -1665,7 +1674,8 @@ class PartController extends Controller
                 COALESCE(pd.part_status, '-') part_status,
                 stocker.total total_stocker,
                 GROUP_CONCAT(DISTINCT masteritem.itemdesc) item,
-                pd.status
+                pd.status,
+                pd.notes
             FROM
                 `part_detail` pd
                 inner join master_part mp on pd.master_part_id = mp.id

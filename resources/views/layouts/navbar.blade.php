@@ -1176,10 +1176,10 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('report_mutasi_wip_cutting') }}" target="_blank"
+                                <a href="{{ route('report_mutasi_wip_cutting_detail') }}" target="_blank"
                                     rel="noopener noreferrer"
-                                    class="dropdown-item {{ $routeName == 'report_mutasi_wip_cutting' ? 'active' : '' }}">
-                                    Cutting - Mutasi WIP Cutting
+                                    class="dropdown-item {{ $routeName == 'report_mutasi_wip_cutting_detail' ? 'active' : '' }}">
+                                    Cutting - Mutasi WIP Cutting Detail
                                 </a>
                             </li>
                             <li>
