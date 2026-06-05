@@ -27,8 +27,8 @@ class Marker extends Model
     {
         $route = request()->route();
         $activity->properties = $activity->properties->merge([
-            'route'  => $route?->getName(),
-            'action' => $route?->getActionMethod(),
+            'route'  => $route ? $route->getName() : null,
+            'action' => $route ? $route->getActionMethod() : null,
             'url'    => request()->fullUrl(),
         ]);
     }

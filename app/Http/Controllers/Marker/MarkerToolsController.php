@@ -66,7 +66,7 @@ class MarkerToolsController extends Controller
 
         return DataTables::of($data)
             ->addColumn('model_name', function ($row) {
-                return str_contains($row->subject_type, 'MarkerDetail') ? 'Marker Detail' : 'Marker';
+                return strpos($row->subject_type, 'MarkerDetail') !== false ? 'Marker Detail' : 'Marker';
             })
             ->addColumn('request_info', function ($row) {
                 $props  = json_decode($row->properties, true);
@@ -187,7 +187,7 @@ class MarkerToolsController extends Controller
                 }
             }
 
-            $modelName = str_contains($row->subject_type, 'MarkerDetail') ? 'Marker Detail' : 'Marker';
+            $modelName = strpos($row->subject_type, 'MarkerDetail') !== false ? 'Marker Detail' : 'Marker';
 
             $sheet->writeRow([
                 $no++,
