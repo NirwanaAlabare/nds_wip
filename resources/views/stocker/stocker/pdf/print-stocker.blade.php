@@ -78,13 +78,14 @@
                 <td rowspan="3" style="vertical-align: middle; text-align: center; width: 35%;">
                     <img src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate($dataStocker->id_qr_stocker)) !!}">
                 </td>
-                <td>Bundle Qty : {{ $dataStocker->bundle_qty }}</td>
+                <td colspan="2">Bundle Qty : {{ $dataStocker->bundle_qty }}</td>
             </tr>
             <tr>
                 <td>Size : {{ $dataStocker->size }}</td>
+                <td>Country : {{ $dataStocker->dest }}</td>
             </tr>
             <tr>
-                <td>Range : {{ $dataStocker->range_awal." - ".$dataStocker->range_akhir }}</td>
+                <td colspan="2">Range : {{ $dataStocker->range_awal." - ".$dataStocker->range_akhir }}</td>
             </tr>
         </table>
         <table style="margin-top: -0.5px;">
@@ -97,8 +98,7 @@
             <tr>
                 <td style="border: none;border-left: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;white-space: nowrap;">Worksheet</td>
                 <td style="border: none;border-left: none; border-top: 0.75px solid; border-bottom: 0.75px solid;text-align: center;width: auto;">:</td>
-                <td colspan="2" style="border: none;border-right: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;">{{ $dataStocker->act_costing_ws }}</td>
-                <td colspan="4" style="border: none; border-top: 0.75px solid; border-bottom: 0.75px solid; border-right: 0.75px solid;">{{ $dataStocker->part_detail_notes }}</td>
+                <td colspan="6" style="border: none;border-right: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;">{{ $dataStocker->act_costing_ws }}</td>
             </tr>
             <tr>
                 <td style="border: none;border-left: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;white-space: nowrap;">Panel</td>
@@ -133,15 +133,20 @@
                 <td style="border: none;border-left: none; border-top: 0.75px solid; border-bottom: 0.75px solid;text-align: center;width: auto;">:</td>
                 <td style="border: none;border-right: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;">{{ $dataStocker->no_cut }}</td>
             </tr>
-            <tr>
+            {{-- <tr>
                 <td style="border: none;border-left: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;white-space: nowrap;">Country</td>
                 <td style="border: none;border-left: none; border-top: 0.75px solid; border-bottom: 0.75px solid;text-align: center;width: auto;">:</td>
                 <td colspan="6" style="border: none;border-right: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;">{{ $dataStocker->dest }}</td>
-            </tr>
+            </tr> --}}
             <tr>
                 <td style="border: none;border-left: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;white-space: nowrap;">Note</td>
                 <td style="border: none;border-left: none; border-top: 0.75px solid; border-bottom: 0.75px solid;text-align: center;width: auto;">:</td>
                 <td colspan="6" style="border: none;border-right: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;{{ strlen($dataStocker->notes) > 30 ? 'font-size: 10px;' : '' }}">{{ substr($dataStocker->notes, 0, 40).(strlen($dataStocker->notes) > 40 ? '...' : '') }}</td>
+            </tr>
+            <tr>
+                <td style="border: none;border-left: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;white-space: nowrap;">Note Proses</td>
+                <td style="border: none;border-left: none; border-top: 0.75px solid; border-bottom: 0.75px solid;text-align: center;width: auto;">:</td>
+                <td colspan="6" style="border: none;border-right: 0.75px solid; border-top: 0.75px solid; border-bottom: 0.75px solid;{{ strlen($dataStocker->part_detail_notes) > 30 ? 'font-size: 10px;' : '' }}">{{ substr($dataStocker->part_detail_notes, 0, 40).(strlen($dataStocker->part_detail_notes) > 40 ? '...' : '') }}</td>
             </tr>
             <tr>
                 <td style="border: none; border-top: 0.75px solid; border-bottom: 0.75px solid; border-left: 0.75px solid; white-space: nowrap;">Reject Panel</td>
