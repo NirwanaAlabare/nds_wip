@@ -836,8 +836,8 @@
                                             <th>Tanggal</th>
                                             <th>Activity</th>
                                             <th>Type</th>
-                                            {{-- <th>Route</th> --}}
-                                            {{-- <th>Properties</th> --}}
+                                            <th>Route</th>
+                                            <th>Properties</th>
                                             <th>User</th>
                                         </tr>
                                     </thead>
@@ -2265,6 +2265,18 @@
         }
 
         // Log Cutting Piece
+        $(document).on('click', '.btn-toggle-properties-cutting-piece', function (e) {
+            e.preventDefault();
+            let $wrap = $(this).prev('.properties-cutting-piece-wrap');
+            let expanded = $wrap.data('expanded');
+            if (expanded) {
+                $wrap.css('max-height', '42px').data('expanded', false);
+                $(this).html('<i class="fas fa-chevron-down fa-xs"></i> Lihat');
+            } else {
+                $wrap.css('max-height', $wrap[0].scrollHeight + 'px').data('expanded', true);
+                $(this).html('<i class="fas fa-chevron-up fa-xs"></i> Sembunyikan');
+            }
+        });
         $('#logs_cutting_piece_subject_type').on('change', function() {
             loadPieceActivity();
             logsCuttingPieceReload()
@@ -2314,21 +2326,37 @@
                     {
                         data: 'subject_type'
                     },
-                    // {
-                    //     data: 'route_name'
-                    // },
-                    // {
-                    //     data: 'properties',
-                    //     orderable: false,
-                    //     searchable: false,
-                    //     render: function(data) {
-                    //         return `<pre style="max-width:300px;white-space:pre-wrap;">${JSON.stringify(data, null, 2)}</pre>`;
-                    //     }
-                    // },
+                    {
+                        data: 'route_name'
+                    },
+                    {
+                        data: 'properties_formatted',
+                        orderable: false,
+                        searchable: false,
+                    },
                     {
                         data: 'user_name'
                     }
-                ]
+                ],
+                columnDefs: [
+                    {
+                        targets: [4],
+                        render: (data) => {
+                            if (!data || data === '-') return '-';
+                            return `
+                                <div class="properties-cutting-piece-wrap" style="max-height:45px;overflow:hidden;transition:max-height .3s ease;">
+                                    <small>${data}</small>
+                                </div>
+                                <a href="#" class="btn-toggle-properties-cutting-piece text-primary" style="font-size:11px;cursor:pointer;">
+                                    <i class="fas fa-chevron-down fa-xs"></i> Lihat
+                                </a>`;
+                        },
+                    },
+                    {
+                        targets: '_all',
+                        defaultContent: '-',
+                    },
+                ],
             });
         }
 
