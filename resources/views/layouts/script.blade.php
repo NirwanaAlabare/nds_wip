@@ -27,6 +27,91 @@
 	function getmodalwarehouse(){
 		$('#modal-pilih-gudang').modal('show');
 	}
+
+    function wsColorSizeChange(wsId, styleId, colorId, sizeId, tableReload) {
+        // Sync WS ↔ Style (same value = act_costing.id)
+        $("#" + wsId).on("change", function () {
+            if ($("#" + styleId).val() !== $(this).val()) {
+                $("#" + styleId).val($(this).val()).trigger("change");
+            }
+
+            tableReload();
+        });
+
+        $("#" + styleId).on("change", function () {
+            if ($("#" + wsId).val() !== $(this).val()) {
+                $("#" + wsId).val($(this).val()).trigger("change");
+            }
+            updateColorList();
+
+            tableReload();
+        });
+
+        $("#" + colorId).on("change", function () {
+            updateSizeList();
+
+            tableReload();
+        });
+
+        $("#" + sizeId).on("change", function () {
+            tableReload();
+        });
+
+        function updateColorList() {
+            $('#' + colorId).html('<option value=""></option>').trigger('change');
+            $('#' + sizeId).html('').trigger('change');
+
+            let actCostingId = $('#' + wsId).val();
+            if (!actCostingId) return;
+
+            $.ajax({
+                url: '{{ route("get-colors") }}',
+                type: 'get',
+                data: { act_costing_id: actCostingId },
+                success: function (res) {
+                    let select = document.getElementById(colorId);
+                    select.innerHTML = '<option value="">ALL</option>';
+                    (res || []).forEach(function (r) {
+                        let o = document.createElement('option');
+                        o.value = r.color;
+                        o.text  = r.color;
+                        select.appendChild(o);
+                    });
+                    $('#' + colorId).trigger('change.select2');
+                    if (res && res.length > 0) {
+                        $('#' + colorId).val(res[0].color).trigger('change');
+                    }
+                },
+            });
+        }
+
+        function updateSizeList() {
+            $('#' + sizeId).html('').trigger('change');
+
+            let actCostingId = $('#' + wsId).val();
+            let color        = $('#' + colorId).val();
+            if (!actCostingId || !color) return;
+
+            $.ajax({
+                url: '{{ route("get-sizes") }}',
+                type: 'get',
+                data: { act_costing_id: actCostingId, color: color },
+                success: function (res) {
+                    let select = document.getElementById(sizeId);
+                    select.innerHTML = '';
+                    (res || []).forEach(function (r) {
+                        let o = document.createElement('option');
+                        o.value = r.so_det_id;
+                        o.text  = r.size;
+                        select.appendChild(o);
+                    });
+                    // Select all sizes by default
+                    let allIds = (res || []).map(r => r.so_det_id);
+                    $('#' + sizeId).val(allIds).trigger('change.select2');
+                },
+            });
+        }
+    }
 </script>
 
 @yield('custom-script')
