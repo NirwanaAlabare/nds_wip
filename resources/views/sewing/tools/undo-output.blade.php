@@ -222,6 +222,21 @@
                             }
 
                             listTableReload();
+                        },
+                        error: function(jqXHR) {
+                            document.getElementById("loading").classList.add("d-none");
+
+                            console.log(jqXHR);
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Terjadi kesalahan saat memproses permintaan.',
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                                confirmButtonColor: "#082149",
+                            });
                         }
                     });
                 }

@@ -32,6 +32,10 @@ class MarkerToolsController extends Controller
         $markerModels = [
             'App\\Models\\Marker\\Marker',
             'App\\Models\\Marker\\MarkerDetail',
+            'App\\Models\\Part\\Part',
+            'App\\Models\\Part\\PartDetail',
+            'App\\Models\\Part\\PartDetailSecondary',
+            'App\\Models\\Part\\PartForm',
         ];
 
         $query = DB::table('activity_log')->
@@ -66,7 +70,7 @@ class MarkerToolsController extends Controller
 
         return DataTables::of($data)
             ->addColumn('model_name', function ($row) {
-                return strpos($row->subject_type, 'MarkerDetail') !== false ? 'Marker Detail' : 'Marker';
+                return $row->subject_type;
             })
             ->addColumn('request_info', function ($row) {
                 $props  = json_decode($row->properties, true);

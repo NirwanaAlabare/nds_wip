@@ -73,7 +73,7 @@
                     <a href="{{ route('inject-mutasi-sewing') }}" class="home-item">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-diagram-project"></i> Inject Mutasi Sewing</h5>
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-edit"></i> Inject Mutasi Sewing</h5>
                             </div>
                         </div>
                     </a>
@@ -182,6 +182,27 @@
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="text-sb mb-0"><i class="fa-solid fa-rotate"></i> Undo QC Reject</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-12">
+                    <h5 class="text-sb-secondary fw-bold mt-3">History</h5>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ route('undo-output-list') }}" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-clock-rotate-left"></i> List Output Undo</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ route('undo-packing-po-list') }}" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-clock-rotate-left"></i> List Undo Packing PO</h5>
                             </div>
                         </div>
                     </a>

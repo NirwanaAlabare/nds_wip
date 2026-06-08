@@ -480,9 +480,12 @@ Route::middleware('auth')->group(function () {
             // Logs cutting
             Route::get('/get-logs-cutting', 'getLogsCutting')->name('get-logs-cutting');
             Route::get('/get-logs-cutting-activity', 'getLogsCuttingActivity')->name('get-logs-cutting-activity');
+            Route::get('/export-logs-cutting', 'exportLogsCutting')->name('export-logs-cutting');
+            Route::get('/export-logs-scanned-item', 'exportLogsScannedItem')->name('export-logs-scanned-item');
 
             // Logs cutting piece
             Route::get('/get-logs-cutting-piece', 'getLogsCuttingPiece')->name('get-logs-cutting-piece');
             Route::get('/get-logs-cutting-piece-activity', 'getLogsCuttingPieceActivity')->name('get-logs-cutting-piece-activity');
+            Route::get('/export-logs-cutting-piece', 'exportLogsCuttingPiece')->name('export-logs-cutting-piece');
         });
 });
