@@ -160,7 +160,7 @@
                         </div>
                     </a>
                 </div>
-                
+
                 <div class="col-md-12">
                     <h5 class="text-sb-secondary fw-bold mt-3">Mismatch</h5>
                 </div>
@@ -195,13 +195,22 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" onclick="openLogsScannedItem()">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Logs Scanned Item</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
     {{-- Delete Redundant Roll --}}
     <div class="modal fade" id="deleteRedundantRoll" tabindex="-1" aria-labelledby="deleteRedundantRollLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-sb">
                     <h1 class="modal-title fs-5" id="deleteRedundantRollLabel">Delete Redundant Roll</h1>
@@ -731,7 +740,7 @@
     </div>
 
     <div class="modal fade" id="logsCutting" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-xl" role="document">
             <form id="formLogsCutting" enctype="multipart/form-data">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
@@ -768,12 +777,21 @@
                             </div>
                         </div>
 
+                        <div class="row mb-2">
+                            <div class="col-md-12">
+                                <a onclick="exportExcelLogsCutting()" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-file-excel fa-sm"></i> Export Excel
+                                </a>
+                            </div>
+                        </div>
+
                         <div class="row">
                             <div class="col-md-12 table-responsive">
                                 <table class="table table-bordered w-100" id="datatable-logs-cutting">
                                     <thead>
                                         <tr>
                                             <th>Tanggal</th>
+                                            <th>Subject ID</th>
                                             <th>Activity</th>
                                             <th>Type</th>
                                             <th>Properties</th>
@@ -791,7 +809,7 @@
     </div>
 
     <div class="modal fade" id="logsCuttingPiece" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-xl" role="document">
             <form id="formLogsCuttingPiece" enctype="multipart/form-data">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
@@ -828,12 +846,91 @@
                             </div>
                         </div>
 
+                        <div class="row mb-2">
+                            <div class="col-md-12">
+                                <a onclick="exportExcelLogsCuttingPiece()" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-file-excel fa-sm"></i> Export Excel
+                                </a>
+                            </div>
+                        </div>
+
                         <div class="row">
                             <div class="col-md-12 table-responsive">
                                 <table class="table table-bordered w-100" id="datatable-logs-cutting-piece">
                                     <thead>
                                         <tr>
                                             <th>Tanggal</th>
+                                            <th>Subject ID</th>
+                                            <th>Activity</th>
+                                            <th>Type</th>
+                                            <th>Route</th>
+                                            <th>Properties</th>
+                                            <th>User</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal fade" id="logsScannedItem" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-xl" role="document">
+            <form id="formLogsScannedItem" enctype="multipart/form-data">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h5 class="modal-title">
+                            Logs Scanned Item
+                        </h5>
+                        <button type="button" class="close" data-bs-dismiss="modal"> <span>&times;</span></button>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label>Tanggal Awal</label>
+                                <input type="date" class="form-control" name="logs_scanned_item_tanggal_awal" id="logs_scanned_item_tanggal_awal" value="{{ date('Y-m-d') }}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label>Tanggal Akhir</label>
+                                <input type="date" class="form-control" name="logs_scanned_item_tanggal_akhir" id="logs_scanned_item_tanggal_akhir" value="{{ date('Y-m-d') }}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label>Type</label>
+                                <select class="form-control select2bs4" name="logs_scanned_item_subject_type" id="logs_scanned_item_subject_type">
+                                    <option value="scanned_item">Scanned Item</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label>Activity</label>
+                                <select class="form-control select2bs4" name="logs_scanned_item_activity" id="logs_scanned_item_activity">
+                                    <option value="">Semua</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="col-md-12">
+                                <a onclick="exportExcelLogsScannedItem()" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-file-excel fa-sm"></i> Export Excel
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 table-responsive">
+                                <table class="table table-bordered w-100" id="datatable-logs-scanned-item">
+                                    <thead>
+                                        <tr>
+                                            <th>Tanggal</th>
+                                            <th>Subject ID</th>
                                             <th>Activity</th>
                                             <th>Type</th>
                                             <th>Route</th>
@@ -2163,7 +2260,7 @@
                 $(this).html('<i class="fas fa-chevron-up fa-xs"></i> Sembunyikan');
             }
         });
-        
+
         $('#logs_cutting_subject_type').on('change', function() {
             loadActivity();
             logsCuttingReload()
@@ -2208,6 +2305,9 @@
                         data: 'created_at'
                     },
                     {
+                        data: 'subject_id'
+                    },
+                    {
                         data: 'activity'
                     },
                     {
@@ -2216,7 +2316,6 @@
                     {
                         data: 'properties_formatted',
                         orderable: false,
-                        searchable: false,
                     },
                     {
                         data: 'user_name'
@@ -2224,7 +2323,7 @@
                 ],
                 columnDefs: [
                     {
-                        targets: [3],
+                        targets: [4],
                         render: (data) => {
                             if (!data || data === '-') return '-';
                             return `
@@ -2241,6 +2340,18 @@
                         defaultContent: '-',
                     },
                 ],
+                initComplete: function() {
+                    var api = this.api();
+                    $('#datatable-logs-cutting thead tr:first').clone(true).appendTo('#datatable-logs-cutting thead');
+                    $('#datatable-logs-cutting thead tr:eq(1) th').each(function(i) {
+                        $(this).html('<input type="text" class="form-control form-control-sm" placeholder="Filter..." />');
+                        $('input', this).on('keyup change', function() {
+                            if (api.column(i).search() !== this.value) {
+                                api.column(i).search(this.value).draw();
+                            }
+                        });
+                    });
+                },
             });
         }
 
@@ -2321,6 +2432,9 @@
                         data: 'created_at'
                     },
                     {
+                        data: 'subject_id'
+                    },
+                    {
                         data: 'activity'
                     },
                     {
@@ -2332,7 +2446,6 @@
                     {
                         data: 'properties_formatted',
                         orderable: false,
-                        searchable: false,
                     },
                     {
                         data: 'user_name'
@@ -2340,7 +2453,7 @@
                 ],
                 columnDefs: [
                     {
-                        targets: [4],
+                        targets: [5],
                         render: (data) => {
                             if (!data || data === '-') return '-';
                             return `
@@ -2357,6 +2470,18 @@
                         defaultContent: '-',
                     },
                 ],
+                initComplete: function() {
+                    var api = this.api();
+                    $('#datatable-logs-cutting-piece thead tr:first').clone(true).appendTo('#datatable-logs-cutting-piece thead');
+                    $('#datatable-logs-cutting-piece thead tr:eq(1) th').each(function(i) {
+                        $(this).html('<input type="text" class="form-control form-control-sm" placeholder="Filter..." />');
+                        $('input', this).on('keyup change', function() {
+                            if (api.column(i).search() !== this.value) {
+                                api.column(i).search(this.value).draw();
+                            }
+                        });
+                    });
+                },
             });
         }
 
@@ -2376,6 +2501,204 @@
                     });
 
                     $('#logs_cutting_piece_activity').html(html);
+                }
+            });
+        }
+
+        function exportExcelLogsCutting() {
+            Swal.fire({ title: 'Please Wait...', html: 'Exporting Data...', didOpen: () => { Swal.showLoading(); }, allowOutsideClick: false });
+            $.ajax({
+                type: 'GET',
+                url: "{{ route('export-logs-cutting') }}",
+                data: {
+                    tanggal_awal  : $('#logs_cutting_tanggal_awal').val(),
+                    tanggal_akhir : $('#logs_cutting_tanggal_akhir').val(),
+                    subject_type  : $('#logs_cutting_subject_type').val(),
+                    activity      : $('#logs_cutting_activity').val(),
+                },
+                xhrFields: { responseType: 'blob' },
+                success: function(response) {
+                    Swal.close();
+                    let link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(new Blob([response]));
+                    link.download = 'Logs_Cutting_' + $('#logs_cutting_tanggal_awal').val() + '_' + $('#logs_cutting_tanggal_akhir').val() + '.xlsx';
+                    link.click();
+                },
+                error: function() { Swal.fire({ title: 'Gagal Export', icon: 'error' }); }
+            });
+        }
+
+        function exportExcelLogsCuttingPiece() {
+            Swal.fire({ title: 'Please Wait...', html: 'Exporting Data...', didOpen: () => { Swal.showLoading(); }, allowOutsideClick: false });
+            $.ajax({
+                type: 'GET',
+                url: "{{ route('export-logs-cutting-piece') }}",
+                data: {
+                    tanggal_awal  : $('#logs_cutting_piece_tanggal_awal').val(),
+                    tanggal_akhir : $('#logs_cutting_piece_tanggal_akhir').val(),
+                    subject_type  : $('#logs_cutting_piece_subject_type').val(),
+                    activity      : $('#logs_cutting_piece_activity').val(),
+                },
+                xhrFields: { responseType: 'blob' },
+                success: function(response) {
+                    Swal.close();
+                    let link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(new Blob([response]));
+                    link.download = 'Logs_Cutting_Piece_' + $('#logs_cutting_piece_tanggal_awal').val() + '_' + $('#logs_cutting_piece_tanggal_akhir').val() + '.xlsx';
+                    link.click();
+                },
+                error: function() { Swal.fire({ title: 'Gagal Export', icon: 'error' }); }
+            });
+        }
+
+        function exportExcelLogsScannedItem() {
+            Swal.fire({ title: 'Please Wait...', html: 'Exporting Data...', didOpen: () => { Swal.showLoading(); }, allowOutsideClick: false });
+            $.ajax({
+                type: 'GET',
+                url: "{{ route('export-logs-scanned-item') }}",
+                data: {
+                    tanggal_awal  : $('#logs_scanned_item_tanggal_awal').val(),
+                    tanggal_akhir : $('#logs_scanned_item_tanggal_akhir').val(),
+                    activity      : $('#logs_scanned_item_activity').val(),
+                },
+                xhrFields: { responseType: 'blob' },
+                success: function(response) {
+                    Swal.close();
+                    let link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(new Blob([response]));
+                    link.download = 'Logs_Scanned_Item_' + $('#logs_scanned_item_tanggal_awal').val() + '_' + $('#logs_scanned_item_tanggal_akhir').val() + '.xlsx';
+                    link.click();
+                },
+                error: function() { Swal.fire({ title: 'Gagal Export', icon: 'error' }); }
+            });
+        }
+
+        // Log Scanned Item
+        $(document).on('click', '.btn-toggle-properties-scanned-item', function (e) {
+            e.preventDefault();
+            let $wrap = $(this).prev('.properties-scanned-item-wrap');
+            let expanded = $wrap.data('expanded');
+            if (expanded) {
+                $wrap.css('max-height', '42px').data('expanded', false);
+                $(this).html('<i class="fas fa-chevron-down fa-xs"></i> Lihat');
+            } else {
+                $wrap.css('max-height', $wrap[0].scrollHeight + 'px').data('expanded', true);
+                $(this).html('<i class="fas fa-chevron-up fa-xs"></i> Sembunyikan');
+            }
+        });
+        $('#logs_scanned_item_subject_type').on('change', function() {
+            loadScannedItemActivity();
+            logsScannedItemReload()
+        });
+
+        $('#logs_scanned_item_tanggal_awal, #logs_scanned_item_tanggal_akhir, #logs_scanned_item_activity').on('change', function () {
+            logsScannedItemReload();
+        });
+
+        function openLogsScannedItem() {
+            $('#logsScannedItem').modal('show');
+
+            logsScannedItemReload();
+            loadScannedItemActivity();
+        }
+
+        let logsScannedItemTable = null;
+
+        function logsScannedItemReload() {
+            if ($.fn.DataTable.isDataTable('#datatable-logs-scanned-item')) {
+                $('#datatable-logs-scanned-item').DataTable().ajax.reload();
+                return;
+            }
+
+            logsScannedItemTable = $('#datatable-logs-scanned-item').DataTable({
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                order: [[0, 'desc']],
+                ajax: {
+                    url: "{{ route('get-logs-cutting') }}",
+                    type: "GET",
+                    data: function(d) {
+                        d.tanggal_awal = $('#logs_scanned_item_tanggal_awal').val();
+                        d.tanggal_akhir = $('#logs_scanned_item_tanggal_akhir').val();
+                        d.subject_type = $('#logs_scanned_item_subject_type').val();
+                        d.activity = $('#logs_scanned_item_activity').val();
+                    }
+                },
+                columns: [
+                    {
+                        data: 'created_at'
+                    },
+                    {
+                        data: 'subject_id'
+                    },
+                    {
+                        data: 'activity'
+                    },
+                    {
+                        data: 'subject_type'
+                    },
+                    {
+                        data: 'route_name'
+                    },
+                    {
+                        data: 'properties_formatted',
+                        orderable: false,
+                    },
+                    {
+                        data: 'user_name'
+                    }
+                ],
+                columnDefs: [
+                    {
+                        targets: [5],
+                        render: (data) => {
+                            if (!data || data === '-') return '-';
+                            return `
+                                <div class="properties-scanned-item-wrap" style="max-height:45px;overflow:hidden;transition:max-height .3s ease;">
+                                    <small>${data}</small>
+                                </div>
+                                <a href="#" class="btn-toggle-properties-scanned-item text-primary" style="font-size:11px;cursor:pointer;">
+                                    <i class="fas fa-chevron-down fa-xs"></i> Lihat
+                                </a>`;
+                        },
+                    },
+                    {
+                        targets: '_all',
+                        defaultContent: '-',
+                    },
+                ],
+                initComplete: function() {
+                    var api = this.api();
+                    $('#datatable-logs-scanned-item thead tr:first').clone(true).appendTo('#datatable-logs-scanned-item thead');
+                    $('#datatable-logs-scanned-item thead tr:eq(1) th').each(function(i) {
+                        $(this).html('<input type="text" class="form-control form-control-sm" placeholder="Filter..." />');
+                        $('input', this).on('keyup change', function() {
+                            if (api.column(i).search() !== this.value) {
+                                api.column(i).search(this.value).draw();
+                            }
+                        });
+                    });
+                },
+            });
+        }
+
+        function loadScannedItemActivity() {
+            $.ajax({
+                url: "{{ route('get-logs-cutting-activity') }}",
+                type: "GET",
+                data: {
+                    subject_type: $('#logs_scanned_item_subject_type').val()
+                },
+                success: function(res) {
+
+                    let html = '<option value="">Semua</option>';
+
+                    $.each(res, function(i, item) {
+                        html += `<option value="${item}">${item}</option>`;
+                    });
+
+                    $('#logs_scanned_item_activity').html(html);
                 }
             });
         }
