@@ -1072,6 +1072,9 @@ class ReportCuttingController extends Controller
                                 master_sb_ws on master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                         where
                             form_cut_piece_detail_size.qty > 0
+                            and form_cut_piece_detail.id not in (
+                                7207
+                            )
                             " . $additionalQuery1 . "
                         group by
                             form_cut_piece_detail_size.so_det_id,
@@ -1371,6 +1374,9 @@ class ReportCuttingController extends Controller
                                 master_sb_ws on master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                         where
                             form_cut_piece_detail_size.qty > 0
+                            and form_cut_piece_detail.id not in (
+                                7207
+                            )
                             " . $additionalQuery1 . "
                             " . $tanggalFilter1 . "
                             " . $noMejaFilter1 . "
