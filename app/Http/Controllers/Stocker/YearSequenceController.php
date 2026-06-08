@@ -2432,6 +2432,10 @@ class YearSequenceController extends Controller
 
                 // Update QR Label — safe list only
                 if (count($safeArr) > 0) {
+                    $beforeUpdate = YearSequence::whereIn("id_year_sequence", $safeArr)
+                        ->get(["id_year_sequence", "id_qr_stocker", "form_cut_id", "form_reject_id", "number", "so_det_id", "size"])
+                        ->toArray();
+
                     YearSequence::whereIn("id_year_sequence", $safeArr)->update([
                         "id_qr_stocker" => $stocker ? $stocker->id_qr_stocker : null,
                         "form_cut_id" => $stocker ? $stocker->form_cut_id : null,
@@ -2455,6 +2459,24 @@ class YearSequenceController extends Controller
 
                     // Re-align packing PO
                     $sewingService->missPackingPo();
+
+                    activity()
+                        ->causedBy(auth()->user())
+                        ->withProperties([
+                            'method'        => $request['method'],
+                            'stocker'       => $request->stocker,
+                            'new_so_det_id' => $request->size,
+                            'new_size'      => $request->size_text,
+                            'updated_count' => count($safeArr),
+                            'updated_ids'   => $safeArr,
+                            'blocked_ids'   => $blockedByMasterPlan,
+                            'year'          => $request->year,
+                            'sequence'      => $request->sequence,
+                            'range_awal'    => $request->range_awal,
+                            'range_akhir'   => $request->range_akhir,
+                            'before'        => $beforeUpdate,
+                        ])
+                        ->log('Modify Year Sequence Update (Size)');
                 }
 
                 // Return response
@@ -2639,6 +2661,22 @@ class YearSequenceController extends Controller
                     // When the updated Size Was in different PO
                     $sewingService->missPackingPo(addQuotesAround(implode("\n", $yearSequenceArr)));
 
+                    activity()
+                        ->causedBy(auth()->user())
+                        ->withProperties([
+                            'method'        => $request['method'],
+                            'stocker'       => $request->stocker,
+                            'id_ws'         => $request->id_ws,
+                            'color'         => $request->color,
+                            'updated_count' => count($yearSequenceArr),
+                            'updated_ids'   => $yearSequenceArr,
+                            'year'          => $request->year,
+                            'sequence'      => $request->sequence,
+                            'range_awal'    => $request->range_awal,
+                            'range_akhir'   => $request->range_akhir,
+                        ])
+                        ->log('Modify Year Sequence Update (WS/Color)');
+
                     // Message
                     if ($request['method'] == "list") {
                         if ($yearSequenceIds) {
@@ -2695,6 +2733,7 @@ class YearSequenceController extends Controller
             "sequence" => "required",
         ]);
 
+        // Check Output
         if ($request['method'] == "list") {
             $yearSequenceIds = "'-'";
             if ($request->year_sequence_ids) {
@@ -2734,6 +2773,7 @@ class YearSequenceController extends Controller
             );
         }
 
+        // If Output count < 1, then safe to delete (update to null)
         if ($output->count() < 1) {
             $yearSequenceArr = [];
             foreach ($yearSequences as $yearSequence) {
