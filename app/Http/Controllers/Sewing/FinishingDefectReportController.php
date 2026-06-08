@@ -45,7 +45,9 @@ class FinishingDefectReportController extends Controller
               AND a.created_at <= ?
               $buyerFilter
             GROUP BY ms.supplier, ac.kpno, ac.styleno, sd.color, sd.size, msn.urutan
-            ORDER BY buyer ASC, ws ASC, color ASC, msn.urutan ASC
+            UNION ALL
+                select buyer, ws, styleno style, color, size, COALESCE(defect_sewing_f,0) jumlah from signalbit_erp.inject_mutasi_sewing where type_saldo = 'FINISHING' AND defect_sewing_f > 0 AND tgl_saldo >= '$startDate' AND tgl_saldo <= '$endDate'
+                ORDER BY buyer ASC, ws ASC, color ASC
         ";
 
         return DB::connection('mysql_sb')->select($sql, $bindings);

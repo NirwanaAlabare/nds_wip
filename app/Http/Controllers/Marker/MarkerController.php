@@ -260,11 +260,13 @@ class MarkerController extends Controller
      */
     public function store(Request $request)
     {
+        // Marker Code Generation
         $markerCount = Marker::selectRaw("MAX(kode) latest_kode")->whereRaw("kode LIKE 'MRK/" . date('ym') . "/%'")->first();
         $markerNumber = intval(substr($markerCount->latest_kode, -5)) + 1;
         $markerCode = 'MRK/' . date('ym') . '/' . sprintf('%05s', $markerNumber);
         $totalQty = 0;
 
+        // Validation
         $validatedRequest = $request->validate([
             "tgl_cutting" => "required",
             "ws_id" => "required",
@@ -295,11 +297,14 @@ class MarkerController extends Controller
             "unit_cons_piping" => "required",
         ]);
 
+        // Calculate total cut qty
         foreach ($request["cut_qty"] as $qty) {
             $totalQty += $qty;
         }
 
         if ($totalQty > 0) {
+
+            // Create Marker
             $markerStore = Marker::create([
                 'tgl_cutting' => $validatedRequest['tgl_cutting'],
                 'kode' => $markerCode,
@@ -336,11 +341,11 @@ class MarkerController extends Controller
                 'created_by_username' => Auth::user()->username
             ]);
 
+            // Create Marker Details
             $timestamp = Carbon::now();
             $markerId = $markerStore->id;
-            $markerDetailData = [];
             for ($i = 0; $i < intval($request['jumlah_so_det']); $i++) {
-                array_push($markerDetailData, [
+                MarkerDetail::create([
                     "marker_id" => $markerId,
                     "so_det_id" => $request["so_det_id"][$i],
                     "size" => $request["size"][$i],
@@ -351,8 +356,6 @@ class MarkerController extends Controller
                     "updated_at" => $timestamp,
                 ]);
             }
-
-            $markerDetailStore = MarkerDetail::insert($markerDetailData);
 
             return array(
                 "status" => 200,
@@ -931,23 +934,23 @@ class MarkerController extends Controller
             $timestamp = Carbon::now();
             $markerDetailData = [];
             for ($i = 0; $i < intval($request['jumlah_so_det']); $i++) {
-                if (MarkerDetail::where('marker_id', $id)->where('so_det_id', $request["so_det_id"][$i])->first()) {
-                    MarkerDetail::where('marker_id', $id)->where('so_det_id', $request["so_det_id"][$i])->update([
-                        "size" => $request["size"][$i],
-                        "ratio" => $request["ratio"][$i],
-                        "cut_qty" => $request["cut_qty"][$i],
-                        "cancel" => 'N',
-                        "created_at" => $timestamp,
+                $existingDetail = MarkerDetail::where('marker_id', $id)->where('so_det_id', $request["so_det_id"][$i])->first();
+                if ($existingDetail) {
+                    $existingDetail->update([
+                        "size"       => $request["size"][$i],
+                        "ratio"      => $request["ratio"][$i],
+                        "cut_qty"    => $request["cut_qty"][$i],
+                        "cancel"     => 'N',
                         "updated_at" => $timestamp,
                     ]);
                 } else {
                     MarkerDetail::create([
-                        "marker_id" => $id,
-                        'so_det_id' => $request["so_det_id"][$i],
-                        "size" => $request["size"][$i],
-                        "ratio" => $request["ratio"][$i],
-                        "cut_qty" => $request["cut_qty"][$i],
-                        "cancel" => 'N',
+                        "marker_id"  => $id,
+                        'so_det_id'  => $request["so_det_id"][$i],
+                        "size"       => $request["size"][$i],
+                        "ratio"      => $request["ratio"][$i],
+                        "cut_qty"    => $request["cut_qty"][$i],
+                        "cancel"     => 'N',
                         "created_at" => $timestamp,
                         "updated_at" => $timestamp,
                     ]);
