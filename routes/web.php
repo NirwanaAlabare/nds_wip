@@ -60,6 +60,7 @@ use App\Http\Controllers\MutasiMesinMasterController;
 use App\Http\Controllers\MutasiMesinStockOpnameController;
 use App\Http\Controllers\MutLokasiController;
 use App\Http\Controllers\OutMaterialController;
+use App\Http\Controllers\PackingCentralSwitchingController;
 use App\Http\Controllers\PackingDashboardController;
 use App\Http\Controllers\PackingLineController;
 use App\Http\Controllers\PackingMasterKartonController;
@@ -679,7 +680,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/show_preview_packing_in', 'show_preview_packing_in')->name('show_preview_packing_in');
         Route::post('/store', 'store')->name('store-packing-packing-in');
         Route::get('/export_excel_packing_in', 'export_excel_packing_in')->name('export_excel_packing_in');
-        Route::get('/packing_central_switching', 'packing_central_switching')->name('packing_central_switching');
+        
+    });
+
+    // Packing Central Switching
+    Route::controller(PackingCentralSwitchingController::class)->prefix("packing-central-switching")->middleware('packing')->group(function () {
+        Route::get('/', 'index')->name('packing_central_switching');
+        Route::get('/getData', 'getData')->name('getData_packing_central_switching');
+        Route::get('/getDataAsalPo', 'getDataAsalPo')->name('getDataAsalPo_packing_central_switching');
+        Route::get('/getDataTujuanPo', 'getDataTujuanPo')->name('getDataTujuanPo_packing_central_switching');
+        Route::get('/preview', 'preview')->name('preview_packing_central_switching');
+        Route::post('/store', 'store')->name('store_packing_central_switching');
+        Route::get('/export_excel_packing_central_switching', 'export_excel_packing_central_switching')->name('export_excel_packing_central_switching');
     });
 
     // Packing Out
