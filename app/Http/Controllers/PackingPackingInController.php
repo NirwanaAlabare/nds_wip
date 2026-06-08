@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Exports\ExportLaporanPackingIn;
+use App\Models\PackingCentralSwitching;
 use Carbon\Carbon;
-use Yajra\DataTables\Facades\DataTables;
 use DB;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\ExportLaporanPackingIn;
+use Yajra\DataTables\Facades\DataTables;
 
 class PackingPackingInController extends Controller
 {
@@ -37,10 +38,10 @@ class PackingPackingInController extends Controller
             a.created_at,
             a.created_by
             from packing_packing_in a
-            inner join packing_trf_garment b on a.id_trf_garment = b.id
-            inner join ppic_master_so p on a.id_ppic_master_so = p.id
-            inner join master_sb_ws m on p.id_so_det = m.id_so_det
-                where a.tgl_penerimaan >= '$tgl_awal' and a.tgl_penerimaan <= '$tgl_akhir' and sumber = 'Sewing'
+            left join packing_trf_garment b on a.id_trf_garment = b.id
+            left join ppic_master_so p on a.id_ppic_master_so = p.id
+            left join master_sb_ws m on p.id_so_det = m.id_so_det
+                where a.tgl_penerimaan >= '$tgl_awal' and a.tgl_penerimaan <= '$tgl_akhir' AND sumber IN ('Sewing', 'Switching')
             union
             select
             a.no_trans,
@@ -392,18 +393,5 @@ order by created_at desc
     public function export_excel_packing_in(Request $request)
     {
         return Excel::download(new ExportLaporanPackingIn($request->from, $request->to), 'Laporan_Packing_In.xlsx');
-    }
-
-
-    public function packing_central_switching(Request $request)
-    {
-        return view(
-            'packing.packing_central_switching',
-            [
-                'page' => 'dashboard-packing',
-                "subPageGroup" => "packing-packing-in",
-                "subPage" => "packing_central_switching"
-            ]
-        );
     }
 }
