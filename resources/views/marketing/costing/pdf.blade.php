@@ -57,7 +57,7 @@
             <td class="fw-bold" style="width: 1%; white-space: nowrap;">Ship Mode</td>
             <td style="width: 24%;">: {{ $costing->nama_ship_mode ?? $costing->ship_mode }}</td>
 
-            <td rowspan="5" style="width: 25%; text-align: right; vertical-align: top; padding: 0;">
+            <td rowspan="6" style="width: 25%; text-align: right; vertical-align: top; padding: 0;">
                 @if(!empty($costing->foto))
                     <img src="{{ public_path('uploads/costing/' . $costing->foto) }}" class="img-costing" alt="Gambar costing">
                 @else
@@ -100,20 +100,28 @@
             }
         @endphp
         <tr>
-            <td class="fw-bold" style="white-space: nowrap;">Product Group</td>
-            <td>: {{ $costing->product_group }}</td>
+            <td class="fw-bold" style="white-space: nowrap;">Season</td>
+            <td>: {{ $costing->season ?? '-' }}</td>
             <td class="fw-bold">Type</td>
             <td>: {{ strtoupper($costing->type) }}</td>
             <td class="fw-bold" style="white-space: nowrap;">Rate from IDR</td>
             <td>: {{ number_format($costing->rate_from_idr, 2, ',', '.') }}</td>
         </tr>
         <tr>
-            <td class="fw-bold" style="white-space: nowrap;">Product Item</td>
-            <td>: {{ $costing->nama_product_item ?? $costing->product_item }}</td>
+            <td class="fw-bold" style="white-space: nowrap;">Product Group</td>
+            <td>: {{ $costing->product_group }}</td>
             <td class="fw-bold">Set</td>
             <td>: {{ $set_string }}</td>
             <td class="fw-bold">VAT</td>
             <td>: {{ number_format($costing->vat, 2) }} %</td>
+        </tr>
+        <tr>
+            <td class="fw-bold" style="white-space: nowrap;">Product Item</td>
+            <td>: {{ $costing->nama_product_item ?? $costing->product_item }}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
         </tr>
     </table>
 
@@ -130,7 +138,7 @@
         $sum_fab_usd = 0; $sum_sew_usd = 0; $sum_pack_usd = 0; $sum_mfg_usd = 0; $sum_oth_norm_usd = 0;
 
         $overhead_row = null;
-        $rate_to_idr = $costing->rate_to_idr > 0 ? $costing->rate_to_idr : 16000;
+        $rate_to_idr = $costing->rate_to_idr > 0 ? $costing->rate_to_idr : 0;
 
 
         $saved_sets = $costing->product_set ? explode(',', $costing->product_set) : [];

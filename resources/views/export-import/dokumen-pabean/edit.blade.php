@@ -73,16 +73,31 @@
 
             <ul class="nav nav-tabs" id="ceisaTab" role="tablist">
                 <li class="nav-item">
-                    <a class="nav-link active" id="header-tab" data-toggle="tab" href="#tab-header" role="tab">Data Header & Nilai</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="barang-tab" data-toggle="tab" href="#tab-barang" role="tab">Daftar Barang</a>
+                    <a class="nav-link active" id="header-tab" data-toggle="tab" href="#tab-header" role="tab">Header</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" id="entitas-tab" data-toggle="tab" href="#tab-entitas" role="tab">Entitas</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" id="pendukung-tab" data-toggle="tab" href="#tab-pendukung" role="tab">Pendukung (Dokumen, Kemasan)</a>
+                    <a class="nav-link" id="dokumen-tab" data-toggle="tab" href="#tab-dokumen" role="tab">Dokumen</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pengangkut-tab" data-toggle="tab" href="#tab-pengangkut" role="tab">Pengangkut</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="kemasan-tab" data-toggle="tab" href="#tab-kemasan" role="tab">Kemasan & Peti Kemas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="transaksi-tab" data-toggle="tab" href="#tab-transaksi" role="tab">Transaksi</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="barang-tab" data-toggle="tab" href="#tab-barang" role="tab">Barang</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pungutan-tab" data-toggle="tab" href="#tab-pungutan" role="tab">Pungutan</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pernyataan-tab" data-toggle="tab" href="#tab-pernyataan" role="tab">Pernyataan</a>
                 </li>
             </ul>
 
@@ -96,12 +111,34 @@
                             <input type="text" name="nomorAju" class="form-control form-control-sm fw-bold" value="{{ $nomorAju }}">
                         </div>
                         <div class="col-md-3 form-group">
-                            <label>Tanggal Aju</label>
-                            <input type="date" name="tanggalAju" class="form-control form-control-sm" value="{{ $ceisaInfo->tanggal_aju ?? $header->tanggal_aju ?? date('Y-m-d') }}">
+                            <label>Kode Kantor</label>
+                            <select name="kodeKantor" class="form-control form-control-sm select2bs4">
+                                <option value="">Pilih Kantor</option>
+                                @foreach($kantorList as $val => $label)
+                                    <option value="{{ $val }}" {{ (isset($dataDetail['kodeKantor']) && $dataDetail['kodeKantor'] == $val) || (!isset($dataDetail['kodeKantor']) && $val == '050500') ? 'selected' : '' }}>
+                                        {{ $val }} - {{ $label }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="col-md-3 form-group">
-                            <label>Kode Kantor</label>
-                            <input type="text" name="kodeKantor" class="form-control form-control-sm" value="{{ $dataDetail['kodeKantor'] ?? '050500' }}">
+                            <label>Jenis TPB</label>
+                            <select name="jenisTPB" class="form-control form-control-sm select2bs4">
+                                <option value="">Pilih Jenis TPB</option>
+                                @php
+                                    $selectedJenisTPB = $dataDetail['jenisTpb'] ?? ''
+                                @endphp
+                                <option value="1" {{ $selectedJenisTPB == '1' ? 'selected' : '' }}>KAWASAN BERIKAT</option>
+                                <option value="2" {{ $selectedJenisTPB == '2' ? 'selected' : '' }}>GUDANG BERIKAT</option>
+                                <option value="3" {{ $selectedJenisTPB == '3' ? 'selected' : '' }}>TPPB</option>
+                                <option value="4" {{ $selectedJenisTPB == '4' ? 'selected' : '' }}>TBB</option>
+                                <option value="5" {{ $selectedJenisTPB == '5' ? 'selected' : '' }}>TLB</option>
+                                <option value="6" {{ $selectedJenisTPB == '6' ? 'selected' : '' }}>KDUB</option>
+                                <option value="7" {{ $selectedJenisTPB == '7' ? 'selected' : '' }}>LAINNYA</option>
+                                <option value="8" {{ $selectedJenisTPB == '8' ? 'selected' : '' }}>KAWASAN BEBAS</option>
+                                <option value="9" {{ $selectedJenisTPB == '9' ? 'selected' : '' }}>KAWASAN EKONOMI KHUSUS</option>
+                                <option value="10" {{ $selectedJenisTPB == '10' ? 'selected' : '' }}>KAWASAN EKONOMI LAINNYA</option>
+                            </select>
                         </div>
                         <div class="col-md-3 form-group">
                             <label>Tujuan Pengiriman</label>
@@ -121,31 +158,7 @@
                         </div>
                     </div>
 
-                    <div class="section-title">Data Nilai & Fisik</div>
-                    <div class="row">
-                        <div class="col-md-2 form-group"><label>Bruto (Kg)</label><input type="text" inputmode="decimal" name="bruto" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['bruto'] ?? $header->berat_kotor ?? "" }}" placeholder="contoh: 125.5000"></div>
-                        <div class="col-md-2 form-group"><label>Netto (Kg)</label><input type="text" inputmode="decimal" name="netto" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['netto'] ?? $header->berat_bersih ?? "" }}" placeholder="contoh: 120.0000"></div>
-                        <div class="col-md-2 form-group"><label>Volume (M3)</label><input type="text" inputmode="decimal" name="volume" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['volume'] ?? "" }}" placeholder="contoh: 0.5000"></div>
-                        <div class="col-md-3 form-group"><label>Harga Penyerahan (Rp)</label><input type="text" inputmode="decimal" name="hargaPenyerahan" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['hargaPenyerahan'] ?? "" }}" placeholder="contoh: 5000000.00"></div>
-                        <div class="col-md-3 form-group"><label>CIF (Rp)</label><input type="text" inputmode="decimal" name="cif" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['cif'] ?? "" }}" placeholder="contoh: 5000000.00"></div>
-                    </div>
 
-                    <div class="row">
-                        <div class="col-md-2 form-group"><label>Asuransi (Rp)</label><input type="text" inputmode="decimal" name="asuransi" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['asuransi'] ?? "" }}" placeholder="contoh: 50000.00"></div>
-                        <div class="col-md-2 form-group"><label>Freight (Rp)</label><input type="text" inputmode="decimal" name="freight" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['freight'] ?? "" }}" placeholder="contoh: 200000.00"></div>
-                        <div class="col-md-2 form-group"><label>Biaya Tambahan (Rp)</label><input type="text" inputmode="decimal" name="biayaTambahan" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['biayaTambahan'] ?? "" }}" placeholder="contoh: 0.00"></div>
-                        <div class="col-md-2 form-group"><label>Biaya Pengurang (Rp)</label><input type="text" inputmode="decimal" name="biayaPengurang" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['biayaPengurang'] ?? "" }}" placeholder="contoh: 0.00"></div>
-                        <div class="col-md-2 form-group"><label>Uang Muka (Rp)</label><input type="text" inputmode="decimal" name="uangMuka" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['uangMuka'] ?? "" }}" placeholder="contoh: 0.00"></div>
-                        <div class="col-md-2 form-group"><label>Nilai Jasa (Rp)</label><input type="text" inputmode="decimal" name="nilaiJasa" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['nilaiJasa'] ?? "" }}" placeholder="contoh: 0.00"></div>
-                    </div>
-
-                    <div class="section-title">Penandatangan</div>
-                    <div class="row">
-                        <div class="col-md-3 form-group"><label>Nama TTD</label><input type="text" name="namaTtd" class="form-control form-control-sm" value="{{ $dataDetail['namaTtd'] ?? '' }}"></div>
-                        <div class="col-md-3 form-group"><label>Jabatan</label><input type="text" name="jabatanTtd" class="form-control form-control-sm" value="{{ $dataDetail['jabatanTtd'] ?? '' }}"></div>
-                        <div class="col-md-3 form-group"><label>Kota TTD</label><input type="text" name="kotaTtd" class="form-control form-control-sm" value="{{ $dataDetail['kotaTtd'] ?? '' }}"></div>
-                        <div class="col-md-3 form-group"><label>Tanggal TTD</label><input type="date" name="tanggalTtd" class="form-control form-control-sm" value="{{ $dataDetail['tanggalTtd'] ?? date('Y-m-d') }}"></div>
-                    </div>
                 </div>
 
                 <div class="tab-pane fade" id="tab-barang" role="tabpanel">
@@ -174,143 +187,177 @@
                                     <input type="hidden" name="barang[{{ $index }}][seriBarang]" value="{{ $index + 1 }}">
 
                                     <div class="row">
-                                        <div class="col-md-3">
-                                            <div class="border-bottom fw-bold mb-2 pb-1" style="font-size: 12px; color: #003366;">Jenis</div>
-                                            <div class="form-group mb-2">
-                                                <label class="small mb-0">Pos Tarif/HS</label>
-                                                <select name="barang[{{ $index }}][posTarif]" class="form-control form-control-sm select2bs4">
-                                                    <option value="">Pilih Pos Tarif/HS</option>
-                                                    <option value="01012100" {{ ($draftItem['posTarif'] ?? '') == '01012100' ? 'selected' : '' }}>01012100 - BIBIT</option>
-                                                    <option value="01012900" {{ ($draftItem['posTarif'] ?? '') == '01012900' ? 'selected' : '' }}>01012900 - LAIN-LAIN</option>
-                                                    <option value="01013010" {{ ($draftItem['posTarif'] ?? '') == '01013010' ? 'selected' : '' }}>01013010 - BIBIT</option>
-                                                    <option value="01013090" {{ ($draftItem['posTarif'] ?? '') == '01013090' ? 'selected' : '' }}>01013090 - LAIN-LAIN</option>
-                                                    <option value="01019000" {{ ($draftItem['posTarif'] ?? '') == '01019000' ? 'selected' : '' }}>01019000 - LAIN-LAIN</option>
-                                                    <option value="01022100" {{ ($draftItem['posTarif'] ?? '') == '01022100' ? 'selected' : '' }}>01022100 - BIBIT</option>
-                                                    <option value="01022910" {{ ($draftItem['posTarif'] ?? '') == '01022910' ? 'selected' : '' }}>01022910 - SAPI JANTAN</option>
-                                                    <option value="01022911" {{ ($draftItem['posTarif'] ?? '') == '01022911' ? 'selected' : '' }}>01022911 - OXEN</option>
-                                                    <option value="01022919" {{ ($draftItem['posTarif'] ?? '') == '01022919' ? 'selected' : '' }}>01022919 - LAIN-LAIN</option>
-                                                </select>
-                                            </div>
-                                            <div class="form-group mb-2">
-                                                <label class="small mb-0">Kode Barang</label>
-                                                <input type="text" name="barang[{{ $index }}][kodeBarang]" class="form-control form-control-sm" value="{{ $draftItem['kodeBarang'] ?? $item->id_item ?? '' }}">
-                                            </div>
-                                            <div class="form-group mb-2">
-                                                <label class="small mb-0">Uraian Jenis Barang</label>
-                                                <textarea name="barang[{{ $index }}][uraian]" class="form-control form-control-sm" rows="2">{{ $draftItem['uraian'] ?? $item->itemdesc }}</textarea>
-                                            </div>
-                                            <div class="form-group mb-2">
-                                                <label class="small mb-0">Merek</label>
-                                                <input type="text" name="barang[{{ $index }}][merk]" class="form-control form-control-sm" value="{{ $draftItem['merk'] ?? '-' }}">
-                                            </div>
-                                            <div class="form-group mb-2">
-                                                <label class="small mb-0">Tipe</label>
-                                                <input type="text" name="barang[{{ $index }}][tipe]" class="form-control form-control-sm" value="{{ $draftItem['tipe'] ?? 'TIPE BARANG' }}">
-                                            </div>
-                                            <div class="form-group mb-2">
-                                                <label class="small mb-0">Ukuran</label>
-                                                <input type="text" name="barang[{{ $index }}][ukuran]" class="form-control form-control-sm" value="{{ $draftItem['ukuran'] ?? '' }}">
-                                            </div>
-                                            <div class="form-group mb-0">
-                                                <label class="small mb-0">Spesifikasi Lain</label>
-                                                <input type="text" name="barang[{{ $index }}][spesifikasiLain]" class="form-control form-control-sm" value="{{ $draftItem['spesifikasiLain'] ?? $item->remark ?? '-' }}">
+                                    <div class="row">
+                                        <!-- KOLOM 1: JENIS -->
+                                        <div class="col-md-4">
+                                            <div class="card shadow-none border mb-3">
+                                                <div class="card-header bg-navy p-2" style="font-size: 13px;">
+                                                    <h3 class="card-title mb-0" style="font-size: 13px; font-weight: bold; color: white;">Jenis</h3>
+                                                </div>
+                                                <div class="card-body p-2">
+                                                    <div class="form-group mb-2">
+                                                        <label class="small mb-0">Seri</label>
+                                                        <input type="text" class="form-control form-control-sm bg-light" value="{{ $index + 1 }}" readonly>
+                                                    </div>
+                                                    <div class="form-group mb-2">
+                                                        <label class="small mb-0">Pos Tarif/HS</label>
+                                                        <select name="barang[{{ $index }}][posTarif]" class="form-control form-control-sm select2bs4">
+                                                            <option value="">Pilih Pos Tarif/HS</option>
+                                                            <option value="01012100" {{ ($draftItem['posTarif'] ?? '') == '01012100' ? 'selected' : '' }}>01012100 - BIBIT</option>
+                                                            <option value="01012900" {{ ($draftItem['posTarif'] ?? '') == '01012900' ? 'selected' : '' }}>01012900 - LAIN-LAIN</option>
+                                                            <option value="01013010" {{ ($draftItem['posTarif'] ?? '') == '01013010' ? 'selected' : '' }}>01013010 - BIBIT</option>
+                                                            <option value="01013090" {{ ($draftItem['posTarif'] ?? '') == '01013090' ? 'selected' : '' }}>01013090 - LAIN-LAIN</option>
+                                                            <option value="01019000" {{ ($draftItem['posTarif'] ?? '') == '01019000' ? 'selected' : '' }}>01019000 - LAIN-LAIN</option>
+                                                            <option value="01022100" {{ ($draftItem['posTarif'] ?? '') == '01022100' ? 'selected' : '' }}>01022100 - BIBIT</option>
+                                                            <option value="01022910" {{ ($draftItem['posTarif'] ?? '') == '01022910' ? 'selected' : '' }}>01022910 - SAPI JANTAN</option>
+                                                            <option value="01022911" {{ ($draftItem['posTarif'] ?? '') == '01022911' ? 'selected' : '' }}>01022911 - OXEN</option>
+                                                            <option value="01022919" {{ ($draftItem['posTarif'] ?? '') == '01022919' ? 'selected' : '' }}>01022919 - LAIN-LAIN</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="form-group mb-2">
+                                                        <label class="small mb-0">Kode Barang</label>
+                                                        <input type="text" name="barang[{{ $index }}][kodeBarang]" class="form-control form-control-sm" value="{{ $draftItem['kodeBarang'] ?? $item->id_item ?? '' }}">
+                                                    </div>
+                                                    <div class="form-group mb-2">
+                                                        <label class="small mb-0">Uraian Jenis Barang</label>
+                                                        <textarea name="barang[{{ $index }}][uraian]" class="form-control form-control-sm" rows="2">{{ $draftItem['uraian'] ?? $item->itemdesc }}</textarea>
+                                                    </div>
+                                                    <div class="form-group mb-2">
+                                                        <label class="small mb-0">Merek</label>
+                                                        <input type="text" name="barang[{{ $index }}][merk]" class="form-control form-control-sm" value="{{ $draftItem['merk'] ?? '-' }}">
+                                                    </div>
+                                                    <div class="form-group mb-2">
+                                                        <label class="small mb-0">Tipe</label>
+                                                        <input type="text" name="barang[{{ $index }}][tipe]" class="form-control form-control-sm" value="{{ $draftItem['tipe'] ?? 'TIPE BARANG' }}">
+                                                    </div>
+                                                    <div class="form-group mb-2">
+                                                        <label class="small mb-0">Ukuran</label>
+                                                        <input type="text" name="barang[{{ $index }}][ukuran]" class="form-control form-control-sm" value="{{ $draftItem['ukuran'] ?? '' }}">
+                                                    </div>
+                                                    <div class="form-group mb-0">
+                                                        <label class="small mb-0">Spesifikasi Lain</label>
+                                                        <input type="text" name="barang[{{ $index }}][spesifikasiLain]" class="form-control form-control-sm" value="{{ $draftItem['spesifikasiLain'] ?? $item->remark ?? '-' }}">
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div class="col-md-4 border-left">
-                                            <div class="border-bottom fw-bold mb-2 pb-1" style="font-size: 12px; color: #003366;">Jumlah & Berat</div>
-                                            <div class="row">
-                                                <div class="col-4 form-group mb-2 pr-1">
-                                                    <label class="small mb-0">Jml Satuan</label>
-                                                    <input type="text" inputmode="decimal" name="barang[{{ $index }}][jumlahSatuan]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['jumlahSatuan'] ?? (float) $item->qty }}" placeholder="contoh: 100">
+                                        <!-- KOLOM 2: HARGA -->
+                                        <div class="col-md-4">
+                                            <div class="card shadow-none border mb-3">
+                                                <div class="card-header bg-navy p-2" style="font-size: 13px;">
+                                                    <h3 class="card-title mb-0" style="font-size: 13px; font-weight: bold; color: white;">Harga</h3>
                                                 </div>
-                                                <div class="col-8 form-group mb-2 pl-1">
-                                                    <label class="small mb-0">Satuan</label>
-                                                    <select name="barang[{{ $index }}][kodeSatuanBarang]" class="form-control form-control-sm select2bs4">
-                                                        <option value="">-- Pilih Satuan --</option>
-                                                        @foreach($listSatuanBarang as $kSat => $vSat)
-                                                            <option value="{{ $kSat }}" {{ ($draftItem['kodeSatuanBarang'] ?? $item->unit) == $kSat ? 'selected' : '' }}>{{ $kSat }} - {{ $vSat }}</option>
-                                                        @endforeach
-                                                    </select>
+                                                <div class="card-body p-2">
+                                                    <div class="form-group mb-2">
+                                                        <label class="small mb-0">Harga Satuan (Rp)</label>
+                                                        <input type="text" inputmode="decimal" name="barang[{{ $index }}][hargaSatuan]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['hargaSatuan'] ?? (float) $item->price }}" placeholder="contoh: 15000.00">
+                                                    </div>
+                                                    <div class="form-group mb-2">
+                                                        <label class="small mb-0 fw-bold">Harga Penyerahan/Jual</label>
+                                                        <input type="text" inputmode="decimal" name="barang[{{ $index }}][hargaPenyerahan]" class="form-control form-control-sm fw-bold input-decimal" value="{{ $draftItem['hargaPenyerahan'] ?? (float) ($item->qty * $item->price) }}" placeholder="contoh: 1500000.00">
+                                                    </div>
+                                                    <div class="form-group mb-2">
+                                                        <label class="small mb-0">Nilai Jasa/Penggantian</label>
+                                                        <input type="text" inputmode="decimal" name="barang[{{ $index }}][nilaiJasa]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['nilaiJasa'] ?? "" }}" placeholder="contoh: 0.00 (isi 0 jika tidak ada)">
+                                                    </div>
+                                                    <div class="form-group mb-0">
+                                                        <label class="small mb-0">Diskon</label>
+                                                        <input type="text" inputmode="decimal" name="barang[{{ $index }}][diskon]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['diskon'] ?? "" }}" placeholder="contoh: 0.00 (isi 0 jika tidak ada)">
+                                                    </div>
                                                 </div>
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-4 form-group mb-2 pr-1">
-                                                    <label class="small mb-0">Jml Kemasan</label>
-                                                    <input type="text" inputmode="decimal" name="barang[{{ $index }}][jumlahKemasan]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['jumlahKemasan'] ?? "" }}" placeholder="contoh: 10">
-                                                </div>
-                                                <div class="col-8 form-group mb-2 pl-1">
-                                                    <label class="small mb-0">Kemasan</label>
-                                                    <select name="barang[{{ $index }}][kodeJenisKemasan]" class="form-control form-control-sm select2bs4">
-                                                        <option value="">-- Pilih Kemasan --</option>
-                                                        @foreach($listJenisKemasan as $kKem => $vKem)
-                                                            <option value="{{ $kKem }}" {{ ($draftItem['kodeJenisKemasan'] ?? '') == $kKem ? 'selected' : '' }}>{{ $kKem }} - {{ $vKem }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                            </div>
-
-                                            <div class="form-group mb-2">
-                                                <label class="small mb-0">Volume (M3)</label>
-                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][volume]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['volume'] ?? "" }}" placeholder="contoh: 0.0500">
-                                            </div>
-                                            <div class="form-group mb-0">
-                                                <label class="small mb-0">Berat Bersih / Netto (Kg)</label>
-                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][netto]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['netto'] ?? "" }}" placeholder="contoh: 12.5000">
                                             </div>
                                         </div>
 
-                                        <div class="col-md-2 border-left">
-                                            <div class="border-bottom fw-bold mb-2 pb-1" style="font-size: 12px; color: #003366;">Harga</div>
-                                            <div class="form-group mb-2">
-                                                <label class="small mb-0">Harga Satuan (Rp)</label>
-                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][hargaSatuan]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['hargaSatuan'] ?? (float) $item->price }}" placeholder="contoh: 15000.00">
+                                        <!-- KOLOM 3: JUMLAH & BERAT, PUNGUTAN -->
+                                        <div class="col-md-4">
+                                            <div class="card shadow-none border mb-3">
+                                                <div class="card-header bg-navy p-2" style="font-size: 13px;">
+                                                    <h3 class="card-title mb-0" style="font-size: 13px; font-weight: bold; color: white;">Jumlah & Berat</h3>
+                                                </div>
+                                                <div class="card-body p-2">
+                                                    <div class="row">
+                                                        <div class="col-4 form-group mb-2 pr-1">
+                                                            <label class="small mb-0">Jml Satuan</label>
+                                                            <input type="text" inputmode="decimal" name="barang[{{ $index }}][jumlahSatuan]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['jumlahSatuan'] ?? (float) $item->qty }}" placeholder="contoh: 100">
+                                                        </div>
+                                                        <div class="col-8 form-group mb-2 pl-1">
+                                                            <label class="small mb-0">Satuan</label>
+                                                            <select name="barang[{{ $index }}][kodeSatuanBarang]" class="form-control form-control-sm select2bs4">
+                                                                <option value="">-- Pilih Satuan --</option>
+                                                                @foreach($listSatuanBarang as $kSat => $vSat)
+                                                                    <option value="{{ $kSat }}" {{ ($draftItem['kodeSatuanBarang'] ?? $item->unit) == $kSat ? 'selected' : '' }}>{{ $kSat }} - {{ $vSat }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row">
+                                                        <div class="col-4 form-group mb-2 pr-1">
+                                                            <label class="small mb-0">Jml Kemasan</label>
+                                                            <input type="text" inputmode="decimal" name="barang[{{ $index }}][jumlahKemasan]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['jumlahKemasan'] ?? "" }}" placeholder="contoh: 10">
+                                                        </div>
+                                                        <div class="col-8 form-group mb-2 pl-1">
+                                                            <label class="small mb-0">Kemasan</label>
+                                                            <select name="barang[{{ $index }}][kodeJenisKemasan]" class="form-control form-control-sm select2bs4">
+                                                                <option value="">-- Pilih Kemasan --</option>
+                                                                @foreach($listJenisKemasan as $kKem => $vKem)
+                                                                    <option value="{{ $kKem }}" {{ ($draftItem['kodeJenisKemasan'] ?? '') == $kKem ? 'selected' : '' }}>{{ $kKem }} - {{ $vKem }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group mb-2">
+                                                        <label class="small mb-0">Volume (M3)</label>
+                                                        <input type="text" inputmode="decimal" name="barang[{{ $index }}][volume]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['volume'] ?? "" }}" placeholder="contoh: 0.0500">
+                                                    </div>
+                                                    <div class="form-group mb-0">
+                                                        <label class="small mb-0">Berat Bersih / Netto (Kg)</label>
+                                                        <input type="text" inputmode="decimal" name="barang[{{ $index }}][netto]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['netto'] ?? "" }}" placeholder="contoh: 12.5000">
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div class="form-group mb-2">
-                                                <label class="small mb-0 fw-bold">Harga Penyerahan/Jual</label>
-                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][hargaPenyerahan]" class="form-control form-control-sm fw-bold input-decimal" value="{{ $draftItem['hargaPenyerahan'] ?? (float) ($item->qty * $item->price) }}" placeholder="contoh: 1500000.00">
-                                            </div>
-                                            <div class="form-group mb-2">
-                                                <label class="small mb-0">Nilai Jasa/Penggantian</label>
-                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][nilaiJasa]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['nilaiJasa'] ?? "" }}" placeholder="contoh: 0.00 (isi 0 jika tidak ada)">
-                                            </div>
-                                            <div class="form-group mb-0">
-                                                <label class="small mb-0">Diskon</label>
-                                                <input type="text" inputmode="decimal" name="barang[{{ $index }}][diskon]" class="form-control form-control-sm input-decimal" value="{{ $draftItem['diskon'] ?? "" }}" placeholder="contoh: 0.00 (isi 0 jika tidak ada)">
+
+                                            <div class="card shadow-none border mb-3">
+                                                <div class="card-header bg-navy p-2" style="font-size: 13px;">
+                                                    <h3 class="card-title mb-0" style="font-size: 13px; font-weight: bold; color: white;">Pungutan (Tarif)</h3>
+                                                </div>
+                                                <div class="card-body p-2">
+                                                    @php
+                                                        $tarif = $draftItem['barangTarif'] ?? [];
+                                                        if (isset($tarif[0])) {
+                                                            $tarif = $tarif[0];
+                                                        }
+                                                    @endphp
+                                                    <div class="row">
+                                                        <div class="col-4 form-group mb-2 pr-1">
+                                                            <label class="small mb-0">Jenis</label>
+                                                            <input type="text" name="barang[{{ $index }}][barangTarif][kodeJenisPungutan]" class="form-control form-control-sm" value="{{ $tarif['kodeJenisPungutan'] ?? 'PPN' }}">
+                                                        </div>
+                                                        <div class="col-4 form-group mb-2 px-1">
+                                                            <label class="small mb-0">Tarif (%)</label>
+                                                            <input type="text" inputmode="decimal" name="barang[{{ $index }}][barangTarif][tarif]" class="form-control form-control-sm input-decimal" value="{{ $tarif['tarif'] ?? 11 }}">
+                                                        </div>
+                                                        <div class="col-4 form-group mb-2 pl-1">
+                                                            <label class="small mb-0">Fas. (%)</label>
+                                                            <input type="text" inputmode="decimal" name="barang[{{ $index }}][barangTarif][tarifFasilitas]" class="form-control form-control-sm input-decimal" value="{{ $tarif['tarifFasilitas'] ?? 0 }}">
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group mb-0">
+                                                        <label class="small mb-0">Kode Fasilitas</label>
+                                                        <select name="barang[{{ $index }}][barangTarif][kodeFasilitasTarif]" class="form-control form-control-sm">
+                                                            <option value="3" {{ ($tarif['kodeFasilitasTarif'] ?? '3') == '3' ? 'selected' : '' }}>3 - DITANGGUHKAN</option>
+                                                            <option value="5" {{ ($tarif['kodeFasilitasTarif'] ?? '') == '5' ? 'selected' : '' }}>5 - DIBEBASKAN</option>
+                                                            <option value="6" {{ ($tarif['kodeFasilitasTarif'] ?? '') == '6' ? 'selected' : '' }}>6 - TIDAK DIPUNGUT</option>
+                                                            <option value="7" {{ ($tarif['kodeFasilitasTarif'] ?? '') == '7' ? 'selected' : '' }}>7 - SUDAH DI LUNASI</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-
-                                        <div class="col-md-3 border-left">
-                                            <div class="border-bottom fw-bold mb-2 pb-1" style="font-size: 12px; color: #003366;">Pungutan (Tarif)</div>
-                                            @php
-                                                $tarif = $draftItem['barangTarif'][0] ?? [];
-                                            @endphp
-                                            <div class="row">
-                                                <div class="col-4 form-group mb-2 pr-1">
-                                                    <label class="small mb-0">Jenis</label>
-                                                    <input type="text" name="barang[{{ $index }}][barangTarif][kodeJenisPungutan]" class="form-control form-control-sm" value="{{ $tarif['kodeJenisPungutan'] ?? 'PPN' }}">
-                                                </div>
-                                                <div class="col-4 form-group mb-2 px-1">
-                                                    <label class="small mb-0">Tarif (%)</label>
-                                                    <input type="text" inputmode="decimal" name="barang[{{ $index }}][barangTarif][tarif]" class="form-control form-control-sm input-decimal" value="{{ $tarif['tarif'] ?? 11 }}">
-                                                </div>
-                                                <div class="col-4 form-group mb-2 pl-1">
-                                                    <label class="small mb-0">Fas. (%)</label>
-                                                    <input type="text" inputmode="decimal" name="barang[{{ $index }}][barangTarif][tarifFasilitas]" class="form-control form-control-sm input-decimal" value="{{ $tarif['tarifFasilitas'] ?? 0 }}">
-                                                </div>
-                                            </div>
-
-                                            <div class="form-group mb-2">
-                                                <label class="small mb-0">Kode Fasilitas</label>
-                                                <select name="barang[{{ $index }}][barangTarif][kodeFasilitasTarif]" class="form-control form-control-sm">
-                                                    <option value="3" {{ ($tarif['kodeFasilitasTarif'] ?? '3') == '3' ? 'selected' : '' }}>3 - DITANGGUHKAN</option>
-                                                    <option value="5" {{ ($tarif['kodeFasilitasTarif'] ?? '') == '5' ? 'selected' : '' }}>5 - DIBEBASKAN</option>
-                                                    <option value="6" {{ ($tarif['kodeFasilitasTarif'] ?? '') == '6' ? 'selected' : '' }}>6 - TIDAK DIPUNGUT</option>
-                                                    <option value="7" {{ ($tarif['kodeFasilitasTarif'] ?? '') == '7' ? 'selected' : '' }}>7 - SUDAH DI LUNASI</option>
-                                                </select>
-                                            </div>
-                                        </div>
+                                    </div>
                                     </div>
 
                                 </div>
@@ -321,21 +368,21 @@
                 </div>
 
                 <div class="tab-pane fade" id="tab-entitas" role="tabpanel">
-                    <div class="section-title"><i class="fas fa-building"></i> Entitas Pengusaha TPB (Kode: 3)</div>
+                    <div class="section-title mt-0"><i class="fas fa-building"></i> Entitas Pengusaha TPB (Kode: 3)</div>
                     <div class="row">
                         <div class="col-md-4 form-group"><label>Nama Entitas</label><input type="text" name="entitas[3][namaEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['namaEntitas'] ?? 'NIRWANA ALABARE GARMENT' }}"></div>
                         <div class="col-md-4 form-group"><label>NPWP (15/16 Digit)</label><input type="text" name="entitas[3][nomorIdentitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['nomorIdentitas'] ?? '0745406926444000000000' }}"></div>
                         <div class="col-md-4 form-group"><label>NIB</label><input type="text" name="entitas[3][nibEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['nibEntitas'] ?? '0220103231143' }}"></div>
                         <div class="col-md-8 form-group"><label>Alamat</label><input type="text" name="entitas[3][alamatEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['alamatEntitas'] ?? 'JL. RAYA RANCAEKEK MAJALAYA NO. 289 RT. 001 RW. 007' }}"></div>
-                        <div class="col-md-4 form-group"><label>No. Izin TPB</label><input type="text" name="entitas[3][nomorIjinEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['nomorIjinEntitas'] ?? '16/MK/WBC.09/2026' }}"></div>
+                        <div class="col-md-2 form-group"><label>No. Izin TPB</label><input type="text" name="entitas[3][nomorIjinEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['nomorIjinEntitas'] ?? '16/MK/WBC.09/2026' }}"></div>
+                        <div class="col-md-2 form-group"><label>&nbsp;</label><input type="date" name="entitas[3][tanggalIjinEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][3]['tanggalIjinEntitas'] ?? '2026-01-20' }}"></div>
                     </div>
 
                     <div class="section-title"><i class="fas fa-truck-loading"></i> Entitas Pengirim (Kode: 9)</div>
                     <div class="row">
                         <div class="col-md-4 form-group"><label>Nama Entitas</label><input type="text" name="entitas[9][namaEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][9]['namaEntitas'] ?? $header->supplier ?? '' }}"></div>
                         <div class="col-md-4 form-group"><label>NPWP</label><input type="text" name="entitas[9][nomorIdentitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][9]['nomorIdentitas'] ?? $header->npwp_supplier ?? '' }}"></div>
-                        <div class="col-md-4 form-group"><label>Status</label><input type="text" name="entitas[9][kodeStatus]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][9]['kodeStatus'] ?? '5' }}"></div>
-                        <div class="col-md-12 form-group"><label>Alamat</label><input type="text" name="entitas[9][alamatEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][9]['alamatEntitas'] ?? $header->alamat_supplier ?? '' }}"></div>
+                        <div class="col-md-4 form-group"><label>Alamat</label><input type="text" name="entitas[9][alamatEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][9]['alamatEntitas'] ?? $header->alamat_supplier ?? '' }}"></div>
                     </div>
 
                     <div class="section-title"><i class="fas fa-user-tag"></i> Entitas Pemilik Barang (Kode: 7)</div>
@@ -346,42 +393,228 @@
                     </div>
                 </div>
 
-                <div class="tab-pane fade" id="tab-pendukung" role="tabpanel">
+                <div class="tab-pane fade" id="tab-dokumen" role="tabpanel">
 
-                    <div class="section-title mt-0">Pengangkut & Pungutan</div>
+                    <div class="section-title mt-0">Dokumen Pendukung</div>
                     <div class="row mb-3">
-                        <div class="col-md-3 form-group"><label>Nama Pengangkut</label><input type="text" name="pengangkut[nama]" class="form-control form-control-sm" value="{{ $dataDetail['pengangkut']['nama'] ?? 'TRUK' }}"></div>
-                        <div class="col-md-3 form-group"><label>Kode Bendera</label>
+                        <div class="col-md-12">
+                            @php
+                                $referensiDokumen = [
+                                    '10' => 'RKSP', '11' => 'MANIFES', '16' => 'BC 1.6 - PEMBERITAHUAN PABEAN PENGELUARAN BARANG DARI KAWASAN PABEAN UNTUK DITIMBUN DI PUSAT LOGISTIK BERIKAT',
+                                    '20' => 'BC 2.0 - PEMBERITAHUAN IMPOR BARANG', '21' => 'PIBK/IMPOR KHUSUS', '23' => 'BC 2.3 - PEMBERITAHUAN IMPOR BARANG UNTUK DITIMBUN DI TEMPAT PENIMBUNAN BERIKAT',
+                                    '25' => 'BC 2.5 - PEMBERITAHUAN IMPOR BARANG DARI TEMPAT PENIMBUNAN BERIKAT', '27' => 'BC 2.7 - PEMBERITAHUAN PENGELUARAN UNTUK DIANGKUT DARI TEMPAT PENIMBUNAN BERIKAT KE TEMPAT PENIMBUNAN BERIKAT LAINNYA',
+                                    '28' => 'BC 2.8 - PEMBERITAHUAN IMPOR BARANG DARI PUSAT LOGISTIK BERIKAT', '30' => 'BC 3.0 - PEMBERITAHUAN EKSPOR NARAMG',
+                                    '33' => 'BC 3.3 - PEMBERITAHUAN EKSPOR BARANG MELALUI/DARI PUSAT LOGISTIK BERIKAT', '40' => 'BC 4.0 - PEMBERITAHUAN PEMASUKAN BARANG ASAL TEMPAT LAIN DALAM DAERAH PABEAN KE TEMPAT PENIMBUNAN BERIKAT',
+                                    '41' => 'BC 4.1 - PEMBERITAHUAN PENGELUARAN KEMBALI BARANG ASAL TEMPAT LAIN DALAM DAERAH PABEAN DARI TEMPAT PENIMBUNAN BERIKAT', '50' => 'KITE',
+                                    '51' => 'FTZ 01', '52' => 'FTZ 02', '53' => 'FTZ 03', '65' => 'BC 1.1 KONSOLIDASI PJT',
+                                    '111' => 'Bank Devisa Hasil Ekspor (DHE)', '161' => 'PPB - PEMBERITAHUAN PERPINDAHAN BARANG ANTAR TEMPAT PENIMBUNAN DALAM SATU PUSAT LOGISTIK BERIKAT',
+                                    '202' => 'PENGELUARAN BAHAN BAKU DAN/ ATAU SISA BAHAN BAKU', '203' => 'PENGELUARAN SEMENTARA - SUBKONTRAK',
+                                    '204' => 'PENGELUARAN SEMENTARA - PERBAIKAN/ REPARASI', '205' => 'PENGELUARAN SEMENTARA - PEMINJAMAN BARANG MODAL UNTUK KEPERLUAN PRODUKSI',
+                                    '206' => 'PENGELUARAN SEMENTARA - PENGETESAN ATAU PENGEMBANGAN KUALITAS PRODUKSI', '207' => 'PENGELUARAN SEMENTARA - PENGGUNAAN KEMASAN YANG DIPAKAI BERULANG (RETURNABLE PACKAGE)',
+                                    '208' => 'PENGELUARAN SEMENTARA - DIPAMERKAN', '209' => 'PENGELUARAN SEMENTARA - TUJUAN LAIN DENGAN PERSETUJUAN KEPALA KANTOR PABEAN',
+                                    '210' => 'PENERIMAAN PEKERJAAN - SUBKONTRAK', '211' => 'PENERIMAAN PEKERJAAN - PERBAIKAN/ REPARASI',
+                                    '212' => 'PENERIMAAN PEKERJAAN - PEKERJAAN LAIN', '213' => 'PEMUSNAHAN BARANG DI KAWASAN BERIKAT',
+                                    '217' => 'PACKING LIST', '246' => 'L/C', '261' => 'BC 2.6.1 - PEMBERITAHUAN PENGELUARAN BARANG DARI TEMPAT PENIMBUNAN BERIKAT DENGAN JAMINAN',
+                                    '262' => 'BC 2.6.2 - PEMBERITAHUAN PEMASUKAN KEMBALI BARANG YANG DI KELUARKAN DARI TEMPAT PENIMBUNAN BERIKAT DENGAN JAMINAN',
+                                    '281' => 'PPK - PEMBERITAHUAN PEMASUKAN KEMBALI BARANG ASAL PLB DARI LOKASI PENERIMA FASILITAS DI TEMPAT LAIN DALAM DAERAH PABEAN KE PLB',
+                                    '282' => 'DOKAP PLB - PEMBERITAHUAN PENGELUARAN DENGAN DOKUMEN PELENGKAP', '302' => 'CN Ekspor', '315' => 'KONTRAK',
+                                    '331' => 'P3BET - PEMBERITAHUAN PENGGABUNGAN DAN PEMECAHAN BARANG EKSPOR DAN TRANSHIPMENT', '343' => 'SHIPING ORDER',
+                                    '380' => 'INVOICE', '383' => 'SSTB', '388' => 'FAKTUR PAJAK', '410' => 'SURAT SANGGUP BAYAR / SSB',
+                                    '430' => 'BANK GARANSI', '440' => 'SURAT TANDA BUKTI SETOR / STBS', '454' => 'SSPCP / SSBC', '455' => 'SURAT SETORAN PAJAK (SSP)',
+                                    '456' => 'SKB', '457' => 'Surat Keterangan Bebas (SKB) PPh', '458' => 'SURAT KETERANGAN TIDAK DIPUNGUT (SKTD) PPN', '459' => 'Non SKB / SKTD',
+                                    '500' => 'MOU PDE (Eksportir)', '511' => 'FTZ-01 PEMASUKAN DARI LUAR DAERAH PABEAN (IMPOR)',
+                                    '512' => 'FTZ-01 PENGELUARAN KE LUAR DAERAH PABEAN (EKSPOR)', '513' => 'FTZ-01 PENGELUARAN KE TEMPAT LAIN DALAM DAERAH PABEAN',
+                                    '521' => 'FTZ-02 PEMASUKAN ANTAR FREE TRADE ZONE DAN KAWASAN BERIKAT', '522' => 'FTZ-02 PENGELUARAN ANTAR FREE TRADE ZONE DAN KAWASAN BERIKAT',
+                                    '531' => 'FTZ-03 PEMASUKAN DARI TEMPAT LAIN DALAM DAERAH PABEAN', '640' => 'DELIVERY ORDER', '666' => 'Pengecualian Dengan Surat Keputusan',
+                                    '704' => 'MASTER B/L', '705' => 'B/L', '740' => 'AWB', '741' => 'MASTER AWB',
+                                    '800' => 'SERTIFIKAT ALAT PERANGKAT TELEKOM/POSTEL', '803' => 'SATS LN / DEPHUT', '805' => 'REGISTRASI B3 / KLH', '808' => 'IJIN IMPOR / POLRI',
+                                    '809' => 'SIE', '810' => 'SM/SPM', '811' => 'Sertifikat Legalitas Kayu (Dok.V-Legal)', '812' => 'Dok. Impor (PIB)',
+                                    '813' => 'DOK. CUKAI (CK)', '814' => 'SKEP IJIN EKSPOR BERKALA', '815' => 'SKEP IJIN TATA NIAGA EKSPOR', '816' => 'DOK. EKSPOR (PEB)',
+                                    '817' => 'Eksportir Terdaftar (ET) Depdag', '818' => 'Endorsement BRIK', '819' => 'Sertifikat Intan Kasar', '820' => 'Surat Persetujuan Ekspor (SPE)',
+                                    '821' => 'Surat Tanda Registrasi UPPB', '822' => 'Srt Tanda Pendaftaran Pedagang Bokor SIR', '834' => 'SNI GULA KRISTAL MENTAH / DEPTAN',
+                                    '835' => 'IZIN DAN/ATAU PENDAFT PESTISIDA / DEPTAN', '836' => 'IZIN IMPOR / DEPTAN', '842' => 'SNI / ESDM', '843' => 'NOMOR PELUMAS TERDAFTAR / ESDM',
+                                    '844' => 'IJIN USAHA NIAGA/IU NIAGA TERBATAS/ESDM', '845' => 'REKOMENDASI IMPOR PELUMAS', '846' => 'SKEM', '851' => 'SURAT IJIN KARANTINA TANAMAN',
+                                    '853' => 'SURAT IJIN KARANTINA HEWAN / IKAN', '854' => 'SURAT PERSETUJUAN MUAT BPOM', '856' => 'LAP. PEMERIKSAAN SURVEYOR (LPS-E)',
+                                    '857' => 'FUMIGATION CERTIFICATE', '858' => 'CITES CERTIFICATE', '860' => 'Electronic Certificate Of Origin (E-CO)',
+                                    '861' => 'CERTIFICATE OF ORIGIN (CO)', '862' => 'SKEP USDFS', '871' => 'Nomor Pendaftaran Alat Kesehatan/Depkes',
+                                    '872' => 'LAPORAN SURVEYOR DEPKES', '873' => 'IP (NARKTK, PREKURSOR & PSIKOTR)/DEPKES', '874' => 'IT (PREKURSOR & PSIKOTR)/DEPKES',
+                                    '875' => 'SPI (NARKTK, PREKURSOR & PSIKOTR)/DEPKES', '876' => 'Ijin Pembawaan UKA', '877' => 'Ijin Persetujuan Pembawaan UKA',
+                                    '878' => 'Ijin Pelaporan Pembawaan UKA', '888' => 'PENGECUALIAN PERIJINAN', '902' => 'IJIN BAPETEN', '911' => 'SURAT KEPUTUSAN',
+                                    '912' => 'SKEP FASILITAS BKPM', '913' => 'SKEP FASILITAS PERTAMBANGAN', '914' => 'KITE IKM', '915' => 'Skep Fasilitas Impor Sementara',
+                                    '917' => 'BPBC / BPPAI', '918' => 'SK LABEL BAHASA INDONESIA', '919' => 'SK Bermotor', '920' => 'SKEP TPB',
+                                    '936' => 'KH-9a/Izin Impor Karantina Hewan', '937' => 'KH-14/Izin Impor Karantina Hewan', '938' => 'KH-17/Izin Impor Karantina Hewan',
+                                    '939' => 'KT-5/Izin Impor Karantina Pertanian', '940' => 'KT-9/Izin Impor Karantina Pertanian', '941' => 'KT-13/Izin Impor Karantina Pertanian',
+                                    '942' => 'IZIN IMPOR KARANTINA TUMBUHAN', '943' => 'KH-5 / IZIN IMPOR KARANTINA HEWAN', '944' => 'KH-7 / IZIN IMPOR KARANTINA HEWAN',
+                                    '945' => 'KH-12 / IZIN IMPOR KARANTINA HEWAN', '946' => 'KID-3 / IZIN IMPOR KARANTINA IKAN', '947' => 'KID-15 / IZIN IMPOR KARANTINA IKAN',
+                                    '948' => 'NPIK', '949' => 'PENGAKUAN SBG IMPORTIR PRODUSEN', '950' => 'KID-4/IZIN KARANTINA IKAN', '951' => 'HC (HEALTH CERTIFICATE)',
+                                    '956' => 'PENGAKUAN SBG IMPORTIR TERDAFTAR', '957' => 'SNI/SPB/DEPDAG', '958' => 'LAPORAN SURVEYOR / DEPDAG', '959' => 'SURAT PERSETUJUAN IMPOR DEP.DAG',
+                                    '960' => '3D/PC dan/atau PFP', '961' => 'Hasil Lab', '993' => 'SURAT IJIN MENTERI PERTANIAN', '994' => 'BUKTI PENERIMAAN JAMINAN (BPJ)',
+                                    '995' => 'STBS / SSP-E (PAJAK EKSPOR)', '996' => 'SRT SANGGUP BAYAR (SSB)', '997' => 'COSTOMS BOND / STTJ', '998' => 'SKEP FASILITAS KEMUDAHAN EKSPOR',
+                                    '999' => 'LAINNYA', '03001' => 'Izin Prinsip Pendirian Kawasan Berikat Sebelum Fisik Bangunan Berdiri',
+                                    '03002' => 'Keputusan Penetapan Tempat Sebagai Kawasan Berikat Dan Pemberian Izin Penyelenggara Kawasan Berikat',
+                                    '03003' => 'Persetujuan Penetapan Tempat Sebagai Kawasan Berikat Dan Pemberian Izin Penyelenggara Kawasan Berikat Sekaligus Izin Pengusaha Kawasan Berikat',
+                                    '03004' => 'Izin PDKB', '03005' => 'Perpanjangan Penetapan Tempat Sebagai Kawasan Berikat Dan Izin Penyelenggara Kawasan Berikat, Izin Pengusaha Kawasan Berikat, Atau Izin PDKB Sebelum Jangka Waktu Izin Tersebut Berakhir',
+                                    '03006' => 'Perubahan Izin Penyelenggara Kawasan Berikat, Izin Pengusaha Kawasan Berikat, Atau Izin PDKB (Terdapat Perubahan Nama Perusahaan Yang Bukan Dikarenakan Merger Atau Diakuisisi, Jenis Hasil Produksi, Atau Luas Kawasan Berikat)',
+                                    '03007' => 'Perubahan Keputusan Izin Penyelenggara Kawasan Berikat, Izin Pengusaha Kawasan Berikat, Atau Izin PDKB',
+                                    '03008' => 'Pemberian Izin Penambahan Pintu Khusus Pemasukan Dan Pengeluaran Barang Di Kawasan Berikat', '03009' => 'Pemberian Izin Penambahan Pintu Khusus Orang Di Kawasan Berikat',
+                                    '03010' => 'Persetujuan Pemasukan Barang Dari Kawasan Bebas Ke Kawasan Berikat', '03011' => 'Persetujuan Pemasukan Barang Modal Dari Luar Daerah Pabean',
+                                    '03012' => 'Persetujuan Pemasukan Barang Modal Dari Kawasan Berikat Lain', '03013' => 'Persetujuan Pemasukan Barang Jadi Asal Luar Daerah Pabean Untuk Digabungkan Dengan Hasil Produksi Utama Kawasan Berikat',
+                                    '03014' => 'Persetujuan Pemasukan Peralatan Perkantoran Asal Luar Daerah Pabean Ke Kawasan Berikat', '03015' => 'Persetujuan Pemasukan Barang Contoh Asal Luar Daerah Pabean',
+                                    '03016' => 'Persetujuan Pembebasan Bea Masuk Untuk Barang Contoh Yang Akan Dikeluarkan Ke Tempat Lain Dalam Daerah Pabean', '03017' => 'Persetujuan Mengeluarkan Hasil Produksi Kawasan Berikat Ke Tempat Penyelenggaraan Pameran Berikat (TPPB)',
+                                    '03018' => 'Persetujuan Untuk Mengeluarkan Bahan Baku Dan/Atau Bahan Rusak Dan/Atau Apkir (Reject) Yang Sama Sekali Tidak Diproses Ke Gudang Berikat Asal Barang',
+                                    '03019' => 'Persetujuan Untuk Mengeluarkan Barang Dan/Atau Bahan Rusak Dan/Atau Apkir (Reject) Asal Tlddp Ke TLDDP', '03020' => 'Persetujuan Pengeluaran Bahan Baku/Sisa Bahan Baku Asal Impor Untuk Direekspor',
+                                    '03021' => 'Persetujuan Pengeluaran Bahan Baku Dan/Atau Sisa Bahan Baku Asal Luar Daerah Pabean Ke Kawasan Berikat Lain',
+                                    '03022' => 'Persetujuan Pengeluaran Bahan Baku Dan/Atau Sisa Bahan Baku Asal Luar Daerah Pabean Ke Perusahaan Industri Di TLDDP',
+                                    '03023' => 'Persetujuan Pemindahtanganan Barang Selain Hasil Produksi Dalam Rangka Saling Melengkapi Kebutuhan Dalam Proses Produksi Atau Peningkatan Produksi Ke Kawasan Berikat Lain Dalam Satu Manajemen',
+                                    '03024' => 'Persetujuan Pemindahtanganan Barang Selain Hasil Produksi Dalam Rangka Saling Melengkapi Kebutuhan Dalam Proses Produksi Atau Peningkatan Produksi Ke Kawasan Berikat Lain Dalam Satu PKB',
+                                    '03025' => 'Persetujuan Pemindahtanganan Barang Selain Hasil Produksi Dalam Rangka Saling Melengkapi Kebutuhan Dalam Proses Produksi Atau Peningkatan Produksi Ke Kawasan Berikat Lainnya',
+                                    '03026' => 'Persetujuan Pengeluaran Barang Modal Asal Impor Yang Belum Dibayar BM-nya Untuk Direekspor',
+                                    '03027' => 'Persetujuan Pengeluaran Barang Modal Asal Impor Yang Belum Diselesaikan Kewajiban BM-nya Ke Kawasan Berikat Lain Setelah Jangka Waktu 2 (Dua) Tahun Sejak Diimpor Dan Telahdipergunakan Di Kawasan Berikat',
+                                    '03028' => 'Persetujuan Pengeluaran Barang Modal Asal Impor Yang Belum Diselesaikan Kewajiban BM Ke Tempat Lain Dalam Daerah Pabean Sebelum Jangka Waktu 4 (Empat) Tahun Sejak Diimpor, Dan Telah Dipergunakan Di Kawasan Berikat',
+                                    '03029' => 'Keputusan Pembebasan BM Atas Pengeluaran Barang Modal Asal Impor Yang Belum Diselesaikan Kewajiban Pembayaran Bm Ke TLDDP Setelah Jangka Waktu 4 (Empat) Tahun Sejak Diimpor, Dan Telah Dipergunakan Di Kawasan Berikat',
+                                    '03030' => 'Persetujuan Pengeluaran Peralatan Perkantoran Asal Impor Yang Belum Lunas BM Untuk Direekspor', '03031' => 'Persetujuan Pengeluaran Peralatan Perkantoran Asal Impor Yang Belum Diselesaikan Kewajiban Pembayaran Bm Ke Kawasan Berikat Lain Setelah Dipergunakan Di Kawasan Berikat',
+                                    '03032' => 'Persetujuan Pengeluaran Peralatan Perkantoran Asal Impor Yang Belum Diselesaikan Kewajiban Pembayaran Bm Ke TLDDP Sebelum Jangka Waktu 4 (Empat) Tahun Sejak Diimpor, Dan Telah Dipergunakan Di Kawasan Berikat Yang Bersangkutan',
+                                    '03033' => 'Persetujuan Pengeluaran Peralatan Perkantoran Asal Impor Yang Belum Diselesaikan Kewajiban Pembayaran Bm Ke TLDDP Setelah Jangka Waktu 4 (Empat) Tahun Sejak Diimpor, Dan Telah Dipergunakan Di Kawasan Berikat',
+                                    '03034' => 'Persetujuan Untuk Memindahtangankan Barang Modal Dan/Atau Peralatan Perkantoran Yang Telah Dilunasi BM Dan PDRI Pada Saat Pemasukan Ke Kawasan Berikat',
+                                    '03035' => 'Persetujuan Untuk Memindahtangankan Barang Modal Asal Tempat Lain Dalam Daerah Pabean', '03036' => 'Persetujuan Pengeluaran Barang Modal Untuk Perbaikan/Reparasi Ke Luar Daerah Pabean',
+                                    '03037' => 'Persetujuan Pengeluaran Barang Modal Untuk Perbaikan/Reparasi Ke TLDDP', '03038' => 'Persetujuan Pengeluaran Barang Modal Untuk Perbaikan/Reparasi Ke KB Lain',
+                                    '03039' => 'Persetujuan Subkontrak Kurang Dari 60 (Enam Puluh) Hari Ke TLDDP', '03040' => 'Persetujuan Subkontrak Kurang Dari 60 (Enam Puluh) Hari Ke KB Lain',
+                                    '03041' => 'Persetujuan Subkontrak Lebih Dari 60 (Enam Puluh) Hari Ke TLDDP', '03042' => 'Persetujuan Subkontrak Lebih Dari 60 (Enam Puluh) Hari Ke PDKB Lain',
+                                    '03043' => 'Persetujuan Meminjamkan Mesin/Cetakan (Moulding) Ke KB Lain Dalam Rangka Subkontrak', '03044' => 'Persetujuan Meminjamkan Mesin/Cetakan (Moulding) Ke KB Lain Bukan Dalam Rangka Subkontrak',
+                                    '03045' => 'Persetujuan Meminjamkan Mesin/Cetakan (Moulding) Ke TLDDP Dalam Rangka Subkontrak', '03046' => 'Persetujuan Meminjamkan Mesin/Cetakan (Moulding) Ke TLDDP Bukan Dalam Rangka Subkontrak',
+                                    '03047' => 'Persetujuan Perpanjangan Meminjamkan Mesin Dan/Atau Cetakan (Moulding) Ke PDKB Lain Dalam Rangka Subkontrak', '03048' => 'Persetujuan Perpanjangan Meminjamkan Mesin Dan/Atau Cetakan (Moulding) Ke PDKB Lain Bukan Dalam Rangka Subkontrak',
+                                    '03049' => 'Persetujuan Perpanjangan Meminjamkan Mesin Dan/Atau Cetakan (Moulding) Ke TLDDP Dalam Rangka Subkontrak', '03050' => 'Persetujuan Perpanjangan Meminjamkan Mesin Dan/Atau Cetakan (Moulding) Ke TLDDP Selain Dalam Rangka Subkontrak',
+                                    '03051' => 'Persetujuan Peminjaman Mesin Atau Cetakan (Moulding) Yang Melebihi Jangka Waktu', '03052' => 'Persetujuan Pemusnahan Atas Barangbarang Yang Busuk Dan/Atau Yang Karena Sifat Dan Bentuknya Dapat Dimusnahkan',
+                                    '03053' => 'Persetujuan Perusakan Atas Barang Asal Luar Daerah Pabean Yang Karena Sifat Dan Bentuknya Tidak Dapat Dimusnahkan', '03054' => 'Persetujuan Menerima Subkontrak Dari TLDDP',
+                                    '03055' => 'Persetujuan Peminjaman Mesin/Cetakan (Moulding) Dari TLDDP Dalam Rangka Subkontrak', '03056' => 'Persetujuan Peminjaman Mesin/Cetakan (Moulding) Dari TLDDP Bukan Dalam Rangka Subkontrak',
+                                    '03057' => 'Persetujuan Peminjaman Mesin/Peralatan Pabrik Dari TLDDP', '03060' => 'Persetujuan Pemasukan Barang Modal Berupa Peralatan Pabrik Dari Luar Daerah Pabean',
+                                    '03061' => 'Persetujuan Pemasukan Barang Modal Berupa Suku Cadang Dari Luar Daerah Pabean Yang Dimasukkan Tidak Bersamaan Dengan Barang Modal',
+                                    '03062' => 'Persetujuan Pemasukan Kembali (Reimpor) Barang Hasil Produksi Asal TPB', '03063' => 'Persetujuan Pemasukan Kembali (Reimpor) Barang Modal Setelah Perbaikan/Reparasi Dari Luar Daerah Pabean',
+                                    '03064' => 'Persetujuan Perpanjangan Jangka Waktu Pengeluaran Barang Modal Keperluan Perbaikan/Reparasi Tujuan TLDDP', '03065' => 'Persetujuan Pengeluaran Barang Contoh/Sampel KB Dengan Tujuan TLDDP',
+                                    '03066' => 'Rekomendasi Meminjamkan Barang Modal Ke TLDDP Dalam Rangka Subkontrak Atau Bukan Lebih Dari 6 Bulan'
+                                ];
+
+                                $dokumens = [];
+                                if (!empty($dataDetail['dok']) && count($dataDetail['dok']) > 0) {
+                                    $dokumens = $dataDetail['dok'];
+                                }
+                            @endphp
+                            <table class="table table-sm table-bordered" id="table-dokumen">
+                                <thead class="bg-light text-center">
+                                    <tr>
+                                        <th width="40%">Nomor Dokumen</th>
+                                        <th width="30%">Kode Dokumen</th>
+                                        <th width="15%">Tgl Dokumen</th>
+                                        <th width="10%"><button type="button" class="btn btn-sm btn-primary py-0 px-2" id="btn-add-dok" title="Tambah Dokumen"><i class="fas fa-plus"></i></button></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-dokumen">
+                                    @foreach($dokumens as $index => $dok)
+                                    <tr>
+                                        <td>
+                                            <select name="dok[{{ $index }}][kode]" class="form-control form-control-sm select2bs4">
+                                                <option value="">-- Pilih Kode --</option>
+                                                @foreach($referensiDokumen as $val => $text)
+                                                    <option value="{{ $val }}" {{ ($dok['kode'] ?? '') == $val ? 'selected' : '' }}>{{ $val }} - {{ $text }}</option>
+                                                @endforeach
+                                                @if(!empty($dok['kode']) && !array_key_exists($dok['kode'], $referensiDokumen))
+                                                    <option value="{{ $dok['kode'] }}" selected>{{ $dok['kode'] }} - Custom</option>
+                                                @endif
+                                            </select>
+                                        </td>
+                                        <td><input type="text" name="dok[{{ $index }}][nomor]" class="form-control form-control-sm" value="{{ $dok['nomor'] ?? '' }}"></td>
+                                        <td><input type="date" name="dok[{{ $index }}][tgl]" class="form-control form-control-sm" value="{{ $dok['tgl'] ?? '' }}"></td>
+                                        <td class="text-center align-middle"><button type="button" class="btn btn-sm btn-danger py-0 px-2 btn-hapus-dok" title="Hapus Baris"><i class="fas fa-trash-alt"></i></button></td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="tab-pane fade" id="tab-pengangkut" role="tabpanel">
+                    <div class="section-title mt-0">Pengangkut</div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 form-group"><label>Nama Pengangkut</label><input type="text" name="pengangkut[nama]" class="form-control form-control-sm" value="{{ $dataDetail['pengangkut']['nama'] ?? 'TRUK' }}"></div>
+                        <div class="col-md-4 form-group"><label>Kode Bendera</label>
                             <select name="pengangkut[kodeBendera]" class="form-control form-control-sm select2bs4">
                                 @include('export-import.dokumen-pabean.options_negara', ['selected' => $dataDetail['pengangkut']['kodeBendera'] ?? 'ID'])
                             </select>
                         </div>
-                        <div class="col-md-3 form-group"><label>Nomor Polisi</label><input type="text" name="pengangkut[nomor]" class="form-control form-control-sm" value="{{ $dataDetail['pengangkut']['nomor'] ?? $header->nomor_mobil ?? '' }}"></div>
-                        <div class="col-md-3 form-group">
-                            <label>Jenis Pungutan</label>
-                            @php
-                                // $listPungutan = [
-                                //     'BK' => 'Bea Keluar', 'BM' => 'Bea Masuk', 'BMAD' => 'Bea Masuk Anti Dumping', 'BMI' => 'Bea Masuk Imbalan',
-                                //     'BMKITE' => 'Bea Masuk KITE', 'BMP' => 'Bea Masuk Pembalasan', 'BMTP' => 'Bea Masuk Tindakan Pengamanan',
-                                //     'CEA' => 'Cukai Etil Alkohol', 'CMEA' => 'Cukai Minuman Mengandung Etil Alkohol', 'CTEM' => 'Cukai Tembakau',
-                                //     'DENDA' => 'Denda Administrasi Pabean', 'DS' => 'Dana Sawit', 'PNBP' => 'Penerimaan Negara Bukan Pajak',
-                                //     'PPH' => 'PPh Impor', 'PPHEKSPOR' => 'PPh Ekspor', 'PPN' => 'PPN Impor', 'PPNBM' => 'PPnBM Impor', 'PPNLOKAL' => 'PPN Dalam Negeri / Hasil Tembakau'
-                                // ];
-                                $listPungutan = [
-                                    'PPN' => 'PPN Impor'
-                                ];
-                                $selectedPungutan = $dataDetail['pungutan']['jenis'] ?? 'PPN';
-                            @endphp
-                            <select name="pungutan[jenis]" class="form-control form-control-sm select2bs4">
-                                @foreach($listPungutan as $kode => $nama)
-                                    <option value="{{ $kode }}" {{ $selectedPungutan == $kode ? 'selected' : '' }}>{{ $kode }} - {{ $nama }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-3 form-group"><label>Nilai Pungutan</label><input type="text" inputmode="decimal" name="pungutan[nilai]" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['pungutan']['nilai'] ?? "" }}"></div>
+                        <div class="col-md-4 form-group"><label>Nomor Polisi</label><input type="text" name="pengangkut[nomor]" class="form-control form-control-sm" value="{{ $dataDetail['pengangkut']['nomor'] ?? $header->nomor_mobil ?? '' }}"></div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="tab-pungutan" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-3 bg-light p-2 rounded">
+                        <div class="font-weight-bold" style="font-size: 14px; color: #003366;">Pungutan</div>
+                        <button type="button" class="btn btn-sm btn-outline-primary bg-white hidden"><i class="fas fa-sync-alt"></i> Generate Pungutan</button>
                     </div>
 
-                    <div class="section-title">Data Kemasan</div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm text-center">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="align-middle">Pungutan</th>
+                                    <th class="align-middle">Ditangguhkan</th>
+                                    <th class="align-middle">Sudah Dilunasi</th>
+                                    <th class="align-middle">Dibebaskan</th>
+                                    <th class="align-middle">Tidak Dipungut</th>
+                                </tr>
+
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="text-left font-weight-bold" style="color: #666; font-size: 12px; padding-left: 15px;">PPN</td>
+                                    <td class="font-weight-bold" style="font-size: 12px; color: #0000FF;" id="text-ppn-ditangguhkan">Rp 0,00</td>
+                                    <td class="font-weight-bold" style="font-size: 12px; color: #0000FF;" id="text-ppn-sudah-dilunasi">Rp 0,00</td>
+                                    <td class="font-weight-bold" style="font-size: 12px; color: #0000FF;" id="text-ppn-dibebaskan">Rp 0,00</td>
+                                    <td class="font-weight-bold" style="font-size: 12px; color: #0000FF;" id="text-ppn-tidak-dipungut">Rp 0,00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Hidden inputs untuk format array/object CEISA -->
+                    <div id="hidden-pungutan-container">
+                        <!-- Digenerate via JS -->
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="tab-transaksi" role="tabpanel">
+                    <div class="section-title mt-0">Data Nilai & Fisik</div>
+                    <div class="row">
+                        <div class="col-md-2 form-group"><label>Bruto (Kg)</label><input type="text" inputmode="decimal" name="bruto" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['bruto'] ?? $header->berat_kotor ?? "" }}" placeholder="contoh: 125.5000"></div>
+                        <div class="col-md-2 form-group"><label>Netto (Kg)</label><input type="text" id="totalNetto" inputmode="decimal" name="netto" class="form-control form-control-sm input-decimal bg-light" value="{{ $dataDetail['netto'] ?? $header->berat_bersih ?? "" }}" readonly></div>
+                        <div class="col-md-2 form-group"><label>Volume (M3)</label><input type="text" id="totalVolume" inputmode="decimal" name="volume" class="form-control form-control-sm input-decimal bg-light" value="{{ $dataDetail['volume'] ?? "" }}" readonly></div>
+                        <div class="col-md-3 form-group"><label>Harga Penyerahan (Rp)</label><input type="text" id="totalHargaPenyerahan" inputmode="decimal" name="hargaPenyerahan" class="form-control form-control-sm input-decimal bg-light" value="{{ $dataDetail['hargaPenyerahan'] ?? "" }}" readonly></div>
+                        <div class="col-md-3 form-group"><label>CIF (Rp)</label><input type="text" inputmode="decimal" name="cif" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['cif'] ?? "" }}" placeholder="contoh: 5000000.00"></div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-2 form-group"><label>Asuransi (Rp)</label><input type="text" inputmode="decimal" name="asuransi" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['asuransi'] ?? "" }}" placeholder="contoh: 50000.00"></div>
+                        <div class="col-md-2 form-group"><label>Freight (Rp)</label><input type="text" inputmode="decimal" name="freight" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['freight'] ?? "" }}" placeholder="contoh: 200000.00"></div>
+                        <div class="col-md-2 form-group"><label>Biaya Tambahan (Rp)</label><input type="text" inputmode="decimal" name="biayaTambahan" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['biayaTambahan'] ?? "" }}" placeholder="contoh: 0.00"></div>
+                        <div class="col-md-2 form-group"><label>Biaya Pengurang (Rp)</label><input type="text" inputmode="decimal" name="biayaPengurang" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['biayaPengurang'] ?? "" }}" placeholder="contoh: 0.00"></div>
+                        <div class="col-md-2 form-group"><label>Uang Muka (Rp)</label><input type="text" inputmode="decimal" name="uangMuka" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['uangMuka'] ?? "" }}" placeholder="contoh: 0.00"></div>
+                        <div class="col-md-2 form-group"><label>Nilai Jasa (Rp)</label><input type="text" inputmode="decimal" name="nilaiJasa" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['nilaiJasa'] ?? "" }}" placeholder="contoh: 0.00"></div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="tab-pernyataan" role="tabpanel">
+                    <div class="section-title mt-0">Penandatangan</div>
+                    <div class="row">
+                        <div class="col-md-3 form-group"><label>Nama TTD</label><input type="text" name="namaTtd" class="form-control form-control-sm" value="{{ $dataDetail['namaTtd'] ?? '' }}"></div>
+                        <div class="col-md-3 form-group"><label>Jabatan</label><input type="text" name="jabatanTtd" class="form-control form-control-sm" value="{{ $dataDetail['jabatanTtd'] ?? '' }}"></div>
+                        <div class="col-md-3 form-group"><label>Kota TTD</label><input type="text" name="kotaTtd" class="form-control form-control-sm" value="{{ $dataDetail['kotaTtd'] ?? '' }}"></div>
+                        <div class="col-md-3 form-group"><label>Tanggal TTD</label><input type="date" name="tanggalTtd" class="form-control form-control-sm" value="{{ $dataDetail['tanggalTtd'] ?? date('Y-m-d') }}"></div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="tab-kemasan" role="tabpanel">
+                    <div class="section-title mt-0">Data Kemasan</div>
                     <div class="row mb-3">
                         <div class="col-md-12">
                             @php
@@ -488,142 +721,7 @@
                         </div>
                     </div>
 
-                    <div class="section-title">Dokumen Pendukung</div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            @php
-                                $referensiDokumen = [
-                                    '10' => 'RKSP', '11' => 'MANIFES', '16' => 'BC 1.6 - PEMBERITAHUAN PABEAN PENGELUARAN BARANG DARI KAWASAN PABEAN UNTUK DITIMBUN DI PUSAT LOGISTIK BERIKAT',
-                                    '20' => 'BC 2.0 - PEMBERITAHUAN IMPOR BARANG', '21' => 'PIBK/IMPOR KHUSUS', '23' => 'BC 2.3 - PEMBERITAHUAN IMPOR BARANG UNTUK DITIMBUN DI TEMPAT PENIMBUNAN BERIKAT',
-                                    '25' => 'BC 2.5 - PEMBERITAHUAN IMPOR BARANG DARI TEMPAT PENIMBUNAN BERIKAT', '27' => 'BC 2.7 - PEMBERITAHUAN PENGELUARAN UNTUK DIANGKUT DARI TEMPAT PENIMBUNAN BERIKAT KE TEMPAT PENIMBUNAN BERIKAT LAINNYA',
-                                    '28' => 'BC 2.8 - PEMBERITAHUAN IMPOR BARANG DARI PUSAT LOGISTIK BERIKAT', '30' => 'BC 3.0 - PEMBERITAHUAN EKSPOR NARAMG',
-                                    '33' => 'BC 3.3 - PEMBERITAHUAN EKSPOR BARANG MELALUI/DARI PUSAT LOGISTIK BERIKAT', '40' => 'BC 4.0 - PEMBERITAHUAN PEMASUKAN BARANG ASAL TEMPAT LAIN DALAM DAERAH PABEAN KE TEMPAT PENIMBUNAN BERIKAT',
-                                    '41' => 'BC 4.1 - PEMBERITAHUAN PENGELUARAN KEMBALI BARANG ASAL TEMPAT LAIN DALAM DAERAH PABEAN DARI TEMPAT PENIMBUNAN BERIKAT', '50' => 'KITE',
-                                    '51' => 'FTZ 01', '52' => 'FTZ 02', '53' => 'FTZ 03', '65' => 'BC 1.1 KONSOLIDASI PJT',
-                                    '111' => 'Bank Devisa Hasil Ekspor (DHE)', '161' => 'PPB - PEMBERITAHUAN PERPINDAHAN BARANG ANTAR TEMPAT PENIMBUNAN DALAM SATU PUSAT LOGISTIK BERIKAT',
-                                    '202' => 'PENGELUARAN BAHAN BAKU DAN/ ATAU SISA BAHAN BAKU', '203' => 'PENGELUARAN SEMENTARA - SUBKONTRAK',
-                                    '204' => 'PENGELUARAN SEMENTARA - PERBAIKAN/ REPARASI', '205' => 'PENGELUARAN SEMENTARA - PEMINJAMAN BARANG MODAL UNTUK KEPERLUAN PRODUKSI',
-                                    '206' => 'PENGELUARAN SEMENTARA - PENGETESAN ATAU PENGEMBANGAN KUALITAS PRODUKSI', '207' => 'PENGELUARAN SEMENTARA - PENGGUNAAN KEMASAN YANG DIPAKAI BERULANG (RETURNABLE PACKAGE)',
-                                    '208' => 'PENGELUARAN SEMENTARA - DIPAMERKAN', '209' => 'PENGELUARAN SEMENTARA - TUJUAN LAIN DENGAN PERSETUJUAN KEPALA KANTOR PABEAN',
-                                    '210' => 'PENERIMAAN PEKERJAAN - SUBKONTRAK', '211' => 'PENERIMAAN PEKERJAAN - PERBAIKAN/ REPARASI',
-                                    '212' => 'PENERIMAAN PEKERJAAN - PEKERJAAN LAIN', '213' => 'PEMUSNAHAN BARANG DI KAWASAN BERIKAT',
-                                    '217' => 'PACKING LIST', '246' => 'L/C', '261' => 'BC 2.6.1 - PEMBERITAHUAN PENGELUARAN BARANG DARI TEMPAT PENIMBUNAN BERIKAT DENGAN JAMINAN',
-                                    '262' => 'BC 2.6.2 - PEMBERITAHUAN PEMASUKAN KEMBALI BARANG YANG DI KELUARKAN DARI TEMPAT PENIMBUNAN BERIKAT DENGAN JAMINAN',
-                                    '281' => 'PPK - PEMBERITAHUAN PEMASUKAN KEMBALI BARANG ASAL PLB DARI LOKASI PENERIMA FASILITAS DI TEMPAT LAIN DALAM DAERAH PABEAN KE PLB',
-                                    '282' => 'DOKAP PLB - PEMBERITAHUAN PENGELUARAN DENGAN DOKUMEN PELENGKAP', '302' => 'CN Ekspor', '315' => 'KONTRAK',
-                                    '331' => 'P3BET - PEMBERITAHUAN PENGGABUNGAN DAN PEMECAHAN BARANG EKSPOR DAN TRANSHIPMENT', '343' => 'SHIPING ORDER',
-                                    '380' => 'INVOICE', '383' => 'SSTB', '388' => 'FAKTUR PAJAK', '410' => 'SURAT SANGGUP BAYAR / SSB',
-                                    '430' => 'BANK GARANSI', '440' => 'SURAT TANDA BUKTI SETOR / STBS', '454' => 'SSPCP / SSBC', '455' => 'SURAT SETORAN PAJAK (SSP)',
-                                    '456' => 'SKB', '457' => 'Surat Keterangan Bebas (SKB) PPh', '458' => 'SURAT KETERANGAN TIDAK DIPUNGUT (SKTD) PPN', '459' => 'Non SKB / SKTD',
-                                    '500' => 'MOU PDE (Eksportir)', '511' => 'FTZ-01 PEMASUKAN DARI LUAR DAERAH PABEAN (IMPOR)',
-                                    '512' => 'FTZ-01 PENGELUARAN KE LUAR DAERAH PABEAN (EKSPOR)', '513' => 'FTZ-01 PENGELUARAN KE TEMPAT LAIN DALAM DAERAH PABEAN',
-                                    '521' => 'FTZ-02 PEMASUKAN ANTAR FREE TRADE ZONE DAN KAWASAN BERIKAT', '522' => 'FTZ-02 PENGELUARAN ANTAR FREE TRADE ZONE DAN KAWASAN BERIKAT',
-                                    '531' => 'FTZ-03 PEMASUKAN DARI TEMPAT LAIN DALAM DAERAH PABEAN', '640' => 'DELIVERY ORDER', '666' => 'Pengecualian Dengan Surat Keputusan',
-                                    '704' => 'MASTER B/L', '705' => 'B/L', '740' => 'AWB', '741' => 'MASTER AWB',
-                                    '800' => 'SERTIFIKAT ALAT PERANGKAT TELEKOM/POSTEL', '803' => 'SATS LN / DEPHUT', '805' => 'REGISTRASI B3 / KLH', '808' => 'IJIN IMPOR / POLRI',
-                                    '809' => 'SIE', '810' => 'SM/SPM', '811' => 'Sertifikat Legalitas Kayu (Dok.V-Legal)', '812' => 'Dok. Impor (PIB)',
-                                    '813' => 'DOK. CUKAI (CK)', '814' => 'SKEP IJIN EKSPOR BERKALA', '815' => 'SKEP IJIN TATA NIAGA EKSPOR', '816' => 'DOK. EKSPOR (PEB)',
-                                    '817' => 'Eksportir Terdaftar (ET) Depdag', '818' => 'Endorsement BRIK', '819' => 'Sertifikat Intan Kasar', '820' => 'Surat Persetujuan Ekspor (SPE)',
-                                    '821' => 'Surat Tanda Registrasi UPPB', '822' => 'Srt Tanda Pendaftaran Pedagang Bokor SIR', '834' => 'SNI GULA KRISTAL MENTAH / DEPTAN',
-                                    '835' => 'IZIN DAN/ATAU PENDAFT PESTISIDA / DEPTAN', '836' => 'IZIN IMPOR / DEPTAN', '842' => 'SNI / ESDM', '843' => 'NOMOR PELUMAS TERDAFTAR / ESDM',
-                                    '844' => 'IJIN USAHA NIAGA/IU NIAGA TERBATAS/ESDM', '845' => 'REKOMENDASI IMPOR PELUMAS', '846' => 'SKEM', '851' => 'SURAT IJIN KARANTINA TANAMAN',
-                                    '853' => 'SURAT IJIN KARANTINA HEWAN / IKAN', '854' => 'SURAT PERSETUJUAN MUAT BPOM', '856' => 'LAP. PEMERIKSAAN SURVEYOR (LPS-E)',
-                                    '857' => 'FUMIGATION CERTIFICATE', '858' => 'CITES CERTIFICATE', '860' => 'Electronic Certificate Of Origin (E-CO)',
-                                    '861' => 'CERTIFICATE OF ORIGIN (CO)', '862' => 'SKEP USDFS', '871' => 'Nomor Pendaftaran Alat Kesehatan/Depkes',
-                                    '872' => 'LAPORAN SURVEYOR DEPKES', '873' => 'IP (NARKTK, PREKURSOR & PSIKOTR)/DEPKES', '874' => 'IT (PREKURSOR & PSIKOTR)/DEPKES',
-                                    '875' => 'SPI (NARKTK, PREKURSOR & PSIKOTR)/DEPKES', '876' => 'Ijin Pembawaan UKA', '877' => 'Ijin Persetujuan Pembawaan UKA',
-                                    '878' => 'Ijin Pelaporan Pembawaan UKA', '888' => 'PENGECUALIAN PERIJINAN', '902' => 'IJIN BAPETEN', '911' => 'SURAT KEPUTUSAN',
-                                    '912' => 'SKEP FASILITAS BKPM', '913' => 'SKEP FASILITAS PERTAMBANGAN', '914' => 'KITE IKM', '915' => 'Skep Fasilitas Impor Sementara',
-                                    '917' => 'BPBC / BPPAI', '918' => 'SK LABEL BAHASA INDONESIA', '919' => 'SK Bermotor', '920' => 'SKEP TPB',
-                                    '936' => 'KH-9a/Izin Impor Karantina Hewan', '937' => 'KH-14/Izin Impor Karantina Hewan', '938' => 'KH-17/Izin Impor Karantina Hewan',
-                                    '939' => 'KT-5/Izin Impor Karantina Pertanian', '940' => 'KT-9/Izin Impor Karantina Pertanian', '941' => 'KT-13/Izin Impor Karantina Pertanian',
-                                    '942' => 'IZIN IMPOR KARANTINA TUMBUHAN', '943' => 'KH-5 / IZIN IMPOR KARANTINA HEWAN', '944' => 'KH-7 / IZIN IMPOR KARANTINA HEWAN',
-                                    '945' => 'KH-12 / IZIN IMPOR KARANTINA HEWAN', '946' => 'KID-3 / IZIN IMPOR KARANTINA IKAN', '947' => 'KID-15 / IZIN IMPOR KARANTINA IKAN',
-                                    '948' => 'NPIK', '949' => 'PENGAKUAN SBG IMPORTIR PRODUSEN', '950' => 'KID-4/IZIN KARANTINA IKAN', '951' => 'HC (HEALTH CERTIFICATE)',
-                                    '956' => 'PENGAKUAN SBG IMPORTIR TERDAFTAR', '957' => 'SNI/SPB/DEPDAG', '958' => 'LAPORAN SURVEYOR / DEPDAG', '959' => 'SURAT PERSETUJUAN IMPOR DEP.DAG',
-                                    '960' => '3D/PC dan/atau PFP', '961' => 'Hasil Lab', '993' => 'SURAT IJIN MENTERI PERTANIAN', '994' => 'BUKTI PENERIMAAN JAMINAN (BPJ)',
-                                    '995' => 'STBS / SSP-E (PAJAK EKSPOR)', '996' => 'SRT SANGGUP BAYAR (SSB)', '997' => 'COSTOMS BOND / STTJ', '998' => 'SKEP FASILITAS KEMUDAHAN EKSPOR',
-                                    '999' => 'LAINNYA', '03001' => 'Izin Prinsip Pendirian Kawasan Berikat Sebelum Fisik Bangunan Berdiri',
-                                    '03002' => 'Keputusan Penetapan Tempat Sebagai Kawasan Berikat Dan Pemberian Izin Penyelenggara Kawasan Berikat',
-                                    '03003' => 'Persetujuan Penetapan Tempat Sebagai Kawasan Berikat Dan Pemberian Izin Penyelenggara Kawasan Berikat Sekaligus Izin Pengusaha Kawasan Berikat',
-                                    '03004' => 'Izin PDKB', '03005' => 'Perpanjangan Penetapan Tempat Sebagai Kawasan Berikat Dan Izin Penyelenggara Kawasan Berikat, Izin Pengusaha Kawasan Berikat, Atau Izin PDKB Sebelum Jangka Waktu Izin Tersebut Berakhir',
-                                    '03006' => 'Perubahan Izin Penyelenggara Kawasan Berikat, Izin Pengusaha Kawasan Berikat, Atau Izin PDKB (Terdapat Perubahan Nama Perusahaan Yang Bukan Dikarenakan Merger Atau Diakuisisi, Jenis Hasil Produksi, Atau Luas Kawasan Berikat)',
-                                    '03007' => 'Perubahan Keputusan Izin Penyelenggara Kawasan Berikat, Izin Pengusaha Kawasan Berikat, Atau Izin PDKB',
-                                    '03008' => 'Pemberian Izin Penambahan Pintu Khusus Pemasukan Dan Pengeluaran Barang Di Kawasan Berikat', '03009' => 'Pemberian Izin Penambahan Pintu Khusus Orang Di Kawasan Berikat',
-                                    '03010' => 'Persetujuan Pemasukan Barang Dari Kawasan Bebas Ke Kawasan Berikat', '03011' => 'Persetujuan Pemasukan Barang Modal Dari Luar Daerah Pabean',
-                                    '03012' => 'Persetujuan Pemasukan Barang Modal Dari Kawasan Berikat Lain', '03013' => 'Persetujuan Pemasukan Barang Jadi Asal Luar Daerah Pabean Untuk Digabungkan Dengan Hasil Produksi Utama Kawasan Berikat',
-                                    '03014' => 'Persetujuan Pemasukan Peralatan Perkantoran Asal Luar Daerah Pabean Ke Kawasan Berikat', '03015' => 'Persetujuan Pemasukan Barang Contoh Asal Luar Daerah Pabean',
-                                    '03016' => 'Persetujuan Pembebasan Bea Masuk Untuk Barang Contoh Yang Akan Dikeluarkan Ke Tempat Lain Dalam Daerah Pabean', '03017' => 'Persetujuan Mengeluarkan Hasil Produksi Kawasan Berikat Ke Tempat Penyelenggaraan Pameran Berikat (TPPB)',
-                                    '03018' => 'Persetujuan Untuk Mengeluarkan Bahan Baku Dan/Atau Bahan Rusak Dan/Atau Apkir (Reject) Yang Sama Sekali Tidak Diproses Ke Gudang Berikat Asal Barang',
-                                    '03019' => 'Persetujuan Untuk Mengeluarkan Barang Dan/Atau Bahan Rusak Dan/Atau Apkir (Reject) Asal Tlddp Ke TLDDP', '03020' => 'Persetujuan Pengeluaran Bahan Baku/Sisa Bahan Baku Asal Impor Untuk Direekspor',
-                                    '03021' => 'Persetujuan Pengeluaran Bahan Baku Dan/Atau Sisa Bahan Baku Asal Luar Daerah Pabean Ke Kawasan Berikat Lain',
-                                    '03022' => 'Persetujuan Pengeluaran Bahan Baku Dan/Atau Sisa Bahan Baku Asal Luar Daerah Pabean Ke Perusahaan Industri Di TLDDP',
-                                    '03023' => 'Persetujuan Pemindahtanganan Barang Selain Hasil Produksi Dalam Rangka Saling Melengkapi Kebutuhan Dalam Proses Produksi Atau Peningkatan Produksi Ke Kawasan Berikat Lain Dalam Satu Manajemen',
-                                    '03024' => 'Persetujuan Pemindahtanganan Barang Selain Hasil Produksi Dalam Rangka Saling Melengkapi Kebutuhan Dalam Proses Produksi Atau Peningkatan Produksi Ke Kawasan Berikat Lain Dalam Satu PKB',
-                                    '03025' => 'Persetujuan Pemindahtanganan Barang Selain Hasil Produksi Dalam Rangka Saling Melengkapi Kebutuhan Dalam Proses Produksi Atau Peningkatan Produksi Ke Kawasan Berikat Lainnya',
-                                    '03026' => 'Persetujuan Pengeluaran Barang Modal Asal Impor Yang Belum Dibayar BM-nya Untuk Direekspor',
-                                    '03027' => 'Persetujuan Pengeluaran Barang Modal Asal Impor Yang Belum Diselesaikan Kewajiban BM-nya Ke Kawasan Berikat Lain Setelah Jangka Waktu 2 (Dua) Tahun Sejak Diimpor Dan Telahdipergunakan Di Kawasan Berikat',
-                                    '03028' => 'Persetujuan Pengeluaran Barang Modal Asal Impor Yang Belum Diselesaikan Kewajiban BM Ke Tempat Lain Dalam Daerah Pabean Sebelum Jangka Waktu 4 (Empat) Tahun Sejak Diimpor, Dan Telah Dipergunakan Di Kawasan Berikat',
-                                    '03029' => 'Keputusan Pembebasan BM Atas Pengeluaran Barang Modal Asal Impor Yang Belum Diselesaikan Kewajiban Pembayaran Bm Ke TLDDP Setelah Jangka Waktu 4 (Empat) Tahun Sejak Diimpor, Dan Telah Dipergunakan Di Kawasan Berikat',
-                                    '03030' => 'Persetujuan Pengeluaran Peralatan Perkantoran Asal Impor Yang Belum Lunas BM Untuk Direekspor', '03031' => 'Persetujuan Pengeluaran Peralatan Perkantoran Asal Impor Yang Belum Diselesaikan Kewajiban Pembayaran Bm Ke Kawasan Berikat Lain Setelah Dipergunakan Di Kawasan Berikat',
-                                    '03032' => 'Persetujuan Pengeluaran Peralatan Perkantoran Asal Impor Yang Belum Diselesaikan Kewajiban Pembayaran Bm Ke TLDDP Sebelum Jangka Waktu 4 (Empat) Tahun Sejak Diimpor, Dan Telah Dipergunakan Di Kawasan Berikat Yang Bersangkutan',
-                                    '03033' => 'Persetujuan Pengeluaran Peralatan Perkantoran Asal Impor Yang Belum Diselesaikan Kewajiban Pembayaran Bm Ke TLDDP Setelah Jangka Waktu 4 (Empat) Tahun Sejak Diimpor, Dan Telah Dipergunakan Di Kawasan Berikat',
-                                    '03034' => 'Persetujuan Untuk Memindahtangankan Barang Modal Dan/Atau Peralatan Perkantoran Yang Telah Dilunasi BM Dan PDRI Pada Saat Pemasukan Ke Kawasan Berikat',
-                                    '03035' => 'Persetujuan Untuk Memindahtangankan Barang Modal Asal Tempat Lain Dalam Daerah Pabean', '03036' => 'Persetujuan Pengeluaran Barang Modal Untuk Perbaikan/Reparasi Ke Luar Daerah Pabean',
-                                    '03037' => 'Persetujuan Pengeluaran Barang Modal Untuk Perbaikan/Reparasi Ke TLDDP', '03038' => 'Persetujuan Pengeluaran Barang Modal Untuk Perbaikan/Reparasi Ke KB Lain',
-                                    '03039' => 'Persetujuan Subkontrak Kurang Dari 60 (Enam Puluh) Hari Ke TLDDP', '03040' => 'Persetujuan Subkontrak Kurang Dari 60 (Enam Puluh) Hari Ke KB Lain',
-                                    '03041' => 'Persetujuan Subkontrak Lebih Dari 60 (Enam Puluh) Hari Ke TLDDP', '03042' => 'Persetujuan Subkontrak Lebih Dari 60 (Enam Puluh) Hari Ke PDKB Lain',
-                                    '03043' => 'Persetujuan Meminjamkan Mesin/Cetakan (Moulding) Ke KB Lain Dalam Rangka Subkontrak', '03044' => 'Persetujuan Meminjamkan Mesin/Cetakan (Moulding) Ke KB Lain Bukan Dalam Rangka Subkontrak',
-                                    '03045' => 'Persetujuan Meminjamkan Mesin/Cetakan (Moulding) Ke TLDDP Dalam Rangka Subkontrak', '03046' => 'Persetujuan Meminjamkan Mesin/Cetakan (Moulding) Ke TLDDP Bukan Dalam Rangka Subkontrak',
-                                    '03047' => 'Persetujuan Perpanjangan Meminjamkan Mesin Dan/Atau Cetakan (Moulding) Ke PDKB Lain Dalam Rangka Subkontrak', '03048' => 'Persetujuan Perpanjangan Meminjamkan Mesin Dan/Atau Cetakan (Moulding) Ke PDKB Lain Bukan Dalam Rangka Subkontrak',
-                                    '03049' => 'Persetujuan Perpanjangan Meminjamkan Mesin Dan/Atau Cetakan (Moulding) Ke TLDDP Dalam Rangka Subkontrak', '03050' => 'Persetujuan Perpanjangan Meminjamkan Mesin Dan/Atau Cetakan (Moulding) Ke TLDDP Selain Dalam Rangka Subkontrak',
-                                    '03051' => 'Persetujuan Peminjaman Mesin Atau Cetakan (Moulding) Yang Melebihi Jangka Waktu', '03052' => 'Persetujuan Pemusnahan Atas Barangbarang Yang Busuk Dan/Atau Yang Karena Sifat Dan Bentuknya Dapat Dimusnahkan',
-                                    '03053' => 'Persetujuan Perusakan Atas Barang Asal Luar Daerah Pabean Yang Karena Sifat Dan Bentuknya Tidak Dapat Dimusnahkan', '03054' => 'Persetujuan Menerima Subkontrak Dari TLDDP',
-                                    '03055' => 'Persetujuan Peminjaman Mesin/Cetakan (Moulding) Dari TLDDP Dalam Rangka Subkontrak', '03056' => 'Persetujuan Peminjaman Mesin/Cetakan (Moulding) Dari TLDDP Bukan Dalam Rangka Subkontrak',
-                                    '03057' => 'Persetujuan Peminjaman Mesin/Peralatan Pabrik Dari TLDDP', '03060' => 'Persetujuan Pemasukan Barang Modal Berupa Peralatan Pabrik Dari Luar Daerah Pabean',
-                                    '03061' => 'Persetujuan Pemasukan Barang Modal Berupa Suku Cadang Dari Luar Daerah Pabean Yang Dimasukkan Tidak Bersamaan Dengan Barang Modal',
-                                    '03062' => 'Persetujuan Pemasukan Kembali (Reimpor) Barang Hasil Produksi Asal TPB', '03063' => 'Persetujuan Pemasukan Kembali (Reimpor) Barang Modal Setelah Perbaikan/Reparasi Dari Luar Daerah Pabean',
-                                    '03064' => 'Persetujuan Perpanjangan Jangka Waktu Pengeluaran Barang Modal Keperluan Perbaikan/Reparasi Tujuan TLDDP', '03065' => 'Persetujuan Pengeluaran Barang Contoh/Sampel KB Dengan Tujuan TLDDP',
-                                    '03066' => 'Rekomendasi Meminjamkan Barang Modal Ke TLDDP Dalam Rangka Subkontrak Atau Bukan Lebih Dari 6 Bulan'
-                                ];
-
-                                $dokumens = [];
-                                if (!empty($dataDetail['dok']) && count($dataDetail['dok']) > 0) {
-                                    $dokumens = $dataDetail['dok'];
-                                }
-                            @endphp
-                            <table class="table table-sm table-bordered" id="table-dokumen">
-                                <thead class="bg-light text-center">
-                                    <tr>
-                                        <th width="40%">Kode Dokumen</th>
-                                        <th width="35%">Nomor Dokumen</th>
-                                        <th width="15%">Tgl Dokumen</th>
-                                        <th width="10%"><button type="button" class="btn btn-sm btn-primary py-0 px-2" id="btn-add-dok" title="Tambah Dokumen"><i class="fas fa-plus"></i></button></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tbody-dokumen">
-                                    @foreach($dokumens as $index => $dok)
-                                    <tr>
-                                        <td>
-                                            <select name="dok[{{ $index }}][kode]" class="form-control form-control-sm select2bs4">
-                                                <option value="">-- Pilih Kode --</option>
-                                                @foreach($referensiDokumen as $val => $text)
-                                                    <option value="{{ $val }}" {{ ($dok['kode'] ?? '') == $val ? 'selected' : '' }}>{{ $val }} - {{ $text }}</option>
-                                                @endforeach
-                                                @if(!empty($dok['kode']) && !array_key_exists($dok['kode'], $referensiDokumen))
-                                                    <option value="{{ $dok['kode'] }}" selected>{{ $dok['kode'] }} - Custom</option>
-                                                @endif
-                                            </select>
-                                        </td>
-                                        <td><input type="text" name="dok[{{ $index }}][nomor]" class="form-control form-control-sm" value="{{ $dok['nomor'] ?? '' }}"></td>
-                                        <td><input type="date" name="dok[{{ $index }}][tgl]" class="form-control form-control-sm" value="{{ $dok['tgl'] ?? '' }}"></td>
-                                        <td class="text-center align-middle"><button type="button" class="btn btn-sm btn-danger py-0 px-2 btn-hapus-dok" title="Hapus Baris"><i class="fas fa-trash-alt"></i></button></td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                </div>
 
                 </div>
             </div>
@@ -676,24 +774,7 @@
             $(this).tab('show');
         });
 
-        function hitungNilaiPungutan() {
-            let total = 0;
-            $('input[name^="barang["][name$="][hargaPenyerahan]"]').each(function() {
-                let val = parseFloat($(this).val()) || 0;
-                total += val;
-            });
-
-            let formattedTotal = Number.isInteger(total) ? total : total.toFixed(2);
-
-            $('input[name="pungutan[nilai]"]').val(formattedTotal);
-            $('input[name="hargaPenyerahan"]').val(formattedTotal);
-        }
-
-        $(document).on('input', 'input[name^="barang["][name$="][hargaPenyerahan]"]', function() {
-            hitungNilaiPungutan();
-        });
-
-        hitungNilaiPungutan();
+        // Kalkulasi pungutan sudah digantikan oleh calculateTotals() di bawah
 
         const optDokumenHtml = `
             <option value="">-- Pilih Kode --</option>
@@ -883,6 +964,163 @@
                 $(targetId).collapse('show');
                 icon.removeClass('fa-chevron-down').addClass('fa-chevron-up');
             }
+        });
+
+        // Auto Calculation Logic
+        function calculateTotals() {
+            let totalHarga = 0;
+            let totalNetto = 0;
+            let totalVolume = 0;
+
+            let dataPPN = {
+                '3': 0, // Ditangguhkan
+                '5': 0, // Dibebaskan
+                '6': 0, // Tidak Dipungut
+                '7': 0  // Sudah Dilunasi
+            };
+
+            $('#accordionBarang .card').each(function(index) {
+                let row = $(this);
+
+                // Sum Harga Penyerahan
+                let inputHarga = row.find('input[name$="[hargaPenyerahan]"]');
+                if (inputHarga.length > 0) {
+                    let valHarga = parseFloat(inputHarga.val().replace(/,/g, '')) || 0;
+                    totalHarga += valHarga;
+
+                    // Sum PPN per fasilitas
+                    let selectFasilitas = row.find('select[name$="[barangTarif][kodeFasilitasTarif]"]');
+                    let kodeFasilitas = selectFasilitas.val();
+
+                    let inputTarif = row.find('input[name$="[barangTarif][tarif]"]');
+                    let tarif = parseFloat(inputTarif.val()) || 0;
+
+                    let ppnRow = valHarga * (tarif / 100);
+
+                    if (dataPPN[kodeFasilitas] !== undefined) {
+                        dataPPN[kodeFasilitas] += ppnRow;
+                    }
+                }
+
+                // Sum Netto
+                let inputNetto = row.find('input[name$="[netto]"]');
+                if (inputNetto.length > 0) {
+                    let valNetto = parseFloat(inputNetto.val().replace(/,/g, '')) || 0;
+                    totalNetto += valNetto;
+                }
+
+                // Sum Volume
+                let inputVolume = row.find('input[name$="[volume]"]');
+                if (inputVolume.length > 0) {
+                    let valVolume = parseFloat(inputVolume.val().replace(/,/g, '')) || 0;
+                    totalVolume += valVolume;
+                }
+            });
+
+            let formatDecimal = function(num) {
+                if(num % 1 === 0) return num.toString() + '.0000';
+                return num.toFixed(4);
+            };
+
+            let formatIdr = function(num) {
+                return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(num);
+            };
+
+            $('#totalHargaPenyerahan').val(formatDecimal(totalHarga));
+            $('#totalNetto').val(formatDecimal(totalNetto));
+            $('#totalVolume').val(formatDecimal(totalVolume));
+
+            let inputBruto = $('input[name="bruto"]');
+            let currentBruto = parseFloat(inputBruto.val().replace(/,/g, '')) || 0;
+            if (currentBruto < totalNetto) {
+                inputBruto.val(formatDecimal(totalNetto));
+            }
+
+            // Format dan tampilkan di tabel pungutan (Grid)
+            $('#text-ppn-ditangguhkan').text(formatIdr(dataPPN['3']));
+            $('#text-ppn-dibebaskan').text(formatIdr(dataPPN['5']));
+            $('#text-ppn-tidak-dipungut').text(formatIdr(dataPPN['6']));
+            $('#text-ppn-sudah-dilunasi').text(formatIdr(dataPPN['7']));
+
+            // Update hidden inputs container
+            let hiddenContainer = $('#hidden-pungutan-container');
+            hiddenContainer.empty();
+
+            let arrayIndex = 0;
+            for (let kode in dataPPN) {
+                if (dataPPN[kode] > 0) {
+                    hiddenContainer.append(`<input type="hidden" name="pungutan[${arrayIndex}][kodeFasilitasTarif]" value="${kode}">`);
+                    hiddenContainer.append(`<input type="hidden" name="pungutan[${arrayIndex}][kodeJenisPungutan]" value="PPN">`);
+                    hiddenContainer.append(`<input type="hidden" name="pungutan[${arrayIndex}][nilaiPungutan]" value="${formatDecimal(dataPPN[kode])}">`);
+                    arrayIndex++;
+                }
+            }
+        }
+
+        $(document).on('input change', 'input[name$="[hargaPenyerahan]"], input[name$="[netto]"], input[name$="[volume]"], select[name$="[barangTarif][kodeFasilitasTarif]"], input[name$="[barangTarif][tarif]"]', function() {
+            if($(this).attr('name').indexOf('barang[') === 0) {
+                calculateTotals();
+            }
+        });
+
+        // Trigger kalkulasi awal untuk sinkronisasi nilai
+        calculateTotals();
+
+        // Auto-save pada saat pindah tab
+        // $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        //     let form = $('#form-edit-ceisa');
+
+        //     const Toast = Swal.mixin({
+        //         toast: true,
+        //         position: 'top-end',
+        //         showConfirmButton: false,
+        //         timerProgressBar: false,
+        //     });
+
+        //     Toast.fire({
+        //         icon: 'info',
+        //         title: 'Menyimpan otomatis...'
+        //     });
+
+        //     $.ajax({
+        //         url: form.attr('action'),
+        //         type: form.attr('method') || 'POST',
+        //         data: form.serialize(),
+        //         success: function(response) {
+        //             Toast.fire({
+        //                 icon: 'success',
+        //                 title: 'Tersimpan otomatis',
+        //                 timer: 2000,
+        //                 timerProgressBar: true
+        //             });
+        //         },
+        //         error: function(xhr, status, error) {
+        //             Toast.fire({
+        //                 icon: 'error',
+        //                 title: 'Gagal auto-save',
+        //                 timer: 3000
+        //             });
+        //         }
+        //     });
+        // });
+
+        // Filter tabel pungutan
+        $('.column-search').on('keyup', function() {
+            $('#tab-pungutan tbody tr').show(); // Reset semua baris
+
+            $('.column-search').each(function() {
+                let val = $(this).val().toLowerCase();
+                let colIdx = $(this).data('column');
+
+                if (val) {
+                    $('#tab-pungutan tbody tr').each(function() {
+                        let cellText = $(this).find('td').eq(colIdx).text().toLowerCase();
+                        if (cellText.indexOf(val) === -1) {
+                            $(this).hide();
+                        }
+                    });
+                }
+            });
         });
 
     });

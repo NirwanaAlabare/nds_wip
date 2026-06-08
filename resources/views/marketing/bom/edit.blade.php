@@ -90,6 +90,9 @@
                 <div class="col-md-5">
                     <div class="form-label d-flex justify-content-between">
                         <small class="fw-bold">Master Color</small>
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalColor">
+                            <i class="fas fa-plus"></i>
+                        </button>
                     </div>
                     <select id="colorList" name="colors[]" class="form-control select2bs4" multiple>
                         @foreach ($master_colors as $color)
@@ -100,6 +103,9 @@
                 <div class="col-md-5">
                     <div class="form-label d-flex justify-content-between">
                         <small class="fw-bold">Master Size</small>
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalSize">
+                            <i class="fas fa-plus"></i>
+                        </button>
                     </div>
                     <select id="sizeList" name="sizes[]" class="form-control select2bs4" multiple>
                         @foreach ($master_sizes as $size)
@@ -280,9 +286,6 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold text-dark mb-0"><i class="fas fa-list"></i> Item BOM</h6>
             <div class="d-flex align-items-center">
-                <button type="button" class="btn btn-info btn-sm shadow-sm mr-2" onclick="export_excel()">
-                    <i class="fas fa-file-excel"></i> Export Excel
-                </button>
                 <div id="delete-batch-container" style="display:none;">
                     <button type="button" class="btn btn-danger btn-sm shadow-sm" onclick="delete_batch()">
                         <i class="fas fa-trash"></i> Hapus Batch (<span id="count-selected">0</span>)
@@ -455,6 +458,50 @@
 
                 <div class="modal-footer py-1">
                     <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
+                    <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-save"></i> Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Color -->
+<div class="modal fade" id="modalColor" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <form action="{{ route('store-color') }}" method="post" onsubmit="submitColor(this, event)">
+                @csrf
+                <div class="modal-header bg-sb text-light py-2">
+                    <h6 class="modal-title"><i class="fas fa-palette"></i> Tambah Warna</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" name="color_name" id="inputNewColor" class="form-control form-control-sm" placeholder="RED, BLUE..." required>
+                </div>
+                <div class="modal-footer py-1">
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
+                    <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-save"></i> Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Size -->
+<div class="modal fade" id="modalSize" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <form action="{{ route('store-size') }}" method="post" onsubmit="submitSize(this, event)">
+                @csrf
+                <div class="modal-header bg-sb text-light py-2">
+                    <h6 class="modal-title"><i class="fas fa-ruler"></i> Tambah Size</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" name="size_name" id="inputNewSize" class="form-control form-control-sm" placeholder="S, M, L..." required>
+                </div>
+                <div class="modal-footer py-1">
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
                     <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-save"></i> Simpan</button>
                 </div>
             </form>
@@ -1066,11 +1113,24 @@
                 { data: 'color_name', name: 'color_name', className: 'text-center' },
                 { data: 'size_name', name: 'size_name', className: 'text-center' },
                 {
-                    data: 'qty', name: 'qty', className: 'text-center', searchable: false,
+                    data: 'qty',
+                    name: 'qty',
+                    className: 'text-center',
+                    searchable: false,
                     render: function(data) {
                         let nilai = parseFloat(data);
-                        return isNaN(nilai) ? '0.00' : nilai.toFixed(2);
+                        if (isNaN(nilai)) return '0.000000';
+
+                        let stringNilai = nilai.toString();
+                        if (stringNilai.indexOf('.') === -1) {
+                            return nilai.toFixed(4);
+                        }
+
+                        let hasilPotong = stringNilai.match(/^-?\d+(?:\.\d{0,4})?/)[0];
+
+                        return parseFloat(hasilPotong).toFixed(4);
                     }
+
                 },
                 { data: 'unit', name: 'unit', className: 'text-center' },
                 { data: 'nama_panel', name: 'nama_panel', className: 'text-center' },
@@ -1216,26 +1276,6 @@
         });
     }
 
-    async function export_excel() {
-        Swal.fire({ title: "Exporting", html: "Mohon Tunggu...", timerProgressBar: true, didOpen: () => { Swal.showLoading(); } });
-        try {
-            const res = await $.ajax({
-                url: '{{ route('export-excel-bom') }}', type: "GET", data: { id : bom_id }, xhrFields: { responseType: 'blob' }
-            });
-
-            Swal.close();
-            iziToast.success({ title: 'Success', message: 'Success', position: 'topCenter' });
-
-            const blob = new Blob([res]);
-            const link = document.createElement('a');
-            link.href = window.URL.createObjectURL(blob);
-            link.download = "Laporan Marketing BOM Item.xlsx";
-            link.click();
-        } catch (err) {
-            Swal.close();
-            iziToast.error({ title: 'Error', message: 'Export gagal', position: 'topCenter' });
-        }
-    }
 
     function get_item_contents() {
         let kategori = $('#category').val();
@@ -1353,6 +1393,42 @@
             },
             error: function() {
                 Swal.fire('Error!', 'Terjadi kesalahan sistem', 'error');
+            }
+        });
+    }
+    function submitColor(form, evt) {
+        evt.preventDefault();
+        submitAddMaster(form, '#colorList', '#inputNewColor', '#modalColor');
+    }
+
+    function submitSize(form, evt) {
+        evt.preventDefault();
+        submitAddMaster(form, '#sizeList', '#inputNewSize', '#modalSize');
+    }
+
+    function submitAddMaster(form, targetSelect, inputId, modalId) {
+        $.ajax({
+            url: $(form).attr('action'),
+            type: 'POST',
+            data: new FormData(form),
+            processData: false,
+            contentType: false,
+            success: function(res) {
+                if (res.status == 200) {
+                    let id   = res.data.id;
+                    let name = res.data.name;
+
+                    if ($(targetSelect + " option[value='" + id + "']").length == 0) {
+                        let newOption = new Option(name, id, true, true);
+                        $(targetSelect).append(newOption).trigger('change');
+                    } else {
+                        $(targetSelect).val(id).trigger('change');
+                    }
+
+                    $(modalId).modal('hide');
+                    form.reset();
+                    Swal.fire({ icon: 'success', title: 'Data Tersimpan', timer: 1000, showConfirmButton: false });
+                }
             }
         });
     }

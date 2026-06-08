@@ -39,6 +39,17 @@
                     <input type="text" name="brand" class="form-control" value="{{ $costing->brand }}" required>
                 </div>
                 <div class="col-md-3 form-group">
+                    <label>Season</label>
+                    <select name="season_id" id="season_id" class="form-control select2bs4" required>
+                        <option value="">Pilih Season</option>
+                        @foreach ($seasons as $s)
+                            <option value="{{ $s->id_season }}" {{ $costing->season_id == $s->id_season ? 'selected' : '' }}>
+                                {{ $s->season }} - {{ $s->season_desc }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3 form-group">
                     <label>Product Group</label>
                     <select name="product_group" id="product_group" class="form-control select2bs4" required>
                         <option value="">Pilih Product Group</option>
@@ -49,15 +60,15 @@
                         @endforeach
                     </select>
                 </div>
+            </div>
+
+            <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Product Item</label>
                     <select name="product_item" id="product_item" class="form-control select2bs4" required>
                         <option value="{{ $costing->product_item }}" selected>{{ $costing->product_item }}</option>
                     </select>
                 </div>
-            </div>
-
-            <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Style</label>
                     <input type="text" name="style" class="form-control" value="{{ $costing->style }}" required>
@@ -80,7 +91,10 @@
                         <option value="multiple" {{ $costing->type == 'multiple' ? 'selected' : '' }}>MULTIPLE</option>
                     </select>
                 </div>
-               <div class="col-md-3 form-group">
+            </div>
+
+            <div class="row">
+                <div class="col-md-3 form-group">
                     <label>Product Type</label>
                     <select id="product_set" name="product_set[]" class="form-control select2bs4" multiple>
                         @php
@@ -95,9 +109,6 @@
                         @endforeach
                     </select>
                 </div>
-            </div>
-
-            <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Curr</label>
                     <select name="curr" id="curr" class="form-control select2bs4" required>
@@ -124,6 +135,9 @@
                         @endforeach
                     </select>
                 </div>
+            </div>
+
+            <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Shipment Type</label>
                     <select name="shipment_type" id="shipment_type" class="form-control select2bs4" required>
@@ -131,12 +145,9 @@
                         <option value="export" {{ $costing->shipment_type == 'export' ? 'selected' : '' }}>EXPORT</option>
                     </select>
                 </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-12 form-group">
+                <div class="col-md-9 form-group">
                     <label for="notes">Notes</label>
-                    <textarea id="notes" name="notes" rows="2" class="form-control">{{ $costing->notes }}</textarea>
+                    <textarea id="notes" name="notes" rows="1" class="form-control">{{ $costing->notes }}</textarea>
                 </div>
             </div>
 
@@ -980,7 +991,7 @@
 
                 if (document.activeElement && document.activeElement.id === 'txt_val_usd') {
                     let val_usd = parseFloat(String($('#txt_val_usd').val()).replace(/,/g, '')) || 0;
-                    let val_idr = Math.round(val_usd * rate_to_idr);
+                    let val_idr = val_usd * rate_to_idr;
 
                     $('#txt_val_usd').data('raw', val_usd);
                     $('#txt_val_idr').val(val_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', val_idr);
@@ -1005,7 +1016,7 @@
             else { px_usd = price; px_idr = price * rate_to_idr; }
 
             let allow = 1 + (allow_pct / 100);
-            let val_idr = Math.round(px_idr * cons * allow);
+            let val_idr = px_idr * cons * allow;
             let val_usd = px_usd * cons * allow;
 
             $('#txt_px_idr').val(px_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', px_idr);
@@ -1067,7 +1078,7 @@
 
                 if (document.activeElement && document.activeElement.id === 'm_val_usd') {
                     let current_val_usd = parseFloat(String($('#m_val_usd').val()).replace(/,/g,'')) || 0;
-                    let current_val_idr = Math.round(current_val_usd * rate_to_idr);
+                    let current_val_idr = current_val_usd * rate_to_idr;
 
                     $('#m_val_usd').data('raw', current_val_usd);
                     $('#m_val_idr').val(current_val_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', current_val_idr);
@@ -1102,7 +1113,7 @@
             }
 
             let allow = 1 + (allow_pct / 100);
-            let val_idr = Math.round(px_idr * cons * allow);
+            let val_idr = px_idr * cons * allow;
             let val_usd = px_usd * cons * allow;
 
             $('#m_val_idr').val(val_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', val_idr);
