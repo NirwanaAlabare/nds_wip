@@ -1036,11 +1036,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 SUM(pc_qty_adjustment_before) pc_adjustment_before,
                 SUM(pc_switching_in_before) pc_switching_in_before,
                 SUM(pc_switching_out_before) pc_switching_out_before,
-                SUM(pc_saldo_awal) + SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) - SUM(pc_switching_out_before) pc_saldo_awal_adjusment,
+                SUM(pc_saldo_awal) + SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) + SUM(pc_switching_transaction_in_before) - SUM(pc_switching_out_before) - SUM(pc_switching_transaction_out_before) pc_saldo_awal_adjusment,
                 SUM(pc_qty_adjustment) pc_qty_adjustment,
-                SUM(pc_switching_in) pc_switching_in,
-                SUM(pc_switching_out) pc_switching_out,
-                (SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) - SUM(pc_switching_out_before)) + SUM(pc_saldo_akhir) + (SUM(pc_qty_adjustment) + SUM(pc_switching_in) - SUM(pc_switching_out)) pc_saldo_akhir_adj
+                SUM(pc_switching_in) + SUM(pc_switching_transaction_in) pc_switching_in,
+                SUM(pc_switching_out) + SUM(pc_switching_transaction_out) pc_switching_out,
+                (SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) + SUM(pc_switching_transaction_in_before) - SUM(pc_switching_out_before) - SUM(pc_switching_transaction_out_before)) + SUM(pc_saldo_akhir) + (SUM(pc_qty_adjustment) + SUM(pc_switching_in) + SUM(pc_switching_transaction_in) - SUM(pc_switching_out) - SUM(pc_switching_transaction_out)) pc_saldo_akhir_adj
                 from
                 (
                     select
@@ -1056,7 +1056,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 as pc_switching_in_before,
                         0 as pc_switching_in,
                         0 as pc_switching_out_before,
-                        0 as pc_switching_out
+                        0 as pc_switching_out,
+                        0 as pc_switching_transaction_in_before,
+                        0 as pc_switching_transaction_in,
+                        0 as pc_switching_transaction_out_before,
+                        0 as pc_switching_transaction_out
                     from main_select
 
                     UNION ALL
@@ -1088,7 +1092,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 as pc_switching_in_before,
                         0 as pc_switching_in,
                         0 as pc_switching_out_before,
-                        0 as pc_switching_out
+                        0 as pc_switching_out,
+                        0 as pc_switching_transaction_in_before,
+                        0 as pc_switching_transaction_in,
+                        0 as pc_switching_transaction_out_before,
+                        0 as pc_switching_transaction_out
                     FROM
                         wip_adjustment
                     WHERE
@@ -1125,7 +1133,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 as pc_switching_in_before,
                         0 as pc_switching_in,
                         0 as pc_switching_out_before,
-                        0 as pc_switching_out
+                        0 as pc_switching_out,
+                        0 as pc_switching_transaction_in_before,
+                        0 as pc_switching_transaction_in,
+                        0 as pc_switching_transaction_out_before,
+                        0 as pc_switching_transaction_out
                     FROM
                         wip_switching_adj
                     where
@@ -1162,7 +1174,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 as pc_switching_in_before,
                         0 as pc_switching_in,
                         0 as pc_switching_out_before,
-                        0 as pc_switching_out
+                        0 as pc_switching_out,
+                        0 as pc_switching_transaction_in_before,
+                        0 as pc_switching_transaction_in,
+                        0 as pc_switching_transaction_out_before,
+                        0 as pc_switching_transaction_out
                     FROM
                         wip_switching_adj
                     WHERE
@@ -1201,7 +1217,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 as pc_switching_in_before,
                         0 as pc_switching_in,
                         0 as pc_switching_out_before,
-                        0 as pc_switching_out
+                        0 as pc_switching_out,
+                        0 as pc_switching_transaction_in_before,
+                        0 as pc_switching_transaction_in,
+                        0 as pc_switching_transaction_out_before,
+                        0 as pc_switching_transaction_out
                     FROM
                         wip_adjustment
                     WHERE
@@ -1238,7 +1258,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 as pc_switching_in_before,
                         0 as pc_switching_in,
                         SUM(IF(from_tgl_saldo < '{$tgl_awal}',qty,0)) as pc_switching_out_before,
-                        SUM(IF(from_tgl_saldo >= '{$tgl_awal}',qty,0)) as pc_switching_out
+                        SUM(IF(from_tgl_saldo >= '{$tgl_awal}',qty,0)) as pc_switching_out,
+                        0 as pc_switching_transaction_in_before,
+                        0 as pc_switching_transaction_in,
+                        0 as pc_switching_transaction_out_before,
+                        0 as pc_switching_transaction_out
                     FROM
                         wip_switching_adj
                     where
@@ -1275,7 +1299,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         SUM(IF(tgl_saldo < '{$tgl_awal}',qty,0)) as pc_switching_in_before,
                         SUM(IF(tgl_saldo >= '{$tgl_awal}',qty,0)) as pc_switching_in,
                         0 as pc_switching_out_before,
-                        0 as pc_switching_out
+                        0 as pc_switching_out,
+                        0 as pc_switching_transaction_in_before,
+                        0 as pc_switching_transaction_in,
+                        0 as pc_switching_transaction_out_before,
+                        0 as pc_switching_transaction_out
                     FROM
                         wip_switching_adj
                     WHERE
@@ -1284,6 +1312,88 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     GROUP BY
                         from_no_ws, from_color, from_size, from_panel, from_part,
                         no_ws, color, size, panel, part
+                    UNION ALL
+                    SELECT
+                        null urutan,
+                        master_sb_ws.ws,
+                        master_sb_ws.color,
+                        master_sb_ws.styleno as style,
+                        master_sb_ws.size,
+                        master_sb_ws.buyer,
+                        0 pl_saldo_awal,
+                        0 pl_rft,
+                        0 pl_reject,
+                        0 pl_keluar,
+                        0 pl_saldo_akhir,
+                        0 pc_saldo_awal,
+                        0 pc_terima,
+                        0 pc_terima_return,
+                        0 pc_fg_in,
+                        0 pc_saldo_akhir,
+                        0 as qty_adjustment_before,
+                        0 as qty_adjustment,
+                        0 as switching_in_before,
+                        0 as switching_in,
+                        0 as switching_out_before,
+                        0 as switching_out,
+                        0 as pc_qty_adjustment_before,
+                        0 as pc_qty_adjustment,
+                        0 as pc_switching_in_before,
+                        0 as pc_switching_in,
+                        0 as pc_switching_out_before,
+                        0 as pc_switching_out,
+                        SUM(IF(date(packing_central_switching.created_at) < '{$tgl_awal}',qty_switch,0)) as pc_switching_transaction_in_before,
+                        SUM(IF(date(packing_central_switching.created_at) >= '{$tgl_awal}',qty_switch,0)) as pc_switching_transaction_in,
+                        0 as pc_switching_transaction_out_before,
+                        0 as pc_switching_transaction_out
+                    FROM
+                        packing_central_switching
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_central_switching.tujuan_so_det_id
+                    WHERE
+                        date(packing_central_switching.created_at) <= '{$tgl_akhir}'
+                    GROUP BY 
+                        master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
+                    UNION ALL
+                    SELECT
+                        null urutan,
+                        master_sb_ws.ws,
+                        master_sb_ws.color,
+                        master_sb_ws.styleno as style,
+                        master_sb_ws.size,
+                        master_sb_ws.buyer,
+                        0 pl_saldo_awal,
+                        0 pl_rft,
+                        0 pl_reject,
+                        0 pl_keluar,
+                        0 pl_saldo_akhir,
+                        0 pc_saldo_awal,
+                        0 pc_terima,
+                        0 pc_terima_return,
+                        0 pc_fg_in,
+                        0 pc_saldo_akhir,
+                        0 as qty_adjustment_before,
+                        0 as qty_adjustment,
+                        0 as switching_in_before,
+                        0 as switching_in,
+                        0 as switching_out_before,
+                        0 as switching_out,
+                        0 as pc_qty_adjustment_before,
+                        0 as pc_qty_adjustment,
+                        0 as pc_switching_in_before,
+                        0 as pc_switching_in,
+                        0 as pc_switching_out_before,
+                        0 as pc_switching_out,
+                        0 as pc_switching_transaction_in_before,
+                        0 as pc_switching_transaction_in,
+                        SUM(IF(date(packing_central_switching.created_at) < '{$tgl_awal}',qty_switch,0)) as pc_switching_transaction_out_before,
+                        SUM(IF(date(packing_central_switching.created_at) >= '{$tgl_awal}',qty_switch,0)) as pc_switching_transaction_out
+                    FROM
+                        packing_central_switching
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_central_switching.asal_so_det_id
+                    WHERE
+                        date(packing_central_switching.created_at) <= '{$tgl_akhir}'
+                    GROUP BY 
+                        master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
                 ) a
                 GROUP BY ws, color, style, size, buyer ORDER BY ws, color, buyer
             ");
@@ -1611,11 +1721,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             SUM(pc_qty_adjustment_before) pc_adjustment_before,
             SUM(pc_switching_in_before) pc_switching_in_before,
             SUM(pc_switching_out_before) pc_switching_out_before,
-            SUM(pc_saldo_awal) + SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) - SUM(pc_switching_out_before) pc_saldo_awal_adjusment,
+            SUM(pc_saldo_awal) + SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) + SUM(pc_switching_transaction_in_before) - SUM(pc_switching_out_before) - SUM(pc_switching_transaction_out_before) pc_saldo_awal_adjusment,
             SUM(pc_qty_adjustment) pc_qty_adjustment,
-            SUM(pc_switching_in) pc_switching_in,
-            SUM(pc_switching_out) pc_switching_out,
-            (SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) - SUM(pc_switching_out_before)) + SUM(pc_saldo_akhir) + (SUM(pc_qty_adjustment) + SUM(pc_switching_in) - SUM(pc_switching_out)) pc_saldo_akhir_adj
+            SUM(pc_switching_in) + SUM(pc_switching_transaction_in) pc_switching_in,
+            SUM(pc_switching_out) + SUM(pc_switching_transaction_out) pc_switching_out,
+            (SUM(pc_qty_adjustment_before) + SUM(pc_switching_in_before) + SUM(pc_switching_transaction_in_before) - SUM(pc_switching_out_before) - SUM(pc_switching_transaction_out_before)) + SUM(pc_saldo_akhir) + (SUM(pc_qty_adjustment) + SUM(pc_switching_in) + SUM(pc_switching_transaction_in) - SUM(pc_switching_out) - SUM(pc_switching_transaction_out)) pc_saldo_akhir_adj
             from
             (
                 select
@@ -1631,7 +1741,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_in_before,
                     0 as pc_switching_in,
                     0 as pc_switching_out_before,
-                    0 as pc_switching_out
+                    0 as pc_switching_out,
+                    0 as pc_switching_transaction_in_before,
+                    0 as pc_switching_transaction_in,
+                    0 as pc_switching_transaction_out_before,
+                    0 as pc_switching_transaction_out
                 from main_select
 
                 UNION ALL
@@ -1663,7 +1777,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_in_before,
                     0 as pc_switching_in,
                     0 as pc_switching_out_before,
-                    0 as pc_switching_out
+                    0 as pc_switching_out,
+                    0 as pc_switching_transaction_in_before,
+                    0 as pc_switching_transaction_in,
+                    0 as pc_switching_transaction_out_before,
+                    0 as pc_switching_transaction_out
                 FROM
                     wip_adjustment
                 WHERE
@@ -1700,7 +1818,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_in_before,
                     0 as pc_switching_in,
                     0 as pc_switching_out_before,
-                    0 as pc_switching_out
+                    0 as pc_switching_out,
+                    0 as pc_switching_transaction_in_before,
+                    0 as pc_switching_transaction_in,
+                    0 as pc_switching_transaction_out_before,
+                    0 as pc_switching_transaction_out
                 FROM
                     wip_switching_adj
                 where
@@ -1737,7 +1859,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_in_before,
                     0 as pc_switching_in,
                     0 as pc_switching_out_before,
-                    0 as pc_switching_out
+                    0 as pc_switching_out,
+                    0 as pc_switching_transaction_in_before,
+                    0 as pc_switching_transaction_in,
+                    0 as pc_switching_transaction_out_before,
+                    0 as pc_switching_transaction_out
                 FROM
                     wip_switching_adj
                 WHERE
@@ -1776,7 +1902,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_in_before,
                     0 as pc_switching_in,
                     0 as pc_switching_out_before,
-                    0 as pc_switching_out
+                    0 as pc_switching_out,
+                    0 as pc_switching_transaction_in_before,
+                    0 as pc_switching_transaction_in,
+                    0 as pc_switching_transaction_out_before,
+                    0 as pc_switching_transaction_out
                 FROM
                     wip_adjustment
                 WHERE
@@ -1813,7 +1943,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 as pc_switching_in_before,
                     0 as pc_switching_in,
                     SUM(IF(from_tgl_saldo < '{$tgl_awal}',qty,0)) as pc_switching_out_before,
-                    SUM(IF(from_tgl_saldo >= '{$tgl_awal}',qty,0)) as pc_switching_out
+                    SUM(IF(from_tgl_saldo >= '{$tgl_awal}',qty,0)) as pc_switching_out,
+                    0 as pc_switching_transaction_in_before,
+                    0 as pc_switching_transaction_in,
+                    0 as pc_switching_transaction_out_before,
+                    0 as pc_switching_transaction_out
                 FROM
                     wip_switching_adj
                 where
@@ -1850,7 +1984,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     SUM(IF(tgl_saldo < '{$tgl_awal}',qty,0)) as pc_switching_in_before,
                     SUM(IF(tgl_saldo >= '{$tgl_awal}',qty,0)) as pc_switching_in,
                     0 as pc_switching_out_before,
-                    0 as pc_switching_out
+                    0 as pc_switching_out,
+                    0 as pc_switching_transaction_in_before,
+                    0 as pc_switching_transaction_in,
+                    0 as pc_switching_transaction_out_before,
+                    0 as pc_switching_transaction_out
                 FROM
                     wip_switching_adj
                 WHERE
@@ -1859,6 +1997,88 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 GROUP BY
                     from_no_ws, from_color, from_size, from_panel, from_part,
                     no_ws, color, size, panel, part
+                UNION ALL
+                SELECT
+                    null urutan,
+                    master_sb_ws.ws,
+                    master_sb_ws.color,
+                    master_sb_ws.styleno as style,
+                    master_sb_ws.size,
+                    master_sb_ws.buyer,
+                    0 pl_saldo_awal,
+                    0 pl_rft,
+                    0 pl_reject,
+                    0 pl_keluar,
+                    0 pl_saldo_akhir,
+                    0 pc_saldo_awal,
+                    0 pc_terima,
+                    0 pc_terima_return,
+                    0 pc_fg_in,
+                    0 pc_saldo_akhir,
+                    0 as qty_adjustment_before,
+                    0 as qty_adjustment,
+                    0 as switching_in_before,
+                    0 as switching_in,
+                    0 as switching_out_before,
+                    0 as switching_out,
+                    0 as pc_qty_adjustment_before,
+                    0 as pc_qty_adjustment,
+                    0 as pc_switching_in_before,
+                    0 as pc_switching_in,
+                    0 as pc_switching_out_before,
+                    0 as pc_switching_out,
+                    SUM(IF(date(packing_central_switching.created_at) < '{$tgl_awal}',qty_switch,0)) as pc_switching_transaction_in_before,
+                    SUM(IF(date(packing_central_switching.created_at) >= '{$tgl_awal}',qty_switch,0)) as pc_switching_transaction_in,
+                    0 as pc_switching_transaction_out_before,
+                    0 as pc_switching_transaction_out
+                FROM
+                    packing_central_switching
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_central_switching.tujuan_so_det_id
+                WHERE
+                    date(packing_central_switching.created_at) <= '{$tgl_akhir}'
+                GROUP BY 
+                    master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
+                UNION ALL
+                SELECT
+                    null urutan,
+                    master_sb_ws.ws,
+                    master_sb_ws.color,
+                    master_sb_ws.styleno as style,
+                    master_sb_ws.size,
+                    master_sb_ws.buyer,
+                    0 pl_saldo_awal,
+                    0 pl_rft,
+                    0 pl_reject,
+                    0 pl_keluar,
+                    0 pl_saldo_akhir,
+                    0 pc_saldo_awal,
+                    0 pc_terima,
+                    0 pc_terima_return,
+                    0 pc_fg_in,
+                    0 pc_saldo_akhir,
+                    0 as qty_adjustment_before,
+                    0 as qty_adjustment,
+                    0 as switching_in_before,
+                    0 as switching_in,
+                    0 as switching_out_before,
+                    0 as switching_out,
+                    0 as pc_qty_adjustment_before,
+                    0 as pc_qty_adjustment,
+                    0 as pc_switching_in_before,
+                    0 as pc_switching_in,
+                    0 as pc_switching_out_before,
+                    0 as pc_switching_out,
+                    0 as pc_switching_transaction_in_before,
+                    0 as pc_switching_transaction_in,
+                    SUM(IF(date(packing_central_switching.created_at) < '{$tgl_awal}',qty_switch,0)) as pc_switching_transaction_out_before,
+                    SUM(IF(date(packing_central_switching.created_at) >= '{$tgl_awal}',qty_switch,0)) as pc_switching_transaction_out
+                FROM
+                    packing_central_switching
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_central_switching.asal_so_det_id
+                WHERE
+                    date(packing_central_switching.created_at) <= '{$tgl_akhir}'
+                GROUP BY 
+                    master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
             ) a
             GROUP BY ws, color, style, size, buyer ORDER BY ws, color, buyer
         ");

@@ -29,6 +29,7 @@ class Undo extends Model
         'created_by',
         'undo_by',
         'undo_by_nds',
+        'undo_at',
         'keterangan',
         'created_at',
         'updated_at',

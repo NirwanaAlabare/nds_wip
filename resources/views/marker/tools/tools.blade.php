@@ -85,6 +85,10 @@
                         <option value="">Semua Model</option>
                         <option value="App\Models\Marker\Marker">Marker</option>
                         <option value="App\Models\Marker\MarkerDetail">Marker Detail</option>
+                        <option value="App\Models\Part\Part">Part</option>
+                        <option value="App\Models\Part\PartDetail">Part Detail</option>
+                        <option value="App\Models\Part\PartDetailSecondary">Part Detail Secondary</option>
+                        <option value="App\Models\Part\PartForm">Part Form</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -163,13 +167,6 @@
         });
 
         function exportLog() {
-            let params = new URLSearchParams({
-                dateFrom : $('#dateFrom').val(),
-                dateTo   : $('#dateTo').val(),
-                model    : $('#filterModel').val(),
-                event    : $('#filterEvent').val(),
-            });
-
             Swal.fire({
                 title: 'Please Wait...',
                 html: 'Menyiapkan file Excel...',
@@ -177,13 +174,25 @@
                 allowOutsideClick: false,
             });
 
-            let a = document.createElement('a');
-            a.href = '{{ route("marker-activity-log-export") }}?' + params.toString();
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-
-            setTimeout(() => Swal.close(), 1500);
+            $.ajax({
+                type: 'GET',
+                url: '{{ route("marker-activity-log-export") }}',
+                data: {
+                    dateFrom : $('#dateFrom').val(),
+                    dateTo   : $('#dateTo').val(),
+                    model    : $('#filterModel').val(),
+                    event    : $('#filterEvent').val(),
+                },
+                xhrFields: { responseType: 'blob' },
+                success: function(response) {
+                    Swal.close();
+                    let link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(new Blob([response]));
+                    link.download = 'Marker_Activity_Log_' + $('#dateFrom').val() + '_' + $('#dateTo').val() + '.xlsx';
+                    link.click();
+                },
+                error: function() { Swal.fire({ title: 'Gagal Export', icon: 'error' }); }
+            });
         }
 
         function tableReload() {

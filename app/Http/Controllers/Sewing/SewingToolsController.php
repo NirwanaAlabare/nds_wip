@@ -2689,14 +2689,14 @@ class SewingToolsController extends Controller
 
                                 if ($deleteRft) {
                                     if ($department == "_packing_po") {
-                                        DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $rft ? $rft->master_plan_id : null, 'so_det_id' => $rft ? $rft->so_det_id : null, 'po_id' => $rft ? $rft->po_id : null, 'output_rft_id' => $rft ? $rft->id : null, 'kode_numbering' => $rft ? $rft->kode_numbering : null, 'keterangan' => 'rft', 'alokasi' => $rft ? $rft->alokasi : null, 'created_by' => $rft ? $rft->created_by : null, 'created_by_username' => $rft ? $rft->created_by_username : null, 'created_by_line' => $rft ? $rft->created_by_line : null, 'created_at' => $rft ? $rft->created_at : null, 'updated_at' => $rft ? $rft->updated_at : null, 'undo_by_nds' => Auth::user()->id]);
+                                        DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $rft ? $rft->master_plan_id : null, 'so_det_id' => $rft ? $rft->so_det_id : null, 'po_id' => $rft ? $rft->po_id : null, 'output_rft_id' => $rft ? $rft->id : null, 'kode_numbering' => $rft ? $rft->kode_numbering : null, 'keterangan' => 'rft', 'alokasi' => $rft ? $rft->alokasi : null, 'created_by' => $rft ? $rft->created_by : null, 'created_by_username' => $rft ? $rft->created_by_username : null, 'created_by_line' => $rft ? $rft->created_by_line : null, 'created_at' => $rft ? $rft->created_at : null, 'updated_at' => $rft ? $rft->updated_at : null, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now()]);
 
                                         // Delete Gudang Stok on Packing Po GudangStok
                                         if ($rft->alokasi == "gudang stok") {
                                             DB::connection("mysql_sb")->table("output_gudang_stok")->where('packing_po_id', $rft->id)->delete();
                                         }
                                     } else {
-                                        DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'created_at' => $rft->created_at, 'updated_at' => $rft->updated_at, 'undo_by_nds' => Auth::user()->id]);
+                                        DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'created_at' => $rft->created_at, 'updated_at' => $rft->updated_at, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now()]);
                                     }
 
                                     array_push($result, "RFT '".$rft->kode_numbering."' -> DELETED");
@@ -2712,7 +2712,7 @@ class SewingToolsController extends Controller
                                 $deleteDefect = DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->delete();
 
                                 if ($deleteDefect) {
-                                    DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_defect_id' => $defect->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect', 'defect_type_id' => $defect->defect_type_id, 'defect_area_id' => $defect->defect_area_id, 'defect_area_x' => $defect->defect_area_x, 'defect_area_y' => $defect->defect_area_y,'created_by' => $defect->created_by, 'created_at' => $defect->created_at, 'updated_at' => $defect->updated_at, 'undo_by_nds' => Auth::user()->id]);
+                                    DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_defect_id' => $defect->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect', 'defect_type_id' => $defect->defect_type_id, 'defect_area_id' => $defect->defect_area_id, 'defect_area_x' => $defect->defect_area_x, 'defect_area_y' => $defect->defect_area_y,'created_by' => $defect->created_by, 'created_at' => $defect->created_at, 'updated_at' => $defect->updated_at, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now()]);
 
                                     array_push($result, "DEFECT '".$defect->kode_numbering."' -> DELETED");
                                 }
@@ -2730,7 +2730,7 @@ class SewingToolsController extends Controller
                                     $deleteReject = DB::connection("mysql_sb")->table("output_rejects".$department)->where("id", $reject->id)->delete();
 
                                     if ($deleteReject) {
-                                        DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $reject ? $reject->master_plan_id : null, 'so_det_id' => $reject ? $reject->so_det_id : null, 'output_defect_id' => $defect ? $defect->id : null, 'output_reject_id' => $reject ? $reject->id : null, 'kode_numbering' => $reject ? $reject->kode_numbering : null, 'defect_type_id' => $reject ? $reject->reject_type_id : null, 'defect_area_id' => $reject ? $reject->reject_area_id : null, 'defect_area_x' => $reject ? $reject->reject_area_x : null, 'defect_area_y' => $reject ? $reject->reject_area_y : null, 'keterangan' => 'defect-reject', 'created_by' => $reject ? $reject->created_by : null, 'created_at' => $reject ? $reject->created_at : null, 'updated_at' => $reject ? $reject->updated_at : null, 'undo_by_nds' => Auth::user()->id]);
+                                        DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $reject ? $reject->master_plan_id : null, 'so_det_id' => $reject ? $reject->so_det_id : null, 'output_defect_id' => $defect ? $defect->id : null, 'output_reject_id' => $reject ? $reject->id : null, 'kode_numbering' => $reject ? $reject->kode_numbering : null, 'defect_type_id' => $reject ? $reject->reject_type_id : null, 'defect_area_id' => $reject ? $reject->reject_area_id : null, 'defect_area_x' => $reject ? $reject->reject_area_x : null, 'defect_area_y' => $reject ? $reject->reject_area_y : null, 'keterangan' => 'defect-reject', 'created_by' => $reject ? $reject->created_by : null, 'created_at' => $reject ? $reject->created_at : null, 'updated_at' => $reject ? $reject->updated_at : null, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now()]);
 
                                         if ($defect && $defect->id) {
                                             DB::connection("mysql_sb")->table("output_defects".$department)->where('id', $defect->id)->update([
@@ -2789,7 +2789,7 @@ class SewingToolsController extends Controller
                             }
 
                             if ($deleteReject) {
-                                DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'created_by' => $reject->created_by, 'created_at' => $reject->created_at, 'updated_at' => $reject->updated_at, 'undo_by_nds' => Auth::user()->id]);
+                                DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'created_by' => $reject->created_by, 'created_at' => $reject->created_at, 'updated_at' => $reject->updated_at, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now()]);
 
                                 array_push($result, "REJECT '".$reject->kode_numbering."' -> DELETED");
                             }
@@ -2943,14 +2943,14 @@ class SewingToolsController extends Controller
 
     //                         if ($rft) {
     //                             if ($request->dept == "_packing_po") {
-    //                                 array_push($undoArray, ['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'po_id' => $rft->po_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'alokasi' => $rft->alokasi, 'created_by' => $rft->created_by, 'created_by_username' => $rft->created_by_username, 'created_by_line' => $rft->created_by_line, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+    //                                 array_push($undoArray, ['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'po_id' => $rft->po_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'alokasi' => $rft->alokasi, 'created_by' => $rft->created_by, 'created_by_username' => $rft->created_by_username, 'created_by_line' => $rft->created_by_line, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now(), 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
 
     //                                 // Delete Gudang Stok on Packing Po GudangStok
     //                                 if ($rft->alokasi == "gudang stok") {
     //                                     DB::connection("mysql_sb")->table("output_gudang_stok")->where('packing_po_id', $rft->id)->delete();
     //                                 }
     //                             } else {
-    //                                 array_push($undoArray, ['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+    //                                 array_push($undoArray, ['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now(), 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
     //                             }
     //                         }
     //                     }
@@ -3095,7 +3095,7 @@ class SewingToolsController extends Controller
     //                         $defect = DB::connection("mysql_sb")->table("output_defects".$request->dept)->where('id', $defectId)->first();
 
     //                         if ($defect) {
-    //                             array_push($undoArray, ['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_defect_id' => $defect->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect', 'defect_type_id' => $defect->defect_type_id, 'defect_area_id' => $defect->defect_area_id, 'defect_area_x' => $defect->defect_area_x, 'defect_area_y' => $defect->defect_area_y, 'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+    //                             array_push($undoArray, ['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_defect_id' => $defect->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect', 'defect_type_id' => $defect->defect_type_id, 'defect_area_id' => $defect->defect_area_id, 'defect_area_x' => $defect->defect_area_x, 'defect_area_y' => $defect->defect_area_y, 'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now(), 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
     //                         }
     //                     }
 
@@ -3189,7 +3189,7 @@ class SewingToolsController extends Controller
     //                         $rework = DB::connection("mysql_sb")->table("output_reworks".$request->dept)->selectRaw("output_reworks.*, output_rfts.id as rft_id, output_rfts.master_plan_id, output_rfts.so_det_id, output_rfts.kode_numbering")->leftJoin("output_rfts", "output_rfts.rework_id", "=", "output_reworks.id")->where('defect_id', $defectId)->first();
 
     //                         if ($rework) {
-    //                             array_push($undoArray, ['master_plan_id' => $rework->master_plan_id, 'so_det_id' => $rework->so_det_id, 'output_rework_id' => $rework->id, 'output_rft_id' => $rework->rft_id, 'kode_numbering' => $rework->kode_numbering, 'keterangan' => 'rework', 'created_by' => $rework->created_by, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+    //                             array_push($undoArray, ['master_plan_id' => $rework->master_plan_id, 'so_det_id' => $rework->so_det_id, 'output_rework_id' => $rework->id, 'output_rft_id' => $rework->rft_id, 'kode_numbering' => $rework->kode_numbering, 'keterangan' => 'rework', 'created_by' => $rework->created_by, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now(), 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
     //                         }
     //                     }
 
@@ -3300,7 +3300,7 @@ class SewingToolsController extends Controller
     //                         $reject = DB::connection("mysql_sb")->table("output_rejects".$request->dept)->where('id', $rejectId)->first();
 
     //                         if ($reject) {
-    //                             array_push($undoArray, ['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_defect_id' => $reject->defect_id, 'output_reject_id' => $reject->id, 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+    //                             array_push($undoArray, ['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_defect_id' => $reject->defect_id, 'output_reject_id' => $reject->id, 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now(), 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
     //                         }
     //                     }
 
@@ -3428,14 +3428,14 @@ class SewingToolsController extends Controller
 
                             if ($rft) {
                                 if ($request->dept == "_packing_po") {
-                                    array_push($undoArray, ['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'po_id' => $rft->po_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'alokasi' => $rft->alokasi, 'created_by' => $rft->created_by, 'created_by_username' => $rft->created_by_username, 'created_by_line' => $rft->created_by_line, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+                                    array_push($undoArray, ['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'po_id' => $rft->po_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'alokasi' => $rft->alokasi, 'created_by' => $rft->created_by, 'created_by_username' => $rft->created_by_username, 'created_by_line' => $rft->created_by_line, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now(), 'created_at' => $rft->created_at, 'updated_at' => $rft->updated_at]);
 
                                     // Delete Gudang Stok on Packing Po GudangStok
                                     if ($rft->alokasi == "gudang stok") {
                                         DB::connection("mysql_sb")->table("output_gudang_stok")->where('packing_po_id', $rft->id)->delete();
                                     }
                                 } else {
-                                    array_push($undoArray, ['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+                                    array_push($undoArray, ['master_plan_id' => $rft->master_plan_id, 'so_det_id' => $rft->so_det_id, 'output_rft_id' => $rft->id, 'kode_numbering' => $rft->kode_numbering, 'keterangan' => 'rft', 'created_by' => $rft->created_by, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now(), 'created_at' => $rft->created_at, 'updated_at' => $rft->updated_at]);
                                 }
                             }
                         }
@@ -3624,7 +3624,7 @@ class SewingToolsController extends Controller
                             $defect = DB::connection("mysql_sb")->table("output_defects".$request->dept)->where('id', $defectId)->first();
 
                             if ($defect) {
-                                array_push($undoArray, ['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_defect_id' => $defect->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect', 'defect_type_id' => $defect->defect_type_id, 'defect_area_id' => $defect->defect_area_id, 'defect_area_x' => $defect->defect_area_x, 'defect_area_y' => $defect->defect_area_y, 'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+                                array_push($undoArray, ['master_plan_id' => $defect->master_plan_id, 'so_det_id' => $defect->so_det_id, 'output_defect_id' => $defect->id, 'kode_numbering' => $defect->kode_numbering, 'keterangan' => 'defect', 'defect_type_id' => $defect->defect_type_id, 'defect_area_id' => $defect->defect_area_id, 'defect_area_x' => $defect->defect_area_x, 'defect_area_y' => $defect->defect_area_y, 'created_by' => $defect->created_by, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now(), 'created_at' => $defect->created_at, 'updated_at' => $defect->updated_at]);
                             }
                         }
 
@@ -3771,7 +3771,7 @@ class SewingToolsController extends Controller
                             $rework = DB::connection("mysql_sb")->table("output_reworks".$request->dept)->selectRaw("output_reworks.*, output_rfts.id as rft_id, output_rfts.master_plan_id, output_rfts.so_det_id, output_rfts.kode_numbering")->leftJoin("output_rfts", "output_rfts.rework_id", "=", "output_reworks.id")->where('defect_id', $defectId)->first();
 
                             if ($rework) {
-                                array_push($undoArray, ['master_plan_id' => $rework->master_plan_id, 'so_det_id' => $rework->so_det_id, 'output_rework_id' => $rework->id, 'output_rft_id' => $rework->rft_id, 'kode_numbering' => $rework->kode_numbering, 'keterangan' => 'rework', 'created_by' => $rework->created_by, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+                                array_push($undoArray, ['master_plan_id' => $rework->master_plan_id, 'so_det_id' => $rework->so_det_id, 'output_rework_id' => $rework->id, 'output_rft_id' => $rework->rft_id, 'kode_numbering' => $rework->kode_numbering, 'keterangan' => 'rework', 'created_by' => $rework->created_by, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now(), 'created_at' => $rework->created_at, 'updated_at' => $rework->updated_at]);
                             }
                         }
 
@@ -3985,7 +3985,7 @@ class SewingToolsController extends Controller
                             $reject = DB::connection("mysql_sb")->table("output_rejects".$request->dept)->where('id', $rejectId)->first();
 
                             if ($reject) {
-                                array_push($undoArray, ['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_defect_id' => $reject->defect_id, 'output_reject_id' => $reject->id, 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+                                array_push($undoArray, ['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_defect_id' => $reject->defect_id, 'output_reject_id' => $reject->id, 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'created_by' => $reject->created_by, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now(), 'created_at' => $reject->created_at, 'updated_at' => $reject->updated_at]);
                             }
                         }
 
@@ -4392,6 +4392,339 @@ class SewingToolsController extends Controller
                 return $result;
             }
         }
+    }
+
+    public function undoOutputList(Request $request)
+    {
+        return view("sewing.tools.undo-output-list", ["page" => "dashboard-sewing-eff"]);
+    }
+
+    public function getUndoOutputList(Request $request)
+    {
+        $tglAwal  = $request->tgl_awal  ?: date('Y-m-d');
+        $tglAkhir = $request->tgl_akhir ?: date('Y-m-d');
+        $kode     = $request->kode_numbering;
+        $type     = $request->type ?: 'qc';
+
+        if ($type === 'packing') {
+            $data = UndoPacking::selectRaw("
+                    output_undo_packing.kode_numbering,
+                    CASE
+                        WHEN output_undo_packing.output_rft_id    IS NOT NULL THEN 'RFT'
+                        WHEN output_undo_packing.output_defect_id IS NOT NULL THEN 'Defect'
+                        WHEN output_undo_packing.output_reject_id IS NOT NULL THEN 'Reject'
+                        WHEN output_undo_packing.output_rework_id IS NOT NULL THEN 'Rework'
+                        ELSE '-'
+                    END AS output_type,
+                    act_costing.kpno AS ws,
+                    act_costing.styleno AS style,
+                    so_det.color,
+                    so_det.size,
+                    master_plan.sewing_line AS line,
+                    master_plan.tgl_plan,
+                    output_undo_packing.undo_by,
+                    output_undo_packing.undo_by_nds,
+                    output_undo_packing.keterangan,
+                    output_undo_packing.undo_at AS undo_at,
+                    output_undo_packing.created_at AS output_created_at,
+                    output_undo_packing.updated_at AS output_updated_at
+                ")
+                ->leftJoin('master_plan', 'master_plan.id', '=', 'output_undo_packing.master_plan_id')
+                ->leftJoin('so_det', 'so_det.id', '=', 'output_undo_packing.so_det_id')
+                ->leftJoin('so', 'so.id', '=', 'so_det.id_so')
+                ->leftJoin('act_costing', 'act_costing.id', '=', 'so.id_cost')
+                ->leftJoin('output_rfts_packing as orft', 'orft.id', '=', 'output_undo_packing.output_rft_id')
+                ->leftJoin('output_defects_packing as odef', 'odef.id', '=', 'output_undo_packing.output_defect_id')
+                ->leftJoin('output_rejects_packing as orej', 'orej.id', '=', 'output_undo_packing.output_reject_id')
+                ->leftJoin('output_reworks_packing as orw', 'orw.id', '=', 'output_undo_packing.output_rework_id')
+                ->whereRaw("DATE(COALESCE(output_undo_packing.updated_at, output_undo_packing.created_at)) BETWEEN ? AND ?", [$tglAwal, $tglAkhir])
+                ->when($kode, fn($q) => $q->where('output_undo_packing.kode_numbering', 'like', '%'.$kode.'%'))
+                ->orderByRaw("COALESCE(output_undo_packing.updated_at, output_undo_packing.created_at) DESC")
+                ->get();
+        } else {
+            $data = Undo::selectRaw("
+                    output_undo.kode_numbering,
+                    CASE
+                        WHEN output_undo.output_rft_id    IS NOT NULL THEN 'RFT'
+                        WHEN output_undo.output_defect_id IS NOT NULL THEN 'Defect'
+                        WHEN output_undo.output_reject_id IS NOT NULL THEN 'Reject'
+                        WHEN output_undo.output_rework_id IS NOT NULL THEN 'Rework'
+                        ELSE '-'
+                    END AS output_type,
+                    act_costing.kpno          AS ws,
+                    act_costing.styleno       AS style,
+                    so_det.color,
+                    so_det.size,
+                    master_plan.sewing_line   AS line,
+                    master_plan.tgl_plan,
+                    output_undo.undo_by,
+                    output_undo.undo_by_nds,
+                    output_undo.keterangan,
+                    output_undo.undo_at,
+                    output_undo.created_at AS output_created_at,
+                    output_undo.updated_at AS output_updated_at
+                ")
+                ->leftJoin('master_plan', 'master_plan.id', '=', 'output_undo.master_plan_id')
+                ->leftJoin('so_det', 'so_det.id', '=', 'output_undo.so_det_id')
+                ->leftJoin('so', 'so.id', '=', 'so_det.id_so')
+                ->leftJoin('act_costing', 'act_costing.id', '=', 'so.id_cost')
+                ->leftJoin('output_rfts as orft', 'orft.id', '=', 'output_undo.output_rft_id')
+                ->leftJoin('output_defects as odef', 'odef.id', '=', 'output_undo.output_defect_id')
+                ->leftJoin('output_rejects as orej', 'orej.id', '=', 'output_undo.output_reject_id')
+                ->leftJoin('output_reworks as orw', 'orw.id', '=', 'output_undo.output_rework_id')
+                ->whereRaw("DATE(COALESCE(output_undo.undo_at, output_undo.updated_at, output_undo.created_at)) BETWEEN ? AND ?", [$tglAwal, $tglAkhir])
+                ->when($kode, fn($q) => $q->where('output_undo.kode_numbering', 'like', '%'.$kode.'%'))
+                ->orderByRaw("COALESCE(output_undo.undo_at, output_undo.updated_at, output_undo.created_at) DESC")
+                ->get();
+        }
+
+        return DataTables::of($data)->toJson();
+    }
+
+    public function exportUndoOutputList(Request $request)
+    {
+        $tglAwal  = $request->tgl_awal  ?: date('Y-m-d');
+        $tglAkhir = $request->tgl_akhir ?: date('Y-m-d');
+        $kode     = $request->kode_numbering;
+        $type     = $request->type ?: 'qc';
+
+        if ($type === 'packing') {
+            $data = UndoPacking::selectRaw("
+                    output_undo_packing.kode_numbering,
+                    CASE
+                        WHEN output_undo_packing.output_rft_id    IS NOT NULL THEN 'RFT'
+                        WHEN output_undo_packing.output_defect_id IS NOT NULL THEN 'Defect'
+                        WHEN output_undo_packing.output_reject_id IS NOT NULL THEN 'Reject'
+                        WHEN output_undo_packing.output_rework_id IS NOT NULL THEN 'Rework'
+                        ELSE '-'
+                    END AS output_type,
+                    act_costing.kpno        AS ws,
+                    act_costing.styleno     AS style,
+                    so_det.color,
+                    so_det.size,
+                    master_plan.sewing_line AS line,
+                    master_plan.tgl_plan,
+                    output_undo_packing.undo_by,
+                    output_undo_packing.undo_by_nds,
+                    output_undo_packing.keterangan,
+                    output_undo_packing.undo_at,
+                    COALESCE(orft.created_at, odef.created_at, orej.created_at, orw.created_at) AS output_created_at,
+                    COALESCE(orft.updated_at, odef.updated_at, orej.updated_at, orw.updated_at) AS output_updated_at
+                ")
+                ->leftJoin('master_plan', 'master_plan.id', '=', 'output_undo_packing.master_plan_id')
+                ->leftJoin('so_det', 'so_det.id', '=', 'output_undo_packing.so_det_id')
+                ->leftJoin('so', 'so.id', '=', 'so_det.id_so')
+                ->leftJoin('act_costing', 'act_costing.id', '=', 'so.id_cost')
+                ->leftJoin('output_rfts_packing as orft', 'orft.id', '=', 'output_undo_packing.output_rft_id')
+                ->leftJoin('output_defects_packing as odef', 'odef.id', '=', 'output_undo_packing.output_defect_id')
+                ->leftJoin('output_rejects_packing as orej', 'orej.id', '=', 'output_undo_packing.output_reject_id')
+                ->leftJoin('output_reworks_packing as orw', 'orw.id', '=', 'output_undo_packing.output_rework_id')
+                ->whereRaw("DATE(COALESCE(output_undo_packing.updated_at, output_undo_packing.created_at)) BETWEEN ? AND ?", [$tglAwal, $tglAkhir])
+                ->when($kode, fn($q) => $q->where('output_undo_packing.kode_numbering', 'like', '%'.$kode.'%'))
+                ->orderByRaw("COALESCE(output_undo_packing.updated_at, output_undo_packing.created_at) DESC")
+                ->get();
+        } else {
+            $data = Undo::selectRaw("
+                    output_undo.kode_numbering,
+                    CASE
+                        WHEN output_undo.output_rft_id    IS NOT NULL THEN 'RFT'
+                        WHEN output_undo.output_defect_id IS NOT NULL THEN 'Defect'
+                        WHEN output_undo.output_reject_id IS NOT NULL THEN 'Reject'
+                        WHEN output_undo.output_rework_id IS NOT NULL THEN 'Rework'
+                        ELSE '-'
+                    END AS output_type,
+                    act_costing.kpno        AS ws,
+                    act_costing.styleno     AS style,
+                    so_det.color,
+                    so_det.size,
+                    master_plan.sewing_line AS line,
+                    master_plan.tgl_plan,
+                    output_undo.undo_by,
+                    output_undo.undo_by_nds,
+                    output_undo.keterangan,
+                    output_undo.undo_at,
+                    COALESCE(orft.created_at, odef.created_at, orej.created_at, orw.created_at) AS output_created_at,
+                    COALESCE(orft.updated_at, odef.updated_at, orej.updated_at, orw.updated_at) AS output_updated_at
+                ")
+                ->leftJoin('master_plan', 'master_plan.id', '=', 'output_undo.master_plan_id')
+                ->leftJoin('so_det', 'so_det.id', '=', 'output_undo.so_det_id')
+                ->leftJoin('so', 'so.id', '=', 'so_det.id_so')
+                ->leftJoin('act_costing', 'act_costing.id', '=', 'so.id_cost')
+                ->leftJoin('output_rfts as orft', 'orft.id', '=', 'output_undo.output_rft_id')
+                ->leftJoin('output_defects as odef', 'odef.id', '=', 'output_undo.output_defect_id')
+                ->leftJoin('output_rejects as orej', 'orej.id', '=', 'output_undo.output_reject_id')
+                ->leftJoin('output_reworks as orw', 'orw.id', '=', 'output_undo.output_rework_id')
+                ->whereRaw("DATE(COALESCE(output_undo.undo_at, output_undo.updated_at, output_undo.created_at)) BETWEEN ? AND ?", [$tglAwal, $tglAkhir])
+                ->when($kode, fn($q) => $q->where('output_undo.kode_numbering', 'like', '%'.$kode.'%'))
+                ->orderByRaw("COALESCE(output_undo.undo_at, output_undo.updated_at, output_undo.created_at) DESC")
+                ->get();
+        }
+
+        $filename = 'List_Output_Undo_' . strtoupper($type) . '_' . $tglAwal . '_' . $tglAkhir . '.xlsx';
+
+        $excel = FastExcel::create('data');
+        $sheet = $excel->getSheet();
+        $sheet->writeRow([
+            'Tanggal Undo', 'Kode Numbering', 'Type', 'WS', 'Style',
+            'Color', 'Size', 'Line', 'Tgl Plan', 'Undo By (SB)',
+            'Undo By (NDS)', 'Keterangan', 'Output Created At', 'Output Updated At',
+        ], ['font-style' => 'bold']);
+
+        collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
+            $sheet->writeAreas();
+            foreach ($rows as $row) {
+                $sheet->writeRow([
+                    $row->undo_at           ?? '',
+                    $row->kode_numbering    ?? '',
+                    $row->output_type       ?? '',
+                    $row->ws                ?? '',
+                    $row->style             ?? '',
+                    $row->color             ?? '',
+                    $row->size              ?? '',
+                    $row->line              ?? '',
+                    $row->tgl_plan          ?? '',
+                    $row->undo_by           ?? '',
+                    $row->undo_by_nds       ?? '',
+                    $row->keterangan        ?? '',
+                    $row->output_created_at ?? '',
+                    $row->output_updated_at ?? '',
+                ]);
+            }
+        });
+
+        return $excel->download($filename);
+    }
+
+    public function undoPackingPoList(Request $request)
+    {
+        return view("sewing.tools.undo-packing-po-list", ["page" => "dashboard-sewing-eff"]);
+    }
+
+    public function getUndoPackingPoList(Request $request)
+    {
+        $tglAwal  = $request->tgl_awal  ?: date('Y-m-d');
+        $tglAkhir = $request->tgl_akhir ?: date('Y-m-d');
+        $kode     = $request->kode_numbering;
+
+        $data = UndoPackingPo::selectRaw("
+                output_undo_packing_po.kode_numbering,
+                CASE
+                    WHEN output_undo_packing_po.output_rft_id    IS NOT NULL THEN 'RFT'
+                    WHEN output_undo_packing_po.output_defect_id IS NOT NULL THEN 'Defect'
+                    WHEN output_undo_packing_po.output_reject_id IS NOT NULL THEN 'Reject'
+                    WHEN output_undo_packing_po.output_rework_id IS NOT NULL THEN 'Rework'
+                    ELSE '-'
+                END AS output_type,
+                act_costing.kpno            AS ws,
+                act_costing.styleno         AS style,
+                so_det.color,
+                so_det.size,
+                master_plan.sewing_line     AS line,
+                master_plan.tgl_plan,
+                output_undo_packing_po.alokasi,
+                output_undo_packing_po.keterangan,
+                output_undo_packing_po.created_by,
+                output_undo_packing_po.created_by_username,
+                output_undo_packing_po.created_by_line,
+                output_undo_packing_po.created_at,
+                output_undo_packing_po.updated_at,
+                COALESCE(orft.created_at, orej.created_at) AS output_created_at,
+                COALESCE(orft.updated_at, orej.updated_at) AS output_updated_at
+            ")
+            ->leftJoin('master_plan', 'master_plan.id', '=', 'output_undo_packing_po.master_plan_id')
+            ->leftJoin('so_det', 'so_det.id', '=', 'output_undo_packing_po.so_det_id')
+            ->leftJoin('so', 'so.id', '=', 'so_det.id_so')
+            ->leftJoin('act_costing', 'act_costing.id', '=', 'so.id_cost')
+            ->leftJoin('output_rfts_packing_po as orft', 'orft.id', '=', 'output_undo_packing_po.output_rft_id')
+            ->leftJoin('output_rejects_packing_po as orej', 'orej.id', '=', 'output_undo_packing_po.output_reject_id')
+            ->whereRaw("DATE(COALESCE(output_undo_packing_po.updated_at, output_undo_packing_po.created_at)) BETWEEN ? AND ?", [$tglAwal, $tglAkhir])
+            ->when($kode, fn($q) => $q->where('output_undo_packing_po.kode_numbering', 'like', '%'.$kode.'%'))
+            ->orderByRaw("COALESCE(output_undo_packing_po.updated_at, output_undo_packing_po.created_at) DESC")
+            ->get();
+
+        return DataTables::of($data)->toJson();
+    }
+
+    public function exportUndoPackingPoList(Request $request)
+    {
+        $tglAwal  = $request->tgl_awal  ?: date('Y-m-d');
+        $tglAkhir = $request->tgl_akhir ?: date('Y-m-d');
+        $kode     = $request->kode_numbering;
+
+        $data = UndoPackingPo::selectRaw("
+                output_undo_packing_po.kode_numbering,
+                CASE
+                    WHEN output_undo_packing_po.output_rft_id    IS NOT NULL THEN 'RFT'
+                    WHEN output_undo_packing_po.output_defect_id IS NOT NULL THEN 'Defect'
+                    WHEN output_undo_packing_po.output_reject_id IS NOT NULL THEN 'Reject'
+                    WHEN output_undo_packing_po.output_rework_id IS NOT NULL THEN 'Rework'
+                    ELSE '-'
+                END AS output_type,
+                act_costing.kpno            AS ws,
+                act_costing.styleno         AS style,
+                so_det.color,
+                so_det.size,
+                master_plan.sewing_line     AS line,
+                master_plan.tgl_plan,
+                output_undo_packing_po.alokasi,
+                output_undo_packing_po.keterangan,
+                output_undo_packing_po.created_by_username,
+                output_undo_packing_po.created_by_line,
+                output_undo_packing_po.created_at,
+                output_undo_packing_po.updated_at,
+                COALESCE(orft.created_at, odef.created_at, orej.created_at, orw.created_at) AS output_created_at,
+                COALESCE(orft.updated_at, odef.updated_at, orej.updated_at, orw.updated_at) AS output_updated_at
+            ")
+            ->leftJoin('master_plan', 'master_plan.id', '=', 'output_undo_packing_po.master_plan_id')
+            ->leftJoin('so_det', 'so_det.id', '=', 'output_undo_packing_po.so_det_id')
+            ->leftJoin('so', 'so.id', '=', 'so_det.id_so')
+            ->leftJoin('act_costing', 'act_costing.id', '=', 'so.id_cost')
+            ->leftJoin('output_rfts_packing_po as orft', 'orft.id', '=', 'output_undo_packing_po.output_rft_id')
+            ->leftJoin('output_defects_packing_po as odef', 'odef.id', '=', 'output_undo_packing_po.output_defect_id')
+            ->leftJoin('output_rejects_packing_po as orej', 'orej.id', '=', 'output_undo_packing_po.output_reject_id')
+            ->leftJoin('output_reworks_packing_po as orw', 'orw.id', '=', 'output_undo_packing_po.output_rework_id')
+            ->whereRaw("DATE(COALESCE(output_undo_packing_po.updated_at, output_undo_packing_po.created_at)) BETWEEN ? AND ?", [$tglAwal, $tglAkhir])
+            ->when($kode, fn($q) => $q->where('output_undo_packing_po.kode_numbering', 'like', '%'.$kode.'%'))
+            ->orderByRaw("COALESCE(output_undo_packing_po.updated_at, output_undo_packing_po.created_at) DESC")
+            ->get();
+
+        $filename = 'List_Undo_Packing_PO_' . $tglAwal . '_' . $tglAkhir . '.xlsx';
+
+        $excel = FastExcel::create('data');
+        $sheet = $excel->getSheet();
+        $sheet->writeRow([
+            'Tanggal', 'Kode Numbering', 'Type', 'WS', 'Style', 'Color', 'Size',
+            'Line', 'Tgl Plan', 'Alokasi', 'Keterangan',
+            'By Username', 'By Line', 'Created At', 'Updated At',
+            'Output Created At', 'Output Updated At',
+        ], ['font-style' => 'bold']);
+
+        collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
+            $sheet->writeAreas();
+            foreach ($rows as $row) {
+                $sheet->writeRow([
+                    $row->updated_at            ?? $row->created_at ?? '',
+                    $row->kode_numbering        ?? '',
+                    $row->output_type           ?? '',
+                    $row->ws                    ?? '',
+                    $row->style                 ?? '',
+                    $row->color                 ?? '',
+                    $row->size                  ?? '',
+                    $row->line                  ?? '',
+                    $row->tgl_plan              ?? '',
+                    $row->alokasi               ?? '',
+                    $row->keterangan            ?? '',
+                    $row->created_by_username   ?? '',
+                    $row->created_by_line       ?? '',
+                    $row->created_at            ?? '',
+                    $row->updated_at            ?? '',
+                    $row->output_created_at     ?? '',
+                    $row->output_updated_at     ?? '',
+                ]);
+            }
+        });
+
+        return $excel->download($filename);
     }
 
     public function restoreUndoSubmit(Request $request)

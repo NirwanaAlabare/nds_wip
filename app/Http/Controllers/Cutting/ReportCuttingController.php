@@ -1072,6 +1072,9 @@ class ReportCuttingController extends Controller
                                 master_sb_ws on master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                         where
                             form_cut_piece_detail_size.qty > 0
+                            and form_cut_piece_detail.id not in (
+                                7207
+                            )
                             " . $additionalQuery1 . "
                         group by
                             form_cut_piece_detail_size.so_det_id,
@@ -1371,6 +1374,9 @@ class ReportCuttingController extends Controller
                                 master_sb_ws on master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                         where
                             form_cut_piece_detail_size.qty > 0
+                            and form_cut_piece_detail.id not in (
+                                7207
+                            )
                             " . $additionalQuery1 . "
                             " . $tanggalFilter1 . "
                             " . $noMejaFilter1 . "
@@ -6118,9 +6124,6 @@ order by a.tgl_trans asc
                                         AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '$end_date'
                                         AND ( marker_input_detail.ratio > 0 OR ( similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0 ))
                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
-                                        AND form_cut_piece_detail.id not in (
-                                            7207
-                                        )
                                     GROUP BY
                                         form_cut_input.id,
                                         form_cut_input_detail.group_stocker,
@@ -6174,6 +6177,9 @@ order by a.tgl_trans asc
                                         AND COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) <= '$end_date'
                                         AND form_cut_piece_detail.STATUS = 'complete'
                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
+                                        AND form_cut_piece_detail.id not in (
+                                            7207
+                                        )
                                     GROUP BY
                                         form_cut_piece.id,
                                         form_cut_piece_detail.group_stocker,

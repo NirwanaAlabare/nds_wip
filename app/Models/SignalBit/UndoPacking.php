@@ -24,6 +24,9 @@ class UndoPacking extends Model
         'keterangan',
         'created_at',
         'updated_at',
+        'undo_by',
+        'undo_by_nds',
+        'undo_at',
     ];
 
     public function rft()
