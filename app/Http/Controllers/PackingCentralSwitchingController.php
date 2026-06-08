@@ -232,7 +232,7 @@ class PackingCentralSwitchingController extends Controller
                     AND LEFT(no_trans, 3) = 'PCK'
             ");
 
-            PackingCentralSwitching::create([
+            $dataPackingCentralSwitching = PackingCentralSwitching::create([
                 'no_trans'                 => $no_trans->kode,
                 'packing_packing_in_id'    => $request->packing_packing_in_id,
                 'asal_ppic_master_so_id'   => $request->asal_ppic_master_so_id,
@@ -246,20 +246,21 @@ class PackingCentralSwitchingController extends Controller
             ]);
 
             DB::table('packing_packing_in')->insert([
-                'id_trf_garment'      => null,
-                'no_trans'            => $no_trans->kode,
-                'tgl_penerimaan'      => date('Y-m-d'),
-                'id_ppic_master_so'   => $request->tujuan_ppic_master_so_id,
-                'id_so_det'           => $request->tujuan_so_det_id,
-                'qty'                 => $request->qty_switch,
-                'line'                => null,
-                'po'                  => $request->tujuan_po,
-                'barcode'             => $request->tujuan_barcode,
-                'dest'                => $request->tujuan_dest,
-                'sumber'              => 'Switching',
-                'created_at'          => now(),
-                'updated_at'          => now(),
-                'created_by'          => auth()->user()->username,
+                'packing_central_switching_id' => $dataPackingCentralSwitching->id,
+                'id_trf_garment'               => null,
+                'no_trans'                     => $no_trans->kode,
+                'tgl_penerimaan'               => date('Y-m-d'),
+                'id_ppic_master_so'            => $request->tujuan_ppic_master_so_id,
+                'id_so_det'                    => $request->tujuan_so_det_id,
+                'qty'                          => $request->qty_switch,
+                'line'                         => null,
+                'po'                           => $request->tujuan_po,
+                'barcode'                      => $request->tujuan_barcode,
+                'dest'                         => $request->tujuan_dest,
+                'sumber'                       => 'Switching',
+                'created_at'                   => now(),
+                'updated_at'                   => now(),
+                'created_by'                   => auth()->user()->username,
             ]);
 
             DB::commit();
