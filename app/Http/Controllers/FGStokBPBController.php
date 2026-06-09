@@ -233,6 +233,7 @@ order by color desc");
             "qty" => "required",
             "no_carton" => "required",
             "grade" => "required",
+            "cbosumber" => "required",
         ]);
 
         // $cek_data = DB::select("
@@ -242,15 +243,60 @@ order by color desc");
 
         // $color = $cek_data[0]->color;
 
+        if($validatedRequest['cbosumber'] == 'QC REJECT'){
+            $cekDataReject = DB::connection('mysql_sb')->select("
+                SELECT
+                    COUNT(detail.id) AS jumlah
+                FROM
+                    output_reject_out_detail detail
+                LEFT JOIN output_reject_out ON output_reject_out.id = detail.reject_out_id
+                LEFT JOIN output_reject_in ON output_reject_in.id = detail.reject_in_id
+                WHERE
+                    output_reject_out.tujuan = 'gudang' AND output_reject_in.so_det_id = '" . $validatedRequest['cboproduct'] . "'
+            ");
+
+            $cekDataPenerimaan = DB::select("
+                SELECT
+                    COALESCE(SUM(jumlah),0) AS jumlah
+                FROM
+                (
+                    SELECT SUM(qty) AS jumlah
+                    FROM fg_stok_bpb
+                    WHERE sumber_pemasukan = 'QC REJECT'
+                    AND id_so_det = '".$validatedRequest['cboproduct']."'
+
+                    UNION ALL
+
+                    SELECT SUM(qty) AS jumlah
+                    FROM fg_tmp_stok_bpb
+                    WHERE sumber_pemasukan = 'QC REJECT'
+                    AND id_so_det = '".$validatedRequest['cboproduct']."'
+                ) result
+            ");
+
+            $totalRejectOut = $cekDataReject[0]->jumlah ?? 0;
+            $totalPenerimaan = $cekDataPenerimaan[0]->jumlah ?? 0;
+
+            $stokTersedia = $totalRejectOut - $totalPenerimaan;
+
+            if($validatedRequest['qty'] > $stokTersedia){
+                return [
+                    'icon' => 'salah',
+                    'msg'  => 'Qty melebihi stok tersedia. Sisa stok: '.$stokTersedia,
+                ];
+            }
+        }
+
         $insert_tmp = DB::insert("
             insert into fg_tmp_stok_bpb
-            (id_so_det,qty,no_carton,grade,created_by,created_at,updated_at)
+            (id_so_det,qty,no_carton,grade,sumber_pemasukan,created_by,created_at,updated_at)
             values
             (
                 '" . $validatedRequest['cboproduct'] . "',
                 '" . $validatedRequest['qty'] . "',
                 '" . $validatedRequest['no_carton'] . "',
                 '" . $validatedRequest['grade'] . "',
+                '" . $validatedRequest['cbosumber'] . "',
                 '$user',
                 '$timestamp',
                 '$timestamp'
