@@ -30,6 +30,15 @@
                     <input type="text" name="brand" class="form-control" placeholder="Brand" required>
                 </div>
                 <div class="col-md-3 form-group">
+                    <label>Season</label>
+                    <select name="season_id" id="season_id" class="form-control select2bs4" required>
+                        <option value="">Pilih Season</option>
+                        @foreach ($seasons as $s)
+                            <option value="{{ $s->id_season }}">{{ $s->season }} - {{ $s->season_desc }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3 form-group">
                     <label>Product Group</label>
                     <select name="product_group" id="product_group" class="form-control select2bs4" required>
                         <option value="">Pilih Product Group</option>
@@ -38,15 +47,15 @@
                         @endforeach
                     </select>
                 </div>
+            </div>
+
+            <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Product Item</label>
                     <select name="product_item" id="product_item" class="form-control select2bs4" required>
                         <option value="">Pilih Product Item</option>
                     </select>
                 </div>
-            </div>
-
-            <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Style</label>
                     <input type="text" name="style" class="form-control" placeholder="Style" required>
@@ -67,6 +76,9 @@
                         <option value="multiple">MULTIPLE</option>
                     </select>
                 </div>
+            </div>
+
+            <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Product Type (Set)</label>
                     <select id="product_set" name="product_set[]" class="form-control select2bs4" multiple disabled>
@@ -75,10 +87,6 @@
                         @endforeach
                     </select>
                 </div>
-
-            </div>
-
-            <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Curr</label>
                     <select name="curr" id="curr" class="form-control select2bs4" required>
@@ -101,6 +109,9 @@
                         @endforeach
                     </select>
                 </div>
+            </div>
+
+            <div class="row">
                 <div class="col-md-3 form-group">
                     <label>Shipment Type</label>
                     <select name="shipment_type" id="shipment_type" class="form-control select2bs4" required>
@@ -108,12 +119,9 @@
                         <option value="export">EXPORT</option>
                     </select>
                 </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-12 form-group">
+                <div class="col-md-9 form-group">
                     <label for="notes">Notes</label>
-                    <textarea id="notes" name="notes" rows="2" class="form-control" placeholder="Tambahkan catatan jika ada..."></textarea>
+                    <textarea id="notes" name="notes" rows="1" class="form-control" placeholder="Tambahkan catatan jika ada..."></textarea>
                 </div>
             </div>
 

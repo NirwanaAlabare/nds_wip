@@ -481,5 +481,46 @@
                 Swal.fire('Error', 'Gagal memuat detail material', 'error');
             });
         }
+        function syncBom(id) {
+            Swal.fire({
+                title: 'Sync BOM?',
+                text: "Sistem akan mengecek dan menarik material terbaru dari Master BOM ke SO ini tanpa menghapus data yang sudah ada.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#007bff',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Sync!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({ title: 'Memproses Sync...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+                    let url = "{{ route('so-sync-bom', ':id') }}";
+                    url = url.replace(':id', id);
+
+                    $.ajax({
+                        url: url,
+                        type: "POST",
+                        data: {
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function(res) {
+                            if (res.status == 200) {
+                                Swal.fire({ 
+                                    icon: 'success', 
+                                    title: 'Sync Berhasil!', 
+                                    html: `Material Baru: <b>${res.inserted}</b> baris<br>Diupdate: <b>${res.updated}</b> baris<br>Dibatalkan (Cancel): <b>${res.canceled}</b> baris`, 
+                                });
+                                if(table) { table.ajax.reload(null, false); }
+                            } else {
+                                Swal.fire('Gagal!', res.message, 'error');
+                            }
+                        },
+                        error: function(err) {
+                            Swal.fire('Error!', 'Terjadi kesalahan saat proses Sync.', 'error');
+                        }
+                    });
+                }
+            });
+        }
     </script>
 @endsection

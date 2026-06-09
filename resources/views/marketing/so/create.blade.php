@@ -123,6 +123,14 @@
                     <input type="text" name="confirm_price" id="confirm_price" class="form-control input-decimal">
                 </div>
                 <div class="col-md-3 form-group">
+                    <label>Jenis SO <span class="text-danger">*</span></label>
+                    <select name="jns_so" id="jns_so" class="form-control select2bs4" required>
+                        <option value="">Pilih Jenis SO</option>
+                        <option value="FOB">FOB</option>
+                        <option value="CMT">CMT</option>
+                    </select>
+                </div>
+                <div class="col-md-3 form-group">
                     <label>Notes <span class="text-danger"></span></label>
                     <input type="text" name="notes" id="notes" class="form-control">
                 </div>
@@ -796,6 +804,7 @@
             checkEmpty('#marketing_order', 'Marketing Order');
             checkEmpty('#smv', 'SMV');
             checkEmpty('#id_currency', 'Currency');
+            checkEmpty('#jns_so', 'Jenis SO');
             checkEmpty('#id_bom', 'No Katalog BOM');
 
             // if ($('#images').get(0).files.length === 0) {
