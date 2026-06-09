@@ -138,8 +138,14 @@
         $sum_fab_usd = 0; $sum_sew_usd = 0; $sum_pack_usd = 0; $sum_mfg_usd = 0; $sum_oth_norm_usd = 0;
 
         $overhead_row = null;
-        $rate_to_idr = $costing->rate_to_idr > 0 ? $costing->rate_to_idr : 0;
+        $rate_to_idr = $costing->rate_to_idr > 0 ? $costing->rate_to_idr : 1;
+        $rate_from_idr = $costing->rate_from_idr > 0 ? $costing->rate_from_idr : 1;
 
+        $jenis_rate = 'B';
+        $curr_record = \Illuminate\Support\Facades\DB::connection('mysql_sb')->table('masterpilihan')->where('id', $costing->curr)->first();
+        if ($curr_record && strtoupper($curr_record->nama_pilihan) == 'USD') {
+            $jenis_rate = 'J';
+        }
 
         $saved_sets = $costing->product_set ? explode(',', $costing->product_set) : [];
         $saved_sets = array_map('trim', $saved_sets);
@@ -175,6 +181,21 @@
 
                     // Hitung BOM & Value per baris
                     $allow = $det->allowance > 0 ? $det->allowance : 0;
+
+                    if ($jenis_rate == 'J') {
+                        $det->price_px_idr = $det->price * $rate_to_idr;
+                        $det->price_px_usd = $det->price;
+                    } else {
+                        $det->price_px_idr = $det->price;
+                        $det->price_px_usd = $det->price / $rate_from_idr;
+                    }
+
+                    $allowcs_usd = ($det->price_px_usd * $det->cons) * ($allow / 100);
+                    $allowcs_idr = ($det->price_px_idr * $det->cons) * ($allow / 100);
+                    
+                    $det->value_usd = ($det->price_px_usd * $det->cons) + $allowcs_usd;
+                    $det->value_idr = ($det->price_px_idr * $det->cons) + $allowcs_idr;
+
                     $qty_bom = ceil((1 + ($allow / 100)) * $costing->qty * $det->cons);
                     $tot_val = $qty_bom * $det->price_px_idr;
 
@@ -214,7 +235,16 @@
                 if (str_contains(strtoupper($det->nama_item), 'OVERHEAD')) {
                     $overhead_row = $det;
                 } else {
-                    $det->value_usd = $det->value_idr / $rate_to_idr;
+                    if ($jenis_rate == 'J') {
+                        $det->price_px_idr = $det->price * $rate_to_idr;
+                        $det->price_px_usd = $det->price;
+                    } else {
+                        $det->price_px_idr = $det->price;
+                        $det->price_px_usd = $det->price / $rate_from_idr;
+                    }
+                    $det->value_idr = $det->price_px_idr;
+                    $det->value_usd = $det->price_px_usd;
+
                     $sum_oth_norm_idr += $det->value_idr;
                     $sum_oth_norm_usd += $det->value_usd;
                 }

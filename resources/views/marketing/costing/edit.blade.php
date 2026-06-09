@@ -964,6 +964,8 @@
 
     function calculate_template() {
         let rate_to_idr = parseFloat($('#rate_to_idr').val()) || 0;
+        let rate_from_idr = parseFloat($('#rate_from_idr').val()) || 1;
+        let header_curr = $('#curr option:selected').text().trim().toUpperCase();
 
         let cat = $('#category').val();
         let curr = $('#txt_curr option:selected').text().trim().toUpperCase();
@@ -1012,8 +1014,11 @@
             $('#txt_val_idr, #txt_val_usd').prop('readonly', true).addClass('bg-light').removeClass('bg-white');
 
             let px_idr = 0; let px_usd = 0;
-            if (curr === 'IDR') { px_idr = price; px_usd = price / rate_to_idr; }
-            else { px_usd = price; px_idr = price * rate_to_idr; }
+            if (header_curr === 'USD') {
+                px_usd = price; px_idr = price * rate_to_idr;
+            } else {
+                px_idr = price; px_usd = price / rate_from_idr;
+            }
 
             let allow = 1 + (allow_pct / 100);
             let val_idr = px_idr * cons * allow;
@@ -1028,6 +1033,8 @@
 
     function calculate_modal() {
         let rate_to_idr = parseFloat($('#rate_to_idr').val()) || 0;
+        let rate_from_idr = parseFloat($('#rate_from_idr').val()) || 1;
+        let header_curr = $('#curr option:selected').text().trim().toUpperCase();
 
         let cat = $('#m_category').val();
         let allow_pct = parseFloat($('#m_allowance').val()) || 0;
@@ -1106,10 +1113,10 @@
 
             let px_idr = 0; let px_usd = 0;
 
-            if (curr === 'IDR') {
-                px_idr = price; px_usd = price / rate_to_idr;
-            } else {
+            if (header_curr === 'USD') {
                 px_usd = price; px_idr = price * rate_to_idr;
+            } else {
+                px_idr = price; px_usd = price / rate_from_idr;
             }
 
             let allow = 1 + (allow_pct / 100);

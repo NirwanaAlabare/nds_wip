@@ -1337,6 +1337,14 @@ class Marketing_SOController extends Controller
                 }
             }
 
+            $jenis_rate_val = 'B';
+            if (isset($act_costing_new) && $act_costing_new->curr) {
+                $curr_record = $mysql_sb->table('masterpilihan')->where('id', $act_costing_new->curr)->first();
+                if ($curr_record && strtoupper($curr_record->nama_pilihan) == 'USD') {
+                    $jenis_rate_val = 'J';
+                }
+            }
+
             foreach ($temp_data as $no_po => $details) {
                 $total_qty_po = $details->sum('qty');
                 $kode = $this->generate_kode($request->id_buyer);
@@ -1412,7 +1420,7 @@ class Marketing_SOController extends Controller
                             'unit'            => $mat->unit ?? '',
                             'allowance'       => $mat->allowance ?? 0,
                             'material_source' => $mat->origin ?? 'LOKAL',
-                            'jenis_rate'      => ($mat->curr == 'IDR' ? 'J' : 'B'),
+                            'jenis_rate'      => $jenis_rate_val,
                         ];
                     }
                     $mysql_sb->table('act_costing_mat')->insert($mat_insert_data);
@@ -1431,7 +1439,7 @@ class Marketing_SOController extends Controller
                             'unit'            => $mfg->unit ?? 'PCS',
                             'allowance'       => $mfg->allowance ?? 0,
                             'material_source' => $mfg->origin ?? 'LOKAL',
-                            'jenis_rate'      => ($mfg->curr == 'IDR' ? 'J' : 'B'),
+                            'jenis_rate'      => $jenis_rate_val,
                         ];
                     }
                     $mysql_sb->table('act_costing_mfg')->insert($mfg_insert_data);
@@ -1450,7 +1458,7 @@ class Marketing_SOController extends Controller
                             'unit'            => $oth->unit ?? null,
                             'allowance'       => $oth->allowance ?? null,
                             'material_source' => null,
-                            'jenis_rate'      => ($oth->curr == 'IDR' ? 'J' : 'B'),
+                            'jenis_rate'      => $jenis_rate_val,
                         ];
                     }
                     $mysql_sb->table('act_costing_oth')->insert($oth_insert_data);
@@ -2495,7 +2503,6 @@ class Marketing_SOController extends Controller
             $id_bom = $so->id_bom;
             $username = auth()->user()->username;
 
-            // 1. Get Required Items based on Master BOM & SO Det (same query logic as initial store)
             $required_items = $mysql_sb->select("
                 SELECT
                     ? as id_jo,
@@ -2521,7 +2528,6 @@ class Marketing_SOController extends Controller
                 AND mi.id_gen IS NOT NULL
             ", [$id_jo, $id_bom, $id]);
 
-            // 2. Get Existing Items mapped per SO Det
             $existing_items = $mysql_sb->table('bom_jo_item')
                 ->where('id_jo', $id_jo)
                 ->where('add_item', 'N')
@@ -2536,7 +2542,7 @@ class Marketing_SOController extends Controller
             $posno_map = $mysql_sb->table('bom_jo_item')
                 ->where('id_jo', $id_jo)
                 ->pluck('posno', 'id_item')->toArray();
-                
+
             $current_max_posno = $mysql_sb->table('bom_jo_item')
                 ->where('id_jo', $id_jo)
                 ->max('posno');
@@ -2555,11 +2561,11 @@ class Marketing_SOController extends Controller
 
                 if (isset($existing_map[$key])) {
                     $ext = $existing_map[$key];
-                    if ($ext->cons != $req->cons || 
-                        $ext->unit != $req->unit || 
-                        $ext->id_supplier != $req->id_supplier || 
-                        $ext->rule_bom != $req->rule_bom || 
-                        $ext->id_panel != $req->id_panel || 
+                    if ($ext->cons != $req->cons ||
+                        $ext->unit != $req->unit ||
+                        $ext->id_supplier != $req->id_supplier ||
+                        $ext->rule_bom != $req->rule_bom ||
+                        $ext->id_panel != $req->id_panel ||
                         $ext->cancel == 'Y'
                     ) {
                         $mysql_sb->table('bom_jo_item')->where('id', $ext->id)->update([
@@ -2605,7 +2611,6 @@ class Marketing_SOController extends Controller
                 }
             }
 
-            // 4. Handle Deletions (Cancellations)
             foreach ($existing_map as $key => $ext) {
                 if (!in_array($key, $processed_keys)) {
                     if ($ext->cancel != 'Y') {
@@ -2615,9 +2620,125 @@ class Marketing_SOController extends Controller
                 }
             }
 
+            // 5. Sync Costing Native (act_costing_mat, mfg, oth)
+            $bom = $mysql_sb->table('bom_marketing')->where('id', $id_bom)->first();
+            if ($bom && $so->id_cost) {
+                $act_costing_new = $mysql_sb->table('act_costing_new')->where('id', $bom->id_costing)->first();
+                if ($act_costing_new) {
+                    $mat_details = $mysql_sb->table('act_costing_detail_new')
+                        ->where('id_costing', $act_costing_new->id)
+                        ->whereIn('type', ['Fabric', 'Accessories Sewing', 'Accessories Packing'])
+                        ->get();
+
+                    $mfg_details = $mysql_sb->table('act_costing_detail_new')
+                        ->where('id_costing', $act_costing_new->id)
+                        ->where('type', 'Manufacturing')
+                        ->get();
+
+                    $oth_details = $mysql_sb->table('act_costing_detail_new')
+                        ->where('id_costing', $act_costing_new->id)
+                        ->where('type', 'Other Cost')
+                        ->get();
+
+                    $jenis_rate_val = 'B';
+                    if ($act_costing_new->curr) {
+                        $curr_record = $mysql_sb->table('masterpilihan')->where('id', $act_costing_new->curr)->first();
+                        if ($curr_record && strtoupper($curr_record->nama_pilihan) == 'USD') {
+                            $jenis_rate_val = 'J';
+                        }
+                    }
+
+                    // Sync act_costing_mat
+                    $processed_mat_items = [];
+                    foreach ($mat_details as $mat) {
+                        if (in_array($mat->item_id, $processed_mat_items)) continue; // Hindari update duplikat jika ada set berbeda
+                        $exists = $mysql_sb->table('act_costing_mat')->where('id_act_cost', $so->id_cost)->where('id_item', $mat->item_id)->first();
+                        $mat_data = [
+                            'price'           => $mat->price != 0 ? $mat->price : $mat->value_idr ?? 0,
+                            'cons'            => $mat->cons ?? 0,
+                            'unit'            => $mat->unit ?? '',
+                            'allowance'       => $mat->allowance ?? 0,
+                            'material_source' => $mat->origin ?? 'LOKAL',
+                            'jenis_rate'      => $jenis_rate_val,
+                        ];
+                        if ($exists) {
+                            $mysql_sb->table('act_costing_mat')->where('id_act_cost', $so->id_cost)->where('id_item', $mat->item_id)->update($mat_data);
+                        } else {
+                            $mat_data['id_act_cost'] = $so->id_cost;
+                            $mat_data['id_item'] = $mat->item_id;
+                            $mysql_sb->table('act_costing_mat')->insert($mat_data);
+                        }
+                        $processed_mat_items[] = $mat->item_id;
+                    }
+                    if (count($processed_mat_items) > 0) {
+                        $mysql_sb->table('act_costing_mat')->where('id_act_cost', $so->id_cost)->whereNotIn('id_item', $processed_mat_items)->delete();
+                    } else {
+                        $mysql_sb->table('act_costing_mat')->where('id_act_cost', $so->id_cost)->delete();
+                    }
+
+                    // Sync act_costing_mfg
+                    $processed_mfg_items = [];
+                    foreach ($mfg_details as $mfg) {
+                        if (in_array($mfg->item_id, $processed_mfg_items)) continue;
+                        $exists = $mysql_sb->table('act_costing_mfg')->where('id_act_cost', $so->id_cost)->where('id_item', $mfg->item_id)->first();
+                        $mfg_data = [
+                            'smv'             => null,
+                            'price'           => $mfg->price != 0 ? $mfg->price : $mfg->value_idr ?? 0,
+                            'cons'            => $mfg->cons ?? 1,
+                            'unit'            => $mfg->unit ?? 'PCS',
+                            'allowance'       => $mfg->allowance ?? 0,
+                            'material_source' => $mfg->origin ?? 'LOKAL',
+                            'jenis_rate'      => $jenis_rate_val,
+                        ];
+                        if ($exists) {
+                            $mysql_sb->table('act_costing_mfg')->where('id_act_cost', $so->id_cost)->where('id_item', $mfg->item_id)->update($mfg_data);
+                        } else {
+                            $mfg_data['id_act_cost'] = $so->id_cost;
+                            $mfg_data['id_item'] = $mfg->item_id;
+                            $mysql_sb->table('act_costing_mfg')->insert($mfg_data);
+                        }
+                        $processed_mfg_items[] = $mfg->item_id;
+                    }
+                    if (count($processed_mfg_items) > 0) {
+                        $mysql_sb->table('act_costing_mfg')->where('id_act_cost', $so->id_cost)->whereNotIn('id_item', $processed_mfg_items)->delete();
+                    } else {
+                        $mysql_sb->table('act_costing_mfg')->where('id_act_cost', $so->id_cost)->delete();
+                    }
+
+                    // Sync act_costing_oth
+                    $processed_oth_items = [];
+                    foreach ($oth_details as $oth) {
+                        if (in_array($oth->item_id, $processed_oth_items)) continue;
+                        $exists = $mysql_sb->table('act_costing_oth')->where('id_act_cost', $so->id_cost)->where('id_item', $oth->item_id)->first();
+                        $oth_data = [
+                            'smv'             => null,
+                            'price'           => $oth->price != 0 ? $oth->price : $oth->value_idr ?? 0,
+                            'cons'            => $oth->cons ?? null,
+                            'unit'            => $oth->unit ?? null,
+                            'allowance'       => $oth->allowance ?? null,
+                            'material_source' => null,
+                            'jenis_rate'      => $jenis_rate_val,
+                        ];
+                        if ($exists) {
+                            $mysql_sb->table('act_costing_oth')->where('id_act_cost', $so->id_cost)->where('id_item', $oth->item_id)->update($oth_data);
+                        } else {
+                            $oth_data['id_act_cost'] = $so->id_cost;
+                            $oth_data['id_item'] = $oth->item_id;
+                            $mysql_sb->table('act_costing_oth')->insert($oth_data);
+                        }
+                        $processed_oth_items[] = $oth->item_id;
+                    }
+                    if (count($processed_oth_items) > 0) {
+                        $mysql_sb->table('act_costing_oth')->where('id_act_cost', $so->id_cost)->whereNotIn('id_item', $processed_oth_items)->delete();
+                    } else {
+                        $mysql_sb->table('act_costing_oth')->where('id_act_cost', $so->id_cost)->delete();
+                    }
+                }
+            }
+
             $mysql_sb->commit();
             return response()->json([
-                'status' => 200, 
+                'status' => 200,
                 'message' => 'Sync berhasil',
                 'inserted' => $insert_count,
                 'updated' => $update_count,
