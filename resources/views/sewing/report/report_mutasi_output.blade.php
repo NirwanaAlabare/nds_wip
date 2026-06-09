@@ -67,7 +67,7 @@
                     <thead>
                         <tr style='text-align:center; vertical-align:middle'>
                             <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
-                            <th colspan="14" style="background-color: lightyellow; text-align:center;">Sewing</th>
+                            <th colspan="15" style="background-color: lightyellow; text-align:center;">Sewing</th>
                             <th colspan="12" style="background-color: pink; text-align:center;">QC Finishing</th>
                             <th colspan="8" style="background-color: lightsteelblue; text-align:center;">Finishing
                             </th>
@@ -88,6 +88,7 @@
 
                             <th class="text-center align-middle" style="background-color: lightyellow;">Saldo Awal</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Terima Loading</th>
+                            <th class="text-center align-middle" style="background-color: lightyellow;">Terima Gudang Stok</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Subcont In</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Output Rework Sewing</th>
                             <th class="text-center align-middle" style="background-color: lightyellow;">Output Rework Spotcleaning</th>
@@ -167,7 +168,7 @@
                     <tfoot>
                         <tr>
                             <th class="text-center" colspan="5">Total</th>
-                            @for ($i = 1; $i <= 55; $i++)
+                            @for ($i = 1; $i <= 56; $i++)
                                 <th></th>
                             @endfor
                         </tr>
@@ -292,6 +293,9 @@
                     },
                     {
                         data: 'qty_loading'
+                    },
+                    {
+                        data: 'terima_gudang'
                     },
                     {
                         data: 'qty_in_subcont'
@@ -519,7 +523,7 @@
                     };
 
                     // mulai kolom ke-5
-                    for (let col = 5; col <= 59; col++) {
+                    for (let col = 5; col <= 60; col++) {
                         let total = api
                             .column(col, {
                                 search: 'applied'
