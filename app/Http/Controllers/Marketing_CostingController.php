@@ -33,7 +33,7 @@ class Marketing_CostingController extends Controller
                     'a.created_at',
                     'b.Supplier as nama_buyer',
                     'a.brand',
-                    'a.season',
+                    'a.season_id',
                     'a.style',
                     'a.marketing_order',
                     'a.product_group',
