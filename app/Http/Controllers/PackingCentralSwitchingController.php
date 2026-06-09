@@ -291,25 +291,32 @@ class PackingCentralSwitchingController extends Controller
                 packing_central_switching.no_trans,
                 DATE_FORMAT(packing_central_switching.created_at, '%d-%b-%Y') AS tgl_trans,
                 packing_packing_in.no_trans as no_trans_packing_in,
-                packing_packing_in.line,
-                ppic_master_so.po as tujuan,
-                packing_packing_in.barcode,
                 packing_packing_in.po,
                 master_sb_ws.ws,
+                master_sb_ws.buyer,
+                packing_packing_in.line,
+                packing_packing_in.barcode,
                 master_sb_ws.styleno,
                 master_sb_ws.color,
                 master_sb_ws.size,
                 master_sb_ws.dest,
+                ppic_master_so.po as po_tujuan,
+                master_sb_ws_tujuan.ws as ws_tujuan,
+                master_sb_ws_tujuan.buyer as buyer_tujuan,
+                null as line_tujuan,
+                ppic_master_so.barcode as barcode_tujuan,
+                master_sb_ws_tujuan.styleno as styleno_tujuan,
+                master_sb_ws_tujuan.color as color_tujuan,
+                master_sb_ws_tujuan.size as size_tujuan,
+                master_sb_ws_tujuan.dest as dest_tujuan,
                 qty_switch,
                 packing_central_switching.created_by_username,
                 packing_central_switching.created_at
             FROM packing_central_switching
-            LEFT JOIN packing_packing_in
-                ON packing_packing_in.id = packing_central_switching.packing_packing_in_id
-            LEFT JOIN master_sb_ws
-                ON master_sb_ws.id_so_det = packing_packing_in.id_so_det
-            LEFT JOIN ppic_master_so
-                ON ppic_master_so.id = packing_central_switching.tujuan_ppic_master_so_id
+            LEFT JOIN packing_packing_in ON packing_packing_in.id = packing_central_switching.packing_packing_in_id
+            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_packing_in.id_so_det
+            LEFT JOIN ppic_master_so ON ppic_master_so.id = packing_central_switching.tujuan_ppic_master_so_id
+            LEFT JOIN master_sb_ws AS master_sb_ws_tujuan ON master_sb_ws_tujuan.id_so_det = ppic_master_so.id_so_det
             WHERE DATE(packing_central_switching.created_at)
                 BETWEEN ? AND ?
         ", [
@@ -435,25 +442,32 @@ class PackingCentralSwitchingController extends Controller
                 packing_central_switching.no_trans,
                 DATE_FORMAT(packing_central_switching.created_at, '%d-%b-%Y') AS tgl_trans,
                 packing_packing_in.no_trans as no_trans_packing_in,
-                packing_packing_in.line,
-                ppic_master_so.po as tujuan,
-                packing_packing_in.barcode,
                 packing_packing_in.po,
                 master_sb_ws.ws,
+                master_sb_ws.buyer,
+                packing_packing_in.line,
+                packing_packing_in.barcode,
                 master_sb_ws.styleno,
                 master_sb_ws.color,
                 master_sb_ws.size,
                 master_sb_ws.dest,
+                ppic_master_so.po as po_tujuan,
+                master_sb_ws_tujuan.ws as ws_tujuan,
+                master_sb_ws_tujuan.buyer as buyer_tujuan,
+                null as line_tujuan,
+                ppic_master_so.barcode as barcode_tujuan,
+                master_sb_ws_tujuan.styleno as styleno_tujuan,
+                master_sb_ws_tujuan.color as color_tujuan,
+                master_sb_ws_tujuan.size as size_tujuan,
+                master_sb_ws_tujuan.dest as dest_tujuan,
                 qty_switch,
                 packing_central_switching.created_by_username,
                 packing_central_switching.created_at
             FROM packing_central_switching
-            LEFT JOIN packing_packing_in
-                ON packing_packing_in.id = packing_central_switching.packing_packing_in_id
-            LEFT JOIN master_sb_ws
-                ON master_sb_ws.id_so_det = packing_packing_in.id_so_det
-            LEFT JOIN ppic_master_so
-                ON ppic_master_so.id = packing_central_switching.tujuan_ppic_master_so_id
+            LEFT JOIN packing_packing_in ON packing_packing_in.id = packing_central_switching.packing_packing_in_id
+            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_packing_in.id_so_det
+            LEFT JOIN ppic_master_so ON ppic_master_so.id = packing_central_switching.tujuan_ppic_master_so_id
+            LEFT JOIN master_sb_ws AS master_sb_ws_tujuan ON master_sb_ws_tujuan.id_so_det = ppic_master_so.id_so_det
             WHERE DATE(packing_central_switching.created_at)
                 BETWEEN ? AND ?
         ", [
@@ -484,26 +498,35 @@ class PackingCentralSwitchingController extends Controller
 
         $sheet->writeRow(['']);
 
-        $header = [
-            'No Trans',
-            'Tgl Trans',
-            'No Trans Packing In',
-            'Line Asal',
-            'PO Asal',
-            'Tujuan',
-            'Barcode',
-            'WS',
-            'Style',
-            'Color',
-            'Size',
-            'Dest',
-            'Qty',
-            'User',
-            'Created_at',
+        // Header Group
+        $headerTop = [
+            'NO TRANSAKSI',
+            '',
+            'ASAL',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            'TUJUAN',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            'HASIL',
+            '',
+            '',
         ];
 
         $sheet->writeRow(
-            $header,
+            $headerTop,
             [
                 'font-style' => 'bold',
                 'border'     => 'thin',
@@ -511,35 +534,137 @@ class PackingCentralSwitchingController extends Controller
             ]
         );
 
+        // Merge sesuai colspan
+        $sheet->mergeCells('A4:B4');
+        $sheet->mergeCells('C4:K4');
+        $sheet->mergeCells('L4:T4');
+        $sheet->mergeCells('U4:W4');
+
+        // NO TRANSAKSI
+        $sheet->setCellStyle('A4:B4', [
+            'fill'       => '#DBEAFE',
+            'font-color' => '#172554',
+            'font-style' => 'bold',
+            'text-align' => 'center',
+        ]);
+
+        $sheet->setCellStyle('C4:K4', [
+            'fill'       => '#F2E6FF',
+            'font-color' => '#350E7D',
+            'font-style' => 'bold',
+            'text-align' => 'center',
+        ]);
+
+        $sheet->setCellStyle('L4:T4', [
+            'fill'       => '#DCFCE7',
+            'font-color' => '#166534',
+            'font-style' => 'bold',
+            'text-align' => 'center',
+        ]);
+
+        $sheet->setCellStyle('U4:W4', [
+            'fill'       => '#FEF3C7',
+            'font-color' => '#92400E',
+            'font-style' => 'bold',
+            'text-align' => 'center',
+        ]);
+
+        // Header Detail
+        $sheet->writeRow([
+            'No. Trans',
+            'Tgl. Trans',
+            'PO Asal',
+            'WS Asal',
+            'Buyer Asal',
+            'Line Asal',
+            'Barcode Asal',
+            'Style Asal',
+            'Color Asal',
+            'Size Asal',
+            'Dest Asal',
+            'PO Tujuan',
+            'WS Tujuan',
+            'Buyer Tujuan',
+            'Line Tujuan',
+            'Barcode Tujuan',
+            'Style Tujuan',
+            'Color Tujuan',
+            'Size Tujuan',
+            'Dest Tujuan',
+            'Qty',
+            'User',
+            'Created At',
+        ], [
+            'font-style' => 'bold',
+            'border'     => 'thin',
+            'halign'     => 'center',
+        ]);
+
+        $sheet->setCellStyle('A5:B5', [
+            'fill'       => '#DBEAFE',
+            'font-color' => '#172554',
+            'font-style' => 'bold',
+            'text-align' => 'center',
+        ]);
+
+        $sheet->setCellStyle('C5:K5', [
+            'fill'       => '#F2E6FF',
+            'font-color' => '#350E7D',
+            'font-style' => 'bold',
+            'text-align' => 'center',
+        ]);
+
+        $sheet->setCellStyle('L5:T5', [
+            'fill'       => '#DCFCE7',
+            'font-color' => '#166534',
+            'font-style' => 'bold',
+            'text-align' => 'center',
+        ]);
+
+        $sheet->setCellStyle('U5:W5', [
+            'fill'       => '#FEF3C7',
+            'font-color' => '#92400E',
+            'font-style' => 'bold',
+            'text-align' => 'center',
+        ]);
+
         foreach ($data as $row) {
 
             $rows = [
                 $row->no_trans ?? '',
                 $row->tgl_trans ?? '',
-                $row->no_trans_packing_in ?? '',
-                $row->line ?? '',
+
                 $row->po ?? '',
-                $row->tujuan ?? '',
-                $row->barcode ?? '',
                 $row->ws ?? '',
+                $row->buyer ?? '',
+                $row->line ?? '',
+                $row->barcode ?? '',
                 $row->styleno ?? '',
                 $row->color ?? '',
                 $row->size ?? '',
                 $row->dest ?? '',
+
+                $row->po_tujuan ?? '',
+                $row->ws_tujuan ?? '',
+                $row->buyer_tujuan ?? '',
+                $row->line_tujuan ?? '',
+                $row->barcode_tujuan ?? '',
+                $row->styleno_tujuan ?? '',
+                $row->color_tujuan ?? '',
+                $row->size_tujuan ?? '',
+                $row->dest_tujuan ?? '',
+
                 (float) ($row->qty_switch ?? 0),
                 $row->created_by_username ?? '',
                 $row->created_at ?? '',
             ];
 
-            $sheet->writeRow(
-                $rows,
-                [
-                    'border' => 'thin',
-                ]
-            );
+            $sheet->writeRow($rows, [
+                'border' => 'thin',
+            ]);
         }
 
-        foreach (range('A', 'O') as $col) {
+        foreach (range('A', 'W') as $col) {
             $sheet->setColWidth($col, 20);
         }
 

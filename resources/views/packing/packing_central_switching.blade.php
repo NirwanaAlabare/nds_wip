@@ -219,28 +219,42 @@
 
             <div class="table-responsive">
                 <table id="tbl-list" class="table table-bordered table-striped w-100 text-nowrap">
-                    <thead class="table-primary text-center">
+                    <thead class="text-center">
                         <tr>
-                            <th>No. Trans</th>
-                            <th>Tgl. Trans</th>
-                            <th>No. Trans Packing In</th>
-                            <th>Line Asal</th>
-                            <th>PO Asal</th>
-                            <th>Tujuan</th>
-                            <th>Barcode</th>
-                            <th>WS</th>
-                            <th>Style</th>
-                            <th>Color</th>
-                            <th>Size</th>
-                            <th>Dest</th>
-                            <th>Qty</th>
-                            <th>User</th>
-                            <th>Created At</th>
+                            <th colspan="2" style="background-color:#dbeafe; color:#172554;"> NO TRANSAKSI </th>
+                            <th colspan="9" style="background-color:#f2e6ff; color:#350e7d;"> ASAL </th>
+                            <th colspan="9" style="background-color:#dcfce7; color:#166534;"> TUJUAN </th>
+                            <th colspan="3" style="background-color:#fef3c7; color:#92400e;"> HASIL </th>
+                        </tr>
+                        <tr>
+                            <th style="background-color:#dbeafe; color:#172554;">No. Trans</th>
+                            <th style="background-color:#dbeafe; color:#172554;">Tgl. Trans</th>
+                            <th style="background-color:#f2e6ff; color:#350e7d;">PO Asal</th>
+                            <th style="background-color:#f2e6ff; color:#350e7d;">WS Asal</th>
+                            <th style="background-color:#f2e6ff; color:#350e7d;">Buyer Asal</th>
+                            <th style="background-color:#f2e6ff; color:#350e7d;">Line Asal</th>
+                            <th style="background-color:#f2e6ff; color:#350e7d;">Barcode Asal</th>
+                            <th style="background-color:#f2e6ff; color:#350e7d;">Style Asal</th>
+                            <th style="background-color:#f2e6ff; color:#350e7d;">Color Asal</th>
+                            <th style="background-color:#f2e6ff; color:#350e7d;">Size Asal</th>
+                            <th style="background-color:#f2e6ff; color:#350e7d;">Dest Asal</th>
+                            <th style="background-color:#dcfce7; color:#166534;">PO Tujuan</th>
+                            <th style="background-color:#dcfce7; color:#166534;">WS Tujuan</th>
+                            <th style="background-color:#dcfce7; color:#166534;">Buyer Tujuan</th>
+                            <th style="background-color:#dcfce7; color:#166534;">Line Tujuan</th>
+                            <th style="background-color:#dcfce7; color:#166534;">Barcode Tujuan</th>
+                            <th style="background-color:#dcfce7; color:#166534;">Style Tujuan</th>
+                            <th style="background-color:#dcfce7; color:#166534;">Color Tujuan</th>
+                            <th style="background-color:#dcfce7; color:#166534;">Size Tujuan</th>
+                            <th style="background-color:#dcfce7; color:#166534;">Dest Tujuan</th>
+                            <th style="background-color:#fef3c7; color:#92400e;">Qty</th>
+                            <th style="background-color:#fef3c7; color:#92400e;">User</th>
+                            <th style="background-color:#fef3c7; color:#92400e;">Created At</th>
                         </tr>
                     </thead>
                     <tfoot>
                         <tr class="fw-bold">
-                            <th colspan="12"></th>
+                            <th colspan="20"></th>
                             <th>
                                 <input type="text" class="form-control form-control-sm text-center"
                                     style="width:80px" readonly id="foot-list-qty">
@@ -606,8 +620,8 @@
         });
 
         /* ── List DataTable ── */
-        $('#tbl-list thead tr').clone(true).appendTo('#tbl-list thead');
-        $('#tbl-list thead tr:eq(1) th').each(function (i) {
+        $('#tbl-list thead tr:eq(1)').clone(true).appendTo('#tbl-list thead');
+        $('#tbl-list thead tr:eq(2) th').each(function (i) {
             $(this).html('<input type="text" class="form-control form-control-sm">');
             $('input', this).on('keyup change', function () {
                 if (dtList.column(i).search() !== this.value) {
@@ -620,9 +634,9 @@
             footerCallback(row, data, start, end, display) {
                 const api = this.api();
                 const intVal = v => (typeof v === 'string' ? v.replace(/[\$,]/g, '') * 1 : typeof v === 'number' ? v : 0);
-                const total  = api.column(12).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+                const total  = api.column(20).data().reduce((a, b) => intVal(a) + intVal(b), 0);
                 $(api.column(0).footer()).html('Total');
-                $(api.column(12).footer()).html(total);
+                $(api.column(20).footer()).html(total);
                 $('#foot-list-qty').val(total);
             },
             ordering: false,
@@ -643,17 +657,25 @@
             columns: [
                 { data: 'no_trans' },
                 { data: 'tgl_trans' },
-                { data: 'no_trans_packing_in' },
-                { data: 'line' },
                 { data: 'po' },
-                { data: 'tujuan' },
-                { data: 'barcode' },
                 { data: 'ws' },
+                { data: 'buyer' },
+                { data: 'line' },
+                { data: 'barcode' },
                 { data: 'styleno' },
                 { data: 'color' },
                 { data: 'size' },
                 { data: 'dest' },
-                { data: 'qty_switch' },
+                { data: 'po_tujuan' },
+                { data: 'ws_tujuan' },
+                { data: 'buyer_tujuan' },
+                { data: 'line_tujuan' },
+                { data: 'barcode_tujuan' },
+                { data: 'styleno_tujuan' },
+                { data: 'color_tujuan' },
+                { data: 'size_tujuan' },
+                { data: 'dest_tujuan' },
+                { data: 'qty_switch', className: 'text-end' },
                 { data: 'created_by_username' },
                 { data: 'created_at' },
             ],
