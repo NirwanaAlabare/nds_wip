@@ -119,21 +119,26 @@
                 <table id="datatable" class="table table-bordered 100 table-hover display nowrap">
                     <thead class="table-primary">
                         <tr style='text-align:center; vertical-align:middle'>
-                            <th>No. Trans</th>
+                            <th>QR Code</th>
                             <th>Tgl. Trans</th>
-                            <th>Lokasi</th>
                             <th>Buyer</th>
                             <th>Brand</th>
                             <th>Style</th>
                             <th>WS</th>
                             <th>Color</th>
                             <th>Size</th>
-                            <th>Total Karton</th>
-                            <th>Total Qty</th>
+                            <th>No Karton</th>
+                            <th>Qty</th>
                             <th>Sumber</th>
-                            <th>Detail</th>
                         </tr>
                     </thead>
+                    <tfoot>
+                        <tr>
+                            <th colspan="9"style="text-align:right">TOTAL QTY</th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -260,13 +265,10 @@
             },
             columns: [
                 {
-                    data: 'no_trans'
+                    data: 'qr_code'
                 }, 
                 {
                     data: 'tgl_terima_fix'
-                },
-                {
-                    data: 'lokasi'
                 },
                 {
                     data: 'buyer'
@@ -287,45 +289,55 @@
                     data: 'size'
                 },
                 {
-                    data: 'total_carton'
+                    data: 'no_carton'
                 },
                 {
-                    data: 'total_qty'
+                    data: 'qty',
+                    className: 'text-end'
                 },
                 {
                     data: 'sumber_pemasukan'
                 },
-                {
-                    data: 'no_trans'
-                },
             ],
-            columnDefs: [
-                {
-                    targets: [12],
-                    render: (data, type, row, meta) => {
+            footerCallback: function(row, data, start, end, display) {
+                let api = this.api();
 
-                        let btnDetail = `
-                            <button 
-                                class="btn btn-primary btn-sm btn-detail"
-                                data-id_so_det="${row.id_so_det}"
-                                data-no_trans="${row.no_trans}"
-                            >
-                                <i class="fa-solid fa-list"></i>
-                            </button>
-                        `;
+                let totalQty = api
+                    .column(9, { search: 'applied' }) // kolom qty
+                    .data()
+                    .reduce(function(a, b) {
+                        return parseFloat(a || 0) + parseFloat(b || 0);
+                    }, 0);
 
-                        return `
-                            <div class="d-flex gap-1 justify-content-center">
-                                ${btnDetail}
-                            </div>
-                        `;
-                    }
-                },
-                {
-                    "className": "dt-center",
-                    "targets": "_all"
-                },
-            ]
+                $(api.column(9).footer()).html(totalQty);
+            },
+            // columnDefs: [
+            //     {
+            //         targets: [12],
+            //         render: (data, type, row, meta) => {
+
+            //             let btnDetail = `
+            //                 <button 
+            //                     class="btn btn-primary btn-sm btn-detail"
+            //                     data-id_so_det="${row.id_so_det}"
+            //                     data-no_trans="${row.no_trans}"
+            //                 >
+            //                     <i class="fa-solid fa-list"></i>
+            //                 </button>
+            //             `;
+
+            //             return `
+            //                 <div class="d-flex gap-1 justify-content-center">
+            //                     ${btnDetail}
+            //                 </div>
+            //             `;
+            //         }
+            //     },
+            //     {
+            //         "className": "dt-center",
+            //         "targets": "_all"
+            //     },
+            // ]
         });
 
         $(document).on('click', '.btn-detail', function () {
