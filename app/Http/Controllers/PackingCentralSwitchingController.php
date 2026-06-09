@@ -519,7 +519,6 @@ class PackingCentralSwitchingController extends Controller
             '',
             '',
             '',
-            '',
             'HASIL',
             '',
             '',
@@ -537,8 +536,8 @@ class PackingCentralSwitchingController extends Controller
         // Merge sesuai colspan
         $sheet->mergeCells('A4:B4');
         $sheet->mergeCells('C4:K4');
-        $sheet->mergeCells('L4:T4');
-        $sheet->mergeCells('U4:W4');
+        $sheet->mergeCells('L4:S4');
+        $sheet->mergeCells('T4:V4');
 
         // NO TRANSAKSI
         $sheet->setCellStyle('A4:B4', [
@@ -555,14 +554,14 @@ class PackingCentralSwitchingController extends Controller
             'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('L4:T4', [
+        $sheet->setCellStyle('L4:S4', [
             'fill'       => '#DCFCE7',
             'font-color' => '#166534',
             'font-style' => 'bold',
             'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('U4:W4', [
+        $sheet->setCellStyle('T4:V4', [
             'fill'       => '#FEF3C7',
             'font-color' => '#92400E',
             'font-style' => 'bold',
@@ -585,7 +584,6 @@ class PackingCentralSwitchingController extends Controller
             'PO Tujuan',
             'WS Tujuan',
             'Buyer Tujuan',
-            'Line Tujuan',
             'Barcode Tujuan',
             'Style Tujuan',
             'Color Tujuan',
@@ -614,14 +612,14 @@ class PackingCentralSwitchingController extends Controller
             'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('L5:T5', [
+        $sheet->setCellStyle('L5:S5', [
             'fill'       => '#DCFCE7',
             'font-color' => '#166534',
             'font-style' => 'bold',
             'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('U5:W5', [
+        $sheet->setCellStyle('T5:V5', [
             'fill'       => '#FEF3C7',
             'font-color' => '#92400E',
             'font-style' => 'bold',
@@ -647,7 +645,6 @@ class PackingCentralSwitchingController extends Controller
                 $row->po_tujuan ?? '',
                 $row->ws_tujuan ?? '',
                 $row->buyer_tujuan ?? '',
-                $row->line_tujuan ?? '',
                 $row->barcode_tujuan ?? '',
                 $row->styleno_tujuan ?? '',
                 $row->color_tujuan ?? '',
@@ -664,7 +661,7 @@ class PackingCentralSwitchingController extends Controller
             ]);
         }
 
-        foreach (range('A', 'W') as $col) {
+        foreach (range('A', 'V') as $col) {
             $sheet->setColWidth($col, 20);
         }
 
