@@ -349,7 +349,7 @@ class MarkerController extends Controller
                     "marker_id" => $markerId,
                     "so_det_id" => $request["so_det_id"][$i],
                     "size" => $request["size"][$i],
-                    "ratio" => $request["ratio"][$i],
+                    "ratio" => ($request["ratio"][$i] ?? 0),
                     "cut_qty" => $request["cut_qty"][$i],
                     "cancel" => 'N',
                     "created_at" => $timestamp,
