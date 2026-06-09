@@ -179,7 +179,7 @@ class ExportReportQcReject implements FromView, ShouldAutoSize, WithEvents
                                 COUNT(*) AS jumlah
                             FROM signalbit_erp.output_reject_out_detail a
                             INNER JOIN signalbit_erp.output_reject_in b ON b.id = a.reject_in_id
-                            INNER JOIN signalbit_erp.output_reject_out c ON c.id = a.reject_out_id
+                            LEFT JOIN signalbit_erp.output_reject_out c ON c.id = a.reject_out_id
                             INNER JOIN signalbit_erp.master_plan mp ON mp.id = b.master_plan_id
                             LEFT JOIN (
                                 SELECT
@@ -202,7 +202,7 @@ class ExportReportQcReject implements FromView, ShouldAutoSize, WithEvents
                                 AND a.created_at <= '{$tglAkhir}'
                                 AND b.status = 'rejected'
                                 AND mp.cancel = 'N'
-                            GROUP BY so_det_id, ws, color, size, DATE(c.tanggal)
+                            GROUP BY so_det_id, ws, color, size, DATE(a.created_at)
 
                             UNION ALL
 
