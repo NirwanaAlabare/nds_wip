@@ -39,7 +39,9 @@ class FGStokScanBPBController extends Controller
                     a.no_carton,
                     a.qty,
                     sumber_pemasukan,
-                    a.id_so_det
+                    a.id_so_det,
+                    created_by,
+                    created_at
                 FROM fg_stok_bpb_scan a
                 LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                 WHERE tgl_terima >= '$tgl_awal'

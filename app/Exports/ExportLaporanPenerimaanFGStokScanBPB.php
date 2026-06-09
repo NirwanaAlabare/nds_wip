@@ -63,7 +63,9 @@ class ExportLaporanPenerimaanFGStokScanBPB implements FromView, WithEvents, Shou
                 a.no_carton,
                 a.qty,
                 sumber_pemasukan,
-                a.id_so_det
+                a.id_so_det,
+                created_by,
+                created_at
             FROM fg_stok_bpb_scan a
             LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
             WHERE tgl_terima >= '$this->from'
@@ -93,7 +95,7 @@ class ExportLaporanPenerimaanFGStokScanBPB implements FromView, WithEvents, Shou
     {
 
         $event->sheet->styleCells(
-            'A4:K' . $event->getConcernable()->rowCount,
+            'A4:M' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [

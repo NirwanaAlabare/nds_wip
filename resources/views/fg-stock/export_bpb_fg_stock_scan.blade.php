@@ -25,6 +25,8 @@
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">No Karton</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Qty</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Sumber</th>
+            <th style="background-color: yellow;border:1px solid black;font-weight:bold">User</th>
+            <th style="background-color: yellow;border:1px solid black;font-weight:bold">Created At</th>
         </tr>
     </thead>
     <tbody>
@@ -44,6 +46,8 @@
                 <td>{{ $item->no_carton }}</td>
                 <td>{{ $item->qty }}</td>
                 <td>{{ $item->sumber_pemasukan }}</td>
+                <td>{{ $item->created_by }}</td>
+                <td>{{ $item->created_at }}</td>
             </tr>
         @endforeach
     </tbody>

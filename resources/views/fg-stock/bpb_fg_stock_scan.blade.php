@@ -130,13 +130,15 @@
                             <th>No Karton</th>
                             <th>Qty</th>
                             <th>Sumber</th>
+                            <th>User</th>
+                            <th>Created At</th>
                         </tr>
                     </thead>
                     <tfoot>
                         <tr>
                             <th colspan="9"style="text-align:right">TOTAL QTY</th>
                             <th></th>
-                            <th></th>
+                            <th colspan="3"></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -297,6 +299,12 @@
                 },
                 {
                     data: 'sumber_pemasukan'
+                },
+                {
+                    data: 'created_by'
+                },
+                {
+                    data: 'created_at'
                 },
             ],
             footerCallback: function(row, data, start, end, display) {
