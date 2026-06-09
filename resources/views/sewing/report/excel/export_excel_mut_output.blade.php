@@ -36,6 +36,7 @@
 
                 <th style="background-color: yellow;">Saldo Awal</th>
                 <th style="background-color: yellow;">Terima Loading</th>
+                <th style="background-color: yellow;">Terima Gudang Stok</th>
                 <th style="background-color: yellow;">Output Rework Sewing
                 </th>
                 <th style="background-color: yellow;">Output Rework
@@ -116,6 +117,7 @@
 
                     <td class="text-end">{{ $row->saldo_awal_sewing }}</td>
                     <td class="text-end">{{ $row->qty_loading }}</td>
+                    <td class="text-end">{{ $row->terima_gudang ?? 0 }}</td>
                     <td class="text-end">{{ $row->input_rework_sewing }}</td>
                     <td class="text-end">{{ $row->input_rework_spotcleaning }}</td>
                     <td class="text-end">{{ $row->input_rework_mending }}</td>
