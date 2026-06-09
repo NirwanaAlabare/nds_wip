@@ -197,7 +197,7 @@ class DokumenPabeanController extends Controller
             // if (empty($nomorAju) || strlen($nomorAju) != 26) {
             //     $currentYear  = date('Y');
             //     $today        = date('Ymd');
-            //     $kodeKantor   = !empty($draft['kodeKantor']) ? $draft['kodeKantor'] : '050100';
+            //     $kodeKantor   = !empty($draft['kodeKantor']) ? $draft['kodeKantor'] : '050500';
             //     $kodeDokumen  = '40';
             //     $idPerusahaan = 'NIW345';
 
@@ -1185,7 +1185,8 @@ class DokumenPabeanController extends Controller
             }
 
             $payloadJson = [
-                'kodeKantor'         => $request->input('kodeKantor', '050100'),
+                'kodeKantor'         => $request->input('kodeKantor', '050500'),
+                'jenisTpb'          => $request->input('jenisTPB', '1'),
                 'kodeKantorBongkar'  => $request->input('kodeKantorBongkar', ''),
                 'kodeTujuanTpb'      => $request->input('kodeTujuanTpb', ''),
                 'kodeTutupPu'        => $request->input('kodeTutupPu', ''),
@@ -1200,7 +1201,7 @@ class DokumenPabeanController extends Controller
                 'biayaTambahan'      => (float) $request->input('biayaTambahan', 0),
                 'biayaPengurang'     => (float) $request->input('biayaPengurang', 0),
                 'kodeKenaPajak'      => $request->input('kodeKenaPajak', '1'),
-                'ndpbm'              => (float) $request->input('ndpbm', 0),
+                'ndpbm'              => (float) $request->input('ndpbm', 0) <= 0 && $request->input('kodeValuta', 'IDR') === 'IDR' ? 1 : (float) $request->input('ndpbm', 0),
                 'nilaiBarang'        => (float) $request->input('nilaiBarang', 0),
                 'kodeIncoterm'       => $request->input('kodeIncoterm', ''),
                 'kodeValuta'         => $request->input('kodeValuta', 'IDR'),
@@ -1212,7 +1213,9 @@ class DokumenPabeanController extends Controller
                 'nomorBc11'          => $request->input('nomorBc11', ''),
                 'posBc11'            => $request->input('posBc11', ''),
                 'subposBc11'         => $request->input('subposBc11', ''),
+                'subsubposBc11'      => $request->input('subsubposBc11', ''),
                 'tanggalBc11'        => $request->input('tanggalBc11', ''),
+                'kodeBc11'           => $request->input('kodeBc11', ''),
                 'nik'                => $request->input('nik', ''),
                 'seri'               => (int) $request->input('seri', 0),
                 'namaTtd'            => $request->input('namaTtd', ''),
@@ -1226,7 +1229,29 @@ class DokumenPabeanController extends Controller
                 'dok'                => $dokumenList,
                 'kontainer'          => $kontainerList,
                 'kemasan'            => $kemasanList,
-                'barang'             => $request->input('barang', []),
+                'barang'             => array_map(function($brg) use ($request) {
+                    $ndpbm = (float) $request->input('ndpbm', 0) <= 0 && $request->input('kodeValuta', 'IDR') === 'IDR' ? 1 : (float) $request->input('ndpbm', 0);
+                    $brg['cif'] = (float) ($brg['cif'] ?? 0);
+                    $brg['cifRupiah'] = (float) ($brg['cifRupiah'] ?? 0);
+                    if ($brg['cifRupiah'] <= 0 && $ndpbm > 0) {
+                        $brg['cifRupiah'] = $brg['cif'] * $ndpbm;
+                    }
+                    $brg['fob'] = (float) ($brg['fob'] ?? 0);
+                    $brg['asuransi'] = (float) ($brg['asuransi'] ?? 0);
+                    $brg['freight'] = (float) ($brg['freight'] ?? 0);
+                    $brg['hargaSatuan'] = (float) ($brg['hargaSatuan'] ?? 0);
+                    $brg['netto'] = (float) ($brg['netto'] ?? 0);
+                    $brg['jumlahSatuan'] = (float) ($brg['jumlahSatuan'] ?? 0);
+                    $brg['jumlahKemasan'] = (float) ($brg['jumlahKemasan'] ?? 0);
+                    $brg['biayaTambahan'] = (float) ($brg['biayaTambahan'] ?? 0);
+                    return $brg;
+                }, $request->input('barang', [])),
+                'bc11Nomor'         => $request->input('nomorBc11', ''),
+                'bc11Tanggal'       => $request->input('tanggalBc11', ''),
+                'bc11Pos'          => $request->input('posBc11', ''),
+                'bc11Subpos'       => $request->input('subposBc11', ''),
+                'bc11Subsubpos'    => $request->input('subsubposBc11', ''),
+                'bc11KodeBc'       => $request->input('kodeBc11', ''),
             ];
 
             DB::connection('mysql_sb')->table('bpb_ceisa')->updateOrInsert(
@@ -1349,6 +1374,14 @@ class DokumenPabeanController extends Controller
             }
 
             foreach (($draft['barang'] ?? []) as $index => $brg) {
+                $cifItem = (float) ($brg['cif'] ?? 0);
+                $nettoItem = (float) ($brg['netto'] ?? 0);
+
+                if ($cifItem <= 0 || $nettoItem <= 0) {
+                    $itemNum = $index + 1;
+                    throw new \Exception("Validasi Gagal: Harga CIF dan Berat Bersih (Netto) pada Barang ke-{$itemNum} harus lebih besar dari 0.");
+                }
+
                 $hargaPenyerahanItem = (float) ($brg['hargaPenyerahan'] ?? 0);
                 $totalHargaPenyerahan += $hargaPenyerahanItem;
                 $totalCif += (float) ($brg['cif'] ?? 0);
@@ -1492,33 +1525,33 @@ class DokumenPabeanController extends Controller
             $entitasDraft = $draft['entitas'] ?? [];
             $payloadEntitas = [
                 [
-                    "alamatEntitas"      => $entitasDraft[0]['alamatEntitas'] ?? "",
+                    "alamatEntitas"      => $entitasDraft[3]['alamatEntitas'] ?? "",
                     "kodeEntitas"        => "3",
-                    "kodeJenisIdentitas" => $entitasDraft[0]['kodeJenisIdentitas'] ?? "5",
-                    "namaEntitas"        => $entitasDraft[0]['namaEntitas'] ?? "",
-                    "nibEntitas"         => $entitasDraft[0]['nibEntitas'] ?? "",
-                    "nomorIdentitas"     => $entitasDraft[0]['nomorIdentitas'] ?? "",
-                    "nomorIjinEntitas"   => $entitasDraft[0]['nomorIjinEntitas'] ?? "",
-                    "tanggalIjinEntitas" => $entitasDraft[0]['tanggalIjinEntitas'] ?? "",
+                    "kodeJenisIdentitas" => $entitasDraft[3]['kodeJenisIdentitas'] ?? "5",
+                    "namaEntitas"        => $entitasDraft[3]['namaEntitas'] ?? "",
+                    "nibEntitas"         => $entitasDraft[3]['nibEntitas'] ?? "",
+                    "nomorIdentitas"     => $entitasDraft[3]['nomorIdentitas'] ?? "",
+                    "nomorIjinEntitas"   => $entitasDraft[3]['nomorIjinEntitas'] ?? "",
+                    "tanggalIjinEntitas" => $entitasDraft[3]['tanggalIjinEntitas'] ?? "",
                     "seriEntitas"        => 1,
                 ],
                 [
-                    "alamatEntitas" => $entitasDraft[1]['alamatEntitas'] ?? $header->alamat_supplier ?? "",
+                    "alamatEntitas" => $entitasDraft[9]['alamatEntitas'] ?? $header->alamat_supplier ?? "",
                     "kodeEntitas"   => "5",
-                    "kodeNegara"    => $entitasDraft[1]['kodeNegara'] ?? "ID",
-                    "namaEntitas"   => $entitasDraft[1]['namaEntitas'] ?? $header->supplier ?? "",
+                    "kodeNegara"    => $entitasDraft[9]['kodeNegara'] ?? "ID",
+                    "namaEntitas"   => $entitasDraft[9]['namaEntitas'] ?? $header->supplier ?? "",
                     "seriEntitas"   => 2,
                 ],
                 [
-                    "alamatEntitas"      => $entitasDraft[2]['alamatEntitas'] ?? "",
+                    "alamatEntitas"      => $entitasDraft[7]['alamatEntitas'] ?? "",
                     "kodeEntitas"        => "7",
-                    "kodeJenisApi"       => $entitasDraft[2]['kodeJenisApi'] ?? "",
-                    "kodeJenisIdentitas" => $entitasDraft[2]['kodeJenisIdentitas'] ?? "5",
-                    "kodeStatus"         => $entitasDraft[2]['kodeStatus'] ?? "5",
-                    "namaEntitas"        => $entitasDraft[2]['namaEntitas'] ?? "",
-                    "nomorIdentitas"     => $entitasDraft[2]['nomorIdentitas'] ?? "",
-                    "nomorIjinEntitas"   => $entitasDraft[2]['nomorIjinEntitas'] ?? "",
-                    "tanggalIjinEntitas" => $entitasDraft[2]['tanggalIjinEntitas'] ?? "",
+                    "kodeJenisApi"       => $entitasDraft[7]['kodeJenisApi'] ?? "",
+                    "kodeJenisIdentitas" => $entitasDraft[7]['kodeJenisIdentitas'] ?? "5",
+                    "kodeStatus"         => $entitasDraft[7]['kodeStatus'] ?? "5",
+                    "namaEntitas"        => $entitasDraft[7]['namaEntitas'] ?? "",
+                    "nomorIdentitas"     => $entitasDraft[7]['nomorIdentitas'] ?? "",
+                    "nomorIjinEntitas"   => $entitasDraft[7]['nomorIjinEntitas'] ?? "",
+                    "tanggalIjinEntitas" => $entitasDraft[7]['tanggalIjinEntitas'] ?? "",
                     "seriEntitas"        => 3,
                 ],
             ];
@@ -1539,7 +1572,7 @@ class DokumenPabeanController extends Controller
                 "kodeAsuransi"     => $draft['kodeAsuransi'] ?? "LN",
                 "kodeDokumen"      => "23",
                 "kodeIncoterm"     => $draft['kodeIncoterm'] ?? "",
-                "kodeKantor"       => $draft['kodeKantor'] ?? "050100",
+                "kodeKantor"       => $draft['kodeKantor'] ?? "050500",
                 "kodeKantorBongkar"=> $draft['kodeKantorBongkar'] ?? "",
                 "kodeKenaPajak"    => $draft['kodeKenaPajak'] ?? "1",
                 "kodePelBongkar"   => $draft['kodePelBongkar'] ?? "",
@@ -1560,6 +1593,7 @@ class DokumenPabeanController extends Controller
                 "posBc11"          => $draft['posBc11'] ?? "",
                 "seri"             => (int) ($draft['seri'] ?? 0),
                 "subposBc11"       => $draft['subposBc11'] ?? "",
+                "subsubposBc11"    => $draft['subsubposBc11'] ?? "",
                 "tanggalBc11"      => $draft['tanggalBc11'] ?? "",
                 "tanggalTiba"      => $draft['tanggalTiba'] ?? "",
                 "tanggalTtd"       => $draft['tanggalTtd'] ?? date('Y-m-d'),
@@ -1581,6 +1615,20 @@ class DokumenPabeanController extends Controller
                 ]],
                 "barang"           => $arrayBarang,
             ];
+
+            $dateFields = ['tanggalBc11'];
+            foreach ($dateFields as $f) {
+                if (empty($payload[$f])) unset($payload[$f]);
+            }
+            if (empty($payload['kodeTutupPu'])) $payload['kodeTutupPu'] = "11";
+            if (empty($payload['tanggalTiba'])) $payload['tanggalTiba'] = date('Y-m-d');
+
+            foreach ($payload['entitas'] as &$ent) {
+                if (empty($ent['tanggalIjinEntitas'])) {
+                    $ent['tanggalIjinEntitas'] = date('Y-m-d');
+                }
+            }
+            unset($ent);
 
             $responseCeisa = $this->ceisaService->kirimDokumenBc23($payload);
 
