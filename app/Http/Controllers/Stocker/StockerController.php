@@ -263,7 +263,7 @@ class StockerController extends Controller
             leftJoin("master_secondary as master_secondary_new", "master_secondary_new.id", "=", "part_detail_secondary.master_secondary_id")->
             where("form_cut_input.id", $formCutId)->
             whereRaw("(part_detail.status IS NULL OR part_detail.status = 'active')")->
-            groupBy("master_part.id")->
+            groupBy("part_detail.id")->
             get();
 
         $dataRatio = MarkerDetail::selectRaw("

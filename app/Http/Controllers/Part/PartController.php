@@ -1898,13 +1898,24 @@ class PartController extends Controller
         if ($partDetail) {
 
             // Check Part Form
-            if (PartForm::where('part_id', $partDetail->part_id)->exists()) {
+            if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() < 1) {
+                if (PartForm::where('part_id', $partDetail->part_id)->exists()) {
+                    return array(
+                        'status' => 400,
+                        'message' => 'Part sudah memiliki Form Cut, tidak dapat dihapus.',
+                        'redirect' => '',
+                        'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
+                        'additional' => [],
+                    );
+                }
+            }
+
+            // Cek apakah part sudah memiliki stocker (sudah print stocker)
+            $stockerCount = Stocker::where("part_detail_id", $partDetail->id)->count();
+            if ($stockerCount > 0) {
                 return array(
                     'status' => 400,
-                    'message' => 'Part sudah memiliki Form Cut, tidak dapat dihapus.',
-                    'redirect' => '',
-                    'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
-                    'additional' => [],
+                    'message'  => 'Part sudah memiliki data Stocker terkait, tidak dapat menambah Part Detail.',
                 );
             }
 
