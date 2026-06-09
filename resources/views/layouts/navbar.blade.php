@@ -972,38 +972,38 @@
                             <li>
                                 <a href="{{ route('master-costing') }}"
                                     class="dropdown-item {{ $subPage == 'marketing-master-costing' ? 'active' : '' }}">
-                                    Costing <i class="fa-solid fa-list-ul fa-sm"></i>
+                                    Costing <i class="fa-solid fa-dollar-sign fa-sm"></i>
                                 </a>
                             </li>
                             <li>
                                 <a href="{{ route('master-costing-approval') }}"
                                     class="dropdown-item {{ $subPage == 'marketing-master-costing-approval' ? 'active' : '' }}">
-                                    Approval Costing <i class="fa-solid fa-list-ul fa-sm"></i>
+                                    Approval Costing <i class="fa-solid fa-check fa-sm"></i>
                                 </a>
                             </li>
                             <li>
                                 <a href="{{ route('master-bom') }}"
                                     class="dropdown-item {{ $subPage == 'marketing-master-bom' ? 'active' : '' }}">
-                                    BOM <i class="fa-solid fa-list-ul fa-sm"></i>
+                                    BOM <i class="fa-solid fa-receipt fa-sm"></i>
                                 </a>
                             </li>
                             <li>
                                 <a href="{{ route('master-bom-approval') }}"
                                     class="dropdown-item {{ $subPage == 'marketing-master-bom-approval' ? 'active' : '' }}">
-                                    Approval BOM <i class="fa-solid fa-list-ul fa-sm"></i>
+                                    Approval BOM <i class="fa-solid fa-check fa-sm"></i>
                                 </a>
                             </li>
 
                             <li>
                                 <a href="{{ route('master-marketing-so') }}"
                                     class="dropdown-item {{ $subPage == 'marketing-master-so' ? 'active' : '' }}">
-                                    Sales Order <i class="fa-solid fa-list-ul fa-sm"></i>
+                                    Sales Order <i class="fa-solid fa-file-invoice-dollar fa-sm"></i>
                                 </a>
                             </li>
                             <li>
                                 <a href="{{ route('master-bom-additional') }}"
                                     class="dropdown-item {{ $subPage == 'marketing-master-bom-additional' ? 'active' : '' }}">
-                                    BOM Additional<i class="fa-solid fa-list-ul fa-sm"></i>
+                                    BOM Additional &nbsp;<i class="fa-solid fa-plus-circle fa-sm"></i>
                                 </a>
                             </li>
                         </ul>

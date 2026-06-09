@@ -9,6 +9,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\Export_excel_bom_listing;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class Marketing_BomController extends Controller
 {
@@ -329,7 +330,8 @@ class Marketing_BomController extends Controller
                                 ->where('id_contents', $id_content)
                                 ->where('id_color', $cId)
                                 ->where('id_size', $sId)
-                                ->where('id_set', $id_set);
+                                ->where('id_set', $id_set)
+                                ->where('id_item', $id_item);
 
                             if ($item_desc) {
                                 $existingQuery->where('item_desc', $item_desc);
@@ -345,18 +347,15 @@ class Marketing_BomController extends Controller
                                 $mysql_sb->table('bom_marketing_detail')
                                     ->where('id', $existing->id)
                                     ->update([
-                                        'id_item'           => $id_item,
                                         'id_set'            => $id_set,
                                         'item_desc'         => $item_desc,
                                         'id_supplier'       => $id_supplier,
                                         'unit'              => $request->unit,
                                         'id_currency'       => $currency,
                                         'qty'               => $qty,
-                                        // 'price'             => $price,
                                         'notes'             => $request->notes,
                                         'shell'             => $request->shell,
                                         'id_costing_detail' => $id_costing_detail,
-
                                     ]);
                             } else {
                                 $details_to_insert[] = [
@@ -374,11 +373,9 @@ class Marketing_BomController extends Controller
                                     'id_supplier'       => $id_supplier,
                                     'id_currency'       => $currency,
                                     'qty'               => $qty,
-                                    // 'price'             => $price,
                                     'category'          => $category,
                                     'created_at'        => now(),
                                     'id_costing_detail' => $id_costing_detail,
-
                                 ];
                             }
                         }
@@ -1063,4 +1060,238 @@ class Marketing_BomController extends Controller
             return response()->json(['status' => 500, 'message' => 'Gagal: ' . $e->getMessage()]);
         }
     }
+
+    public function delete($id)
+    {
+        $mysql_sb = DB::connection('mysql_sb');
+        $mysql_sb->beginTransaction();
+        try {
+            $mysql_sb->table('bom_marketing_detail')->where('id_bom_marketing', $id)->delete();
+            $mysql_sb->table('bom_marketing_others')->where('id_bom_marketing', $id)->delete();
+            $mysql_sb->table('bom_marketing')->where('id', $id)->delete();
+
+            $mysql_sb->commit();
+            return response()->json(['status' => 200, 'message' => 'BOM berhasil dihapus!']);
+        } catch (\Exception $e) {
+            $mysql_sb->rollback();
+            return response()->json(['status' => 500, 'message' => 'Gagal menghapus BOM: ' . $e->getMessage()]);
+        }
+    }
+
+    public function printPdf($id)
+    {
+        $mysql_sb = DB::connection('mysql_sb');
+
+        $bom = $mysql_sb->table('bom_marketing as h')
+            ->leftJoin('mastersupplier as b', 'h.id_buyer', '=', 'b.Id_Supplier')
+            ->leftJoin('act_costing_new as c', 'h.id_costing', '=', 'c.id')
+            ->select('h.*', 'b.Supplier as nama_buyer', 'c.no_costing', 'c.qty as qty_order')
+            ->where('h.id', $id)
+            ->first();
+
+        if (!$bom) {
+            return redirect()->back()->with('error', 'Data BOM tidak ditemukan.');
+        }
+
+        $selectedColors = $bom->colors ? json_decode($bom->colors, true) : [];
+        $selectedSizes  = $bom->sizes ? json_decode($bom->sizes, true) : [];
+
+        $colors = $mysql_sb->table('master_colors_gmt')
+            ->whereIn('id', $selectedColors)
+            ->pluck('name')
+            ->toArray();
+
+        $sizes = $mysql_sb->table('master_size_new')
+            ->whereIn('id', $selectedSizes)
+            ->orderBy('urutan', 'asc')
+            ->pluck('size')
+            ->toArray();
+
+        $details = $mysql_sb->table('bom_marketing_detail as d')
+            ->leftJoin('masteritem as i', 'd.id_item', '=', 'i.id_item')
+            ->leftJoin('master_colors_gmt as c', 'd.id_color', '=', 'c.id')
+            ->leftJoin('master_size_new as s', 'd.id_size', '=', 's.id')
+            ->leftJoin('mastercontents as e', 'd.id_contents', '=', 'e.id')
+            ->leftJoin('mastertype2 as d2', 'e.id_type', '=', 'd2.id')
+            ->leftJoin('mastersubgroup as s_grp', 'd2.id_sub_group', '=', 's_grp.id')
+            ->leftJoin('mastergroup as a', 's_grp.id_group', '=', 'a.id')
+            ->leftJoin('mastercf as mfg', 'd.id_contents', '=', 'mfg.id')
+            ->leftJoin('masterpilihan as u', 'd.unit', '=', 'u.id')
+            ->leftJoin('masterpanel as mp', 'd.shell', '=', 'mp.id')
+            ->leftJoin('act_costing_detail_new as ac', 'd.id_costing_detail', '=', 'ac.id')
+            ->leftJoin('masterpilihan as mpil', 'ac.unit', '=', 'mpil.id')
+            ->select(
+                'd.category as category_bom',
+                'ac.type as material_type',
+                'ac.cons as ac_qty',
+                'mp.nama_panel',
+                'c.name as color_name',
+                's.size as size_name',
+                's.urutan as size_urutan',
+                'u.nama_pilihan as unit_name',
+                'd.rule_bom',
+                'a.nama_group',
+                $mysql_sb->raw("(CASE WHEN d.category = 'Manufacturing' THEN CONCAT(i.itemdesc, ' ', IFNULL(i.color, ''), ' ', IFNULL(i.size, ''), ' ', IFNULL(i.add_info, '')) ELSE CONCAT(i.id_item, ' ', i.itemdesc) END) as item_name"),
+                $mysql_sb->raw("(CASE WHEN d.category = 'Manufacturing' THEN mfg.cfdesc ELSE CONCAT(a.nama_group, ' ', s_grp.nama_sub_group, ' ', d2.nama_type, ' ', e.nama_contents) END) as content_name"),
+                $mysql_sb->raw("(CASE WHEN d.category = 'Manufacturing' THEN mfg.cfcode ELSE e.id END) as id_content"),
+                'd.qty as cons_qty'
+            )
+            ->where('d.id_bom_marketing', $id)
+            ->orderByRaw("(CASE WHEN ac.type = 'Manufacturing' THEN 999 WHEN a.root_group IS NULL THEN 998 ELSE a.root_group END) ASC")
+            ->orderBy('d.id', 'asc')
+            ->get();
+
+        // Total qty garmen dari header BOM (qty order)
+        $total_qty_garmen = $bom->qty_order ?? 0;
+
+        $groupedDetails = [];
+        foreach ($details as $det) {
+            // Tentukan kategori: untuk Manufacturing pakai category_bom,
+            // untuk yang lain pakai nama_group dari mastergroup (sama persis dengan native)
+            if ($det->category_bom == 'Manufacturing') {
+                $catType = 'MANUFACTURING';
+            } elseif (!empty($det->nama_group)) {
+                $catType = strtoupper($det->nama_group); // FABRIC, ACCESORIES SEWING, ACCESORIES PACKING, dll
+            } else {
+                $catType = strtoupper($det->material_type ?? $det->category_bom ?? 'OTHER');
+            }
+
+            // cons /pc = qty yang diinput user di BOM
+            $cons_value = $det->cons_qty;
+            // ac_qty dari costing jika ada
+            $ac_qty_val = $det->ac_qty;
+
+            $rule = strtoupper($det->rule_bom ?? '');
+
+            // Tentukan kunci grouping berdasarkan rule_bom
+            $group_color = '';
+            $group_size = '';
+
+            if ($rule == 'ALL COLOR ALL SIZE') {
+                $group_color = '';
+                $group_size = '';
+            } elseif ($rule == 'PER COLOR ALL SIZE') {
+                $group_color = $det->color_name;
+                $group_size = '';
+            } elseif ($rule == 'ALL COLOR RANGE SIZE') {
+                $group_color = '';
+                $group_size = $det->size_name;
+            } elseif ($rule == 'PER COLOR RANGE SIZE') {
+                $group_color = $det->color_name;
+                $group_size = $det->size_name;
+            } else {
+                $group_color = $det->color_name;
+                $group_size = $det->size_name;
+            }
+
+            $key = implode('|', [
+                $catType,
+                $det->id_content,
+                $det->content_name,
+                $det->item_name,
+                $det->unit_name,
+                $det->nama_panel,
+                $cons_value,
+                $group_color,
+                $group_size
+            ]);
+
+            if (!isset($groupedDetails[$key])) {
+                $groupedDetails[$key] = [
+                    'category'     => $catType,
+                    'id_content'   => $det->id_content,
+                    'content_name' => $det->content_name,
+                    'item_name'    => $det->item_name,
+                    'cons'         => $cons_value,  // CONS /PC dari input BOM
+                    'ac_qty'       => $ac_qty_val,  // qty dari costing (referensi)
+                    'orig_qty'     => 0,            // akan di-sum (ORIG QTY = total qty garmen di group ini)
+                    'unit_name'    => $det->unit_name,
+                    'nama_panel'   => $det->nama_panel,
+                    'rule_bom'     => $rule,
+                    'colors'       => [],
+                    'sizes'        => []
+                ];
+            }
+
+            // Sum orig_qty: untuk ALL COLOR ALL SIZE = total qty garmen, lainnya per color/size
+            // Karena 1 baris di bom_marketing_detail = 1 kombinasi color+size,
+            // orig_qty per group = jumlah baris yang di-group × qty_order per color/size
+            // Native menggunakan sum(so_det.qty) per group - kita gunakan qty_order dibagi jumlah kombinasi
+            // Pendekatan: kita track jumlah baris lalu hitung orig_qty = total_qty_garmen / total_groups
+            $groupedDetails[$key]['orig_qty'] += 1; // hitung jumlah baris (kombinasi color×size)
+
+            if ($det->color_name && !in_array($det->color_name, $groupedDetails[$key]['colors'])) {
+                $groupedDetails[$key]['colors'][] = $det->color_name;
+            }
+            if ($det->size_name) {
+                $groupedDetails[$key]['sizes'][$det->size_name] = $det->size_urutan ?? 0;
+            }
+        }
+
+        // orig_qty = qty_order dari header (total qty garmen keseluruhan)
+        // Ini mengikuti native: ALL COLOR ALL SIZE → total qty, lainnya → total qty per group
+        // Karena kita tidak punya breakdown qty per color/size di marketing BOM,
+        // kita gunakan qty_order sebagai ORIG QTY (sama dengan yang tampil di header)
+        $qty_order = $bom->qty_order ?? 0;
+
+        $finalDetails = [];
+        foreach ($groupedDetails as $g) {
+            $colorsList = $g['colors'];
+            $sizesList = $g['sizes'];
+            asort($sizesList);
+            $sizesList = array_keys($sizesList);
+
+            $rule = $g['rule_bom'];
+            $n_colors = max(count($colorsList), 1);
+            $n_sizes  = max(count($sizesList), 1);
+
+            // Hitung ORIG QTY per group mengikuti logika native:
+            // ALL COLOR ALL SIZE → total qty_order (semua warna & size digabung)
+            // PER COLOR ALL SIZE → qty_order / n_colors (per warna, semua size)
+            // ALL COLOR RANGE SIZE → qty_order / n_sizes (semua warna, per size)
+            // PER COLOR RANGE SIZE → qty_order / (n_colors * n_sizes) (per warna per size)
+            if ($rule == 'ALL COLOR ALL SIZE') {
+                $g['orig_qty']     = $qty_order;
+                $g['color_display'] = 'All Color';
+                $g['size_display']  = 'All Size';
+            } elseif ($rule == 'PER COLOR ALL SIZE') {
+                $g['orig_qty']     = $qty_order;
+                $g['color_display'] = count($colorsList) > 0 ? implode(', ', $colorsList) : 'All Color';
+                $g['size_display']  = 'All Size';
+            } elseif ($rule == 'ALL COLOR RANGE SIZE') {
+                $g['orig_qty']     = $qty_order;
+                $g['color_display'] = 'All Color';
+                $g['size_display']  = count($sizesList) > 0 ? implode(', ', $sizesList) : 'All Size';
+            } elseif ($rule == 'PER COLOR RANGE SIZE') {
+                $g['orig_qty']     = $qty_order;
+                $g['color_display'] = count($colorsList) > 0 ? implode(', ', $colorsList) : '-';
+                $g['size_display']  = count($sizesList) > 0 ? implode(', ', $sizesList) : '-';
+            } else {
+                $g['orig_qty']     = $qty_order;
+                $g['color_display'] = count($colorsList) == 0 ? 'All Color' : (count($colorsList) == count($colors) ? 'All Color' : implode(', ', $colorsList));
+                $g['size_display']  = count($sizesList) == 0 ? 'All Size' : (count($sizesList) == count($sizes) ? 'All Size' : implode(', ', $sizesList));
+            }
+
+            $finalDetails[] = (object)$g;
+        }
+
+        $groupedByCategory = [];
+        foreach ($finalDetails as $fd) {
+            $cat = $fd->category;
+            if (!isset($groupedByCategory[$cat])) {
+                $groupedByCategory[$cat] = [];
+            }
+            $groupedByCategory[$cat][] = $fd;
+        }
+
+        $pdf = Pdf::loadView('marketing.bom.pdf', [
+            'bom' => $bom,
+            'colors' => $colors,
+            'sizes' => $sizes,
+            'groupedByCategory' => $groupedByCategory
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->stream('BOM_Marketing_'.$bom->no_katalog_bom.'.pdf');
+    }
 }
+

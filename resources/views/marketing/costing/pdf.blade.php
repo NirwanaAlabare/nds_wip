@@ -57,7 +57,7 @@
             <td class="fw-bold" style="width: 1%; white-space: nowrap;">Ship Mode</td>
             <td style="width: 24%;">: {{ $costing->nama_ship_mode ?? $costing->ship_mode }}</td>
 
-            <td rowspan="5" style="width: 25%; text-align: right; vertical-align: top; padding: 0;">
+            <td rowspan="6" style="width: 25%; text-align: right; vertical-align: top; padding: 0;">
                 @if(!empty($costing->foto))
                     <img src="{{ public_path('uploads/costing/' . $costing->foto) }}" class="img-costing" alt="Gambar costing">
                 @else
@@ -100,20 +100,28 @@
             }
         @endphp
         <tr>
-            <td class="fw-bold" style="white-space: nowrap;">Product Group</td>
-            <td>: {{ $costing->product_group }}</td>
+            <td class="fw-bold" style="white-space: nowrap;">Season</td>
+            <td>: {{ $costing->season ?? '-' }}</td>
             <td class="fw-bold">Type</td>
             <td>: {{ strtoupper($costing->type) }}</td>
             <td class="fw-bold" style="white-space: nowrap;">Rate from IDR</td>
             <td>: {{ number_format($costing->rate_from_idr, 2, ',', '.') }}</td>
         </tr>
         <tr>
-            <td class="fw-bold" style="white-space: nowrap;">Product Item</td>
-            <td>: {{ $costing->nama_product_item ?? $costing->product_item }}</td>
+            <td class="fw-bold" style="white-space: nowrap;">Product Group</td>
+            <td>: {{ $costing->product_group }}</td>
             <td class="fw-bold">Set</td>
             <td>: {{ $set_string }}</td>
             <td class="fw-bold">VAT</td>
             <td>: {{ number_format($costing->vat, 2) }} %</td>
+        </tr>
+        <tr>
+            <td class="fw-bold" style="white-space: nowrap;">Product Item</td>
+            <td>: {{ $costing->nama_product_item ?? $costing->product_item }}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
         </tr>
     </table>
 
@@ -130,8 +138,14 @@
         $sum_fab_usd = 0; $sum_sew_usd = 0; $sum_pack_usd = 0; $sum_mfg_usd = 0; $sum_oth_norm_usd = 0;
 
         $overhead_row = null;
-        $rate_to_idr = $costing->rate_to_idr > 0 ? $costing->rate_to_idr : 16000;
+        $rate_to_idr = $costing->rate_to_idr > 0 ? $costing->rate_to_idr : 1;
+        $rate_from_idr = $costing->rate_from_idr > 0 ? $costing->rate_from_idr : 1;
 
+        $jenis_rate = 'B';
+        $curr_record = \Illuminate\Support\Facades\DB::connection('mysql_sb')->table('masterpilihan')->where('id', $costing->curr)->first();
+        if ($curr_record && strtoupper($curr_record->nama_pilihan) == 'USD') {
+            $jenis_rate = 'J';
+        }
 
         $saved_sets = $costing->product_set ? explode(',', $costing->product_set) : [];
         $saved_sets = array_map('trim', $saved_sets);
@@ -167,6 +181,21 @@
 
                     // Hitung BOM & Value per baris
                     $allow = $det->allowance > 0 ? $det->allowance : 0;
+
+                    if ($jenis_rate == 'J') {
+                        $det->price_px_idr = $det->price * $rate_to_idr;
+                        $det->price_px_usd = $det->price;
+                    } else {
+                        $det->price_px_idr = $det->price;
+                        $det->price_px_usd = $det->price / $rate_from_idr;
+                    }
+
+                    $allowcs_usd = ($det->price_px_usd * $det->cons) * ($allow / 100);
+                    $allowcs_idr = ($det->price_px_idr * $det->cons) * ($allow / 100);
+                    
+                    $det->value_usd = ($det->price_px_usd * $det->cons) + $allowcs_usd;
+                    $det->value_idr = ($det->price_px_idr * $det->cons) + $allowcs_idr;
+
                     $qty_bom = ceil((1 + ($allow / 100)) * $costing->qty * $det->cons);
                     $tot_val = $qty_bom * $det->price_px_idr;
 
@@ -206,7 +235,16 @@
                 if (str_contains(strtoupper($det->nama_item), 'OVERHEAD')) {
                     $overhead_row = $det;
                 } else {
-                    $det->value_usd = $det->value_idr / $rate_to_idr;
+                    if ($jenis_rate == 'J') {
+                        $det->price_px_idr = $det->price * $rate_to_idr;
+                        $det->price_px_usd = $det->price;
+                    } else {
+                        $det->price_px_idr = $det->price;
+                        $det->price_px_usd = $det->price / $rate_from_idr;
+                    }
+                    $det->value_idr = $det->price_px_idr;
+                    $det->value_usd = $det->price_px_usd;
+
                     $sum_oth_norm_idr += $det->value_idr;
                     $sum_oth_norm_usd += $det->value_usd;
                 }

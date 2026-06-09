@@ -1109,6 +1109,7 @@ Route::middleware('auth')->group(function () {
         Route::get('print-excel-costing/{id}', 'printExcel')->name('print-excel-costing');
         Route::get('/approval', 'approval')->name('master-costing-approval');
         Route::post('/approve/{id}', 'submitApproval')->name('submit-costing-approval');
+        Route::get('/copy/{id}', 'copyCosting')->name('copy-costing');
     });
 
     // Master BOM
@@ -1136,6 +1137,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/master-marketing-bom/update-header', [Marketing_BomController::class, 'updateBomHeader'])->name('update-bom-header');
         Route::get('/approval', 'approval')->name('master-bom-approval');
         Route::post('/approve/{id}', 'submitApproval')->name('submit-bom-approval');
+        Route::delete('/delete-bom/{id}', 'delete')->name('delete-bom');
+        Route::get('/print-pdf/{id}', 'printPdf')->name('print-bom-pdf');
+
     });
 
     // Master BOM Additional
@@ -1188,6 +1192,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/cancel-restore-so', 'cancelRestoreSO')->name('cancel-restore-so');
         Route::get('/print-pdf/{id}', 'printPdfSO')->name('print-pdf-so');
         Route::get('/get-bom-data', 'getBomCostingData')->name('so-get-bom-data');
+        Route::post('/sync-bom/{id}', 'syncBom')->name('so-sync-bom');
     });
 
     // QC Inspect Kain
@@ -1879,3 +1884,5 @@ Route::get('/bon-mutasi', function () {
 Route::get('/tes-ceisa-status', [CeisaAPIController::class, 'testStatus']);
 Route::get('/tes-ceisa-kurs/{kode}', [CeisaAPIController::class, 'testKurs']);
 Route::get('/ceisa/pelabuhan', [CeisaAPIController::class, 'getPelabuhan'])->name('ceisa.pelabuhan');
+
+

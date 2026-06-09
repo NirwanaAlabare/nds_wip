@@ -168,18 +168,28 @@
                     {
                         data: 'id',
                         className: "text-center align-middle",
-                        width: "15%",
+                        width: "25%",
                         orderable: false,
                         render: function (data) {
                             let editUrl = "{{ route('edit-bom', ':id') }}".replace(':id', data);
+                            let printUrl = "{{ route('print-bom-pdf', ':id') }}".replace(':id', data);
                             return `
-                                <div class="d-flex justify-content-center align-items-center">
-                                    <button class="btn btn-sm btn-info mr-1 py-1 px-2" style="font-size: 12px;" onclick="viewDetail(${data})">
+                                <div class="d-flex justify-content-center align-items-center" style="gap: 4px;">
+                                    <button class="btn btn-sm btn-info py-1 px-2" style="font-size: 12px;" onclick="viewDetail(${data})" title="Detail BOM">
                                         <i class="fas fa-eye"></i> Detail
                                     </button>
-                                    <a href="${editUrl}" class="btn btn-sm btn-success py-1 px-2" style="font-size: 12px;">
+                                    <a href="${editUrl}" class="btn btn-sm btn-default py-1 px-2" style="font-size: 12px;" title="Edit BOM">
                                         <i class="fas fa-edit"></i> Edit
                                     </a>
+                                    <a href="${printUrl}" target="_blank" class="btn btn-sm btn-primary py-1 px-2" style="font-size: 12px;" title="Print PDF">
+                                        <i class="fas fa-file-pdf"></i> PDF
+                                    </a>
+                                    <button class="btn btn-sm py-1 px-2 text-white" style="font-size: 12px; background-color: #2e7d32; border-color: #2e7d32;" onclick="exportExcel(${data})" title="Export Excel">
+                                        <i class="fas fa-file-excel"></i> Excel
+                                    </button>
+                                    <button class="btn btn-sm btn-danger py-1 px-2" style="font-size: 12px;" onclick="deleteBom(${data})" title="Hapus BOM">
+                                        <i class="fas fa-trash-alt"></i> Delete
+                                    </button>
                                 </div>
                             `;
                         }
@@ -250,6 +260,108 @@
                     pageLength: -1
                 });
             }
+        }
+
+        function deleteBom(id) {
+            Swal.fire({
+                title: 'Hapus BOM?',
+                text: "Semua detail item dari BOM ini akan dihapus secara permanen!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Menghapus...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    let url = "{{ route('delete-bom', ':id') }}".replace(':id', id);
+
+                    $.ajax({
+                        url: url,
+                        type: 'POST',
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            _method: 'DELETE'
+                        },
+                        success: function(res) {
+                            if (res.status == 200) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Terhapus!',
+                                    text: res.message || 'BOM berhasil dihapus.',
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                });
+                                refreshTable();
+                            } else {
+                                Swal.fire('Gagal!', res.message || 'Terjadi kesalahan.', 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            let errorMsg = xhr.responseJSON ? xhr.responseJSON.message : 'Terjadi kesalahan sistem';
+                            Swal.fire('Error!', errorMsg, 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        function exportExcel(id) {
+            Swal.fire({
+                title: "Mengekspor Excel...",
+                html: "Mohon tunggu sebentar, data sedang diproses...",
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            let url = "{{ route('export-excel-bom') }}";
+
+            $.ajax({
+                url: url,
+                type: "GET",
+                data: { id: id },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(res) {
+                    Swal.close();
+
+                    const blob = new Blob([res]);
+                    const link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Laporan Marketing BOM Item.xlsx";
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'File Excel berhasil diekspor.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                },
+                error: function(err) {
+                    Swal.close();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Ekspor',
+                        text: 'Terjadi kesalahan saat memproses ekspor Excel.'
+                    });
+                }
+            });
         }
     </script>
 @endsection
