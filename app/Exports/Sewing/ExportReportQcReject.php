@@ -68,6 +68,25 @@ class ExportReportQcReject implements FromView, ShouldAutoSize, WithEvents
                         AND a.created_at <= '{$tglAkhir} 23:59:59'
                         AND mp.cancel = 'N'
                     GROUP BY so_det_id, DATE(a.created_at)
+
+                    UNION ALL
+
+                    SELECT
+                        null so_det_id,
+                        buyer,
+                        ws,
+                        styleno,
+                        color,
+                        size,
+                        tgl_saldo AS tgl,
+                        SUM(COALESCE(qty_reject_in, 0)) AS jumlah
+                    FROM signalbit_erp.inject_mutasi_sewing
+                    WHERE buyer != '-' AND tgl_saldo >= '{$tglAwal}' AND tgl_saldo <= '{$tglAkhir}' and qty_reject_in > 0
+                    GROUP BY
+                        ws,
+                        color,
+                        size,
+                        tgl_saldo
                 ) as results
             "))
             ->when($buyer, function ($query) use ($buyer) {
@@ -111,6 +130,25 @@ class ExportReportQcReject implements FromView, ShouldAutoSize, WithEvents
                         AND mp.cancel = 'N'
                         AND b.status = 'reworked'
                     GROUP BY so_det_id, DATE(a.created_at)
+
+                    UNION ALL
+
+                    SELECT
+                        null so_det_id,
+                        buyer,
+                        ws,
+                        styleno,
+                        color,
+                        size,
+                        tgl_saldo AS tgl,
+                        SUM(COALESCE(qty_reworked, 0)) AS jumlah
+                    FROM signalbit_erp.inject_mutasi_sewing
+                    WHERE buyer != '-' AND tgl_saldo >= '{$tglAwal}' AND tgl_saldo <= '{$tglAkhir}' and qty_reworked > 0
+                    GROUP BY
+                        ws,
+                        color,
+                        size,
+                        tgl_saldo
                 ) as results
             "))
             ->when($buyer, function ($query) use ($buyer) {
