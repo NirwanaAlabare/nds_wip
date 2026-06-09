@@ -401,6 +401,7 @@
             let qty = document.form_d.txtqty.value;
             let no_carton = document.form_d.txtno_carton.value;
             let grade = document.form_d.cbograde.value;
+            let cbosumber = document.form_h.cbosumber.value;
             $.ajax({
                 type: "post",
                 url: '{{ route('store_tmp') }}',
@@ -408,7 +409,8 @@
                     cboproduct: cboproduct,
                     qty: qty,
                     no_carton: no_carton,
-                    grade: grade
+                    grade: grade,
+                    cbosumber: cbosumber
                 },
                 success: function(response) {
                     if (response.icon == 'salah') {
@@ -421,9 +423,9 @@
                             message: response.msg,
                             position: 'topCenter'
                         });
+                        dataTableReload();
+                        cleardet();
                     }
-                    dataTableReload();
-                    cleardet();
                 },
                 // error: function(request, status, error) {
                 //     alert(request.responseText);
