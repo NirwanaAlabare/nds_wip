@@ -223,7 +223,7 @@
                         <tr>
                             <th colspan="2" style="background-color:#dbeafe; color:#172554;"> NO TRANSAKSI </th>
                             <th colspan="9" style="background-color:#f2e6ff; color:#350e7d;"> ASAL </th>
-                            <th colspan="9" style="background-color:#dcfce7; color:#166534;"> TUJUAN </th>
+                            <th colspan="8" style="background-color:#dcfce7; color:#166534;"> TUJUAN </th>
                             <th colspan="3" style="background-color:#fef3c7; color:#92400e;"> HASIL </th>
                         </tr>
                         <tr>
@@ -241,7 +241,6 @@
                             <th style="background-color:#dcfce7; color:#166534;">PO Tujuan</th>
                             <th style="background-color:#dcfce7; color:#166534;">WS Tujuan</th>
                             <th style="background-color:#dcfce7; color:#166534;">Buyer Tujuan</th>
-                            <th style="background-color:#dcfce7; color:#166534;">Line Tujuan</th>
                             <th style="background-color:#dcfce7; color:#166534;">Barcode Tujuan</th>
                             <th style="background-color:#dcfce7; color:#166534;">Style Tujuan</th>
                             <th style="background-color:#dcfce7; color:#166534;">Color Tujuan</th>
@@ -254,7 +253,7 @@
                     </thead>
                     <tfoot>
                         <tr class="fw-bold">
-                            <th colspan="20"></th>
+                            <th colspan="19"></th>
                             <th>
                                 <input type="text" class="form-control form-control-sm text-center"
                                     style="width:80px" readonly id="foot-list-qty">
@@ -634,9 +633,9 @@
             footerCallback(row, data, start, end, display) {
                 const api = this.api();
                 const intVal = v => (typeof v === 'string' ? v.replace(/[\$,]/g, '') * 1 : typeof v === 'number' ? v : 0);
-                const total  = api.column(20).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+                const total  = api.column(19).data().reduce((a, b) => intVal(a) + intVal(b), 0);
                 $(api.column(0).footer()).html('Total');
-                $(api.column(20).footer()).html(total);
+                $(api.column(19).footer()).html(total);
                 $('#foot-list-qty').val(total);
             },
             ordering: false,
@@ -669,7 +668,6 @@
                 { data: 'po_tujuan' },
                 { data: 'ws_tujuan' },
                 { data: 'buyer_tujuan' },
-                { data: 'line_tujuan' },
                 { data: 'barcode_tujuan' },
                 { data: 'styleno_tujuan' },
                 { data: 'color_tujuan' },
