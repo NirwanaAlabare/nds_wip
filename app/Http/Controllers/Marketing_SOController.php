@@ -2479,7 +2479,7 @@ class Marketing_SOController extends Controller
     //     return $pdf->stream(str_replace("/", "_", $fileName));
     // }
 
-    public function syncBom(Request $request, $id)
+    public static function executeSyncBom($id)
     {
         $mysql_sb = DB::connection('mysql_sb');
         $mysql_sb->beginTransaction();
@@ -2487,21 +2487,106 @@ class Marketing_SOController extends Controller
         try {
             $so = $mysql_sb->table('so')->where('id', $id)->first();
             if (!$so) {
-                return response()->json(['status' => 400, 'message' => 'SO tidak ditemukan']);
+                return ['status' => 400, 'message' => 'SO tidak ditemukan'];
             }
 
             if (!$so->id_bom) {
-                return response()->json(['status' => 400, 'message' => 'SO ini tidak memiliki Master BOM (id_bom kosong)']);
+                return ['status' => 400, 'message' => 'SO ini tidak memiliki Master BOM (id_bom kosong)'];
             }
 
             $jo_det = $mysql_sb->table('jo_det')->where('id_so', $id)->first();
             if (!$jo_det) {
-                return response()->json(['status' => 400, 'message' => 'JO tidak ditemukan untuk SO ini']);
+                return ['status' => 400, 'message' => 'JO tidak ditemukan untuk SO ini'];
             }
 
             $id_jo = $jo_det->id_jo;
             $id_bom = $so->id_bom;
-            $username = auth()->user()->username;
+            $username = auth()->check() ? auth()->user()->username : 'system';
+
+            // MATRIX EXPANSION: Auto-insert missing colors and sizes into so_det
+            /*
+            $base_so_det = $mysql_sb->table('so_det')->where('id_so', $id)->where('cancel', 'N')->first();
+            if ($base_so_det) {
+                $bom_colors = $mysql_sb->table('bom_marketing_detail')
+                    ->where('id_bom_marketing', $id_bom)->whereNotNull('id_color')->pluck('id_color')->toArray();
+                $bom_sizes = $mysql_sb->table('bom_marketing_detail')
+                    ->where('id_bom_marketing', $id_bom)->whereNotNull('id_size')->pluck('id_size')->toArray();
+
+                // Bersihkan tipe data untuk amannya menggunakan map (string agar konsisten saat array_diff)
+                $bom_colors = array_unique(array_map('strval', $bom_colors));
+                $bom_sizes = array_unique(array_map('strval', $bom_sizes));
+
+                $so_colors_raw = $mysql_sb->table('so_det')->where('id_so', $id)->where('cancel', 'N')->whereNotNull('id_color')->pluck('id_color')->toArray();
+                $so_sizes_raw = $mysql_sb->table('so_det')->where('id_so', $id)->where('cancel', 'N')->whereNotNull('id_size')->pluck('id_size')->toArray();
+
+                $so_colors = array_unique(array_map('strval', $so_colors_raw));
+                $so_sizes = array_unique(array_map('strval', $so_sizes_raw));
+
+                $new_colors = array_diff($bom_colors, $so_colors);
+                $new_sizes = array_diff($bom_sizes, $so_sizes);
+
+                if (count($new_colors) > 0 || count($new_sizes) > 0) {
+                    $so_colors_current = $so_colors;
+                    
+                    // Ekspansi Warna Baru
+                    foreach ($new_colors as $nc) {
+                        $color_info = $mysql_sb->table('master_colors_gmt')->where('id', $nc)->first();
+                        foreach ($so_sizes as $sz) {
+                            $ref = $mysql_sb->table('so_det')->where('id_so', $id)->where('cancel', 'N')->where('id_size', $sz)->first();
+                            if (!$ref) $ref = $base_so_det;
+                            
+                            $mysql_sb->table('so_det')->insert([
+                                'id_so' => $id,
+                                'color' => $color_info ? $color_info->name : '-',
+                                'id_color' => $nc,
+                                'size' => $ref->size,
+                                'id_size' => $sz,
+                                'qty' => $ref->qty,
+                                'styleno_prod' => $ref->styleno_prod,
+                                'deldate_det' => $ref->deldate_det,
+                                'created_by' => $username,
+                                'created_date' => now(),
+                                'cancel' => 'N',
+                                'unit' => $ref->unit,
+                                'product_set' => $ref->product_set,
+                                'dest' => $ref->dest,
+                            ]);
+                        }
+                        $so_colors_current[] = $nc;
+                    }
+
+                    // Ekspansi Size Baru
+                    foreach ($new_sizes as $ns) {
+                        $size_info = $mysql_sb->table('master_size_new')->where('id', $ns)->first();
+                        foreach ($so_colors_current as $nc) {
+                            $ref = $mysql_sb->table('so_det')->where('id_so', $id)->where('cancel', 'N')->where('id_color', $nc)->first();
+                            if (!$ref) $ref = $base_so_det;
+
+                            $mysql_sb->table('so_det')->insert([
+                                'id_so' => $id,
+                                'color' => $ref->color,
+                                'id_color' => $nc,
+                                'size' => $size_info ? $size_info->size : '-',
+                                'id_size' => $ns,
+                                'qty' => $ref->qty,
+                                'styleno_prod' => $ref->styleno_prod,
+                                'deldate_det' => $ref->deldate_det,
+                                'created_by' => $username,
+                                'created_date' => now(),
+                                'cancel' => 'N',
+                                'unit' => $ref->unit,
+                                'product_set' => $ref->product_set,
+                                'dest' => $ref->dest,
+                            ]);
+                        }
+                    }
+                    
+                    // Update SO header total qty
+                    $total_qty = $mysql_sb->table('so_det')->where('id_so', $id)->where('cancel', 'N')->sum('qty');
+                    $mysql_sb->table('so')->where('id', $id)->update(['qty' => $total_qty]);
+                }
+            }
+            */
 
             $required_items = $mysql_sb->select("
                 SELECT
@@ -2737,17 +2822,23 @@ class Marketing_SOController extends Controller
             }
 
             $mysql_sb->commit();
-            return response()->json([
+            return [
                 'status' => 200,
                 'message' => 'Sync berhasil',
                 'inserted' => $insert_count,
                 'updated' => $update_count,
                 'canceled' => $cancel_count
-            ]);
+            ];
 
         } catch (\Exception $e) {
             $mysql_sb->rollBack();
-            return response()->json(['status' => 500, 'message' => $e->getMessage()]);
+            return ['status' => 500, 'message' => $e->getMessage()];
         }
+    }
+
+    public function syncBom(Request $request, $id)
+    {
+        $res = self::executeSyncBom($id);
+        return response()->json($res);
     }
 }

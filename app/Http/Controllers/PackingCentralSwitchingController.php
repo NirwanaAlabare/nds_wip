@@ -319,6 +319,7 @@ class PackingCentralSwitchingController extends Controller
             LEFT JOIN master_sb_ws AS master_sb_ws_tujuan ON master_sb_ws_tujuan.id_so_det = ppic_master_so.id_so_det
             WHERE DATE(packing_central_switching.created_at)
                 BETWEEN ? AND ?
+            ORDER BY packing_central_switching.id DESC
         ", [
             $request->dateFrom,
             $request->dateTo
@@ -470,6 +471,7 @@ class PackingCentralSwitchingController extends Controller
             LEFT JOIN master_sb_ws AS master_sb_ws_tujuan ON master_sb_ws_tujuan.id_so_det = ppic_master_so.id_so_det
             WHERE DATE(packing_central_switching.created_at)
                 BETWEEN ? AND ?
+            ORDER BY packing_central_switching.id DESC
         ", [
             $tgl_awal,
             $tgl_akhir
@@ -533,13 +535,11 @@ class PackingCentralSwitchingController extends Controller
             ]
         );
 
-        // Merge sesuai colspan
         $sheet->mergeCells('A4:B4');
         $sheet->mergeCells('C4:K4');
         $sheet->mergeCells('L4:S4');
         $sheet->mergeCells('T4:V4');
 
-        // NO TRANSAKSI
         $sheet->setCellStyle('A4:B4', [
             'fill'       => '#DBEAFE',
             'font-color' => '#172554',

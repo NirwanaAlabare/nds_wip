@@ -33,7 +33,7 @@ class Marketing_CostingController extends Controller
                     'a.created_at',
                     'b.Supplier as nama_buyer',
                     'a.brand',
-                    'a.season',
+                    'a.season_id',
                     'a.style',
                     'a.marketing_order',
                     'a.product_group',
@@ -505,6 +505,7 @@ class Marketing_CostingController extends Controller
                 'created_at'   => now(),
                 'updated_at'   => now(),
             ]);
+            $this->triggerAutoSyncSO($request->id_costing);
 
             return response()->json([
                 'status' => 200,
@@ -566,6 +567,7 @@ class Marketing_CostingController extends Controller
 
 
             $db->table('act_costing_new')->where('id', $id)->update($updateData);
+            $this->triggerAutoSyncSO($id);
 
             if ($request->ajax()) {
                 return response()->json([
@@ -592,7 +594,14 @@ class Marketing_CostingController extends Controller
         $db = DB::connection('mysql_sb');
 
         try {
+            $detail = $db->table('act_costing_detail_new')->where('id', $id)->first();
+            $id_costing = $detail ? $detail->id_costing : null;
+
             $db->table('act_costing_detail_new')->where('id', $id)->delete();
+
+            if ($id_costing) {
+                $this->triggerAutoSyncSO($id_costing);
+            }
 
             return response()->json([
                 'status' => 200,
@@ -727,6 +736,10 @@ class Marketing_CostingController extends Controller
             'value_idr' => $request->value_idr,
             'value_usd' => $request->value_usd,
         ]);
+        $detail = $db->table('act_costing_detail_new')->where('id', $request->id_detail)->first();
+        if ($detail) {
+            $this->triggerAutoSyncSO($detail->id_costing);
+        }
 
         return response()->json(['status' => 200, 'message' => 'Success']);
     }
@@ -1372,7 +1385,7 @@ class Marketing_CostingController extends Controller
                 if (isset($details[$key]) && count($details[$key]) > 0) {
                     foreach ($details[$key] as $idx => $det) {
                         $allow = $det->allowance > 0 ? $det->allowance : 0;
-                        
+
                         if ($jenis_rate == 'J') {
                             $det->price_px_idr = $det->price * $rate_to_idr;
                             $det->price_px_usd = $det->price;
@@ -1383,7 +1396,7 @@ class Marketing_CostingController extends Controller
 
                         $allowcs_usd = ($det->price_px_usd * $det->cons) * ($allow / 100);
                         $allowcs_idr = ($det->price_px_idr * $det->cons) * ($allow / 100);
-                        
+
                         $det->value_usd = ($det->price_px_usd * $det->cons) + $allowcs_usd;
                         $det->value_idr = ($det->price_px_idr * $det->cons) + $allowcs_idr;
 
@@ -1638,6 +1651,18 @@ class Marketing_CostingController extends Controller
             return response()->json(['status' => 200, 'message' => 'Costing berhasil di Approve.']);
         } catch (\Exception $e) {
             return response()->json(['status' => 500, 'message' => 'Gagal: ' . $e->getMessage()]);
+        }
+    }
+    private function triggerAutoSyncSO($id_costing)
+    {
+        $mysql_sb = DB::connection('mysql_sb');
+        $bom = $mysql_sb->table('bom_marketing')->where('id_costing', $id_costing)->first();
+
+        if ($bom) {
+            $sos = $mysql_sb->table('so')->where('id_bom', $bom->id)->where('cancel_h', 'N')->get();
+            foreach ($sos as $so) {
+                \App\Http\Controllers\Marketing_SOController::executeSyncBom($so->id);
+            }
         }
     }
 }

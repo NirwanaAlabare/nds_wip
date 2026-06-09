@@ -126,7 +126,7 @@
                             <label>Jenis TPB</label>
                             <select name="jenisTPB" class="form-control form-control-sm select2bs4">
                                 <option value="">Pilih Jenis TPB</option>
-                                @php $selectedJenisTPB = $dataDetail['jenisTpb'] ?? '' @endphp
+                                @php $selectedJenisTPB = $dataDetail['kodeJenisTpb'] ?? $dataDetail['jenisTpb'] ?? '' @endphp
                                 <option value="1" {{ $selectedJenisTPB == '1' ? 'selected' : '' }}>KAWASAN BERIKAT</option>
                                 <option value="2" {{ $selectedJenisTPB == '2' ? 'selected' : '' }}>GUDANG BERIKAT</option>
                                 <option value="3" {{ $selectedJenisTPB == '3' ? 'selected' : '' }}>TPPB</option>
@@ -150,14 +150,14 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-3 form-group hidden">
+                        {{-- <div class="col-md-3 form-group hidden">
                             <label>Pelabuhan Muat</label>
                             <select name="kodePelMuat" class="form-control form-control-sm select2-pelabuhan">
                                 @if(!empty($dataDetail['kodePelMuat']))
                                     <option value="{{ $dataDetail['kodePelMuat'] }}" selected>{{ $dataDetail['kodePelMuat'] }}</option>
                                 @endif
                             </select>
-                        </div>
+                        </div> --}}
                         <div class="col-md-3 form-group">
                             <label>Pelabuhan Bongkar</label>
                             <select name="kodePelBongkar" class="form-control form-control-sm select2-pelabuhan">
@@ -166,13 +166,22 @@
                                 @endif
                             </select>
                         </div>
-                        <div class="col-md-3 form-group hidden">
-                            <label>Tempat Penimbunan</label>
-                            <input type="text" name="kodeTempPenimbunan" class="form-control form-control-sm" value="{{ $dataDetail['kodeTempPenimbunan'] ?? '' }}">
-                        </div>
-                        <div class="col-md-3 form-group hidden">
-                            <label>Tanggal Tiba</label>
-                            <input type="date" name="tanggalTiba" class="form-control form-control-sm" value="{{ $dataDetail['tanggalTiba'] ?? '' }}">
+                        <div class="col-md-3 form-group">
+                            <label>Tujuan TPB</label>
+                            <select name="kodeTujuanTpb" class="form-control form-control-sm select2bs4">
+                                <option value="">Pilih Tujuan TPB</option>
+                                @php $tujuanTpb = $dataDetail['kodeTujuanTpb'] ?? '' @endphp
+                                <option value="1" {{ $tujuanTpb == '1' ? 'selected' : '' }}>KAWASAN BERIKAT</option>
+                                <option value="2" {{ $tujuanTpb == '2' ? 'selected' : '' }}>GUDANG BERIKAT</option>
+                                <option value="3" {{ $tujuanTpb == '3' ? 'selected' : '' }}>TPPB</option>
+                                <option value="4" {{ $tujuanTpb == '4' ? 'selected' : '' }}>TBB</option>
+                                <option value="5" {{ $tujuanTpb == '5' ? 'selected' : '' }}>TLB</option>
+                                <option value="6" {{ $tujuanTpb == '6' ? 'selected' : '' }}>KDUB</option>
+                                <option value="7" {{ $tujuanTpb == '7' ? 'selected' : '' }}>LAINNYA</option>
+                                <option value="8" {{ $tujuanTpb == '8' ? 'selected' : '' }}>KAWASAN BEBAS</option>
+                                <option value="9" {{ $tujuanTpb == '9' ? 'selected' : '' }}>KAWASAN EKONOMI KHUSUS</option>
+                                <option value="10" {{ $tujuanTpb == '10' ? 'selected' : '' }}>KAWASAN EKONOMI LAINNYA</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -215,7 +224,18 @@
                                                     </div>
                                                     <div class="form-group mb-2">
                                                         <label class="small text-muted mb-0">Pos Tarif/HS</label>
-                                                        <input type="text" name="barang[{{ $index }}][posTarif]" class="form-control form-control-sm" value="{{ $draftItem['posTarif'] ?? '' }}">
+                                                        <select name="barang[{{ $index }}][posTarif]" class="form-control form-control-sm select2bs4">
+                                                            <option value="">Pilih Pos Tarif/HS</option>
+                                                            <option value="01012100" {{ ($draftItem['posTarif'] ?? '') == '01012100' ? 'selected' : '' }}>01012100 - BIBIT</option>
+                                                            <option value="01012900" {{ ($draftItem['posTarif'] ?? '') == '01012900' ? 'selected' : '' }}>01012900 - LAIN-LAIN</option>
+                                                            <option value="01013010" {{ ($draftItem['posTarif'] ?? '') == '01013010' ? 'selected' : '' }}>01013010 - BIBIT</option>
+                                                            <option value="01013090" {{ ($draftItem['posTarif'] ?? '') == '01013090' ? 'selected' : '' }}>01013090 - LAIN-LAIN</option>
+                                                            <option value="01019000" {{ ($draftItem['posTarif'] ?? '') == '01019000' ? 'selected' : '' }}>01019000 - LAIN-LAIN</option>
+                                                            <option value="01022100" {{ ($draftItem['posTarif'] ?? '') == '01022100' ? 'selected' : '' }}>01022100 - BIBIT</option>
+                                                            <option value="01022910" {{ ($draftItem['posTarif'] ?? '') == '01022910' ? 'selected' : '' }}>01022910 - SAPI JANTAN</option>
+                                                            <option value="01022911" {{ ($draftItem['posTarif'] ?? '') == '01022911' ? 'selected' : '' }}>01022911 - OXEN</option>
+                                                            <option value="01022919" {{ ($draftItem['posTarif'] ?? '') == '01022919' ? 'selected' : '' }}>01022919 - LAIN-LAIN</option>
+                                                        </select>
                                                     </div>
                                                     <div class="form-group mb-2">
                                                         <label class="small text-muted mb-0">Kode Barang</label>
@@ -252,13 +272,39 @@
                                                 <div class="card-body">
                                                     <div class="form-group mb-2">
                                                         <label class="small text-muted mb-0">Kategori Barang</label>
-                                                        <select name="barang[{{ $index }}][kodeKategoriBarang]" class="form-control form-control-sm">
+                                                        <select name="barang[{{ $index }}][kodeKategoriBarang]" class="form-control form-control-sm select2bs4">
                                                             <option value="">Pilih Kategori</option>
+                                                            <option value="01" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '01' ? 'selected' : '' }}>01 - BARANG UNTUK DITIMBUN</option>
+                                                            <option value="02" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '02' ? 'selected' : '' }}>02 - BARANG UNTUK KEPERLUAN PENGUSAHAAN</option>
+                                                            <option value="11" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '11' ? 'selected' : '' }}>11 - UNTUK BAHAN BAKU/BAHAN PENOLONG</option>
+                                                            <option value="12" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '12' ? 'selected' : '' }}>12 - UNTUK PENGEMAS/ALAT BANTU PENGEMAS</option>
+                                                            <option value="13" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '13' ? 'selected' : '' }}>13 - UNTUK PERALATAN UNTUK PEMBANGUNAN, PERLUASAN, ATAU KONSTRUKSI KB</option>
+                                                            <option value="14" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '14' ? 'selected' : '' }}>14 - UNTUK BARANG MODAL DAN/ATAU SPAREPARTS BARANG MODAL</option>
+                                                            <option value="15" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '15' ? 'selected' : '' }}>15 - UNTUK BARANG CONTOH</option>
+                                                            <option value="16" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '16' ? 'selected' : '' }}>16 - UNTUK BARANG JADI GUNA DIGABUNG DENGAN HASIL PRODUKSI</option>
+                                                            <option value="17" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '17' ? 'selected' : '' }}>17 - UNTUK BARANG REIMPOR</option>
+                                                            <option value="18" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '18' ? 'selected' : '' }}>18 - UNTUK PERALATAN PERKANTORAN</option>
+                                                            <option value="19" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '19' ? 'selected' : '' }}>19 - BARANG UNTUK KEPERLUAN PENANGANAN COVID19</option>
+                                                            <option value="21" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '21' ? 'selected' : '' }}>21 - UNTUK BARANG YANG DITIMBUN DI GB</option>
+                                                            <option value="22" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '22' ? 'selected' : '' }}>22 - UNTUK BARANG REIMPOR</option>
+                                                            <option value="31" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '31' ? 'selected' : '' }}>31 - UNTUK BARANG UNTUK DIPAMERKAN</option>
+                                                            <option value="32" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '32' ? 'selected' : '' }}>32 - UNTUK BARANG UNTUK MENDUKUNG KEPERLUAN PAMERAN</option>
+                                                            <option value="33" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '33' ? 'selected' : '' }}>33 - UNTUK BARANG REIMPOR</option>
+                                                            <option value="41" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '41' ? 'selected' : '' }}>41 - UNTUK BARANG YANG DITIMBUN DI TBB</option>
+                                                            <option value="42" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '42' ? 'selected' : '' }}>42 - UNTUK BARANG REIMPOR</option>
+                                                            <option value="51" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '51' ? 'selected' : '' }}>51 - UNTUK BARANG LELANG</option>
+                                                            <option value="52" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '52' ? 'selected' : '' }}>52 - UNTUK SPAREPARTS</option>
+                                                            <option value="53" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '53' ? 'selected' : '' }}>53 - UNTUK BARANG REIMPOR</option>
+                                                            <option value="61" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '61' ? 'selected' : '' }}>61 - UNTUK BARANG YANG DITIMBUN DI KDUB</option>
+                                                            <option value="62" {{ ($draftItem['kodeKategoriBarang'] ?? '') == '62' ? 'selected' : '' }}>62 - UNTUK BARANG REIMPOR</option>
                                                         </select>
                                                     </div>
                                                     <div class="form-group mb-0">
                                                         <label class="small text-muted mb-0">Negara</label>
-                                                        <input type="text" name="barang[{{ $index }}][kodeNegaraAsal]" class="form-control form-control-sm" value="{{ $draftItem['kodeNegaraAsal'] ?? 'IN' }}">
+                                                        <select name="barang[{{ $index }}][kodeNegaraAsal]" class="form-control form-control-sm select2bs4">
+                                                            <option value="">Pilih Negara</option>
+                                                            @include('export-import.dokumen-pabean.options_negara', ['selected' => $draftItem['kodeNegaraAsal'] ?? ''])
+                                                        </select>
                                                     </div>
                                                 </div>
                                             </div>
@@ -289,6 +335,10 @@
                                                     <div class="form-group mb-2">
                                                         <label class="small text-muted mb-0">Asuransi</label>
                                                         <input type="number" step="any" name="barang[{{ $index }}][asuransi]" class="form-control form-control-sm" value="{{ $draftItem['asuransi'] ?? 0 }}">
+                                                    </div>
+                                                    <div class="form-group mb-2">
+                                                        <label class="small text-muted mb-0">Harga CIF</label>
+                                                        <input type="number" step="any" name="barang[{{ $index }}][cif]" class="form-control form-control-sm" value="{{ $draftItem['cif'] ?? 0 }}">
                                                     </div>
                                                     <div class="form-group mb-0">
                                                         <label class="small text-muted mb-0">Nilai Pabean</label>
@@ -323,7 +373,7 @@
                                                     </div>
                                                     <div class="form-group mb-0">
                                                         <label class="small text-muted mb-0">Berat Bersih (kg)</label>
-                                                        <input type="number" step="any" name="barang[{{ $index }}][netto]" class="form-control form-control-sm" value="{{ $draftItem['netto'] ?? 0 }}">
+                                                        <input type="number" step="any" name="barang[{{ $index }}][netto]" class="form-control form-control-sm" value="{{ $draftItem['netto'] ?? (float) ($item->nw ?? $item->netto ?? 0) }}">
                                                     </div>
                                                 </div>
                                             </div>
@@ -549,13 +599,18 @@
                                 $dokumens = [];
                                 if (!empty($dataDetail['dok']) && count($dataDetail['dok']) > 0) {
                                     $dokumens = $dataDetail['dok'];
+                                } else {
+                                    $dokumens = [
+                                        ['kode' => '380', 'nomor' => '', 'tgl' => ''],
+                                        ['kode' => '705', 'nomor' => '', 'tgl' => '']
+                                    ];
                                 }
                             @endphp
                             <table class="table table-sm table-bordered" id="table-dokumen">
                                 <thead class="bg-light text-center">
                                     <tr>
-                                        <th width="40%">Nomor Dokumen</th>
-                                        <th width="30%">Kode Dokumen</th>
+                                        <th width="40%">Kode Dokumen</th>
+                                        <th width="30%">Nomor Dokumen</th>
                                         <th width="15%">Tgl Dokumen</th>
                                         <th width="10%"><button type="button" class="btn btn-sm btn-primary py-0 px-2" id="btn-add-dok" title="Tambah Dokumen"><i class="fas fa-plus"></i></button></th>
                                     </tr>
@@ -599,19 +654,20 @@
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">Kode BC 1.1</label>
                                         <div class="input-group input-group-sm">
-                                            <select name="bc11KodeBc" class="form-control" style="max-width:40%;">
-                                                <option value="11" selected>BC 11</option>
+                                            <select name="kodeBc11" class="form-control" style="max-width:40%;">
+                                                <option value="10" {{ ($dataDetail['kodeBc11'] ?? $dataDetail['bc11KodeBc'] ?? '') == '10' ? 'selected' : '' }}>BC 1.0</option>
+                                                <option value="11" {{ ($dataDetail['kodeBc11'] ?? $dataDetail['bc11KodeBc'] ?? '11') == '11' ? 'selected' : '' }}>BC 1.1</option>
                                             </select>
-                                            <input type="text" name="bc11Nomor" class="form-control" value="{{ $dataDetail['bc11Nomor'] ?? $dataDetail['nomorBc11'] ?? '005551' }}" placeholder="No BC 1.1">
-                                            <input type="date" name="bc11Tanggal" class="form-control" value="{{ $dataDetail['bc11Tanggal'] ?? $dataDetail['tanggalBc11'] ?? '2025-05-2020' }}">
+                                            <input type="text" name="nomorBc11" class="form-control" value="{{ $dataDetail['nomorBc11'] ?? $dataDetail['bc11Nomor'] ?? '' }}" placeholder="No BC 1.1">
+                                            <input type="date" name="tanggalBc11" class="form-control" value="{{ $dataDetail['tanggalBc11'] ?? $dataDetail['bc11Tanggal'] ?? '' }}">
                                         </div>
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="small text-muted mb-0">Nomor Pos</label>
                                         <div class="input-group input-group-sm">
-                                            <input type="text" name="bc11Pos" class="form-control" value="{{ $dataDetail['bc11Pos'] ?? $dataDetail['posBc11'] ?? '0054' }}" placeholder="Pos">
-                                            <input type="text" name="bc11SubPos" class="form-control" value="{{ $dataDetail['bc11SubPos'] ?? $dataDetail['subposBc11'] ?? '0000' }}" placeholder="Sub Pos">
-                                            <input type="text" name="bc11SubSubPos" class="form-control" value="{{ $dataDetail['bc11SubSubPos'] ?? '000E' }}" placeholder="Sub Sub Pos">
+                                            <input type="text" name="posBc11" class="form-control" value="{{ $dataDetail['posBc11'] ?? $dataDetail['bc11Pos'] ?? '' }}" placeholder="Pos">
+                                            <input type="text" name="subposBc11" class="form-control" value="{{ $dataDetail['subposBc11'] ?? $dataDetail['bc11SubPos'] ?? '' }}" placeholder="Sub Pos">
+                                            <input type="text" name="subsubposBc11" class="form-control" value="{{ $dataDetail['subsubposBc11'] ?? $dataDetail['bc11SubSubPos'] ?? '' }}" placeholder="Sub Sub Pos">
                                         </div>
                                     </div>
                                 </div>
@@ -742,7 +798,7 @@
 
                 <div class="tab-pane fade" id="tab-transaksi" role="tabpanel">
                     <div class="d-flex justify-content-end mb-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm"><i class="fas fa-boxes"></i> Detail Barang</button>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="$('#ceisaTab a[href=\'#tab-barang\']').tab('show');">Detail Barang</button>
                     </div>
                     <div class="row">
                         <!-- Harga -->
@@ -753,8 +809,31 @@
                                     <div class="form-group mb-2">
                                         <label class="small text-muted mb-0">Jenis Valuta</label>
                                         <select name="kodeValuta" class="form-control form-control-sm select2bs4">
-                                            <option value="IDR" {{ ($dataDetail['kodeValuta'] ?? 'IDR') == 'IDR' ? 'selected' : '' }}>IDR - Rupiah</option>
-                                            <option value="USD" {{ ($dataDetail['kodeValuta'] ?? '') == 'USD' ? 'selected' : '' }}>USD - US Dollar</option>
+                                            <option value="">Pilih Valuta</option>
+                                            <option value="IDR" {{ ($dataDetail['kodeValuta'] ?? 'IDR') == 'IDR' ? 'selected' : '' }}>IDR - RUPIAH</option>
+                                            <option value="USD" {{ ($dataDetail['kodeValuta'] ?? '') == 'USD' ? 'selected' : '' }}>USD - US DOLLAR</option>
+                                            <option value="AUD" {{ ($dataDetail['kodeValuta'] ?? '') == 'AUD' ? 'selected' : '' }}>AUD - AUSTRALIAN DOLLAR</option>
+                                            <option value="BND" {{ ($dataDetail['kodeValuta'] ?? '') == 'BND' ? 'selected' : '' }}>BND - BRUNEI DOLLAR</option>
+                                            <option value="CAD" {{ ($dataDetail['kodeValuta'] ?? '') == 'CAD' ? 'selected' : '' }}>CAD - CANADIAN DOLLAR</option>
+                                            <option value="CHF" {{ ($dataDetail['kodeValuta'] ?? '') == 'CHF' ? 'selected' : '' }}>CHF - SWISS FRANC</option>
+                                            <option value="CNY" {{ ($dataDetail['kodeValuta'] ?? '') == 'CNY' ? 'selected' : '' }}>CNY - YUAN RENMINBI</option>
+                                            <option value="DKK" {{ ($dataDetail['kodeValuta'] ?? '') == 'DKK' ? 'selected' : '' }}>DKK - DANISH KRONE</option>
+                                            <option value="EUR" {{ ($dataDetail['kodeValuta'] ?? '') == 'EUR' ? 'selected' : '' }}>EUR - EURO</option>
+                                            <option value="GBP" {{ ($dataDetail['kodeValuta'] ?? '') == 'GBP' ? 'selected' : '' }}>GBP - POUND STERLING</option>
+                                            <option value="HKD" {{ ($dataDetail['kodeValuta'] ?? '') == 'HKD' ? 'selected' : '' }}>HKD - HONG KONG DOLLAR</option>
+                                            <option value="INR" {{ ($dataDetail['kodeValuta'] ?? '') == 'INR' ? 'selected' : '' }}>INR - INDIAN RUPEE</option>
+                                            <option value="JPY" {{ ($dataDetail['kodeValuta'] ?? '') == 'JPY' ? 'selected' : '' }}>JPY - JAPANESE YEN</option>
+                                            <option value="KRW" {{ ($dataDetail['kodeValuta'] ?? '') == 'KRW' ? 'selected' : '' }}>KRW - SOUTH KOREAN WON</option>
+                                            <option value="KWD" {{ ($dataDetail['kodeValuta'] ?? '') == 'KWD' ? 'selected' : '' }}>KWD - KUWAITI DINAR</option>
+                                            <option value="MYR" {{ ($dataDetail['kodeValuta'] ?? '') == 'MYR' ? 'selected' : '' }}>MYR - MALAYSIAN RINGGIT</option>
+                                            <option value="NZD" {{ ($dataDetail['kodeValuta'] ?? '') == 'NZD' ? 'selected' : '' }}>NZD - NEW ZEALAND DOLLAR</option>
+                                            <option value="PGK" {{ ($dataDetail['kodeValuta'] ?? '') == 'PGK' ? 'selected' : '' }}>PGK - PAPUA NEW GUINEA KINA</option>
+                                            <option value="PHP" {{ ($dataDetail['kodeValuta'] ?? '') == 'PHP' ? 'selected' : '' }}>PHP - PHILIPPINE PESO</option>
+                                            <option value="SAR" {{ ($dataDetail['kodeValuta'] ?? '') == 'SAR' ? 'selected' : '' }}>SAR - SAUDI RIYAL</option>
+                                            <option value="SEK" {{ ($dataDetail['kodeValuta'] ?? '') == 'SEK' ? 'selected' : '' }}>SEK - SWEDISH KRONA</option>
+                                            <option value="SGD" {{ ($dataDetail['kodeValuta'] ?? '') == 'SGD' ? 'selected' : '' }}>SGD - SINGAPORE DOLLAR</option>
+                                            <option value="THB" {{ ($dataDetail['kodeValuta'] ?? '') == 'THB' ? 'selected' : '' }}>THB - THAI BAHT</option>
+                                            <option value="TWD" {{ ($dataDetail['kodeValuta'] ?? '') == 'TWD' ? 'selected' : '' }}>TWD - TAIWAN NEW DOLLAR</option>
                                         </select>
                                     </div>
                                     <div class="form-group mb-2">
@@ -843,6 +922,7 @@
                                         <select name="kodeJasaKenaPajak" class="form-control form-control-sm">
                                             <option value="">Pilih Jasa Kena Pajak</option>
                                             <option value="1" {{ ($dataDetail['kodeJasaKenaPajak'] ?? '1') == '1' ? 'selected' : '' }}>1 - PEMBELIAN BKP</option>
+                                            <option value="2" {{ ($dataDetail['kodeJasaKenaPajak'] ?? '2') == '2' ? 'selected' : '' }}>2 - PENERIMA JASA JKP</option>
                                         </select>
                                     </div>
                                 </div>
@@ -1130,14 +1210,14 @@
                 }
             });
 
-            let hargaOk = false;
-            $('input[name$="[hargaPenyerahan]"]').each(function() {
-                if ($(this).val() && parseFloat($(this).val()) > 0) hargaOk = true;
-            });
-            if (!hargaOk) {
-                errors.push('Harga Penyerahan/Jual (minimal 1 barang > 0)');
-                if (!firstTab) firstTab = '#tab-header';
-            }
+            // let hargaOk = false;
+            // $('input[name$="[hargaPenyerahan]"]').each(function() {
+            //     if ($(this).val() && parseFloat($(this).val()) > 0) hargaOk = true;
+            // });
+            // if (!hargaOk) {
+            //     errors.push('Harga Penyerahan/Jual (minimal 1 barang > 0)');
+            //     if (!firstTab) firstTab = '#tab-header';
+            // }
 
             if (errors.length > 0) {
                 if (firstTab) {
@@ -1165,6 +1245,36 @@
             e.preventDefault();
 
             if (!validasiBC40()) return;
+
+            let invalidBarang = false;
+            let invalidItemNames = [];
+            
+            // Validasi CIF dan Netto harus > 0
+            $('input[name$="[cif]"], input[name$="[netto]"]').each(function() {
+                let name = $(this).attr('name');
+                if (name && name.indexOf('barang[') !== -1) {
+                    let val = parseFloat($(this).val()) || 0;
+                    if (val <= 0) {
+                        invalidBarang = true;
+                        let label = $(this).closest('.form-group').find('label').text() || name;
+                        invalidItemNames.push(label);
+                        $(this).addClass('is-invalid');
+                    } else {
+                        $(this).removeClass('is-invalid');
+                    }
+                }
+            });
+
+            if (invalidBarang) {
+                $('#barang-tab').tab('show');
+                Swal.fire({
+                    title: 'Validasi Gagal!',
+                    html: 'Terdapat item barang yang nilai <b>Harga CIF</b> atau <b>Berat Bersih (Netto)</b>-nya masih 0. <br><br>Harus lebih dari 0.',
+                    icon: 'warning',
+                    confirmButtonColor: '#003366'
+                });
+                return false;
+            }
 
 
             Swal.fire({

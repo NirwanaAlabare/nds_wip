@@ -240,6 +240,8 @@ class Marketing_BomController extends Controller
                 $mysql_sb->table('bom_marketing_detail')->insert($details);
             }
 
+            $this->triggerAutoSyncSO($bom_id);
+
             $mysql_sb->commit();
             return response()->json(['status' => 200, 'message' => 'Item BOM Berhasil Ditambahkan!']);
         } catch (\Exception $e) {
@@ -270,6 +272,8 @@ class Marketing_BomController extends Controller
                     'sizes'      => json_encode($sizes),
                     'updated_at' => now(),
                 ]);
+
+            $this->triggerAutoSyncSO($id_bom);
 
             return response()->json(['status' => 200, 'message' => 'Data Berhasil Diperbarui!']);
         } catch (\Exception $e) {
@@ -387,6 +391,8 @@ class Marketing_BomController extends Controller
                 $mysql_sb->table('bom_marketing_detail')->insert($details_to_insert);
             }
 
+            $this->triggerAutoSyncSO($bom_id);
+
             $mysql_sb->commit();
             return response()->json(['status' => 200, 'message' => 'Item Material Berhasil Disimpan!']);
         } catch (\Exception $e) {
@@ -489,6 +495,12 @@ class Marketing_BomController extends Controller
                 'unit'  => $request->unit,
                 'shell'    => $request->shell,
             ]);
+
+            $detail = $mysql_sb->table('bom_marketing_detail')->where('id', $id)->first();
+            if ($detail) {
+                $this->triggerAutoSyncSO($detail->id_bom_marketing);
+            }
+
             return response()->json(['status' => 200, 'message' => 'Item berhasil diupdate']);
         } catch (\Exception $e) {
             return response()->json(['status' => 500, 'message' => $e->getMessage()]);
@@ -991,7 +1003,16 @@ class Marketing_BomController extends Controller
         $mysql_sb = DB::connection('mysql_sb');
         try {
             $ids = $request->ids;
+
+            $firstDetail = $mysql_sb->table('bom_marketing_detail')->where('id', $ids[0] ?? null)->first();
+            $id_bom = $firstDetail ? $firstDetail->id_bom_marketing : null;
+
             $mysql_sb->table('bom_marketing_detail')->whereIn('id', $ids)->delete();
+
+            if ($id_bom) {
+                $this->triggerAutoSyncSO($id_bom);
+            }
+
             return response()->json(['status' => 200, 'message' => count($ids) . ' item berhasil dihapus']);
         } catch (\Exception $e) {
             return response()->json(['status' => 500, 'message' => $e->getMessage()]);
@@ -1293,5 +1314,16 @@ class Marketing_BomController extends Controller
 
         return $pdf->stream('BOM_Marketing_'.$bom->no_katalog_bom.'.pdf');
     }
-}
 
+    private function triggerAutoSyncSO($id_bom_marketing)
+    {
+        $sos = DB::connection('mysql_sb')->table('so')
+            ->where('id_bom', $id_bom_marketing)
+            ->where('cancel_h', 'N')
+            ->get();
+
+        foreach ($sos as $so) {
+            \App\Http\Controllers\Marketing_SOController::executeSyncBom($so->id);
+        }
+    }
+}
