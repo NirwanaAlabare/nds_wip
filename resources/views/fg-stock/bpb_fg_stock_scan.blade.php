@@ -198,6 +198,8 @@
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
     <script>
+        let isProcessing = false;
+
         $(document).ready(() => {
             dataTableReload();
 
@@ -207,9 +209,14 @@
                 if (e.keyCode === 13) {
                     e.preventDefault();
 
+                    if (isProcessing) return;
+
                     let barcode = $(this).val().trim();
 
                     if (!barcode) return;
+
+                    isProcessing = true;
+                    $(this).prop('readonly', true);
 
                     $('#loading').removeClass('d-none');
                     getDataBarcode(barcode);
@@ -476,7 +483,7 @@
                             timeout: 2000
                         });
 
-                        $('#barcode_scan').val("").focus();
+                        unlockBarcode();
                         return;
                     }
 
@@ -493,6 +500,8 @@
                         transitionIn: 'slideInRight',
                         timeout: 2000
                     });
+
+                    unlockBarcode();
                 },
 
                 complete: function() {
@@ -514,8 +523,7 @@
                     timeout: 2000
                 });
 
-                $('#barcode_scan').val('').focus();
-
+                unlockBarcode();
                 return;
             }
 
@@ -541,7 +549,7 @@
                         timeout: 2000
                     });
 
-                    $('#barcode_scan').val('').focus();
+                    unlockBarcode();
                     dataTableReload();
                 },
                 error: function(xhr) {
@@ -551,9 +559,18 @@
                         position: 'topCenter',
                         timeout: 2000
                     });
-                    $('#barcode_scan').val('').focus();
+                    unlockBarcode();
                 }
             });
+        }
+
+        function unlockBarcode() {
+            isProcessing = false;
+
+            $('#barcode_scan')
+                .prop('readonly', false)
+                .val('')
+                .focus();
         }
     </script>
 @endsection
