@@ -135,6 +135,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/miss-rework', 'missRework')->name("sewing-miss-rework");
         Route::post('/miss-reject', 'missReject')->name("sewing-miss-reject");
         Route::post('/miss-packing-po', 'missPackingPo')->name("sewing-miss-packing-po");
+        Route::post('/fix-reject-out-detail', 'fixRejectOutDetail')->name("fix-reject-out-detail");
 
         // Check Output Detail
         Route::get('/check-output-detail', 'checkOutputDetail')->name("check-output-detail");

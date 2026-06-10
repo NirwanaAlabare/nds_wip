@@ -127,6 +127,15 @@
                     </a>
                 </div>
                 <div class="col-md-4">
+                    <a type="button" class="home-item" onclick="fixRejectOutDetail()">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-circle-exclamation"></i> Fix Reject Out Detail</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
                     <a type="button" class="home-item" onclick="fixMasterPlanGambar()">
                         <div class="card">
                             <div class="card-body">
@@ -532,6 +541,48 @@
                         showConfirmButton: true,
                         confirmButtonText: 'Oke',
                         confirmButtonColor: "#082149",
+                    });
+                }
+            });
+        }
+
+        function fixRejectOutDetail() {
+            Swal.fire({
+                title: 'Fix Reject Out Detail',
+                html: '<span class="text-danger"><b>Critical</b></span> <br> Melengkapi Reject Out Detail yang tidak memiliki Reject Out. <br> Yakin?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'PROSES',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#dc3545"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Please Wait...',
+                        html: 'Fixing Reject Out Detail... <br><br> <b>0</b>s elapsed...',
+                        didOpen: () => {
+                            Swal.showLoading();
+                            let t = 0;
+                            const el = Swal.getPopup().querySelector("b");
+                            setInterval(() => { t++; el.textContent = t; }, 1000);
+                        },
+                        allowOutsideClick: false,
+                    });
+
+                    $.ajax({
+                        type: "post",
+                        url: "{{ route('fix-reject-out-detail') }}",
+                        dataType: "json",
+                        success: function(response) {
+                            if (response.status == 200) {
+                                Swal.fire({ icon: 'success', title: 'Berhasil', html: response.message });
+                            } else {
+                                Swal.fire({ icon: 'error', title: 'Gagal', html: response.message });
+                            }
+                        },
+                        error: function() {
+                            Swal.fire({ icon: 'error', title: 'Terjadi Kesalahan' });
+                        }
                     });
                 }
             });
