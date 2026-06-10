@@ -367,6 +367,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/report_pengeluaran_cutting_panel', 'report_pengeluaran_cutting_panel')->name('report_pengeluaran_cutting_panel');
             Route::get('/report_return_fabric_cutting', 'report_return_fabric_cutting')->name('report_return_fabric_cutting');
             Route::get('/roll_fabric_cutting_in', 'roll_fabric_cutting_in')->name('roll_fabric_cutting_in');
+            Route::get('/report_mutasi_wip_cutting_set', 'report_mutasi_wip_cutting_set')->name('report_mutasi_wip_cutting_set');
 
 
             // export excel
@@ -384,6 +385,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/export_excel_report_pengeluaran_cutting_panel', 'export_excel_report_pengeluaran_cutting_panel')->name('export_excel_report_pengeluaran_cutting_panel');
             Route::get('/export_excel_report_return_fabric_cutting', 'export_excel_report_return_fabric_cutting')->name('export_excel_report_return_fabric_cutting');
             Route::get('/export_roll_fabric_cutting_in', 'export_roll_fabric_cutting_in')->name('export_roll_fabric_cutting_in');
+            Route::get('/export_excel_report_mutasi_wip_cutting_set', 'export_excel_report_mutasi_wip_cutting_set')->name('export_excel_report_mutasi_wip_cutting_set');
         });
 
         // Roll
