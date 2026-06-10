@@ -369,6 +369,7 @@ class CuttingFormPieceController extends Controller
                                         "size" => $request->size[$i],
                                         "dest" => $request->dest[$i],
                                         "qty" => $request->qty_detail[$i] ? $request->qty_detail[$i] : 0,
+                                        "qty_aktual" => $request->qty_detail[$i] ? ($request->qty_detail[$i] / ($cuttingPieceModel && $cuttingPieceModel->first() && $cuttingPieceModel->first()->cons_ws ? $cuttingPieceModel->first()->cons_ws : 1)) : 0,
                                         "created_by" => Auth::user()->id,
                                         "created_by_username" => Auth::user()->username
                                     ]);
@@ -995,7 +996,7 @@ class CuttingFormPieceController extends Controller
                 $dataLog->id,
                 $dataLog->toArray()
             );
-            
+
             $deleteFormCutPiece = FormCutPiece::where("id", $id)->delete();
 
             if ($deleteFormCutPiece) {

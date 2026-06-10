@@ -158,9 +158,9 @@ class ReportCuttingController extends Controller
                     CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
                     1 as ratio,
                     'PCS' notes,
-                    SUM(form_cut_piece_detail_size.qty) marker_gelar,
-                    SUM(form_cut_piece_detail_size.qty) spreading_gelar,
-                    SUM(form_cut_piece_detail_size.qty) form_gelar,
+                    SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) marker_gelar,
+                    SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) spreading_gelar,
+                    SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) form_gelar,
                     null form_diff
                 FROM
                     form_cut_piece
@@ -172,6 +172,7 @@ class ReportCuttingController extends Controller
                         master_sb_ws on master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                 where
                     form_cut_piece_detail_size.qty > 0
+                    and CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END > 0
                     and form_cut_piece_detail.id not in (
                         7207
                     )
@@ -402,9 +403,9 @@ class ReportCuttingController extends Controller
                         CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
                         1 as ratio,
                         'PCS' notes,
-                        SUM(form_cut_piece_detail_size.qty) marker_gelar,
-                        SUM(form_cut_piece_detail_size.qty) spreading_gelar,
-                        SUM(form_cut_piece_detail_size.qty) form_gelar,
+                        SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) marker_gelar,
+                        SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) spreading_gelar,
+                        SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) form_gelar,
                         null form_diff
                     FROM
                         form_cut_piece
@@ -415,7 +416,8 @@ class ReportCuttingController extends Controller
                         INNER JOIN
                             master_sb_ws on master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                     where
-                        form_cut_piece_detail_size.qty > 0
+                        form_cut_piece_detail_size.qty > 0 and
+                        CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END > 0
                         " . $additionalQueryPcs . "
                         " . $additionalQueryPcs1 . "
                     group by
@@ -1058,9 +1060,9 @@ class ReportCuttingController extends Controller
                             CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
                             1 ratio,
                             'PCS' notes,
-                            SUM(form_cut_piece_detail_size.qty) marker_gelar,
-                            SUM(form_cut_piece_detail_size.qty) spreading_gelar,
-                            SUM(form_cut_piece_detail_size.qty) form_gelar,
+                            SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) marker_gelar,
+                            SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) spreading_gelar,
+                            SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) form_gelar,
                             0 diff
                         FROM
                             form_cut_piece
@@ -1071,7 +1073,8 @@ class ReportCuttingController extends Controller
                             INNER JOIN
                                 master_sb_ws on master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                         where
-                            form_cut_piece_detail_size.qty > 0
+                            form_cut_piece_detail_size.qty > 0 and
+                            CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END > 0
                             and form_cut_piece_detail.id not in (
                                 7207
                             )
@@ -1360,9 +1363,9 @@ class ReportCuttingController extends Controller
                             CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
                             1 ratio,
                             'PCS' notes,
-                            SUM(form_cut_piece_detail_size.qty) marker_gelar,
-                            SUM(form_cut_piece_detail_size.qty) spreading_gelar,
-                            SUM(form_cut_piece_detail_size.qty) form_gelar,
+                            SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) marker_gelar,
+                            SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) spreading_gelar,
+                            SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) form_gelar,
                             null diff
                         FROM
                             form_cut_piece
@@ -1373,7 +1376,8 @@ class ReportCuttingController extends Controller
                             INNER JOIN
                                 master_sb_ws on master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                         where
-                            form_cut_piece_detail_size.qty > 0
+                            form_cut_piece_detail_size.qty > 0 and
+                            CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END > 0
                             and form_cut_piece_detail.id not in (
                                 7207
                             )
@@ -4490,7 +4494,7 @@ order by a.tgl_trans asc
                             form_cut_piece_detail.group_stocker,
                             null,
                             null,
-                            SUM(form_cut_piece_detail_size.qty) as qty
+                            SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) as qty
                         FROM
                             form_cut_piece
                             LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
@@ -4664,7 +4668,7 @@ order by a.tgl_trans asc
                                     form_cut_piece_detail.group_stocker,
                                     null,
                                     null,
-                                    SUM(form_cut_piece_detail_size.qty) as qty
+                                    SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) as qty
                                 FROM
                                     form_cut_piece
                                     LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
@@ -5164,7 +5168,7 @@ order by a.tgl_trans asc
                                     form_cut_piece_detail.group_stocker,
                                     null,
                                     null,
-                                    SUM(form_cut_piece_detail_size.qty) as qty
+                                    SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) as qty
                             FROM
                                     form_cut_piece
                                     LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
@@ -5519,7 +5523,7 @@ order by a.tgl_trans asc
                                                     form_cut_piece_detail.group_stocker,
                                                     null,
                                                     null,
-                                                    SUM(form_cut_piece_detail_size.qty) as qty
+                                                    SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) as qty
                                             FROM
                                                     form_cut_piece
                                                     LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
@@ -5938,7 +5942,7 @@ order by a.tgl_trans asc
                                         form_cut_piece_detail.group_stocker,
                                         NULL,
                                         NULL,
-                                        SUM( form_cut_piece_detail_size.qty ) AS qty,
+                                        SUM( CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END ) AS qty,
                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
@@ -6149,7 +6153,7 @@ order by a.tgl_trans asc
                                         form_cut_piece_detail.group_stocker,
                                         NULL,
                                         NULL,
-                                        SUM( form_cut_piece_detail_size.qty ) AS qty,
+                                        SUM( CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END ) AS qty,
                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
@@ -6800,7 +6804,7 @@ order by a.tgl_trans asc
                                             form_cut_piece_detail.group_stocker,
                                             NULL,
                                             NULL,
-                                            SUM( form_cut_piece_detail_size.qty ) AS qty,
+                                            SUM( CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END ) AS qty,
                                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
                                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
                                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
@@ -7008,7 +7012,7 @@ order by a.tgl_trans asc
                                             form_cut_piece_detail.group_stocker,
                                             NULL,
                                             NULL,
-                                            SUM( form_cut_piece_detail_size.qty ) AS qty,
+                                            SUM( CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END ) AS qty,
                                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
                                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
                                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
@@ -7962,7 +7966,7 @@ order by a.tgl_trans asc
                             form_cut_piece_detail.group_stocker,
                             null,
                             null,
-                            SUM(form_cut_piece_detail_size.qty) as qty
+                            SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) as qty
                     FROM
                             form_cut_piece
                             LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
@@ -8317,7 +8321,7 @@ order by a.tgl_trans asc
                                             form_cut_piece_detail.group_stocker,
                                             null,
                                             null,
-                                            SUM(form_cut_piece_detail_size.qty) as qty
+                                            SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) as qty
                                     FROM
                                             form_cut_piece
                                             LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
@@ -8793,7 +8797,7 @@ order by a.tgl_trans asc
                                 form_cut_piece_detail.group_stocker,
                                 NULL,
                                 NULL,
-                                SUM( form_cut_piece_detail_size.qty ) AS qty,
+                                SUM( CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END ) AS qty,
                                 ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
                                 ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
                                 ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
@@ -9001,7 +9005,7 @@ order by a.tgl_trans asc
                                 form_cut_piece_detail.group_stocker,
                                 NULL,
                                 NULL,
-                                SUM( form_cut_piece_detail_size.qty ) AS qty,
+                                SUM( CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END ) AS qty,
                                 ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
                                 ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
                                 ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
@@ -9704,7 +9708,7 @@ order by a.tgl_trans asc
                                             form_cut_piece_detail.group_stocker,
                                             NULL,
                                             NULL,
-                                            SUM( form_cut_piece_detail_size.qty ) AS qty,
+                                            SUM( CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END ) AS qty,
                                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
                                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
                                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
@@ -9915,7 +9919,7 @@ order by a.tgl_trans asc
                                             form_cut_piece_detail.group_stocker,
                                             NULL,
                                             NULL,
-                                            SUM( form_cut_piece_detail_size.qty ) AS qty,
+                                            SUM( CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END ) AS qty,
                                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
                                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
                                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,

@@ -1690,10 +1690,10 @@ class ReportMutasiOutputController extends Controller
                                     left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
                                     where tujuan = 'PRODUCTION-SEWING' and
                                     tgl_pengeluaran > '2026-03-31' and
-                                    tgl_pengeluaran < '$end_date'
+                                    tgl_pengeluaran < '$start_date'
                                     $filter_terima_gudang
                                     group by act_costing.kpno, so_det.color, so_det.size
-                                    having total > 0
+                                    having total_before > 0
                             ),
 
                             terima_gudang as (
@@ -4140,10 +4140,10 @@ class ReportMutasiOutputController extends Controller
                     left join mastersupplier on mastersupplier.Id_Supplier = act_costing.id_buyer
                     where tujuan = 'PRODUCTION-SEWING' and
                     tgl_pengeluaran > '2026-03-31' and
-                    tgl_pengeluaran < '$end_date'
+                    tgl_pengeluaran < '$start_date'
                     $filter_terima_gudang
                     group by act_costing.kpno, so_det.color, so_det.size
-                    having total > 0
+                    having total_before > 0
             ),
 
             terima_gudang as (
