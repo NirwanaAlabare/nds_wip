@@ -502,8 +502,8 @@
                             <table class="table table-sm table-bordered" id="table-dokumen">
                                 <thead class="bg-light text-center">
                                     <tr>
-                                        <th width="40%">Nomor Dokumen</th>
-                                        <th width="30%">Kode Dokumen</th>
+                                        <th width="30%">Nomor Dokumen</th>
+                                        <th width="40%">Kode Dokumen</th>
                                         <th width="15%">Tgl Dokumen</th>
                                         <th width="10%"><button type="button" class="btn btn-sm btn-primary py-0 px-2" id="btn-add-dok" title="Tambah Dokumen"><i class="fas fa-plus"></i></button></th>
                                     </tr>
@@ -511,6 +511,7 @@
                                 <tbody id="tbody-dokumen">
                                     @foreach($dokumens as $index => $dok)
                                     <tr>
+                                        <td><input type="text" name="dok[{{ $index }}][nomor]" class="form-control form-control-sm" value="{{ $dok['nomor'] ?? '' }}"></td>
                                         <td>
                                             <select name="dok[{{ $index }}][kode]" class="form-control form-control-sm select2bs4">
                                                 <option value="">-- Pilih Kode --</option>
@@ -522,7 +523,6 @@
                                                 @endif
                                             </select>
                                         </td>
-                                        <td><input type="text" name="dok[{{ $index }}][nomor]" class="form-control form-control-sm" value="{{ $dok['nomor'] ?? '' }}"></td>
                                         <td><input type="date" name="dok[{{ $index }}][tgl]" class="form-control form-control-sm" value="{{ $dok['tgl'] ?? '' }}"></td>
                                         <td class="text-center align-middle"><button type="button" class="btn btn-sm btn-danger py-0 px-2 btn-hapus-dok" title="Hapus Baris"><i class="fas fa-trash-alt"></i></button></td>
                                     </tr>
@@ -538,11 +538,11 @@
                     <div class="section-title mt-0">Pengangkut</div>
                     <div class="row mb-3">
                         <div class="col-md-4 form-group"><label>Nama Pengangkut</label><input type="text" name="pengangkut[nama]" class="form-control form-control-sm" value="{{ $dataDetail['pengangkut']['nama'] ?? 'TRUK' }}"></div>
-                        <div class="col-md-4 form-group"><label>Kode Bendera</label>
+                        {{-- <div class="col-md-4 form-group hidden"><label>Kode Bendera</label>
                             <select name="pengangkut[kodeBendera]" class="form-control form-control-sm select2bs4">
                                 @include('export-import.dokumen-pabean.options_negara', ['selected' => $dataDetail['pengangkut']['kodeBendera'] ?? 'ID'])
                             </select>
-                        </div>
+                        </div> --}}
                         <div class="col-md-4 form-group"><label>Nomor Polisi</label><input type="text" name="pengangkut[nomor]" class="form-control form-control-sm" value="{{ $dataDetail['pengangkut']['nomor'] ?? $header->nomor_mobil ?? '' }}"></div>
                     </div>
                 </div>
@@ -594,9 +594,9 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-2 form-group"><label>Asuransi (Rp)</label><input type="text" inputmode="decimal" name="asuransi" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['asuransi'] ?? "" }}" placeholder="contoh: 50000.00"></div>
-                        <div class="col-md-2 form-group"><label>Freight (Rp)</label><input type="text" inputmode="decimal" name="freight" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['freight'] ?? "" }}" placeholder="contoh: 200000.00"></div>
-                        <div class="col-md-2 form-group"><label>Biaya Tambahan (Rp)</label><input type="text" inputmode="decimal" name="biayaTambahan" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['biayaTambahan'] ?? "" }}" placeholder="contoh: 0.00"></div>
+                        {{-- <div class="col-md-2 form-group hidden"><label>Asuransi (Rp)</label><input type="text" inputmode="decimal" name="asuransi" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['asuransi'] ?? "" }}" placeholder="contoh: 50000.00"></div> --}}
+                        {{-- <div class="col-md-2 form-group hidden"><label>Freight (Rp)</label><input type="text" inputmode="decimal" name="freight" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['freight'] ?? "" }}" placeholder="contoh: 200000.00"></div> --}}
+                        {{-- <div class="col-md-2 form-group hidden"><label>Biaya Tambahan (Rp)</label><input type="text" inputmode="decimal" name="biayaTambahan" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['biayaTambahan'] ?? "" }}" placeholder="contoh: 0.00"></div> --}}
                         <div class="col-md-2 form-group"><label>Biaya Pengurang (Rp)</label><input type="text" inputmode="decimal" name="biayaPengurang" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['biayaPengurang'] ?? "" }}" placeholder="contoh: 0.00"></div>
                         <div class="col-md-2 form-group"><label>Uang Muka (Rp)</label><input type="text" inputmode="decimal" name="uangMuka" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['uangMuka'] ?? "" }}" placeholder="contoh: 0.00"></div>
                         <div class="col-md-2 form-group"><label>Nilai Jasa (Rp)</label><input type="text" inputmode="decimal" name="nilaiJasa" class="form-control form-control-sm input-decimal" value="{{ $dataDetail['nilaiJasa'] ?? "" }}" placeholder="contoh: 0.00"></div>
@@ -786,8 +786,8 @@
         $('#btn-add-dok').on('click', function() {
             let htmlTr = `
                 <tr>
-                    <td><select name="dok[${dokIndex}][kode]" class="form-control form-control-sm select2bs4-dynamic">${optDokumenHtml}</select></td>
                     <td><input type="text" name="dok[${dokIndex}][nomor]" class="form-control form-control-sm" value=""></td>
+                    <td><select name="dok[${dokIndex}][kode]" class="form-control form-control-sm select2bs4-dynamic">${optDokumenHtml}</select></td>
                     <td><input type="date" name="dok[${dokIndex}][tgl]" class="form-control form-control-sm" value=""></td>
                     <td class="text-center align-middle"><button type="button" class="btn btn-sm btn-danger py-0 px-2 btn-hapus-dok"><i class="fas fa-trash-alt"></i></button></td>
                 </tr>
