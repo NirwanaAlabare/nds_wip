@@ -1293,6 +1293,22 @@ class Marketing_SOController extends Controller
 
         if ($temp_data->isEmpty()) return response()->json(['message' => 'Data Kosong!'], 400);
 
+        $po_type = $request->po_type ?? 'single';
+        
+        if ($po_type === 'multiple') {
+            $all_po_array = $temp_data->keys()->toArray();
+            $no_po_combined = implode(', ', $all_po_array);
+            if (strlen($no_po_combined) > 200) {
+                $no_po_combined = substr($no_po_combined, 0, 195) . '...';
+            }
+            
+            $all_details = $temp_data->flatten(1);
+            
+            $temp_data = collect([
+                $no_po_combined => $all_details
+            ]);
+        }
+
         $mysql_sb->beginTransaction();
 
         try {
