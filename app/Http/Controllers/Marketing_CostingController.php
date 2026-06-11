@@ -244,7 +244,6 @@ class Marketing_CostingController extends Controller
             'no_costing'      => $cost_no,
             'buyer'           => $original->buyer,
             'brand'           => $original->brand,
-            'season'          => $original->season,
             'season_id'       => $original->season_id,
             'product_group'   => $original->product_group,
             'product_item'    => $original->product_item,
