@@ -409,19 +409,22 @@
                                                     @php
                                                         $tarifList = $draftItem['barangTarif'] ?? [
                                                             ['kodeJenisPungutan' => 'BM',  'tarif' => 0, 'kodeFasilitasTarif' => '3', 'tarifFasilitas' => 100],
-                                                            ['kodeJenisPungutan' => 'PPH', 'tarif' => 0, 'kodeFasilitasTarif' => '3', 'tarifFasilitas' => 100],
                                                             ['kodeJenisPungutan' => 'PPN', 'tarif' => 0, 'kodeFasilitasTarif' => '3', 'tarifFasilitas' => 100],
+                                                            ['kodeJenisPungutan' => 'PPNBM', 'tarif' => 0, 'kodeFasilitasTarif' => '3', 'tarifFasilitas' => 100],
+                                                            ['kodeJenisPungutan' => 'PPH', 'tarif' => 0, 'kodeFasilitasTarif' => '3', 'tarifFasilitas' => 100],
                                                         ];
-                                                        $tarifBM = $tarifPPH = $tarifPPN = null;
+                                                        $tarifBM = $tarifPPN = $tarifPPNBM = $tarifPPH = null;
                                                         foreach($tarifList as $t) {
                                                             if(($t['kodeJenisPungutan']??'') == 'BM')  $tarifBM  = $t;
-                                                            if(($t['kodeJenisPungutan']??'') == 'PPH') $tarifPPH = $t;
                                                             if(($t['kodeJenisPungutan']??'') == 'PPN') $tarifPPN = $t;
+                                                            if(($t['kodeJenisPungutan']??'') == 'PPNBM') $tarifPPNBM = $t;
+                                                            if(($t['kodeJenisPungutan']??'') == 'PPH') $tarifPPH = $t;
                                                         }
                                                         if(!$tarifBM)  $tarifBM  = ['kodeJenisPungutan' => 'BM',  'tarif' => 0, 'kodeFasilitasTarif' => '3', 'tarifFasilitas' => 100];
-                                                        if(!$tarifPPH) $tarifPPH = ['kodeJenisPungutan' => 'PPH', 'tarif' => 0, 'kodeFasilitasTarif' => '3', 'tarifFasilitas' => 100];
                                                         if(!$tarifPPN) $tarifPPN = ['kodeJenisPungutan' => 'PPN', 'tarif' => 0, 'kodeFasilitasTarif' => '3', 'tarifFasilitas' => 100];
-                                                        $tarifList = [$tarifBM, $tarifPPH, $tarifPPN];
+                                                        if(!$tarifPPNBM) $tarifPPNBM = ['kodeJenisPungutan' => 'PPNBM', 'tarif' => 0, 'kodeFasilitasTarif' => '3', 'tarifFasilitas' => 100];
+                                                        if(!$tarifPPH) $tarifPPH = ['kodeJenisPungutan' => 'PPH', 'tarif' => 0, 'kodeFasilitasTarif' => '3', 'tarifFasilitas' => 100];
+                                                        $tarifList = [$tarifBM, $tarifPPN, $tarifPPNBM, $tarifPPH];
                                                     @endphp
                                                     <table class="table table-bordered table-sm mb-0" style="font-size:11px;">
                                                         <thead class="bg-light text-center">
@@ -458,6 +461,80 @@
                                                         </tfoot>
                                                     </table>
                                                 </div>
+                                                <div class="mt-3 w-100 px-3">
+                                                    <div class="custom-control custom-checkbox mb-2">
+                                                        <input type="checkbox" class="custom-control-input bmt-toggle" id="bmtToggle{{$index}}">
+                                                        <label class="custom-control-label fw-bold" for="bmtToggle{{$index}}" style="font-size:12px;">BMT (Bea Masuk Tambahan)</label>
+                                                    </div>
+                                                    <div class="bmt-container p-3 bg-light border rounded" style="display: none;">
+                                                        @php
+                                                            $bmtTypes = ['BMAD', 'BMTP', 'BMI', 'BMP'];
+                                                            $bmtStartIndex = 3; // After BM, PPH, PPN
+                                                        @endphp
+                                                        @foreach($bmtTypes as $bIdx => $bmtType)
+                                                        @php
+                                                            $tIdx = $bmtStartIndex + $bIdx;
+                                                            $bmtData = null;
+                                                            foreach(($draftItem['barangTarif'] ?? []) as $t) {
+                                                                if(($t['kodeJenisPungutan']??'') == $bmtType) $bmtData = $t;
+                                                            }
+                                                            $isSementara = !empty($bmtData['sementara']) ? 'checked' : '';
+                                                            $jenisTarif = $bmtData['kodeJenisTarif'] ?? '1'; // 1 = Advalorum (%), 2 = Spesifik
+                                                        @endphp
+                                                        <div class="mb-3 bmt-row border-bottom pb-2">
+                                                            <div class="row align-items-center mb-1">
+                                                                <div class="col-md-2" style="font-size: 11px;">
+                                                                    <div class="fw-bold">{{ $bmtType }}</div>
+                                                                    <div class="custom-control custom-checkbox">
+                                                                        <input type="checkbox" class="custom-control-input" name="barang[{{ $index }}][barangTarif][{{$tIdx}}][sementara]" id="sementara{{$bmtType}}{{$index}}" value="1" {{ $isSementara }}>
+                                                                        <label class="custom-control-label text-muted" for="sementara{{$bmtType}}{{$index}}">Sementara</label>
+                                                                    </div>
+                                                                </div>
+                                                                <input type="hidden" name="barang[{{ $index }}][barangTarif][{{$tIdx}}][kodeJenisPungutan]" value="{{ $bmtType }}">
+                                                                <div class="col-md-3">
+                                                                    <select name="barang[{{ $index }}][barangTarif][{{$tIdx}}][kodeJenisTarif]" class="form-control form-control-sm bmt-jenis-tarif" style="font-size: 11px;">
+                                                                        <option value="1" {{ $jenisTarif == '1' ? 'selected' : '' }}>Advalorum (%)</option>
+                                                                        <option value="2" {{ $jenisTarif == '2' ? 'selected' : '' }}>Spesifik</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="col-md-7 bmt-inputs-container">
+                                                                    <!-- Advalorum -->
+                                                                    <div class="bmt-advalorum-inputs" style="{{ $jenisTarif == '1' ? '' : 'display:none;' }}">
+                                                                        <input type="number" step="any" name="barang[{{ $index }}][barangTarif][{{$tIdx}}][tarif]" class="form-control form-control-sm" placeholder="%" value="{{ $jenisTarif == '1' ? ($bmtData['tarif'] ?? '') : '' }}" style="font-size: 11px;">
+                                                                    </div>
+                                                                    <!-- Spesifik -->
+                                                                    <div class="bmt-spesifik-inputs row m-0" style="{{ $jenisTarif == '2' ? '' : 'display:none;' }}">
+                                                                        <div class="col-6 pl-0 pr-1">
+                                                                            <input type="number" step="any" name="barang[{{ $index }}][barangTarif][{{$tIdx}}][jumlahSatuan]" class="form-control form-control-sm" placeholder="Jml Satuan" value="{{ $bmtData['jumlahSatuan'] ?? '' }}" style="font-size: 11px;">
+                                                                        </div>
+                                                                        <div class="col-6 pr-0 pl-1">
+                                                                            <input type="number" step="any" name="barang[{{ $index }}][barangTarif][{{$tIdx}}][tarifSpesifik]" class="form-control form-control-sm" placeholder="Tarif" value="{{ $jenisTarif == '2' ? ($bmtData['tarif'] ?? '') : '' }}" style="font-size: 11px;">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row align-items-center">
+                                                                <div class="col-md-5"></div>
+                                                                <div class="col-md-4">
+                                                                    <select name="barang[{{ $index }}][barangTarif][{{$tIdx}}][kodeFasilitasTarif]" class="form-control form-control-sm" style="font-size: 11px;">
+                                                                        <option value="3" {{ ($bmtData['kodeFasilitasTarif'] ?? '') == '3' ? 'selected' : '' }}>3 - DTG - DITANGGUHKAN</option>
+                                                                        <option value="5" {{ ($bmtData['kodeFasilitasTarif'] ?? '') == '5' ? 'selected' : '' }}>5 - BBS - DIBEBASKAN</option>
+                                                                        <option value="6" {{ ($bmtData['kodeFasilitasTarif'] ?? '') == '6' ? 'selected' : '' }}>6 - TIDAK DIPUNGUT</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="col-md-3 pl-0">
+                                                                    <div class="input-group input-group-sm">
+                                                                        <input type="number" step="any" name="barang[{{ $index }}][barangTarif][{{$tIdx}}][tarifFasilitas]" class="form-control form-control-sm" placeholder="0" value="{{ $bmtData['tarifFasilitas'] ?? '0' }}" style="font-size: 11px;">
+                                                                        <div class="input-group-append">
+                                                                            <span class="input-group-text px-2" style="font-size: 11px;">%</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -482,9 +559,9 @@
 
                     <div class="section-title"><i class="fas fa-truck-loading"></i> Entitas Pengirim (Kode: 9)</div>
                     <div class="row">
-                        <div class="col-md-4 form-group"><label>Nama Entitas</label><input type="text" name="entitas[9][namaEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][9]['namaEntitas'] ?? $header->supplier ?? '' }}"></div>
-                        <div class="col-md-4 form-group"><label>NPWP</label><input type="text" name="entitas[9][nomorIdentitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][9]['nomorIdentitas'] ?? $header->npwp_supplier ?? '' }}"></div>
-                        <div class="col-md-4 form-group"><label>Alamat</label><input type="text" name="entitas[9][alamatEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][9]['alamatEntitas'] ?? $header->alamat_supplier ?? '' }}"></div>
+                        <div class="col-md-6 form-group"><label>Nama Entitas</label><input type="text" name="entitas[9][namaEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][9]['namaEntitas'] ?? $header->supplier ?? '' }}"></div>
+                        <input type="hidden" name="entitas[9][nomorIdentitas]" value="-">
+                        <div class="col-md-6 form-group"><label>Alamat</label><input type="text" name="entitas[9][alamatEntitas]" class="form-control form-control-sm" value="{{ $dataDetail['entitas'][9]['alamatEntitas'] ?? $header->alamat_supplier ?? '' }}"></div>
                     </div>
 
                     <div class="section-title"><i class="fas fa-user-tag"></i> Entitas Pemilik Barang (Kode: 7)</div>
@@ -765,28 +842,28 @@
 
                             </thead>
                             <tbody>
+                                @php
+                                    $pungutanList = ['BM', 'BMAD', 'BMTP', 'BMI', 'BMP', 'CUKAI', 'PPN', 'PPNBM', 'PPH'];
+                                @endphp
+                                @foreach($pungutanList as $pung)
                                 <tr>
-                                    <td class="text-left font-weight-bold" style="color: #666; font-size: 12px; padding-left: 15px;">BM</td>
-                                    <td class="font-weight-bold" style="font-size: 12px; color: #0000FF;" id="text-bm-ditangguhkan">Rp 0,00</td>
-                                    <td class="font-weight-bold" style="font-size: 12px; color: #0000FF;" id="text-bm-sudah-dilunasi">Rp 0,00</td>
-                                    <td class="font-weight-bold" style="font-size: 12px; color: #0000FF;" id="text-bm-dibebaskan">Rp 0,00</td>
-                                    <td class="font-weight-bold" style="font-size: 12px; color: #0000FF;" id="text-bm-tidak-dipungut">Rp 0,00</td>
+                                    <td class="text-left font-weight-bold" style="color: #666; font-size: 12px; padding-left: 15px;">{{ $pung }}</td>
+                                    <td class="font-weight-bold" style="font-size: 12px; color: #0000FF;" id="text-{{ strtolower($pung) }}-ditangguhkan">Rp 0,00</td>
+                                    <td class="font-weight-bold" style="font-size: 12px; color: #0000FF;" id="text-{{ strtolower($pung) }}-sudah-dilunasi">Rp 0,00</td>
+                                    <td class="font-weight-bold" style="font-size: 12px; color: #0000FF;" id="text-{{ strtolower($pung) }}-dibebaskan">Rp 0,00</td>
+                                    <td class="font-weight-bold" style="font-size: 12px; color: #0000FF;" id="text-{{ strtolower($pung) }}-tidak-dipungut">Rp 0,00</td>
                                 </tr>
-                                <tr>
-                                    <td class="text-left font-weight-bold" style="color: #666; font-size: 12px; padding-left: 15px;">PPN</td>
-                                    <td class="font-weight-bold" style="font-size: 12px; color: #0000FF;" id="text-ppn-ditangguhkan">Rp 0,00</td>
-                                    <td class="font-weight-bold" style="font-size: 12px; color: #0000FF;" id="text-ppn-sudah-dilunasi">Rp 0,00</td>
-                                    <td class="font-weight-bold" style="font-size: 12px; color: #0000FF;" id="text-ppn-dibebaskan">Rp 0,00</td>
-                                    <td class="font-weight-bold" style="font-size: 12px; color: #0000FF;" id="text-ppn-tidak-dipungut">Rp 0,00</td>
-                                </tr>
-                                <tr>
-                                    <td class="text-left font-weight-bold" style="color: #666; font-size: 12px; padding-left: 15px;">PPH</td>
-                                    <td class="font-weight-bold" style="font-size: 12px; color: #0000FF;" id="text-pph-ditangguhkan">Rp 0,00</td>
-                                    <td class="font-weight-bold" style="font-size: 12px; color: #0000FF;" id="text-pph-sudah-dilunasi">Rp 0,00</td>
-                                    <td class="font-weight-bold" style="font-size: 12px; color: #0000FF;" id="text-pph-dibebaskan">Rp 0,00</td>
-                                    <td class="font-weight-bold" style="font-size: 12px; color: #0000FF;" id="text-pph-tidak-dipungut">Rp 0,00</td>
-                                </tr>
+                                @endforeach
                             </tbody>
+                            <tfoot class="bg-light">
+                                <tr>
+                                    <td class="text-right font-weight-bold" style="color: #333; font-size: 13px; padding-right: 15px;">TOTAL</td>
+                                    <td class="font-weight-bold" style="font-size: 13px; color: #cc0000;" id="text-total-ditangguhkan">Rp 0,00</td>
+                                    <td class="font-weight-bold" style="font-size: 13px; color: #cc0000;" id="text-total-sudah-dilunasi">Rp 0,00</td>
+                                    <td class="font-weight-bold" style="font-size: 13px; color: #cc0000;" id="text-total-dibebaskan">Rp 0,00</td>
+                                    <td class="font-weight-bold" style="font-size: 13px; color: #cc0000;" id="text-total-tidak-dipungut">Rp 0,00</td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
 
@@ -1071,6 +1148,41 @@
 
         $('.select2bs4').select2({ theme: 'bootstrap4', width: '100%', tags: true });
 
+        // BMT Interactions
+        $(document).on('change', '.bmt-toggle', function() {
+            if($(this).is(':checked')) {
+                $(this).closest('.mt-3').find('.bmt-container').slideDown();
+            } else {
+                $(this).closest('.mt-3').find('.bmt-container').slideUp();
+            }
+        });
+
+        // Initialize BMT toggles on load
+        $('.bmt-container').each(function() {
+            let hasData = false;
+            $(this).find('input[type="number"]').each(function() {
+                if($(this).val() && parseFloat($(this).val()) > 0) hasData = true;
+            });
+            if(hasData) {
+                $(this).show();
+                $(this).closest('.mt-3').find('.bmt-toggle').prop('checked', true);
+            }
+        });
+
+        $(document).on('change', '.bmt-jenis-tarif', function() {
+            let val = $(this).val();
+            let container = $(this).closest('.bmt-row').find('.bmt-inputs-container');
+            if (val === '1') {
+                container.find('.bmt-advalorum-inputs').show();
+                container.find('.bmt-spesifik-inputs').hide();
+                container.find('.bmt-spesifik-inputs input').val('');
+            } else {
+                container.find('.bmt-advalorum-inputs').hide();
+                container.find('.bmt-spesifik-inputs').show();
+                container.find('.bmt-advalorum-inputs input').val('');
+            }
+        });
+
         // ── Filter input angka & desimal ──────────────────────────────────
         // Hanya izinkan angka (0-9) dan satu titik desimal
         $(document).on('input', '.input-decimal', function () {
@@ -1189,6 +1301,11 @@
                     return;
                 }
 
+                // Skip BMT inputs as they are optional
+                if (el.closest('.bmt-container').length) {
+                    return;
+                }
+
                 let val = el.val();
                 let isEmpty = !val || val.toString().trim() === '';
 
@@ -1248,7 +1365,7 @@
 
             let invalidBarang = false;
             let invalidItemNames = [];
-            
+
             // Validasi CIF dan Netto harus > 0
             $('input[name$="[cif]"], input[name$="[netto]"]').each(function() {
                 let name = $(this).attr('name');
@@ -1333,7 +1450,13 @@
             let dataPungutan = {
                 'BM':  { '3': 0, '5': 0, '6': 0, '7': 0 },
                 'PPN': { '3': 0, '5': 0, '6': 0, '7': 0 },
-                'PPH': { '3': 0, '5': 0, '6': 0, '7': 0 }
+                'PPH': { '3': 0, '5': 0, '6': 0, '7': 0 },
+                'PPNBM': { '3': 0, '5': 0, '6': 0, '7': 0 },
+                'BMAD': { '3': 0, '5': 0, '6': 0, '7': 0 },
+                'BMTP': { '3': 0, '5': 0, '6': 0, '7': 0 },
+                'BMI': { '3': 0, '5': 0, '6': 0, '7': 0 },
+                'BMP': { '3': 0, '5': 0, '6': 0, '7': 0 },
+                'CUKAI': { '3': 0, '5': 0, '6': 0, '7': 0 }
             };
 
             $('#accordionBarang .card').each(function() {
@@ -1362,39 +1485,52 @@
                 }
 
                 // --- Kalkulasi pungutan per baris tarif ---
-                // BC 2.3 pakai struktur: barang[X][barangTarif][N][tarif/kodeFasilitasTarif/kodeJenisPungutan]
-                // Iterasi setiap baris <tr> di dalam tabel tarif pada card ini
-                let bmAmount = 0;
+                let totalBeaAmount = 0;
 
-                // Pass 1: Hitung BM dulu (base = nilai pabean/CIF)
-                row.find('table tbody tr').each(function() {
-                    let tr = $(this);
-                    let jenisInput = tr.find('input[name*="[kodeJenisPungutan]"]');
-                    if (jenisInput.length === 0) return;
+                // Pass 1: Hitung BM, BMT, Cukai
+                row.find('input[name*="[kodeJenisPungutan]"]').each(function() {
+                    let jenisInput = $(this);
                     let jenis = jenisInput.val();
-                    if (jenis !== 'BM') return;
+                    if (['BM', 'BMAD', 'BMTP', 'BMI', 'BMP', 'CUKAI'].includes(jenis)) {
+                        let container = jenisInput.closest('tr');
+                        if (container.length === 0) container = jenisInput.closest('.bmt-row');
+                        if (container.length === 0) return;
+                        
+                        let tarif = parseFloat(container.find('input[name*="[tarif]"]').first().val()) || 0;
+                        let fas = container.find('select[name*="[kodeFasilitasTarif]"]').val() || '3';
+                        let amount = 0;
 
-                    let tarif = parseFloat(tr.find('input[name*="[tarif]"]').val()) || 0;
-                    let fas   = tr.find('select[name*="[kodeFasilitasTarif]"]').val() || '3';
-                    bmAmount  = valPabean * (tarif / 100);
-                    if (dataPungutan['BM'][fas] !== undefined) {
-                        dataPungutan['BM'][fas] += bmAmount;
+                        // Check specific for BMT
+                        let jenisTarifSelect = container.find('select[name*="[kodeJenisTarif]"]');
+                        if (jenisTarifSelect.length > 0 && jenisTarifSelect.val() === '2') {
+                            let satuan = parseFloat(container.find('input[name*="[jumlahSatuan]"]').val()) || 0;
+                            let tarifSpesifik = parseFloat(container.find('input[name*="[tarifSpesifik]"]').val()) || 0;
+                            amount = satuan * tarifSpesifik;
+                        } else {
+                            amount = valPabean * (tarif / 100);
+                        }
+
+                        if (dataPungutan[jenis] && dataPungutan[jenis][fas] !== undefined) {
+                            dataPungutan[jenis][fas] += amount;
+                        }
+                        totalBeaAmount += amount;
                     }
                 });
 
-                // Pass 2: Hitung PPN & PPH (base = nilai pabean + BM)
-                row.find('table tbody tr').each(function() {
-                    let tr = $(this);
-                    let jenisInput = tr.find('input[name*="[kodeJenisPungutan]"]');
-                    if (jenisInput.length === 0) return;
+                // Pass 2: Hitung PDRI (PPN, PPNBM, PPH)
+                row.find('input[name*="[kodeJenisPungutan]"]').each(function() {
+                    let jenisInput = $(this);
                     let jenis = jenisInput.val();
-                    if (jenis !== 'PPN' && jenis !== 'PPH') return;
+                    if (['PPN', 'PPNBM', 'PPH'].includes(jenis)) {
+                        let container = jenisInput.closest('tr');
+                        if (container.length === 0) return;
+                        let tarif = parseFloat(container.find('input[name*="[tarif]"]').val()) || 0;
+                        let fas = container.find('select[name*="[kodeFasilitasTarif]"]').val() || '3';
+                        let amount = (valPabean + totalBeaAmount) * (tarif / 100);
 
-                    let tarif  = parseFloat(tr.find('input[name*="[tarif]"]').val()) || 0;
-                    let fas    = tr.find('select[name*="[kodeFasilitasTarif]"]').val() || '3';
-                    let amount = (valPabean + bmAmount) * (tarif / 100);
-                    if (dataPungutan[jenis] && dataPungutan[jenis][fas] !== undefined) {
-                        dataPungutan[jenis][fas] += amount;
+                        if (dataPungutan[jenis] && dataPungutan[jenis][fas] !== undefined) {
+                            dataPungutan[jenis][fas] += amount;
+                        }
                     }
                 });
             });
@@ -1423,12 +1559,21 @@
             hiddenContainer.empty();
             let arrayIndex = 0;
 
-            ['BM', 'PPN', 'PPH'].forEach(function(jenis) {
+            let total3 = 0, total5 = 0, total6 = 0, total7 = 0;
+
+            ['BM', 'BMAD', 'BMTP', 'BMI', 'BMP', 'CUKAI', 'PPN', 'PPNBM', 'PPH'].forEach(function(jenis) {
                 let idPrefix = '#text-' + jenis.toLowerCase() + '-';
-                $(idPrefix + 'ditangguhkan').text(formatIdr(dataPungutan[jenis]['3']));
-                $(idPrefix + 'dibebaskan').text(formatIdr(dataPungutan[jenis]['5']));
-                $(idPrefix + 'tidak-dipungut').text(formatIdr(dataPungutan[jenis]['6']));
-                $(idPrefix + 'sudah-dilunasi').text(formatIdr(dataPungutan[jenis]['7']));
+                if ($(idPrefix + 'ditangguhkan').length) {
+                    $(idPrefix + 'ditangguhkan').text(formatIdr(dataPungutan[jenis]['3']));
+                    $(idPrefix + 'dibebaskan').text(formatIdr(dataPungutan[jenis]['5']));
+                    $(idPrefix + 'tidak-dipungut').text(formatIdr(dataPungutan[jenis]['6']));
+                    $(idPrefix + 'sudah-dilunasi').text(formatIdr(dataPungutan[jenis]['7']));
+                }
+
+                total3 += dataPungutan[jenis]['3'] || 0;
+                total5 += dataPungutan[jenis]['5'] || 0;
+                total6 += dataPungutan[jenis]['6'] || 0;
+                total7 += dataPungutan[jenis]['7'] || 0;
 
                 for (let fas in dataPungutan[jenis]) {
                     if (dataPungutan[jenis][fas] > 0) {
@@ -1439,11 +1584,17 @@
                     }
                 }
             });
+
+            $('#text-total-ditangguhkan').text(formatIdr(total3));
+            $('#text-total-dibebaskan').text(formatIdr(total5));
+            $('#text-total-tidak-dipungut').text(formatIdr(total6));
+            $('#text-total-sudah-dilunasi').text(formatIdr(total7));
         }
 
         $(document).on('input change',
             'input[name$="[cif]"], input[name$="[cifRupiah]"], input[name$="[netto]"], input[name$="[volume]"], ' +
-            'select[name*="[kodeFasilitasTarif]"], input[name*="[barangTarif]"][name$="[tarif]"]',
+            'select[name*="[kodeFasilitasTarif]"], select[name*="[kodeJenisTarif]"], ' +
+            'input[name*="[barangTarif]"][name$="[tarif]"], input[name*="[barangTarif]"][name$="[jumlahSatuan]"], input[name*="[barangTarif]"][name$="[tarifSpesifik]"]',
             function() {
                 calculateTotals();
             }
