@@ -168,7 +168,6 @@ class Marketing_CostingController extends Controller
             'no_costing'      => $cost_no,
             'buyer'           => $request->buyer,
             'brand'           => Str::upper($request->brand),
-            'season'          => $request->season,
             'product_group'   => $request->product_group,
             'product_item'    => $request->product_item,
             'style'           => Str::upper($request->style),
