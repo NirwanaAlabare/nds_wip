@@ -286,7 +286,7 @@ bulan,
 tahun,
 case
 		when status_prod = 'KERJA' AND status_absen = 'LP' THEN 'KERJA'
-		when status_prod = 'KERJA' AND status_absen = 'LN' THEN 'KERJA'
+		when status_prod = 'KERJA' AND status_absen = 'LN' THEN 'LIBUR'
 		when status_prod = 'KERJA' AND status_absen is null THEN 'KERJA'
 		when status_prod = 'LIBUR' AND status_absen = 'LP' THEN 'LIBUR'
 		when status_prod = 'LIBUR' AND status_absen = 'LN' THEN 'LIBUR'

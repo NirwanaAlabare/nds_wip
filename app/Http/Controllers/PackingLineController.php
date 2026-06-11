@@ -62,10 +62,11 @@ class PackingLineController extends Controller
 
     public function wip_packing_line_detail(Request $request)
     {
-        $po       = $request->po;
-        $line     = $request->line;
-        $today    = date('Y-m-d');
-        $todayEnd = $today . ' 23:59:59';
+        $po          = $request->po;
+        $line        = $request->line;
+        $today       = date('Y-m-d');
+        $todayEnd    = $today . ' 23:59:59';
+        $filterMonth = 5; // ganti angka ini untuk filter bulan lain
 
         $po_esc   = addslashes($po);
         $line_esc = addslashes($line);
@@ -73,7 +74,7 @@ class PackingLineController extends Controller
         try {
             $cacheKey = 'wip_detail_' . md5($po_esc . '|' . $line_esc) . '_' . $today;
 
-            $data = Cache::remember($cacheKey, 60, function () use ($today, $todayEnd, $po_esc, $line_esc) {
+            $data = Cache::remember($cacheKey, 60, function () use ($today, $todayEnd, $po_esc, $line_esc, $filterMonth) {
                 return DB::connection('mysql_sb')->select("
             WITH m AS (
                 SELECT
@@ -85,7 +86,7 @@ class PackingLineController extends Controller
                 FROM output_rfts_packing_po a
                 INNER JOIN laravel_nds.ppic_master_so p ON a.po_id = p.id
                 WHERE a.updated_at BETWEEN '$today' AND '$todayEnd'
-                  AND YEAR(p.tgl_shipment) >= 2026
+                  AND YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
                   AND p.po = '$po_esc'
                   AND a.created_by_line = '$line_esc'
                 GROUP BY a.po_id, a.created_by_line, a.so_det_id
@@ -100,7 +101,7 @@ class PackingLineController extends Controller
                 FROM laravel_nds.packing_trf_garment a
                 INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
                 WHERE a.tgl_trans = '$today'
-                  AND YEAR(p.tgl_shipment) >= 2026
+                  AND YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
                   AND a.po = '$po_esc'
                   AND a.line = '$line_esc'
                 GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
@@ -111,7 +112,7 @@ class PackingLineController extends Controller
                     a.selisih AS sa, 0 AS qty_packing_line, 0 AS qty_trf_gmt
                 FROM mut_packing_line_to_trf_gmt a
                 INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                WHERE YEAR(p.tgl_shipment) >= 2026
+                WHERE YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
                   AND a.po = '$po_esc' AND a.line = '$line_esc'
                 UNION ALL
                 SELECT po, line, so_det_id, 0, qty_packing_line, 0 FROM m
@@ -146,10 +147,11 @@ class PackingLineController extends Controller
 
     public function wip_packing_line_data()
     {
-        $today    = date('Y-m-d');
-        $todayEnd = $today . ' 23:59:59';
+        $today       = date('Y-m-d');
+        $todayEnd    = $today . ' 23:59:59';
+        $filterMonth = 5; // ganti angka ini untuk filter bulan lain
 
-        $raw = Cache::remember('wip_packing_line_' . $today, 60, function () use ($today, $todayEnd) {
+        $raw = Cache::remember('wip_packing_line_' . $today, 60, function () use ($today, $todayEnd, $filterMonth) {
             return DB::connection('mysql_sb')->select("
             WITH m AS (
                 SELECT
@@ -161,7 +163,7 @@ class PackingLineController extends Controller
                 FROM output_rfts_packing_po a
                 INNER JOIN laravel_nds.ppic_master_so p ON a.po_id = p.id
                 WHERE a.updated_at BETWEEN '$today' AND '$todayEnd'
-                  AND YEAR(p.tgl_shipment) >= 2026
+                  AND YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
                 GROUP BY a.po_id, a.created_by_line, a.so_det_id
             ),
             g AS (
@@ -174,7 +176,7 @@ class PackingLineController extends Controller
                 FROM laravel_nds.packing_trf_garment a
                 INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
                 WHERE a.tgl_trans = '$today'
-                  AND YEAR(p.tgl_shipment) >= 2026
+                  AND YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
                 GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
             ),
             mut AS (
@@ -188,7 +190,7 @@ class PackingLineController extends Controller
                     0                   AS qty_trf_gmt
                 FROM mut_packing_line_to_trf_gmt a
                 INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                WHERE YEAR(p.tgl_shipment) >= 2026
+                WHERE YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
                 UNION ALL
                 SELECT
                     po_id               AS id_ppic_master_so,
@@ -220,6 +222,9 @@ class PackingLineController extends Controller
             FROM mut
             WHERE line IS NOT NULL AND line != ''
             GROUP BY po, line
+            HAVING SUM(sa) != 0
+            AND SUM(qty_packing_line) != 0
+            AND SUM(qty_trf_gmt) != 0
             ORDER BY line, po
         ");
         });
@@ -245,8 +250,9 @@ class PackingLineController extends Controller
 
     public function wip_packing_line_export()
     {
-        $today    = date('Y-m-d');
-        $todayEnd = $today . ' 23:59:59';
+        $today       = date('Y-m-d');
+        $todayEnd    = $today . ' 23:59:59';
+        $filterMonth = 5; // ganti angka ini untuk export bulan lain
 
         $data = DB::connection('mysql_sb')->select("
             WITH m AS (
@@ -259,7 +265,7 @@ class PackingLineController extends Controller
                 FROM output_rfts_packing_po a
                 INNER JOIN laravel_nds.ppic_master_so p ON a.po_id = p.id
                 WHERE a.updated_at BETWEEN '$today' AND '$todayEnd'
-                  AND YEAR(p.tgl_shipment) >= 2026
+                  AND YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
                 GROUP BY a.po_id, a.created_by_line, a.so_det_id
             ),
             g AS (
@@ -272,7 +278,7 @@ class PackingLineController extends Controller
                 FROM laravel_nds.packing_trf_garment a
                 INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
                 WHERE a.tgl_trans = '$today'
-                  AND YEAR(p.tgl_shipment) >= 2026
+                  AND YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
                 GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
             ),
             mut AS (
@@ -282,7 +288,7 @@ class PackingLineController extends Controller
                     a.selisih AS sa, 0 AS qty_packing_line, 0 AS qty_trf_gmt
                 FROM mut_packing_line_to_trf_gmt a
                 INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                WHERE YEAR(p.tgl_shipment) >= 2026
+                WHERE YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
                 UNION ALL
                 SELECT po_id, po, line, so_det_id, 0, qty_packing_line, 0 FROM m
                 UNION ALL
@@ -306,6 +312,9 @@ class PackingLineController extends Controller
             LEFT JOIN laravel_nds.master_size_new msn on d.size = msn.size
             WHERE mut.line IS NOT NULL AND mut.line != ''
             GROUP BY mut.so_det_id,po, line
+            HAVING SUM(sa) != 0
+            AND SUM(qty_packing_line) != 0
+            AND SUM(qty_trf_gmt) != 0
             ORDER BY  line, po, ws,  d.color, urutan
         ");
 
