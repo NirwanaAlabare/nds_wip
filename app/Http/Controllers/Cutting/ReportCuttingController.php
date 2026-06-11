@@ -14195,9 +14195,13 @@ order by a.tgl_trans asc
                 } else {
                     $rawData = DB::select("
                         SELECT
+                            tgl_trans as created_at,
+                            no_form,
+                            no_cut,
                             so_det_id as id_so_det,
                             m.buyer,
-                            act_costing_ws,
+                            act_costing_ws ws,
+                            m.styleno,
                             m.color,
                             part_id,
                             panel,
@@ -14209,7 +14213,7 @@ order by a.tgl_trans asc
                             m.dest,
                             sum(qty_replace) as qty_replace,
                             master_part_id,
-                            CASE WHEN panel_status = 'main' THEN COALESCE(qty_in_main, qty_in) ELSE MIN(qty_in) END as qty_dc
+                            sum(qty_in) as qty_dc
                         FROM
                             (
                                 SELECT
@@ -14229,9 +14233,8 @@ order by a.tgl_trans asc
                                         a.qty_reject,
                                         a.qty_replace,
                                         CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
-                                        (a.qty_awal - a.qty_reject + a.qty_replace) qty_in_main_1,
-                                        a.qty_awal qty_in_main,
-                                        null qty_in,
+                                        (a.qty_awal - a.qty_reject + a.qty_replace) qty_in1,
+                                        a.qty_awal qty_in,
                                         a.tujuan,
                                         a.lokasi,
                                         a.tempat,
@@ -14277,7 +14280,6 @@ order by a.tgl_trans asc
                                         a.qty_reject,
                                         a.qty_replace,
                                         CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
-                                        null qty_in_main,
                                         (a.qty_awal - a.qty_reject + a.qty_replace) qty_in_1,
                                         a.qty_awal qty_in,
                                         a.tujuan,
@@ -14315,8 +14317,7 @@ order by a.tgl_trans asc
                             dc.part_id,
                             dc.part_detail_id,
                             dc.no_form,
-                            dc.so_det_id,
-                            dc.stocker_range
+                            dc.so_det_id
                     ");
                 }
 
