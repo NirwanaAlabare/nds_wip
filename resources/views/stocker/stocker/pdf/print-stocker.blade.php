@@ -57,10 +57,10 @@
                     $fontSize = '8px';
                     break;
                 case $strLen > 60 && $strLen <= 70:
-                    $fontSize = '7px';
+                    $fontSize = '6.5px';
                     break;
                 case $strLen > 70 && $strLen <= 80:
-                    $fontSize = '6px';
+                    $fontSize = '5.5px';
                     break;
                 case $strLen > 80:
                     $fontSize = '5px';

@@ -24,50 +24,35 @@ class FGStokScanBPBController extends Controller
         if ($request->ajax()) {
             $data_input = DB::select("
                 SELECT
-                    no_trans,
+                    qr_code,
                     CONCAT(
                         DATE_FORMAT(tgl_terima, '%d'), '-',
                         LEFT(DATE_FORMAT(tgl_terima, '%M'), 3), '-',
                         DATE_FORMAT(tgl_terima, '%Y')
                     ) AS tgl_terima_fix,
-                    lokasi,
                     buyer,
                     brand,
                     styleno,
                     ws,
                     color,
                     size,
-                    COUNT(a.no_carton) AS total_carton,
-                    SUM(a.qty) AS total_qty,
+                    a.no_carton,
+                    a.qty,
                     sumber_pemasukan,
-                    a.id_so_det
+                    a.id_so_det,
+                    created_by,
+                    created_at
                 FROM fg_stok_bpb_scan a
                 LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
                 WHERE tgl_terima >= '$tgl_awal'
                 AND tgl_terima <= '$tgl_akhir'
-                GROUP BY
-                    no_trans,
-                    tgl_terima,
-                    lokasi,
-                    buyer,
-                    brand,
-                    styleno,
-                    ws,
-                    color,
-                    size,
-                    sumber_pemasukan,
-                    a.id_so_det
-                ORDER BY SUBSTR(no_trans, 13) DESC
+                ORDER BY a.id DESC
             ");
 
             return DataTables::of($data_input)->toJson();
         }
 
-        $sql_temp = DB::select("select * from fg_tmp_stok_bpb where created_by = '$user' group by created_by");
-        $cek_temp = $sql_temp ? $sql_temp[0]->id : null;
-
-
-        return view('fg-stock.bpb_fg_stock_scan', ['page' => 'dashboard-fg-stock', "subPageGroup" => "fgstock-bpb", "subPage" => "bpb-fg-stock-scan", "cek_temp" => $cek_temp]);
+        return view('fg-stock.bpb_fg_stock_scan', ['page' => 'dashboard-fg-stock', "subPageGroup" => "fgstock-bpb", "subPage" => "bpb-fg-stock-scan"]);
     }
 
     public function store(Request $request){

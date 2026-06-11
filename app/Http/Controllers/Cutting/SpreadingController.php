@@ -787,7 +787,7 @@ class SpreadingController extends Controller
                 form_cut_piece_detail.group_stocker,
                 null,
                 null,
-                SUM(form_cut_piece_detail_size.qty) as qty
+                SUM(CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END) as qty
             FROM
                 form_cut_piece
                 LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id

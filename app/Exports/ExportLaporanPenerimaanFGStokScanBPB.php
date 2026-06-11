@@ -48,46 +48,32 @@ class ExportLaporanPenerimaanFGStokScanBPB implements FromView, WithEvents, Shou
     {
         $data = DB::select("
             SELECT
-                no_trans,
+                qr_code,
                 CONCAT(
                     DATE_FORMAT(tgl_terima, '%d'), '-',
                     LEFT(DATE_FORMAT(tgl_terima, '%M'), 3), '-',
                     DATE_FORMAT(tgl_terima, '%Y')
                 ) AS tgl_terima_fix,
-                lokasi,
                 buyer,
                 brand,
                 styleno,
                 ws,
                 color,
                 size,
-                COUNT(a.no_carton) AS total_carton,
-                SUM(a.qty) AS total_qty,
+                a.no_carton,
+                a.qty,
                 sumber_pemasukan,
-                a.qr_code
+                a.id_so_det,
+                created_by,
+                created_at
             FROM fg_stok_bpb_scan a
-            LEFT JOIN master_sb_ws m 
-                ON a.id_so_det = m.id_so_det
+            LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
             WHERE tgl_terima >= '$this->from'
             AND tgl_terima <= '$this->to'
-            GROUP BY
-                no_trans,
-                tgl_terima,
-                lokasi,
-                buyer,
-                brand,
-                styleno,
-                ws,
-                color,
-                size,
-                sumber_pemasukan,
-                a.qr_code
-            ORDER BY SUBSTR(no_trans, 13) DESC
+            ORDER BY a.id DESC
         ");
 
-
         $this->rowCount = count($data) + 4;
-
 
         return view('fg-stock.export_bpb_fg_stock_scan', [
             'data' => $data,
@@ -109,7 +95,7 @@ class ExportLaporanPenerimaanFGStokScanBPB implements FromView, WithEvents, Shou
     {
 
         $event->sheet->styleCells(
-            'A4:L' . $event->getConcernable()->rowCount,
+            'A4:M' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [

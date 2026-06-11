@@ -682,6 +682,86 @@ class SewingToolsController extends Controller
         );
     }
 
+    public function fixRejectOutDetail() {
+        ini_set("max_execution_time", 3600);
+
+        // Cari reject_out_detail yang reject_out_id-nya null atau referensinya tidak ada
+        $orphans = DB::connection("mysql_sb")->select("
+            SELECT
+                rod.id,
+                rod.reject_in_id,
+                rod.created_by,
+                rod.created_by_username,
+                DATE(rod.created_at) AS tgl,
+                rod.created_at
+            FROM output_reject_out_detail rod
+            LEFT JOIN output_reject_out ro ON ro.id = rod.reject_out_id
+            WHERE rod.reject_out_id IS NULL OR ro.id IS NULL
+            ORDER BY rod.created_by, DATE(rod.created_at)
+        ");
+
+        if (empty($orphans)) {
+            return [
+                'status'     => 200,
+                'message'    => 'Tidak ada Reject Out Detail yang perlu diperbaiki',
+                'redirect'   => '',
+                'additional' => [],
+            ];
+        }
+
+        // Group by created_by + tgl untuk 1 RejectOut per user per hari
+        $groups = collect($orphans)->groupBy(fn($r) => $r->created_by . '_' . $r->tgl);
+
+        $totalFixed = 0;
+
+        foreach ($groups as $key => $details) {
+            $first = $details->first();
+
+            // Generate no_transaksi: R{dmy}/{increment}
+            $prefix  = 'R' . date('dmy', strtotime($first->tgl));
+            $lastNum = DB::connection("mysql_sb")
+                ->table("output_reject_out")
+                ->selectRaw("MAX(CAST(SUBSTRING_INDEX(no_transaksi, '/', -1) AS UNSIGNED)) as max_id")
+                ->whereRaw("SUBSTRING_INDEX(no_transaksi, '/', 1) LIKE ?", ['%' . $prefix . '%'])
+                ->value('max_id');
+            $nextNum      = ($lastNum ?? 0) + 1;
+            $noTransaksi  = $prefix . '/' . sprintf('%05d', $nextNum);
+
+            // Buat RejectOut header
+            $rejectOutId = DB::connection("mysql_sb")->table("output_reject_out")->insertGetId([
+                'tanggal'              => $first->tgl,
+                'no_transaksi'         => $noTransaksi,
+                'tujuan'               => 'gudang',
+                'created_by'           => $first->created_by,
+                'created_by_username'  => $first->created_by_username ?? '',
+                'created_at'           => $first->created_at,
+                'updated_at'           => now(),
+            ]);
+
+            // Update semua detail dalam group ke reject_out_id baru
+            $detailIds = $details->pluck('id')->toArray();
+            DB::connection("mysql_sb")
+                ->table("output_reject_out_detail")
+                ->whereIn("id", $detailIds)
+                ->update(['reject_out_id' => $rejectOutId]);
+
+            $totalFixed += count($detailIds);
+        }
+
+        Log::channel('missRejectOutput')->info([
+            "Fix Missing Reject Out for Reject Out Detail",
+            "By " . (Auth::user() ? Auth::user()->id . " " . Auth::user()->username : "System"),
+            "Total Fixed: " . $totalFixed,
+        ]);
+
+        return [
+            'status'     => 200,
+            'message'    => "Berhasil memperbaiki <br> Reject Out Detail = {$totalFixed} record <br> Reject Out dibuat = " . $groups->count(),
+            'redirect'   => '',
+            'additional' => [],
+        ];
+    }
+
     public function missPackingPo(SewingService $sewingService) {
         ini_set("max_execution_time", 3600);
 
@@ -4367,9 +4447,6 @@ class SewingToolsController extends Controller
                         $rejectOutIds = $rejectOutDetail->pluck("reject_out_id")->toArray();
                         $rejectOutDetailIds = $rejectOutDetail->pluck("id")->toArray();
 
-                        // Delete Group
-                        $deleteRejectOut = RejectOut::whereIn("id", $rejectOutIds)->delete();
-
                         // Delete Detail
                         if ($deleteRejectOut) {
                             $deleteRejectOutDetail = RejectOutDetail::where("reject_in_id", $output->id)->delete();
@@ -4377,6 +4454,13 @@ class SewingToolsController extends Controller
                             if ($deleteRejectOutDetail) {
                                 // Output Gudang Stok
                                 OutputGudangStok::whereIn("reject_out_id", $rejectOutDetailIds)->delete();
+
+                                // Delete Group
+                                $rejectOut = RejectOut::whereIn("id", $rejectOutIds)->get();
+                                // Check Reject Out Detail before delete the group
+                                if ($rejectOut->rejectOutDetail()->count() < 1) {
+                                    $deleteRejectOut = $rejectOut->delete();
+                                }
                             }
 
                             $message .= "Reject Out ".$output->kode_numbering." -> DELETED <br>";

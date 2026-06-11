@@ -1065,9 +1065,10 @@ class PartController extends Controller
                     );
                 }
             } else {
+                $masterPart = MasterPart::where("id", $request->txtpart)->first();
                 return array(
                     'icon' => 'salah',
-                    'msg' => 'Data Part "' . $request->txtpart . '" sudah ada.',
+                    'msg' => 'Data Part "' . $masterPart->nama_part . '" sudah ada.',
                 );
             }
         }
@@ -1137,6 +1138,20 @@ class PartController extends Controller
                 // Phase 2 (Update Master Part)
                 $partDetail = PartDetail::where("id", $validatedRequest['edit_id'])->first();
                 if ($request->edit_master_part_id && $request->edit_master_part_id != $partDetail->master_part_id) {
+                    // Check Part Detail with same master_part_id on same part_id
+                    $checkPartDetail = PartDetail::where("id", "!=", $partDetail->id)->where("part_id", $partDetail->part_id)->where("master_part_id", $request->edit_master_part_id)->count();
+
+                    if ($checkPartDetail > 0) {
+                        $masterPart = MasterPart::where("id", $request->edit_master_part_id)->first();
+                        return array(
+                            'status' => 400,
+                            'message' => 'Master Part "'.$masterPart->nama_part.'" sudah terdaftar.',
+                            'redirect' => '',
+                            'table' => 'datatable_list_part',
+                            'additional' => [],
+                        );
+                    }
+
                     $updatePartDetail = $partDetail->update([
                         "master_part_id" => $request->edit_master_part_id
                     ]);
@@ -1283,6 +1298,19 @@ class PartController extends Controller
             // Phase 2 (Check Part Detail)
             $currentPartDetail = PartDetail::where("id", $validatedRequest['edit_com_id'])->first();
             if ($currentPartDetail) {
+                // Check Part Detail with same master_part_id on same part_id
+                $checkPartDetail = PartDetail::where("id", "!=", $currentPartDetail->id)->where("part_id", $currentPartDetail->part_id)->where("master_part_id", $request->edit_com_master_part_id)->count();
+                if ($checkPartDetail > 0) {
+                    $masterPart = MasterPart::where("id", $request->edit_com_master_part_id)->first();
+                    return array(
+                        'status' => 400,
+                        'message' => 'Master Part '.$masterPart->nama_part.' sudah terdaftar.',
+                        'redirect' => '',
+                        'table' => 'datatable_list_part_complement',
+                        'additional' => [],
+                    );
+                }
+
                 // Phase 3 (Check New Part Detail's Sources)
                 $fromPartDetail = PartDetail::where("id", $validatedRequest['edit_com_from_part_id'])->first();
                 if ($fromPartDetail) {
@@ -1870,13 +1898,24 @@ class PartController extends Controller
         if ($partDetail) {
 
             // Check Part Form
-            if (PartForm::where('part_id', $partDetail->part_id)->exists()) {
+            if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() < 1) {
+                if (PartForm::where('part_id', $partDetail->part_id)->exists()) {
+                    return array(
+                        'status' => 400,
+                        'message' => 'Part sudah memiliki Form Cut, tidak dapat dihapus.',
+                        'redirect' => '',
+                        'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
+                        'additional' => [],
+                    );
+                }
+            }
+
+            // Cek apakah part sudah memiliki stocker (sudah print stocker)
+            $stockerCount = Stocker::where("part_detail_id", $partDetail->id)->count();
+            if ($stockerCount > 0) {
                 return array(
                     'status' => 400,
-                    'message' => 'Part sudah memiliki Form Cut, tidak dapat dihapus.',
-                    'redirect' => '',
-                    'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
-                    'additional' => [],
+                    'message'  => 'Part sudah memiliki data Stocker terkait, tidak dapat menambah Part Detail.',
                 );
             }
 
