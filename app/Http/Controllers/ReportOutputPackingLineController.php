@@ -30,7 +30,7 @@ class ReportOutputPackingLineController extends Controller
                             mb.color,
                             mb.size,
                             a.type,
-                            DATE(created_at) AS tgl,
+                            DATE(updated_at) AS tgl,
                             COUNT(*) AS jumlah
                         FROM signalbit_erp.output_rfts_packing_po a
                         INNER JOIN signalbit_erp.master_plan mp ON a.master_plan_id = mp.id
@@ -51,13 +51,13 @@ class ReportOutputPackingLineController extends Controller
                             WHERE jd.cancel = 'N'
                         ) mb on a.so_det_id = mb.id_so_det
                         WHERE
-                            created_at >= '{$tglAwal} 00:00:00'
-                            AND created_at <= '{$tglAkhir} 23:59:59'
-                            AND mp.cancel = 'N'
-                        GROUP BY so_det_id, a.type, DATE(created_at)
-                                                
-                                                UNION ALL
-                                                select '-' so_det_id, buyer, ws, styleno, color, size, 'rft' type, tgl_saldo tgl, COALESCE(packing_rft,0) jumlah from signalbit_erp.inject_mutasi_sewing where type_saldo = 'PACKING' and tgl_saldo >= '{$tglAwal} 00:00:00' AND tgl_saldo <= '{$tglAkhir} 23:59:59') a GROUP BY buyer, ws, styleno, color, size, type, tgl
+                            updated_at >= '{$tglAwal} 00:00:00'
+                            AND updated_at <= '{$tglAkhir} 23:59:59'
+                        GROUP BY so_det_id, a.type, DATE(updated_at)
+
+                        UNION ALL
+
+                        select '-' so_det_id, buyer, ws, styleno, color, size, 'rft' type, tgl_saldo tgl, COALESCE(packing_rft,0) jumlah from signalbit_erp.inject_mutasi_sewing where type_saldo = 'PACKING' and tgl_saldo >= '{$tglAwal} 00:00:00' AND tgl_saldo <= '{$tglAkhir} 23:59:59') a GROUP BY buyer, ws, styleno, color, size, type, tgl
                     ) as results
                 "))
                 ->when($tipe, function ($query) use ($tipe) {
