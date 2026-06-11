@@ -27,7 +27,7 @@ class FGStokLokasiScanBPBController extends Controller
                     a.id,
                     a.no_trans,
                     tgl_terima,
-                    concat((DATE_FORMAT(a.created_at,  '%d')), '-', left(DATE_FORMAT(a.created_at,  '%M'),3),'-',DATE_FORMAT(a.created_at,  '%Y')
+                    concat((DATE_FORMAT(tgl_terima,  '%d')), '-', left(DATE_FORMAT(tgl_terima,  '%M'),3),'-',DATE_FORMAT(tgl_terima,  '%Y')
                     ) tgl_terima_fix,
                     buyer,
                     ws,
@@ -46,7 +46,7 @@ class FGStokLokasiScanBPBController extends Controller
                 from fg_stok_bpb_lokasi_scan a
                 left join fg_stok_bpb_scan b ON b.qr_code = a.qr_code
                 left join master_sb_ws m on b.id_so_det = m.id_so_det
-                where date(a.created_at) >= '$tgl_awal' and date(a.created_at) <= '$tgl_akhir'
+                where tgl_terima >= '$tgl_awal' and tgl_terima <= '$tgl_akhir'
                 order by a.id desc
             ");
 
