@@ -409,6 +409,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(ReturMaterialController::class)->prefix("retur-material")->middleware('retur-material')->group(function () {
         Route::get('/', 'index')->name('retur-material');
         Route::get('/create', 'create')->name('create-returmaterial');
+        Route::get('/create-new', 'createRoBarcode')->name('create-returmaterial-new');
         Route::get('/get-no-bpb', 'getNobpb')->name('get-no-bpb');
         Route::get('/get-detail', 'getDetailBpb')->name('get-detail-bpb');
         Route::get('/show-detail-itemro', 'showdetailitemro')->name('get-detail-item-ro');
@@ -424,6 +425,19 @@ Route::middleware('auth')->group(function () {
         Route::get('/ro-list-barcode', 'ROListbarcode')->name('ro-list-barcode');
         Route::post('/save-ro-scan', 'saveroscan')->name('save-ro-scan');
         Route::post('/save-ro-manual', 'saveromanual')->name('save-ro-manual');
+        // RO Barcode temp
+        Route::get('/create-ro-barcode', 'createRoBarcode')->name('create-ro-barcode');
+        Route::get('/get-grouped-ro-barcode-temp', 'getGroupedRoBarcodeTemp')->name('get-grouped-ro-barcode-temp');
+        Route::get('/get-detail-group-ro-barcode-temp', 'getDetailGroupRoBarcodeTemp')->name('get-detail-group-ro-barcode-temp');
+        Route::post('/insert-ro-barcode-temp', 'insertRoBarcodeTemp')->name('insert-ro-barcode-temp');
+        Route::post('/update-ro-barcode-qty', 'updateRoBarcodeQty')->name('update-ro-barcode-qty');
+        Route::post('/update-ro-barcode-qty-all', 'updateRoBarcodeQtyAll')->name('update-ro-barcode-qty-all');
+        Route::post('/upload-ro-barcode-temp', 'uploadRoBarcodeTemp')->name('upload-ro-barcode-temp');
+        Route::get('/download-template-ro-bc', 'downloadTemplateRoBc')->name('download-template-ro-bc');
+        Route::post('/delete-ro-barcode-temp', 'deleteRoBarcodeTemp')->name('delete-ro-barcode-temp');
+        Route::post('/delete-ro-barcode-temp-group', 'deleteGroupRoBarcodeTemp')->name('delete-ro-barcode-temp-group');
+        Route::post('/clear-ro-barcode-temp', 'clearRoBarcodeTemp')->name('clear-ro-barcode-temp');
+        Route::post('/store-ro-barcode', 'storeRoBarcode')->name('store-ro-barcode');
     });
 
     //Retur Penerimaan
@@ -435,6 +449,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-supplier-ri', 'getSuppri')->name('get-supplier-ri');
         Route::get('/get-list-bppb', 'getListBppb')->name('get-list-bppb');
         Route::post('/store', 'store')->name('store-retur-inmaterial-fabric');
+        Route::post('/store-new', 'storeNew')->name('store-retur-inmaterial-fabric-new');
         Route::get('/lokasi-retur-material/{id?}', 'lokreturmaterial')->name('lokasi-retur-inmaterial');
         Route::post('/save-lokasi-retur', 'savelokasiretur')->name('save-lokasi-retur');
         Route::get('/upload-lokasi-retur/{id?}', 'UploadLokasiRetur')->name('upload-lokasi-retur');
@@ -446,6 +461,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-data-barcode-out', 'showdetailbarcodeout')->name('get-data-barcode-out');
         Route::post('/save-barcode-ri-scan', 'savebarcoderiscan')->name('save-barcode-ri-scan');
         Route::get('/delete-scanri-temp', 'deletescanritemp')->name('delete-scanri-temp');
+        Route::get('/create-ri-barcode', 'createribarcode')->name('create-retur-inmaterial-barcode');
+        Route::post('/save-barcode-ri-temp', 'saveBarcodeRiTemp')->name('save-barcode-ri-temp');
+        Route::get('/download-template-barcode-ri', 'downloadTemplateBarcodeRi')->name('download-template-barcode-ri');
+        Route::post('/upload-barcode-ri-temp', 'uploadBarcodeRiTemp')->name('upload-barcode-ri-temp');
+        Route::get('/get-grouped-barcode-ri-temp', 'getGroupedBarcodeRiTemp')->name('get-grouped-barcode-ri-temp');
+        Route::get('/get-detail-group-barcode-ri-temp', 'getDetailGroupBarcodeRiTemp')->name('get-detail-group-barcode-ri-temp');
+        Route::get('/get-supplier-barcode-ri-temp', 'getSupplierBarcodeRiTemp')->name('get-supplier-barcode-ri-temp');
+        Route::post('/update-barcode-ri-temp-qty', 'updateBarcodeRiTempQty')->name('update-barcode-ri-temp-qty');
+        Route::post('/update-barcode-ri-temp-qty-all', 'updateBarcodeRiTempQtyAll')->name('update-barcode-ri-temp-qty-all');
+        Route::post('/delete-barcode-ri-temp-row', 'deleteBarcodeRiTempRow')->name('delete-barcode-ri-temp-row');
+        Route::post('/delete-barcode-ri-temp-group', 'deleteBarcodeRiTempGroup')->name('delete-barcode-ri-temp-group');
+        Route::post('/clear-barcode-ri-temp', 'clearBarcodeRiTemp')->name('clear-barcode-ri-temp');
     });
 
     //qc pass

@@ -94,8 +94,8 @@
 
             <div class="col-md-6" style="padding-top: 0.5rem;">
             <div class="mt-4 ">
-                <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Search</button>
-                <!-- <button class="btn btn-info" onclick="tambahdata()"> <i class="fas fa-plus"></i> Add Data</button> -->
+                <button class="btn btn-info" onclick="dataTableReload()"><i class="fas fa-search"></i> Search</button>
+
                 <a href="{{ route('create-retur-inmaterial') }}" class="btn btn-info">
                 <i class="fas fa-plus"></i>
                 Add Data
@@ -105,6 +105,10 @@
                 <i class="fas fa-plus"></i>
                 Add From Cutting
             </a>
+
+                <a href="{{ route('create-retur-inmaterial') }}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Add New
+                </a>
             </div>
         </div>
         </div>
