@@ -38,9 +38,9 @@ class ExportLaporanPenerimaanFGStokLokasiScanBPB implements FromView, WithEvents
         $data = DB::select("
             select
                 a.id,
-                no_trans,
+                a.no_trans,
                 tgl_terima,
-                concat((DATE_FORMAT(a.created_at,  '%d')), '-', left(DATE_FORMAT(a.created_at,  '%M'),3),'-',DATE_FORMAT(a.created_at,  '%Y')
+                concat((DATE_FORMAT(tgl_terima,  '%d')), '-', left(DATE_FORMAT(tgl_terima,  '%M'),3),'-',DATE_FORMAT(a.created_at,  '%Y')
                 ) tgl_terima_fix,
                 buyer,
                 ws,
@@ -86,7 +86,7 @@ class ExportLaporanPenerimaanFGStokLokasiScanBPB implements FromView, WithEvents
     {
 
         $event->sheet->styleCells(
-            'A4:I' . $event->getConcernable()->rowCount,
+            'A4:J' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [

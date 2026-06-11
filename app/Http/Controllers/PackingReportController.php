@@ -980,6 +980,38 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     msw.buyer
                 ),
 
+                saldo_finishing as (
+                    select
+                        so_det_id,
+                        mb.ws,
+                        mb.buyer,
+                        mb.styleno,
+                        mb.color,
+                        mb.size,
+                        date(updated_at) tgl_finishing,
+                        COUNT(*) tpl_in
+                    from signalbit_erp.output_rfts_packing a
+                    INNER JOIN signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+                    LEFT JOIN (
+                        SELECT
+                        sd.id as id_so_det,
+                        ac.kpno as ws,
+                        supplier as buyer,
+                        styleno,
+                        color,
+                        size,
+                        dest
+                        FROM signalbit_erp.so_det sd
+                        INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+                        INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
+                        INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                        INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+                        WHERE jd.cancel = 'N'
+                    ) mb on a.so_det_id = mb.id_so_det
+                    where updated_at >= '$tgl_awal 00:00:00' and updated_at <= '$tgl_akhir 23:59:59' and mp.cancel = 'N'
+                    group by so_det_id, date(updated_at)
+                ),
+
                 main_select as (
                     /* ================= MAIN SELECT ================= */
                         select
@@ -1015,6 +1047,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
 
                 select
                 urutan, ws, color, style, a.size, buyer,
+                SUM(tpl_adjustment_before) tpl_saldo_awal,
+                SUM(tpl_in) tpl_in,
+                SUM(pl_rft) tpl_out,
+                SUM(tpl_adjustment) tpl_adjustment,
+                SUM(tpl_adjustment_before) + SUM(tpl_in) - SUM(pl_rft) + SUM(tpl_adjustment) tpl_saldo_akhir,
                 sum(pl_saldo_awal) pl_saldo_awal,
                 sum(pl_rft) pl_rft,
                 sum(pl_reject) pl_reject,
@@ -1045,6 +1082,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 (
                     select
                         main_select.*,
+                        0 tpl_in,
+                        0 tpl_adjustment_before,
+                        0 tpl_adjustment,
                         0 as qty_adjustment_before,
                         0 as qty_adjustment,
                         0 as switching_in_before,
@@ -1064,6 +1104,46 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     from main_select
 
                     UNION ALL
+
+                    select
+                        null urutan,
+                        saldo_finishing.ws,
+                        saldo_finishing.color,
+                        saldo_finishing.styleno style,
+                        saldo_finishing.size,
+                        saldo_finishing.buyer,
+                        0 pl_saldo_awal,
+                        0 pl_rft,
+                        0 pl_reject,
+                        0 pl_keluar,
+                        0 pl_saldo_akhir,
+                        0 pc_saldo_awal,
+                        0 pc_terima,
+                        0 pc_terima_return,
+                        0 pc_fg_in,
+                        0 pc_saldo_akhir,
+                        saldo_finishing.tpl_in,
+                        0 tpl_adjustment_before,
+                        0 tpl_adjustment,
+                        0 as qty_adjustment_before,
+                        0 as qty_adjustment,
+                        0 as switching_in_before,
+                        0 as switching_in,
+                        0 as switching_out_before,
+                        0 as switching_out,
+                        0 as pc_qty_adjustment_before,
+                        0 as pc_qty_adjustment,
+                        0 as pc_switching_in_before,
+                        0 as pc_switching_in,
+                        0 as pc_switching_out_before,
+                        0 as pc_switching_out,
+                        0 as pc_switching_transaction_in_before,
+                        0 as pc_switching_transaction_in,
+                        0 as pc_switching_transaction_out_before,
+                        0 as pc_switching_transaction_out
+                    from saldo_finishing
+
+                    UNION ALL
                     select
                         null urutan,
                         no_ws ws,
@@ -1081,6 +1161,54 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 pc_terima_return,
                         0 pc_fg_in,
                         0 pc_saldo_akhir,
+                        0 tpl_in,
+                        SUM(IF(tgl_saldo < '{$tgl_awal}',qty,0)) tpl_adjustment_before,
+                        SUM(IF(tgl_saldo >= '{$tgl_awal}',qty,0)) as tpl_adjustment,
+                        0 qty_adjustment_before,
+                        0 qty_adjustment,
+                        0 switching_in_before,
+                        0 as switching_in,
+                        0 as switching_out_before,
+                        0 as switching_out,
+                        0 as pc_qty_adjustment_before,
+                        0 as pc_qty_adjustment,
+                        0 as pc_switching_in_before,
+                        0 as pc_switching_in,
+                        0 as pc_switching_out_before,
+                        0 as pc_switching_out,
+                        0 as pc_switching_transaction_in_before,
+                        0 as pc_switching_transaction_in,
+                        0 as pc_switching_transaction_out_before,
+                        0 as pc_switching_transaction_out
+                    FROM
+                        wip_adjustment
+                    WHERE
+                        tgl_saldo <= '{$tgl_akhir}' and
+                        type_report = 'TRANSIT_PACKING'
+                    GROUP BY
+                        ws, color, size, panel, part
+
+                    UNION ALL
+                    select
+                        null urutan,
+                        no_ws ws,
+                        color,
+                        style,
+                        size,
+                        buyer,
+                        0 pl_saldo_awal,
+                        0 pl_rft,
+                        0 pl_reject,
+                        0 pl_keluar,
+                        0 pl_saldo_akhir,
+                        0 pc_saldo_awal,
+                        0 pc_terima,
+                        0 pc_terima_return,
+                        0 pc_fg_in,
+                        0 pc_saldo_akhir,
+                        0 tpl_in,
+                        0 tpl_adjustment_before,
+                        0 tpl_adjustment,
                         SUM(IF(tgl_saldo < '{$tgl_awal}',qty,0)) qty_adjustment_before,
                         SUM(IF(tgl_saldo >= '{$tgl_awal}',qty,0)) as qty_adjustment,
                         0 switching_in_before,
@@ -1122,6 +1250,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 pc_terima_return,
                         0 pc_fg_in,
                         0 pc_saldo_akhir,
+                        0 tpl_in,
+                        0 tpl_adjustment_before,
+                        0 tpl_adjustment,
                         0 as qty_adjustment_before,
                         0 as qty_adjustment,
                         0 as switching_in_before,
@@ -1163,6 +1294,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 pc_terima_return,
                         0 pc_fg_in,
                         0 pc_saldo_akhir,
+                        0 tpl_in,
+                        0 tpl_adjustment_before,
+                        0 tpl_adjustment,
                         0 as qty_adjustment_before,
                         0 as qty_adjustment,
                         SUM(IF(tgl_saldo < '{$tgl_awal}',qty,0)) switching_in_before,
@@ -1206,6 +1340,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 pc_terima_return,
                         0 pc_fg_in,
                         0 pc_saldo_akhir,
+                        0 tpl_in,
+                        0 tpl_adjustment_before,
+                        0 tpl_adjustment,
                         0 qty_adjustment_before,
                         0 qty_adjustment,
                         0 switching_in_before,
@@ -1247,6 +1384,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 pc_terima_return,
                         0 pc_fg_in,
                         0 pc_saldo_akhir,
+                        0 tpl_in,
+                        0 tpl_adjustment_before,
+                        0 tpl_adjustment,
                         0 as qty_adjustment_before,
                         0 as qty_adjustment,
                         0 as switching_in_before,
@@ -1288,6 +1428,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 pc_terima_return,
                         0 pc_fg_in,
                         0 pc_saldo_akhir,
+                        0 tpl_in,
+                        0 tpl_adjustment_before,
+                        0 tpl_adjustment,
                         0 as qty_adjustment_before,
                         0 as qty_adjustment,
                         0 as switching_in_before,
@@ -1330,6 +1473,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 pc_terima_return,
                         0 pc_fg_in,
                         0 pc_saldo_akhir,
+                        0 tpl_in,
+                        0 tpl_adjustment_before,
+                        0 tpl_adjustment,
                         0 as qty_adjustment_before,
                         0 as qty_adjustment,
                         0 as switching_in_before,
@@ -1371,6 +1517,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                         0 pc_terima_return,
                         0 pc_fg_in,
                         0 pc_saldo_akhir,
+                        0 tpl_in,
+                        0 tpl_adjustment_before,
+                        0 tpl_adjustment,
                         0 as qty_adjustment_before,
                         0 as qty_adjustment,
                         0 as switching_in_before,
@@ -1665,6 +1814,38 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 msw.buyer
             ),
 
+            saldo_finishing as (
+                select
+                    so_det_id,
+                    mb.ws,
+                    mb.buyer,
+                    mb.styleno,
+                    mb.color,
+                    mb.size,
+                    date(updated_at) tgl_finishing,
+                    COUNT(*) tpl_in
+                from signalbit_erp.output_rfts_packing a
+                INNER JOIN signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+                LEFT JOIN (
+                    SELECT
+                    sd.id as id_so_det,
+                    ac.kpno as ws,
+                    supplier as buyer,
+                    styleno,
+                    color,
+                    size,
+                    dest
+                    FROM signalbit_erp.so_det sd
+                    INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+                    INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
+                    INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                    INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+                    WHERE jd.cancel = 'N'
+                ) mb on a.so_det_id = mb.id_so_det
+                where updated_at >= '$tgl_awal 00:00:00' and updated_at <= '$tgl_akhir 23:59:59' and mp.cancel = 'N'
+                group by so_det_id, date(updated_at)
+            ),
+
             main_select as (
                 /* ================= MAIN SELECT ================= */
                     select
@@ -1700,6 +1881,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
 
             select
             urutan, ws, color, style, a.size, buyer,
+            SUM(tpl_adjustment_before) tpl_saldo_awal,
+            SUM(tpl_in) tpl_in,
+            SUM(pl_rft) tpl_out,
+            SUM(tpl_adjustment) tpl_adjustment,
+            SUM(tpl_adjustment_before) + SUM(tpl_in) - SUM(pl_rft) + SUM(tpl_adjustment) tpl_saldo_akhir,
             sum(pl_saldo_awal) pl_saldo_awal,
             sum(pl_rft) pl_rft,
             sum(pl_reject) pl_reject,
@@ -1730,6 +1916,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             (
                 select
                     main_select.*,
+                    0 tpl_in,
+                    0 tpl_adjustment_before,
+                    0 tpl_adjustment,
                     0 as qty_adjustment_before,
                     0 as qty_adjustment,
                     0 as switching_in_before,
@@ -1749,6 +1938,46 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 from main_select
 
                 UNION ALL
+
+                select
+                    null urutan,
+                    saldo_finishing.ws,
+                    saldo_finishing.color,
+                    saldo_finishing.styleno style,
+                    saldo_finishing.size,
+                    saldo_finishing.buyer,
+                    0 pl_saldo_awal,
+                    0 pl_rft,
+                    0 pl_reject,
+                    0 pl_keluar,
+                    0 pl_saldo_akhir,
+                    0 pc_saldo_awal,
+                    0 pc_terima,
+                    0 pc_terima_return,
+                    0 pc_fg_in,
+                    0 pc_saldo_akhir,
+                    saldo_finishing.tpl_in,
+                    0 tpl_adjustment_before,
+                    0 tpl_adjustment,
+                    0 as qty_adjustment_before,
+                    0 as qty_adjustment,
+                    0 as switching_in_before,
+                    0 as switching_in,
+                    0 as switching_out_before,
+                    0 as switching_out,
+                    0 as pc_qty_adjustment_before,
+                    0 as pc_qty_adjustment,
+                    0 as pc_switching_in_before,
+                    0 as pc_switching_in,
+                    0 as pc_switching_out_before,
+                    0 as pc_switching_out,
+                    0 as pc_switching_transaction_in_before,
+                    0 as pc_switching_transaction_in,
+                    0 as pc_switching_transaction_out_before,
+                    0 as pc_switching_transaction_out
+                from saldo_finishing
+
+                UNION ALL
                 select
                     null urutan,
                     no_ws ws,
@@ -1766,6 +1995,54 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 pc_terima_return,
                     0 pc_fg_in,
                     0 pc_saldo_akhir,
+                    0 tpl_in,
+                    SUM(IF(tgl_saldo < '{$tgl_awal}',qty,0)) tpl_adjustment_before,
+                    SUM(IF(tgl_saldo >= '{$tgl_awal}',qty,0)) as tpl_adjustment,
+                    0 qty_adjustment_before,
+                    0 qty_adjustment,
+                    0 switching_in_before,
+                    0 as switching_in,
+                    0 as switching_out_before,
+                    0 as switching_out,
+                    0 as pc_qty_adjustment_before,
+                    0 as pc_qty_adjustment,
+                    0 as pc_switching_in_before,
+                    0 as pc_switching_in,
+                    0 as pc_switching_out_before,
+                    0 as pc_switching_out,
+                    0 as pc_switching_transaction_in_before,
+                    0 as pc_switching_transaction_in,
+                    0 as pc_switching_transaction_out_before,
+                    0 as pc_switching_transaction_out
+                FROM
+                    wip_adjustment
+                WHERE
+                    tgl_saldo <= '{$tgl_akhir}' and
+                    type_report = 'TRANSIT_PACKING'
+                GROUP BY
+                    ws, color, size, panel, part
+
+                UNION ALL
+                select
+                    null urutan,
+                    no_ws ws,
+                    color,
+                    style,
+                    size,
+                    buyer,
+                    0 pl_saldo_awal,
+                    0 pl_rft,
+                    0 pl_reject,
+                    0 pl_keluar,
+                    0 pl_saldo_akhir,
+                    0 pc_saldo_awal,
+                    0 pc_terima,
+                    0 pc_terima_return,
+                    0 pc_fg_in,
+                    0 pc_saldo_akhir,
+                    0 tpl_in,
+                    0 tpl_adjustment_before,
+                    0 tpl_adjustment,
                     SUM(IF(tgl_saldo < '{$tgl_awal}',qty,0)) qty_adjustment_before,
                     SUM(IF(tgl_saldo >= '{$tgl_awal}',qty,0)) as qty_adjustment,
                     0 switching_in_before,
@@ -1807,6 +2084,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 pc_terima_return,
                     0 pc_fg_in,
                     0 pc_saldo_akhir,
+                    0 tpl_in,
+                    0 tpl_adjustment_before,
+                    0 tpl_adjustment,
                     0 as qty_adjustment_before,
                     0 as qty_adjustment,
                     0 as switching_in_before,
@@ -1848,6 +2128,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 pc_terima_return,
                     0 pc_fg_in,
                     0 pc_saldo_akhir,
+                    0 tpl_in,
+                    0 tpl_adjustment_before,
+                    0 tpl_adjustment,
                     0 as qty_adjustment_before,
                     0 as qty_adjustment,
                     SUM(IF(tgl_saldo < '{$tgl_awal}',qty,0)) switching_in_before,
@@ -1891,6 +2174,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 pc_terima_return,
                     0 pc_fg_in,
                     0 pc_saldo_akhir,
+                    0 tpl_in,
+                    0 tpl_adjustment_before,
+                    0 tpl_adjustment,
                     0 qty_adjustment_before,
                     0 qty_adjustment,
                     0 switching_in_before,
@@ -1932,6 +2218,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 pc_terima_return,
                     0 pc_fg_in,
                     0 pc_saldo_akhir,
+                    0 tpl_in,
+                    0 tpl_adjustment_before,
+                    0 tpl_adjustment,
                     0 as qty_adjustment_before,
                     0 as qty_adjustment,
                     0 as switching_in_before,
@@ -1973,6 +2262,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 pc_terima_return,
                     0 pc_fg_in,
                     0 pc_saldo_akhir,
+                    0 tpl_in,
+                    0 tpl_adjustment_before,
+                    0 tpl_adjustment,
                     0 as qty_adjustment_before,
                     0 as qty_adjustment,
                     0 as switching_in_before,
@@ -2015,6 +2307,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 pc_terima_return,
                     0 pc_fg_in,
                     0 pc_saldo_akhir,
+                    0 tpl_in,
+                    0 tpl_adjustment_before,
+                    0 tpl_adjustment,
                     0 as qty_adjustment_before,
                     0 as qty_adjustment,
                     0 as switching_in_before,
@@ -2056,6 +2351,9 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     0 pc_terima_return,
                     0 pc_fg_in,
                     0 pc_saldo_akhir,
+                    0 tpl_in,
+                    0 tpl_adjustment_before,
+                    0 tpl_adjustment,
                     0 as qty_adjustment_before,
                     0 as qty_adjustment,
                     0 as switching_in_before,
@@ -2108,6 +2406,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
 
         $headerTop = [
             'Jenis Produk', '', '', '', '',
+            'Transit Terima Packing Line', '', '', '', '',
             'Packing Line', '', '', '', '', '', '', '',
             'Packing Central', '', '', '', '', '', '', '',
         ];
@@ -2123,21 +2422,27 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
         );
 
         $sheet->mergeCells('A4:E4');
-        $sheet->mergeCells('F4:M4');
-        $sheet->mergeCells('N4:U4');
+        $sheet->mergeCells('F4:J4');
+        $sheet->mergeCells('K4:R4');
+        $sheet->mergeCells('S4:Z4');
 
         $sheet->setCellStyle('A4:E4', [
             'fill'       => '#ADD8E6',
             'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('F4:M4', [
-            'fill'       => '#90EE90',
+        $sheet->setCellStyle('F4:J4', [
+            'fill' => '#ffff00',
             'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('N4:U4', [
-            'fill'       => '#FAFAD2',
+        $sheet->setCellStyle('K4:R4', [
+            'fill' => '#90EE90',
+            'text-align' => 'center',
+        ]);
+
+        $sheet->setCellStyle('S4:Z4', [
+            'fill' => '#FAFAD2',
             'text-align' => 'center',
         ]);
 
@@ -2147,6 +2452,11 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             'Style',
             'Color',
             'Size',
+            'Saldo Awal',
+            'In',
+            'Out',
+            'Adjustment',
+            'Saldo Akhir',
             'Saldo Awal',
             'Terima RFT',
             'Terima Reject',
@@ -2179,12 +2489,17 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('F5:M5', [
+        $sheet->setCellStyle('F5:J5', [
+            'fill' => '#ffff00',
+            'text-align' => 'center',
+        ]);
+
+        $sheet->setCellStyle('K5:R5', [
             'fill' => '#90EE90',
             'text-align' => 'center',
         ]);
 
-        $sheet->setCellStyle('N5:U5', [
+        $sheet->setCellStyle('S5:Z5', [
             'fill' => '#FAFAD2',
             'text-align' => 'center',
         ]);
@@ -2197,6 +2512,12 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                 $row->style ?? '',
                 $row->color ?? '',
                 $row->size ?? '',
+
+                (float) ($row->tpl_saldo_awal ?? 0),
+                (float) ($row->tpl_in ?? 0),
+                (float) ($row->tpl_out ?? 0),
+                (float) ($row->tpl_adjustment ?? 0),
+                (float) ($row->tpl_saldo_akhir ?? 0),
 
                 (float) ($row->saldo_awal_adjusment ?? 0),
                 (float) ($row->pl_rft ?? 0),
@@ -2225,7 +2546,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
             );
         }
 
-        foreach (range('A', 'U') as $col) {
+        foreach (range('A', 'Z') as $col) {
             $sheet->setColWidth($col, 20);
         }
 
