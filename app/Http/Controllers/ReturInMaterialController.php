@@ -1239,8 +1239,8 @@ private function queryBarcodeDetailRi(array $id_barcode_array)
         LEFT JOIN jo_det jd ON jd.id_jo = wbd.id_jo
         LEFT JOIN so ON so.id = jd.id_so
         LEFT JOIN act_costing ac ON ac.id = so.id_cost
-                LEFT JOIN (select no_barcode, no_po from whs_barcode_in) p on p.no_barcode = wbd.id_roll
-        WHERE wbd.id_roll IN ($placeholders)
+        LEFT JOIN (select no_barcode, no_po from whs_barcode_in) p on p.no_barcode = wbd.id_roll
+        WHERE wbd.no_bppb not like '%MT%' and wbd.id_roll IN ($placeholders)
         GROUP BY
             wbd.id_roll,
             wbd.no_bppb,
