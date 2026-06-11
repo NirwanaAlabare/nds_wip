@@ -260,7 +260,6 @@ LEFT JOIN mgt_rep_hari_libur b ON a.tanggal = b.tanggal_libur
 WHERE status_prod = 'KERJA'
 AND (status_absen != 'LN' OR status_absen IS NULL)
 AND CAST(a.bulan AS UNSIGNED) >= '$month'
-AND CAST(a.tahun AS UNSIGNED) >= '$year'
 AND CAST(a.tahun AS UNSIGNED) <= '$year'
 GROUP BY bulan, tahun
 ORDER BY
@@ -274,7 +273,7 @@ bulan,
 tahun,
 case
 		when status_prod = 'KERJA' AND status_absen = 'LP' THEN 'KERJA'
-		when status_prod = 'KERJA' AND status_absen = 'LN' THEN 'KERJA'
+		when status_prod = 'KERJA' AND status_absen = 'LN' THEN 'LIBUR'
 		when status_prod = 'KERJA' AND status_absen is null THEN 'KERJA'
 		when status_prod = 'LIBUR' AND status_absen = 'LP' THEN 'LIBUR'
 		when status_prod = 'LIBUR' AND status_absen = 'LN' THEN 'LIBUR'
@@ -295,7 +294,6 @@ round(sum(projection / tot_working_days),2) AS daily_cost
 FROM mgt_rep_daily_cost a
 LEFT JOIN dd ON a.bulan = dd.bulan AND a.tahun = dd.tahun
 WHERE CAST(a.bulan AS UNSIGNED) >= '$month'
-AND CAST(a.tahun AS UNSIGNED) >= '$year'
 AND CAST(a.tahun AS UNSIGNED) <= '$year'
 GROUP BY no_coa, dd.bulan, dd.tahun
 ),
@@ -309,7 +307,7 @@ coalesce(projection,0) projection,
 coalesce(daily_cost,0)AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa  and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'DIRECT LABOR COST'
 group by tanggal, no_coa
 ),
@@ -323,7 +321,7 @@ coalesce(projection,0) projection,
 coalesce(daily_cost,0)AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa  and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'INDIRECT LABOR COST'
 group by tanggal, no_coa
 ),
@@ -337,7 +335,7 @@ coalesce(projection,0) projection,
 coalesce(daily_cost,0)AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'FIXED OVERHEAD COST'
 group by tanggal, no_coa
 ),
@@ -351,7 +349,7 @@ coalesce(projection,0) projection,
 coalesce(daily_cost,0)AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'SELLING EXPENSE'
 group by tanggal, no_coa
 ),
@@ -365,7 +363,7 @@ coalesce(projection,0) projection,
 coalesce(daily_cost,0)AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'GENERAL & ADMINISTRATION EXPENSE'
 group by tanggal, no_coa
 ),
@@ -379,7 +377,7 @@ coalesce(projection,0) projection,
 coalesce(daily_cost,0)AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori3 = 'OTHER EXPENSE'
 group by tanggal, no_coa
 ),

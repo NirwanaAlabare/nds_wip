@@ -1302,6 +1302,11 @@ Route::middleware('auth')->group(function () {
     // Dashboard
     Route::controller(MgtReportDashboardController::class)->middleware('role:management')->group(function () {
         Route::get('/dashboard_mgt_report', 'dashboard_mgt_report')->name('dashboard-mgt-report');
+        Route::get('/dashboard_mgt_report/filter-options', 'getFilterOptions')->name('dashboard-mgt-report.filter-options');
+        Route::get('/dashboard_mgt_report/summary', 'getSummary')->name('dashboard-mgt-report.summary');
+        Route::get('/dashboard_mgt_report/daily-chart', 'getDailyChart')->name('dashboard-mgt-report.daily-chart');
+        Route::get('/dashboard_mgt_report/buyer-chart', 'getBuyerChart')->name('dashboard-mgt-report.buyer-chart');
+        Route::get('/dashboard_mgt_report/detail-table', 'getDetailTable')->name('dashboard-mgt-report.detail-table');
     });
 
     // Proses Management Report
