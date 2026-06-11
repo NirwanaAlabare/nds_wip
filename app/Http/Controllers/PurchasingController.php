@@ -1035,12 +1035,19 @@ class PurchasingController extends Controller
             }
 
             public function map($row): array {
-                $jenis_item = match($row->jenis) {
-                    'M' => 'Manufacturing',
-                    'P' => 'Material',
-                    'N' => 'General',
-                    default => '-'
-                };
+                switch ($row->jenis) {
+                    case 'M':
+                        $jenis_item = 'Manufacturing';
+                        break;
+                    case 'P':
+                        $jenis_item = 'Material';
+                        break;
+                    case 'N':
+                        $jenis_item = 'General';
+                        break;
+                    default:
+                        $jenis_item = '-';
+                }
 
                 return [
                     $row->podate,
