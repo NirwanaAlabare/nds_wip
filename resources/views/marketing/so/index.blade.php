@@ -239,7 +239,7 @@
                     { data: 'so_no', name: 'so.so_no' },
                     { data: 'no_po', name: 'so.no_po' },
                     { data: 'kpno', name: 'act.kpno' },
-                    { data: 'style', name: 'so.styleno' },
+                    { data: 'style', name: 'so.style' },
                     { data: 'buyer', name: 'ms.Supplier' },
                     { data: 'product_group', name: 'mp.product_group' },
                     { data: 'product_item', name: 'mp.product_item' },
@@ -276,11 +276,11 @@
                 dataType: 'json'
             })
             .done((res) => {
-                const { so_no, kpno, buyer, styleno } = res.header || {};
+                const { so_no, kpno, buyer, style } = res.header || {};
                 $('#so_no').text(so_no || '-');
                 $('#kpno').text(kpno || '-');
                 $('#buyer').text(buyer || '-');
-                $('#style').text(styleno || '-');
+                $('#style').text(style || '-');
 
                 let rows = '';
                 res.details.forEach(item => {
@@ -505,10 +505,10 @@
                         },
                         success: function(res) {
                             if (res.status == 200) {
-                                Swal.fire({ 
-                                    icon: 'success', 
-                                    title: 'Sync Berhasil!', 
-                                    html: `Material Baru: <b>${res.inserted}</b> baris<br>Diupdate: <b>${res.updated}</b> baris<br>Dibatalkan (Cancel): <b>${res.canceled}</b> baris`, 
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Sync Berhasil!',
+                                    html: `Material Baru: <b>${res.inserted}</b> baris<br>Diupdate: <b>${res.updated}</b> baris<br>Dibatalkan (Cancel): <b>${res.canceled}</b> baris`,
                                 });
                                 if(table) { table.ajax.reload(null, false); }
                             } else {

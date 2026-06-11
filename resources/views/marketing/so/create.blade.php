@@ -161,6 +161,13 @@
                     <label>Jumlah PO</label>
                     <input type="text" name="jumlah_po" id="jumlah_po" class="form-control bg-light input-decimal" readonly>
                 </div>
+                <div class="col-md-3 form-group">
+                    <label>Sistem PO <span class="text-danger">*</span></label>
+                    <select name="po_type" id="po_type" class="form-control select2bs4" required>
+                        <option value="single">1 WS 1 PO</option>
+                        <option value="multiple">1 WS Beberapa PO</option>
+                    </select>
+                </div>
             </div>
 
             {{-- <div class="row">
