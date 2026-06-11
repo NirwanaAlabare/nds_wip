@@ -27,7 +27,7 @@ class FGStokLokasiScanBPBController extends Controller
                     a.id,
                     a.no_trans,
                     tgl_terima,
-                    concat((DATE_FORMAT(a.created_at,  '%d')), '-', left(DATE_FORMAT(a.created_at,  '%M'),3),'-',DATE_FORMAT(a.created_at,  '%Y')
+                    concat((DATE_FORMAT(tgl_terima,  '%d')), '-', left(DATE_FORMAT(tgl_terima,  '%M'),3),'-',DATE_FORMAT(tgl_terima,  '%Y')
                     ) tgl_terima_fix,
                     buyer,
                     ws,

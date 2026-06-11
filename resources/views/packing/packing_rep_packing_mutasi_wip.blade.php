@@ -108,6 +108,7 @@
                     <thead>
                         <tr style='text-align:center; vertical-align:middle'>
                             <th colspan="5" style="background-color: lightblue; text-align:center;">Jenis Produk</th>
+                            <th colspan="5" style="background-color: yellow; text-align:center;">Transit Terima Packing Line</th>
                             <th colspan="8" style="background-color: lightgreen; text-align:center;">Packing Line</th>
                             <th colspan="8" style="background-color: lightgoldenrodyellow; text-align:center;">Packing Central</th>
                         </tr>
@@ -117,6 +118,12 @@
                             <th style="background-color: lightblue;">Style</th>
                             <th style="background-color: lightblue;">Color</th>
                             <th style="background-color: lightblue;">Size</th>
+
+                            <th style="background-color: yellow;">Saldo Awal</th>
+                            <th style="background-color: yellow;">In</th>
+                            <th style="background-color: yellow;">Out</th>
+                            <th style="background-color: yellow;">Adjustment</th>
+                            <th style="background-color: yellow;">Saldo Akhir</th>
 
                             <th style="background-color: lightgreen;">Saldo Awal</th>
                             <th style="background-color: lightgreen;">Terima RFT</th>
@@ -321,6 +328,11 @@
                     { data: 'style' },
                     { data: 'color' },
                     { data: 'size' },
+                    { data: 'tpl_saldo_awal' },
+                    { data: 'tpl_in' },
+                    { data: 'tpl_out' },
+                    { data: 'tpl_adjustment' },
+                    { data: 'tpl_saldo_akhir' },
                     { data: 'saldo_awal_adjusment' },
                     { data: 'pl_rft' },
                     { data: 'pl_reject' },

@@ -11,6 +11,7 @@
 @endsection
 
 @section('content')
+@include('retur_inmaterial._tab-create-ri')
 <form action="{{ route('store-retur-inmaterial-fabric') }}" method="post" id="store-inmaterial" onsubmit="submitForm(this, event)">
     @csrf
     <div class="card card-sb card-outline">
