@@ -6909,6 +6909,56 @@ order by a.tgl_trans asc
                                             form_cut_input_detail.group_stocker,
                                             stocker_ws_additional_detail.id,
                                             part_detail.id
+                            UNION ALL
+                                    SELECT
+                                        form_cut_reject.tanggal,
+                                        '-' meja,
+                                        form_cut_reject.act_costing_ws worksheet,
+                                        form_cut_reject.buyer,
+                                        form_cut_reject.style,
+                                        form_cut_reject.color,
+                                        master_sb_ws.id_so_det,
+                                        (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE form_cut_reject_detail.size  END ) size,
+                                        null as `group_roll`,
+                                        null as lot,
+                                        null as no_cut,
+                                        form_cut_reject.no_form,
+                                        '-' no_marker,
+                                        form_cut_reject.panel,
+                                        '-' max_group,
+                                        null as group_stocker,
+                                        NULL,
+                                        NULL,
+                                        SUM( form_cut_reject_detail.qty ) AS qty,
+                                        ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
+                                        ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
+                                        ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
+                                        part.id as part_id,
+                                        part.panel_status panel_status,
+                                        part.panel part_panel,
+                                        part_detail.id part_detail_id,
+                                        part_detail.part_status part_status,
+                                        master_part.id master_part_id,
+                                        master_part.nama_part
+                                    FROM
+                                        form_cut_reject
+                                        LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
+                                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
+                                        LEFT JOIN part ON part.act_costing_ws = form_cut_reject.act_costing_ws and part.panel = form_cut_reject.panel
+                                        LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                        LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
+                                        LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                                        LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                                    WHERE
+                                        form_cut_reject.tanggal >= '".$tgl_saldo."'
+                                        AND form_cut_reject.tanggal < '".$start_date."'
+                                        AND form_cut_reject.tanggal > '2026-04-31'
+                                        AND form_cut_reject_detail.qty > 0
+                                        AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
+                                    GROUP BY
+                                        form_cut_reject.id,
+                                        form_cut_reject_detail.id,
+                                        part_detail.id
                                     ORDER BY
                                             tanggal DESC,
                                             meja,
@@ -7119,6 +7169,56 @@ order by a.tgl_trans asc
                                             form_cut_input_detail.group_stocker,
                                             stocker_ws_additional_detail.id,
                                             part_detail.id
+                            UNION ALL
+                                    SELECT
+                                        form_cut_reject.tanggal,
+                                        '-' meja,
+                                        form_cut_reject.act_costing_ws worksheet,
+                                        form_cut_reject.buyer,
+                                        form_cut_reject.style,
+                                        form_cut_reject.color,
+                                        master_sb_ws.id_so_det,
+                                        (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE form_cut_reject_detail.size  END ) size,
+                                        null as `group_roll`,
+                                        null as lot,
+                                        null as no_cut,
+                                        form_cut_reject.no_form,
+                                        '-' no_marker,
+                                        form_cut_reject.panel,
+                                        '-' max_group,
+                                        null as group_stocker,
+                                        NULL,
+                                        NULL,
+                                        SUM( form_cut_reject_detail.qty ) AS qty,
+                                        ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
+                                        ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
+                                        ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
+                                        part.id as part_id,
+                                        part.panel_status panel_status,
+                                        part.panel part_panel,
+                                        part_detail.id part_detail_id,
+                                        part_detail.part_status part_status,
+                                        master_part.id master_part_id,
+                                        master_part.nama_part
+                                    FROM
+                                        form_cut_reject
+                                        LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
+                                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
+                                        LEFT JOIN part ON part.act_costing_ws = form_cut_reject.act_costing_ws and part.panel = form_cut_reject.panel
+                                        LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                        LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
+                                        LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                                        LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                                    WHERE
+                                        form_cut_reject.tanggal >= '".$start_date."'
+                                        AND form_cut_reject.tanggal <= '".$end_date."'
+                                        AND form_cut_reject.tanggal > '2026-04-31'
+                                        AND form_cut_reject_detail.qty > 0
+                                        AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
+                                    GROUP BY
+                                        form_cut_reject.id,
+                                        form_cut_reject_detail.id,
+                                        part_detail.id
                                     ORDER BY
                                             tanggal DESC,
                                             meja,
@@ -8044,6 +8144,66 @@ order by a.tgl_trans asc
                             form_cut_input.id,
                             form_cut_input_detail.group_stocker,
                             stocker_ws_additional_detail.id
+                    UNION ALL
+                    SELECT
+                        form_cut_reject.tanggal,
+                        '-' meja,
+                        form_cut_reject.act_costing_ws worksheet,
+                        form_cut_reject.buyer,
+                        form_cut_reject.style,
+                        form_cut_reject.color,
+                        master_sb_ws.id_so_det,
+                        (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE form_cut_reject_detail.size  END ) size,
+                        null as `group_roll`,
+                        null as lot,
+                        null as no_cut,
+                        form_cut_reject.no_form,
+                        '-' no_marker,
+                        form_cut_reject.panel,
+                        '-' max_group,
+                        null as group_stocker,
+                        NULL,
+                        NULL,
+                        SUM( form_cut_reject_detail.qty ) AS qty,
+                        ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
+                        ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
+                        ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
+                        part.id as part_id,
+                        part.panel_status panel_status,
+                        part.panel part_panel,
+                        part_detail.id part_detail_id,
+                        part_detail.part_status part_status,
+                        master_part.id master_part_id,
+                        master_part.nama_part
+                    FROM
+                        form_cut_reject
+                        LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
+                        LEFT JOIN part ON part.act_costing_ws = form_cut_reject.act_costing_ws and part.panel = form_cut_reject.panel
+                        LEFT JOIN part_detail ON part_detail.part_id = part.id
+                        LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
+                        LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                        LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                    WHERE
+                        form_cut_reject.tanggal >= '".$tgl_saldo."'
+                        AND form_cut_reject.tanggal < '".$start_date."'
+                        AND form_cut_reject.tanggal > '2026-04-31'
+                        AND form_cut_reject_detail.qty > 0
+                        AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
+                    GROUP BY
+                        form_cut_reject.id,
+                        form_cut_reject_detail.id,
+                        part_detail.id
+                    ORDER BY
+                            tanggal DESC,
+                            meja,
+                            worksheet,
+                            style,
+                            color,
+                            panel,
+                            part_detail_id,
+                            id_so_det,
+                            group_stocker
                     ORDER BY
                             tanggal desc,
                             meja,
@@ -8301,7 +8461,7 @@ order by a.tgl_trans asc
                                             form_cut_input.id,
                                             form_cut_input_detail.group_stocker,
                                             marker_input_detail.id
-                                    UNION ALL
+                            UNION ALL
                                     SELECT
                                             COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) tanggal,
                                             '-' meja,
@@ -8399,6 +8559,56 @@ order by a.tgl_trans asc
                                             form_cut_input.id,
                                             form_cut_input_detail.group_stocker,
                                             stocker_ws_additional_detail.id
+                            UNION ALL
+                                    SELECT
+                                        form_cut_reject.tanggal,
+                                        '-' meja,
+                                        form_cut_reject.act_costing_ws worksheet,
+                                        form_cut_reject.buyer,
+                                        form_cut_reject.style,
+                                        form_cut_reject.color,
+                                        master_sb_ws.id_so_det,
+                                        (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE form_cut_reject_detail.size  END ) size,
+                                        null as `group_roll`,
+                                        null as lot,
+                                        null as no_cut,
+                                        form_cut_reject.no_form,
+                                        '-' no_marker,
+                                        form_cut_reject.panel,
+                                        '-' max_group,
+                                        null as group_stocker,
+                                        NULL,
+                                        NULL,
+                                        SUM( form_cut_reject_detail.qty ) AS qty,
+                                        ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
+                                        ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
+                                        ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
+                                        part.id as part_id,
+                                        part.panel_status panel_status,
+                                        part.panel part_panel,
+                                        part_detail.id part_detail_id,
+                                        part_detail.part_status part_status,
+                                        master_part.id master_part_id,
+                                        master_part.nama_part
+                                    FROM
+                                        form_cut_reject
+                                        LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
+                                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
+                                        LEFT JOIN part ON part.act_costing_ws = form_cut_reject.act_costing_ws and part.panel = form_cut_reject.panel
+                                        LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                        LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
+                                        LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                                        LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                                    WHERE
+                                        form_cut_reject.tanggal >= '".$start_date."'
+                                        AND form_cut_reject.tanggal <= '".$end_date."'
+                                        AND form_cut_reject.tanggal > '2026-04-31'
+                                        AND form_cut_reject_detail.qty > 0
+                                        AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
+                                    GROUP BY
+                                        form_cut_reject.id,
+                                        form_cut_reject_detail.id,
+                                        part_detail.id
                                     ORDER BY
                                             tanggal desc,
                                             meja,
@@ -9112,6 +9322,66 @@ order by a.tgl_trans asc
                                 form_cut_input_detail.group_stocker,
                                 stocker_ws_additional_detail.id,
                                 part_detail.id
+                        UNION ALL
+                            SELECT
+                                form_cut_reject.tanggal,
+                                '-' meja,
+                                form_cut_reject.act_costing_ws worksheet,
+                                form_cut_reject.buyer,
+                                form_cut_reject.style,
+                                form_cut_reject.color,
+                                master_sb_ws.id_so_det,
+                                (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE form_cut_reject_detail.size  END ) size,
+                                null as `group_roll`,
+                                null as lot,
+                                null as no_cut,
+                                form_cut_reject.no_form,
+                                '-' no_marker,
+                                form_cut_reject.panel,
+                                '-' max_group,
+                                null as group_stocker,
+                                NULL,
+                                NULL,
+                                SUM( form_cut_reject_detail.qty ) AS qty,
+                                ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
+                                ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
+                                ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
+                                part.id as part_id,
+                                part.panel_status panel_status,
+                                part.panel part_panel,
+                                part_detail.id part_detail_id,
+                                part_detail.part_status part_status,
+                                master_part.id master_part_id,
+                                master_part.nama_part
+                            FROM
+                                form_cut_reject
+                                LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
+                                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
+                                LEFT JOIN part ON part.act_costing_ws = form_cut_reject.act_costing_ws and part.panel = form_cut_reject.panel
+                                LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
+                                LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                                LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                            WHERE
+                                form_cut_reject.tanggal >= '".$start_date."'
+                                AND form_cut_reject.tanggal <= '".$end_date."'
+                                AND form_cut_reject.tanggal > '2026-04-31'
+                                AND form_cut_reject_detail.qty > 0
+                                AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
+                            GROUP BY
+                                form_cut_reject.id,
+                                form_cut_reject_detail.id,
+                                part_detail.id
+                            ORDER BY
+                                    tanggal DESC,
+                                    meja,
+                                    worksheet,
+                                    style,
+                                    color,
+                                    panel,
+                                    part_detail_id,
+                                    id_so_det,
+                                    group_stocker
                             ORDER BY
                                 tanggal DESC,
                                 meja,
@@ -9816,6 +10086,56 @@ order by a.tgl_trans asc
                                             form_cut_input_detail.group_stocker,
                                             stocker_ws_additional_detail.id,
                                             part_detail.id
+                            UNION ALL
+                                    SELECT
+                                        form_cut_reject.tanggal,
+                                        '-' meja,
+                                        form_cut_reject.act_costing_ws worksheet,
+                                        form_cut_reject.buyer,
+                                        form_cut_reject.style,
+                                        form_cut_reject.color,
+                                        master_sb_ws.id_so_det,
+                                        (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE form_cut_reject_detail.size  END ) size,
+                                        null as `group_roll`,
+                                        null as lot,
+                                        null as no_cut,
+                                        form_cut_reject.no_form,
+                                        '-' no_marker,
+                                        form_cut_reject.panel,
+                                        '-' max_group,
+                                        null as group_stocker,
+                                        NULL,
+                                        NULL,
+                                        SUM( form_cut_reject_detail.qty ) AS qty,
+                                        ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
+                                        ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
+                                        ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
+                                        part.id as part_id,
+                                        part.panel_status panel_status,
+                                        part.panel part_panel,
+                                        part_detail.id part_detail_id,
+                                        part_detail.part_status part_status,
+                                        master_part.id master_part_id,
+                                        master_part.nama_part
+                                    FROM
+                                        form_cut_reject
+                                        LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
+                                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
+                                        LEFT JOIN part ON part.act_costing_ws = form_cut_reject.act_costing_ws and part.panel = form_cut_reject.panel
+                                        LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                        LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
+                                        LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                                        LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                                    WHERE
+                                        form_cut_reject.tanggal >= '".$tgl_saldo."'
+                                        AND form_cut_reject.tanggal < '".$start_date."'
+                                        AND form_cut_reject.tanggal > '2026-04-31'
+                                        AND form_cut_reject_detail.qty > 0
+                                        AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
+                                    GROUP BY
+                                        form_cut_reject.id,
+                                        form_cut_reject_detail.id,
+                                        part_detail.id
                                     ORDER BY
                                             tanggal DESC,
                                             meja,
@@ -10029,6 +10349,56 @@ order by a.tgl_trans asc
                                             form_cut_input_detail.group_stocker,
                                             stocker_ws_additional_detail.id,
                                             part_detail.id
+                            UNION ALL
+                                    SELECT
+                                        form_cut_reject.tanggal,
+                                        '-' meja,
+                                        form_cut_reject.act_costing_ws worksheet,
+                                        form_cut_reject.buyer,
+                                        form_cut_reject.style,
+                                        form_cut_reject.color,
+                                        master_sb_ws.id_so_det,
+                                        (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE form_cut_reject_detail.size  END ) size,
+                                        null as `group_roll`,
+                                        null as lot,
+                                        null as no_cut,
+                                        form_cut_reject.no_form,
+                                        '-' no_marker,
+                                        form_cut_reject.panel,
+                                        '-' max_group,
+                                        null as group_stocker,
+                                        NULL,
+                                        NULL,
+                                        SUM( form_cut_reject_detail.qty ) AS qty,
+                                        ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
+                                        ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
+                                        ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
+                                        part.id as part_id,
+                                        part.panel_status panel_status,
+                                        part.panel part_panel,
+                                        part_detail.id part_detail_id,
+                                        part_detail.part_status part_status,
+                                        master_part.id master_part_id,
+                                        master_part.nama_part
+                                    FROM
+                                        form_cut_reject
+                                        LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
+                                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
+                                        LEFT JOIN part ON part.act_costing_ws = form_cut_reject.act_costing_ws and part.panel = form_cut_reject.panel
+                                        LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                        LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
+                                        LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                                        LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                                    WHERE
+                                        form_cut_reject.tanggal >= '".$start_date."'
+                                        AND form_cut_reject.tanggal <= '".$end_date."'
+                                        AND form_cut_reject.tanggal > '2026-04-31'
+                                        AND form_cut_reject_detail.qty > 0
+                                        AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
+                                    GROUP BY
+                                        form_cut_reject.id,
+                                        form_cut_reject_detail.id,
+                                        part_detail.id
                                     ORDER BY
                                             tanggal DESC,
                                             meja,
@@ -12484,7 +12854,7 @@ order by a.tgl_trans asc
                     ),
 
                     query_qty_in as(
-                        SELECT 
+                        SELECT
                             tanggal,
                             worksheet,
                             buyer,
@@ -12621,6 +12991,7 @@ order by a.tgl_trans asc
                                 form_cut_input.id,
                                 form_cut_input_detail.group_stocker,
                                 marker_input_detail.id
+
                             ORDER BY
                                 tanggal ASC,
                                 worksheet,
@@ -12897,7 +13268,7 @@ order by a.tgl_trans asc
             ),
 
             query_qty_in as(
-                SELECT 
+                SELECT
                     tanggal,
                     worksheet,
                     buyer,
@@ -13034,6 +13405,7 @@ order by a.tgl_trans asc
                         form_cut_input.id,
                         form_cut_input_detail.group_stocker,
                         marker_input_detail.id
+
                     ORDER BY
                         tanggal ASC,
                         worksheet,
