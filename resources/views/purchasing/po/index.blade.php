@@ -302,6 +302,7 @@
                 {
                     data: 'style',
                     name: 'h.style',
+                    searchable: false,
                     defaultContent: '-',
                     render: function(data, type, row) {
                         if (data && type === 'display') {
@@ -358,6 +359,7 @@
                 {
                     data: 'style',
                     name: 'h.style',
+                    searchable: false,
                     defaultContent: '-',
                     render: function(data, type, row) {
                         if (data && type === 'display') {
