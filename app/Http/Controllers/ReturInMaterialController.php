@@ -586,7 +586,7 @@ class ReturInMaterialController extends Controller
         }
 
         $cari_supp = DB::connection('mysql_sb')->select("select Supplier from mastersupplier where Id_Supplier = '12'");
-        $Supplier = ($cari_supp[0] ?? null)?->Supplier ?? null;
+        $Supplier = ($cari_supp[0] ?? null) ? $cari_supp[0]->Supplier : null;
 
         $inmaterialDetailStore = Bpb::insert($inmaterialDetailData);
 
