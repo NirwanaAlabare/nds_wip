@@ -7,6 +7,7 @@
 
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 @endsection
 
 @section('content')
@@ -67,6 +68,7 @@
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         let table;
@@ -99,8 +101,9 @@
                         render: function (data) {
                             let editUrl = "{{ route('edit-costing', ':id') }}".replace(':id', data);
                             let pdfUrl = "{{ route('print-costing-pdf', ':id') }}".replace(':id', data);
-
                             let excelUrl = "{{ route('print-excel-costing', ':id') }}".replace(':id', data);
+                            let copyUrl = "{{ route('copy-costing', ':id') }}".replace(':id', data);
+
                             return `
                                 <div style="display: flex; justify-content: center; gap: 5px; flex-wrap: nowrap;">
                                     <a href="${editUrl}" class="btn btn-sm btn-primary py-1 px-2" style="font-size: 12px; white-space: nowrap;">
@@ -112,6 +115,9 @@
                                     <a href="${excelUrl}" target="_blank" class="btn btn-sm btn-success py-1 px-2" style="font-size: 12px; white-space: nowrap;">
                                         <i class="fas fa-file-excel"></i> Excel
                                     </a>
+                                    <button onclick="confirmCopy('${copyUrl}')" class="btn btn-sm btn-warning py-1 px-2" style="font-size: 12px; white-space: nowrap;">
+                                        <i class="fas fa-copy"></i> Copy
+                                    </button>
                                 </div>
                             `;
                         }
@@ -124,6 +130,29 @@
 
         function dataTableReload() {
             table.ajax.reload();
+        }
+
+        function confirmCopy(url) {
+            Swal.fire({
+                title: 'Copy Costing?',
+                text: 'Data header dan semua detail akan disalin ke nomor costing baru.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-copy"></i> Ya, Copy!',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Sedang menyalin...',
+                        text: 'Mohon tunggu sebentar.',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+                    window.location.href = url;
+                }
+            });
         }
     </script>
 @endsection

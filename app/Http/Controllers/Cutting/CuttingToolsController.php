@@ -27,6 +27,7 @@ use App\Imports\ImportCuttingManual;
 use App\Imports\ImportSaldoAwalCutting;
 use App\Imports\ImportSaldoAwalCuttingDetail;
 use Maatwebsite\Excel\Facades\Excel;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -1405,6 +1406,7 @@ class CuttingToolsController extends Controller
             SELECT
                 activity_log.created_at,
                 activity_log.description as activity,
+                activity_log.subject_id,
                 SUBSTRING_INDEX(activity_log.subject_type, '\\\\', -1) AS subject_type,
                 activity_log.properties,
                 users.username AS user_name
@@ -1420,6 +1422,13 @@ class CuttingToolsController extends Controller
             $request->tanggal_awal,
             $request->tanggal_akhir
         ]);
+
+        $propsSearch = $request->input('columns.4.search.value', '');
+        if ($propsSearch !== '') {
+            $data = array_values(array_filter($data, function ($row) use ($propsSearch) {
+                return stripos($row->properties ?? '', $propsSearch) !== false;
+            }));
+        }
 
         return DataTables::of($data)
             ->addColumn('properties_formatted', function ($row) {
@@ -1500,6 +1509,7 @@ class CuttingToolsController extends Controller
             SELECT
                 activity_log_history.created_at,
                 activity_log_history.activity,
+                activity_log_history.subject_id,
                 activity_log_history.subject_type,
                 activity_log_history.route_name,
                 activity_log_history.properties,
@@ -1517,33 +1527,39 @@ class CuttingToolsController extends Controller
             $request->tanggal_akhir
         ]);
 
+        $propsSearch = $request->input('columns.5.search.value', '');
+        if ($propsSearch !== '') {
+            $data = array_values(array_filter($data, function ($row) use ($propsSearch) {
+                return stripos($row->properties ?? '', $propsSearch) !== false;
+            }));
+        }
+
         return DataTables::of($data)
             ->addColumn('properties_formatted', function ($row) {
+                $props = json_decode($row->properties, true);
 
-    $props = json_decode($row->properties, true);
+                if (!$props) {
+                    return '-';
+                }
 
-    if (!$props) {
-        return '-';
-    }
+                $lines = [];
 
-    $lines = [];
+                foreach ($props as $key => $value) {
 
-    foreach ($props as $key => $value) {
+                    if (is_array($value)) {
+                        $value = json_encode($value, JSON_PRETTY_PRINT);
+                    }
 
-        if (is_array($value)) {
-            $value = json_encode($value, JSON_PRETTY_PRINT);
-        }
+                    if ($value === null || $value === '') {
+                        continue;
+                    }
 
-        if ($value === null || $value === '') {
-            continue;
-        }
+                    $lines[] = '<b>' . ucwords(str_replace('_', ' ', $key)) . '</b>: '
+                        . e((string) $value);
+                }
 
-        $lines[] = '<b>' . ucwords(str_replace('_', ' ', $key)) . '</b>: '
-            . e((string) $value);
-    }
-
-    return implode('<br>', $lines);
-})
+                return implode('<br>', $lines);
+            })
             ->rawColumns(['properties_formatted'])
             ->toJson();
     }
@@ -1562,5 +1578,201 @@ class CuttingToolsController extends Controller
             ->pluck('activity');
 
         return response()->json($data);
+    }
+
+    public function exportLogsCutting(Request $request)
+    {
+        if ($request->subject_type == 'form_cut_input') {
+            $type = 'FormCutInput';
+        } else {
+            $type = '';
+        }
+
+        $data = DB::select("
+            SELECT
+                activity_log.created_at,
+                activity_log.description as activity,
+                activity_log.subject_id,
+                SUBSTRING_INDEX(activity_log.subject_type, '\\\\', -1) AS subject_type,
+                activity_log.properties,
+                users.username AS user_name
+            FROM activity_log
+            LEFT JOIN users
+                ON users.id = activity_log.causer_id
+            WHERE activity_log.subject_type LIKE ?
+                AND activity_log.description = COALESCE(NULLIF(?, ''), activity_log.description)
+                AND DATE(activity_log.created_at) BETWEEN ? AND ?
+        ", [
+            '%' . $type . '%',
+            $request->activity,
+            $request->tanggal_awal,
+            $request->tanggal_akhir
+        ]);
+
+        $filename = 'Logs_Cutting_' . $request->tanggal_awal . '_' . $request->tanggal_akhir . '.xlsx';
+
+        $excel = FastExcel::create('data');
+        $sheet = $excel->getSheet();
+        $sheet->writeRow(['Tanggal', 'Subject ID', 'Activity', 'Type', 'Properties', 'User'], ['font-style' => 'bold']);
+
+        collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
+            $sheet->writeAreas();
+            foreach ($rows as $row) {
+                $props = json_decode($row->properties, true);
+                $lines = [];
+                if ($props) {
+                    $attributes = $props['attributes'] ?? [];
+                    $old        = $props['old'] ?? [];
+                    $keys = array_unique(array_merge(array_keys($attributes), array_keys($old)));
+                    foreach ($keys as $key) {
+                        $newVal = $attributes[$key] ?? null;
+                        $oldVal = $old[$key] ?? null;
+                        if ($oldVal !== null && $newVal !== null && $oldVal != $newVal) {
+                            $lines[] = "{$key}: {$oldVal} -> {$newVal}";
+                        } elseif ($newVal !== null && $oldVal === null) {
+                            $lines[] = "{$key}: {$newVal}";
+                        }
+                    }
+                }
+                $sheet->writeRow([
+                    $row->created_at   ?? '',
+                    $row->subject_id   ?? '',
+                    $row->activity     ?? '',
+                    $row->subject_type ?? '',
+                    implode("\n", $lines),
+                    $row->user_name    ?? '',
+                ]);
+            }
+        });
+
+        return $excel->download($filename);
+    }
+
+    public function exportLogsCuttingPiece(Request $request)
+    {
+        if ($request->subject_type == 'form_cut_piece') {
+            $type = 'CuttingFormPiece';
+        } else {
+            $type = '';
+        }
+
+        $data = DB::select("
+            SELECT
+                activity_log_history.created_at,
+                activity_log_history.activity,
+                activity_log_history.subject_id,
+                activity_log_history.subject_type,
+                activity_log_history.route_name,
+                activity_log_history.properties,
+                users.username AS user_name
+            FROM activity_log_history
+            LEFT JOIN users
+                ON users.id = activity_log_history.user_id
+            WHERE activity_log_history.subject_type = ?
+                AND activity_log_history.activity = COALESCE(NULLIF(?, ''), activity_log_history.activity)
+                AND DATE(activity_log_history.created_at) BETWEEN ? AND ?
+        ", [
+            $type,
+            $request->activity,
+            $request->tanggal_awal,
+            $request->tanggal_akhir
+        ]);
+
+        $filename = 'Logs_Cutting_Piece_' . $request->tanggal_awal . '_' . $request->tanggal_akhir . '.xlsx';
+
+        $excel = FastExcel::create('data');
+        $sheet = $excel->getSheet();
+        $sheet->writeRow(['Tanggal', 'Subject ID', 'Activity', 'Type', 'Route', 'Properties', 'User'], ['font-style' => 'bold']);
+
+        collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
+            $sheet->writeAreas();
+            foreach ($rows as $row) {
+                $props = json_decode($row->properties, true);
+                $lines = [];
+                if ($props) {
+                    foreach ($props as $key => $value) {
+                        if (is_array($value)) {
+                            $value = json_encode($value);
+                        }
+                        if ($value === null || $value === '') {
+                            continue;
+                        }
+                        $lines[] = ucwords(str_replace('_', ' ', $key)) . ': ' . $value;
+                    }
+                }
+                $sheet->writeRow([
+                    $row->created_at   ?? '',
+                    $row->subject_id   ?? '',
+                    $row->activity     ?? '',
+                    $row->subject_type ?? '',
+                    $row->route_name   ?? '',
+                    implode("\n", $lines),
+                    $row->user_name    ?? '',
+                ]);
+            }
+        });
+
+        return $excel->download($filename);
+    }
+
+    public function exportLogsScannedItem(Request $request)
+    {
+        $data = DB::select("
+            SELECT
+                activity_log.created_at,
+                activity_log.description as activity,
+                activity_log.subject_id,
+                SUBSTRING_INDEX(activity_log.subject_type, '\\\\', -1) AS subject_type,
+                activity_log.properties,
+                users.username AS user_name
+            FROM activity_log
+            LEFT JOIN users
+                ON users.id = activity_log.causer_id
+            WHERE activity_log.subject_type LIKE '%ScannedItem%'
+                AND activity_log.description = COALESCE(NULLIF(?, ''), activity_log.description)
+                AND DATE(activity_log.created_at) BETWEEN ? AND ?
+        ", [
+            $request->activity,
+            $request->tanggal_awal,
+            $request->tanggal_akhir
+        ]);
+
+        $filename = 'Logs_Scanned_Item_' . $request->tanggal_awal . '_' . $request->tanggal_akhir . '.xlsx';
+
+        $excel = FastExcel::create('data');
+        $sheet = $excel->getSheet();
+        $sheet->writeRow(['Tanggal', 'Subject ID', 'Activity', 'Type', 'Properties', 'User'], ['font-style' => 'bold']);
+
+        collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
+            $sheet->writeAreas();
+            foreach ($rows as $row) {
+                $props = json_decode($row->properties, true);
+                $lines = [];
+                if ($props) {
+                    $attributes = $props['attributes'] ?? [];
+                    $old        = $props['old'] ?? [];
+                    $keys = array_unique(array_merge(array_keys($attributes), array_keys($old)));
+                    foreach ($keys as $key) {
+                        $newVal = $attributes[$key] ?? null;
+                        $oldVal = $old[$key] ?? null;
+                        if ($oldVal !== null && $newVal !== null && $oldVal != $newVal) {
+                            $lines[] = "{$key}: {$oldVal} -> {$newVal}";
+                        } elseif ($newVal !== null && $oldVal === null) {
+                            $lines[] = "{$key}: {$newVal}";
+                        }
+                    }
+                }
+                $sheet->writeRow([
+                    $row->created_at   ?? '',
+                    $row->subject_id   ?? '',
+                    $row->activity     ?? '',
+                    $row->subject_type ?? '',
+                    implode("\n", $lines),
+                    $row->user_name    ?? '',
+                ]);
+            }
+        });
+
+        return $excel->download();
     }
 }

@@ -682,6 +682,86 @@ class SewingToolsController extends Controller
         );
     }
 
+    public function fixRejectOutDetail() {
+        ini_set("max_execution_time", 3600);
+
+        // Cari reject_out_detail yang reject_out_id-nya null atau referensinya tidak ada
+        $orphans = DB::connection("mysql_sb")->select("
+            SELECT
+                rod.id,
+                rod.reject_in_id,
+                rod.created_by,
+                rod.created_by_username,
+                DATE(rod.created_at) AS tgl,
+                rod.created_at
+            FROM output_reject_out_detail rod
+            LEFT JOIN output_reject_out ro ON ro.id = rod.reject_out_id
+            WHERE rod.reject_out_id IS NULL OR ro.id IS NULL
+            ORDER BY rod.created_by, DATE(rod.created_at)
+        ");
+
+        if (empty($orphans)) {
+            return [
+                'status'     => 200,
+                'message'    => 'Tidak ada Reject Out Detail yang perlu diperbaiki',
+                'redirect'   => '',
+                'additional' => [],
+            ];
+        }
+
+        // Group by created_by + tgl untuk 1 RejectOut per user per hari
+        $groups = collect($orphans)->groupBy(fn($r) => $r->created_by . '_' . $r->tgl);
+
+        $totalFixed = 0;
+
+        foreach ($groups as $key => $details) {
+            $first = $details->first();
+
+            // Generate no_transaksi: R{dmy}/{increment}
+            $prefix  = 'R' . date('dmy', strtotime($first->tgl));
+            $lastNum = DB::connection("mysql_sb")
+                ->table("output_reject_out")
+                ->selectRaw("MAX(CAST(SUBSTRING_INDEX(no_transaksi, '/', -1) AS UNSIGNED)) as max_id")
+                ->whereRaw("SUBSTRING_INDEX(no_transaksi, '/', 1) LIKE ?", ['%' . $prefix . '%'])
+                ->value('max_id');
+            $nextNum      = ($lastNum ?? 0) + 1;
+            $noTransaksi  = $prefix . '/' . sprintf('%05d', $nextNum);
+
+            // Buat RejectOut header
+            $rejectOutId = DB::connection("mysql_sb")->table("output_reject_out")->insertGetId([
+                'tanggal'              => $first->tgl,
+                'no_transaksi'         => $noTransaksi,
+                'tujuan'               => 'gudang',
+                'created_by'           => $first->created_by,
+                'created_by_username'  => $first->created_by_username ?? '',
+                'created_at'           => $first->created_at,
+                'updated_at'           => now(),
+            ]);
+
+            // Update semua detail dalam group ke reject_out_id baru
+            $detailIds = $details->pluck('id')->toArray();
+            DB::connection("mysql_sb")
+                ->table("output_reject_out_detail")
+                ->whereIn("id", $detailIds)
+                ->update(['reject_out_id' => $rejectOutId]);
+
+            $totalFixed += count($detailIds);
+        }
+
+        Log::channel('missRejectOutput')->info([
+            "Fix Missing Reject Out for Reject Out Detail",
+            "By " . (Auth::user() ? Auth::user()->id . " " . Auth::user()->username : "System"),
+            "Total Fixed: " . $totalFixed,
+        ]);
+
+        return [
+            'status'     => 200,
+            'message'    => "Berhasil memperbaiki <br> Reject Out Detail = {$totalFixed} record <br> Reject Out dibuat = " . $groups->count(),
+            'redirect'   => '',
+            'additional' => [],
+        ];
+    }
+
     public function missPackingPo(SewingService $sewingService) {
         ini_set("max_execution_time", 3600);
 
@@ -4367,9 +4447,6 @@ class SewingToolsController extends Controller
                         $rejectOutIds = $rejectOutDetail->pluck("reject_out_id")->toArray();
                         $rejectOutDetailIds = $rejectOutDetail->pluck("id")->toArray();
 
-                        // Delete Group
-                        $deleteRejectOut = RejectOut::whereIn("id", $rejectOutIds)->delete();
-
                         // Delete Detail
                         if ($deleteRejectOut) {
                             $deleteRejectOutDetail = RejectOutDetail::where("reject_in_id", $output->id)->delete();
@@ -4377,6 +4454,13 @@ class SewingToolsController extends Controller
                             if ($deleteRejectOutDetail) {
                                 // Output Gudang Stok
                                 OutputGudangStok::whereIn("reject_out_id", $rejectOutDetailIds)->delete();
+
+                                // Delete Group
+                                $rejectOut = RejectOut::whereIn("id", $rejectOutIds)->get();
+                                // Check Reject Out Detail before delete the group
+                                if ($rejectOut->rejectOutDetail()->count() < 1) {
+                                    $deleteRejectOut = $rejectOut->delete();
+                                }
                             }
 
                             $message .= "Reject Out ".$output->kode_numbering." -> DELETED <br>";
@@ -4392,6 +4476,339 @@ class SewingToolsController extends Controller
                 return $result;
             }
         }
+    }
+
+    public function undoOutputList(Request $request)
+    {
+        return view("sewing.tools.undo-output-list", ["page" => "dashboard-sewing-eff"]);
+    }
+
+    public function getUndoOutputList(Request $request)
+    {
+        $tglAwal  = $request->tgl_awal  ?: date('Y-m-d');
+        $tglAkhir = $request->tgl_akhir ?: date('Y-m-d');
+        $kode     = $request->kode_numbering;
+        $type     = $request->type ?: 'qc';
+
+        if ($type === 'packing') {
+            $data = UndoPacking::selectRaw("
+                    output_undo_packing.kode_numbering,
+                    CASE
+                        WHEN output_undo_packing.output_rft_id    IS NOT NULL THEN 'RFT'
+                        WHEN output_undo_packing.output_defect_id IS NOT NULL THEN 'Defect'
+                        WHEN output_undo_packing.output_reject_id IS NOT NULL THEN 'Reject'
+                        WHEN output_undo_packing.output_rework_id IS NOT NULL THEN 'Rework'
+                        ELSE '-'
+                    END AS output_type,
+                    act_costing.kpno AS ws,
+                    act_costing.styleno AS style,
+                    so_det.color,
+                    so_det.size,
+                    master_plan.sewing_line AS line,
+                    master_plan.tgl_plan,
+                    output_undo_packing.undo_by,
+                    output_undo_packing.undo_by_nds,
+                    output_undo_packing.keterangan,
+                    output_undo_packing.undo_at AS undo_at,
+                    output_undo_packing.created_at AS output_created_at,
+                    output_undo_packing.updated_at AS output_updated_at
+                ")
+                ->leftJoin('master_plan', 'master_plan.id', '=', 'output_undo_packing.master_plan_id')
+                ->leftJoin('so_det', 'so_det.id', '=', 'output_undo_packing.so_det_id')
+                ->leftJoin('so', 'so.id', '=', 'so_det.id_so')
+                ->leftJoin('act_costing', 'act_costing.id', '=', 'so.id_cost')
+                ->leftJoin('output_rfts_packing as orft', 'orft.id', '=', 'output_undo_packing.output_rft_id')
+                ->leftJoin('output_defects_packing as odef', 'odef.id', '=', 'output_undo_packing.output_defect_id')
+                ->leftJoin('output_rejects_packing as orej', 'orej.id', '=', 'output_undo_packing.output_reject_id')
+                ->leftJoin('output_reworks_packing as orw', 'orw.id', '=', 'output_undo_packing.output_rework_id')
+                ->whereRaw("DATE(COALESCE(output_undo_packing.updated_at, output_undo_packing.created_at)) BETWEEN ? AND ?", [$tglAwal, $tglAkhir])
+                ->when($kode, fn($q) => $q->where('output_undo_packing.kode_numbering', 'like', '%'.$kode.'%'))
+                ->orderByRaw("COALESCE(output_undo_packing.updated_at, output_undo_packing.created_at) DESC")
+                ->get();
+        } else {
+            $data = Undo::selectRaw("
+                    output_undo.kode_numbering,
+                    CASE
+                        WHEN output_undo.output_rft_id    IS NOT NULL THEN 'RFT'
+                        WHEN output_undo.output_defect_id IS NOT NULL THEN 'Defect'
+                        WHEN output_undo.output_reject_id IS NOT NULL THEN 'Reject'
+                        WHEN output_undo.output_rework_id IS NOT NULL THEN 'Rework'
+                        ELSE '-'
+                    END AS output_type,
+                    act_costing.kpno          AS ws,
+                    act_costing.styleno       AS style,
+                    so_det.color,
+                    so_det.size,
+                    master_plan.sewing_line   AS line,
+                    master_plan.tgl_plan,
+                    output_undo.undo_by,
+                    output_undo.undo_by_nds,
+                    output_undo.keterangan,
+                    output_undo.undo_at,
+                    output_undo.created_at AS output_created_at,
+                    output_undo.updated_at AS output_updated_at
+                ")
+                ->leftJoin('master_plan', 'master_plan.id', '=', 'output_undo.master_plan_id')
+                ->leftJoin('so_det', 'so_det.id', '=', 'output_undo.so_det_id')
+                ->leftJoin('so', 'so.id', '=', 'so_det.id_so')
+                ->leftJoin('act_costing', 'act_costing.id', '=', 'so.id_cost')
+                ->leftJoin('output_rfts as orft', 'orft.id', '=', 'output_undo.output_rft_id')
+                ->leftJoin('output_defects as odef', 'odef.id', '=', 'output_undo.output_defect_id')
+                ->leftJoin('output_rejects as orej', 'orej.id', '=', 'output_undo.output_reject_id')
+                ->leftJoin('output_reworks as orw', 'orw.id', '=', 'output_undo.output_rework_id')
+                ->whereRaw("DATE(COALESCE(output_undo.undo_at, output_undo.updated_at, output_undo.created_at)) BETWEEN ? AND ?", [$tglAwal, $tglAkhir])
+                ->when($kode, fn($q) => $q->where('output_undo.kode_numbering', 'like', '%'.$kode.'%'))
+                ->orderByRaw("COALESCE(output_undo.undo_at, output_undo.updated_at, output_undo.created_at) DESC")
+                ->get();
+        }
+
+        return DataTables::of($data)->toJson();
+    }
+
+    public function exportUndoOutputList(Request $request)
+    {
+        $tglAwal  = $request->tgl_awal  ?: date('Y-m-d');
+        $tglAkhir = $request->tgl_akhir ?: date('Y-m-d');
+        $kode     = $request->kode_numbering;
+        $type     = $request->type ?: 'qc';
+
+        if ($type === 'packing') {
+            $data = UndoPacking::selectRaw("
+                    output_undo_packing.kode_numbering,
+                    CASE
+                        WHEN output_undo_packing.output_rft_id    IS NOT NULL THEN 'RFT'
+                        WHEN output_undo_packing.output_defect_id IS NOT NULL THEN 'Defect'
+                        WHEN output_undo_packing.output_reject_id IS NOT NULL THEN 'Reject'
+                        WHEN output_undo_packing.output_rework_id IS NOT NULL THEN 'Rework'
+                        ELSE '-'
+                    END AS output_type,
+                    act_costing.kpno        AS ws,
+                    act_costing.styleno     AS style,
+                    so_det.color,
+                    so_det.size,
+                    master_plan.sewing_line AS line,
+                    master_plan.tgl_plan,
+                    output_undo_packing.undo_by,
+                    output_undo_packing.undo_by_nds,
+                    output_undo_packing.keterangan,
+                    output_undo_packing.undo_at,
+                    COALESCE(orft.created_at, odef.created_at, orej.created_at, orw.created_at) AS output_created_at,
+                    COALESCE(orft.updated_at, odef.updated_at, orej.updated_at, orw.updated_at) AS output_updated_at
+                ")
+                ->leftJoin('master_plan', 'master_plan.id', '=', 'output_undo_packing.master_plan_id')
+                ->leftJoin('so_det', 'so_det.id', '=', 'output_undo_packing.so_det_id')
+                ->leftJoin('so', 'so.id', '=', 'so_det.id_so')
+                ->leftJoin('act_costing', 'act_costing.id', '=', 'so.id_cost')
+                ->leftJoin('output_rfts_packing as orft', 'orft.id', '=', 'output_undo_packing.output_rft_id')
+                ->leftJoin('output_defects_packing as odef', 'odef.id', '=', 'output_undo_packing.output_defect_id')
+                ->leftJoin('output_rejects_packing as orej', 'orej.id', '=', 'output_undo_packing.output_reject_id')
+                ->leftJoin('output_reworks_packing as orw', 'orw.id', '=', 'output_undo_packing.output_rework_id')
+                ->whereRaw("DATE(COALESCE(output_undo_packing.updated_at, output_undo_packing.created_at)) BETWEEN ? AND ?", [$tglAwal, $tglAkhir])
+                ->when($kode, fn($q) => $q->where('output_undo_packing.kode_numbering', 'like', '%'.$kode.'%'))
+                ->orderByRaw("COALESCE(output_undo_packing.updated_at, output_undo_packing.created_at) DESC")
+                ->get();
+        } else {
+            $data = Undo::selectRaw("
+                    output_undo.kode_numbering,
+                    CASE
+                        WHEN output_undo.output_rft_id    IS NOT NULL THEN 'RFT'
+                        WHEN output_undo.output_defect_id IS NOT NULL THEN 'Defect'
+                        WHEN output_undo.output_reject_id IS NOT NULL THEN 'Reject'
+                        WHEN output_undo.output_rework_id IS NOT NULL THEN 'Rework'
+                        ELSE '-'
+                    END AS output_type,
+                    act_costing.kpno        AS ws,
+                    act_costing.styleno     AS style,
+                    so_det.color,
+                    so_det.size,
+                    master_plan.sewing_line AS line,
+                    master_plan.tgl_plan,
+                    output_undo.undo_by,
+                    output_undo.undo_by_nds,
+                    output_undo.keterangan,
+                    output_undo.undo_at,
+                    COALESCE(orft.created_at, odef.created_at, orej.created_at, orw.created_at) AS output_created_at,
+                    COALESCE(orft.updated_at, odef.updated_at, orej.updated_at, orw.updated_at) AS output_updated_at
+                ")
+                ->leftJoin('master_plan', 'master_plan.id', '=', 'output_undo.master_plan_id')
+                ->leftJoin('so_det', 'so_det.id', '=', 'output_undo.so_det_id')
+                ->leftJoin('so', 'so.id', '=', 'so_det.id_so')
+                ->leftJoin('act_costing', 'act_costing.id', '=', 'so.id_cost')
+                ->leftJoin('output_rfts as orft', 'orft.id', '=', 'output_undo.output_rft_id')
+                ->leftJoin('output_defects as odef', 'odef.id', '=', 'output_undo.output_defect_id')
+                ->leftJoin('output_rejects as orej', 'orej.id', '=', 'output_undo.output_reject_id')
+                ->leftJoin('output_reworks as orw', 'orw.id', '=', 'output_undo.output_rework_id')
+                ->whereRaw("DATE(COALESCE(output_undo.undo_at, output_undo.updated_at, output_undo.created_at)) BETWEEN ? AND ?", [$tglAwal, $tglAkhir])
+                ->when($kode, fn($q) => $q->where('output_undo.kode_numbering', 'like', '%'.$kode.'%'))
+                ->orderByRaw("COALESCE(output_undo.undo_at, output_undo.updated_at, output_undo.created_at) DESC")
+                ->get();
+        }
+
+        $filename = 'List_Output_Undo_' . strtoupper($type) . '_' . $tglAwal . '_' . $tglAkhir . '.xlsx';
+
+        $excel = FastExcel::create('data');
+        $sheet = $excel->getSheet();
+        $sheet->writeRow([
+            'Tanggal Undo', 'Kode Numbering', 'Type', 'WS', 'Style',
+            'Color', 'Size', 'Line', 'Tgl Plan', 'Undo By (SB)',
+            'Undo By (NDS)', 'Keterangan', 'Output Created At', 'Output Updated At',
+        ], ['font-style' => 'bold']);
+
+        collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
+            $sheet->writeAreas();
+            foreach ($rows as $row) {
+                $sheet->writeRow([
+                    $row->undo_at           ?? '',
+                    $row->kode_numbering    ?? '',
+                    $row->output_type       ?? '',
+                    $row->ws                ?? '',
+                    $row->style             ?? '',
+                    $row->color             ?? '',
+                    $row->size              ?? '',
+                    $row->line              ?? '',
+                    $row->tgl_plan          ?? '',
+                    $row->undo_by           ?? '',
+                    $row->undo_by_nds       ?? '',
+                    $row->keterangan        ?? '',
+                    $row->output_created_at ?? '',
+                    $row->output_updated_at ?? '',
+                ]);
+            }
+        });
+
+        return $excel->download($filename);
+    }
+
+    public function undoPackingPoList(Request $request)
+    {
+        return view("sewing.tools.undo-packing-po-list", ["page" => "dashboard-sewing-eff"]);
+    }
+
+    public function getUndoPackingPoList(Request $request)
+    {
+        $tglAwal  = $request->tgl_awal  ?: date('Y-m-d');
+        $tglAkhir = $request->tgl_akhir ?: date('Y-m-d');
+        $kode     = $request->kode_numbering;
+
+        $data = UndoPackingPo::selectRaw("
+                output_undo_packing_po.kode_numbering,
+                CASE
+                    WHEN output_undo_packing_po.output_rft_id    IS NOT NULL THEN 'RFT'
+                    WHEN output_undo_packing_po.output_defect_id IS NOT NULL THEN 'Defect'
+                    WHEN output_undo_packing_po.output_reject_id IS NOT NULL THEN 'Reject'
+                    WHEN output_undo_packing_po.output_rework_id IS NOT NULL THEN 'Rework'
+                    ELSE '-'
+                END AS output_type,
+                act_costing.kpno            AS ws,
+                act_costing.styleno         AS style,
+                so_det.color,
+                so_det.size,
+                master_plan.sewing_line     AS line,
+                master_plan.tgl_plan,
+                output_undo_packing_po.alokasi,
+                output_undo_packing_po.keterangan,
+                output_undo_packing_po.created_by,
+                output_undo_packing_po.created_by_username,
+                output_undo_packing_po.created_by_line,
+                output_undo_packing_po.created_at,
+                output_undo_packing_po.updated_at,
+                COALESCE(orft.created_at, orej.created_at) AS output_created_at,
+                COALESCE(orft.updated_at, orej.updated_at) AS output_updated_at
+            ")
+            ->leftJoin('master_plan', 'master_plan.id', '=', 'output_undo_packing_po.master_plan_id')
+            ->leftJoin('so_det', 'so_det.id', '=', 'output_undo_packing_po.so_det_id')
+            ->leftJoin('so', 'so.id', '=', 'so_det.id_so')
+            ->leftJoin('act_costing', 'act_costing.id', '=', 'so.id_cost')
+            ->leftJoin('output_rfts_packing_po as orft', 'orft.id', '=', 'output_undo_packing_po.output_rft_id')
+            ->leftJoin('output_rejects_packing_po as orej', 'orej.id', '=', 'output_undo_packing_po.output_reject_id')
+            ->whereRaw("DATE(COALESCE(output_undo_packing_po.updated_at, output_undo_packing_po.created_at)) BETWEEN ? AND ?", [$tglAwal, $tglAkhir])
+            ->when($kode, fn($q) => $q->where('output_undo_packing_po.kode_numbering', 'like', '%'.$kode.'%'))
+            ->orderByRaw("COALESCE(output_undo_packing_po.updated_at, output_undo_packing_po.created_at) DESC")
+            ->get();
+
+        return DataTables::of($data)->toJson();
+    }
+
+    public function exportUndoPackingPoList(Request $request)
+    {
+        $tglAwal  = $request->tgl_awal  ?: date('Y-m-d');
+        $tglAkhir = $request->tgl_akhir ?: date('Y-m-d');
+        $kode     = $request->kode_numbering;
+
+        $data = UndoPackingPo::selectRaw("
+                output_undo_packing_po.kode_numbering,
+                CASE
+                    WHEN output_undo_packing_po.output_rft_id    IS NOT NULL THEN 'RFT'
+                    WHEN output_undo_packing_po.output_defect_id IS NOT NULL THEN 'Defect'
+                    WHEN output_undo_packing_po.output_reject_id IS NOT NULL THEN 'Reject'
+                    WHEN output_undo_packing_po.output_rework_id IS NOT NULL THEN 'Rework'
+                    ELSE '-'
+                END AS output_type,
+                act_costing.kpno            AS ws,
+                act_costing.styleno         AS style,
+                so_det.color,
+                so_det.size,
+                master_plan.sewing_line     AS line,
+                master_plan.tgl_plan,
+                output_undo_packing_po.alokasi,
+                output_undo_packing_po.keterangan,
+                output_undo_packing_po.created_by_username,
+                output_undo_packing_po.created_by_line,
+                output_undo_packing_po.created_at,
+                output_undo_packing_po.updated_at,
+                COALESCE(orft.created_at, odef.created_at, orej.created_at, orw.created_at) AS output_created_at,
+                COALESCE(orft.updated_at, odef.updated_at, orej.updated_at, orw.updated_at) AS output_updated_at
+            ")
+            ->leftJoin('master_plan', 'master_plan.id', '=', 'output_undo_packing_po.master_plan_id')
+            ->leftJoin('so_det', 'so_det.id', '=', 'output_undo_packing_po.so_det_id')
+            ->leftJoin('so', 'so.id', '=', 'so_det.id_so')
+            ->leftJoin('act_costing', 'act_costing.id', '=', 'so.id_cost')
+            ->leftJoin('output_rfts_packing_po as orft', 'orft.id', '=', 'output_undo_packing_po.output_rft_id')
+            ->leftJoin('output_defects_packing_po as odef', 'odef.id', '=', 'output_undo_packing_po.output_defect_id')
+            ->leftJoin('output_rejects_packing_po as orej', 'orej.id', '=', 'output_undo_packing_po.output_reject_id')
+            ->leftJoin('output_reworks_packing_po as orw', 'orw.id', '=', 'output_undo_packing_po.output_rework_id')
+            ->whereRaw("DATE(COALESCE(output_undo_packing_po.updated_at, output_undo_packing_po.created_at)) BETWEEN ? AND ?", [$tglAwal, $tglAkhir])
+            ->when($kode, fn($q) => $q->where('output_undo_packing_po.kode_numbering', 'like', '%'.$kode.'%'))
+            ->orderByRaw("COALESCE(output_undo_packing_po.updated_at, output_undo_packing_po.created_at) DESC")
+            ->get();
+
+        $filename = 'List_Undo_Packing_PO_' . $tglAwal . '_' . $tglAkhir . '.xlsx';
+
+        $excel = FastExcel::create('data');
+        $sheet = $excel->getSheet();
+        $sheet->writeRow([
+            'Tanggal', 'Kode Numbering', 'Type', 'WS', 'Style', 'Color', 'Size',
+            'Line', 'Tgl Plan', 'Alokasi', 'Keterangan',
+            'By Username', 'By Line', 'Created At', 'Updated At',
+            'Output Created At', 'Output Updated At',
+        ], ['font-style' => 'bold']);
+
+        collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
+            $sheet->writeAreas();
+            foreach ($rows as $row) {
+                $sheet->writeRow([
+                    $row->updated_at            ?? $row->created_at ?? '',
+                    $row->kode_numbering        ?? '',
+                    $row->output_type           ?? '',
+                    $row->ws                    ?? '',
+                    $row->style                 ?? '',
+                    $row->color                 ?? '',
+                    $row->size                  ?? '',
+                    $row->line                  ?? '',
+                    $row->tgl_plan              ?? '',
+                    $row->alokasi               ?? '',
+                    $row->keterangan            ?? '',
+                    $row->created_by_username   ?? '',
+                    $row->created_by_line       ?? '',
+                    $row->created_at            ?? '',
+                    $row->updated_at            ?? '',
+                    $row->output_created_at     ?? '',
+                    $row->output_updated_at     ?? '',
+                ]);
+            }
+        });
+
+        return $excel->download($filename);
     }
 
     public function restoreUndoSubmit(Request $request)

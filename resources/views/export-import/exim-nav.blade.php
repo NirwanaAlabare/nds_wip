@@ -9,7 +9,7 @@
             <li>
                 <a href="{{ route('dokumen-pabean-index') }}"
                     class="dropdown-item {{ (isset($subPage) && $subPage == 'dokumen-pabean-list') ? 'active' : '' }}">
-                    Dokumen Pabean
+                    Dokumen Pabean <i class="fa-solid fa-file-signature fa-sm"></i>
                 </a>
             </li>
         </ul>

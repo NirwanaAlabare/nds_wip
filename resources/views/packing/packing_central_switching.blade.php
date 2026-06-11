@@ -65,7 +65,7 @@
 @section('content')
 
     {{-- ═══════════════ FORM SWITCHING ═══════════════ --}}
-    <form id="form-switching" method="post" action="#">
+    <form id="form-switching" method="post" action="{{ route('store_packing_central_switching') }}">
         @csrf
 
         <div class="card card-secondary">
@@ -85,22 +85,22 @@
                 {{-- ── Step 1 : Pilih Source & Tujuan ── --}}
                 <div class="row g-3 mb-3">
                     <div class="col-md-5">
-                        <label class="form-label"><small><b>Dari (No. Trans Packing In)</b></small></label>
-                        <select class="form-control select2bs4" id="cbono" name="cbono" style="width:100%"
-                            onchange="onSourceChange()">
-                            <option selected disabled value="">— Pilih No. Transaksi —</option>
-                            {{-- opsi dari controller --}}
+                        <label class="form-label"><small><b>Asal PO</b></small></label>
+                        <select class="form-control select2bs4"
+                            id="cbono"
+                            name="cbono"
+                            style="width:100%">
                         </select>
                     </div>
                     <div class="col-md-2 d-flex align-items-end justify-content-center pb-1">
                         <span class="fs-4 text-secondary fw-bold">→</span>
                     </div>
                     <div class="col-md-5">
-                        <label class="form-label"><small><b>Tujuan (Line / Area)</b></small></label>
-                        <select class="form-control select2bs4" id="cbo_tujuan" name="tujuan" style="width:100%"
-                            onchange="onTujuanChange()">
-                            <option selected disabled value="">— Pilih Tujuan —</option>
-                            {{-- opsi dari controller --}}
+                        <label class="form-label"><small><b>Tujuan PO</b></small></label>
+                        <select class="form-control select2bs4"
+                            id="cbo_tujuan"
+                            name="tujuan"
+                            style="width:100%">
                         </select>
                     </div>
                 </div>
@@ -166,6 +166,16 @@
                     </table>
                 </div>
 
+                <input type="hidden" name="packing_packing_in_id" id="packing_packing_in_id">
+                <input type="hidden" name="asal_ppic_master_so_id" id="asal_ppic_master_so_id">
+                <input type="hidden" name="asal_so_det_id" id="asal_so_det_id">
+
+                <input type="hidden" name="tujuan_ppic_master_so_id" id="tujuan_ppic_master_so_id">
+                <input type="hidden" name="tujuan_so_det_id" id="tujuan_so_det_id">
+                <input type="hidden" name="tujuan_po" id="tujuan_po">
+                <input type="hidden" name="tujuan_barcode" id="tujuan_barcode">
+                <input type="hidden" name="tujuan_dest" id="tujuan_dest">
+
                 {{-- ── Actions ── --}}
                 <div class="d-flex justify-content-between align-items-center">
                     <button type="button" class="btn btn-outline-warning" onclick="resetForm()">
@@ -209,28 +219,41 @@
 
             <div class="table-responsive">
                 <table id="tbl-list" class="table table-bordered table-striped w-100 text-nowrap">
-                    <thead class="table-primary text-center">
+                    <thead class="text-center">
                         <tr>
-                            <th>No. Trans</th>
-                            <th>Tgl. Trans</th>
-                            <th>No. Trans Packing In</th>
-                            <th>Line Asal</th>
-                            <th>Tujuan</th>
-                            <th>Barcode</th>
-                            <th>PO</th>
-                            <th>WS</th>
-                            <th>Style</th>
-                            <th>Color</th>
-                            <th>Size</th>
-                            <th>Dest</th>
-                            <th>Qty</th>
-                            <th>User</th>
-                            <th>Created At</th>
+                            <th colspan="2" style="background-color:#dbeafe; color:#172554;"> NO TRANSAKSI </th>
+                            <th colspan="9" style="background-color:#f2e6ff; color:#350e7d;"> ASAL </th>
+                            <th colspan="8" style="background-color:#dcfce7; color:#166534;"> TUJUAN </th>
+                            <th colspan="3" style="background-color:#fef3c7; color:#92400e;"> HASIL </th>
+                        </tr>
+                        <tr>
+                            <th style="background-color:#dbeafe; color:#172554;">No. Trans</th>
+                            <th style="background-color:#dbeafe; color:#172554;">Tgl. Trans</th>
+                            <th style="background-color:#f2e6ff; color:#350e7d;">PO Asal</th>
+                            <th style="background-color:#f2e6ff; color:#350e7d;">WS Asal</th>
+                            <th style="background-color:#f2e6ff; color:#350e7d;">Buyer Asal</th>
+                            <th style="background-color:#f2e6ff; color:#350e7d;">Line Asal</th>
+                            <th style="background-color:#f2e6ff; color:#350e7d;">Barcode Asal</th>
+                            <th style="background-color:#f2e6ff; color:#350e7d;">Style Asal</th>
+                            <th style="background-color:#f2e6ff; color:#350e7d;">Color Asal</th>
+                            <th style="background-color:#f2e6ff; color:#350e7d;">Size Asal</th>
+                            <th style="background-color:#f2e6ff; color:#350e7d;">Dest Asal</th>
+                            <th style="background-color:#dcfce7; color:#166534;">PO Tujuan</th>
+                            <th style="background-color:#dcfce7; color:#166534;">WS Tujuan</th>
+                            <th style="background-color:#dcfce7; color:#166534;">Buyer Tujuan</th>
+                            <th style="background-color:#dcfce7; color:#166534;">Barcode Tujuan</th>
+                            <th style="background-color:#dcfce7; color:#166534;">Style Tujuan</th>
+                            <th style="background-color:#dcfce7; color:#166534;">Color Tujuan</th>
+                            <th style="background-color:#dcfce7; color:#166534;">Size Tujuan</th>
+                            <th style="background-color:#dcfce7; color:#166534;">Dest Tujuan</th>
+                            <th style="background-color:#fef3c7; color:#92400e;">Qty</th>
+                            <th style="background-color:#fef3c7; color:#92400e;">User</th>
+                            <th style="background-color:#fef3c7; color:#92400e;">Created At</th>
                         </tr>
                     </thead>
                     <tfoot>
                         <tr class="fw-bold">
-                            <th colspan="12"></th>
+                            <th colspan="19"></th>
                             <th>
                                 <input type="text" class="form-control form-control-sm text-center"
                                     style="width:80px" readonly id="foot-list-qty">
@@ -265,31 +288,187 @@
         let tujuanSelected = false;
 
         /* ── Ketika No. Trans dipilih ── */
-        function onSourceChange() {
-            const val  = $('#cbono').val();
-            const text = $('#cbono option:selected').text().trim();
-            sourceSelected = !!val;
+        $('#cbono').select2({
+            theme: 'bootstrap4',
+            placeholder: 'Pilih No. Transaksi',
+            minimumInputLength: 3, // baru search setelah 3 karakter
+            ajax: {
+                url: '{{ route('getDataAsalPo_packing_central_switching') }}',
+                dataType: 'json',
+                delay: 300,
+                data: function(params) {
+                    return {
+                        search: params.term
+                    };
+                },
+                processResults: function(data) {
+                    return {
+                        results: data.map(item => ({
+                            id: item.id_ppic_master_so,
+                            text: item.po + ' | ' + item.color + ' | ' + item.size,
+                            packing_packing_in_id: item.packing_packing_in_id,
+                            so_det_id: item.so_det_id,
+                            po: item.po,
+                            ws: item.ws,
+                            color: item.color,
+                            size: item.size,
+                            qty: item.qty_sisa
+                        }))
+                    };
+                }
+            }
+        });
 
-            $('#banner-from-notrans').text(val ? text : '—');
-            $('#banner-from-info').text(val ? 'Transaksi dipilih' : 'No. Transaksi belum dipilih');
+        $('#cbono').on('select2:select', function(e) {
+            let data = e.params.data;
+
+            $('#asal_ppic_master_so_id').val(data.id);
+            $('#asal_so_det_id').val(data.so_det_id);
+            $('#packing_packing_in_id').val(data.packing_packing_in_id);
+
+            $('#banner-from-notrans').html(`
+                <table style="font-size:12px">
+                    <tr><td style="width:50px">PO</td><td style="width:10px">:</td><td>${data.po}</td></tr>
+                    <tr><td>WS</td><td>:</td><td>${data.ws}</td></tr>
+                    <tr><td>Color</td><td>:</td><td>${data.color}</td></tr>
+                    <tr><td>Size</td><td>:</td><td>${data.size}</td></tr>
+                    <tr><td>Qty</td><td>:</td><td>${data.qty}</td></tr>
+                </table>
+            `);
+
+            $('#banner-from-info').text('Transaksi dipilih');
+
+            sourceSelected = !!data.id;
 
             updateBanner();
-            loadPreview(val);
+            loadPreview(data.id);
             checkSubmitReady();
-        }
+        });
+
+        // function onSourceChange() {
+        //     const val = $('#cbono').val();
+        //     const selected = $('#cbono option:selected');
+
+        //     $('#asal_ppic_master_so_id').val(val);
+        //     $('#asal_so_det_id').val(selected.data('so-det-id'));
+        //     $('#packing_packing_in_id').val(selected.data('packing-packing-in-id'));
+
+        //     sourceSelected = !!val;
+
+        //     if (val) {
+        //         $('#banner-from-notrans').html(`
+        //             <table style="font-size:12px">
+        //                 <tr><td style="width:50px">PO</td><td style="width:10px">:</td><td>${selected.data('po')}</td></tr>
+        //                 <tr><td>WS</td><td>:</td><td>${selected.data('ws')}</td></tr>
+        //                 <tr><td>Color</td><td>:</td><td>${selected.data('color')}</td></tr>
+        //                 <tr><td>Size</td><td>:</td><td>${selected.data('size')}</td></tr>
+        //                 <tr><td>Qty</td><td>:</td><td>${selected.data('qty')}</td></tr>
+        //             </table>
+        //         `);
+
+        //         $('#banner-from-info').text('Transaksi dipilih');
+        //     } else {
+        //         $('#banner-from-notrans').html('—');
+        //         $('#banner-from-info').text('No. Transaksi belum dipilih');
+        //     }
+
+        //     updateBanner();
+        //     loadPreview(val);
+        //     checkSubmitReady();
+        // }
 
         /* ── Ketika Tujuan dipilih ── */
-        function onTujuanChange() {
-            const val  = $('#cbo_tujuan').val();
-            const text = $('#cbo_tujuan option:selected').text().trim();
-            tujuanSelected = !!val;
+        $('#cbo_tujuan').select2({
+            theme: 'bootstrap4',
+            placeholder: 'Pilih Tujuan',
+            minimumInputLength: 3,
+            ajax: {
+                url: '{{ route('getDataTujuanPo_packing_central_switching') }}',
+                dataType: 'json',
+                delay: 300,
+                data: function(params) {
+                    return {
+                        search: params.term
+                    };
+                },
+                processResults: function(data) {
+                    return {
+                        results: data.map(item => ({
+                            id: item.id,
+                            so_det_id: item.id_so_det,
+                            po: item.po,
+                            barcode: item.barcode,
+                            dest: item.dest,
+                            ws: item.ws,
+                            color: item.color,
+                            size: item.size,
+                            qty: item.qty_po,
+                            text: item.po + ' | ' + item.color + ' | ' + item.size
+                        }))
+                    };
+                }
+            }
+        });
 
-            $('#banner-to-line').text(val ? text : '—');
-            $('#banner-to-info').text(val ? 'Tujuan dipilih' : 'Tujuan belum dipilih');
+        $('#cbo_tujuan').on('select2:select', function(e) {
+
+            let data = e.params.data;
+
+            $('#tujuan_ppic_master_so_id').val(data.id);
+            $('#tujuan_so_det_id').val(data.so_det_id);
+            $('#tujuan_po').val(data.po);
+            $('#tujuan_barcode').val(data.barcode);
+            $('#tujuan_dest').val(data.dest);
+
+            tujuanSelected = !!data.id;
+
+            $('#banner-to-line').html(`
+                <table style="font-size:12px">
+                    <tr><td style="width:50px">PO</td><td style="width:10px">:</td><td>${data.po}</td></tr>
+                    <tr><td>WS</td><td>:</td><td>${data.ws}</td></tr>
+                    <tr><td>Color</td><td>:</td><td>${data.color}</td></tr>
+                    <tr><td>Size</td><td>:</td><td>${data.size}</td></tr>
+                    <tr><td>Qty</td><td>:</td><td>${data.qty}</td></tr>
+                </table>
+            `);
+
+            $('#banner-to-info').text('Tujuan dipilih');
 
             updateBanner();
             checkSubmitReady();
-        }
+        });
+        // function onTujuanChange() {
+        //     const val = $('#cbo_tujuan').val();
+        //     const selected = $('#cbo_tujuan option:selected');
+
+        //     $('#tujuan_ppic_master_so_id').val(val);
+        //     $('#tujuan_so_det_id').val(selected.data('so-det-id'));
+        //     $('#tujuan_po').val(selected.data('po'));
+        //     $('#tujuan_barcode').val(selected.data('barcode'));
+        //     $('#tujuan_dest').val(selected.data('dest'));
+
+        //     tujuanSelected = !!val;
+
+        //     if (val) {
+        //         $('#banner-to-line').html(`
+        //             <table style="font-size:12px">
+        //                 <tr><td style="width:50px">PO</td><td style="width:10px">:</td><td>${selected.data('po')}</td></tr>
+        //                 <tr><td>WS</td><td>:</td><td>${selected.data('ws')}</td></tr>
+        //                 <tr><td>Color</td><td>:</td><td>${selected.data('color')}</td></tr>
+        //                 <tr><td>Size</td><td>:</td><td>${selected.data('size')}</td></tr>
+        //                 <tr><td>Qty</td><td>:</td><td>${selected.data('qty')}</td></tr>
+        //             </table>
+        //         `);
+
+        //         $('#banner-to-info').text('Tujuan dipilih');
+        //     } else {
+        //         $('#banner-to-line').html('—');
+        //         $('#banner-to-info').text('No. Tujuan belum dipilih');
+        //     }
+
+        //     updateBanner();
+        //     checkSubmitReady();
+        // }
 
         function updateBanner() {
             if (sourceSelected || tujuanSelected) {
@@ -321,22 +500,25 @@
                     </td>
                 </tr>`);
 
-            /* TODO: ganti blok ini dengan AJAX ke route preview */
-            /*
-            $.get('#preview-route#', { cbono: noTrans }, function(res) {
-                renderPreview(res.data);
+            $.ajax({
+                url: "{{ route('preview_packing_central_switching') }}",
+                type: "GET",
+                data: {
+                    id_ppic_master_so: noTrans
+                },
+                success: function(res) {
+                    renderPreview(res);
+                },
+                error: function() {
+                    $('#tbl-preview-body').html(`
+                        <tr>
+                            <td colspan="10" class="text-center text-danger py-3">
+                                Gagal memuat data
+                            </td>
+                        </tr>
+                    `);
+                }
             });
-            */
-
-            /* Simulasi data dummy */
-            setTimeout(() => {
-                const dummy = [
-                    { id: 1, line: 'Line 01', barcode: 'BC-0001', po: 'PO-ABC', ws: 'WS01', color: 'Navy', size: 'M',  dest: 'USA', qty: 24 },
-                    { id: 2, line: 'Line 01', barcode: 'BC-0002', po: 'PO-ABC', ws: 'WS01', color: 'Navy', size: 'L',  dest: 'USA', qty: 36 },
-                    { id: 3, line: 'Line 02', barcode: 'BC-0003', po: 'PO-DEF', ws: 'WS02', color: 'Red',  size: 'XL', dest: 'EUR', qty: 12 },
-                ];
-                renderPreview(dummy);
-            }, 400);
         }
 
         function renderPreview(rows) {
@@ -361,16 +543,17 @@
                     <td>${r.color}</td>
                     <td>${r.size}</td>
                     <td>${r.dest}</td>
-                    <td class="text-center">${r.qty}</td>
+                    <td class="text-center">${r.qty_sisa}</td>
                     <td class="text-center">
                         <input type="number"
                             class="form-control form-control-sm text-center input-switch"
                             style="width:75px; margin:auto"
-                            name="qty_switch[${r.id}]"
-                            value="${r.qty}"
-                            min="0" max="${r.qty}"
-                            oninput="updateTotals()">
-                        <input type="hidden" name="id_packing_in[${r.id}]" value="${r.id}">
+                            name="qty_switch"
+                            value="${r.qty_sisa}"
+                            min="0"
+                            max="${r.qty_sisa}"
+                            oninput="updateTotals()"
+                        >
                     </td>
                 </tr>`;
             });
@@ -418,6 +601,8 @@
         /* ── Submit ── */
         $('#form-switching').on('submit', function (e) {
             e.preventDefault();
+            const form = this;
+            
             Swal.fire({
                 title: 'Simpan Switching?',
                 html: `Pindahkan item ke <b>${$('#cbo_tujuan option:selected').text()}</b>?`,
@@ -428,15 +613,14 @@
                 confirmButtonColor: '#198754',
             }).then(res => {
                 if (res.isConfirmed) {
-                    /* TODO: ganti dengan submitForm(this, e) jika route sudah ada */
-                    Swal.fire('Info', 'Route belum tersedia.', 'info');
+                    submitForm(form, e);
                 }
             });
         });
 
         /* ── List DataTable ── */
-        $('#tbl-list thead tr').clone(true).appendTo('#tbl-list thead');
-        $('#tbl-list thead tr:eq(1) th').each(function (i) {
+        $('#tbl-list thead tr:eq(1)').clone(true).appendTo('#tbl-list thead');
+        $('#tbl-list thead tr:eq(2) th').each(function (i) {
             $(this).html('<input type="text" class="form-control form-control-sm">');
             $('input', this).on('keyup change', function () {
                 if (dtList.column(i).search() !== this.value) {
@@ -449,9 +633,9 @@
             footerCallback(row, data, start, end, display) {
                 const api = this.api();
                 const intVal = v => (typeof v === 'string' ? v.replace(/[\$,]/g, '') * 1 : typeof v === 'number' ? v : 0);
-                const total  = api.column(12).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+                const total  = api.column(19).data().reduce((a, b) => intVal(a) + intVal(b), 0);
                 $(api.column(0).footer()).html('Total');
-                $(api.column(12).footer()).html(total);
+                $(api.column(19).footer()).html(total);
                 $('#foot-list-qty').val(total);
             },
             ordering: false,
@@ -463,7 +647,7 @@
             scrollX: true,
             scrollCollapse: true,
             ajax: {
-                url: '#', /* TODO: ganti dengan route list */
+                url: "{{ route('getData_packing_central_switching') }}",
                 data: d => {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo   = $('#tgl-akhir').val();
@@ -471,19 +655,26 @@
             },
             columns: [
                 { data: 'no_trans' },
-                { data: 'tgl_trans_fix' },
-                { data: 'no_trans_packing_in' },
-                { data: 'line_asal' },
-                { data: 'tujuan' },
-                { data: 'barcode' },
+                { data: 'tgl_trans' },
                 { data: 'po' },
                 { data: 'ws' },
+                { data: 'buyer' },
+                { data: 'line' },
+                { data: 'barcode' },
                 { data: 'styleno' },
                 { data: 'color' },
                 { data: 'size' },
                 { data: 'dest' },
-                { data: 'qty' },
-                { data: 'created_by' },
+                { data: 'po_tujuan' },
+                { data: 'ws_tujuan' },
+                { data: 'buyer_tujuan' },
+                { data: 'barcode_tujuan' },
+                { data: 'styleno_tujuan' },
+                { data: 'color_tujuan' },
+                { data: 'size_tujuan' },
+                { data: 'dest_tujuan' },
+                { data: 'qty_switch', className: 'text-end' },
+                { data: 'created_by_username' },
                 { data: 'created_at' },
             ],
         });
@@ -499,7 +690,7 @@
                 didOpen: () => Swal.showLoading(), allowOutsideClick: false,
             });
             $.ajax({
-                type: 'get', url: '#', /* TODO: route export */
+                type: 'get', url: '{{ route('export_excel_packing_central_switching') }}', /* TODO: route export */
                 data: { from, to },
                 xhrFields: { responseType: 'blob' },
                 success(res) {

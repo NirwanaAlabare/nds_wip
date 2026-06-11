@@ -109,6 +109,10 @@
                         <td class="label">QTY</td><td class="colon">:</td>
                         <td class="value">{{ number_format($header->qty ?? 0, 0, ',', '.') }} PCS</td>
                     </tr>
+                    <tr>
+                        <td class="label-left">WS</td><td class="colon">:</td>
+                        <td class="value">{{ $header->ws ?? '-' }}</td>
+                    </tr>
                 </table>
             </td>
             <td style="width: 25%; text-align: right; vertical-align: top; padding: 0;">

@@ -453,7 +453,7 @@ group by a.po, a.dest
         if ($cek_data_fix >= '1') {
 
             $cek_stok = DB::select("
-            select coalesce(pack_in.tot_in,0)  - coalesce(pack_out.tot_out,0) tot_s
+            select coalesce(pack_in.tot_in,0) - coalesce(pack_out.tot_out,0) - coalesce(pack_switch.qty_switch,0) tot_s
             from ppic_master_so p
             left join
             (
@@ -467,6 +467,15 @@ group by a.po, a.dest
                 where p.barcode = '$barcode' and p.po = '$cek_dest_po' and p.dest = '$dest'
                 group by a.barcode, a.po
             ) pack_out on p.id = pack_out.id
+            LEFT JOIN
+            (
+                SELECT
+                    asal_ppic_master_so_id,
+                    SUM(qty_switch) AS qty_switch
+                FROM packing_central_switching
+                GROUP BY asal_ppic_master_so_id
+            ) pack_switch
+                ON p.id = pack_switch.asal_ppic_master_so_id
             where p.barcode = '$barcode' and p.po = '$cek_dest_po' and dest = '$dest'
             ");
 

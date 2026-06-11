@@ -60,6 +60,7 @@ use App\Http\Controllers\MutasiMesinMasterController;
 use App\Http\Controllers\MutasiMesinStockOpnameController;
 use App\Http\Controllers\MutLokasiController;
 use App\Http\Controllers\OutMaterialController;
+use App\Http\Controllers\PackingCentralSwitchingController;
 use App\Http\Controllers\PackingDashboardController;
 use App\Http\Controllers\PackingLineController;
 use App\Http\Controllers\PackingMasterKartonController;
@@ -706,7 +707,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/show_preview_packing_in', 'show_preview_packing_in')->name('show_preview_packing_in');
         Route::post('/store', 'store')->name('store-packing-packing-in');
         Route::get('/export_excel_packing_in', 'export_excel_packing_in')->name('export_excel_packing_in');
-        Route::get('/packing_central_switching', 'packing_central_switching')->name('packing_central_switching');
+        
+    });
+
+    // Packing Central Switching
+    Route::controller(PackingCentralSwitchingController::class)->prefix("packing-central-switching")->middleware('packing')->group(function () {
+        Route::get('/', 'index')->name('packing_central_switching');
+        Route::get('/getData', 'getData')->name('getData_packing_central_switching');
+        Route::get('/getDataAsalPo', 'getDataAsalPo')->name('getDataAsalPo_packing_central_switching');
+        Route::get('/getDataTujuanPo', 'getDataTujuanPo')->name('getDataTujuanPo_packing_central_switching');
+        Route::get('/preview', 'preview')->name('preview_packing_central_switching');
+        Route::post('/store', 'store')->name('store_packing_central_switching');
+        Route::get('/export_excel_packing_central_switching', 'export_excel_packing_central_switching')->name('export_excel_packing_central_switching');
     });
 
     // Packing Out
@@ -1124,6 +1136,7 @@ Route::middleware('auth')->group(function () {
         Route::get('print-excel-costing/{id}', 'printExcel')->name('print-excel-costing');
         Route::get('/approval', 'approval')->name('master-costing-approval');
         Route::post('/approve/{id}', 'submitApproval')->name('submit-costing-approval');
+        Route::get('/copy/{id}', 'copyCosting')->name('copy-costing');
     });
 
     // Master BOM
@@ -1151,6 +1164,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/master-marketing-bom/update-header', [Marketing_BomController::class, 'updateBomHeader'])->name('update-bom-header');
         Route::get('/approval', 'approval')->name('master-bom-approval');
         Route::post('/approve/{id}', 'submitApproval')->name('submit-bom-approval');
+        Route::delete('/delete-bom/{id}', 'delete')->name('delete-bom');
+        Route::get('/print-pdf/{id}', 'printPdf')->name('print-bom-pdf');
+
     });
 
     // Master BOM Additional
@@ -1203,6 +1219,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/cancel-restore-so', 'cancelRestoreSO')->name('cancel-restore-so');
         Route::get('/print-pdf/{id}', 'printPdfSO')->name('print-pdf-so');
         Route::get('/get-bom-data', 'getBomCostingData')->name('so-get-bom-data');
+        Route::post('/sync-bom/{id}', 'syncBom')->name('so-sync-bom');
     });
 
     // QC Inspect Kain
@@ -1312,6 +1329,11 @@ Route::middleware('auth')->group(function () {
     // Dashboard
     Route::controller(MgtReportDashboardController::class)->middleware('role:management')->group(function () {
         Route::get('/dashboard_mgt_report', 'dashboard_mgt_report')->name('dashboard-mgt-report');
+        Route::get('/dashboard_mgt_report/filter-options', 'getFilterOptions')->name('dashboard-mgt-report.filter-options');
+        Route::get('/dashboard_mgt_report/summary', 'getSummary')->name('dashboard-mgt-report.summary');
+        Route::get('/dashboard_mgt_report/daily-chart', 'getDailyChart')->name('dashboard-mgt-report.daily-chart');
+        Route::get('/dashboard_mgt_report/buyer-chart', 'getBuyerChart')->name('dashboard-mgt-report.buyer-chart');
+        Route::get('/dashboard_mgt_report/detail-table', 'getDetailTable')->name('dashboard-mgt-report.detail-table');
     });
 
     // Proses Management Report
@@ -1894,3 +1916,5 @@ Route::get('/bon-mutasi', function () {
 Route::get('/tes-ceisa-status', [CeisaAPIController::class, 'testStatus']);
 Route::get('/tes-ceisa-kurs/{kode}', [CeisaAPIController::class, 'testKurs']);
 Route::get('/ceisa/pelabuhan', [CeisaAPIController::class, 'getPelabuhan'])->name('ceisa.pelabuhan');
+
+

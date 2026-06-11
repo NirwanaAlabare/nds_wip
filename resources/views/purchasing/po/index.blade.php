@@ -295,13 +295,14 @@
                 }
             },
             columns: [
-                {data: 'podate', name: 'podate'},
-                {data: 'pono', name: 'pono'},
-                {data: 'jenis', name: 'jenis'},
-                {data: 'nama_supplier', name: 'nama_supplier'},
+                {data: 'podate', name: 'h.podate'},
+                {data: 'pono', name: 'h.pono'},
+                {data: 'jenis', name: 'h.jenis'},
+                {data: 'nama_supplier', name: 's.Supplier'},
                 {
                     data: 'style',
-                    name: 'style',
+                    name: 'h.style',
+                    searchable: false,
                     defaultContent: '-',
                     render: function(data, type, row) {
                         if (data && type === 'display') {
@@ -310,12 +311,12 @@
                         return data || '-';
                     }
                 },
-                {data: 'notes', name: 'notes'},
-                {data: 'username', name: 'username'},
-                {data: 'nama_terms', name: 'nama_terms', defaultContent: '-'},
+                {data: 'notes', name: 'h.notes'},
+                {data: 'username', name: 'h.username'},
+                {data: 'nama_terms', name: 't.kode_pterms', defaultContent: '-'},
                 {
                     data: 'app',
-                    name: 'app',
+                    name: 'h.app',
                     render: function(data, type, row) {
                         let badgeClass = 'warning';
                         let badgeLabel = 'Draft';
@@ -331,8 +332,8 @@
                         return `<span class="badge badge-${badgeClass}">${badgeLabel}</span>`;
                     }
                 },
-                {data: 'app_by', name: 'app_by', defaultContent: '-'},
-                {data: 'app_date', name: 'app_date', defaultContent: '-'},
+                {data: 'app_by', name: 'h.app_by', defaultContent: '-'},
+                {data: 'app_date', name: 'h.app_date', defaultContent: '-'},
                 {data: 'action', name: 'action', orderable: false, searchable: false},
             ]
         });
@@ -349,15 +350,16 @@
                 }
             },
             columns: [
-                {data: 'podate', name: 'podate'},
-                {data: 'pono', name: 'pono'},
-                {data: 'etd', name: 'etd', defaultContent: '-'},
-                {data: 'eta', name: 'eta', defaultContent: '-'},
-                {data: 'jenis', name: 'jenis'},
-                {data: 'nama_supplier', name: 'nama_supplier'},
+                {data: 'podate', name: 'h.podate'},
+                {data: 'pono', name: 'h.pono'},
+                {data: 'etd', name: 'h.etd', defaultContent: '-'},
+                {data: 'eta', name: 'h.eta', defaultContent: '-'},
+                {data: 'jenis', name: 'h.jenis'},
+                {data: 'nama_supplier', name: 's.Supplier'},
                 {
                     data: 'style',
-                    name: 'style',
+                    name: 'h.style',
+                    searchable: false,
                     defaultContent: '-',
                     render: function(data, type, row) {
                         if (data && type === 'display') {
@@ -366,20 +368,20 @@
                         return data || '-';
                     }
                 },
-                {data: 'notes', name: 'notes'},
-                {data: 'username', name: 'username'},
-                {data: 'nama_terms', name: 'nama_terms', defaultContent: '-'},
+                {data: 'notes', name: 'h.notes'},
+                {data: 'username', name: 'h.username'},
+                {data: 'nama_terms', name: 't.kode_pterms', defaultContent: '-'},
                 {
                     data: 'app',
-                    name: 'app',
+                    name: 'h.app',
                     render: function(data, type, row) {
                         let badgeClass = data === 'A' ? 'success' : 'warning';
                         let badgeLabel = data === 'A' ? 'Approved' : 'Waiting';
                         return `<span class="badge badge-${badgeClass}">${badgeLabel}</span>`;
                     }
                 },
-                {data: 'app_by', name: 'app_by', defaultContent: '-'},
-                {data: 'app_date', name: 'app_date', defaultContent: '-'},
+                {data: 'app_by', name: 'h.app_by', defaultContent: '-'},
+                {data: 'app_date', name: 'h.app_date', defaultContent: '-'},
                 {data: 'action', name: 'action', orderable: false, searchable: false},
             ]
         });

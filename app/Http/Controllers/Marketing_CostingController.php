@@ -33,6 +33,7 @@ class Marketing_CostingController extends Controller
                     'a.created_at',
                     'b.Supplier as nama_buyer',
                     'a.brand',
+                    'a.season_id',
                     'a.style',
                     'a.marketing_order',
                     'a.product_group',
@@ -104,6 +105,10 @@ class Marketing_CostingController extends Controller
          $master_set = $db->table('master_set')
            ->get();
 
+        $seasons = $db->table('masterseason')
+                     ->orderBy('season', 'asc')
+                     ->get();
+
 
        return view('marketing.costing.create', [
             'buyers'           => $buyers,
@@ -116,6 +121,7 @@ class Marketing_CostingController extends Controller
             'master_set'         => $master_set,
             'suppliers'       => $suppliers,
             'destinations'        => $destinations,
+            'seasons'          => $seasons,
             'page' => 'dashboard-marketing',
             "subPageGroup" => "marketing-master",
             "subPage" => "marketing-master-costing",
@@ -132,17 +138,15 @@ class Marketing_CostingController extends Controller
 
         $bln_thn = $now->format('my');
 
-        $last_costing = $db->table('act_costing_new')
-            ->where('no_costing', 'like', "CST/$bln_thn/%")
-            ->orderBy('id', 'desc')
-            ->first();
+        $mattype_cost = 'CST-' . $now->format('Y');
+        $cek_cost = $db->table('tempbpb')->where('mattype', $mattype_cost)->first();
 
-        if ($last_costing) {
-            $parts = explode('/', $last_costing->no_costing);
-            $last_number = (int) end($parts);
-            $next_costing = $last_number + 1;
-        } else {
+        if (!$cek_cost) {
             $next_costing = 1;
+            $db->table('tempbpb')->insert(['mattype' => $mattype_cost, 'BPBNo' => $next_costing]);
+        } else {
+            $next_costing = $cek_cost->BPBNo + 1;
+            $db->table('tempbpb')->where('mattype', $mattype_cost)->update(['BPBNo' => $next_costing]);
         }
 
         $cost_no = "CST/$bln_thn/" . str_pad($next_costing, 5, '0', STR_PAD_LEFT);
@@ -164,6 +168,7 @@ class Marketing_CostingController extends Controller
             'no_costing'      => $cost_no,
             'buyer'           => $request->buyer,
             'brand'           => Str::upper($request->brand),
+            'season'          => $request->season,
             'product_group'   => $request->product_group,
             'product_item'    => $request->product_item,
             'style'           => Str::upper($request->style),
@@ -184,6 +189,7 @@ class Marketing_CostingController extends Controller
             'updated_at'      => now(),
             'created_by'      => Auth::user()->name,
             'confirm_price'   => str_replace(',', '', $request->confirm_price),
+            'season_id'       => $request->season_id,
         ]);
 
         $mandatory_others = $db->table('masterothers')->where('costing_header', 'Y')->get();
@@ -208,6 +214,95 @@ class Marketing_CostingController extends Controller
         }
 
         return redirect()->route('edit-costing', $insertId)->with('success', 'Costing berhasil dibuat');
+    }
+
+    public function copyCosting($id)
+    {
+        $db = DB::connection('mysql_sb');
+
+        $original = $db->table('act_costing_new')->where('id', $id)->first();
+        if (!$original) {
+            return redirect()->route('master-costing')->with('error', 'Data Costing tidak ditemukan.');
+        }
+
+        $now = now();
+        $bln_thn = $now->format('my');
+
+        $mattype_cost = 'CST-' . $now->format('Y');
+        $cek_cost = $db->table('tempbpb')->where('mattype', $mattype_cost)->first();
+
+        if (!$cek_cost) {
+            $next_costing = 1;
+            $db->table('tempbpb')->insert(['mattype' => $mattype_cost, 'BPBNo' => $next_costing]);
+        } else {
+            $next_costing = $cek_cost->BPBNo + 1;
+            $db->table('tempbpb')->where('mattype', $mattype_cost)->update(['BPBNo' => $next_costing]);
+        }
+
+        $cost_no = "CST/$bln_thn/" . str_pad($next_costing, 5, '0', STR_PAD_LEFT);
+
+        $newId = $db->table('act_costing_new')->insertGetId([
+            'no_costing'      => $cost_no,
+            'buyer'           => $original->buyer,
+            'brand'           => $original->brand,
+            'season'          => $original->season,
+            'season_id'       => $original->season_id,
+            'product_group'   => $original->product_group,
+            'product_item'    => $original->product_item,
+            'style'           => $original->style,
+            'ship_mode'       => $original->ship_mode,
+            'curr'            => $original->curr,
+            'type'            => $original->type,
+            'product_set'     => $original->product_set,
+            'marketing_order' => $original->marketing_order,
+            'shipment_type'   => $original->shipment_type,
+            'notes'           => $original->notes,
+            'qty'             => $original->qty,
+            'smv'             => $original->smv,
+            'vat'             => $original->vat,
+            'rate_to_idr'     => $original->rate_to_idr,
+            'rate_from_idr'   => $original->rate_from_idr,
+            'foto'            => $original->foto,
+            'confirm_price'   => $original->confirm_price,
+            'main_dest'       => $original->main_dest,
+            'market'          => $original->market,
+            'created_at'      => $now,
+            'updated_at'      => $now,
+            'created_by'      => Auth::user()->name,
+        ]);
+
+        $originalDetails = $db->table('act_costing_detail_new')
+            ->where('id_costing', $id)
+            ->get();
+
+        $detailInserts = [];
+        foreach ($originalDetails as $det) {
+            $detailInserts[] = [
+                'id_costing'   => $newId,
+                'type'         => $det->type,
+                'item_id'      => $det->item_id,
+                'item_desc'    => $det->item_desc,
+                'supplier_id'  => $det->supplier_id,
+                'curr'         => $det->curr,
+                'price'        => $det->price,
+                'cons'         => $det->cons,
+                'unit'         => $det->unit,
+                'price_px_idr' => $det->price_px_idr,
+                'price_px_usd' => $det->price_px_usd,
+                'allowance'    => $det->allowance,
+                'set'          => $det->set,
+                'value_idr'    => $det->value_idr,
+                'value_usd'    => $det->value_usd,
+                'created_at'   => $now,
+                'updated_at'   => $now,
+            ];
+        }
+
+        if (count($detailInserts) > 0) {
+            $db->table('act_costing_detail_new')->insert($detailInserts);
+        }
+
+        return redirect()->route('edit-costing', $newId)->with('success', "Costing berhasil dicopy! No. Costing baru: $cost_no");
     }
 
     public function edit($id)
@@ -300,6 +395,8 @@ class Marketing_CostingController extends Controller
 
         $master_set = $db->table('master_set')->orderBy('urutan', 'asc')->get();
 
+        $seasons = $db->table('masterseason')->orderBy('season', 'asc')->get();
+
         return view('marketing.costing.edit', [
             'costing'        => $costing,
             'buyers'           => $buyers,
@@ -314,6 +411,7 @@ class Marketing_CostingController extends Controller
             'master_set'        => $master_set,
             'set'        => $set,
             'destinations'        => $destinations,
+            'seasons'             => $seasons,
             'page' => 'dashboard-marketing',
             "subPageGroup" => "marketing-master",
             "subPage" => "marketing-master-costing",
@@ -407,6 +505,7 @@ class Marketing_CostingController extends Controller
                 'created_at'   => now(),
                 'updated_at'   => now(),
             ]);
+            $this->triggerAutoSyncSO($request->id_costing);
 
             return response()->json([
                 'status' => 200,
@@ -430,6 +529,7 @@ class Marketing_CostingController extends Controller
             $updateData = [
                 'buyer'           => $request->buyer,
                 'brand'           => Str::upper($request->brand),
+                'season'          => $request->season,
                 'product_group'   => $request->product_group,
                 'product_item'    => $request->product_item,
                 'style'           => Str::upper($request->style),
@@ -467,6 +567,7 @@ class Marketing_CostingController extends Controller
 
 
             $db->table('act_costing_new')->where('id', $id)->update($updateData);
+            $this->triggerAutoSyncSO($id);
 
             if ($request->ajax()) {
                 return response()->json([
@@ -493,7 +594,14 @@ class Marketing_CostingController extends Controller
         $db = DB::connection('mysql_sb');
 
         try {
+            $detail = $db->table('act_costing_detail_new')->where('id', $id)->first();
+            $id_costing = $detail ? $detail->id_costing : null;
+
             $db->table('act_costing_detail_new')->where('id', $id)->delete();
+
+            if ($id_costing) {
+                $this->triggerAutoSyncSO($id_costing);
+            }
 
             return response()->json([
                 'status' => 200,
@@ -628,6 +736,10 @@ class Marketing_CostingController extends Controller
             'value_idr' => $request->value_idr,
             'value_usd' => $request->value_usd,
         ]);
+        $detail = $db->table('act_costing_detail_new')->where('id', $request->id_detail)->first();
+        if ($detail) {
+            $this->triggerAutoSyncSO($detail->id_costing);
+        }
 
         return response()->json(['status' => 200, 'message' => 'Success']);
     }
@@ -1225,13 +1337,15 @@ class Marketing_CostingController extends Controller
             $set_string = implode(', ', $active_sets);
         }
 
-        $sheet->setCellValue('A7', 'Product Group')->setCellValue('B7', ': ' . $costing->product_group);
+        $sheet->setCellValue('A7', 'Season')->setCellValue('B7', ': ' . ($costing->season ?? '-'));
         $sheet->setCellValue('D7', 'Type')->setCellValue('E7', ': ' . strtoupper($costing->type));
         $sheet->setCellValue('G7', 'Rate from IDR')->setCellValue('H7', ': ' . $costing->rate_from_idr);
 
-        $sheet->setCellValue('A8', 'Product Item')->setCellValue('B8', ': ' . ($costing->nama_product_item ?? $costing->product_item));
+        $sheet->setCellValue('A8', 'Product Group')->setCellValue('B8', ': ' . $costing->product_group);
         $sheet->setCellValue('D8', 'Set')->setCellValue('E8', ': ' . $set_string);
         $sheet->setCellValue('G8', 'VAT')->setCellValue('H8', ': ' . $costing->vat . ' %');
+
+        $sheet->setCellValue('A9', 'Product Item')->setCellValue('B9', ': ' . ($costing->nama_product_item ?? $costing->product_item));
 
         if (!empty($costing->foto) && file_exists(public_path('uploads/costing/' . $costing->foto))) {
             $drawing2 = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
@@ -1242,12 +1356,20 @@ class Marketing_CostingController extends Controller
             $drawing2->setWorksheet($sheet);
         }
 
-        $row = 10;
+        $row = 11;
 
         $categories_list = [
             'Fabric' => 'FABRIC', 'Accessories Sewing' => 'ACCESSORIES SEWING',
             'Accessories Packing' => 'ACCESSORIES PACKING', 'Manufacturing' => 'MANUFACTURING', 'Other Cost' => 'OTHER COST'
         ];
+
+        $rate_to_idr = $costing->rate_to_idr > 0 ? $costing->rate_to_idr : 1;
+        $rate_from_idr = $costing->rate_from_idr > 0 ? $costing->rate_from_idr : 1;
+        $jenis_rate = 'B';
+        $curr_record = $db->table('masterpilihan')->where('id', $costing->curr)->first();
+        if ($curr_record && strtoupper($curr_record->nama_pilihan) == 'USD') {
+            $jenis_rate = 'J';
+        }
 
         foreach ($categories_list as $key => $title) {
             $sub_idr = 0; $sub_usd = 0; $sum_val = 0;
@@ -1262,9 +1384,24 @@ class Marketing_CostingController extends Controller
 
                 if (isset($details[$key]) && count($details[$key]) > 0) {
                     foreach ($details[$key] as $idx => $det) {
+                        $allow = $det->allowance > 0 ? $det->allowance : 0;
+
+                        if ($jenis_rate == 'J') {
+                            $det->price_px_idr = $det->price * $rate_to_idr;
+                            $det->price_px_usd = $det->price;
+                        } else {
+                            $det->price_px_idr = $det->price;
+                            $det->price_px_usd = $det->price / $rate_from_idr;
+                        }
+
+                        $allowcs_usd = ($det->price_px_usd * $det->cons) * ($allow / 100);
+                        $allowcs_idr = ($det->price_px_idr * $det->cons) * ($allow / 100);
+
+                        $det->value_usd = ($det->price_px_usd * $det->cons) + $allowcs_usd;
+                        $det->value_idr = ($det->price_px_idr * $det->cons) + $allowcs_idr;
+
                         $sub_idr += $det->value_idr; $sub_usd += $det->value_usd;
                         $persen = $pembagi_persen > 0 ? ($det->value_idr / $pembagi_persen) : 0;
-                        $allow = $det->allowance > 0 ? $det->allowance : 0;
                         $qty_bom = ceil((1 + ($allow / 100)) * $costing->qty * $det->cons);
                         $tot_val = $qty_bom * $det->price_px_idr;
                         $sum_val += $tot_val;
@@ -1322,6 +1459,18 @@ class Marketing_CostingController extends Controller
 
                 if (isset($details[$key]) && count($details[$key]) > 0) {
                     foreach ($details[$key] as $idx => $det) {
+                        if (!str_contains(strtoupper($det->nama_item), 'OVERHEAD')) {
+                            if ($jenis_rate == 'J') {
+                                $det->price_px_idr = $det->price * $rate_to_idr;
+                                $det->price_px_usd = $det->price;
+                            } else {
+                                $det->price_px_idr = $det->price;
+                                $det->price_px_usd = $det->price / $rate_from_idr;
+                            }
+                            $det->value_idr = $det->price_px_idr;
+                            $det->value_usd = $det->price_px_usd;
+                        }
+
                         $sub_idr += $det->value_idr; $sub_usd += $det->value_usd;
                         $persen = $pembagi_persen > 0 ? ($det->value_idr / $pembagi_persen) : 0;
                         $allow_other = $det->allowance > 0 ? $det->allowance : (str_contains(strtoupper($det->nama_item), 'OVERHEAD') ? 6 : 0);
@@ -1502,6 +1651,18 @@ class Marketing_CostingController extends Controller
             return response()->json(['status' => 200, 'message' => 'Costing berhasil di Approve.']);
         } catch (\Exception $e) {
             return response()->json(['status' => 500, 'message' => 'Gagal: ' . $e->getMessage()]);
+        }
+    }
+    private function triggerAutoSyncSO($id_costing)
+    {
+        $mysql_sb = DB::connection('mysql_sb');
+        $bom = $mysql_sb->table('bom_marketing')->where('id_costing', $id_costing)->first();
+
+        if ($bom) {
+            $sos = $mysql_sb->table('so')->where('id_bom', $bom->id)->where('cancel_h', 'N')->get();
+            foreach ($sos as $so) {
+                \App\Http\Controllers\Marketing_SOController::executeSyncBom($so->id);
+            }
         }
     }
 }

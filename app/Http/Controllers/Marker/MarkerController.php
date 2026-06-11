@@ -260,11 +260,13 @@ class MarkerController extends Controller
      */
     public function store(Request $request)
     {
+        // Marker Code Generation
         $markerCount = Marker::selectRaw("MAX(kode) latest_kode")->whereRaw("kode LIKE 'MRK/" . date('ym') . "/%'")->first();
         $markerNumber = intval(substr($markerCount->latest_kode, -5)) + 1;
         $markerCode = 'MRK/' . date('ym') . '/' . sprintf('%05s', $markerNumber);
         $totalQty = 0;
 
+        // Validation
         $validatedRequest = $request->validate([
             "tgl_cutting" => "required",
             "ws_id" => "required",
@@ -295,70 +297,84 @@ class MarkerController extends Controller
             "unit_cons_piping" => "required",
         ]);
 
+        // Calculate total cut qty
         foreach ($request["cut_qty"] as $qty) {
             $totalQty += $qty;
         }
 
         if ($totalQty > 0) {
-            $markerStore = Marker::create([
-                'tgl_cutting' => $validatedRequest['tgl_cutting'],
-                'kode' => $markerCode,
-                'act_costing_id' => $validatedRequest['ws_id'],
-                'act_costing_ws' => $validatedRequest['ws'],
-                'buyer' => $validatedRequest['buyer'],
-                'style' => $validatedRequest['style'],
-                'cons_ws' => $validatedRequest['cons_ws'],
-                'unit_cons_ws' => $validatedRequest['unit_cons_ws'],
-                'lebar_ws' => $validatedRequest['lebar_ws'],
-                'unit_lebar_ws' => $validatedRequest['lebar_ws_unit'],
-                'color' => $validatedRequest['color'],
-                'panel_id' => $validatedRequest['panel_id'],
-                'panel' => $validatedRequest['panel'],
-                'panjang_marker' => $validatedRequest['p_marker'],
-                'unit_panjang_marker' => $validatedRequest['p_unit'],
-                'comma_marker' => $validatedRequest['comma_marker'],
-                'unit_comma_marker' => $validatedRequest['comma_unit'],
-                'lebar_marker' => $validatedRequest['l_marker'],
-                'unit_lebar_marker' => $validatedRequest['l_unit'],
-                'gelar_qty' => $validatedRequest['gelar_marker_qty'],
-                'gelar_qty_balance' => $validatedRequest['gelar_marker_qty'],
-                'po_marker' => $validatedRequest['po'],
-                'urutan_marker' => $validatedRequest['no_urut_marker'],
-                'cons_marker' => $validatedRequest['cons_marker'],
-                'unit_cons_marker' => $validatedRequest['unit_cons_marker'],
-                'gramasi' => $validatedRequest['gramasi'],
-                'tipe_marker' => $validatedRequest['tipe_marker'],
-                'notes' => $request['notes'],
-                'cons_piping' => $validatedRequest['cons_piping'],
-                'unit_cons_piping' => $validatedRequest['unit_cons_piping'],
-                'cancel' => 'N',
-                'created_by' => Auth::user()->id,
-                'created_by_username' => Auth::user()->username
-            ]);
+            try {
+                DB::beginTransaction();
 
-            $timestamp = Carbon::now();
-            $markerId = $markerStore->id;
-            $markerDetailData = [];
-            for ($i = 0; $i < intval($request['jumlah_so_det']); $i++) {
-                array_push($markerDetailData, [
-                    "marker_id" => $markerId,
-                    "so_det_id" => $request["so_det_id"][$i],
-                    "size" => $request["size"][$i],
-                    "ratio" => $request["ratio"][$i],
-                    "cut_qty" => $request["cut_qty"][$i],
-                    "cancel" => 'N',
-                    "created_at" => $timestamp,
-                    "updated_at" => $timestamp,
+                // Create Marker
+                $markerStore = Marker::create([
+                    'tgl_cutting' => $validatedRequest['tgl_cutting'],
+                    'kode' => $markerCode,
+                    'act_costing_id' => $validatedRequest['ws_id'],
+                    'act_costing_ws' => $validatedRequest['ws'],
+                    'buyer' => $validatedRequest['buyer'],
+                    'style' => $validatedRequest['style'],
+                    'cons_ws' => $validatedRequest['cons_ws'],
+                    'unit_cons_ws' => $validatedRequest['unit_cons_ws'],
+                    'lebar_ws' => $validatedRequest['lebar_ws'],
+                    'unit_lebar_ws' => $validatedRequest['lebar_ws_unit'],
+                    'color' => $validatedRequest['color'],
+                    'panel_id' => $validatedRequest['panel_id'],
+                    'panel' => $validatedRequest['panel'],
+                    'panjang_marker' => $validatedRequest['p_marker'],
+                    'unit_panjang_marker' => $validatedRequest['p_unit'],
+                    'comma_marker' => $validatedRequest['comma_marker'],
+                    'unit_comma_marker' => $validatedRequest['comma_unit'],
+                    'lebar_marker' => $validatedRequest['l_marker'],
+                    'unit_lebar_marker' => $validatedRequest['l_unit'],
+                    'gelar_qty' => $validatedRequest['gelar_marker_qty'],
+                    'gelar_qty_balance' => $validatedRequest['gelar_marker_qty'],
+                    'po_marker' => $validatedRequest['po'],
+                    'urutan_marker' => $validatedRequest['no_urut_marker'],
+                    'cons_marker' => $validatedRequest['cons_marker'],
+                    'unit_cons_marker' => $validatedRequest['unit_cons_marker'],
+                    'gramasi' => $validatedRequest['gramasi'],
+                    'tipe_marker' => $validatedRequest['tipe_marker'],
+                    'notes' => $request['notes'],
+                    'cons_piping' => $validatedRequest['cons_piping'],
+                    'unit_cons_piping' => $validatedRequest['unit_cons_piping'],
+                    'cancel' => 'N',
+                    'created_by' => Auth::user()->id,
+                    'created_by_username' => Auth::user()->username
                 ]);
+
+                // Create Marker Details
+                $timestamp = Carbon::now();
+                $markerId = $markerStore->id;
+                for ($i = 0; $i < intval($request['jumlah_so_det']); $i++) {
+                    MarkerDetail::create([
+                        "marker_id" => $markerId,
+                        "so_det_id" => $request["so_det_id"][$i],
+                        "size" => $request["size"][$i],
+                        "ratio" => ($request["ratio"][$i] ?? 0),
+                        "cut_qty" => ($request["cut_qty"][$i] ?? 0),
+                        "cancel" => 'N',
+                        "created_at" => $timestamp,
+                        "updated_at" => $timestamp,
+                    ]);
+                }
+
+                DB::commit();
+
+                return array(
+                    "status" => 200,
+                    "message" => $markerCode,
+                    "additional" => [],
+                );
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                return array(
+                    "status" => 500,
+                    "message" => "Terjadi kesalahan: " . $e->getMessage(),
+                    "additional" => [],
+                );
             }
-
-            $markerDetailStore = MarkerDetail::insert($markerDetailData);
-
-            return array(
-                "status" => 200,
-                "message" => $markerCode,
-                "additional" => [],
-            );
         }
 
         return array(
@@ -931,23 +947,23 @@ class MarkerController extends Controller
             $timestamp = Carbon::now();
             $markerDetailData = [];
             for ($i = 0; $i < intval($request['jumlah_so_det']); $i++) {
-                if (MarkerDetail::where('marker_id', $id)->where('so_det_id', $request["so_det_id"][$i])->first()) {
-                    MarkerDetail::where('marker_id', $id)->where('so_det_id', $request["so_det_id"][$i])->update([
-                        "size" => $request["size"][$i],
-                        "ratio" => $request["ratio"][$i],
-                        "cut_qty" => $request["cut_qty"][$i],
-                        "cancel" => 'N',
-                        "created_at" => $timestamp,
+                $existingDetail = MarkerDetail::where('marker_id', $id)->where('so_det_id', $request["so_det_id"][$i])->first();
+                if ($existingDetail) {
+                    $existingDetail->update([
+                        "size"       => $request["size"][$i],
+                        "ratio"      => $request["ratio"][$i],
+                        "cut_qty"    => $request["cut_qty"][$i],
+                        "cancel"     => 'N',
                         "updated_at" => $timestamp,
                     ]);
                 } else {
                     MarkerDetail::create([
-                        "marker_id" => $id,
-                        'so_det_id' => $request["so_det_id"][$i],
-                        "size" => $request["size"][$i],
-                        "ratio" => $request["ratio"][$i],
-                        "cut_qty" => $request["cut_qty"][$i],
-                        "cancel" => 'N',
+                        "marker_id"  => $id,
+                        'so_det_id'  => $request["so_det_id"][$i],
+                        "size"       => $request["size"][$i],
+                        "ratio"      => $request["ratio"][$i],
+                        "cut_qty"    => $request["cut_qty"][$i],
+                        "cancel"     => 'N',
                         "created_at" => $timestamp,
                         "updated_at" => $timestamp,
                     ]);
