@@ -12463,6 +12463,26 @@ order by a.tgl_trans asc
                 return response()->json(['data' => []]);
             } else {
                 $rawData = DB::select("WITH
+                    bom AS (
+                        SELECT DISTINCT
+                            ac.kpno ws,
+                            sd.color,
+                            mp.nama_panel
+                        FROM signalbit_erp.bom_jo_item k
+                        INNER JOIN signalbit_erp.so_det sd ON k.id_so_det = sd.id
+                        INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+                        INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                        INNER JOIN signalbit_erp.masteritem mi ON k.id_item = mi.id_gen
+                        INNER JOIN signalbit_erp.masterpanel mp ON mp.id = k.id_panel
+                        WHERE
+                            k.status = 'M'
+                            AND k.cancel = 'N'
+                            AND sd.cancel = 'N'
+                            AND so.cancel_h = 'N'
+                            AND ac.status = 'confirm'
+                            AND mi.mattype = 'F'
+                    ),
+
                     query_qty_in as(
                         SELECT 
                             tanggal,
@@ -12476,25 +12496,12 @@ order by a.tgl_trans asc
                         FROM (
                             SELECT
                                 COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tanggal,
-                                UPPER(meja.name) meja,
                                 marker_input.act_costing_ws worksheet,
                                 marker_input.buyer,
                                 marker_input.style,
                                 marker_input.color,
-                                master_sb_ws.id_so_det,
                                 COALESCE(master_sb_ws.size, marker_input_detail.size) AS size,
-                                master_sb_ws.dest,
-                                (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE marker_input_detail.size END) size_dest,
-                                form_cut_input_detail.group_roll,
-                                form_cut_input_detail.lot,
-                                form_cut_input.no_cut,
-                                form_cut_input.no_form,
-                                marker_input.kode no_marker,
                                 marker_input.panel,
-                                similar.max_group,
-                                form_cut_input_detail.group_stocker,
-                                COALESCE(modify_size_qty.difference_qty, 0),
-                                COALESCE(modify_size_qty.modified_qty, 0),
                                 ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (COALESCE(modify_size_qty.difference_qty, 0))) qty
                             FROM
                                 form_cut_input
@@ -12541,25 +12548,12 @@ order by a.tgl_trans asc
                             UNION ALL
                             SELECT
                                 DATE(form_cut_piece.waktu_selesai) tanggal,
-                                '-' meja,
                                 form_cut_piece.act_costing_ws worksheet,
                                 form_cut_piece.buyer,
                                 form_cut_piece.style,
                                 form_cut_piece.color,
-                                master_sb_ws.id_so_det,
                                 COALESCE(master_sb_ws.size, form_cut_piece_detail_size.size) AS size,
-                                master_sb_ws.dest,
-                                (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE form_cut_piece_detail_size.size END) size_dest,
-                                form_cut_piece_detail.group_roll,
-                                form_cut_piece_detail.lot,
-                                form_cut_piece.no_cut,
-                                form_cut_piece.no_form,
-                                '-' no_marker,
                                 form_cut_piece.panel,
-                                '-' max_group,
-                                form_cut_piece_detail.group_stocker,
-                                null,
-                                null,
                                 SUM(form_cut_piece_detail_size.qty) as qty
                             FROM
                                 form_cut_piece
@@ -12578,30 +12572,16 @@ order by a.tgl_trans asc
                             UNION ALL
                             SELECT
                                 COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tanggal,
-                                UPPER(meja.name) meja,
                                 stocker_ws_additional.act_costing_ws AS worksheet,
                                 stocker_ws_additional.buyer,
                                 stocker_ws_additional.style,
                                 stocker_ws_additional.color,
-                                stocker_ws_additional_detail.so_det_id AS id_so_det,
                                 COALESCE(master_sb_ws.size, stocker_ws_additional_detail.size) AS size,
-                                master_sb_ws.dest,
-                                (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE stocker_ws_additional_detail.size END) size_dest,
-                                form_cut_input_detail.group_roll,
-                                form_cut_input_detail.lot,
-                                form_cut_input.no_cut,
-                                form_cut_input.no_form,
-                                marker_input.kode AS no_marker,
                                 stocker_ws_additional.panel,
-                                similar.max_group,
-                                form_cut_input_detail.group_stocker,
-                                COALESCE(modify_size_qty.difference_qty, 0),
-                                COALESCE(modify_size_qty.modified_qty, 0),
                                 ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (COALESCE(modify_size_qty.difference_qty, 0))) qty
                             FROM laravel_nds.form_cut_input
                             LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                             LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
-                            LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
                             LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
                             LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                             LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id AND marker_input_detail.size = stocker_ws_additional_detail.size
@@ -12641,80 +12621,61 @@ order by a.tgl_trans asc
                                 form_cut_input.id,
                                 form_cut_input_detail.group_stocker,
                                 marker_input_detail.id
-                                        
                             ORDER BY
                                 tanggal ASC,
-                                meja,
                                 worksheet,
                                 style,
                                 color,
-                                panel,
-                                id_so_det,
-                                group_stocker
+                                panel
                         ) a
                     ),
 
-
-                    qty_in_panel AS (
+                    qty_in_per_panel AS (
                         SELECT
-                            query_qty_in.worksheet,
-                            query_qty_in.buyer,
-                            query_qty_in.style,
-                            query_qty_in.color,
-                            query_qty_in.size,
-                            bom.nama_panel,
+                            worksheet,
+                            buyer,
+                            style,
+                            color,
+                            size,
+                            panel,
                             SUM(
-                                IF(query_qty_in.tanggal < '".$start_date."',
-                                    query_qty_in.qty,
+                                IF(tanggal < '$start_date',
+                                    qty,
                                     0
                                 )
                             ) qty_before,
                             SUM(
-                                IF(query_qty_in.tanggal >= '".$start_date."',
-                                    query_qty_in.qty,
+                                IF(tanggal >= '$start_date',
+                                    qty,
                                     0
                                 )
                             ) qty
                         FROM query_qty_in
-                        INNER JOIN (
-                            SELECT
-                                ac.kpno ws,
-                                sd.color,
-                                mp.nama_panel
-                            FROM signalbit_erp.bom_jo_item k
-                            INNER JOIN signalbit_erp.so_det sd
-                                ON k.id_so_det = sd.id
-                            INNER JOIN signalbit_erp.so
-                                ON sd.id_so = so.id
-                            INNER JOIN signalbit_erp.act_costing ac
-                                ON so.id_cost = ac.id
-                            INNER JOIN signalbit_erp.masteritem mi
-                                ON k.id_item = mi.id_gen
-                            INNER JOIN signalbit_erp.masterpanel mp
-                                ON mp.id = id_panel
-                            WHERE
-                                k.status = 'M'
-                                AND k.cancel = 'N'
-                                AND sd.cancel = 'N'
-                                AND so.cancel_h = 'N'
-                                AND ac.status = 'confirm'
-                                AND mi.mattype = 'F'
-                            GROUP BY
-                                ac.kpno,
-                                sd.color,
-                                mp.nama_panel
-                        ) bom
-                            ON bom.ws = query_qty_in.worksheet
-                            AND bom.color = query_qty_in.color
-                            AND bom.nama_panel = query_qty_in.panel
-                        WHERE query_qty_in.tanggal <= '".$end_date."'
+                        WHERE tanggal <= '$end_date'
                         GROUP BY
-                            query_qty_in.worksheet,
-                            query_qty_in.buyer,
-                            query_qty_in.style,
-                            query_qty_in.color,
-                            query_qty_in.size,
-                            bom.nama_panel
+                            worksheet,
+                            buyer,
+                            style,
+                            color,
+                            size,
+                            panel
+                    ),
+
+                    qty_in_panel AS (
+                        SELECT
+                            p.worksheet,
+                            p.buyer,
+                            p.style,
+                            p.color,
+                            p.size,
+                            b.nama_panel,
+                            p.qty_before,
+                            p.qty
+                        FROM qty_in_per_panel p
+                        INNER JOIN bom b
+                            ON b.ws = p.worksheet
+                            AND b.color = p.color
+                            AND b.nama_panel = p.panel
                     ),
 
                     qty_in AS (
@@ -12737,77 +12698,35 @@ order by a.tgl_trans asc
 
                     query_qty_out AS (
                         SELECT
-                            UPPER(a.id_qr_stocker) id_qr_stocker,
-                            (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
-                            DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
                             a.tgl_trans,
                             COALESCE(msb.ws, s.act_costing_ws) act_costing_ws,
                             COALESCE(msb.color, s.color) color,
                             COALESCE(msb.buyer, p.buyer) buyer,
                             COALESCE(msb.styleno, p.style) style,
                             a.qty_awal,
-                            a.qty_reject,
-                            a.qty_replace,
-                            (a.qty_awal - a.qty_reject + a.qty_replace) qty_in,
-                            a.tujuan,
-                            a.lokasi,
-                            a.tempat,
-                            a.created_at,
-                            s.shade,
-                            s.group_stocker,
-                            a.user,
-                            CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
-                            COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                             COALESCE(msb.size, s.size) size,
-                            mp.nama_part,
-                            s.notes,
-                            UPPER(COALESCE(pd.part_status, '-')) part_status,
-                            COALESCE(p_com.panel, p.panel) as panel,
-                            COALESCE(p_com.panel_status, p.panel_status) as panel_status
+                            COALESCE(p_com.panel, p.panel) as panel
                         from
                             dc_in_input a
                             left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
                             left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-                            left join form_cut_input f on f.id = s.form_cut_id
-                            left join form_cut_reject fr on fr.id = s.form_reject_id
-                            left join form_cut_piece fp on fp.id = s.form_piece_id
                             left join part_detail pd on s.part_detail_id = pd.id
                             left join part p on pd.part_id = p.id
                             left join part_detail pd_com on pd_com.id = pd.from_part_detail
                             left join part p_com on p_com.id = pd_com.part_id
-                            left join master_part mp on mp.id = pd.master_part_id
                         where
                             a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
                             and tgl_trans between '".$start_date."' and '".$end_date."'
                         UNION ALL
                         select
-                            id_qr_stocker,
-                            'INJECT' tipe,
-                            DATE_FORMAT(tgl_trans, '%d-%m-%Y') tgl_trans_fix,
                             tgl_trans,
                             ws,
                             color,
                             buyer,
                             style,
                             qty_awal,
-                            qty_reject,
-                            qty_replace,
-                            qty_in,
-                            tujuan,
-                            lokasi,
-                            tempat,
-                            created_at,
-                            shade,
-                            group_stocker,
-                            user,
-                            `range` as stocker_range,
-                            no_cut,
                             size,
-                            part as nama_part,
-                            'INJECT' notes,
-                            part_status,
-                            panel,
-                            panel_status
+                            panel
                         from
                             dc_in_dump
                         where tgl_trans between '".$start_date."' and '".$end_date."'
@@ -12815,66 +12734,52 @@ order by a.tgl_trans asc
                             tgl_trans desc
                     ),
 
-                    qty_out_panel AS (
+                    qty_out_per_panel AS (
                         SELECT
-                            query_qty_out.act_costing_ws AS worksheet,
-                            query_qty_out.buyer,
-                            query_qty_out.style,
-                            query_qty_out.color,
-                            query_qty_out.size,
-                            bom.nama_panel,
+                            act_costing_ws AS worksheet,
+                            buyer,
+                            style,
+                            color,
+                            size,
+                            panel,
                             SUM(
-                                IF(query_qty_out.tgl_trans < '".$start_date."',
-                                    query_qty_out.qty_awal,
+                                IF(tgl_trans < '".$start_date."',
+                                    qty_awal,
                                     0
                                 )
                             ) qty_before,
                             SUM(
-                                IF(query_qty_out.tgl_trans >= '".$start_date."',
-                                    query_qty_out.qty_awal,
+                                IF(tgl_trans >= '".$start_date."',
+                                    qty_awal,
                                     0
                                 )
                             ) qty
                         FROM query_qty_out
-                        INNER JOIN (
-                            SELECT
-                                ac.kpno ws,
-                                sd.color,
-                                mp.nama_panel
-                            FROM signalbit_erp.bom_jo_item k
-                            INNER JOIN signalbit_erp.so_det sd
-                                ON k.id_so_det = sd.id
-                            INNER JOIN signalbit_erp.so
-                                ON sd.id_so = so.id
-                            INNER JOIN signalbit_erp.act_costing ac
-                                ON so.id_cost = ac.id
-                            INNER JOIN signalbit_erp.masteritem mi
-                                ON k.id_item = mi.id_gen
-                            INNER JOIN signalbit_erp.masterpanel mp
-                                ON mp.id = id_panel
-                            WHERE
-                                k.status = 'M'
-                                AND k.cancel = 'N'
-                                AND sd.cancel = 'N'
-                                AND so.cancel_h = 'N'
-                                AND ac.status = 'confirm'
-                                AND mi.mattype = 'F'
-                            GROUP BY
-                                ac.kpno,
-                                sd.color,
-                                mp.nama_panel
-                        ) bom
-                            ON bom.ws = query_qty_out.act_costing_ws
-                            AND bom.color = query_qty_out.color
-                            AND bom.nama_panel = query_qty_out.panel
-                        WHERE query_qty_out.tgl_trans <= '".$end_date."'
+                        WHERE tgl_trans <= '".$end_date."'
                         GROUP BY
-                            query_qty_out.act_costing_ws,
-                            query_qty_out.buyer,
-                            query_qty_out.style,
-                            query_qty_out.color,
-                            query_qty_out.size,
-                            bom.nama_panel
+                            act_costing_ws,
+                            buyer,
+                            style,
+                            color,
+                            size,
+                            panel
+                    ),
+
+                    qty_out_panel AS (
+                        SELECT
+                            g.worksheet,
+                            g.buyer,
+                            g.style,
+                            g.color,
+                            g.size,
+                            g.panel,
+                            g.qty_before,
+                            g.qty
+                        FROM qty_out_per_panel g
+                        INNER JOIN bom b
+                            ON b.ws = g.worksheet
+                            AND b.color = g.color
+                            AND b.nama_panel = g.panel
                     ),
 
                     qty_out AS (
@@ -12896,13 +12801,27 @@ order by a.tgl_trans asc
                     ),
 
                     all_data AS (
-                        SELECT worksheet,buyer,style,color,size
-                        FROM qty_in
+                        SELECT
+                            worksheet,
+                            buyer,
+                            style,
+                            color,
+                            size
+                        FROM (
+                            SELECT worksheet,buyer,style,color,size
+                            FROM qty_in
 
-                        UNION
+                            UNION ALL
 
-                        SELECT worksheet,buyer,style,color,size
-                        FROM qty_out
+                            SELECT worksheet,buyer,style,color,size
+                            FROM qty_out
+                        ) x
+                        GROUP BY
+                            worksheet,
+                            buyer,
+                            style,
+                            color,
+                            size
                     )
 
                     SELECT
@@ -12957,6 +12876,26 @@ order by a.tgl_trans asc
         $end_date = $request->end_date;
 
         $data = DB::select("WITH
+            bom AS (
+                SELECT DISTINCT
+                    ac.kpno ws,
+                    sd.color,
+                    mp.nama_panel
+                FROM signalbit_erp.bom_jo_item k
+                INNER JOIN signalbit_erp.so_det sd ON k.id_so_det = sd.id
+                INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+                INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                INNER JOIN signalbit_erp.masteritem mi ON k.id_item = mi.id_gen
+                INNER JOIN signalbit_erp.masterpanel mp ON mp.id = k.id_panel
+                WHERE
+                    k.status = 'M'
+                    AND k.cancel = 'N'
+                    AND sd.cancel = 'N'
+                    AND so.cancel_h = 'N'
+                    AND ac.status = 'confirm'
+                    AND mi.mattype = 'F'
+            ),
+
             query_qty_in as(
                 SELECT 
                     tanggal,
@@ -12970,25 +12909,12 @@ order by a.tgl_trans asc
                 FROM (
                     SELECT
                         COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tanggal,
-                        UPPER(meja.name) meja,
                         marker_input.act_costing_ws worksheet,
                         marker_input.buyer,
                         marker_input.style,
                         marker_input.color,
-                        master_sb_ws.id_so_det,
                         COALESCE(master_sb_ws.size, marker_input_detail.size) AS size,
-                        master_sb_ws.dest,
-                        (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE marker_input_detail.size END) size_dest,
-                        form_cut_input_detail.group_roll,
-                        form_cut_input_detail.lot,
-                        form_cut_input.no_cut,
-                        form_cut_input.no_form,
-                        marker_input.kode no_marker,
                         marker_input.panel,
-                        similar.max_group,
-                        form_cut_input_detail.group_stocker,
-                        COALESCE(modify_size_qty.difference_qty, 0),
-                        COALESCE(modify_size_qty.modified_qty, 0),
                         ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (COALESCE(modify_size_qty.difference_qty, 0))) qty
                     FROM
                         form_cut_input
@@ -13035,25 +12961,12 @@ order by a.tgl_trans asc
                     UNION ALL
                     SELECT
                         DATE(form_cut_piece.waktu_selesai) tanggal,
-                        '-' meja,
                         form_cut_piece.act_costing_ws worksheet,
                         form_cut_piece.buyer,
                         form_cut_piece.style,
                         form_cut_piece.color,
-                        master_sb_ws.id_so_det,
                         COALESCE(master_sb_ws.size, form_cut_piece_detail_size.size) AS size,
-                        master_sb_ws.dest,
-                        (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE form_cut_piece_detail_size.size END) size_dest,
-                        form_cut_piece_detail.group_roll,
-                        form_cut_piece_detail.lot,
-                        form_cut_piece.no_cut,
-                        form_cut_piece.no_form,
-                        '-' no_marker,
                         form_cut_piece.panel,
-                        '-' max_group,
-                        form_cut_piece_detail.group_stocker,
-                        null,
-                        null,
                         SUM(form_cut_piece_detail_size.qty) as qty
                     FROM
                         form_cut_piece
@@ -13072,30 +12985,16 @@ order by a.tgl_trans asc
                     UNION ALL
                     SELECT
                         COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tanggal,
-                        UPPER(meja.name) meja,
                         stocker_ws_additional.act_costing_ws AS worksheet,
                         stocker_ws_additional.buyer,
                         stocker_ws_additional.style,
                         stocker_ws_additional.color,
-                        stocker_ws_additional_detail.so_det_id AS id_so_det,
                         COALESCE(master_sb_ws.size, stocker_ws_additional_detail.size) AS size,
-                        master_sb_ws.dest,
-                        (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE stocker_ws_additional_detail.size END) size_dest,
-                        form_cut_input_detail.group_roll,
-                        form_cut_input_detail.lot,
-                        form_cut_input.no_cut,
-                        form_cut_input.no_form,
-                        marker_input.kode AS no_marker,
                         stocker_ws_additional.panel,
-                        similar.max_group,
-                        form_cut_input_detail.group_stocker,
-                        COALESCE(modify_size_qty.difference_qty, 0),
-                        COALESCE(modify_size_qty.modified_qty, 0),
                         ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (COALESCE(modify_size_qty.difference_qty, 0))) qty
                     FROM laravel_nds.form_cut_input
                     LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                     LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
-                    LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
                     LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
                     LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
                     LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id AND marker_input_detail.size = stocker_ws_additional_detail.size
@@ -13135,80 +13034,61 @@ order by a.tgl_trans asc
                         form_cut_input.id,
                         form_cut_input_detail.group_stocker,
                         marker_input_detail.id
-                                
                     ORDER BY
                         tanggal ASC,
-                        meja,
                         worksheet,
                         style,
                         color,
-                        panel,
-                        id_so_det,
-                        group_stocker
+                        panel
                 ) a
             ),
 
-
-            qty_in_panel AS (
+            qty_in_per_panel AS (
                 SELECT
-                    query_qty_in.worksheet,
-                    query_qty_in.buyer,
-                    query_qty_in.style,
-                    query_qty_in.color,
-                    query_qty_in.size,
-                    bom.nama_panel,
+                    worksheet,
+                    buyer,
+                    style,
+                    color,
+                    size,
+                    panel,
                     SUM(
-                        IF(query_qty_in.tanggal < '".$start_date."',
-                            query_qty_in.qty,
+                        IF(tanggal < '$start_date',
+                            qty,
                             0
                         )
                     ) qty_before,
                     SUM(
-                        IF(query_qty_in.tanggal >= '".$start_date."',
-                            query_qty_in.qty,
+                        IF(tanggal >= '$start_date',
+                            qty,
                             0
                         )
                     ) qty
                 FROM query_qty_in
-                INNER JOIN (
-                    SELECT
-                        ac.kpno ws,
-                        sd.color,
-                        mp.nama_panel
-                    FROM signalbit_erp.bom_jo_item k
-                    INNER JOIN signalbit_erp.so_det sd
-                        ON k.id_so_det = sd.id
-                    INNER JOIN signalbit_erp.so
-                        ON sd.id_so = so.id
-                    INNER JOIN signalbit_erp.act_costing ac
-                        ON so.id_cost = ac.id
-                    INNER JOIN signalbit_erp.masteritem mi
-                        ON k.id_item = mi.id_gen
-                    INNER JOIN signalbit_erp.masterpanel mp
-                        ON mp.id = id_panel
-                    WHERE
-                        k.status = 'M'
-                        AND k.cancel = 'N'
-                        AND sd.cancel = 'N'
-                        AND so.cancel_h = 'N'
-                        AND ac.status = 'confirm'
-                        AND mi.mattype = 'F'
-                    GROUP BY
-                        ac.kpno,
-                        sd.color,
-                        mp.nama_panel
-                ) bom
-                    ON bom.ws = query_qty_in.worksheet
-                    AND bom.color = query_qty_in.color
-                    AND bom.nama_panel = query_qty_in.panel
-                WHERE query_qty_in.tanggal <= '".$end_date."'
+                WHERE tanggal <= '$end_date'
                 GROUP BY
-                    query_qty_in.worksheet,
-                    query_qty_in.buyer,
-                    query_qty_in.style,
-                    query_qty_in.color,
-                    query_qty_in.size,
-                    bom.nama_panel
+                    worksheet,
+                    buyer,
+                    style,
+                    color,
+                    size,
+                    panel
+            ),
+
+            qty_in_panel AS (
+                SELECT
+                    p.worksheet,
+                    p.buyer,
+                    p.style,
+                    p.color,
+                    p.size,
+                    b.nama_panel,
+                    p.qty_before,
+                    p.qty
+                FROM qty_in_per_panel p
+                INNER JOIN bom b
+                    ON b.ws = p.worksheet
+                    AND b.color = p.color
+                    AND b.nama_panel = p.panel
             ),
 
             qty_in AS (
@@ -13231,77 +13111,35 @@ order by a.tgl_trans asc
 
             query_qty_out AS (
                 SELECT
-                    UPPER(a.id_qr_stocker) id_qr_stocker,
-                    (CASE WHEN fp.id > 0 THEN 'PIECE' ELSE (CASE WHEN fr.id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
-                    DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
                     a.tgl_trans,
                     COALESCE(msb.ws, s.act_costing_ws) act_costing_ws,
                     COALESCE(msb.color, s.color) color,
                     COALESCE(msb.buyer, p.buyer) buyer,
                     COALESCE(msb.styleno, p.style) style,
                     a.qty_awal,
-                    a.qty_reject,
-                    a.qty_replace,
-                    (a.qty_awal - a.qty_reject + a.qty_replace) qty_in,
-                    a.tujuan,
-                    a.lokasi,
-                    a.tempat,
-                    a.created_at,
-                    s.shade,
-                    s.group_stocker,
-                    a.user,
-                    CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
-                    COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                     COALESCE(msb.size, s.size) size,
-                    mp.nama_part,
-                    s.notes,
-                    UPPER(COALESCE(pd.part_status, '-')) part_status,
-                    COALESCE(p_com.panel, p.panel) as panel,
-                    COALESCE(p_com.panel_status, p.panel_status) as panel_status
+                    COALESCE(p_com.panel, p.panel) as panel
                 from
                     dc_in_input a
                     left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
                     left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-                    left join form_cut_input f on f.id = s.form_cut_id
-                    left join form_cut_reject fr on fr.id = s.form_reject_id
-                    left join form_cut_piece fp on fp.id = s.form_piece_id
                     left join part_detail pd on s.part_detail_id = pd.id
                     left join part p on pd.part_id = p.id
                     left join part_detail pd_com on pd_com.id = pd.from_part_detail
                     left join part p_com on p_com.id = pd_com.part_id
-                    left join master_part mp on mp.id = pd.master_part_id
                 where
                     a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
                     and tgl_trans between '".$start_date."' and '".$end_date."'
                 UNION ALL
                 select
-                    id_qr_stocker,
-                    'INJECT' tipe,
-                    DATE_FORMAT(tgl_trans, '%d-%m-%Y') tgl_trans_fix,
                     tgl_trans,
                     ws,
                     color,
                     buyer,
                     style,
                     qty_awal,
-                    qty_reject,
-                    qty_replace,
-                    qty_in,
-                    tujuan,
-                    lokasi,
-                    tempat,
-                    created_at,
-                    shade,
-                    group_stocker,
-                    user,
-                    `range` as stocker_range,
-                    no_cut,
                     size,
-                    part as nama_part,
-                    'INJECT' notes,
-                    part_status,
-                    panel,
-                    panel_status
+                    panel
                 from
                     dc_in_dump
                 where tgl_trans between '".$start_date."' and '".$end_date."'
@@ -13309,66 +13147,52 @@ order by a.tgl_trans asc
                     tgl_trans desc
             ),
 
-            qty_out_panel AS (
+            qty_out_per_panel AS (
                 SELECT
-                    query_qty_out.act_costing_ws AS worksheet,
-                    query_qty_out.buyer,
-                    query_qty_out.style,
-                    query_qty_out.color,
-                    query_qty_out.size,
-                    bom.nama_panel,
+                    act_costing_ws AS worksheet,
+                    buyer,
+                    style,
+                    color,
+                    size,
+                    panel,
                     SUM(
-                        IF(query_qty_out.tgl_trans < '".$start_date."',
-                            query_qty_out.qty_awal,
+                        IF(tgl_trans < '".$start_date."',
+                            qty_awal,
                             0
                         )
                     ) qty_before,
                     SUM(
-                        IF(query_qty_out.tgl_trans >= '".$start_date."',
-                            query_qty_out.qty_awal,
+                        IF(tgl_trans >= '".$start_date."',
+                            qty_awal,
                             0
                         )
                     ) qty
                 FROM query_qty_out
-                INNER JOIN (
-                    SELECT
-                        ac.kpno ws,
-                        sd.color,
-                        mp.nama_panel
-                    FROM signalbit_erp.bom_jo_item k
-                    INNER JOIN signalbit_erp.so_det sd
-                        ON k.id_so_det = sd.id
-                    INNER JOIN signalbit_erp.so
-                        ON sd.id_so = so.id
-                    INNER JOIN signalbit_erp.act_costing ac
-                        ON so.id_cost = ac.id
-                    INNER JOIN signalbit_erp.masteritem mi
-                        ON k.id_item = mi.id_gen
-                    INNER JOIN signalbit_erp.masterpanel mp
-                        ON mp.id = id_panel
-                    WHERE
-                        k.status = 'M'
-                        AND k.cancel = 'N'
-                        AND sd.cancel = 'N'
-                        AND so.cancel_h = 'N'
-                        AND ac.status = 'confirm'
-                        AND mi.mattype = 'F'
-                    GROUP BY
-                        ac.kpno,
-                        sd.color,
-                        mp.nama_panel
-                ) bom
-                    ON bom.ws = query_qty_out.act_costing_ws
-                    AND bom.color = query_qty_out.color
-                    AND bom.nama_panel = query_qty_out.panel
-                WHERE query_qty_out.tgl_trans <= '".$end_date."'
+                WHERE tgl_trans <= '".$end_date."'
                 GROUP BY
-                    query_qty_out.act_costing_ws,
-                    query_qty_out.buyer,
-                    query_qty_out.style,
-                    query_qty_out.color,
-                    query_qty_out.size,
-                    bom.nama_panel
+                    act_costing_ws,
+                    buyer,
+                    style,
+                    color,
+                    size,
+                    panel
+            ),
+
+            qty_out_panel AS (
+                SELECT
+                    g.worksheet,
+                    g.buyer,
+                    g.style,
+                    g.color,
+                    g.size,
+                    g.panel,
+                    g.qty_before,
+                    g.qty
+                FROM qty_out_per_panel g
+                INNER JOIN bom b
+                    ON b.ws = g.worksheet
+                    AND b.color = g.color
+                    AND b.nama_panel = g.panel
             ),
 
             qty_out AS (
@@ -13390,13 +13214,27 @@ order by a.tgl_trans asc
             ),
 
             all_data AS (
-                SELECT worksheet,buyer,style,color,size
-                FROM qty_in
+                SELECT
+                    worksheet,
+                    buyer,
+                    style,
+                    color,
+                    size
+                FROM (
+                    SELECT worksheet,buyer,style,color,size
+                    FROM qty_in
 
-                UNION
+                    UNION ALL
 
-                SELECT worksheet,buyer,style,color,size
-                FROM qty_out
+                    SELECT worksheet,buyer,style,color,size
+                    FROM qty_out
+                ) x
+                GROUP BY
+                    worksheet,
+                    buyer,
+                    style,
+                    color,
+                    size
             )
 
             SELECT
