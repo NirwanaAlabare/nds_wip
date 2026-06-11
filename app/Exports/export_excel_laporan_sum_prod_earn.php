@@ -307,7 +307,7 @@ coalesce(projection,0) projection,
 coalesce(daily_cost,0)AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa  and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'DIRECT LABOR COST'
 group by tanggal, no_coa
 ),
@@ -321,7 +321,7 @@ coalesce(projection,0) projection,
 coalesce(daily_cost,0)AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa  and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'INDIRECT LABOR COST'
 group by tanggal, no_coa
 ),
@@ -335,7 +335,7 @@ coalesce(projection,0) projection,
 coalesce(daily_cost,0)AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'FIXED OVERHEAD COST'
 group by tanggal, no_coa
 ),
@@ -349,7 +349,7 @@ coalesce(projection,0) projection,
 coalesce(daily_cost,0)AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'SELLING EXPENSE'
 group by tanggal, no_coa
 ),
@@ -363,7 +363,7 @@ coalesce(projection,0) projection,
 coalesce(daily_cost,0)AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori4 = 'GENERAL & ADMINISTRATION EXPENSE'
 group by tanggal, no_coa
 ),
@@ -377,7 +377,7 @@ coalesce(projection,0) projection,
 coalesce(daily_cost,0)AS daily_cost
 FROM dim_tgl d
 cross join mastercoa_v2 a
-left join dc on a.no_coa = dc.no_coa
+left join dc on a.no_coa = dc.no_coa and d.bulan = dc.bulan and d.tahun = dc.tahun
 where eng_categori3 = 'OTHER EXPENSE'
 group by tanggal, no_coa
 ),
