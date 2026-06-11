@@ -46,6 +46,7 @@
                 <table id="datatable" class="table table-bordered 100 table-hover display nowrap">
                     <thead class="table-primary">
                         <tr style='text-align:center; vertical-align:middle'>
+                            <th>No. Trans</th>
                             <th>Tgl. Trans</th>
                             <th>QR Code</th>
                             <th>No. Karton</th>
@@ -112,6 +113,9 @@
             },
             columns: [
                 {
+                    data: 'no_trans'
+                },
+                {
                     data: 'tgl_terima_fix'
                 },
                 {
@@ -162,7 +166,7 @@
 
             $.ajax({
                 type: "get",
-                url: '{{ route('export_excel_bpb_fg_stok_scan') }}',
+                url: '{{ route('export_excel_bpb_fg_stok_lokasi_scan') }}',
                 data: {
                     from: from,
                     to: to

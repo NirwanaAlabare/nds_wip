@@ -46,7 +46,7 @@ class FGStokLokasiScanBPBController extends Controller
                 from fg_stok_bpb_lokasi_scan a
                 left join fg_stok_bpb_scan b ON b.qr_code = a.qr_code
                 left join master_sb_ws m on b.id_so_det = m.id_so_det
-                where tgl_terima >= '$tgl_awal' and tgl_terima <= '$tgl_akhir'
+                where date(a.created_at) >= '$tgl_awal' and date(a.created_at) <= '$tgl_akhir'
                 order by a.id desc
             ");
 
