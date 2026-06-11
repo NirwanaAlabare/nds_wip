@@ -223,8 +223,8 @@ class PackingLineController extends Controller
             WHERE line IS NOT NULL AND line != ''
             GROUP BY po, line
             HAVING SUM(sa) != 0
-            AND SUM(qty_packing_line) != 0
-            AND SUM(qty_trf_gmt) != 0
+            OR SUM(qty_packing_line) != 0
+            OR SUM(qty_trf_gmt) != 0
             ORDER BY line, po
         ");
         });
@@ -313,8 +313,8 @@ class PackingLineController extends Controller
             WHERE mut.line IS NOT NULL AND mut.line != ''
             GROUP BY mut.so_det_id,po, line
             HAVING SUM(sa) != 0
-            AND SUM(qty_packing_line) != 0
-            AND SUM(qty_trf_gmt) != 0
+            OR SUM(qty_packing_line) != 0
+            OR SUM(qty_trf_gmt) != 0
             ORDER BY  line, po, ws,  d.color, urutan
         ");
 
