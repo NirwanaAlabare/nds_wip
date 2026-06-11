@@ -100,6 +100,11 @@
                     <i class="fas fa-plus"></i>
                     Add Data
                 </a>
+
+                <a href="{{ route('create-returmaterial-new') }}" class="btn btn-success">
+                    <i class="fas fa-plus"></i>
+                    Add New
+                </a>
             </div>
         </div>
     </div>
