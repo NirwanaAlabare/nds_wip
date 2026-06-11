@@ -38,7 +38,7 @@ class ExportLaporanPenerimaanFGStokLokasiScanBPB implements FromView, WithEvents
         $data = DB::select("
             select
                 a.id,
-                no_trans,
+                a.no_trans,
                 tgl_terima,
                 concat((DATE_FORMAT(a.created_at,  '%d')), '-', left(DATE_FORMAT(a.created_at,  '%M'),3),'-',DATE_FORMAT(a.created_at,  '%Y')
                 ) tgl_terima_fix,
@@ -59,7 +59,7 @@ class ExportLaporanPenerimaanFGStokLokasiScanBPB implements FromView, WithEvents
             from fg_stok_bpb_lokasi_scan a
             left join fg_stok_bpb_scan b ON b.qr_code = a.qr_code
             left join master_sb_ws m on b.id_so_det = m.id_so_det
-            where tgl_terima >= '$this->from' and tgl_terima <= '$this->to'
+            where date(a.created_at) >= '$this->from' and date(a.created_at) <= '$this->to'
             order by a.id desc
         ");
 
@@ -86,7 +86,7 @@ class ExportLaporanPenerimaanFGStokLokasiScanBPB implements FromView, WithEvents
     {
 
         $event->sheet->styleCells(
-            'A4:I' . $event->getConcernable()->rowCount,
+            'A4:J' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [
