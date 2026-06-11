@@ -11,6 +11,7 @@
 @endsection
 
 @section('content')
+@include('retur_inmaterial._tab-create-ri')
 <form action="{{ route('store-retur-inmaterial-fabric') }}" method="post" id="store-inmaterial" onsubmit="submitForm(this, event)">
     @csrf
     <div class="card card-sb card-outline">
@@ -101,6 +102,16 @@
         <div class="row">
 
             <div class="col-md-12">
+            <div class="mb-1">
+                <div class="form-group">
+                <label><small>No PO</small></label>
+                <input type="text" class="form-control " id="txt_no_po" name="txt_no_po" value="" readonly>
+                </select>
+                </div>
+            </div>
+            </div>
+
+             <div class="col-md-12">
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>Jenis Retur</small></label>
@@ -394,6 +405,7 @@
                     if (res) {
                         // console.log(res[0].jml)
                         $('#txt_supp').val(res[0].supplier);
+                        $('#txt_no_po').val(res[0].no_po);
                         $('#txt_idsupp').val(res[0].id_supplier);
                     }
                 },

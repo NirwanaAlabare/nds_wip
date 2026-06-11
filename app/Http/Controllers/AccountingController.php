@@ -11,6 +11,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use \avadim\FastExcelLaravel\Excel as FastExcel;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use Carbon\Carbon;
+use App\Models\AccountingMemo;
 use DB;
 use QrCode;
 use PDF;
@@ -628,6 +629,138 @@ public function EditDataCeisa(Request $request)
     public function destroy($id)
     {
         //
+    }
+
+    /* =====================================================================
+     * MEMO PERMINTAAN PEMBAYARAN
+     * ===================================================================== */
+
+    public function memoIndex(Request $request)
+    {
+        if ($request->ajax()) {
+            $data = DB::connection('mysql_sb')->select("
+                SELECT id, nomor, kepada, perihal, kepada_detail, mata_uang, jumlah,
+                       tgl_pembayaran, status,
+                       CONCAT(created_by, ' (', DATE(created_at), ')') created_info
+                FROM accounting_memo
+                WHERE DATE(created_at) BETWEEN ? AND ?
+                ORDER BY id DESC
+            ", [$request->tgl_awal, $request->tgl_akhir]);
+            return DataTables::of($data)->toJson();
+        }
+        return view('accounting.memo-list', ['page' => 'accounting', 'subPage' => 'memo-list']);
+    }
+
+    public function memoCreate()
+    {
+        $nomor = $this->generateMemoNumber();
+        return view('accounting.create-memo', [
+            'nomor'   => $nomor,
+            'page'    => 'accounting',
+            'subPage' => 'memo-list',
+        ]);
+    }
+
+    public function memoStore(Request $request)
+    {
+        $request->validate([
+            'kepada'      => 'required',
+            'perihal'     => 'required',
+            'kepada_detail' => 'required',
+            'jumlah'      => 'required',
+        ]);
+
+        AccountingMemo::create([
+            'nomor'              => $this->generateMemoNumber(),
+            'kepada'             => $request->kepada,
+            'perihal'            => $request->perihal,
+            'kepada_detail'      => $request->kepada_detail,
+            'mata_uang'          => $request->mata_uang ?? 'IDR',
+            'jumlah'             => $request->jumlah,
+            'peruntukan'         => $request->peruntukan,
+            'tgl_pembayaran'     => $request->tgl_pembayaran ?: null,
+            'bank_rekening'      => $request->bank_rekening,
+            'nama_penerima'      => $request->nama_penerima,
+            'lampiran'           => $request->lampiran,
+            'diajukan_nama'      => $request->diajukan_nama,
+            'diajukan_jabatan'   => $request->diajukan_jabatan,
+            'disetujui_nama'     => $request->disetujui_nama,
+            'disetujui_jabatan'  => $request->disetujui_jabatan,
+            'mengetahui_nama'    => $request->mengetahui_nama,
+            'mengetahui_jabatan' => $request->mengetahui_jabatan,
+            'status'             => 'DRAFT',
+            'created_by'         => Auth::user()->name,
+        ]);
+
+        return ['status' => 200, 'message' => 'Memo berhasil disimpan', 'additional' => [], 'redirect' => route('accounting-memo')];
+    }
+
+    public function memoEdit($id)
+    {
+        $memo = AccountingMemo::findOrFail($id);
+        return view('accounting.edit-memo', [
+            'memo'    => $memo,
+            'page'    => 'accounting',
+            'subPage' => 'memo-list',
+        ]);
+    }
+
+    public function memoUpdate(Request $request, $id)
+    {
+        $request->validate([
+            'kepada'        => 'required',
+            'perihal'       => 'required',
+            'kepada_detail' => 'required',
+            'jumlah'        => 'required',
+        ]);
+
+        AccountingMemo::where('id', $id)->update([
+            'kepada'             => $request->kepada,
+            'perihal'            => $request->perihal,
+            'kepada_detail'      => $request->kepada_detail,
+            'mata_uang'          => $request->mata_uang ?? 'IDR',
+            'jumlah'             => $request->jumlah,
+            'peruntukan'         => $request->peruntukan,
+            'tgl_pembayaran'     => $request->tgl_pembayaran ?: null,
+            'bank_rekening'      => $request->bank_rekening,
+            'nama_penerima'      => $request->nama_penerima,
+            'lampiran'           => $request->lampiran,
+            'diajukan_nama'      => $request->diajukan_nama,
+            'diajukan_jabatan'   => $request->diajukan_jabatan,
+            'disetujui_nama'     => $request->disetujui_nama,
+            'disetujui_jabatan'  => $request->disetujui_jabatan,
+            'mengetahui_nama'    => $request->mengetahui_nama,
+            'mengetahui_jabatan' => $request->mengetahui_jabatan,
+            'updated_at'         => now(),
+        ]);
+
+        return ['status' => 200, 'message' => 'Memo berhasil diupdate', 'additional' => [], 'redirect' => route('accounting-memo')];
+    }
+
+    public function memoDelete($id)
+    {
+        AccountingMemo::where('id', $id)->delete();
+        return response()->json(['status' => 200, 'message' => 'Memo dihapus']);
+    }
+
+    public function memoPrintPdf($id)
+    {
+        $memo = AccountingMemo::findOrFail($id);
+        PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica']);
+        $pdf = PDF::loadView('accounting.pdf.print-memo', ['memo' => $memo])->setPaper('a4', 'portrait');
+        return $pdf->download('Memo-' . $memo->nomor . '.pdf');
+    }
+
+    private function generateMemoNumber(): string
+    {
+        $year  = date('Y');
+        $month = date('m');
+        $last  = DB::connection('mysql_sb')->selectOne(
+            "SELECT nomor FROM accounting_memo WHERE LEFT(nomor,7) = ? ORDER BY id DESC LIMIT 1",
+            ["PR-NAG/{$year}/{$month}/"]
+        );
+        $seq = $last ? (intval(substr($last->nomor, -3)) + 1) : 1;
+        return "PR-NAG/{$year}/{$month}/" . str_pad($seq, 3, '0', STR_PAD_LEFT);
     }
 
 }
