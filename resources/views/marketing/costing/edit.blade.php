@@ -122,7 +122,7 @@
                 </div>
                 <div class="col-md-3 form-group">
                     <label>Confirm Price</label>
-                    <input type="text" name="confirm_price" id="confirm_price" class="form-control input-decimal text-right" value="{{ isset($costing->confirm_price) ? number_format($costing->confirm_price, 6, '.', '') : '' }}">
+                    <input type="text" name="confirm_price" id="confirm_price" class="form-control input-decimal text-right" value="{{ isset($costing->confirm_price) ? number_format($costing->confirm_price, 7, '.', '') : '' }}">
                 </div>
                 <div class="col-md-3 form-group">
                     <label>Marketing Order</label>

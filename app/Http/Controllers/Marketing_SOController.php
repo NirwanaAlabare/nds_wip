@@ -613,14 +613,25 @@ class Marketing_SOController extends Controller
         $errors_size = [];
         $mysql_sb = DB::connection('mysql_sb');
 
-        // Tarik Master Data
-        $master_colors = $mysql_sb->table('master_colors_gmt')->pluck('id', 'name')->toArray();
-        $master_sizes  = $mysql_sb->table('master_size_new')->pluck('id', 'size')->toArray();
+        // Tarik Master Data dan bersihkan spasi & case-nya
+        $raw_master_colors = $mysql_sb->table('master_colors_gmt')->pluck('id', 'name')->toArray();
+        $master_colors = [];
+        foreach ($raw_master_colors as $k => $v) {
+            $master_colors[strtoupper(trim($k))] = $v;
+        }
+
+        $raw_master_sizes = $mysql_sb->table('master_size_new')->pluck('id', 'size')->toArray();
+        $master_sizes = [];
+        foreach ($raw_master_sizes as $k => $v) {
+            $master_sizes[strtoupper(trim($k))] = $v;
+        }
 
         // Tarik Data BOM (Warna & Size yang terdaftar) - Di-unique langsung dari query
         $bom_colors = $mysql_sb->table('bom_marketing_detail')
             ->where('id_bom_marketing', $id_bom)
             ->whereNotNull('id_color')
+            ->where('id_color', '!=', '0')
+            ->where('id_color', '!=', '')
             ->pluck('id_color')
             ->unique()
             ->toArray();
@@ -628,6 +639,8 @@ class Marketing_SOController extends Controller
         $bom_sizes = $mysql_sb->table('bom_marketing_detail')
             ->where('id_bom_marketing', $id_bom)
             ->whereNotNull('id_size')
+            ->where('id_size', '!=', '0')
+            ->where('id_size', '!=', '')
             ->pluck('id_size')
             ->unique()
             ->toArray();
@@ -657,35 +670,42 @@ class Marketing_SOController extends Controller
             // =======================================================
 
             // Validasi Warna
-            if (!isset($master_colors[$color_name])) {
+            $color_key = strtoupper($color_name);
+            if (!isset($master_colors[$color_key])) {
                 $errors_color[] = "Warna: <b>$color_name</b> tidak ada di Master.";
                 continue;
             }
-            $color_id = $master_colors[$color_name];
+            $color_id = $master_colors[$color_key];
 
             if (count($bom_colors) > 0 && !in_array($color_id, $bom_colors)) {
-                $errors_color[] = "Warna: <b>$color_name</b> tidak terdaftar di BOM.";
+                $errors_color[] = "Warna: <b>$color_name</b> tidak terdaftar di Material BOM Detail.";
                 continue;
             }
 
             // Looping Qty per Size
             for ($col_index = 7; $col_index < count($row); $col_index++) {
-                $qty = $row[$col_index];
+                // Bersihkan qty dari spasi biasa dan karakter spasi tersembunyi (NBSP)
+                $qty_raw = $row[$col_index];
+                if ($qty_raw === null || $qty_raw === '') continue;
 
-                if (empty($qty) || !is_numeric($qty) || $qty <= 0) continue;
+                $qty = trim($qty_raw, " \t\n\r\0\x0B\xC2\xA0");
+                $qty = preg_replace('/\s+/u', '', $qty); // Hapus semua whitespace tersisa (unicode)
+
+                if ($qty === '' || !is_numeric($qty) || $qty <= 0) continue;
 
                 $size_name = trim($headers[$col_index]);
                 if (empty($size_name)) continue;
 
                 // Validasi Size
-                if (!isset($master_sizes[$size_name])) {
+                $size_key = strtoupper($size_name);
+                if (!isset($master_sizes[$size_key])) {
                     $errors_size[] = "Size: <b>$size_name</b> tidak ada di Master.";
                     continue;
                 }
-                $size_id = $master_sizes[$size_name];
+                $size_id = $master_sizes[$size_key];
 
                 if (count($bom_sizes) > 0 && !in_array($size_id, $bom_sizes)) {
-                    $errors_size[] = "Size: <b>$size_name</b> (pada warna $color_name) tidak terdaftar di BOM.";
+                    $errors_size[] = "Size: <b>$size_name</b> (pada warna $color_name) tidak terdaftar di Material BOM Detail.";
                     continue;
                 }
 
@@ -717,7 +737,18 @@ class Marketing_SOController extends Controller
             }
         }
 
-        return response()->json(['status' => 200, 'message' => 'Excel berhasil diproses.']);
+        return response()->json([
+            'status' => 200, 
+            'message' => 'Excel berhasil diproses.',
+            'debug' => [
+                'total_rows_excel' => count($data),
+                'total_inserted' => count($temp_data),
+                'bom_colors_count' => count($bom_colors),
+                'bom_sizes_count' => count($bom_sizes),
+                'headers' => $headers ?? [],
+                'row_1_data' => $data[1] ?? []
+            ]
+        ]);
     }
 
 

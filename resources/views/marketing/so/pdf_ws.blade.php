@@ -95,7 +95,7 @@
                         <td class="label-left">STYLE</td><td class="colon">:</td>
                         <td class="value">{{ $header->style ?? '-' }}</td>
                         <td class="label">WORKSHEET</td><td class="colon">:</td>
-                        <td class="value">{{ $header->kpno ?? '-' }}</td>
+                        <td class="value">{{ $header->ws ?? '-' }}</td>
                     </tr>
                     <tr>
                         <td class="label-left">EX-FTY DATE</td><td class="colon">:</td>
@@ -108,10 +108,6 @@
                         <td class="value">{{ $header->market ?? '-' }}</td>
                         <td class="label">QTY</td><td class="colon">:</td>
                         <td class="value">{{ number_format($header->qty ?? 0, 0, ',', '.') }} PCS</td>
-                    </tr>
-                    <tr>
-                        <td class="label-left">WS</td><td class="colon">:</td>
-                        <td class="value">{{ $header->ws ?? '-' }}</td>
                     </tr>
                 </table>
             </td>
