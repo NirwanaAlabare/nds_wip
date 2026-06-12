@@ -429,6 +429,7 @@ Route::middleware('auth')->group(function () {
         // RO Barcode temp
         Route::get('/create-ro-barcode', 'createRoBarcode')->name('create-ro-barcode');
         Route::get('/get-grouped-ro-barcode-temp', 'getGroupedRoBarcodeTemp')->name('get-grouped-ro-barcode-temp');
+        Route::get('/get-ro-barcode-temp-summary', 'getRoBarcodeTempSummary')->name('get-ro-barcode-temp-summary');
         Route::get('/get-detail-group-ro-barcode-temp', 'getDetailGroupRoBarcodeTemp')->name('get-detail-group-ro-barcode-temp');
         Route::post('/insert-ro-barcode-temp', 'insertRoBarcodeTemp')->name('insert-ro-barcode-temp');
         Route::post('/update-ro-barcode-qty', 'updateRoBarcodeQty')->name('update-ro-barcode-qty');
@@ -439,6 +440,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/delete-ro-barcode-temp-group', 'deleteGroupRoBarcodeTemp')->name('delete-ro-barcode-temp-group');
         Route::post('/clear-ro-barcode-temp', 'clearRoBarcodeTemp')->name('clear-ro-barcode-temp');
         Route::post('/store-ro-barcode', 'storeRoBarcode')->name('store-ro-barcode');
+        Route::post('/cancel-ro', 'cancelReturMaterial')->name('cancel-ro-barcode');
+        Route::get('/edit-ro/{id?}', 'editRoBarcode')->name('edit-ro-barcode');
+        Route::post('/update-ro-barcode', 'updateRoBarcode')->name('update-ro-barcode');
     });
 
     //Retur Penerimaan
