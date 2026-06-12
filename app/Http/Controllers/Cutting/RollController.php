@@ -421,7 +421,7 @@ class RollController extends Controller
                     0 est_amparan,
                     0 lembar_gelaran,
                     0 total_ratio,
-                    0 qty_cut,
+                    form_cut_piece_detail.qty_pemakaian / (CASE WHEN form_cut_piece.cons_ws < 1 THEN 1 ELSE form_cut_piece.cons_ws END) qty_cut,
                     '00:00' average_time,
                     '0' sisa_gelaran,
                     0 sambungan,
