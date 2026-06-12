@@ -1196,8 +1196,7 @@ class CuttingToolsController extends Controller
                         LEFT JOIN act_costing ON act_costing.id = so.id_cost
                         LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
                     WHERE
-                        so_det.id = '".$saldoTmp->id_so_det."' and
-                        (so_det.cancel != 'Y' OR so_det.cancel IS NULL)
+                        so_det.id = '".$saldoTmp->id_so_det."'
                     LIMIT 1
                 ");
 

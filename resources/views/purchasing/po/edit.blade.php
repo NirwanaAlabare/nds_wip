@@ -63,9 +63,9 @@
                     <label><small class="fw-bold">Tipe Commercial</small></label>
                     <select name="tipe_commercial" id="tipe_commercial" class="form-control select2bs4" {{ $isView ? 'disabled' : '' }}>
                         <option value="">--- Pilih Tipe Commersial PO ---</option>
-                        <option value="REGULAR" {{ $po_header->tipe_commercial == 'REGULAR' ? 'selected' : '' }}>REGULAR</option>
-                        <option value="FOC" {{ $po_header->tipe_commercial == 'FOC' ? 'selected' : '' }}>FOC</option>
-                        <option value="BUYER" {{ $po_header->tipe_commercial == 'BUYER' ? 'selected' : '' }}>BUYER</option>
+                        <option value="REGULAR" {{ ($po_header->tipe_commercial ?? $tipe_commercial ?? '') == 'REGULAR' ? 'selected' : '' }}>REGULAR</option>
+                        <option value="FOC" {{ ($po_header->tipe_commercial ?? $tipe_commercial ?? '') == 'FOC' ? 'selected' : '' }}>FOC</option>
+                        <option value="BUYER" {{ ($po_header->tipe_commercial ?? $tipe_commercial ?? '') == 'BUYER' ? 'selected' : '' }}>BUYER</option>
                     </select>
                 </div>
             </div>

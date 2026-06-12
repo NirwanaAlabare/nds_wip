@@ -1766,6 +1766,7 @@ class DcReportController extends Controller
                         ),
 
                         sii as (
+                                -- SECONDARY DALAM ( < May 01 2026 )
                                 SELECT
                                         sii.id_qr_stocker,
                                         pd.id as part_detail_id,
@@ -1774,7 +1775,7 @@ class DcReportController extends Controller
                                         null qty_in_dc,
                                         null sec_inhouse_in_main,
                                         null sec_inhouse_in,
-                                        (CASE WHEN sii.tgl_trans < '2026-05-01' THEN sii.qty_replace ELSE 0 END) sec_inhouse_rep_main,
+                                        (CASE WHEN tgl_trans < '2026-05-01' THEN sii.qty_replace ELSE null END) sec_inhouse_rep_main,
                                         null sec_inhouse_rep,
                                         sii.qty_in sec_inhouse_out_main,
                                         null sec_inhouse_out,
@@ -1807,7 +1808,7 @@ class DcReportController extends Controller
                                         null sec_inhouse_in_main,
                                         null sec_inhouse_in,
                                         null sec_inhouse_rep_main,
-                                        (CASE WHEN sii.tgl_trans < '2026-05-01' THEN sii.qty_replace ELSE 0 END) sec_inhouse_rep,
+                                        (CASE WHEN tgl_trans < '2026-05-01' THEN sii.qty_replace ELSE null END) sec_inhouse_rep,
                                         null sec_inhouse_out_main,
                                         sii.qty_in sec_inhouse_out,
                                         null sec_in_in_main,
@@ -1828,6 +1829,8 @@ class DcReportController extends Controller
                                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                         (pd.part_status != 'main' OR pd.part_status IS NULL)
                                 GROUP BY s.id, sii.urutan
+
+                                -- SECONDARY IN DALAM ( >= May 01 2026 )
                                 UNION ALL
                                         SELECT
                                         si.id_qr_stocker,
@@ -1837,14 +1840,14 @@ class DcReportController extends Controller
                                         null qty_in_dc,
                                         null sec_inhouse_in_main,
                                         null sec_inhouse_in,
-                                        null sec_inhouse_rep_main,
+                                        (CASE WHEN si.tgl_trans >= '2026-05-01' THEN si.qty_replace ELSE null END) sec_inhouse_rep_main,
                                         null sec_inhouse_rep,
                                         null sec_inhouse_out_main,
                                         null sec_inhouse_out,
                                         null sec_in_in_main,
                                         null sec_in_in,
                                         null sec_in_rep_main,
-                                        (CASE WHEN si.tgl_trans < '2026-05-01' THEN 0 ELSE si.qty_replace END) sec_in_rep,
+                                        null sec_in_rep,
                                         null sec_in_out_main,
                                         null sec_in_out,
                                         null loading_qty
@@ -1864,6 +1867,44 @@ class DcReportController extends Controller
                                         (s.cancel IS NULL OR s.cancel != 'y') and
                                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                         pd.part_status= 'main' AND
+                                        COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY DALAM'
+                                GROUP BY s.id, si.urutan
+                                UNION ALL
+                                SELECT
+                                        si.id_qr_stocker,
+                                        pd.id as part_detail_id,
+                                        s.so_det_id,
+                                        null qty_in_dc_main,
+                                        null qty_in_dc,
+                                        null sec_inhouse_in_main,
+                                        null sec_inhouse_in,
+                                        null sec_inhouse_rep_main,
+                                        (CASE WHEN si.tgl_trans >= '2026-05-01' THEN si.qty_replace ELSE null END) sec_inhouse_rep,
+                                        null sec_inhouse_out_main,
+                                        null sec_inhouse_out,
+                                        null sec_in_in_main,
+                                        null sec_in_in,
+                                        null sec_in_rep_main,
+                                        null sec_in_rep,
+                                        null sec_in_out_main,
+                                        null sec_in_out,
+                                        null loading_qty
+                                FROM
+                                        secondary_in_input si
+                                        left join stocker_input s on s.id_qr_stocker = si.id_qr_stocker
+                                        left join dc_in_input dc on dc.id_qr_stocker = s.id_qr_stocker
+                                        left join part_detail pd on pd.id = s.part_detail_id
+                                        left join master_secondary ms on ms.id = pd.master_secondary_id
+                                        left join part_detail_secondary pds on pds.part_detail_id = pd.id and si.urutan = pds.urutan
+                                        left join master_secondary mms on mms.id = pds.master_secondary_id
+                                        left join secondary_inhouse_input sii on sii.id_qr_stocker = si.id_qr_stocker
+                                WHERE
+                                        si.tgl_trans > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
+                                        si.tgl_trans < '".$dateFrom."' AND
+                                        s.id is not null AND
+                                        (s.cancel IS NULL OR s.cancel != 'y') and
+                                        (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                        (pd.part_status != 'main' OR pd.part_status IS NULL) AND
                                         COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY DALAM'
                                 GROUP BY s.id, si.urutan
                         ),
@@ -2405,7 +2446,7 @@ class DcReportController extends Controller
                                         null qty_in_dc,
                                         null sec_inhouse_in_main,
                                         null sec_inhouse_in,
-                                        (CASE WHEN sii.tgl_trans < '2026-05-01' THEN sii.qty_replace ELSE 0 END) sec_inhouse_rep_main,
+                                        (CASE WHEN sii.tgl_trans < '2026-05-01' THEN sii.qty_replace ELSE null END) sec_inhouse_rep_main,
                                         null sec_inhouse_rep,
                                         sii.qty_in sec_inhouse_out_main,
                                         null sec_inhouse_out,
@@ -2437,7 +2478,7 @@ class DcReportController extends Controller
                                         null sec_inhouse_in_main,
                                         null sec_inhouse_in,
                                         null sec_inhouse_rep_main,
-                                        (CASE WHEN sii.tgl_trans < '2026-05-01' THEN sii.qty_replace ELSE 0 END) sec_inhouse_rep,
+                                        (CASE WHEN sii.tgl_trans < '2026-05-01' THEN sii.qty_replace ELSE null END) sec_inhouse_rep,
                                         null sec_inhouse_out_main,
                                         sii.qty_in sec_inhouse_out,
                                         null sec_in_in_main,
@@ -2453,6 +2494,7 @@ class DcReportController extends Controller
                                         left join part_detail pd on pd.id = s.part_detail_id
                                 WHERE
                                         sii.tgl_trans between '".$dateFrom."' AND '$dateTo' AND
+                                        s.id is not null AND
                                         (s.cancel IS NULL OR s.cancel != 'y') and
                                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                         (pd.part_status != 'main' OR pd.part_status IS NULL)
@@ -2466,14 +2508,51 @@ class DcReportController extends Controller
                                         null qty_in_dc,
                                         null sec_inhouse_in_main,
                                         null sec_inhouse_in,
-                                        null sec_inhouse_rep_main,
+                                        (CASE WHEN si.tgl_trans >= '2026-05-01' THEN si.qty_replace ELSE null END) sec_inhouse_rep_main,
                                         null sec_inhouse_rep,
                                         null sec_inhouse_out_main,
                                         null sec_inhouse_out,
                                         null sec_in_in_main,
                                         null sec_in_in,
                                         null sec_in_rep_main,
-                                        (CASE WHEN si.tgl_trans < '2026-05-01' THEN 0 ELSE si.qty_replace END) sec_in_rep,
+                                        null sec_in_rep,
+                                        null sec_in_out_main,
+                                        null sec_in_out,
+                                        null loading_qty
+                                FROM
+                                        secondary_in_input si
+                                        left join stocker_input s on s.id_qr_stocker = si.id_qr_stocker
+                                        left join dc_in_input dc on dc.id_qr_stocker = s.id_qr_stocker
+                                        left join part_detail pd on pd.id = s.part_detail_id
+                                        left join master_secondary ms on ms.id = pd.master_secondary_id
+                                        left join part_detail_secondary pds on pds.part_detail_id = pd.id and si.urutan = pds.urutan
+                                        left join master_secondary mms on mms.id = pds.master_secondary_id
+                                        left join secondary_inhouse_input sii on sii.id_qr_stocker = si.id_qr_stocker
+                                WHERE
+                                        si.tgl_trans between '".$dateFrom."' AND '$dateTo' AND
+                                        s.id is not null AND
+                                        (s.cancel IS NULL OR s.cancel != 'y') and
+                                        (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                        pd.part_status= 'main' AND
+                                        COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY DALAM'
+                                GROUP BY s.id, si.urutan
+                                UNION ALL
+                                SELECT
+                                        si.id_qr_stocker,
+                                        pd.id as part_detail_id,
+                                        s.so_det_id,
+                                        null qty_in_dc_main,
+                                        null qty_in_dc,
+                                        null sec_inhouse_in_main,
+                                        null sec_inhouse_in,
+                                        null sec_inhouse_rep_main,
+                                        (CASE WHEN si.tgl_trans >= '2026-05-01' THEN si.qty_replace ELSE null END) sec_inhouse_rep,
+                                        null sec_inhouse_out_main,
+                                        null sec_inhouse_out,
+                                        null sec_in_in_main,
+                                        null sec_in_in,
+                                        null sec_in_rep_main,
+                                        null sec_in_rep,
                                         null sec_in_out_main,
                                         null sec_in_out,
                                         null loading_qty
