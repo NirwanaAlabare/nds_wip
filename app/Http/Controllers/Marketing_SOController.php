@@ -739,7 +739,9 @@ class Marketing_SOController extends Controller
                 'total_rows_excel' => count($data),
                 'total_inserted' => count($temp_data),
                 'bom_colors_count' => count($bom_colors),
-                'bom_sizes_count' => count($bom_sizes)
+                'bom_sizes_count' => count($bom_sizes),
+                'headers' => $headers ?? [],
+                'row_1_data' => $data[1] ?? []
             ]
         ]);
     }
