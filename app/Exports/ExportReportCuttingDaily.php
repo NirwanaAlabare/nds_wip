@@ -154,6 +154,7 @@ class ExportReportCuttingDaily implements FromView, WithEvents, ShouldAutoSize /
                     LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                 WHERE
+                    form_cut_piece_detail_size.qty > 0 and
                     DATE(form_cut_piece.waktu_selesai) between '".$this->dateFrom."' and '".$this->dateTo."' and
                     form_cut_piece_detail.status = 'complete' and form_cut_piece_detail.id not in (
                         7207
@@ -270,7 +271,7 @@ class ExportReportCuttingDaily implements FromView, WithEvents, ShouldAutoSize /
                     style,
                     color,
                     panel,
-                    id_so_det
+                    no_form
                 ORDER BY
                     tanggal desc,
                     meja,
