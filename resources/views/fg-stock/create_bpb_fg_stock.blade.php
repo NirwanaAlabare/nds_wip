@@ -106,7 +106,7 @@
                     <div class="col-md-3">
                         <div class="form-group">
                             <label><small><b>Sumber Penerimaan</b></small></label>
-                            <select class="form-control select2bs4" id="cbosumber" name="cbosumber" style="width: 100%;">
+                            <select class="form-control select2bs4" id="cbosumber" name="cbosumber" style="width: 100%;" onchange="getbuyer()">
                                 <option selected="selected" value="" disabled="true">Pilih Sumber Penerimaan</option>
                                 @foreach ($data_terima as $dataterima)
                                     <option value="{{ $dataterima->isi }}">
@@ -124,12 +124,6 @@
                                 <label><small><b>Buyer</b></small></label>
                                 <select class="form-control select2bs4 form-control-sm" id="cbobuyer" name="cbobuyer"
                                     style="width: 100%;" onchange='getno_ws();'>
-                                    <option selected="selected" value="" disabled="true">Pilih Buyer</option>
-                                    @foreach ($data_buyer as $databuyer)
-                                        <option value="{{ $databuyer->isi }}">
-                                            {{ $databuyer->tampil }}
-                                        </option>
-                                    @endforeach
                                 </select>
                             </div>
                         </div>
@@ -316,6 +310,19 @@
             $('input[type=number]').on('wheel', function(e) {
                 return false;
             });
+
+            $('#cbobuyer').on('select2:opening', function(e) {
+                if ($('#cbosumber').val() == '' || $('#cbosumber').val() == null) {
+
+                    iziToast.warning({
+                        message: 'Sumber penerimaan harus dipilih terlebih dahulu',
+                        position: 'topCenter'
+                    });
+
+                    e.preventDefault();
+                    return false;
+                }
+            });
         })
 
         function cleardet() {
@@ -326,13 +333,40 @@
 
         }
 
+        function getbuyer() {
+            let cbosumber = $('#cbosumber').val();
+
+            let html = $.ajax({
+                type: "GET",
+                url: '{{ route('getbuyer') }}',
+                data: {
+                    cbosumber: cbosumber
+                },
+                async: false
+            }).responseText;
+
+            if (html != "") {
+
+                $("#cbobuyer").html(html);
+
+                $("#cbows").html('');
+                $("#cbocolor").html('');
+                $("#cbosize").html('');
+                $("#cboproduct").html('');
+
+                $('#cbobuyer').val('').trigger('change');
+            }
+        }
+
         function getno_ws() {
             let cbobuyer = document.form_h.cbobuyer.value;
+            let cbosumber = $('#cbosumber').val();
             let html = $.ajax({
                 type: "GET",
                 url: '{{ route('getno_ws') }}',
                 data: {
-                    cbobuyer: cbobuyer
+                    cbobuyer: cbobuyer,
+                    cbosumber: cbosumber
                 },
                 async: false
             }).responseText;
@@ -348,11 +382,13 @@
 
         function getcolor() {
             let cbows = document.form_h.cbows.value;
+            let cbosumber = $('#cbosumber').val();
             let html = $.ajax({
                 type: "GET",
                 url: '{{ route('getcolor') }}',
                 data: {
-                    cbows: cbows
+                    cbows: cbows,
+                    cbosumber: cbosumber
                 },
                 async: false
             }).responseText;
@@ -368,12 +404,14 @@
         function getsize() {
             let cbows = document.form_h.cbows.value;
             let cbocolor = document.form_h.cbocolor.value;
+            let cbosumber = $('#cbosumber').val();
             let html = $.ajax({
                 type: "GET",
                 url: '{{ route('getsize') }}',
                 data: {
                     cbows: cbows,
-                    cbocolor: cbocolor
+                    cbocolor: cbocolor,
+                    cbosumber: cbosumber
                 },
                 async: false
             }).responseText;
@@ -391,6 +429,7 @@
             let cbows = document.form_h.cbows.value;
             let cbocolor = document.form_h.cbocolor.value;
             let cbosize = document.form_h.cbosize.value;
+            let cbosumber = $('#cbosumber').val();
             let html = $.ajax({
                 type: "GET",
                 url: '{{ route('getproduct') }}',
@@ -398,7 +437,8 @@
                     cbobuyer: cbobuyer,
                     cbows: cbows,
                     cbocolor: cbocolor,
-                    cbosize: cbosize
+                    cbosize: cbosize,
+                    cbosumber: cbosumber
                 },
                 async: false
             }).responseText;
