@@ -96,7 +96,7 @@ class Marketing_BomController extends Controller
         $master_units = $mysql_sb->table('masterpilihan')->where('kode_pilihan', 'Satuan')->get();
         $master_colors = $mysql_sb->table('master_colors_gmt')->orderBy('name', 'ASC')->get();
         $master_sizes = $mysql_sb->table('master_size_new')->orderBy('urutan', 'ASC')->get();
-        $master_currency = $mysql_sb->table('masterpilihan')->where('kode_pilihan', 'curr')->get();
+        $master_currency = $mysql_sb->table('masterpilihan')->where('kode_pilihan', 'Curr')->get();
 
         $costings = $mysql_sb->table('act_costing_new')->select('id', 'no_costing', 'style')->orderBy('id', 'desc')->get();
 
@@ -1149,7 +1149,7 @@ class Marketing_BomController extends Controller
                 'c.name as color_name',
                 's.size as size_name',
                 's.urutan as size_urutan',
-                'u.nama_pilihan as unit_name',
+                'd.unit as unit_name',
                 'd.rule_bom',
                 'a.nama_group',
                 $mysql_sb->raw("(CASE WHEN d.category = 'Manufacturing' THEN CONCAT(i.itemdesc, ' ', IFNULL(i.color, ''), ' ', IFNULL(i.size, ''), ' ', IFNULL(i.add_info, '')) ELSE CONCAT(i.id_item, ' ', i.itemdesc) END) as item_name"),
