@@ -639,6 +639,7 @@ class ReturInMaterialController extends Controller
                 "no_dok" => $bpbno_int,
                 "tgl_dok" => $tgl_ri,
                 "no_ws" => $request["no_ws"][$i],
+                "no_po" => $request["no_po"][$i] ?? '',
                 "id_jo" => $request["id_jo"][$i],
                 "id_item" => $request["id_item"][$i],
                 "kode_item" => $whs_goods_code,

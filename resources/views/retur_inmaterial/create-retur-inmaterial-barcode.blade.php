@@ -77,14 +77,7 @@
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Tipe BC <span class="text-danger">*</span></small></label>
-                                <select class="form-control select2bs4" id="txt_type_bc" name="txt_type_bc" style="width: 100%;" onchange="get_tujuan(this.value)">
-                                    <option selected="selected" value="">Pilih Tipe</option>
-                                    @foreach ($mtypebc as $bc)
-                                    <option value="{{ $bc->nama_pilihan }}">
-                                        {{ $bc->nama_pilihan }}
-                                    </option>
-                                    @endforeach
-                                </select>
+                                <input type="text" class="form-control" id="txt_type_bc" name="txt_type_bc" value="INHOUSE" readonly>
 
                                 <select class="form-control hidden" id="txt_type_pch" name="txt_type_pch" style="width: 100%;">
                                     <option selected="selected" value="Pengembalian dari Produksi">Pengembalian dari Produksi</option>
@@ -241,7 +234,7 @@
                                         placeholder="Scan atau tempel barcode di sini&#10;Pisahkan dengan Enter / spasi / koma..."
                                         style="font-family:monospace;font-size:0.9rem;resize:none;border-color:#90c4e8;background:#fff;"></textarea>
                                 </div>
-                                <button type="button" class="btn btn-info px-4 py-2" onclick="sendBarcodeList()"
+                                <button type="button" class="btn btn-info px-4 py-2" onclick="sendBarcodeList(this)"
                                     style="font-size:0.9rem;white-space:nowrap;border-radius:6px;">
                                     <i class="fa fa-paper-plane" style="margin-right:5px;"></i>Send
                                 </button>
@@ -261,7 +254,7 @@
                                         style="border-color:#7dba84;background:#fff;">
                                 </div>
                                 <div class="d-flex gap-2" style="padding-bottom:1px;">
-                                    <button type="button" class="btn btn-success px-4 py-2" onclick="uploadBarcodeExcel()"
+                                    <button type="button" class="btn btn-success px-4 py-2" onclick="uploadBarcodeExcel(this)"
                                         style="font-size:0.9rem;border-radius:6px;">
                                         <i class="fa fa-upload" style="margin-right:5px;"></i>Upload
                                     </button>
@@ -301,6 +294,19 @@
                     </thead>
                     <tbody>
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <th class="text-right" colspan="4" style="font-size: 0.6rem;">Total</th>
+                            <th class="text-center" style="font-size: 0.6rem;"></th>
+                            <th class="text-right" style="font-size: 0.6rem;"></th>
+                            <th class="text-right" style="font-size: 0.6rem;"></th>
+                            <th class="text-right" style="font-size: 0.6rem;"></th>
+                            <th style="font-size: 0.6rem;"></th>
+                            <th style="font-size: 0.6rem;"></th>
+                            <th style="display: none;"></th>
+                            <th style="font-size: 0.6rem;"></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -391,6 +397,8 @@
         document.getElementById('store-inmaterial').reset();
     }
 
+    get_tujuan('INHOUSE');
+
     function get_tujuan(val) {
        return $.ajax({
         headers: {
@@ -417,6 +425,19 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
+    }
+
+    function setBtnLoading($btn, loadingText) {
+        if (!$btn || !$btn.length) return;
+        $btn.data('original-html', $btn.html());
+        $btn.prop('disabled', true);
+        $btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ' + loadingText);
+    }
+
+    function resetBtnLoading($btn) {
+        if (!$btn || !$btn.length) return;
+        $btn.prop('disabled', false);
+        $btn.html($btn.data('original-html'));
     }
 
     function fillSupplierFields(id_supplier, nama_supplier, no_invoice) {
@@ -500,6 +521,7 @@
                     + '<input type="hidden" name="id_bppb[]" value="' + escHtml(row.id_bppb) + '" readonly />'
                     + '<input type="hidden" name="no_bppb[]" value="' + escHtml(row.no_bppb) + '" readonly />'
                     + '<input type="hidden" name="no_ws[]" value="' + escHtml(row.no_ws) + '" readonly />'
+                    + '<input type="hidden" name="no_po[]" value="' + escHtml(row.pono) + '" readonly />'
             },
             {
                 targets: [11],
@@ -514,6 +536,24 @@
         createdRow: function (row, data) {
             let all_filled = parseInt(data.jml_barcode || 0) > 0 && parseInt(data.jml_lok || 0) >= parseInt(data.jml_barcode || 0);
             $(row).css('background-color', all_filled ? '#d4edda' : '#f8d7da');
+        },
+        footerCallback: function (row, data, start, end, display) {
+            let api = this.api();
+
+            let sumColumn = function (col) {
+                return api.column(col, { search: 'applied' }).data().reduce(function (a, b) {
+                    return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+                }, 0);
+            };
+
+            let fmt = function (n) {
+                return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            };
+
+            $(api.column(4).footer()).html(sumColumn(4));
+            $(api.column(5).footer()).html(fmt(sumColumn(5)));
+            $(api.column(6).footer()).html(fmt(sumColumn(6)));
+            $(api.column(7).footer()).html(fmt(sumColumn(7)));
         }
     });
 
@@ -537,12 +577,15 @@
         $('#jumlah_qty').val(jml_qty);
     }
 
-    function sendBarcodeList() {
+    function sendBarcodeList(btn) {
         let input = $('#bulk_barcode_input_main').val();
         if (!input) return;
 
         let barcodes = [...new Set(input.split(/[\s,;]+/).map(b => b.trim()).filter(b => b !== ''))];
         if (barcodes.length === 0) return;
+
+        let $btn = $(btn);
+        setBtnLoading($btn, 'Mengirim...');
 
         return $.ajax({
             headers: {
@@ -601,6 +644,9 @@
                     message: 'Gagal menyimpan barcode.',
                     position: 'topCenter'
                 });
+            },
+            complete: function () {
+                resetBtnLoading($btn);
             }
         });
     }
@@ -717,7 +763,7 @@
         });
     }
 
-    function uploadBarcodeExcel() {
+    function uploadBarcodeExcel(btn) {
         let fileInput = document.getElementById('excel_barcode_file');
 
         if (!fileInput.files || fileInput.files.length === 0) {
@@ -731,6 +777,9 @@
 
         let formData = new FormData();
         formData.append('file', fileInput.files[0]);
+
+        let $btn = $(btn);
+        setBtnLoading($btn, 'Mengupload...');
 
         return $.ajax({
             headers: {
@@ -791,6 +840,9 @@
                     message: (res && res.message) ? res.message : 'Gagal mengupload file.',
                     position: 'topCenter'
                 });
+            },
+            complete: function () {
+                resetBtnLoading($btn);
             }
         });
     }
@@ -1033,13 +1085,6 @@
 
     function validateAndSubmitRiForm(e, evt) {
         evt.preventDefault();
-
-        if (!$('#txt_type_bc').val()) {
-            Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Tipe BC wajib dipilih sebelum menyimpan.' });
-            $('#txt_type_bc').next('.select2-container').find('.select2-selection').addClass('border border-danger');
-            return;
-        }
-        $('#txt_type_bc').next('.select2-container').find('.select2-selection').removeClass('border border-danger');
 
         let dtData = datatable.rows().data().toArray();
         if (dtData.length === 0) {

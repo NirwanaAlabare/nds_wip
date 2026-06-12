@@ -9,13 +9,16 @@
 @endsection
 
 @section('content')
-<form action="{{ route('store-ro-barcode') }}" method="post" id="store-outmaterial" onsubmit="validateAndSubmitRoForm(this, event)">
+<form action="{{ isset($edit_data) ? route('update-ro-barcode') : route('store-ro-barcode') }}" method="post" id="store-outmaterial" onsubmit="validateAndSubmitRoForm(this, event)">
     @csrf
+    @if(isset($edit_data))
+    <input type="hidden" name="edit_id" value="{{ $edit_data->id }}">
+    @endif
 
     {{-- ─── Header ─────────────────────────────────────────────────────────── --}}
     <div class="card card-sb card-outline">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">Data Header</h5>
+            <h5 class="card-title fw-bold mb-0">Data Header{{ isset($edit_data) ? ' - Edit ' . $edit_data->no_bppb : '' }}</h5>
             <div class="card-tools">
                 <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
             </div>
@@ -40,6 +43,7 @@
                 <div class="form-group">
                 <label><small>No PO</small></label>
                 <input type="text" class="form-control " id="txt_nopo" name="txt_nopo" value="" readonly>
+                <small class="form-text text-muted">Setiap No PO akan dibuatkan No RO terpisah saat disimpan.</small>
                 </div>
             </div>
             </div>
@@ -71,9 +75,9 @@
                 <div class="form-group">
                 <label><small>Jenis Defect</small></label>
                 <select class="form-control select2bs4" id="txt_jns_def" name="txt_jns_def" style="width: 100%;">
-                    <option selected="selected" value="">Pilih Defect</option>
+                    <option value="">Pilih Defect</option>
                         @foreach ($def_type as $def)
-                    <option value="{{ $def->nama_defect }}">
+                    <option value="{{ $def->nama_defect }}" {{ (isset($edit_data) && $edit_data->jns_defect == $def->nama_defect) ? 'selected' : '' }}>
                                 {{ $def->nama_defect }}
                     </option>
                         @endforeach
@@ -87,9 +91,9 @@
                 <div class="form-group">
                 <label><small>Jenis Pengeluaran</small></label>
                 <select class="form-control select2bs4" id="txt_jns_klr" name="txt_jns_klr" style="width: 100%;">
-                    <option selected="selected" value="">Pilih Pengeluaran</option>
+                    <option value="">Pilih Pengeluaran</option>
                         @foreach ($jns_klr as $jnsklr)
-                    <option value="{{ $jnsklr->isi }}">
+                    <option value="{{ $jnsklr->isi }}" {{ (isset($edit_data) && $edit_data->jenis_pengeluaran == $jnsklr->isi) ? 'selected' : '' }}>
                                 {{ $jnsklr->tampil }}
                     </option>
                         @endforeach
@@ -109,7 +113,7 @@
                 <div class="form-group">
                 <label><small>Tgl RO</small></label>
                 <input type="date" class="form-control form-control" id="txt_tgl_ro" name="txt_tgl_ro"
-                        value="{{ date('Y-m-d') }}">
+                        value="{{ isset($edit_data) ? \Carbon\Carbon::parse($edit_data->tgl_bppb)->format('Y-m-d') : date('Y-m-d') }}">
                 </div>
             </div>
             </div>
@@ -122,9 +126,9 @@
                 <div class="form-group">
                 <label><small>Tipe BC</small></label>
                 <select class="form-control select2bs4" id="txt_type_bc" name="txt_type_bc" style="width: 100%;" onchange="get_tujuan(this.value)">
-                    <option selected="selected" value="">Pilih Tipe</option>
+                    <option value="">Pilih Tipe</option>
                         @foreach ($mtypebc as $bc)
-                    <option value="{{ $bc->nama_pilihan }}">
+                    <option value="{{ $bc->nama_pilihan }}" {{ (isset($edit_data) && $edit_data->dok_bc == $bc->nama_pilihan) ? 'selected' : '' }}>
                                 {{ $bc->nama_pilihan }}
                     </option>
                         @endforeach
@@ -148,9 +152,9 @@
                 <div class="form-group">
                 <label><small>Jenis Return</small></label>
                 <select class="form-control select2bs4" id="txt_stat_rtn" name="txt_stat_rtn" style="width: 100%;">
-                    <option selected="selected" value="">Pilih Status Retur</option>
+                    <option value="">Pilih Status Retur</option>
                         @foreach ($status_replac as $replac)
-                    <option value="{{ $replac->nama_pilihan }}">
+                    <option value="{{ $replac->nama_pilihan }}" {{ (isset($edit_data) && $edit_data->status_return == $replac->nama_pilihan) ? 'selected' : '' }}>
                                 {{ $replac->nama_pilihan }}
                     </option>
                         @endforeach
@@ -214,14 +218,8 @@
     <div class="mb-1">
         <div class="form-group">
             <label><small>Dikirim Ke</small></label>
-            <select class="form-control select2bs4" id="txt_dikirim" name="txt_dikirim">
-                <option value="">-- Pilih Supplier --</option>
-                @foreach($msupplier as $supp)
-                    <option value="{{ $supp->id_supplier }}">{{ $supp->Supplier }}</option>
-                @endforeach
-            </select>
-            <input type="hidden" id="txt_idsupp" name="txt_idsupp" readonly>
-            <input type="hidden" id="txt_nows" name="txt_nows" readonly>
+            <input type="text" class="form-control" id="txt_dikirim" name="txt_dikirim" value="" placeholder="Otomatis dari barcode" readonly>
+            <input type="hidden" id="txt_idsupp" name="txt_idsupp" value="" readonly>
         </div>
     </div>
 </div>
@@ -230,7 +228,7 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>Catatan</small></label>
-                <textarea type="text" rows="4" class="form-control " id="txt_notes" name="txt_notes" value="" > </textarea>
+                <textarea type="text" rows="4" class="form-control " id="txt_notes" name="txt_notes" value="" >{{ $edit_data->catatan ?? '' }}</textarea>
                 <input type="hidden" class="form-control" id="jumlah_data" name="jumlah_data" readonly>
                 <input type="hidden" class="form-control" id="jumlah_qty" name="jumlah_qty" readonly>
                 </div>
@@ -275,7 +273,7 @@
                                     placeholder="Scan atau tempel barcode di sini&#10;Pisahkan dengan Enter / spasi / koma..."
                                     style="font-family:monospace;font-size:.9rem;resize:none;border-color:#90c4e8;background:#fff;"></textarea>
                             </div>
-                            <button type="button" class="btn btn-info px-4 py-2" onclick="sendBarcodeList()"
+                            <button type="button" class="btn btn-info px-4 py-2" onclick="sendBarcodeList(this)"
                                 style="font-size:.9rem;white-space:nowrap;border-radius:6px;">
                                 <i class="fa fa-paper-plane me-1"></i>Send
                             </button>
@@ -294,7 +292,7 @@
                                     style="border-color:#7dba84;background:#fff;">
                             </div>
                             <div class="d-flex gap-2" style="padding-bottom:1px;">
-                                <button type="button" class="btn btn-success px-4 py-2" onclick="uploadBarcodeExcel()"
+                                <button type="button" class="btn btn-success px-4 py-2" onclick="uploadBarcodeExcel(this)"
                                     style="font-size:.9rem;border-radius:6px;">
                                     <i class="fa fa-upload me-1"></i>Upload
                                 </button>
@@ -330,6 +328,31 @@
                         </tr>
                     </thead>
                     <tbody></tbody>
+                    <tfoot>
+                        <tr>
+                            <th class="text-right" colspan="4" style="font-size: 0.6rem;">Total</th>
+                            <th class="text-center" style="font-size: 0.6rem;"></th>
+                            <th class="text-right" style="font-size: 0.6rem;"></th>
+                            <th class="text-right" style="font-size: 0.6rem;"></th>
+                            <th style="font-size: 0.6rem;"></th>
+                            <th style="font-size: 0.6rem;"></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            {{-- Ringkasan per PO --}}
+            <div class="table-responsive mt-2">
+                <table id="ro-po-summary-table" class="table table-bordered table-sm w-100 text-nowrap" style="font-size:.82rem;">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="font-size: 0.6rem;">No PO</th>
+                            <th class="text-center" style="font-size: 0.6rem;">Jml Barcode</th>
+                            <th class="text-center" style="font-size: 0.6rem;">Qty Aktual</th>
+                            <th class="text-center" style="font-size: 0.6rem;">Qty RO</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
                 </table>
             </div>
 
@@ -343,7 +366,7 @@
                         <i class="fa-solid fa-trash-can"></i> Clear
                     </button>
                     <button class="btn btn-sb px-4" style="border-radius:6px;">
-                        <i class="fa-solid fa-floppy-disk"></i> Simpan
+                        <i class="fa-solid fa-floppy-disk"></i> {{ isset($edit_data) ? 'Update' : 'Simpan' }}
                     </button>
                 </div>
             </div>
@@ -399,6 +422,19 @@
                 .replace(/'/g, '&#039;');
         }
 
+        function setBtnLoading($btn, loadingText) {
+            if (!$btn || !$btn.length) return;
+            $btn.data('original-html', $btn.html());
+            $btn.prop('disabled', true);
+            $btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ' + loadingText);
+        }
+
+        function resetBtnLoading($btn) {
+            if (!$btn || !$btn.length) return;
+            $btn.prop('disabled', false);
+            $btn.html($btn.data('original-html'));
+        }
+
         // ─── DataTable ────────────────────────────────────────────────────────
 
         let datatable = $('#datatable').DataTable({
@@ -432,13 +468,96 @@
                         + '</div>'
                 },
             ],
+            footerCallback: function (row, data, start, end, display) {
+                let api = this.api();
+
+                let sumColumn = function (col) {
+                    return api.column(col, { search: 'applied' }).data().reduce(function (a, b) {
+                        return (parseFloat(a) || 0) + (parseFloat(b) || 0);
+                    }, 0);
+                };
+
+                let fmt = function (n) {
+                    return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                };
+
+                $(api.column(4).footer()).html(sumColumn(4));
+                $(api.column(5).footer()).html(fmt(sumColumn(5)));
+                $(api.column(6).footer()).html(fmt(sumColumn(6)));
+            }
         });
+
+        datatable.on('xhr.dt', function () {
+            loadRoBarcodeTempSummary();
+        });
+
+        // ─── Header summary (Dikirim Ke / No PO, auto dari barcode) ─────────────
+
+        function loadRoBarcodeTempSummary() {
+            $.ajax({
+                url: '{{ route("get-ro-barcode-temp-summary") }}',
+                type: 'GET',
+                success: function (res) {
+                    $('#txt_dikirim').val(res.supplier || '');
+                    $('#txt_idsupp').val(res.id_supplier || '');
+                    $('#txt_nopo').val((res.no_po_list || []).join(', '));
+                    $('#jumlah_data').val(res.jml_data || 0);
+                    $('#jumlah_qty').val(res.jml_qty || 0);
+                    renderRoPoSummary(res.po_summary || []);
+                }
+            });
+        }
+
+        function renderRoPoSummary(po_summary) {
+            let fmt = function (n) {
+                return (parseFloat(n) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            };
+
+            let $tbody = $('#ro-po-summary-table tbody');
+            $tbody.empty();
+
+            if (po_summary.length === 0) {
+                $tbody.append('<tr><td colspan="4" class="text-center text-muted">Belum ada data</td></tr>');
+                return;
+            }
+
+            let total_barcode = 0, total_aktual = 0, total_ro = 0;
+
+            po_summary.forEach(function (po) {
+                total_barcode += parseInt(po.jml_barcode) || 0;
+                total_aktual  += parseFloat(po.qty_aktual) || 0;
+                total_ro      += parseFloat(po.qty_ro) || 0;
+
+                $tbody.append(
+                    '<tr>'
+                    + '<td>' + escHtml(po.no_po) + '</td>'
+                    + '<td class="text-center">' + (parseInt(po.jml_barcode) || 0) + '</td>'
+                    + '<td class="text-end">' + fmt(po.qty_aktual) + '</td>'
+                    + '<td class="text-end">' + fmt(po.qty_ro) + '</td>'
+                    + '</tr>'
+                );
+            });
+
+            if (po_summary.length > 1) {
+                $tbody.append(
+                    '<tr class="fw-bold">'
+                    + '<td class="text-end">Total</td>'
+                    + '<td class="text-center">' + total_barcode + '</td>'
+                    + '<td class="text-end">' + fmt(total_aktual) + '</td>'
+                    + '<td class="text-end">' + fmt(total_ro) + '</td>'
+                    + '</tr>'
+                );
+            }
+        }
 
         // ─── Send barcode ─────────────────────────────────────────────────────
 
-        function sendBarcodeList() {
+        function sendBarcodeList(btn) {
             let raw = $('#bulk_barcode_input').val().trim();
             if (!raw) return;
+
+            let $btn = $(btn);
+            setBtnLoading($btn, 'Mengirim...');
 
             $.ajax({
                 url: '{{ route("insert-ro-barcode-temp") }}',
@@ -449,7 +568,7 @@
                     $('#bulk_barcode_input').val('');
                     datatable.ajax.reload();
 
-                    let icon = (res.not_found.length > 0 || res.po_mismatch.length > 0) ? 'warning' : 'success';
+                    let icon = (res.not_found.length > 0 || res.tujuan_mismatch.length > 0) ? 'warning' : 'success';
                     iziToast[icon === 'success' ? 'success' : 'warning']({
                         title: icon === 'success' ? 'Berhasil' : 'Peringatan',
                         message: res.message,
@@ -459,13 +578,16 @@
                 },
                 error: function () {
                     iziToast.error({ title: 'Error', message: 'Terjadi kesalahan.', position: 'topCenter' });
+                },
+                complete: function () {
+                    resetBtnLoading($btn);
                 }
             });
         }
 
         // ─── Upload Excel ─────────────────────────────────────────────────────
 
-        function uploadBarcodeExcel() {
+        function uploadBarcodeExcel(btn) {
             let file = $('#excel_barcode_file')[0].files[0];
             if (!file) {
                 iziToast.warning({ title: 'Peringatan', message: 'Pilih file terlebih dahulu.', position: 'topCenter' });
@@ -475,6 +597,9 @@
             let fd = new FormData();
             fd.append('excel_file', file);
             fd.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+            let $btn = $(btn);
+            setBtnLoading($btn, 'Mengupload...');
 
             $.ajax({
                 url: '{{ route("upload-ro-barcode-temp") }}',
@@ -486,7 +611,7 @@
                     $('#excel_barcode_file').val('');
                     datatable.ajax.reload();
 
-                    let icon = (res.not_found.length > 0 || res.po_mismatch.length > 0) ? 'warning' : 'success';
+                    let icon = (res.not_found.length > 0 || res.tujuan_mismatch.length > 0) ? 'warning' : 'success';
                     iziToast[icon === 'success' ? 'success' : 'warning']({
                         title: icon === 'success' ? 'Berhasil' : 'Peringatan',
                         message: res.message,
@@ -496,6 +621,9 @@
                 },
                 error: function () {
                     iziToast.error({ title: 'Error', message: 'Gagal mengupload file.', position: 'topCenter' });
+                },
+                complete: function () {
+                    resetBtnLoading($btn);
                 }
             });
         }
@@ -640,22 +768,35 @@
 
         // ─── Tujuan dropdown ─────────────────────────────────────────────────
 
-        function get_tujuan(val) {
+        function get_tujuan(val, preselect) {
             $.ajax({
                 url: '{{ route("get-tujuan-pemasukan-ro") }}',
                 type: 'GET',
                 data: { type_bc: val },
                 success: function (res) {
                     document.getElementById('txt_tujuan').innerHTML = res;
+                    if (preselect) {
+                        $('#txt_tujuan').val(preselect);
+                    }
                     $('#txt_tujuan').trigger('change');
                 }
             });
         }
 
+        @if(isset($edit_data))
+        get_tujuan('{{ $edit_data->dok_bc }}', '{{ $edit_data->jns_pemasukan }}');
+        @endif
+
         // ─── Validate & submit ───────────────────────────────────────────────
 
         function validateAndSubmitRoForm(e, evt) {
             evt.preventDefault();
+
+            let dtData = datatable.rows().data().toArray();
+            if (dtData.length === 0) {
+                Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Tidak ada data barcode.' });
+                return;
+            }
 
             let required = [
                 { id: 'txt_type_bc', label: 'Tipe BC' },
@@ -671,12 +812,6 @@
                     return;
                 }
                 $el.next('.select2-container').find('.select2-selection').removeClass('border border-danger');
-            }
-
-            let dtData = datatable.rows().data().toArray();
-            if (dtData.length === 0) {
-                Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Tidak ada data barcode.' });
-                return;
             }
 
             submitForm(e, evt);
