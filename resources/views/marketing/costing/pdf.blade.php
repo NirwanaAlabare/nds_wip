@@ -418,7 +418,7 @@
         </tr>
         <tr>
             <td class="fw-bold bg-light">PROFIT (6%)</td>
-            <td class="text-right">{{ number_format($profit_idr, 2) }}</td>
+            <td class="text-right">{{ number_format($profit_idr, 6) }}</td>
             <td class="text-right">{{ number_format($profit_usd, 4) }}</td>
         </tr>
     </table>
