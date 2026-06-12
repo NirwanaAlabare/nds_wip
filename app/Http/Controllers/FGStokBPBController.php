@@ -284,21 +284,19 @@ class FGStokBPBController extends Controller
                 COUNT(output_reject_out_detail.id)
                 -
                 (
-                    SELECT COALESCE(SUM(jumlah),0)
-                    FROM
                     (
-                        SELECT SUM(qty) AS jumlah
+                        SELECT COALESCE(SUM(qty),0)
                         FROM fg_stok_bpb
                         WHERE sumber_pemasukan = 'QC REJECT'
                         AND id_so_det = master_sb_ws.id_so_det
-
-                        UNION ALL
-
-                        SELECT SUM(qty) AS jumlah
+                    )
+                    +
+                    (
+                        SELECT COALESCE(SUM(qty),0)
                         FROM fg_tmp_stok_bpb
                         WHERE sumber_pemasukan = 'QC REJECT'
                         AND id_so_det = master_sb_ws.id_so_det
-                    ) result
+                    )
                 ) AS qty,
                 output_reject_in.grade
             FROM master_sb_ws
