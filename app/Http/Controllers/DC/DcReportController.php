@@ -1251,7 +1251,6 @@ class DcReportController extends Controller
                             size,
                             part_detail_id
                 ),
-
                 dc_saldo AS (
                         select
                             stockers,
@@ -2912,7 +2911,6 @@ class DcReportController extends Controller
                         size,
                         part_detail_id
             ),
-
             dc_saldo AS (
                     select
                         stockers,
@@ -3241,8 +3239,8 @@ class DcReportController extends Controller
                     adjustment != 0 OR
                     switching_in != 0 OR
                     switching_out != 0
-                )"
-        );
+                )
+            ");
 
 
         // Create Excel file using FastExcel

@@ -57,8 +57,8 @@
                 <label class="small fw-bold">Jenis</label>
                 <select id="filter_jenis" class="form-control form-control-sm select2bs4">
                     <option value="">Semua Jenis</option>
-                    <option value="fabric">Fabric</option>
-                    <option value="accessoris">Accessoris</option>
+                    <option value="Fabric">Fabric</option>
+                    <option value="Accessories">Accessories</option>
                 </select>
             </div>
         </div>
