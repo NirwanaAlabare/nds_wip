@@ -1154,7 +1154,7 @@ class Marketing_CostingController extends Controller
             ->leftJoin('mastersupplier as b', 'a.buyer', '=', 'b.Id_Supplier')
             ->leftJoin('masterproduct as p', 'a.product_item', '=', 'p.id')
             ->leftJoin('mastershipmode as sm', 'a.ship_mode', '=', 'sm.id')
-            ->leftJoin('masterseason as seas', 'a.season_id', '=', 'seas.id')
+            ->leftJoin('masterseason as seas', 'a.season_id', '=', 'seas.id_season')
             ->select('a.*', 'b.Supplier as nama_buyer', 'p.product_item as nama_product_item', 'sm.shipmode as nama_ship_mode', 'seas.season as nama_season')
             ->where('a.id', $id)->first();
 
@@ -1482,6 +1482,7 @@ class Marketing_CostingController extends Controller
                             ->setCellValue("F$row", $persen);
 
                         $sheet->getStyle("A$row:F$row")->applyFromArray($styleBorder);
+                        $sheet->getStyle("D$row:E$row")->getNumberFormat()->setFormatCode('#,##0.0000000');
                         $sheet->getStyle("F$row")->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_PERCENTAGE_00);
                         $row++;
                     }
@@ -1490,6 +1491,7 @@ class Marketing_CostingController extends Controller
                 $sheet->mergeCells("A$row:C$row"); $sheet->setCellValue("A$row", "TOTAL OTHER COST :")->getStyle("A$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
                 $sheet->setCellValue("D$row", $sub_idr)->setCellValue("E$row", $sub_usd)->setCellValue("F$row", $sub_persen);
                 $sheet->getStyle("A$row:F$row")->applyFromArray($styleHead);
+                $sheet->getStyle("D$row:E$row")->getNumberFormat()->setFormatCode('#,##0.0000000');
                 $sheet->getStyle("F$row")->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_PERCENTAGE_00);
                 $row++;
 
@@ -1497,6 +1499,7 @@ class Marketing_CostingController extends Controller
                 $sheet->mergeCells("A$row:C$row"); $sheet->setCellValue("A$row", "G&A (" . $input_ga_pct . "%)")->getStyle("A$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
                 $sheet->setCellValue("D$row", $ga_idr)->setCellValue("E$row", $ga_usd)->setCellValue("F$row", $ga_pct);
                 $sheet->getStyle("A$row:F$row")->applyFromArray($styleHead);
+                $sheet->getStyle("D$row:E$row")->getNumberFormat()->setFormatCode('#,##0.0000000');
                 $sheet->getStyle("F$row")->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_PERCENTAGE_00);
                 $row += 2;
             }

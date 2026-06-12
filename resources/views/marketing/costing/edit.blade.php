@@ -474,8 +474,8 @@
                                 <td class="text-center fw-bold row-number">{{ $loop->iteration }}</td>
                                 <td class="item-name">{{ $det->nama_item }}</td>
                                 <td class="text-center allow-td" data-val="{{ $det->allowance }}">{{ number_format($det->allowance, 2, '.', '') }}%</td>
-                                <td class="text-right val-idr-td-other fw-bold" data-val="{{ $det->value_idr }}">{{ number_format($det->value_idr, 6, '.', ',') }}</td>
-                                <td class="text-right val-usd-td-other fw-bold" data-val="{{ $det->value_usd }}">{{ number_format($det->value_usd, 4, '.', ',') }}</td>
+                                <td class="text-right val-idr-td-other fw-bold" data-val="{{ $det->value_idr }}">{{ number_format($det->value_idr, 7, '.', ',') }}</td>
+                                <td class="text-right val-usd-td-other fw-bold" data-val="{{ $det->value_usd }}">{{ number_format($det->value_usd, 7, '.', ',') }}</td>
                                 <td class="text-center pct-td fw-bold">0%</td>
                                 <td class="text-center align-middle">
                                     <button type="button" class="btn btn-sm btn-primary py-0 px-2 mr-1" onclick="editRowModal(this, {{ $det->id }}, 'Other Cost')"><i class="fas fa-edit"></i></button>
@@ -1231,9 +1231,9 @@
                 if(res.status == 200) {
                     Swal.close();
                     let val_idr_text = val_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    let val_usd_text = val_usd_raw.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4});
+                    let val_usd_text = val_usd_raw.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7});
 
-                    let val_idr_text_other = val_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6});
+                    let val_idr_text_other = val_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7});
 
                     let qty_bom_text = qty_bom_js.toLocaleString('en-US');
                     let tot_val_text = tot_val_js.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
@@ -1445,8 +1445,8 @@
                     $('#modal_edit_costing').modal('hide');
 
                     let val_idr_text = val_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    let val_idr_text_other = val_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6});
-                    let val_usd_text = val_usd_raw.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4});
+                    let val_idr_text_other = val_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7});
+                    let val_usd_text = val_usd_raw.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7});
                     let px_idr_text = px_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                     let px_usd_text = px_usd_raw.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4});
 
@@ -1667,7 +1667,7 @@
                 overhead_row = $(this);
             } else {
                 let val_usd = val_idr / rate_to_idr;
-                $(this).find('.val-usd-td-other').data('val', val_usd).text(val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4}));
+                $(this).find('.val-usd-td-other').data('val', val_usd).text(val_usd.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
                 $(this).find('.allow-td').text(allow_val > 0 ? allow_val.toFixed(2) + '%' : '');
 
                 sum_oth_norm_idr += val_idr;
@@ -1692,15 +1692,15 @@
             overhead_idr = base_overhead_idr * (oh_allow / 100);
             overhead_usd = base_overhead_usd * (oh_allow / 100);
 
-            overhead_row.find('.val-idr-td-other').data('val', overhead_idr).text(overhead_idr.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
-            overhead_row.find('.val-usd-td-other').data('val', overhead_usd).text(overhead_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4}));
+            overhead_row.find('.val-idr-td-other').data('val', overhead_idr).text(overhead_idr.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
+            overhead_row.find('.val-usd-td-other').data('val', overhead_usd).text(overhead_usd.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
         }
 
         let tot_other_idr = sum_oth_norm_idr + overhead_idr;
         let tot_other_usd = sum_oth_norm_usd + overhead_usd;
 
-        $('#tot-other-idr').text(tot_other_idr.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
-        $('#tot-other-usd').text(tot_other_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4}));
+        $('#tot-other-idr').text(tot_other_idr.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
+        $('#tot-other-usd').text(tot_other_usd.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
 
         let base_ga_idr = base_material_idr + cat_totals['Manufacturing'].idr + tot_other_idr;
         let base_ga_usd = base_material_usd + cat_totals['Manufacturing'].usd + tot_other_usd;
@@ -1712,8 +1712,8 @@
         let grand_idr = base_ga_idr + ga_idr;
         let grand_usd = grand_idr / rate_to_idr;
 
-        $('#val-ga-idr').text(ga_idr.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
-        $('#val-ga-usd').text(ga_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4}));
+        $('#val-ga-idr').text(ga_idr.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
+        $('#val-ga-usd').text(ga_usd.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
 
         let ga_pct = (grand_idr > 0) ? (ga_idr / grand_idr) * 100 : 0;
         $('.pct-ga').text(ga_pct.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '%');
