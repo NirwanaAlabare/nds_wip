@@ -1528,9 +1528,9 @@ class Marketing_CostingController extends Controller
         $vat_multiplier = 1 + ($actual_vat / 100);
 
         $vat_idr = round($grand_idr * $vat_multiplier, 2);
-        $vat_usd = round($grand_usd * $vat_multiplier, 4);
+        $vat_usd = round($grand_usd * $vat_multiplier, 6);
         $profit_idr = round($vat_idr * 1.06, 2);
-        $profit_usd = round($vat_usd * 1.06, 4);
+        $profit_usd = round($vat_usd * 1.06, 6);
         $ga_pct = $grand_idr > 0 ? ($ga_idr / $grand_idr) : 0;
 
         $start_footer_row = $row;
@@ -1546,19 +1546,19 @@ class Marketing_CostingController extends Controller
         $sheet->mergeCells("I$row:J$row"); $sheet->setCellValue("I$row", "TOTAL COST")->getStyle("I$row")->applyFromArray($styleBoldCenter)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
         $sheet->setCellValue("K$row", $grand_idr)->setCellValue("L$row", $grand_usd)->getStyle("K$row:L$row")->applyFromArray($styleBorder)->getFont()->setBold(true);
         $sheet->getStyle("K$row")->getNumberFormat()->setFormatCode('#,##0.000000');
-        $sheet->getStyle("L$row")->getNumberFormat()->setFormatCode('#,##0.00');
+        $sheet->getStyle("L$row")->getNumberFormat()->setFormatCode('#,##0.000000');
         $row++;
 
         $sheet->mergeCells("I$row:J$row"); $sheet->setCellValue("I$row", "VAT ($actual_vat%)")->getStyle("I$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
         $sheet->setCellValue("K$row", $vat_idr)->setCellValue("L$row", $vat_usd)->getStyle("K$row:L$row")->applyFromArray($styleBorder);
         $sheet->getStyle("K$row")->getNumberFormat()->setFormatCode('#,##0.000000');
-        $sheet->getStyle("L$row")->getNumberFormat()->setFormatCode('#,##0.00');
+        $sheet->getStyle("L$row")->getNumberFormat()->setFormatCode('#,##0.000000');
         $row++;
 
         $sheet->mergeCells("I$row:J$row"); $sheet->setCellValue("I$row", "PROFIT (6%)")->getStyle("I$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
         $sheet->setCellValue("K$row", $profit_idr)->setCellValue("L$row", $profit_usd)->getStyle("K$row:L$row")->applyFromArray($styleBorder);
-        $sheet->getStyle("K$row")->getNumberFormat()->setFormatCode('#,##0.00');
-        $sheet->getStyle("L$row")->getNumberFormat()->setFormatCode('#,##0.00');
+        $sheet->getStyle("K$row")->getNumberFormat()->setFormatCode('#,##0.000000');
+        $sheet->getStyle("L$row")->getNumberFormat()->setFormatCode('#,##0.000000');
 
         $sig_row = $start_footer_row + 1;
 

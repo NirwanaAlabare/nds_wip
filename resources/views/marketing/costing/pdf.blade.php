@@ -207,9 +207,9 @@
         $actual_vat     = strtolower($costing->shipment_type) == 'export' ? 0 : $costing->vat;
         $vat_multiplier = 1 + ($actual_vat / 100);
         $vat_idr    = round($grand_idr * $vat_multiplier, 2);
-        $vat_usd    = round($grand_usd * $vat_multiplier, 4);
+        $vat_usd    = round($grand_usd * $vat_multiplier, 6);
         $profit_idr = round($vat_idr * 1.06, 2);
-        $profit_usd = round($vat_usd * 1.06, 4);
+        $profit_usd = round($vat_usd * 1.06, 6);
     @endphp
 
 
@@ -409,17 +409,17 @@
         <tr>
             <td class="fw-bold bg-light">TOTAL COST</td>
             <td class="text-right">{{ number_format($grand_idr, 6) }}</td>
-            <td class="text-right">{{ number_format($grand_usd, 4) }}</td>
+            <td class="text-right">{{ number_format($grand_usd, 6) }}</td>
         </tr>
         <tr>
             <td class="fw-bold bg-light">VAT ({{ $actual_vat }}%)</td>
             <td class="text-right">{{ number_format($vat_idr, 6) }}</td>
-            <td class="text-right">{{ number_format($vat_usd, 4) }}</td>
+            <td class="text-right">{{ number_format($vat_usd, 6) }}</td>
         </tr>
         <tr>
             <td class="fw-bold bg-light">PROFIT (6%)</td>
             <td class="text-right">{{ number_format($profit_idr, 6) }}</td>
-            <td class="text-right">{{ number_format($profit_usd, 4) }}</td>
+            <td class="text-right">{{ number_format($profit_usd, 6) }}</td>
         </tr>
     </table>
 

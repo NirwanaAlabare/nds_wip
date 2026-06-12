@@ -1798,9 +1798,9 @@
 
         let vat_multiplier = 1 + (actual_vat_pct / 100);
         let vat_idr = Math.round((grand_idr * vat_multiplier) * 100) / 100;
-        let vat_usd = Math.round((grand_usd * vat_multiplier) * 10000) / 10000;
+        let vat_usd = Math.round((grand_usd * vat_multiplier) * 1000000) / 1000000;
         let profit_idr = Math.round((vat_idr * 1.06) * 100) / 100;
-        let profit_usd = Math.round((vat_usd * 1.06) * 10000) / 10000;
+        let profit_usd = Math.round((vat_usd * 1.06) * 1000000) / 1000000;
 
         let confirm_price = parseFloat($('#confirm_price').val()) || 0;
         let suggest_idr = 0;
