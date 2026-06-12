@@ -13076,6 +13076,7 @@ order by a.tgl_trans asc
                             COALESCE(msb.styleno, p.style) style,
                             a.qty_awal,
                             COALESCE(msb.size, s.size) size,
+                            UPPER(COALESCE(pd.part_status, '-')) part_status,
                             COALESCE(p_com.panel, p.panel) as panel
                         from
                             dc_in_input a
@@ -13097,6 +13098,7 @@ order by a.tgl_trans asc
                             style,
                             qty_awal,
                             size,
+                            part_status,
                             panel
                         from
                             dc_in_dump
@@ -13112,6 +13114,7 @@ order by a.tgl_trans asc
                             style,
                             color,
                             size,
+                            part_status,
                             panel,
                             SUM(
                                 IF(tgl_trans < '".$start_date."',
@@ -13133,6 +13136,7 @@ order by a.tgl_trans asc
                             style,
                             color,
                             size,
+                            part_status,
                             panel
                     ),
 
@@ -13144,6 +13148,7 @@ order by a.tgl_trans asc
                             g.color,
                             g.size,
                             g.panel,
+                            g.part_status,
                             g.qty_before,
                             g.qty
                         FROM qty_out_per_panel g
@@ -13151,6 +13156,10 @@ order by a.tgl_trans asc
                             ON b.ws = g.worksheet
                             AND b.color = g.color
                             AND b.nama_panel = g.panel
+                        WHERE NOT (
+                            g.panel = 'BODY'
+                            AND g.part_status <> 'MAIN'
+                        )
                     ),
 
                     qty_out AS (
@@ -13490,6 +13499,7 @@ order by a.tgl_trans asc
                     COALESCE(msb.styleno, p.style) style,
                     a.qty_awal,
                     COALESCE(msb.size, s.size) size,
+                    UPPER(COALESCE(pd.part_status, '-')) part_status,
                     COALESCE(p_com.panel, p.panel) as panel
                 from
                     dc_in_input a
@@ -13511,6 +13521,7 @@ order by a.tgl_trans asc
                     style,
                     qty_awal,
                     size,
+                    part_status,
                     panel
                 from
                     dc_in_dump
@@ -13526,6 +13537,7 @@ order by a.tgl_trans asc
                     style,
                     color,
                     size,
+                    part_status,
                     panel,
                     SUM(
                         IF(tgl_trans < '".$start_date."',
@@ -13547,6 +13559,7 @@ order by a.tgl_trans asc
                     style,
                     color,
                     size,
+                    part_status,
                     panel
             ),
 
@@ -13558,6 +13571,7 @@ order by a.tgl_trans asc
                     g.color,
                     g.size,
                     g.panel,
+                    g.part_status,
                     g.qty_before,
                     g.qty
                 FROM qty_out_per_panel g
@@ -13565,6 +13579,10 @@ order by a.tgl_trans asc
                     ON b.ws = g.worksheet
                     AND b.color = g.color
                     AND b.nama_panel = g.panel
+                WHERE NOT (
+                    g.panel = 'BODY'
+                    AND g.part_status <> 'MAIN'
+                )
             ),
 
             qty_out AS (
