@@ -8885,6 +8885,7 @@ order by a.tgl_trans asc
                                     part_status,
                                     m.size,
                                     m.dest,
+                                    master_part_id,
                                     sum(qty_replace) as qty_replace,
                                     CASE WHEN panel_status = 'main' THEN COALESCE(qty_in_main, qty_in) ELSE MIN(qty_in) END as qty_dc
                                 FROM
@@ -8916,6 +8917,7 @@ order by a.tgl_trans asc
                                                 a.user,
                                                 COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                                 COALESCE(msb.size, s.size) size,
+                                                mp.id master_part_id,
                                                 mp.nama_part,
                                                 pd.id as part_detail_id,
                                                 pd.part_status,
@@ -8963,6 +8965,7 @@ order by a.tgl_trans asc
                                                 a.user,
                                                 COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                                 COALESCE(msb.size, s.size) size,
+                                                mp.id master_part_id,
                                                 mp.nama_part,
                                                 pd.id as part_detail_id,
                                                 pd.part_status,
@@ -9007,6 +9010,7 @@ order by a.tgl_trans asc
                                 part_status,
                                 m.size,
                                 m.dest,
+                                master_part_id,
                                 sum(qty_replace) as qty_replace,
                                 CASE WHEN panel_status = 'main' THEN COALESCE(qty_in_main, qty_in) ELSE MIN(qty_in) END as qty_dc
                             FROM
@@ -9038,6 +9042,7 @@ order by a.tgl_trans asc
                                             a.user,
                                             COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                             COALESCE(msb.size, s.size) size,
+                                            mp.id master_part_id,
                                             mp.nama_part,
                                             pd.id as part_detail_id,
                                             pd.part_status,
@@ -9085,6 +9090,7 @@ order by a.tgl_trans asc
                                             a.user,
                                             COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                             COALESCE(msb.size, s.size) size,
+                                            mp.id master_part_id,
                                             mp.nama_part,
                                             pd.id as part_detail_id,
                                             pd.part_status,
@@ -13219,8 +13225,8 @@ order by a.tgl_trans asc
                             part_status,
                             m.size,
                             m.dest,
-                            sum(qty_replace) as qty_replace,
                             master_part_id,
+                            sum(qty_replace) as qty_replace,
                             CASE WHEN panel_status = 'main' THEN COALESCE(qty_in_main, qty_in) ELSE MIN(qty_in) END as qty_dc
                         FROM
                             (
@@ -13332,140 +13338,122 @@ order by a.tgl_trans asc
                 ),
                 dc_in as (
                     SELECT
-                        id_so_det
-                        buyer
-                        act_costing_ws
-                        color
-                        part_id
-                        panel
-                        panel_status
-                        part_detail_id
-                        nama_part
-                        part_status
-                        size
-                        dest
-                        qty_replace
-                        master_part_id
-                        SUM(qty_dc)
-                    FROM (
-                        SELECT
-                            so_det_id as id_so_det,
-                            m.buyer,
-                            act_costing_ws,
-                            m.color,
-                            part_id,
-                            panel,
-                            panel_status,
-                            part_detail_id,
-                            nama_part,
-                            part_status,
-                            m.size,
-                            m.dest,
-                            sum(qty_replace) as qty_replace,
-                            master_part_id,
-                            CASE WHEN panel_status = 'main' THEN COALESCE(qty_in_main, qty_in) ELSE MIN(qty_in) END as qty_dc
-                        FROM
-                            (
-                                SELECT
-                                        UPPER(a.id_qr_stocker) id_qr_stocker,
-                                        DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
-                                        a.tgl_trans,
-                                        s.act_costing_ws,
-                                        s.color,
-                                        p.buyer,
-                                        p.style,
-                                        p.panel,
-                                        p.id part_id,
-                                        p.panel_status,
-                                        s.so_det_id,
-                                        s.ratio,
-                                        a.qty_awal,
-                                        a.qty_reject,
-                                        a.qty_replace,
-                                        CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
-                                        (a.qty_awal - a.qty_reject + a.qty_replace) qty_in_main_1,
-                                        a.qty_awal qty_in_main,
-                                        null qty_in,
-                                        a.tujuan,
-                                        a.lokasi,
-                                        a.tempat,
-                                        a.created_at,
-                                        a.user,
-                                        COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
-                                        COALESCE(msb.size, s.size) size,
-                                        mp.id master_part_id,
-                                        mp.nama_part,
-                                        pd.id as part_detail_id,
-                                        pd.part_status,
-                                        coalesce(f.no_form, fp.no_form, fr.no_form) no_form
-                                from
-                                        dc_in_input a
-                                        left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
-                                        left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-                                        left join form_cut_input f on f.id = s.form_cut_id
-                                        left join form_cut_reject fr on fr.id = s.form_reject_id
-                                        left join form_cut_piece fp on fp.id = s.form_piece_id
-                                        left join part_detail pd on s.part_detail_id = pd.id
-                                        left join part p on pd.part_id = p.id
-                                        left join master_part mp on mp.id = pd.master_part_id
-                                where
-                                        a.tgl_trans >= '$start_date' AND a.tgl_trans <= '$end_date'
-                                        AND s.id is not null AND
-                                        (s.cancel IS NULL OR s.cancel != 'y') and
-                                        pd.part_status = 'main'
-                                UNION ALL
-                                SELECT
-                                        UPPER(a.id_qr_stocker) id_qr_stocker,
-                                        DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
-                                        a.tgl_trans,
-                                        s.act_costing_ws,
-                                        s.color,
-                                        CASE WHEN pd.part_status = 'complement' THEN pcom.buyer ELSE p.buyer END as buyer,
-                                        CASE WHEN pd.part_status = 'complement' THEN pcom.style ELSE p.style END as style,
-                                        CASE WHEN pd.part_status = 'complement' THEN pcom.panel ELSE p.panel END as panel,
-                                        CASE WHEN pd.part_status = 'complement' THEN pcom.id ELSE p.id  END as part_id,
-                                        CASE WHEN pd.part_status = 'complement' THEN pcom.panel_status ELSE p.panel_status END as panel_status,
-                                        s.so_det_id,
-                                        s.ratio,
-                                        a.qty_awal,
-                                        a.qty_reject,
-                                        a.qty_replace,
-                                        CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
-                                        null qty_in_main,
-                                        (a.qty_awal - a.qty_reject + a.qty_replace) qty_in_1,
-                                        a.qty_awal qty_in,
-                                        a.tujuan,
-                                        a.lokasi,
-                                        a.tempat,
-                                        a.created_at,
-                                        a.user,
-                                        COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
-                                        COALESCE(msb.size, s.size) size,
-                                        mp.id master_part_id,
-                                        mp.nama_part,
-                                        pd.id as part_detail_id,
-                                        pd.part_status,
-                                        coalesce(f.no_form, fp.no_form, fr.no_form) no_form
-                                from
-                                        dc_in_input a
-                                        left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
-                                        left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-                                        left join form_cut_input f on f.id = s.form_cut_id
-                                        left join form_cut_reject fr on fr.id = s.form_reject_id
-                                        left join form_cut_piece fp on fp.id = s.form_piece_id
-                                        left join part_detail pd on s.part_detail_id = pd.id
-                                        left join part p on pd.part_id = p.id
-                                        left join part_detail pdcom on pdcom.id = pd.from_part_detail
-                                        left join part pcom on pcom.id = pdcom.part_id
-                                        left join master_part mp on mp.id = pd.master_part_id
-                                where
-                                        a.tgl_trans >= '$start_date' AND a.tgl_trans <= '$end_date'
-                                        AND s.id is not null AND
-                                        (s.cancel IS NULL OR s.cancel != 'y') and
-                                        (pd.part_status != 'main' OR pd.part_status IS NULL)
-                            ) dc
-                            left join master_sb_ws m on dc.so_det_id = m.id_so_det
-                    ) as dc
+                        so_det_id as id_so_det,
+                        m.buyer,
+                        act_costing_ws,
+                        m.color,
+                        part_id,
+                        panel,
+                        panel_status,
+                        part_detail_id,
+                        nama_part,
+                        part_status,
+                        m.size,
+                        m.dest,
+                        master_part_id,
+                        sum(qty_replace) as qty_replace,
+                        CASE WHEN panel_status = 'main' THEN COALESCE(qty_in_main, qty_in) ELSE MIN(qty_in) END as qty_dc
+                    FROM
+                        (
+                            SELECT
+                                    UPPER(a.id_qr_stocker) id_qr_stocker,
+                                    DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
+                                    a.tgl_trans,
+                                    s.act_costing_ws,
+                                    s.color,
+                                    p.buyer,
+                                    p.style,
+                                    p.panel,
+                                    p.id part_id,
+                                    p.panel_status,
+                                    s.so_det_id,
+                                    s.ratio,
+                                    a.qty_awal,
+                                    a.qty_reject,
+                                    a.qty_replace,
+                                    CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
+                                    (a.qty_awal - a.qty_reject + a.qty_replace) qty_in_main_1,
+                                    a.qty_awal qty_in_main,
+                                    null qty_in,
+                                    a.tujuan,
+                                    a.lokasi,
+                                    a.tempat,
+                                    a.created_at,
+                                    a.user,
+                                    COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
+                                    COALESCE(msb.size, s.size) size,
+                                    mp.id master_part_id,
+                                    mp.nama_part,
+                                    pd.id as part_detail_id,
+                                    pd.part_status,
+                                    coalesce(f.no_form, fp.no_form, fr.no_form) no_form
+                            from
+                                    dc_in_input a
+                                    left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+                                    left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+                                    left join form_cut_input f on f.id = s.form_cut_id
+                                    left join form_cut_reject fr on fr.id = s.form_reject_id
+                                    left join form_cut_piece fp on fp.id = s.form_piece_id
+                                    left join part_detail pd on s.part_detail_id = pd.id
+                                    left join part p on pd.part_id = p.id
+                                    left join master_part mp on mp.id = pd.master_part_id
+                            where
+                                    a.tgl_trans >= '$start_date' AND a.tgl_trans <= '$end_date'
+                                    AND s.id is not null AND
+                                    (s.cancel IS NULL OR s.cancel != 'y') and
+                                    pd.part_status = 'main'
+                            UNION ALL
+                            SELECT
+                                    UPPER(a.id_qr_stocker) id_qr_stocker,
+                                    DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
+                                    a.tgl_trans,
+                                    s.act_costing_ws,
+                                    s.color,
+                                    CASE WHEN pd.part_status = 'complement' THEN pcom.buyer ELSE p.buyer END as buyer,
+                                    CASE WHEN pd.part_status = 'complement' THEN pcom.style ELSE p.style END as style,
+                                    CASE WHEN pd.part_status = 'complement' THEN pcom.panel ELSE p.panel END as panel,
+                                    CASE WHEN pd.part_status = 'complement' THEN pcom.id ELSE p.id  END as part_id,
+                                    CASE WHEN pd.part_status = 'complement' THEN pcom.panel_status ELSE p.panel_status END as panel_status,
+                                    s.so_det_id,
+                                    s.ratio,
+                                    a.qty_awal,
+                                    a.qty_reject,
+                                    a.qty_replace,
+                                    CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
+                                    null qty_in_main,
+                                    (a.qty_awal - a.qty_reject + a.qty_replace) qty_in_1,
+                                    a.qty_awal qty_in,
+                                    a.tujuan,
+                                    a.lokasi,
+                                    a.tempat,
+                                    a.created_at,
+                                    a.user,
+                                    COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
+                                    COALESCE(msb.size, s.size) size,
+                                    mp.id master_part_id,
+                                    mp.nama_part,
+                                    pd.id as part_detail_id,
+                                    pd.part_status,
+                                    coalesce(f.no_form, fp.no_form, fr.no_form) no_form
+                            from
+                                    dc_in_input a
+                                    left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+                                    left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+                                    left join form_cut_input f on f.id = s.form_cut_id
+                                    left join form_cut_reject fr on fr.id = s.form_reject_id
+                                    left join form_cut_piece fp on fp.id = s.form_piece_id
+                                    left join part_detail pd on s.part_detail_id = pd.id
+                                    left join part p on pd.part_id = p.id
+                                    left join part_detail pdcom on pdcom.id = pd.from_part_detail
+                                    left join part pcom on pcom.id = pdcom.part_id
+                                    left join master_part mp on mp.id = pd.master_part_id
+                            where
+                                    a.tgl_trans >= '$start_date' AND a.tgl_trans <= '$end_date'
+                                    AND s.id is not null AND
+                                    (s.cancel IS NULL OR s.cancel != 'y') and
+                                    (pd.part_status != 'main' OR pd.part_status IS NULL)
+                        ) dc
+                        left join master_sb_ws m on dc.so_det_id = m.id_so_det
                     group by
                         dc.part_id,
                         dc.part_detail_id,
@@ -13769,7 +13757,6 @@ order by a.tgl_trans asc
                     FROM
                         wip_adjustment
                     WHERE
-                        tgl_saldo >= '".$tgl_saldo."' and
                         tgl_saldo <= '".$end_date."' and
                         type_report = 'CUTTING' and
                         status = 'Y'
@@ -13807,12 +13794,11 @@ order by a.tgl_trans asc
                     FROM
                         wip_switching_adj
                     WHERE
-                        from_tgl_saldo >= '".$tgl_saldo."' and
                         from_tgl_saldo <= '".$end_date."' and
                         type_report = 'CUTTING' and
                         status = 'Y'
                     GROUP BY
-                        from_no_ws, from_style, from_color, from_size, from_panel, from_part
+                        from_no_ws, from_style, from_color, from_size, from_panel, COALESCE(from_part, '')
                     UNION ALL
                     SELECT
                         buyer buyer,
@@ -13845,15 +13831,14 @@ order by a.tgl_trans asc
                     FROM
                         wip_switching_adj
                     WHERE
-                        tgl_saldo >= '".$tgl_saldo."' and
                         tgl_saldo <= '".$end_date."' and
                         type_report = 'CUTTING' and
                         status = 'Y'
                     GROUP BY
-                        no_ws, style, color, size, panel, part
+                        no_ws, style, color, size, panel, COALESCE(part, '')
                 ) cutting
                 group by
-                    ws, styleno, color, size, panel, COALESCE(nama_part, '')
+                    ws, styleno, color, size, panel, nama_part
                 having
                     (
                         saldo_awal_adjustment != 0 OR
