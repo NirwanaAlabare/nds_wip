@@ -732,7 +732,16 @@ class Marketing_SOController extends Controller
             }
         }
 
-        return response()->json(['status' => 200, 'message' => 'Excel berhasil diproses.']);
+        return response()->json([
+            'status' => 200, 
+            'message' => 'Excel berhasil diproses.',
+            'debug' => [
+                'total_rows_excel' => count($data),
+                'total_inserted' => count($temp_data),
+                'bom_colors_count' => count($bom_colors),
+                'bom_sizes_count' => count($bom_sizes)
+            ]
+        ]);
     }
 
 
