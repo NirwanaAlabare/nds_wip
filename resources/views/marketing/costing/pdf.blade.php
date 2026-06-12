@@ -235,15 +235,23 @@
                 if (str_contains(strtoupper($det->nama_item), 'OVERHEAD')) {
                     $overhead_row = $det;
                 } else {
-                    if ($jenis_rate == 'J') {
-                        $det->price_px_idr = $det->price * $rate_to_idr;
-                        $det->price_px_usd = $det->price;
+                    // Pakai value_idr/value_usd dari database (yang diinput user di edit page)
+                    // Jangan recalculate dari price karena Other Cost diinput langsung sebagai value IDR
+                    if ($det->value_idr == 0 && $det->price > 0) {
+                        // Fallback: jika value_idr belum ada di DB, recalculate dari price
+                        if ($jenis_rate == 'J') {
+                            $det->price_px_idr = $det->price * $rate_to_idr;
+                            $det->price_px_usd = $det->price;
+                        } else {
+                            $det->price_px_idr = $det->price;
+                            $det->price_px_usd = $det->price / $rate_from_idr;
+                        }
+                        $det->value_idr = $det->price_px_idr;
+                        $det->value_usd = $det->price_px_usd;
                     } else {
-                        $det->price_px_idr = $det->price;
-                        $det->price_px_usd = $det->price / $rate_from_idr;
+                        // Gunakan value_idr/value_usd yang sudah tersimpan di database
+                        $det->value_usd = $rate_to_idr > 0 ? $det->value_idr / $rate_to_idr : 0;
                     }
-                    $det->value_idr = $det->price_px_idr;
-                    $det->value_usd = $det->price_px_usd;
 
                     $sum_oth_norm_idr += $det->value_idr;
                     $sum_oth_norm_usd += $det->value_usd;
