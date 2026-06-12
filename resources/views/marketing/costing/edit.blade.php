@@ -474,8 +474,8 @@
                                 <td class="text-center fw-bold row-number">{{ $loop->iteration }}</td>
                                 <td class="item-name">{{ $det->nama_item }}</td>
                                 <td class="text-center allow-td" data-val="{{ $det->allowance }}">{{ number_format($det->allowance, 2, '.', '') }}%</td>
-                                <td class="text-right val-idr-td-other fw-bold" data-val="{{ $det->value_idr }}">{{ number_format($det->value_idr, 6, '.', ',') }}</td>
-                                <td class="text-right val-usd-td-other fw-bold" data-val="{{ $det->value_usd }}">{{ number_format($det->value_usd, 4, '.', ',') }}</td>
+                                <td class="text-right val-idr-td-other fw-bold" data-val="{{ $det->value_idr }}">{{ number_format($det->value_idr, 7, '.', ',') }}</td>
+                                <td class="text-right val-usd-td-other fw-bold" data-val="{{ $det->value_usd }}">{{ number_format($det->value_usd, 7, '.', ',') }}</td>
                                 <td class="text-center pct-td fw-bold">0%</td>
                                 <td class="text-center align-middle">
                                     <button type="button" class="btn btn-sm btn-primary py-0 px-2 mr-1" onclick="editRowModal(this, {{ $det->id }}, 'Other Cost')"><i class="fas fa-edit"></i></button>
@@ -1231,9 +1231,9 @@
                 if(res.status == 200) {
                     Swal.close();
                     let val_idr_text = val_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    let val_usd_text = val_usd_raw.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4});
+                    let val_usd_text = val_usd_raw.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7});
 
-                    let val_idr_text_other = val_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6});
+                    let val_idr_text_other = val_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7});
 
                     let qty_bom_text = qty_bom_js.toLocaleString('en-US');
                     let tot_val_text = tot_val_js.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
@@ -1445,8 +1445,8 @@
                     $('#modal_edit_costing').modal('hide');
 
                     let val_idr_text = val_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    let val_idr_text_other = val_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6});
-                    let val_usd_text = val_usd_raw.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4});
+                    let val_idr_text_other = val_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7});
+                    let val_usd_text = val_usd_raw.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7});
                     let px_idr_text = px_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                     let px_usd_text = px_usd_raw.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4});
 
