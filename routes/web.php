@@ -612,6 +612,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('bpb-fg-stock');
         Route::post('/store', 'store')->name('store-bpb-fg-stock');
         Route::get('/create', 'create')->name('create-bpb-fg-stock');
+        Route::get('/getbuyer', 'getbuyer')->name('getbuyer');
         Route::get('/getno_ws', 'getno_ws')->name('getno_ws');
         Route::get('/getcolor', 'getcolor')->name('getcolor');
         Route::get('/getsize', 'getsize')->name('getsize');

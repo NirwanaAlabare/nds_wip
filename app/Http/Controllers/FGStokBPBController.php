@@ -144,18 +144,18 @@ class FGStokBPBController extends Controller
         // group by buyer
         // order by buyer asc");
 
-        $data_buyer = DB::select("
-            select 
-                buyer isi, 
-                buyer tampil 
-            from master_sb_ws
-            INNER JOIN signalbit_erp.output_reject_in ON output_reject_in.so_det_id = master_sb_ws.id_so_det
-            INNER JOIN signalbit_erp.output_reject_out_detail ON output_reject_out_detail.reject_in_id = output_reject_in.id
-            INNER JOIN signalbit_erp.output_reject_out ON output_reject_out.id = output_reject_out_detail.reject_out_id
-            WHERE output_reject_in.kode_numbering IS NULL
-            group by buyer
-            order by buyer asc
-        ");
+        // $data_buyer = DB::select("
+        //     select 
+        //         buyer isi, 
+        //         buyer tampil 
+        //     from master_sb_ws
+        //     INNER JOIN signalbit_erp.output_reject_in ON output_reject_in.so_det_id = master_sb_ws.id_so_det
+        //     INNER JOIN signalbit_erp.output_reject_out_detail ON output_reject_out_detail.reject_in_id = output_reject_in.id
+        //     INNER JOIN signalbit_erp.output_reject_out ON output_reject_out.id = output_reject_out_detail.reject_out_id
+        //     WHERE output_reject_in.kode_numbering IS NULL
+        //     group by buyer
+        //     order by buyer asc
+        // ");
 
         $data_grade = DB::select("select grade isi , grade tampil from fg_stok_master_grade");
 
@@ -164,35 +164,71 @@ class FGStokBPBController extends Controller
             "subPageGroup" => "fgstock-bpb",
             "subPage" => "bpb-fg-stock",
             "data_lok" => $data_lok,
-            "data_buyer" => $data_buyer,
+            // "data_buyer" => $data_buyer,
             "data_grade" => $data_grade,
             "data_terima" => $data_terima,
             "user" => $user
         ]);
     }
 
+    public function getbuyer(Request $request)
+    {
+        $cbosumber = $request->cbosumber;
+
+        if($cbosumber != 'QC REJECT'){
+            $data_buyer = DB::select("select buyer isi, buyer tampil from master_sb_ws
+            group by buyer
+            order by buyer asc");
+        }else{
+            $data_buyer = DB::select("
+                select 
+                    buyer isi, 
+                    buyer tampil 
+                from master_sb_ws
+                INNER JOIN signalbit_erp.output_reject_in ON output_reject_in.so_det_id = master_sb_ws.id_so_det
+                INNER JOIN signalbit_erp.output_reject_out_detail ON output_reject_out_detail.reject_in_id = output_reject_in.id
+                INNER JOIN signalbit_erp.output_reject_out ON output_reject_out.id = output_reject_out_detail.reject_out_id
+                WHERE output_reject_in.kode_numbering IS NULL
+                group by buyer
+                order by buyer asc
+            ");
+        }
+
+        $html = "<option value=''>Pilih Buyer</option>";
+
+        foreach ($data_buyer as $databuyer) {
+            $html .= " <option value='" . $databuyer->isi . "'>" . $databuyer->tampil . "</option> ";
+        }
+
+        return $html;
+    }
+
     public function getno_ws(Request $request)
     {
-        // $data_ws = DB::select("
-        //     select a.ws isi, a.ws tampil
-        //     from master_sb_ws a where a.buyer = '" . $request->cbobuyer . "'
-        //     group by ws
-        //     order by ws desc
-        // ");
+        $cbosumber = $request->cbosumber;
 
-        $data_ws = DB::select("
-            SELECT
-                master_sb_ws.ws isi,
-                master_sb_ws.ws tampil
-            FROM master_sb_ws
-            INNER JOIN signalbit_erp.output_reject_in ON output_reject_in.so_det_id = master_sb_ws.id_so_det
-            INNER JOIN signalbit_erp.output_reject_out_detail ON output_reject_out_detail.reject_in_id = output_reject_in.id
-            INNER JOIN signalbit_erp.output_reject_out ON output_reject_out.id = output_reject_out_detail.reject_out_id
-            WHERE master_sb_ws.buyer = '".$request->cbobuyer."'
-            AND output_reject_in.kode_numbering IS NULL
-            GROUP BY master_sb_ws.ws
-            ORDER BY master_sb_ws.ws DESC
-        ");
+        if($cbosumber != 'QC REJECT'){
+            $data_ws = DB::select("
+                select a.ws isi, a.ws tampil
+                from master_sb_ws a where a.buyer = '" . $request->cbobuyer . "'
+                group by ws
+                order by ws desc
+            ");
+        }else{
+            $data_ws = DB::select("
+                SELECT
+                    master_sb_ws.ws isi,
+                    master_sb_ws.ws tampil
+                FROM master_sb_ws
+                INNER JOIN signalbit_erp.output_reject_in ON output_reject_in.so_det_id = master_sb_ws.id_so_det
+                INNER JOIN signalbit_erp.output_reject_out_detail ON output_reject_out_detail.reject_in_id = output_reject_in.id
+                INNER JOIN signalbit_erp.output_reject_out ON output_reject_out.id = output_reject_out_detail.reject_out_id
+                WHERE master_sb_ws.buyer = '".$request->cbobuyer."'
+                AND output_reject_in.kode_numbering IS NULL
+                GROUP BY master_sb_ws.ws
+                ORDER BY master_sb_ws.ws DESC
+            ");
+        }
 
         $html = "<option value=''>Pilih No WS</option>";
 
@@ -205,24 +241,28 @@ class FGStokBPBController extends Controller
 
     public function getcolor(Request $request)
     {
-//         $data_color = DB::select("select a.color isi, a.color tampil
-//         from master_sb_ws a where a.ws = '" . $request->cbows . "'
-// group by color
-// order by color desc");
+        $cbosumber = $request->cbosumber;
 
-        $data_color = DB::select("
-            SELECT
-                master_sb_ws.color isi,
-                master_sb_ws.color tampil
-            FROM master_sb_ws
-            INNER JOIN signalbit_erp.output_reject_in ON output_reject_in.so_det_id = master_sb_ws.id_so_det
-            INNER JOIN signalbit_erp.output_reject_out_detail ON output_reject_out_detail.reject_in_id = output_reject_in.id
-            INNER JOIN signalbit_erp.output_reject_out ON output_reject_out.id = output_reject_out_detail.reject_out_id
-            WHERE master_sb_ws.ws = '".$request->cbows."'
-            AND output_reject_in.kode_numbering IS NULL
-            GROUP BY master_sb_ws.color
-            ORDER BY master_sb_ws.color DESC
-        ");
+        if($cbosumber != 'QC REJECT'){
+            $data_color = DB::select("select a.color isi, a.color tampil
+            from master_sb_ws a where a.ws = '" . $request->cbows . "'
+            group by color
+            order by color desc");
+        }else{
+            $data_color = DB::select("
+                SELECT
+                    master_sb_ws.color isi,
+                    master_sb_ws.color tampil
+                FROM master_sb_ws
+                INNER JOIN signalbit_erp.output_reject_in ON output_reject_in.so_det_id = master_sb_ws.id_so_det
+                INNER JOIN signalbit_erp.output_reject_out_detail ON output_reject_out_detail.reject_in_id = output_reject_in.id
+                INNER JOIN signalbit_erp.output_reject_out ON output_reject_out.id = output_reject_out_detail.reject_out_id
+                WHERE master_sb_ws.ws = '".$request->cbows."'
+                AND output_reject_in.kode_numbering IS NULL
+                GROUP BY master_sb_ws.color
+                ORDER BY master_sb_ws.color DESC
+            ");
+        }
 
         $html = "<option value=''>Pilih Color</option>";
 
@@ -235,25 +275,29 @@ class FGStokBPBController extends Controller
 
     public function getsize(Request $request)
     {
-        // $data_size = DB::select("select a.size isi, a.size tampil
-        // from master_sb_ws a
-        // where a.ws = '" . $request->cbows . "' and a.color = '" . $request->cbocolor . "'
-        // group by a.size");
+        $cbosumber = $request->cbosumber;
 
-        $data_size = DB::select("
-            SELECT
-                master_sb_ws.size isi,
-                master_sb_ws.size tampil
-            FROM master_sb_ws
-            INNER JOIN signalbit_erp.output_reject_in ON output_reject_in.so_det_id = master_sb_ws.id_so_det
-            INNER JOIN signalbit_erp.output_reject_out_detail ON output_reject_out_detail.reject_in_id = output_reject_in.id
-            INNER JOIN signalbit_erp.output_reject_out ON output_reject_out.id = output_reject_out_detail.reject_out_id
-            WHERE master_sb_ws.ws = '".$request->cbows."'
-            AND master_sb_ws.color = '".$request->cbocolor."'
-            AND output_reject_in.kode_numbering IS NULL
-            GROUP BY master_sb_ws.size
-            ORDER BY master_sb_ws.size
-        ");
+        if($cbosumber != 'QC REJECT'){
+            $data_size = DB::select("select a.size isi, a.size tampil
+            from master_sb_ws a
+            where a.ws = '" . $request->cbows . "' and a.color = '" . $request->cbocolor . "'
+            group by a.size");
+        }else{
+            $data_size = DB::select("
+                SELECT
+                    master_sb_ws.size isi,
+                    master_sb_ws.size tampil
+                FROM master_sb_ws
+                INNER JOIN signalbit_erp.output_reject_in ON output_reject_in.so_det_id = master_sb_ws.id_so_det
+                INNER JOIN signalbit_erp.output_reject_out_detail ON output_reject_out_detail.reject_in_id = output_reject_in.id
+                INNER JOIN signalbit_erp.output_reject_out ON output_reject_out.id = output_reject_out_detail.reject_out_id
+                WHERE master_sb_ws.ws = '".$request->cbows."'
+                AND master_sb_ws.color = '".$request->cbocolor."'
+                AND output_reject_in.kode_numbering IS NULL
+                GROUP BY master_sb_ws.size
+                ORDER BY master_sb_ws.size
+            ");
+        }
 
         $html = "<option value=''>Pilih Size</option>";
 
@@ -266,68 +310,79 @@ class FGStokBPBController extends Controller
 
     public function getproduct(Request $request)
     {
-        // $data_product = DB::select("select a.id_so_det isi, concat(ws,' - ', color,' - ',size) tampil
-        // from master_sb_ws a
-        // where a.ws= '" . $request->cbows . "' and a.color like '%" . $request->cbocolor . "%'
-        // and a.size like '%" . $request->cbosize . "%'");
+        $cbosumber = $request->cbosumber;
 
-        $data_product = DB::select("
-            SELECT
-                master_sb_ws.id_so_det isi,
-                CONCAT(
+        if($cbosumber != 'QC REJECT'){
+            $data_product = DB::select("select a.id_so_det isi, concat(ws,' - ', color,' - ',size) tampil
+            from master_sb_ws a
+            where a.ws= '" . $request->cbows . "' and a.color like '%" . $request->cbocolor . "%'
+            and a.size like '%" . $request->cbosize . "%'");
+
+            $html = "<option value=''>Pilih Product</option>";
+    
+            foreach ($data_product as $dataproduct) {
+                $html .= " <option value='" . $dataproduct->isi . "'>" . $dataproduct->tampil . "</option> ";
+            }
+
+        }else{
+            $data_product = DB::select("
+                SELECT
+                    master_sb_ws.id_so_det isi,
+                    CONCAT(
+                        master_sb_ws.ws,
+                        ' - ',
+                        master_sb_ws.color,
+                        ' - ',
+                        master_sb_ws.size
+                    ) tampil,
+                    COUNT(output_reject_out_detail.id)
+                    -
+                    (
+                        (
+                            SELECT COALESCE(SUM(qty),0)
+                            FROM fg_stok_bpb
+                            WHERE sumber_pemasukan = 'QC REJECT'
+                            AND id_so_det = master_sb_ws.id_so_det
+                        )
+                        +
+                        (
+                            SELECT COALESCE(SUM(qty),0)
+                            FROM fg_tmp_stok_bpb
+                            WHERE sumber_pemasukan = 'QC REJECT'
+                            AND id_so_det = master_sb_ws.id_so_det
+                        )
+                    ) AS qty,
+                    output_reject_in.grade
+                FROM master_sb_ws
+                INNER JOIN signalbit_erp.output_reject_in ON output_reject_in.so_det_id = master_sb_ws.id_so_det
+                INNER JOIN signalbit_erp.output_reject_out_detail ON output_reject_out_detail.reject_in_id = output_reject_in.id
+                INNER JOIN signalbit_erp.output_reject_out ON output_reject_out.id = output_reject_out_detail.reject_out_id
+                WHERE master_sb_ws.ws = '".$request->cbows."'
+                    AND master_sb_ws.color LIKE '%".$request->cbocolor."%'
+                    AND master_sb_ws.size LIKE '%".$request->cbosize."%'
+                    AND output_reject_in.kode_numbering IS NULL
+                    AND output_reject_out.tujuan = 'gudang'
+                GROUP BY
+                    master_sb_ws.id_so_det,
                     master_sb_ws.ws,
-                    ' - ',
                     master_sb_ws.color,
-                    ' - ',
-                    master_sb_ws.size
-                ) tampil,
-                COUNT(output_reject_out_detail.id)
-                -
-                (
-                    (
-                        SELECT COALESCE(SUM(qty),0)
-                        FROM fg_stok_bpb
-                        WHERE sumber_pemasukan = 'QC REJECT'
-                        AND id_so_det = master_sb_ws.id_so_det
-                    )
-                    +
-                    (
-                        SELECT COALESCE(SUM(qty),0)
-                        FROM fg_tmp_stok_bpb
-                        WHERE sumber_pemasukan = 'QC REJECT'
-                        AND id_so_det = master_sb_ws.id_so_det
-                    )
-                ) AS qty,
-                output_reject_in.grade
-            FROM master_sb_ws
-            INNER JOIN signalbit_erp.output_reject_in ON output_reject_in.so_det_id = master_sb_ws.id_so_det
-            INNER JOIN signalbit_erp.output_reject_out_detail ON output_reject_out_detail.reject_in_id = output_reject_in.id
-            INNER JOIN signalbit_erp.output_reject_out ON output_reject_out.id = output_reject_out_detail.reject_out_id
-            WHERE master_sb_ws.ws = '".$request->cbows."'
-                AND master_sb_ws.color LIKE '%".$request->cbocolor."%'
-                AND master_sb_ws.size LIKE '%".$request->cbosize."%'
-                AND output_reject_in.kode_numbering IS NULL
-                AND output_reject_out.tujuan = 'gudang'
-            GROUP BY
-                master_sb_ws.id_so_det,
-                master_sb_ws.ws,
-                master_sb_ws.color,
-                master_sb_ws.size,
-                output_reject_in.grade
-        ");
+                    master_sb_ws.size,
+                    output_reject_in.grade
+            ");
 
-        $html = "<option value=''>Pilih Product</option>";
-
-        foreach ($data_product as $dataproduct) {
-            $html .= "
-                <option
-                    value='".$dataproduct->isi."'
-                    data-qty='".$dataproduct->qty."'
-                    data-grade='".$dataproduct->grade."'
-                >
-                    ".$dataproduct->tampil."
-                </option>
-            ";
+            $html = "<option value=''>Pilih Product</option>";
+    
+            foreach ($data_product as $dataproduct) {
+                $html .= "
+                    <option
+                        value='".$dataproduct->isi."'
+                        data-qty='".$dataproduct->qty."'
+                        data-grade='".$dataproduct->grade."'
+                    >
+                        ".$dataproduct->tampil."
+                    </option>
+                ";
+            }
         }
 
         return $html;
