@@ -196,9 +196,14 @@
             }
 
             if(kpno) {
-                $('#ws').val(kpno).change();
+                if ($('#ws_asal').find("option[value='" + kpno + "']").length) {
+                    $('#ws_asal').val(kpno).trigger('change');
+                } else {
+                    let newOption = new Option(kpno, kpno, true, true);
+                    $('#ws_asal').append(newOption).trigger('change');
+                }
             } else {
-                $('#ws').val('').change();
+                $('#ws_asal').val('').trigger('change');
             }
 
             if(stok !== undefined && stok !== null) {
@@ -231,8 +236,8 @@
                 <td>${name_item} <input type="hidden" name="nama_barang[]" value="${name_item}"></td>
                 <td class="text-center">${qty} <input type="hidden" name="qty_det[]" value="${qty}"></td>
                 <td class="text-center">${satuan} <input type="hidden" name="satuan_det[]" value="${satuan}"></td>
-                <td class="text-center">${ws_asal} <input type="text" name="ws_asal_det[]" value="${ws_asal}"></td>
-                <td class="text-center">${ws_tujuan} <input type="text" name="ws_tujuan_det[]" value="${ws_tujuan}"></td>
+                <td class="text-center">${ws_asal} <input type="hidden" name="ws_asal_det[]" value="${ws_asal}"></td>
+                <td class="text-center">${ws_tujuan} <input type="hidden" name="ws_tujuan_det[]" value="${ws_tujuan}"></td>
                 <td class="text-center">
                     <button type="button" class="btn btn-xs btn-danger" onclick="removeRow(this)"><i class="fas fa-trash"></i></button>
                 </td>
