@@ -1798,9 +1798,9 @@
 
         let vat_multiplier = 1 + (actual_vat_pct / 100);
         let vat_idr = Math.round((grand_idr * vat_multiplier) * 100) / 100;
-        let vat_usd = Math.round((grand_usd * vat_multiplier) * 10000) / 10000;
+        let vat_usd = Math.round((grand_usd * vat_multiplier) * 10000000) / 10000000;
         let profit_idr = Math.round((vat_idr * 1.06) * 100) / 100;
-        let profit_usd = Math.round((vat_usd * 1.06) * 10000) / 10000;
+        let profit_usd = Math.round((vat_usd * 1.06) * 10000000) / 10000000;
 
         let confirm_price = parseFloat($('#confirm_price').val()) || 0;
         let suggest_idr = 0;
@@ -1819,16 +1819,16 @@
             suggest_usd = suggest_idr / rate_to_idr;
         }
 
-        $('#grand-tot-idr').text(grand_idr.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
-        $('#grand-tot-usd').text(grand_usd.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
-        $('#val-vat-idr').text(vat_idr.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
-        $('#val-vat-usd').text(vat_usd.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
+        $('#grand-tot-idr').text(grand_idr.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
+        $('#grand-tot-usd').text(grand_usd.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
+        $('#val-vat-idr').text(vat_idr.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
+        $('#val-vat-usd').text(vat_usd.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
 
-        $('#val-suggest-idr').text(suggest_idr.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
-        $('#val-suggest-usd').text(suggest_usd.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
+        $('#val-suggest-idr').text(suggest_idr.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
+        $('#val-suggest-usd').text(suggest_usd.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
 
-        $('#val-profit-idr').text(profit_idr.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
-        $('#val-profit-usd').text(profit_usd.toLocaleString('en-US', {minimumFractionDigits: 6, maximumFractionDigits: 6}));
+        $('#val-profit-idr').text(profit_idr.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
+        $('#val-profit-usd').text(profit_usd.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7}));
 
         lock_type_dropdown();
     }
