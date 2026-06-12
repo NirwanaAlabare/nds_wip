@@ -684,9 +684,14 @@ class Marketing_SOController extends Controller
 
             // Looping Qty per Size
             for ($col_index = 7; $col_index < count($row); $col_index++) {
-                $qty = $row[$col_index];
+                // Bersihkan qty dari spasi biasa dan karakter spasi tersembunyi (NBSP)
+                $qty_raw = $row[$col_index];
+                if ($qty_raw === null || $qty_raw === '') continue;
 
-                if (empty($qty) || !is_numeric($qty) || $qty <= 0) continue;
+                $qty = trim($qty_raw, " \t\n\r\0\x0B\xC2\xA0");
+                $qty = preg_replace('/\s+/u', '', $qty); // Hapus semua whitespace tersisa (unicode)
+
+                if ($qty === '' || !is_numeric($qty) || $qty <= 0) continue;
 
                 $size_name = trim($headers[$col_index]);
                 if (empty($size_name)) continue;
