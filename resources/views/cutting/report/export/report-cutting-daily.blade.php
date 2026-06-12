@@ -31,7 +31,7 @@
     </tr>
     @foreach ($reportCutting as $cutting)
         <tr>
-            <td>{{ $cutting->tgl_form_cut }}</td>
+            <td>{{ $cutting->tanggal }}</td>
             {{-- @if ($currentMeja != $cutting->meja)
                 @php
                     $currentMeja = $cutting->meja;
@@ -40,14 +40,14 @@
             @endif --}}
             <td style="text-align: center;vertical-align: middle;">{{ $cutting->meja }}</td>
             <td>{{ $cutting->buyer }}</td>
-            <td>{{ $cutting->act_costing_ws }}</td>
+            <td>{{ $cutting->worksheet }}</td>
             <td>{{ $cutting->style }}</td>
             <td>{{ $cutting->color }}</td>
             <td>{{ $cutting->panel }}</td>
             <td>{{ $cutting->no_form }}</td>
-            <td>{{ $cutting->qty }}</td>
+            <td>{{ $cutting->qty_aktual }}</td>
             @php
-                $totalOutput += $cutting->qty;
+                $totalOutput += $cutting->qty_aktual;
             @endphp
         </tr>
     @endforeach
