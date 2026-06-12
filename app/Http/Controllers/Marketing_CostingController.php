@@ -1154,7 +1154,7 @@ class Marketing_CostingController extends Controller
             ->leftJoin('mastersupplier as b', 'a.buyer', '=', 'b.Id_Supplier')
             ->leftJoin('masterproduct as p', 'a.product_item', '=', 'p.id')
             ->leftJoin('mastershipmode as sm', 'a.ship_mode', '=', 'sm.id')
-            ->leftJoin('masterseason as seas', 'a.season_id', '=', 'seas.id')
+            ->leftJoin('masterseason as seas', 'a.season_id', '=', 'seas.id_season')
             ->select('a.*', 'b.Supplier as nama_buyer', 'p.product_item as nama_product_item', 'sm.shipmode as nama_ship_mode', 'seas.season as nama_season')
             ->where('a.id', $id)->first();
 
