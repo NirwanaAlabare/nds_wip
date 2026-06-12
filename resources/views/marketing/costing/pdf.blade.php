@@ -127,181 +127,89 @@
 
     @php
         $categories = [
-            'Fabric' => 'FABRIC',
-            'Accessories Sewing' => 'ACCESSORIES SEWING',
-            'Accessories Packing' => 'ACCESSORIES PACKING',
-            'Manufacturing' => 'MANUFACTURING',
-            'Other Cost' => 'OTHER COST'
+            'Fabric'               => 'FABRIC',
+            'Accessories Sewing'   => 'ACCESSORIES SEWING',
+            'Accessories Packing'  => 'ACCESSORIES PACKING',
+            'Manufacturing'        => 'MANUFACTURING',
+            'Other Cost'           => 'OTHER COST'
         ];
+
+        $rate_to_idr = $costing->rate_to_idr ?: 1;
+        $active_sets = [];
+        $saved_sets  = $costing->product_set ? array_map('trim', explode(',', $costing->product_set)) : [];
+        foreach ($master_set as $m_set) {
+            if (in_array($m_set->id, $saved_sets)) $active_sets[] = strtoupper($m_set->nama ?? $m_set->id);
+        }
 
         $sum_fab_idr = 0; $sum_sew_idr = 0; $sum_pack_idr = 0; $sum_mfg_idr = 0; $sum_oth_norm_idr = 0;
         $sum_fab_usd = 0; $sum_sew_usd = 0; $sum_pack_usd = 0; $sum_mfg_usd = 0; $sum_oth_norm_usd = 0;
-
+        $cat_set_totals = []; $grand_set_totals = ['bom' => 0, 'val' => 0, 'sets' => []];
         $overhead_row = null;
-        $rate_to_idr = $costing->rate_to_idr > 0 ? $costing->rate_to_idr : 1;
-        $rate_from_idr = $costing->rate_from_idr > 0 ? $costing->rate_from_idr : 1;
 
-        $jenis_rate = 'B';
-        $curr_record = \Illuminate\Support\Facades\DB::connection('mysql_sb')->table('masterpilihan')->where('id', $costing->curr)->first();
-        if ($curr_record && strtoupper($curr_record->nama_pilihan) == 'USD') {
-            $jenis_rate = 'J';
-        }
-
-        $saved_sets = $costing->product_set ? explode(',', $costing->product_set) : [];
-        $saved_sets = array_map('trim', $saved_sets);
-
-        $active_sets = [];
-        foreach ($master_set as $m_set) {
-            if (in_array($m_set->id, $saved_sets)) {
-                $active_sets[] = strtoupper($m_set->nama ?? $m_set->id);
-            }
-        }
-
-        // Inisialisasi angka 0 agar Set-nya tetap ke-print walau isinya kosong
-        $cat_set_totals = [];
-        $grand_set_totals = ['bom' => 0, 'val' => 0, 'sets' => []];
         foreach(['Fabric', 'Accessories Sewing', 'Accessories Packing', 'Manufacturing'] as $k) {
-            foreach($active_sets as $s) {
-                $cat_set_totals[$k][$s] = ['idr' => 0, 'usd' => 0, 'bom' => 0, 'val' => 0];
-            }
+            foreach($active_sets as $s) $cat_set_totals[$k][$s] = ['idr' => 0, 'usd' => 0, 'bom' => 0, 'val' => 0];
         }
-        foreach($active_sets as $s) {
-            $grand_set_totals['sets'][$s] = ['bom' => 0, 'val' => 0];
-        }
+        foreach($active_sets as $s) $grand_set_totals['sets'][$s] = ['bom' => 0, 'val' => 0];
 
-        // ===================================================================
-        // 2. HITUNG MATERIAL (Akumulasi sesuai SET)
-        // ===================================================================
         foreach(['Fabric', 'Accessories Sewing', 'Accessories Packing', 'Manufacturing'] as $key) {
-            if(isset($details[$key]) && count($details[$key]) > 0) {
+            if(!empty($details[$key])) {
                 foreach($details[$key] as $det) {
-
-                    // Ambil Set
                     $set_name = strtoupper(trim($det->nama_set ?? ''));
+                    $allow    = floatval($det->allowance ?? 0);
+                    $px_idr   = floatval($det->price_px_idr);   // dari DB — sama dengan data-val .px-idr-td
+                    $qty_bom  = ceil((1 + ($allow / 100)) * $costing->qty * floatval($det->cons));
+                    $tot_val  = $qty_bom * $px_idr;             // sama dengan JS: tot_val = qty_bom * px_idr
 
-                    // Hitung BOM & Value per baris
-                    $allow = $det->allowance > 0 ? $det->allowance : 0;
+                    if ($key == 'Fabric') { $sum_fab_idr += $det->value_idr; $sum_fab_usd += $det->value_usd; }
+                    elseif ($key == 'Accessories Sewing') { $sum_sew_idr += $det->value_idr; $sum_sew_usd += $det->value_usd; }
+                    elseif ($key == 'Accessories Packing') { $sum_pack_idr += $det->value_idr; $sum_pack_usd += $det->value_usd; }
+                    elseif ($key == 'Manufacturing') { $sum_mfg_idr += $det->value_idr; $sum_mfg_usd += $det->value_usd; }
 
-                    if ($jenis_rate == 'J') {
-                        $det->price_px_idr = $det->price * $rate_to_idr;
-                        $det->price_px_usd = $det->price;
-                    } else {
-                        $det->price_px_idr = $det->price;
-                        $det->price_px_usd = $det->price / $rate_from_idr;
-                    }
-
-                    $allowcs_usd = ($det->price_px_usd * $det->cons) * ($allow / 100);
-                    $allowcs_idr = ($det->price_px_idr * $det->cons) * ($allow / 100);
-                    
-                    $det->value_usd = ($det->price_px_usd * $det->cons) + $allowcs_usd;
-                    $det->value_idr = ($det->price_px_idr * $det->cons) + $allowcs_idr;
-
-                    $qty_bom = ceil((1 + ($allow / 100)) * $costing->qty * $det->cons);
-                    $tot_val = $qty_bom * $det->price_px_idr;
-
-                    // Akumulasi Total Kategori
-                    if ($key == 'Fabric') {
-                        $sum_fab_idr += $det->value_idr; $sum_fab_usd += $det->value_usd;
-                    } elseif ($key == 'Accessories Sewing') {
-                        $sum_sew_idr += $det->value_idr; $sum_sew_usd += $det->value_usd;
-                    } elseif ($key == 'Accessories Packing') {
-                        $sum_pack_idr += $det->value_idr; $sum_pack_usd += $det->value_usd;
-                    } elseif ($key == 'Manufacturing') {
-                        $sum_mfg_idr += $det->value_idr; $sum_mfg_usd += $det->value_usd;
-                    }
-
-                    // Akumulasi Data Dinamis Per Set
                     if ($set_name && in_array($set_name, $active_sets)) {
                         $cat_set_totals[$key][$set_name]['idr'] += $det->value_idr;
                         $cat_set_totals[$key][$set_name]['usd'] += $det->value_usd;
                         $cat_set_totals[$key][$set_name]['bom'] += $qty_bom;
                         $cat_set_totals[$key][$set_name]['val'] += $tot_val;
-
                         $grand_set_totals['sets'][$set_name]['bom'] += $qty_bom;
                         $grand_set_totals['sets'][$set_name]['val'] += $tot_val;
                     }
-
                     $grand_set_totals['bom'] += $qty_bom;
                     $grand_set_totals['val'] += $tot_val;
                 }
             }
         }
 
-        $base_material_idr = $sum_fab_idr + $sum_sew_idr + $sum_pack_idr;
-        $base_material_usd = $sum_fab_usd + $sum_sew_usd + $sum_pack_usd;
-
-        if(isset($details['Other Cost']) && count($details['Other Cost']) > 0) {
+        if(!empty($details['Other Cost'])) {
             foreach($details['Other Cost'] as $det) {
-                if (str_contains(strtoupper($det->nama_item), 'OVERHEAD')) {
-                    $overhead_row = $det;
-                } else {
-                    // Pakai value_idr/value_usd dari database (yang diinput user di edit page)
-                    // Jangan recalculate dari price karena Other Cost diinput langsung sebagai value IDR
-                    if ($det->value_idr == 0 && $det->price > 0) {
-                        // Fallback: jika value_idr belum ada di DB, recalculate dari price
-                        if ($jenis_rate == 'J') {
-                            $det->price_px_idr = $det->price * $rate_to_idr;
-                            $det->price_px_usd = $det->price;
-                        } else {
-                            $det->price_px_idr = $det->price;
-                            $det->price_px_usd = $det->price / $rate_from_idr;
-                        }
-                        $det->value_idr = $det->price_px_idr;
-                        $det->value_usd = $det->price_px_usd;
-                    } else {
-                        // Gunakan value_idr/value_usd yang sudah tersimpan di database
-                        $det->value_usd = $rate_to_idr > 0 ? $det->value_idr / $rate_to_idr : 0;
-                    }
-
+                if (str_contains(strtoupper($det->nama_item), 'OVERHEAD')) $overhead_row = $det;
+                else {
                     $sum_oth_norm_idr += $det->value_idr;
-                    $sum_oth_norm_usd += $det->value_usd;
+                    $sum_oth_norm_usd += ($det->value_idr / $rate_to_idr);
                 }
             }
         }
 
-        // 4. Base Overhead (Base Material + Other Cost Normal)
-        $base_overhead_idr = $base_material_idr;
-        $base_overhead_usd = $base_material_usd;
+        $base_overhead_idr = $sum_fab_idr + $sum_sew_idr + $sum_pack_idr;
+        $overhead_idr = $overhead_row ? ($base_overhead_idr * ($overhead_row->allowance / 100)) : 0;
+        $overhead_usd = $overhead_idr / $rate_to_idr;
 
-        $overhead_idr = 0; $overhead_usd = 0;
-        if ($overhead_row) {
-            $oh_allow = $overhead_row->allowance > 0 ? $overhead_row->allowance : 6;
-
-            $overhead_idr = $base_overhead_idr * ($oh_allow / 100);
-            $overhead_usd = $base_overhead_usd * ($oh_allow / 100);
-
-            $overhead_row->value_idr = $overhead_idr;
-            $overhead_row->value_usd = $overhead_usd;
-        }
-
-        $tot_other_idr = $sum_oth_norm_idr + $overhead_idr;
-        $tot_other_usd = $sum_oth_norm_usd + $overhead_usd;
-
-        // 5. Hitung Grand Total Cost Akhir
-        $base_ga_idr = $base_material_idr + $sum_mfg_idr + $tot_other_idr;
-        $base_ga_usd = $base_material_usd + $sum_mfg_usd + $tot_other_usd;
-
-        $input_ga_pct = isset($costing->ga_percent) ? floatval($costing->ga_percent) : 3.00;
+        $input_ga_pct = floatval($costing->ga_percent ?? 3.00);
+        $base_ga_idr = $base_overhead_idr + $sum_mfg_idr + $sum_oth_norm_idr + $overhead_idr;
         $ga_idr = $base_ga_idr * ($input_ga_pct / 100);
-        $ga_usd = $base_ga_usd * ($input_ga_pct / 100);
-
+        $ga_usd  = $ga_idr / $rate_to_idr;
         $grand_idr = $base_ga_idr + $ga_idr;
         $grand_usd = $grand_idr / $rate_to_idr;
+        $ga_pct = $grand_idr > 0 ? ($ga_idr / $grand_idr) * 100 : 0;
 
         $pembagi_persen = $grand_idr;
 
-        //
-
-        $actual_vat = strtolower($costing->shipment_type) == 'export' ? 0 : $costing->vat;
+        // VAT & PROFIT — sama persis dengan JS di edit.blade
+        $actual_vat     = strtolower($costing->shipment_type) == 'export' ? 0 : $costing->vat;
         $vat_multiplier = 1 + ($actual_vat / 100);
-
-        $vat_idr = $grand_idr * $vat_multiplier;
-        $vat_usd = $grand_usd * $vat_multiplier;
-
-        $profit_idr = $vat_idr * 1.06;
-        $profit_usd = $vat_usd * 1.06;
-
-        $ga_pct = $grand_idr > 0 ? ($ga_idr / $grand_idr) * 100 : 0;
+        $vat_idr    = round($grand_idr * $vat_multiplier, 2);
+        $vat_usd    = round($grand_usd * $vat_multiplier, 4);
+        $profit_idr = round($vat_idr * 1.06, 2);
+        $profit_usd = round($vat_usd * 1.06, 4);
     @endphp
 
 
@@ -347,9 +255,10 @@
 
                                 $persen = $pembagi_persen > 0 ? ($det->value_idr / $pembagi_persen) * 100 : 0;
 
-                                $allow = $det->allowance > 0 ? $det->allowance : 0;
+                                $allow   = $det->allowance ?? 0;
                                 $qty_bom = ceil((1 + ($allow / 100)) * $costing->qty * $det->cons);
-                                $tot_val = $qty_bom * $det->price_px_idr;
+                                // tot_val = qty_bom × price_px_idr dari DB (sama dengan JS di edit.blade)
+                                $tot_val = $qty_bom * floatval($det->price_px_idr);
 
                                 $sum_val += $tot_val;
                                 $sub_bom += $qty_bom;
@@ -421,6 +330,8 @@
                     @if(isset($details[$key]) && count($details[$key]) > 0)
                         @foreach($details[$key] as $idx => $det)
                             @php
+                                // Untuk display: usd = idr / rate_to_idr (sama dengan JS)
+                                $det->value_usd = $rate_to_idr > 0 ? floatval($det->value_idr) / $rate_to_idr : 0;
                                 $sub_idr += $det->value_idr;
                                 $sub_usd += $det->value_usd;
                                 $persen = $pembagi_persen > 0 ? ($det->value_idr / $pembagi_persen) * 100 : 0;
