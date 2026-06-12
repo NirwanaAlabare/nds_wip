@@ -340,8 +340,8 @@
                                 <td class="text-center">{{ $idx + 1 }}</td>
                                 <td>{{ $det->nama_item ?? '-' }}</td>
                                 <td class="text-center">{{ number_format($det->allowance > 0 ? $det->allowance : (str_contains(strtoupper($det->nama_item), 'OVERHEAD') ? 6 : 0), 2) }}</td>
-                                <td class="text-right fw-bold">{{ number_format($det->value_idr, 6, '.', ',') }}</td>
-                                <td class="text-right fw-bold">{{ number_format($det->value_usd, 4, '.', ',') }}</td>
+                                <td class="text-right fw-bold">{{ number_format($det->value_idr, 7, '.', ',') }}</td>
+                                <td class="text-right fw-bold">{{ number_format($det->value_usd, 7, '.', ',') }}</td>
                                 <td class="text-center">{{ number_format($persen, 2) }}%</td>
                             </tr>
                         @endforeach
@@ -355,14 +355,14 @@
                     @endphp
                     <tr class="bg-light fw-bold">
                         <td colspan="3" class="text-left">TOTAL OTHER COST :</td>
-                        <td class="text-right">{{ number_format($sub_idr, 6, '.', ',') }}</td>
-                        <td class="text-right">{{ number_format($sub_usd, 4, '.', ',') }}</td>
+                        <td class="text-right">{{ number_format($sub_idr, 7, '.', ',') }}</td>
+                        <td class="text-right">{{ number_format($sub_usd, 7, '.', ',') }}</td>
                         <td class="text-center">{{ number_format($sub_persen, 2) }}%</td>
                     </tr>
                      <tr class="bg-light fw-bold">
                         <td colspan="3" class="text-left">G&A ({{ number_format($input_ga_pct, 6) }}%)</td>
-                        <td class="text-right">{{ number_format($ga_idr, 6, '.', ',') }}</td>
-                        <td class="text-right">{{ number_format($ga_usd, 4, '.', ',') }}</td>
+                        <td class="text-right">{{ number_format($ga_idr, 7, '.', ',') }}</td>
+                        <td class="text-right">{{ number_format($ga_usd, 7, '.', ',') }}</td>
                         <td class="text-center">{{ number_format($ga_pct, 2) }}%</td>
                     </tr>
                 </tfoot>

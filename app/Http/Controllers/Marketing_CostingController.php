@@ -1482,6 +1482,7 @@ class Marketing_CostingController extends Controller
                             ->setCellValue("F$row", $persen);
 
                         $sheet->getStyle("A$row:F$row")->applyFromArray($styleBorder);
+                        $sheet->getStyle("D$row:E$row")->getNumberFormat()->setFormatCode('#,##0.0000000');
                         $sheet->getStyle("F$row")->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_PERCENTAGE_00);
                         $row++;
                     }
@@ -1490,6 +1491,7 @@ class Marketing_CostingController extends Controller
                 $sheet->mergeCells("A$row:C$row"); $sheet->setCellValue("A$row", "TOTAL OTHER COST :")->getStyle("A$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
                 $sheet->setCellValue("D$row", $sub_idr)->setCellValue("E$row", $sub_usd)->setCellValue("F$row", $sub_persen);
                 $sheet->getStyle("A$row:F$row")->applyFromArray($styleHead);
+                $sheet->getStyle("D$row:E$row")->getNumberFormat()->setFormatCode('#,##0.0000000');
                 $sheet->getStyle("F$row")->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_PERCENTAGE_00);
                 $row++;
 
@@ -1497,6 +1499,7 @@ class Marketing_CostingController extends Controller
                 $sheet->mergeCells("A$row:C$row"); $sheet->setCellValue("A$row", "G&A (" . $input_ga_pct . "%)")->getStyle("A$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
                 $sheet->setCellValue("D$row", $ga_idr)->setCellValue("E$row", $ga_usd)->setCellValue("F$row", $ga_pct);
                 $sheet->getStyle("A$row:F$row")->applyFromArray($styleHead);
+                $sheet->getStyle("D$row:E$row")->getNumberFormat()->setFormatCode('#,##0.0000000');
                 $sheet->getStyle("F$row")->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_PERCENTAGE_00);
                 $row += 2;
             }
