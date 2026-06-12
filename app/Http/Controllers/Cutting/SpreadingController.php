@@ -868,6 +868,40 @@ class SpreadingController extends Controller
                 form_cut_input.id,
                 form_cut_input_detail.group_stocker,
                 marker_input_detail.id
+            UNION ALL
+            SELECT
+                form_cut_reject.tanggal,
+                '-' meja,
+                form_cut_reject.act_costing_ws worksheet,
+                form_cut_reject.buyer,
+                form_cut_reject.style,
+                form_cut_reject.color,
+                master_sb_ws.id_so_det,
+                COALESCE(master_sb_ws.size, form_cut_reject_detail.size) AS size,
+                master_sb_ws.dest,
+                (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE form_cut_reject_detail.size END) size_dest,
+                null group_roll,
+                null lot,
+                null no_cut,
+                form_cut_reject.no_form,
+                '-' no_marker,
+                form_cut_reject.panel,
+                '-' max_group,
+                null group_stocker,
+                null,
+                null,
+                SUM(form_cut_reject_detail.qty) as qty
+            FROM
+                form_cut_reject
+                LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
+            WHERE
+                form_cut_reject.tanggal between '".$dateFrom."' and '".$dateTo."' and
+                form_cut_reject.tanggal > '2026-04-30' and
+                form_cut_reject_detail.qty > 0
+            GROUP BY
+                form_cut_reject.id,
+                form_cut_reject_detail.so_det_id
             ORDER BY
                 tanggal desc,
                 meja,

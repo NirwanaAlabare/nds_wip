@@ -49,7 +49,7 @@ class Marketing_CostingController extends Controller
 
             return DataTables::of($data)
                 ->addIndexColumn()
-                ->editColumn('tgl_costing', function ($row) {
+                ->addColumn('tgl_costing', function ($row) {
                     return $row->created_at ? date('d-m-Y', strtotime($row->created_at)) : '-';
                 })
                 ->make(true);
@@ -1154,7 +1154,8 @@ class Marketing_CostingController extends Controller
             ->leftJoin('mastersupplier as b', 'a.buyer', '=', 'b.Id_Supplier')
             ->leftJoin('masterproduct as p', 'a.product_item', '=', 'p.id')
             ->leftJoin('mastershipmode as sm', 'a.ship_mode', '=', 'sm.id')
-            ->select('a.*', 'b.Supplier as nama_buyer', 'p.product_item as nama_product_item', 'sm.shipmode as nama_ship_mode')
+            ->leftJoin('masterseason as seas', 'a.season_id', '=', 'seas.id_season')
+            ->select('a.*', 'b.Supplier as nama_buyer', 'p.product_item as nama_product_item', 'sm.shipmode as nama_ship_mode', 'seas.season as nama_season')
             ->where('a.id', $id)->first();
 
         if (!$costing) return redirect()->back()->with('error', 'Data Costing tidak ditemukan.');
@@ -1335,7 +1336,7 @@ class Marketing_CostingController extends Controller
             $set_string = implode(', ', $active_sets);
         }
 
-        $sheet->setCellValue('A7', 'Season')->setCellValue('B7', ': ' . ($costing->season ?? '-'));
+        $sheet->setCellValue('A7', 'Season')->setCellValue('B7', ': ' . ($costing->nama_season ?? '-'));
         $sheet->setCellValue('D7', 'Type')->setCellValue('E7', ': ' . strtoupper($costing->type));
         $sheet->setCellValue('G7', 'Rate from IDR')->setCellValue('H7', ': ' . $costing->rate_from_idr);
 
@@ -1481,6 +1482,7 @@ class Marketing_CostingController extends Controller
                             ->setCellValue("F$row", $persen);
 
                         $sheet->getStyle("A$row:F$row")->applyFromArray($styleBorder);
+                        $sheet->getStyle("D$row:E$row")->getNumberFormat()->setFormatCode('#,##0.0000000');
                         $sheet->getStyle("F$row")->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_PERCENTAGE_00);
                         $row++;
                     }
@@ -1489,6 +1491,7 @@ class Marketing_CostingController extends Controller
                 $sheet->mergeCells("A$row:C$row"); $sheet->setCellValue("A$row", "TOTAL OTHER COST :")->getStyle("A$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
                 $sheet->setCellValue("D$row", $sub_idr)->setCellValue("E$row", $sub_usd)->setCellValue("F$row", $sub_persen);
                 $sheet->getStyle("A$row:F$row")->applyFromArray($styleHead);
+                $sheet->getStyle("D$row:E$row")->getNumberFormat()->setFormatCode('#,##0.0000000');
                 $sheet->getStyle("F$row")->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_PERCENTAGE_00);
                 $row++;
 
@@ -1496,6 +1499,7 @@ class Marketing_CostingController extends Controller
                 $sheet->mergeCells("A$row:C$row"); $sheet->setCellValue("A$row", "G&A (" . $input_ga_pct . "%)")->getStyle("A$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
                 $sheet->setCellValue("D$row", $ga_idr)->setCellValue("E$row", $ga_usd)->setCellValue("F$row", $ga_pct);
                 $sheet->getStyle("A$row:F$row")->applyFromArray($styleHead);
+                $sheet->getStyle("D$row:E$row")->getNumberFormat()->setFormatCode('#,##0.0000000');
                 $sheet->getStyle("F$row")->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_PERCENTAGE_00);
                 $row += 2;
             }
@@ -1526,10 +1530,10 @@ class Marketing_CostingController extends Controller
         $actual_vat = strtolower($costing->shipment_type) == 'export' ? 0 : $costing->vat;
         $vat_multiplier = 1 + ($actual_vat / 100);
 
-        $vat_idr = $grand_idr * $vat_multiplier;
-        $vat_usd = $grand_usd * $vat_multiplier;
-        $profit_idr = $vat_idr * 1.06;
-        $profit_usd = $vat_usd * 1.06;
+        $vat_idr = round($grand_idr * $vat_multiplier, 2);
+        $vat_usd = round($grand_usd * $vat_multiplier, 7);
+        $profit_idr = round($vat_idr * 1.06, 2);
+        $profit_usd = round($vat_usd * 1.06, 7);
         $ga_pct = $grand_idr > 0 ? ($ga_idr / $grand_idr) : 0;
 
         $start_footer_row = $row;
@@ -1544,20 +1548,20 @@ class Marketing_CostingController extends Controller
 
         $sheet->mergeCells("I$row:J$row"); $sheet->setCellValue("I$row", "TOTAL COST")->getStyle("I$row")->applyFromArray($styleBoldCenter)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
         $sheet->setCellValue("K$row", $grand_idr)->setCellValue("L$row", $grand_usd)->getStyle("K$row:L$row")->applyFromArray($styleBorder)->getFont()->setBold(true);
-        $sheet->getStyle("K$row")->getNumberFormat()->setFormatCode('#,##0.000000');
-        $sheet->getStyle("L$row")->getNumberFormat()->setFormatCode('#,##0.00');
+        $sheet->getStyle("K$row")->getNumberFormat()->setFormatCode('#,##0.0000000');
+        $sheet->getStyle("L$row")->getNumberFormat()->setFormatCode('#,##0.0000000');
         $row++;
 
         $sheet->mergeCells("I$row:J$row"); $sheet->setCellValue("I$row", "VAT ($actual_vat%)")->getStyle("I$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
         $sheet->setCellValue("K$row", $vat_idr)->setCellValue("L$row", $vat_usd)->getStyle("K$row:L$row")->applyFromArray($styleBorder);
-        $sheet->getStyle("K$row")->getNumberFormat()->setFormatCode('#,##0.000000');
-        $sheet->getStyle("L$row")->getNumberFormat()->setFormatCode('#,##0.00');
+        $sheet->getStyle("K$row")->getNumberFormat()->setFormatCode('#,##0.0000000');
+        $sheet->getStyle("L$row")->getNumberFormat()->setFormatCode('#,##0.0000000');
         $row++;
 
         $sheet->mergeCells("I$row:J$row"); $sheet->setCellValue("I$row", "PROFIT (6%)")->getStyle("I$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
         $sheet->setCellValue("K$row", $profit_idr)->setCellValue("L$row", $profit_usd)->getStyle("K$row:L$row")->applyFromArray($styleBorder);
-        $sheet->getStyle("K$row")->getNumberFormat()->setFormatCode('#,##0.00');
-        $sheet->getStyle("L$row")->getNumberFormat()->setFormatCode('#,##0.00');
+        $sheet->getStyle("K$row")->getNumberFormat()->setFormatCode('#,##0.0000000');
+        $sheet->getStyle("L$row")->getNumberFormat()->setFormatCode('#,##0.0000000');
 
         $sig_row = $start_footer_row + 1;
 
@@ -1619,7 +1623,7 @@ class Marketing_CostingController extends Controller
 
             return DataTables::of($data)
                 ->addIndexColumn()
-                ->editColumn('tgl_costing', function ($row) {
+                ->addColumn('tgl_costing', function ($row) {
                     return $row->created_at ? date('d-m-Y', strtotime($row->created_at)) : '-';
                 })
                 ->make(true);

@@ -19,8 +19,8 @@ class Marketing_SOController extends Controller
 
             $query = $mysql_sb->table('so')
                 ->leftJoin('act_costing as act', 'so.id_cost', '=', 'act.id')
-                ->join('mastersupplier as ms', 'so.buyerno', '=', 'ms.Id_Supplier')
-                ->join('masterproduct as mp', 'so.id_product', '=', 'mp.id')
+                ->leftJoin('mastersupplier as ms', 'so.buyerno', '=', 'ms.Id_Supplier')
+                ->leftJoin('masterproduct as mp', 'so.id_product', '=', 'mp.id')
                 ->select([
                     'so.id',
                     'so.d_insert',
@@ -1294,16 +1294,16 @@ class Marketing_SOController extends Controller
         if ($temp_data->isEmpty()) return response()->json(['message' => 'Data Kosong!'], 400);
 
         $po_type = $request->po_type ?? 'single';
-        
+
         if ($po_type === 'multiple') {
             $all_po_array = $temp_data->keys()->toArray();
             $no_po_combined = implode(', ', $all_po_array);
             if (strlen($no_po_combined) > 200) {
                 $no_po_combined = substr($no_po_combined, 0, 195) . '...';
             }
-            
+
             $all_details = $temp_data->flatten(1);
-            
+
             $temp_data = collect([
                 $no_po_combined => $all_details
             ]);
@@ -2332,7 +2332,7 @@ class Marketing_SOController extends Controller
                 'c.product_group',
                 'c.product_item as nama_product_item',
                 'c.brand',
-                'c.season',
+                'c.season_id',
                 'c.style',
                 'c.market',
                 'c.marketing_order',
@@ -2543,14 +2543,14 @@ class Marketing_SOController extends Controller
 
                 if (count($new_colors) > 0 || count($new_sizes) > 0) {
                     $so_colors_current = $so_colors;
-                    
+
                     // Ekspansi Warna Baru
                     foreach ($new_colors as $nc) {
                         $color_info = $mysql_sb->table('master_colors_gmt')->where('id', $nc)->first();
                         foreach ($so_sizes as $sz) {
                             $ref = $mysql_sb->table('so_det')->where('id_so', $id)->where('cancel', 'N')->where('id_size', $sz)->first();
                             if (!$ref) $ref = $base_so_det;
-                            
+
                             $mysql_sb->table('so_det')->insert([
                                 'id_so' => $id,
                                 'color' => $color_info ? $color_info->name : '-',
@@ -2596,7 +2596,7 @@ class Marketing_SOController extends Controller
                             ]);
                         }
                     }
-                    
+
                     // Update SO header total qty
                     $total_qty = $mysql_sb->table('so_det')->where('id_so', $id)->where('cancel', 'N')->sum('qty');
                     $mysql_sb->table('so')->where('id', $id)->update(['qty' => $total_qty]);
