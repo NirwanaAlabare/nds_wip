@@ -516,6 +516,7 @@
             if (row.status == 'Pending') {
                 return `<div class='d-flex gap-1 justify-content-center'>
                 <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
+                <button type='button' class='btn btn-sm btn-danger' onclick='cancelRoBarcode("` + row.no_bppb + `")'><i class="fa-solid fa-ban"></i></button>
                 </div>`;
             }else{
                 return `<div class='d-flex gap-1 justify-content-center'>
@@ -527,10 +528,46 @@
 
     ]
 });
+        // <button type='button' class='btn btn-sm btn-primary' onclick='editRoBarcode("` + row.id + `")'><i class="fa-solid fa-pen-to-square"></i></button>
     //<button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_outmaterial("` + row.no_bppb + `")'><i class="fa-solid fa-person-circle-check"></i></button>
 
     function dataTableReload() {
         datatable.ajax.reload();
+    }
+
+    function editRoBarcode(id) {
+        window.location.href = "{{ route('edit-ro-barcode') }}" + '/' + id;
+    }
+
+    function cancelRoBarcode(no_bppb) {
+        Swal.fire({
+            title: 'Cancel RO',
+            text: "Apakah anda yakin ingin membatalkan RO " + no_bppb + " ?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Cancel',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "{{ route('cancel-ro-barcode') }}",
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        txt_nodok: no_bppb,
+                    },
+                    success: function(res) {
+                        Swal.fire('Berhasil', res.message, 'success').then(() => {
+                            dataTableReload();
+                        });
+                    },
+                    error: function(err) {
+                        Swal.fire('Error', 'Terjadi kesalahan.', 'error');
+                    }
+                });
+            }
+        });
     }
 </script>
 <script type="text/javascript">
