@@ -321,6 +321,7 @@
         function cleardet() {
             // document.getElementById('txtno_carton').value = "";
             document.getElementById('txtqty').value = "";
+            $('#txtqty').prop('placeholder', '');
             $("#cboproduct").val('').trigger('change');
 
         }
@@ -338,8 +339,10 @@
             // console.log(html != "");
             if (html != "") {
                 $("#cbows").html(html);
-                // $("#cbomarker").prop("disabled", false);
-                // $("#txtqtyply").prop("readonly", false);
+                
+                $('#txtqty').val('');
+                $('#txtqty').prop('placeholder', '');
+                $('#cbograde').val('').trigger('change');
             }
         };
 
@@ -355,6 +358,10 @@
             }).responseText;
             if (html != "") {
                 $("#cbocolor").html(html);
+
+                $('#txtqty').val('');
+                $('#txtqty').prop('placeholder', '');
+                $('#cbograde').val('').trigger('change');
             }
         };
 
@@ -372,6 +379,10 @@
             }).responseText;
             if (html != "") {
                 $("#cbosize").html(html);
+
+                $('#txtqty').val('');
+                $('#txtqty').prop('placeholder', '');
+                $('#cbograde').val('').trigger('change');
             }
         };
 
@@ -396,21 +407,29 @@
             }
         };
 
+        $(document).on('change', '#cboproduct', function() {
+            let selected = $(this).find(':selected');
+
+            $('#txtqty').prop('placeholder', selected.data('qty'));
+            $('#cbograde').val(selected.data('grade')).trigger('change');
+        });
+
         function tambah_data() {
+            let cbosumber = document.form_h.cbosumber.value;
             let cboproduct = document.form_d.cboproduct.value;
             let qty = document.form_d.txtqty.value;
             let no_carton = document.form_d.txtno_carton.value;
             let grade = document.form_d.cbograde.value;
-            let cbosumber = document.form_h.cbosumber.value;
+
             $.ajax({
                 type: "post",
                 url: '{{ route('store_tmp') }}',
                 data: {
+                    cbosumber: cbosumber,
                     cboproduct: cboproduct,
                     qty: qty,
                     no_carton: no_carton,
-                    grade: grade,
-                    cbosumber: cbosumber
+                    grade: grade
                 },
                 success: function(response) {
                     if (response.icon == 'salah') {
@@ -427,6 +446,22 @@
                         cleardet();
                     }
                 },
+                error: function(xhr) {
+                    if (xhr.status == 422) {
+
+                        let errors = xhr.responseJSON.errors;
+                        let pesan = '';
+
+                        $.each(errors, function(key, value) {
+                            pesan += value[0] + '<br>';
+                        });
+
+                        iziToast.warning({
+                            message: pesan,
+                            position: 'topCenter'
+                        });
+                    }
+                }
                 // error: function(request, status, error) {
                 //     alert(request.responseText);
                 // },
