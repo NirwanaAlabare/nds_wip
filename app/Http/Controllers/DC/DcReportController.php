@@ -1587,7 +1587,9 @@ class DcReportController extends Controller
         }
 
         return view('dc.report.report', [
-            "page" => "dashboard-dc"
+            "page" => "dashboard-dc",
+            "subPageGroup" => "report",
+            "subPage" => "dc-report",
         ]);
     }
 
@@ -5066,7 +5068,9 @@ class DcReportController extends Controller
         }
 
         return view('dc.report.report-mutasi-set', [
-            "page" => "dashboard-dc"
+            "page" => "dashboard-dc",
+            "subPageGroup" => "report",
+            "subPage" => "report_mutasi_wip_dc_set",
         ]);
     }
 
@@ -6757,14 +6761,14 @@ class DcReportController extends Controller
 
         ");
         
-        $fileName = 'report-mutasi-wip-dc-set';
+        $fileName = 'report-mutasi-wip-set-dc';
 
         $excel = FastExcel::create($fileName);
 
         $sheet = $excel->sheet();
 
         $sheet->writeRow(
-            ['Report Mutasi WIP DC Set'],
+            ['Report Mutasi WIP Set DC'],
             [
                 'font-style' => 'bold',
                 'font-size'  => 14,
