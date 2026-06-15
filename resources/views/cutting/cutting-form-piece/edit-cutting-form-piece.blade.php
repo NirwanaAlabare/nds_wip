@@ -312,9 +312,6 @@
     {{-- END OF PROCESS TWO --}}
 
     {{-- PROCESS THREE --}}
-        <div id="summary">
-
-        </div>
         <div id="process-three-container">
             <form action="{{ route('store-cutting-piece') }}" method="POST" id="process-three-form" onsubmit="processThree(this, event)" class="d-none">
                 <div class="card card-sb" id="process-three-card">
@@ -1048,7 +1045,7 @@
 
                 // 💡 Set title
                 const title = cloneCard.querySelector(".card-title");
-                if (title) title.textContent = `${(item.id_roll ? item.id_roll : item.id)}`;
+                if (title) title.textContent = `${(item.id_roll ? item.id_roll : item.id_item)}`;
 
                 // ✅ Value map from item
                 const valueMap = {
@@ -1120,7 +1117,7 @@
                             <tr>
                                 <td colspan="2" class="text-right font-weight-bold">Total</td>
                                 <td id="total-detail-qty${suffix}">${(item.form_cut_piece_detail_sizes || []).reduce((sum, row) => sum + Number(row.qty || 0), 0)}</td>
-                                <td id="total-detail-qty-aktual${suffix}">${(item.form_cut_piece_detail_sizes || []).reduce((sum, row) => sum + Number(row.qty_aktual || 0), 0)}</td>
+                                <td id="total-detail-qty-actual${suffix}">${(item.form_cut_piece_detail_sizes || []).reduce((sum, row) => sum + Number(row.qty_aktual || 0), 0)}</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -1177,10 +1174,10 @@
                             ${row.dest}
                         </td>
                         <td>
-                            <input type="number" name="qty_detail[${index}]" id="qty_detail_${index}${suffix}" value="${row.qty}" class="form-control detail-qty${suffix}" onkeyup="calculateTotalDetailQty('${suffix}')" onchange="calculateTotalDetailQty('${suffix}')"/>
+                            <input type="number" name="qty_detail[${index}]" id="qty_detail_${index}${suffix}" value="${row.qty}" class="form-control detail-qty${suffix}" data-so-det='${row.so_det_id}' data-row='${index}' onkeyup="calculateQtyActual(this, '${suffix}');calculateTotalDetailQty('${suffix}')" onchange="calculateQtyActual(this, '${suffix}');calculateTotalDetailQty('${suffix}')"/>
                         </td>
                         <td>
-                            <input type="number" name="qty_detail_actual[${index}]" id="qty_detail_actual_${index}${suffix}" value="${row.qty_aktual}" class="form-control" readonly />
+                            <input type="number" name="qty_detail_actual[${index}]" id="qty_detail_actual_${index}${suffix}" value="${row.qty_aktual}" class="form-control detail-qty-actual${suffix}" readonly />
                         </td>
                     </tr>
                 `).join("");
@@ -1261,7 +1258,7 @@
                         targets: [5],
                         className: "text-nowrap",
                         render: (data, type, row, meta) => {
-                            let input = `<input type='number' class='form-control form-control-sm detail-qty' id='qty_detail_`+meta.row+`' name='qty_detail[`+meta.row+`]' data-so-det='`+row.so_det_id+`' onkeyup="calculateTotalDetailQty()" onchange="calculateTotalDetailQty()">`
+                            let input = `<input type='number' class='form-control form-control-sm detail-qty' id='qty_detail_`+meta.row+`' name='qty_detail[`+meta.row+`]' data-so-det='`+row.so_det_id+`' data-row='`+meta.row+`' onkeyup="calculateTotalDetailQty()" onchange="calculateTotalDetailQty()">`
 
                             return input;
                         }
@@ -1289,6 +1286,23 @@
                 }
             }
 
+            function calculateQtyActual(element, suffix = '') {
+                if (element) {
+                    let row = element.getAttribute('data-row');
+                    let qty = Number(element.value);
+
+                    if (row) {
+                        let consWs = Number(document.getElementById("cons_ws").value);
+
+                        console.log("calculate", consWs, qty);
+
+                        document.getElementById("qty_detail_actual_"+row+suffix).value = qty / (consWs > 0 ? consWs : 1);
+
+                        calculateTotalDetailQtyActual(suffix);
+                    }
+                }
+            }
+
             function calculateTotalDetailQty(suffix = '') {
                 let detailQtyElements = document.getElementsByClassName("detail-qty"+suffix);
 
@@ -1307,6 +1321,18 @@
 
                 qtyUseElement.value = totalQty;
                 qtySisaElement.value = Number(qtyItemElement.value) - totalQty;
+            }
+
+            function calculateTotalDetailQtyActual(suffix = '') {
+                let detailQtyActualElements = document.getElementsByClassName("detail-qty-actual"+suffix);
+
+                let totalQty = 0;
+                for (let i = 0; i < detailQtyActualElements.length; i++) {
+                    console.log(i, detailQtyActualElements[i].value, detailQtyActualElements[i]);
+                    totalQty += Number(detailQtyActualElements[i].value);
+                }
+
+                document.getElementById("total-detail-qty-actual"+suffix).innerHTML = totalQty;
             }
 
             function processThree(e, event) {

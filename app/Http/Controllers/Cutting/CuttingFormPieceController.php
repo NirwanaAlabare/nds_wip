@@ -446,7 +446,8 @@ class CuttingFormPieceController extends Controller
         }
     }
 
-    public function finishProcess($id = 0) {
+    public function finishProcess($id = 0)
+    {
         if ($id) {
             $currentForm = FormCutPiece::where("id", $id)->first();
 
