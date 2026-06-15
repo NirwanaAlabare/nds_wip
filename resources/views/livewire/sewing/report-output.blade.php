@@ -28,17 +28,19 @@
             <div>
                 <input type="text" class="form-control form-control-sm" name="search" id='search' wire:model.lazy='search' placeholder="Search...">
             </div>
-            <div id="single-date" class="{{ $range == "custom" ? 'd-none' : '' }}">
-                <input type="date" class="form-control form-control-sm" name="date" id='date' wire:model.lazy='date'>
+            <div id="single-date" wire:ignore>
+                <input type="date" class="form-control form-control-sm jq-datepicker" name="date" id='date' value="{{ date('Y-m-d') }}">
             </div>
-            <div class="{{ $range != "custom" ? 'd-none' : 'd-flex gap-3' }}" id="custom-date">
-                <div>
-                    <label>Dari</label>
-                    <input type="date" class="form-control form-control-sm" name="datefrom" id='datefrom' wire:model.lazy='dateFrom'>
-                </div>
-                <div>
-                    <label>Sampai</label>
-                    <input type="date" class="form-control form-control-sm" name="dateto" id='dateto' wire:model.lazy='dateTo'>
+            <div class="d-none" id="custom-date" wire:ignore>
+                <div class="d-flex gap-1">
+                    <div>
+                        <label>Dari</label>
+                        <input type="date" class="form-control form-control-sm jq-datepicker" name="datefrom" id='datefrom' value="{{ date('Y-m-d') }}">
+                    </div>
+                    <div>
+                        <label>Sampai</label>
+                        <input type="date" class="form-control form-control-sm jq-datepicker" name="dateto" id='dateto' value="{{ date('Y-m-d') }}">
+                    </div>
                 </div>
             </div>
             <div>
@@ -923,6 +925,44 @@
 
 @push('scripts')
 <script>
+    $('#date').on("change", function () {
+        showLoading();
+
+        let dateVal = $(this).val();
+
+        @this.set('date', dateVal);
+    });
+
+    $('#datefrom').on("change", function () {
+        showLoading();
+
+        let dateVal = $(this).val();
+
+        @this.set('dateFrom', dateVal);
+    });
+
+    $('#dateto').on("change", function () {
+        showLoading();
+
+        let dateVal = $(this).val();
+
+        @this.set('dateTo', dateVal);
+    });
+
+    Livewire.on("rangeUpdated", function(range) {
+        if (range == "custom") {
+            $("#single-date").removeClass("d-none");
+            $("#custom-date").addClass("d-none");
+        } else {
+            $("#single-date").removeClass("d-none");
+            $("#custom-date").addClass("d-none");
+        }
+    });
+
+    Livewire.on("hideLoading", function() {
+        hideLoading();
+    });
+
     // Grouping
         $("#line-group").prop("checked", true);
 
