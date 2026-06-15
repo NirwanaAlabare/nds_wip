@@ -268,16 +268,16 @@ class PenerimaanCuttingController extends Controller
 
     public function getBarcodeFabric($id){
 
-        // $isExist = DB::table('penerimaan_cutting')
-        //     ->where('id_roll', $id)
-        //     ->exists();
+        $isExist = DB::table('penerimaan_cutting')
+            ->where('id_roll', $id)
+            ->exists();
 
-        // if ($isExist) {
-        //     return response()->json([
-        //         'status' => false,
-        //         'message' => 'Roll sudah pernah diterima!'
-        //     ]);
-        // }
+        if ($isExist) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Roll sudah pernah diterima!'
+            ]);
+        }
 
         $data = DB::connection("mysql_sb")
             ->table('whs_bppb_det')
