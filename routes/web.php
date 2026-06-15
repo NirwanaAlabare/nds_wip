@@ -712,7 +712,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/show_preview_packing_in', 'show_preview_packing_in')->name('show_preview_packing_in');
         Route::post('/store', 'store')->name('store-packing-packing-in');
         Route::get('/export_excel_packing_in', 'export_excel_packing_in')->name('export_excel_packing_in');
-        
+
     });
 
     // Packing Central Switching
@@ -1460,6 +1460,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}/edit-bc23', 'editBc23')->name('dokumen-pabean-edit-bc23')->where('id', '.*');
         Route::put('/update-draft-bc23/{id}', 'updateDraftBc23')->name('dokumen-pabean-update_draft_bc23')->where('id', '.*');
         Route::post('/send-bc23/{id}', 'sendCeisaBc23')->name('dokumen-pabean-send-bc23')->where('id', '.*');
+
+        // BC 2.7 routes
+        Route::get('/{id}/edit-bc27', 'editBc27')->name('dokumen-pabean-edit-bc27')->where('id', '.*');
+        Route::put('/update-draft-bc27/{id}', 'updateDraftBc27')->name('dokumen-pabean-update_draft_bc27')->where('id', '.*');
+        Route::post('/send-bc27/{id}', 'sendCeisaBc27')->name('dokumen-pabean-send-bc27')->where('id', '.*');
+
+        // BC 3.0 routes
+        Route::get('/{id}/edit-bc30', 'editBc30')->name('dokumen-pabean-edit-bc30')->where('id', '.*');
+        Route::put('/update-draft-bc30/{id}', 'updateDraftBc30')->name('dokumen-pabean-update_draft_bc30')->where('id', '.*');
+        Route::post('/send-bc30/{id}', 'sendCeisaBc30')->name('dokumen-pabean-send-bc30')->where('id', '.*');
     });
 
     // WHS Soljer
