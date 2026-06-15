@@ -141,7 +141,7 @@
                         @php
                             $orig_qty   = $det->orig_qty ?? 0;
                             $cons       = $det->cons ?? 0;
-                            $qty_reqd   = round($orig_qty * $cons, 4);
+                            $qty_reqd   = round($orig_qty * $cons, 10);
                             $tot_qty_reqd = $qty_reqd; // loss = 0
                         @endphp
                         <tr>
@@ -154,17 +154,17 @@
                             </td>
                             <td class="text-center">{{ $det->nama_panel ?? '-' }}</td>
                             <td class="text-right">{{ number_format($orig_qty, 0, ',', '.') }}</td>
-                            <td class="text-center">{{ rtrim(rtrim(number_format($cons, 4, '.', ''), '0'), '.') }}</td>
+                            <td class="text-center">{{ rtrim(rtrim(number_format($cons, 10, '.', ''), '0'), '.') }}</td>
                             <td class="text-center">{{ $det->unit_name ?? '-' }}</td>
-                            <td class="text-right">{{ number_format($qty_reqd, 4, '.', '') }}</td>
+                            <td class="text-right">{{ rtrim(rtrim(number_format($qty_reqd, 10, '.', ''), '0'), '.') }}</td>
                             <td class="text-center col-loss">0%</td>
                             <td class="text-center col-loss">0</td>
-                            <td class="text-right fw-bold">{{ number_format($tot_qty_reqd, 4, '.', '') }}</td>
+                            <td class="text-right fw-bold">{{ rtrim(rtrim(number_format($tot_qty_reqd, 10, '.', ''), '0'), '.') }}</td>
                             <td class="text-center fw-bold">{{ $det->unit_name ?? '-' }}</td>
                         </tr>
                         <tr>
                             <td colspan="5">PO No.</td>
-                            <td colspan="8" class="text-right fw-bold bg-light">TOTAL &nbsp;&nbsp;&nbsp; {{ number_format($tot_qty_reqd, 4, '.', '') }} &nbsp;&nbsp; {{ $det->unit_name ?? '-' }}</td>
+                            <td colspan="8" class="text-right fw-bold bg-light">TOTAL &nbsp;&nbsp;&nbsp; {{ rtrim(rtrim(number_format($tot_qty_reqd, 10, '.', ''), '0'), '.') }} &nbsp;&nbsp; {{ $det->unit_name ?? '-' }}</td>
                         </tr>
                         <tr>
                             <td colspan="13">Notes :</td>

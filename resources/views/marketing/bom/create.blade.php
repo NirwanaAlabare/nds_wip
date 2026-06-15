@@ -317,7 +317,7 @@
                     position: 'topRight'
                 });
             } else {
-                this.value = Math.round(val * 10000) / 10000;
+                this.value = Math.round(val * 10000000000) / 10000000000;
             }
         });
 
@@ -488,7 +488,7 @@
                         <small class="fw-bold">${data.label}</small>
                     </td>
                     <td><select name="id_item[${idx}]" class="form-control select2-item">${itemOptions}</select></td>
-                    <td><input type="number" step="0.0001" name="qty_input[${idx}]" class="form-control form-control-sm text-right qty_input" placeholder="0.0000"></td>
+                    <td><input type="number" step="0.0000000001" name="qty_input[${idx}]" class="form-control form-control-sm text-right qty_input" placeholder="0.0000000000"></td>
                     <td><input type="number" step="0.0001" name="price_input[${idx}]" class="form-control form-control-sm text-right price_input" placeholder="0.0000"></td>
                 </tr>`;
                 tbody.append(row);
@@ -665,7 +665,14 @@
                         className: 'text-right font-weight-bold',
                         searchable: false,
                         render: function(data) {
-                            return parseFloat(data).toFixed(4);
+                            let nilai = parseFloat(data);
+                            if (isNaN(nilai)) return '0.0000000000';
+                            
+                            let stringNilai = nilai.toString();
+                            if (stringNilai.indexOf('.') === -1) return nilai.toFixed(10);
+                            
+                            let hasilPotong = stringNilai.match(/^-?\d+(?:\.\d{0,10})?/)[0];
+                            return parseFloat(hasilPotong).toFixed(10);
                         }
                     },
                     {

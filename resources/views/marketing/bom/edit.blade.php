@@ -234,7 +234,7 @@
                             </div>
                             <small class="fw-bold text-muted text-nowrap">Cons:</small>
                             <div style="flex: 1;">
-                                <input type="number" step="0.0001" id="batch_cons" class="form-control form-control-sm text-center qty_input" placeholder="0.0000">
+                                <input type="number" step="0.0000000001" id="batch_cons" class="form-control form-control-sm text-center qty_input" placeholder="0.0000000000">
                             </div>
                             <div class="flex-shrink-0">
                                 <button type="button" class="btn btn-sm text-white fw-bold shadow-sm btn-success" onclick="applyBatch()">
@@ -420,7 +420,7 @@
                         </div>
                         <div class="col-md-6 mb-2">
                             <label><small class="fw-bold">Qty</small></label>
-                            <input type="number" step="0.0001" name="qty" id="edit_qty" class="form-control form-control-sm text-center qty_input" required>
+                            <input type="number" step="0.0000000001" name="qty" id="edit_qty" class="form-control form-control-sm text-center qty_input" required>
                         </div>
                         <div class="col-md-6 mb-2">
                             <label><small class="fw-bold">Unit</small></label>
@@ -550,7 +550,7 @@
                     position: 'topRight'
                 });
             } else {
-                this.value = Math.round(val * 10000) / 10000;
+                this.value = Math.round(val * 10000000000) / 10000000000;
             }
         });
 
@@ -752,7 +752,7 @@
                 let savedData = existingMap[`${cIdStr}_${sIdStr}`];
 
                 let selectedItemId = savedData ? savedData.id_item : null;
-                let savedQty       = 0.0000;
+                let savedQty       = 0.0000000000;
 
                 let itemOptionsHtml = baseItemOptions;
 
@@ -764,7 +764,7 @@
                         <small class="fw-bold">${data.label}</small>
                     </td>
                     <td><select name="id_item[${idx}]" class="form-control select2-item">${itemOptionsHtml}</select></td>
-                    <td><input type="number" step="0.0001" name="qty_input[${idx}]" class="form-control form-control-sm text-center qty_input" placeholder="0.0000" value="${savedQty}"></td>
+                    <td><input type="number" step="0.0000000001" name="qty_input[${idx}]" class="form-control form-control-sm text-center qty_input" placeholder="0.0000000000" value="${savedQty}"></td>
                     <td class="text-center align-middle">
                         <button type="button" class="btn btn-sm btn-danger btn-hapus-row" title="Hapus Baris Ini"><i class="fas fa-times"></i></button>
                     </td>
@@ -1119,16 +1119,16 @@
                     searchable: false,
                     render: function(data) {
                         let nilai = parseFloat(data);
-                        if (isNaN(nilai)) return '0.000000';
+                        if (isNaN(nilai)) return '0.0000000000';
 
                         let stringNilai = nilai.toString();
                         if (stringNilai.indexOf('.') === -1) {
-                            return nilai.toFixed(4);
+                            return nilai.toFixed(10);
                         }
 
-                        let hasilPotong = stringNilai.match(/^-?\d+(?:\.\d{0,4})?/)[0];
+                        let hasilPotong = stringNilai.match(/^-?\d+(?:\.\d{0,10})?/)[0];
 
-                        return parseFloat(hasilPotong).toFixed(4);
+                        return parseFloat(hasilPotong).toFixed(10);
                     }
 
                 },
