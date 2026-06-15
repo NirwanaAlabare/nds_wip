@@ -26,7 +26,7 @@
             <td>{{ $row->item_name }}</td>
             <td>{{ $row->color_name }}</td>
             <td>{{ $row->size_name }}</td>
-            <td style="text-align: right;">{{ (float) $row->qty }}</td>
+            <td style="text-align: right;">{{ rtrim(rtrim(number_format($row->qty, 10, '.', ''), '0'), '.') }}</td>
             <td>{{ $row->currency }}</td>
             <td>{{ $row->nama_panel }}</td>
         </tr>
