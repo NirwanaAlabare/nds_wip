@@ -1587,7 +1587,9 @@ class DcReportController extends Controller
         }
 
         return view('dc.report.report', [
-            "page" => "dashboard-dc"
+            "page" => "dashboard-dc",
+            "subPageGroup" => "report",
+            "subPage" => "dc-report",
         ]);
     }
 
@@ -5066,7 +5068,9 @@ class DcReportController extends Controller
         }
 
         return view('dc.report.report-mutasi-set', [
-            "page" => "dashboard-dc"
+            "page" => "dashboard-dc",
+            "subPageGroup" => "report",
+            "subPage" => "report_mutasi_wip_dc_set",
         ]);
     }
 

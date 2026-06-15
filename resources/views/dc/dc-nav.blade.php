@@ -194,6 +194,12 @@
                     Report WIP DC <i class="fa-solid fa-file"></i>
                 </a>
             </li>
+            <li>
+                <a href="{{ route('dc-report-mutasi-wip-dc-set') }}"
+                    class="dropdown-item {{ $routeName == 'dc-report-mutasi-wip-dc-set' ? 'active' : '' }}">
+                    Report WIP DC Set <i class="fa-solid fa-file"></i>
+                </a>
+            </li>
         </ul>
     </li>
 @endrole

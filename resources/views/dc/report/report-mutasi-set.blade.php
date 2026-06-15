@@ -20,7 +20,7 @@
 @section('content')
     <div class="card">
         <div class="card-header bg-sb text-light">
-            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-file"></i> REPORT WIP DC</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-file"></i> REPORT WIP DC SET</h5>
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
@@ -128,7 +128,6 @@
                 [10, 25, 50, 100, -1],
                 [10, 25, 50, 100, "All"]
             ],
-
             ajax: {
                 url: '{{ route('dc-report-mutasi-wip-dc-set') }}',
                 data: function (d) {
@@ -136,7 +135,6 @@
                     d.dateTo = $("#tgl-akhir").val();
                 }
             },
-
             columns: [
                 { data: 'ws' },
                 { data: 'buyer' },
@@ -156,41 +154,16 @@
                 { data: 'terima_good_secondary_luar', defaultContent: 0 },
                 { data: 'saldo_akhir_secondary', defaultContent: 0 },
             ],
-
             columnDefs: [
+                {
+                    targets: [5,6,7,8,9,10,11,12,13,14,15,16],
+                    className: 'text-end'
+                },
                 {
                     targets: "_all",
                     className: 'align-middle text-nowrap'
                 },
             ],
-            // drawCallback: function () {
-            //     let api = this.api();
-
-            //     $('#datatable-dc-report tbody tr.total-row').remove();
-
-            //     const sum = (idx) =>
-            //         api.column(idx, { page: 'current' }).data()
-            //         .reduce((a, b) => (+a || 0) + (+b || 0), 0);
-
-            //     let totalRow = `
-            //         <tr class="total-row fw-bold bg-light">
-            //             <td colspan="6" class="text-end">TOTAL</td>
-            //             <td>${sum(6)}</td>
-            //             <td>${sum(7)}</td>
-            //             <td>${sum(8)}</td>
-            //             <td>${sum(9)}</td>
-            //             <td>${sum(10)}</td>
-            //             <td>${sum(11)}</td>
-            //             <td>${sum(12)}</td>
-            //             <td>${sum(13)}</td>
-            //             <td>${sum(14)}</td>
-            //             <td>${sum(15)}</td>
-            //         </tr>
-            //     `;
-
-            //     $('#datatable-dc-report tbody').append(totalRow);
-            // }
-
             footerCallback: function (row, data, start, end, display) {
                 let api = this.api();
 
@@ -224,7 +197,21 @@
 
 
         function datatableReportDC() {
-            datatableDcReport.ajax.reload()
+            let start_date = $('#tgl-awal').val();
+            let end_date = $('#tgl-akhir').val();
+
+            if (start_date && end_date) {
+                Swal.fire({
+                    title: 'Loading...',
+                    text: 'Please wait while data is loading.',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+            }
+
+            datatableDcReport.ajax.reload(function () {
+                Swal.close();
+            });
         }
 
         var filters = ['noWsColorSizeFilter', 'noWsColorPartFilter', 'noWsFilter', 'buyerFilter', 'styleFilter', 'colorFilter', 'sizeFilter', 'partFilter', 'saldoAwalFilter', 'masukFilter', 'kirimSecDalamFilter', 'terimaRepairedSecDalamFilter', 'terimaGoodSecDalamFilter', 'kirimSecLuarFilter', 'terimaRepairedSecLuarFilter', 'terimaGoodSecLuarFilter', 'loadingFilter', 'saldoAkhirFilter'];
