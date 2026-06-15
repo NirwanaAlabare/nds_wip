@@ -6761,14 +6761,14 @@ class DcReportController extends Controller
 
         ");
         
-        $fileName = 'report-mutasi-wip-dc-set';
+        $fileName = 'report-mutasi-wip-set-dc';
 
         $excel = FastExcel::create($fileName);
 
         $sheet = $excel->sheet();
 
         $sheet->writeRow(
-            ['Report Mutasi WIP DC Set'],
+            ['Report Mutasi WIP Set DC'],
             [
                 'font-style' => 'bold',
                 'font-size'  => 14,
