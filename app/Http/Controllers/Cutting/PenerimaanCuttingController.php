@@ -268,16 +268,16 @@ class PenerimaanCuttingController extends Controller
 
     public function getBarcodeFabric($id){
 
-        $isExist = DB::table('penerimaan_cutting')
-            ->where('id_roll', $id)
-            ->exists();
+        // $isExist = DB::table('penerimaan_cutting')
+        //     ->where('id_roll', $id)
+        //     ->exists();
 
-        if ($isExist) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Roll sudah pernah diterima!'
-            ]);
-        }
+        // if ($isExist) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => 'Roll sudah pernah diterima!'
+        //     ]);
+        // }
 
         $data = DB::connection("mysql_sb")
             ->table('whs_bppb_det')
@@ -313,9 +313,11 @@ class PenerimaanCuttingController extends Controller
                     $join->on('buyer_ws.id_jo', '=', 'signalbit_erp.whs_bppb_det.id_jo');
                 }
             )
-            ->where('id_roll', $id)
+            ->leftJoin('laravel_nds.penerimaan_cutting', 'penerimaan_cutting.whs_bppb_det_id', '=', 'whs_bppb_det.id')
+            ->where('whs_bppb_det.id_roll', $id)
             ->where('whs_bppb_det.no_bppb', 'NOT LIKE', 'MT/%')
-            ->orderBy('id', 'DESC')
+            ->whereNull('penerimaan_cutting.id')
+            ->orderBy('whs_bppb_det.id', 'DESC')
             ->first();
 
         return $data;
