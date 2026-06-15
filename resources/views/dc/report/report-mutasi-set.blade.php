@@ -20,7 +20,7 @@
 @section('content')
     <div class="card">
         <div class="card-header bg-sb text-light">
-            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-file"></i> REPORT WIP DC SET</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-file"></i> REPORT WIP SET DC </h5>
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-end gap-3 mb-3">

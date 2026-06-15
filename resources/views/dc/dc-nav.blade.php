@@ -197,7 +197,7 @@
             <li>
                 <a href="{{ route('dc-report-mutasi-wip-dc-set') }}"
                     class="dropdown-item {{ $routeName == 'dc-report-mutasi-wip-dc-set' ? 'active' : '' }}">
-                    Report WIP DC Set <i class="fa-solid fa-file"></i>
+                    Report WIP Set DC  <i class="fa-solid fa-file"></i>
                 </a>
             </li>
         </ul>
