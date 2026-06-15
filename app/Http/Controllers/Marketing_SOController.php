@@ -109,12 +109,18 @@ class Marketing_SOController extends Controller
             ->where('kode_pilihan', 'Curr')
             ->select('id', 'nama_pilihan')
             ->get();
+        $used_boms = $mysql_sb->table('so')->whereNotNull('id_bom')->pluck('id_bom')->toArray();
+
         $bom_catalog = $mysql_sb->table('bom_marketing')
             ->select('id', 'no_katalog_bom', 'style')
             ->whereNotNull('no_katalog_bom')
-            ->where('approval', 'Y')
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->where('approval', 'Y');
+
+        if (!empty($used_boms)) {
+            $bom_catalog = $bom_catalog->whereNotIn('id', $used_boms);
+        }
+
+        $bom_catalog = $bom_catalog->orderBy('created_at', 'desc')->get();
 
         $master_colors = $mysql_sb->table('master_colors_gmt')->orderBy('name', 'ASC')->get();
         $master_sizes = $mysql_sb->table('master_size_new')->orderBy('urutan', 'ASC')->get();
@@ -691,7 +697,7 @@ class Marketing_SOController extends Controller
                 $qty = trim($qty_raw, " \t\n\r\0\x0B\xC2\xA0");
                 $qty = preg_replace('/\s+/u', '', $qty); // Hapus semua whitespace tersisa (unicode)
 
-                if ($qty === '' || !is_numeric($qty) || $qty <= 0) continue;
+            if ($qty === '' || !is_numeric($qty) || $qty <= 0) continue;
 
                 $size_name = trim($headers[$col_index]);
                 if (empty($size_name)) continue;
@@ -738,7 +744,7 @@ class Marketing_SOController extends Controller
         }
 
         return response()->json([
-            'status' => 200, 
+            'status' => 200,
             'message' => 'Excel berhasil diproses.',
             'debug' => [
                 'total_rows_excel' => count($data),
@@ -1403,8 +1409,8 @@ class Marketing_SOController extends Controller
                     'kpno'        => $kode['kpno'],
                     'id_buyer'    => $request->id_buyer,
                     'styleno'     => $request->style,
-                    'qty'         => $total_qty_po,
-                    'curr'        => $request->id_currency,
+                    'qty'         => $act_costing_new ? $act_costing_new->qty : $total_qty_po,
+                    'curr'        => $act_costing_new ? $act_costing_new->curr : $request->id_currency,
                     'username'    => $username_2,
                     'brand'       => $request->brand,
                     'smv_min'     => $request->smv,
@@ -1435,7 +1441,7 @@ class Marketing_SOController extends Controller
                     'smv'       => $request->smv,
                     'marketing_order' => $request->marketing_order,
                     'notes'     => $request->notes,
-                    'unit'   => 'PCS',
+                    'unit'      => 'PCS',
                     'id_season' => $act_costing_new->season_id ?? null,
                     'jns_so'    => $request->jns_so,
                 ]);
@@ -1533,6 +1539,7 @@ class Marketing_SOController extends Controller
                         'id_size'      => $size->id ?? null,
                         'product_set'  => $d->product_set ?? null,
                         'dest'    => $d->market ?? null,
+                        'price' => $act_costing_new ? $act_costing_new->confirm_price : 0,
                     ];
                 }
 

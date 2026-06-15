@@ -171,6 +171,39 @@
         </form>
     {{-- END OF PROCESS ONE --}}
 
+    <div id="summary">
+        <div class="card card-sb">
+            <div class="card-header">
+                <h5 class="card-title">
+                    Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped w-100" id="summary-table">
+                        <thead>
+                            <tr>
+                                <th>Size</th>
+                                <th>Destination</th>
+                                <th>Qty</th>
+                                <th>Actual Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="2" class="text-end">Total</th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- PROCESS TWO --}}
         @php
             $currentCuttingPieceDetail = $currentCuttingPiece && $currentCuttingPiece->status == "complete" && $currentCuttingPiece->formCutPieceDetails ? $currentCuttingPiece->formCutPieceDetails->sortByDesc("id")->first() : null;
@@ -449,6 +482,8 @@
             disableFormSubmit("#process-one-form");
             disableFormSubmit("#process-two-form");
             disableFormSubmit("#process-three-form");
+
+            summaryReload();
         });
 
         // Select2 Autofocus
@@ -909,7 +944,6 @@
                 });
             }
         // END OF PROCESS ONE
-
 
         // PROCESS TWO
             // Init Process Two
@@ -1420,7 +1454,7 @@
 
                 // 💡 Set title
                 const title = cloneCard.querySelector(".card-title");
-                if (title) title.textContent = `${(item.id_roll ? item.id_roll : item.id)}`;
+                if (title) title.textContent = `${(item.id_roll ? item.id_roll : item.id_item)}`;
 
                 // ✅ Value map from item
                 const valueMap = {
@@ -1737,11 +1771,15 @@
                         }
 
                         document.getElementById("loading").classList.add("d-none");
+
+                        summaryReload();
                     },
                     error: function (jqXHR) {
                         handleError(jqXHR.responseJSON);
 
                         document.getElementById("loading").classList.add("d-none");
+
+                        summaryReload();
                     }
                 });
             }
@@ -1898,5 +1936,59 @@
                 }
             });
         // END
+
+        // SUMMARY
+            let summaryTable = $("#summary-table").DataTable({
+                processing: true,
+                ordering: false,
+                paging: false,
+                searching: false,
+                ajax: {
+                    url: '{{ route('summary-edit-cutting-piece') }}/'+$("#id").val(),
+                },
+                columns: [
+                    {
+                        data: 'size'
+                    },
+                    {
+                        data: 'dest'
+                    },
+                    {
+                        data: 'qty'
+                    },
+                    {
+                        data: 'qty_aktual'
+                    },
+                ],
+                columnDefs: [
+                    {
+                        targets: "_all",
+                        className: "text-nowrap",
+                        render: (data, type, row, meta) => {
+                            return data;
+                        }
+                    }
+                ],
+                footerCallback: function(row, data, start, end, display) {
+                    let api = this.api();
+
+                    let intVal = function(i) {
+                        return typeof i === 'string'
+                            ? i.replace(/[^0-9.-]/g, '') * 1
+                            : typeof i === 'number' ? i : 0;
+                    };
+
+                    let totalQty      = api.column(2, { search: 'applied' }).data().reduce((a, b) => a + intVal(b), 0);
+                    let totalQtyAktual = api.column(3, { search: 'applied' }).data().reduce((a, b) => a + intVal(b), 0);
+
+                    $(api.column(2).footer()).html(totalQty.toLocaleString('id-ID'));
+                    $(api.column(3).footer()).html(totalQtyAktual.toLocaleString('id-ID'));
+                }
+            });
+
+            function summaryReload() {
+                $("#summary-table").DataTable().ajax.reload();
+            }
+        // SUMMARY END
     </script>
 @endsection

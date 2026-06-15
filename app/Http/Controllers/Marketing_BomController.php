@@ -55,7 +55,17 @@ class Marketing_BomController extends Controller
         $master_colors = $mysql_sb->table('master_colors_gmt')->orderBy('name', 'ASC')->get();
         $master_sizes = $mysql_sb->table('master_size_new')->orderBy('urutan', 'ASC')->get();
 
-        $costings = $mysql_sb->table('act_costing_new')->select('id', 'no_costing', 'style', 'market', 'buyer')->where('approval', 'Y')->orderBy('id', 'desc')->get();
+        $used_costings = $mysql_sb->table('bom_marketing')->whereNotNull('id_costing')->pluck('id_costing')->toArray();
+
+        $costings = $mysql_sb->table('act_costing_new')
+            ->select('id', 'no_costing', 'style', 'market', 'buyer')
+            ->where('approval', 'Y');
+        
+        if (!empty($used_costings)) {
+            $costings = $costings->whereNotIn('id', $used_costings);
+        }
+        
+        $costings = $costings->orderBy('id', 'desc')->get();
 
         return view('marketing.bom.create', [
             'page'           => 'dashboard-marketing',
@@ -98,7 +108,20 @@ class Marketing_BomController extends Controller
         $master_sizes = $mysql_sb->table('master_size_new')->orderBy('urutan', 'ASC')->get();
         $master_currency = $mysql_sb->table('masterpilihan')->where('kode_pilihan', 'Curr')->get();
 
-        $costings = $mysql_sb->table('act_costing_new')->select('id', 'no_costing', 'style')->orderBy('id', 'desc')->get();
+        $used_costings = $mysql_sb->table('bom_marketing')
+            ->whereNotNull('id_costing')
+            ->where('id_costing', '!=', $bom->id_costing ?? 0)
+            ->pluck('id_costing')
+            ->toArray();
+
+        $costings = $mysql_sb->table('act_costing_new')
+            ->select('id', 'no_costing', 'style');
+            
+        if (!empty($used_costings)) {
+            $costings = $costings->whereNotIn('id', $used_costings);
+        }
+        
+        $costings = $costings->orderBy('id', 'desc')->get();
 
          $shell = $mysql_sb->table('masterpanel')
                 ->where('nama_panel', 'LIKE', 'shell' . '%')
@@ -164,6 +187,7 @@ class Marketing_BomController extends Controller
                 'sizes'          => $sizes_json,
                 'created_at'     => now(),
                 'updated_at'     => now(),
+                'created_by'     => $username,
             ]);
 
             $mysql_sb->commit();
