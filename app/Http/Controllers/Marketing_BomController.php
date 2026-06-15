@@ -1227,6 +1227,7 @@ class Marketing_BomController extends Controller
                 'd.qty as cons_qty'
             )
             ->where('d.id_bom_marketing', $id)
+            ->where('d.item_id', '!=', null)
             ->orderByRaw("(CASE WHEN ac.type = 'Manufacturing' THEN 999 WHEN a.root_group IS NULL THEN 998 ELSE a.root_group END) ASC")
             ->orderBy('d.id', 'asc')
             ->get();
