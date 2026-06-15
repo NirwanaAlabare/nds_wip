@@ -60,11 +60,11 @@ class Marketing_BomController extends Controller
         $costings = $mysql_sb->table('act_costing_new')
             ->select('id', 'no_costing', 'style', 'market', 'buyer')
             ->where('approval', 'Y');
-        
+
         if (!empty($used_costings)) {
             $costings = $costings->whereNotIn('id', $used_costings);
         }
-        
+
         $costings = $costings->orderBy('id', 'desc')->get();
 
         return view('marketing.bom.create', [
@@ -116,11 +116,11 @@ class Marketing_BomController extends Controller
 
         $costings = $mysql_sb->table('act_costing_new')
             ->select('id', 'no_costing', 'style');
-            
+
         if (!empty($used_costings)) {
             $costings = $costings->whereNotIn('id', $used_costings);
         }
-        
+
         $costings = $costings->orderBy('id', 'desc')->get();
 
          $shell = $mysql_sb->table('masterpanel')
@@ -232,11 +232,11 @@ class Marketing_BomController extends Controller
                     elseif ($rule == "Per Color All Size") { $idx = $color_index + 1; }
                     else { $idx = ($color_index * count($sizes)) + $size_index + 1; }
 
-                    $id_item = $request->id_item[$idx] ?? null;
+                    $id_item = (!empty($request->id_item[$idx]) && $request->id_item[$idx] !== 'null') ? $request->id_item[$idx] : null;
                     $qty     = $request->qty_input[$idx] ?? 0;
                     $price   = $request->price_input[$idx] ?? 0;
 
-                    if ($id_item) {
+                    if ($qty > 0) {
                         $details[] = [
                             'id_bom_marketing' => $bom_id,
                             'id_contents'      => $id_content,
@@ -341,8 +341,9 @@ class Marketing_BomController extends Controller
             foreach ($items as $idx => $id_item) {
                 $qty   = $qtys[$idx] ?? 0;
                 $price = $prices[$idx] ?? 0;
+                $id_item_val = (!empty($id_item) && $id_item !== 'null') ? $id_item : null;
 
-                if (!empty($id_item) && $qty > 0) {
+                if ($qty > 0) {
 
                     $row_color = (!empty($colors[$idx]) && $colors[$idx] !== 'null') ? $colors[$idx] : null;
                     $row_size  = (!empty($sizes[$idx]) && $sizes[$idx] !== 'null') ? $sizes[$idx] : null;
@@ -358,8 +359,13 @@ class Marketing_BomController extends Controller
                                 ->where('id_contents', $id_content)
                                 ->where('id_color', $cId)
                                 ->where('id_size', $sId)
-                                ->where('id_set', $id_set)
-                                ->where('id_item', $id_item);
+                                ->where('id_set', $id_set);
+
+                            if ($id_item_val) {
+                                $existingQuery->where('id_item', $id_item_val);
+                            } else {
+                                $existingQuery->whereNull('id_item');
+                            }
 
                             if ($item_desc) {
                                 $existingQuery->where('item_desc', $item_desc);
@@ -397,7 +403,7 @@ class Marketing_BomController extends Controller
                                     'shell'             => $request->shell,
                                     'id_color'          => $cId,
                                     'id_size'           => $sId,
-                                    'id_item'           => $id_item,
+                                    'id_item'           => $id_item_val,
                                     'id_supplier'       => $id_supplier,
                                     'id_currency'       => $currency,
                                     'qty'               => $qty,
@@ -504,6 +510,42 @@ class Marketing_BomController extends Controller
             ->where('d.id', $id)
             ->first();
 
+        if ($data) {
+            $parts       = explode('|', $data->id_contents);
+            $id_contents = $parts[1] ?? $data->id_contents;
+            $category    = $data->category;
+
+            if ($category === 'Manufacturing') {
+                $availableItems = $mysql_sb->table('masteritem as a')
+                    ->join('mastercf as s', 'a.matclass', '=', 's.cfdesc')
+                    ->where('a.mattype', 'C')
+                    ->where('s.id', $id_contents)
+                    ->select(
+                        'a.id_item as isi',
+                        DB::raw("CONCAT(a.itemdesc, ' ', IFNULL(a.color, ''), ' ', IFNULL(a.size, ''), ' ', IFNULL(a.add_info, '')) as tampil")
+                    )
+                    ->orderBy('a.id_item', 'DESC')
+                    ->get();
+            } else {
+                $availableItems = $mysql_sb->table('masteritem as a')
+                    ->join('masterdesc as b', 'a.id_gen', '=', 'b.id')
+                    ->join('mastercolor as c', 'b.id_color', '=', 'c.id')
+                    ->join('masterweight as d', 'c.id_weight', '=', 'd.id')
+                    ->join('masterlength as e', 'd.id_length', '=', 'e.id')
+                    ->join('masterwidth as f', 'e.id_width', '=', 'f.id')
+                    ->join('mastercontents as g', 'f.id_contents', '=', 'g.id')
+                    ->where('g.id', $id_contents)
+                    ->select(
+                        'a.id_item as isi',
+                        DB::raw("CONCAT(a.id_item, ' - ', a.itemdesc) as tampil")
+                    )
+                    ->groupBy('a.id_gen')
+                    ->get();
+            }
+
+            $data->available_items = $availableItems;
+        }
+
         return response()->json($data);
     }
 
@@ -511,13 +553,16 @@ class Marketing_BomController extends Controller
     {
         $mysql_sb = DB::connection('mysql_sb');
         try {
+            $id_item_val = (!empty($request->id_item) && $request->id_item !== 'null') ? $request->id_item : null;
             $mysql_sb->table('bom_marketing_detail')->where('id', $id)->update([
+                'id_item'  => $id_item_val,
                 'id_color' => $request->id_color,
                 'id_size'  => $request->id_size,
                 'qty'      => $request->qty,
                 'price'    => $request->price,
-                'unit'  => $request->unit,
+                'unit'     => $request->unit,
                 'shell'    => $request->shell,
+                'id_currency'  => $request->id_currency,
             ]);
 
             $detail = $mysql_sb->table('bom_marketing_detail')->where('id', $id)->first();
