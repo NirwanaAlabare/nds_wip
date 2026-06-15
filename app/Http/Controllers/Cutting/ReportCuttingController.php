@@ -942,14 +942,13 @@ class ReportCuttingController extends Controller
             if ($request->search["value"]) {
                 $keywordQuery = "
                     and (
-                        marker_cutting.tgl_form_cut like '%" . $request->search["value"] . "%' OR
-                        marker_cutting.meja like '%" . $request->search["value"] . "%' OR
-                        marker_cutting.no_form like '%" . $request->search["value"] . "%' OR
-                        marker_cutting.buyer like '%" . $request->search["value"] . "%' OR
-                        marker_cutting.act_costing_ws like '%" . $request->search["value"] . "%' OR
-                        marker_cutting.style like '%" . $request->search["value"] . "%' OR
-                        marker_cutting.color like '%" . $request->search["value"] . "%' OR
-                        marker_cutting.notes like '%" . $request->search["value"] . "%'
+                        cutting_daily.tanggal like '%" . $request->search["value"] . "%' OR
+                        cutting_daily.meja like '%" . $request->search["value"] . "%' OR
+                        cutting_daily.no_form like '%" . $request->search["value"] . "%' OR
+                        cutting_daily.buyer like '%" . $request->search["value"] . "%' OR
+                        cutting_daily.worksheet like '%" . $request->search["value"] . "%' OR
+                        cutting_daily.style like '%" . $request->search["value"] . "%' OR
+                        cutting_daily.color like '%" . $request->search["value"] . "%'
                     )
                 ";
             }
@@ -1162,6 +1161,9 @@ class ReportCuttingController extends Controller
                         form_cut_reject.id,
                         form_cut_reject_detail.so_det_id
                 ) as cutting_daily
+                where
+                    cutting_daily.tanggal is not null
+                    ".$keywordQuery."
                 group by
                     tanggal,
                     meja,
@@ -1212,7 +1214,7 @@ class ReportCuttingController extends Controller
         $tanggalFilter1 = "";
         $tanggalFilter2 = "";
         if ($request->tanggal) {
-            $tanggalFilter = " and form_cut.tgl_form_cut LIKE '%" . $request->tanggal . "%'";
+            $tanggalFilter = " and tanggal LIKE '%" . $request->tanggal . "%'";
             $tanggalFilter1 = " and form_cut_piece.tgl_form_cut LIKE '%" . $request->tanggal . "%'";
             $tanggalFilter2 = " and form_cut_input.tgl_form_cut LIKE '%" . $request->tanggal . "%'";
         }
@@ -1220,7 +1222,7 @@ class ReportCuttingController extends Controller
         $noMejaFilter1 = "";
         $noMejaFilter2 = "";
         if ($request->noMeja) {
-            $noMejaFilter = " and form_cut.meja LIKE '%" . $request->noMeja . "%'";
+            $noMejaFilter = " and meja LIKE '%" . $request->noMeja . "%'";
             $noMejaFilter1 = " and form_cut_piece.employee_name LIKE '%" . $request->noMeja . "%'";
             $noMejaFilter2 = " and meja.name LIKE '%" . $request->noMeja . "%'";
         }
@@ -1228,7 +1230,7 @@ class ReportCuttingController extends Controller
         $buyerFilter1 = "";
         $buyerFilter2 = "";
         if ($request->buyer) {
-            $buyerFilter = " and marker_input.buyer LIKE '%" . $request->buyer . "%'";
+            $buyerFilter = " and buyer LIKE '%" . $request->buyer . "%'";
             $buyerFilter1 = " and form_cut_piece.buyer LIKE '%" . $request->buyer . "%'";
             $buyerFilter2 = " and stocker_ws_additional.buyer LIKE '%" . $request->buyer . "%'";
         }
@@ -1236,7 +1238,7 @@ class ReportCuttingController extends Controller
         $noFormFilter1 = "";
         $noFormFilter2 = "";
         if ($request->noForm) {
-            $noFormFilter = " and form_cut.no_form LIKE '%" . $request->noForm . "%'";
+            $noFormFilter = " and no_form LIKE '%" . $request->noForm . "%'";
             $noFormFilter1 = " and form_cut_piece.no_form LIKE '%" . $request->noForm . "%'";
             $noFormFilter2 = " and stocker_ws_additional.no_form LIKE '%" . $request->noForm . "%'";
         }
@@ -1244,7 +1246,7 @@ class ReportCuttingController extends Controller
         $wsFilter1 = "";
         $wsFilter2 = "";
         if ($request->ws) {
-            $wsFilter = " and marker_input.act_costing_ws LIKE '%" . $request->ws . "%'";
+            $wsFilter = " and worksheet LIKE '%" . $request->ws . "%'";
             $wsFilter1 = " and form_cut_piece.act_costing_ws LIKE '%" . $request->ws . "%'";
             $wsFilter2 = " and stocker_ws_additional.act_costing_ws LIKE '%" . $request->ws . "%'";
         }
@@ -1252,7 +1254,7 @@ class ReportCuttingController extends Controller
         $styleFilter1 = "";
         $styleFilter2 = "";
         if ($request->style) {
-            $styleFilter = " and marker_input.style LIKE '%" . $request->style . "%'";
+            $styleFilter = " and style LIKE '%" . $request->style . "%'";
             $styleFilter1 = " and form_cut_piece.style LIKE '%" . $request->style . "%'";
             $styleFilter2 = " and stocker_ws_additional.style LIKE '%" . $request->style . "%'";
         }
@@ -1260,7 +1262,7 @@ class ReportCuttingController extends Controller
         $colorFilter1 = "";
         $colorFilter2 = "";
         if ($request->color) {
-            $colorFilter = " and marker_input.color LIKE '%" . $request->color . "%'";
+            $colorFilter = " and color LIKE '%" . $request->color . "%'";
             $colorFilter1 = " and form_cut_piece.color LIKE '%" . $request->color . "%'";
             $colorFilter2 = " and stocker_ws_additional.color LIKE '%" . $request->color . "%'";
         }
@@ -1268,7 +1270,7 @@ class ReportCuttingController extends Controller
         $panelFilter1 = "";
         $panelFilter2 = "";
         if ($request->panel) {
-            $panelFilter = " and marker_input.panel LIKE '%" . $request->panel . "%'";
+            $panelFilter = " and panel LIKE '%" . $request->panel . "%'";
             $panelFilter1 = " and form_cut_piece.panel LIKE '%" . $request->panel . "%'";
             $panelFilter2 = " and stocker_ws_additional.panel LIKE '%" . $request->panel . "%'";
         }
@@ -1482,6 +1484,18 @@ class ReportCuttingController extends Controller
                         form_cut_reject.id,
                         form_cut_reject_detail.so_det_id
                 ) as cutting_daily
+                where
+                    cutting_daily.tanggal is not null
+                    ".
+                    $tanggalFilter.
+                    $noMejaFilter.
+                    $buyerFilter.
+                    $noFormFilter.
+                    $wsFilter.
+                    $styleFilter.
+                    $colorFilter.
+                    $panelFilter
+                    ."
                 group by
                     tanggal,
                     meja,
