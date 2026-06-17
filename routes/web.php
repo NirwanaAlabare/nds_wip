@@ -138,6 +138,9 @@ use App\Http\Controllers\WhsSoljer\PenerimaanGudangInputanFgController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanAccesoriesController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanController;
 use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanFgController;
+use App\Http\Controllers\AssetDashboardController;
+use App\Http\Controllers\AssetMasterLokasiController;
+use App\Http\Controllers\AssetMasterJenisMesinController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -712,7 +715,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/show_preview_packing_in', 'show_preview_packing_in')->name('show_preview_packing_in');
         Route::post('/store', 'store')->name('store-packing-packing-in');
         Route::get('/export_excel_packing_in', 'export_excel_packing_in')->name('export_excel_packing_in');
-
     });
 
     // Packing Central Switching
@@ -1171,7 +1173,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/approve/{id}', 'submitApproval')->name('submit-bom-approval');
         Route::delete('/delete-bom/{id}', 'delete')->name('delete-bom');
         Route::get('/print-pdf/{id}', 'printPdf')->name('print-bom-pdf');
-
     });
 
     // Master BOM Additional
@@ -1428,6 +1429,33 @@ Route::middleware('auth')->group(function () {
         Route::get('/IE_lap_recap_smv', 'IE_lap_recap_smv')->name('IE_lap_recap_smv');
         Route::get('/IE_lap_recap_cm_price', 'IE_lap_recap_cm_price')->name('IE_lap_recap_cm_price');
     });
+
+    // Asset Management
+    // Dashboard
+    Route::controller(AssetDashboardController::class)->middleware('role:management')->group(function () {
+        Route::get('/dashboard_asset', 'dashboard_asset')->name('dashboard-asset');
+    });
+    // Master Asset Management Lokasi
+    Route::controller(AssetMasterLokasiController::class)->middleware('role:management')->group(function () {
+        Route::get('/asset_master_lokasi', 'asset_master_lokasi')->name('asset_master_lokasi');
+        Route::post('/asset_main_lokasi/store', 'store_main_lokasi')->name('store_main_lokasi');
+        Route::get('/asset_main_lokasi/show', 'show_main_lokasi')->name('show_main_lokasi');
+        Route::post('/asset_main_lokasi/update', 'update_main_lokasi')->name('update_main_lokasi');
+        Route::post('/asset_main_lokasi/delete', 'delete_main_lokasi')->name('delete_main_lokasi');
+        Route::post('/asset_lokasi_det/store', 'store_lokasi_det')->name('store_lokasi_det');
+        Route::get('/asset_lokasi_det/show', 'show_lokasi_det')->name('show_lokasi_det');
+        Route::post('/asset_lokasi_det/update', 'update_lokasi_det')->name('update_lokasi_det');
+        Route::post('/asset_lokasi_det/delete', 'delete_lokasi_det')->name('delete_lokasi_det');
+    });
+    // Master Asset Management Jenis Mesin
+    Route::controller(AssetMasterJenisMesinController::class)->middleware('role:management')->group(function () {
+        Route::get('/asset_master_jenis_mesin', 'asset_master_jenis_mesin')->name('asset_master_jenis_mesin');
+        Route::post('/asset_jenis_mesin/store', 'store_jenis_mesin')->name('store_jenis_mesin');
+        Route::get('/asset_jenis_mesin/show', 'show_jenis_mesin')->name('show_jenis_mesin');
+        Route::post('/asset_jenis_mesin/update', 'update_jenis_mesin')->name('update_jenis_mesin');
+        Route::post('/asset_jenis_mesin/delete', 'delete_jenis_mesin')->name('delete_jenis_mesin');
+    });
+
 
     // Export Import (EXIM)
 
@@ -1927,5 +1955,3 @@ Route::get('/bon-mutasi', function () {
 Route::get('/tes-ceisa-status', [CeisaAPIController::class, 'testStatus']);
 Route::get('/tes-ceisa-kurs/{kode}', [CeisaAPIController::class, 'testKurs']);
 Route::get('/ceisa/pelabuhan', [CeisaAPIController::class, 'getPelabuhan'])->name('ceisa.pelabuhan');
-
-
