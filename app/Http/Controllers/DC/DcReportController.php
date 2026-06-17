@@ -674,7 +674,7 @@ class DcReportController extends Controller
                 dc_current_saldo AS (
                     -- current saldo
                     WITH
-                            dc as (
+                            query_dc as (
                                     SELECT
                                             a.id_qr_stocker,
                                             pd.id as part_detail_id,
@@ -693,7 +693,9 @@ class DcReportController extends Controller
                                             null sec_in_rep,
                                             null sec_in_out_main,
                                             null sec_in_out,
-                                            null loading_qty
+                                            null loading_qty,
+                                            msb.ws,
+                                            p.id as part_id
                                     from
                                             dc_in_input a
                                             left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -729,7 +731,9 @@ class DcReportController extends Controller
                                             null sec_in_rep,
                                             null sec_in_out_main,
                                             null sec_in_out,
-                                            null loading_qty
+                                            null loading_qty,
+                                            msb.ws,
+                                            p.id as part_id
                                     from
                                             dc_in_input a
                                             left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -748,6 +752,71 @@ class DcReportController extends Controller
                                             (s.cancel IS NULL OR s.cancel != 'y') and
                                             (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                             (pd.part_status != 'main' OR pd.part_status IS NULL)
+                            ),
+
+                            form_list as (
+                                select
+                                        query_dc.id_qr_stocker,
+                                        query_dc.part_detail_id,
+                                        query_dc.so_det_id,
+                                        null qty_in_dc_main,
+                                        0 qty_in_dc,
+                                        null sec_inhouse_in_main,
+                                        null sec_inhouse_in,
+                                        null sec_inhouse_rep_main,
+                                        null sec_inhouse_rep,
+                                        null sec_inhouse_out_main,
+                                        null sec_inhouse_out,
+                                        null sec_in_in_main,
+                                        null sec_in_in,
+                                        null sec_in_rep_main,
+                                        null sec_in_rep,
+                                        null sec_in_out_main,
+                                        null sec_in_out,
+                                        null loading_qty,
+                                        query_dc.ws,
+                                        query_dc.part_id
+                                from
+                                        query_dc
+                                        left join part on part.act_costing_ws = query_dc.ws and part.id = query_dc.part_id
+                                        left join part_detail on part_detail.part_id = part.id
+                                        left join master_part mp on mp.id = part_detail.master_part_id
+                                where
+                                        part.panel_status != 'COMPLEMENT' and part_detail.part_status != 'COMPLEMENT'
+                                group by
+                                        so_det_id,
+                                        part.id,
+                                        part_detail.id
+                                ),
+
+                            dc as (
+                                SELECT
+                                        MAX(a.id_qr_stocker) id_qr_stocker,
+                                        MAX(a.part_detail_id) part_detail_id,
+                                        MAX(a.so_det_id) so_det_id,
+                                        null qty_in_dc_main,
+                                        SUM(a.qty_in_dc) qty_in_dc,
+                                        null sec_inhouse_in_main,
+                                        null sec_inhouse_in,
+                                        null sec_inhouse_rep_main,
+                                        null sec_inhouse_rep,
+                                        null sec_inhouse_out_main,
+                                        null sec_inhouse_out,
+                                        null sec_in_in_main,
+                                        null sec_in_in,
+                                        null sec_in_rep_main,
+                                        null sec_in_rep,
+                                        null sec_in_out_main,
+                                        null sec_in_out,
+                                        null loading_qty
+                                FROM (
+                                        SELECT * FROM query_dc
+                                        UNION ALL
+                                        SELECT * FROM form_list
+                                ) a
+                                GROUP BY
+                                        a.part_detail_id,
+                                        a.so_det_id
                             ),
 
                             sii_in as (
@@ -2298,7 +2367,7 @@ class DcReportController extends Controller
             dc_current_saldo AS (
                 -- current saldo
                 WITH
-                        dc as (
+                        query_dc as (
                                 SELECT
                                         a.id_qr_stocker,
                                         pd.id as part_detail_id,
@@ -2317,7 +2386,9 @@ class DcReportController extends Controller
                                         null sec_in_rep,
                                         null sec_in_out_main,
                                         null sec_in_out,
-                                        null loading_qty
+                                        null loading_qty,
+                                        msb.ws,
+                                        p.id as part_id
                                 from
                                         dc_in_input a
                                         left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -2353,7 +2424,9 @@ class DcReportController extends Controller
                                         null sec_in_rep,
                                         null sec_in_out_main,
                                         null sec_in_out,
-                                        null loading_qty
+                                        null loading_qty,
+                                        msb.ws,
+                                        p.id as part_id
                                 from
                                         dc_in_input a
                                         left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -2372,6 +2445,71 @@ class DcReportController extends Controller
                                         (s.cancel IS NULL OR s.cancel != 'y') and
                                         (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
                                         (pd.part_status != 'main' OR pd.part_status IS NULL)
+                        ),
+
+                        form_list as (
+                                select
+                                        query_dc.id_qr_stocker,
+                                        query_dc.part_detail_id,
+                                        query_dc.so_det_id,
+                                        null qty_in_dc_main,
+                                        0 qty_in_dc,
+                                        null sec_inhouse_in_main,
+                                        null sec_inhouse_in,
+                                        null sec_inhouse_rep_main,
+                                        null sec_inhouse_rep,
+                                        null sec_inhouse_out_main,
+                                        null sec_inhouse_out,
+                                        null sec_in_in_main,
+                                        null sec_in_in,
+                                        null sec_in_rep_main,
+                                        null sec_in_rep,
+                                        null sec_in_out_main,
+                                        null sec_in_out,
+                                        null loading_qty,
+                                        query_dc.ws,
+                                        query_dc.part_id
+                                from
+                                        query_dc
+                                        left join part on part.act_costing_ws = query_dc.ws and part.id = query_dc.part_id
+                                        left join part_detail on part_detail.part_id = part.id
+                                        left join master_part mp on mp.id = part_detail.master_part_id
+                                where
+                                        part.panel_status != 'COMPLEMENT' and part_detail.part_status != 'COMPLEMENT'
+                                group by
+                                        so_det_id,
+                                        part.id,
+                                        part_detail.id
+                        ),
+
+                        dc as (
+                                SELECT
+                                        MAX(a.id_qr_stocker) id_qr_stocker,
+                                        MAX(a.part_detail_id) part_detail_id,
+                                        MAX(a.so_det_id) so_det_id,
+                                        null qty_in_dc_main,
+                                        SUM(a.qty_in_dc) qty_in_dc,
+                                        null sec_inhouse_in_main,
+                                        null sec_inhouse_in,
+                                        null sec_inhouse_rep_main,
+                                        null sec_inhouse_rep,
+                                        null sec_inhouse_out_main,
+                                        null sec_inhouse_out,
+                                        null sec_in_in_main,
+                                        null sec_in_in,
+                                        null sec_in_rep_main,
+                                        null sec_in_rep,
+                                        null sec_in_out_main,
+                                        null sec_in_out,
+                                        null loading_qty
+                                FROM (
+                                        SELECT * FROM query_dc
+                                        UNION ALL
+                                        SELECT * FROM form_list
+                                ) a
+                                GROUP BY
+                                        a.part_detail_id,
+                                        a.so_det_id
                         ),
 
                         sii_in as (
