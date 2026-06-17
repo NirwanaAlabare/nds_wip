@@ -83,7 +83,7 @@
                             <select class="form-select select2bs4" name="from_no_ws" id="from_no_ws">
                                 <option value="">Select No WS</option>
                                 @foreach ($wsList as $item)
-                                    <option value="{{ $item->ws }}" 
+                                    <option value="{{ $item->ws }}"
                                         data-buyer="{{ $item->buyer }}"
                                         data-styleno="{{ $item->styleno }}"> {{ $item->ws }}</option>
                                 @endforeach
@@ -161,7 +161,7 @@
                             <select class="form-select select2bs4" name="no_ws" id="no_ws">
                                 <option value="">Select No WS</option>
                                 @foreach ($wsList as $item)
-                                    <option value="{{ $item->ws }}" 
+                                    <option value="{{ $item->ws }}"
                                         data-buyer="{{ $item->buyer }}"
                                         data-styleno="{{ $item->styleno }}"> {{ $item->ws }}</option>
                                 @endforeach
@@ -216,7 +216,7 @@
             </div>
         </div>
     </div>
-        
+
     <div class="card">
         <div class="card-header bg-sb-secondary">
             <h5 class="card-title">
@@ -244,6 +244,7 @@
                     <button class="btn btn-primary btn-sm" onclick="listTableReload()"> <i class="fa fa-search"></i> </button>
                 </div>
                 <div class="ms-auto">
+                    <button type="button" class="btn btn-success btn-sm" id="btnExport" onclick="exportDataSwitching()"> <i class="fa fa-download"></i> Export </button>
                     <button type="button" class="btn btn-danger btn-sm" id="btnDeleteSelected" style="display:none;"> <i class="fa fa-trash"></i> Delete </button>
                 </div>
             </div>
@@ -631,15 +632,15 @@
                 },
             },
             columns: [
-                { 
+                {
                     data: null,
                     className: 'text-center',
                     orderable: false,
                     render: function (data, type, row) {
                         return `
-                            <input 
-                                type="checkbox" 
-                                class="row-check" 
+                            <input
+                                type="checkbox"
+                                class="row-check"
                                 value="${row.id}"
                             >
                         `;
@@ -884,6 +885,40 @@
             } else {
                 $('#btnDeleteSelected').hide();
             }
+        }
+
+        function exportDataSwitching() {
+            let tglAwal = $('#tgl-awal').val();
+            let tglAkhir = $('#tgl-akhir').val();
+            let source = $('#source_list').val();
+
+            if (!tglAwal || !tglAkhir) {
+                Swal.fire('Warning', 'Pilih tanggal awal dan akhir!', 'warning');
+                return;
+            }
+
+            Swal.fire({ title: 'Please Wait...', html: 'Exporting Data...', didOpen: () => { Swal.showLoading(); }, allowOutsideClick: false });
+            $.ajax({
+                type: 'POST',
+                url: "{{ route('export-switching') }}",
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                data: {
+                    dateFrom: tglAwal,
+                    dateTo: tglAkhir,
+                    source: source
+                },
+                xhrFields: { responseType: 'blob' },
+                success: function(response) {
+                    Swal.close();
+                    let link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(new Blob([response]));
+                    link.download = 'Switching_' + tglAwal + '_' + tglAkhir + '.xlsx';
+                    link.click();
+                },
+                error: function() { Swal.fire({ title: 'Gagal Export', icon: 'error' }); }
+            });
         }
     </script>
 @endsection

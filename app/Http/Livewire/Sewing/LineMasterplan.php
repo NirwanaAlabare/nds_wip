@@ -70,7 +70,7 @@ class LineMasterplan extends Component
         $this->lineRow = MasterPlan::selectRaw("master_plan.sewing_line, COUNT(master_plan.id) total_row, GROUP_CONCAT(master_plan.jam_kerja), SUM(master_plan.jam_kerja) total_jam, SUM(master_plan.plan_target) total_target")->
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
             join("so", "so.id_cost", "=", "act_costing.id")->
-            join(DB::raw("(select so_det.id, so_det.id_so, so_det.color, so_det.styleno_prod from so_det where so_det.cancel = 'N' group by id_so, color) so_det"), function ($join) {
+            leftJoin(DB::raw("(select so_det.id, so_det.id_so, so_det.color, so_det.styleno_prod from so_det where so_det.cancel = 'N' group by id_so, color) so_det"), function ($join) {
                 $join->on("so_det.id_so", "=", "so.id");
                 $join->on("so_det.color", "=", "master_plan.color");
             })->
