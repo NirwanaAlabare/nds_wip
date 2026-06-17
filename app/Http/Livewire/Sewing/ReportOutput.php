@@ -46,6 +46,11 @@ class ReportOutput extends Component
         $this->range = $range;
     }
 
+    public function updatedRange()
+    {
+        $this->emit('rangeUpdated', $this->range);
+    }
+
     public function render()
     {
         ini_set("max_execution_time", "3600");
@@ -2265,5 +2270,10 @@ class ReportOutput extends Component
             'months' => $months,
             'years' => $years,
         ]);
+    }
+
+    public function dehydrate()
+    {
+        $this->emit('hideLoading');
     }
 }

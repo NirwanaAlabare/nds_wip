@@ -134,7 +134,8 @@ a.qty_pakai,
 unit,
 color
 
-        FROM form_cut_alokasi_gr_panel_barcode a
+        FROM penerimaan_cutting
+        LEFT JOIN form_cut_alokasi_gr_panel_barcode a on a.barcode = penerimaan_cutting.id_roll
 		left join scanned_item b on a.barcode = b.id_roll
         WHERE barcode = ?
         ORDER BY a.id DESC

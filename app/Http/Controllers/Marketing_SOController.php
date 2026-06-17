@@ -19,8 +19,8 @@ class Marketing_SOController extends Controller
 
             $query = $mysql_sb->table('so')
                 ->leftJoin('act_costing as act', 'so.id_cost', '=', 'act.id')
-                ->join('mastersupplier as ms', 'so.buyerno', '=', 'ms.Id_Supplier')
-                ->join('masterproduct as mp', 'so.id_product', '=', 'mp.id')
+                ->leftJoin('mastersupplier as ms', 'so.buyerno', '=', 'ms.Id_Supplier')
+                ->leftJoin('masterproduct as mp', 'so.id_product', '=', 'mp.id')
                 ->select([
                     'so.id',
                     'so.d_insert',
@@ -109,12 +109,18 @@ class Marketing_SOController extends Controller
             ->where('kode_pilihan', 'Curr')
             ->select('id', 'nama_pilihan')
             ->get();
+        $used_boms = $mysql_sb->table('so')->whereNotNull('id_bom')->pluck('id_bom')->toArray();
+
         $bom_catalog = $mysql_sb->table('bom_marketing')
             ->select('id', 'no_katalog_bom', 'style')
             ->whereNotNull('no_katalog_bom')
-            ->where('approval', 'Y')
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->where('approval', 'Y');
+
+        if (!empty($used_boms)) {
+            $bom_catalog = $bom_catalog->whereNotIn('id', $used_boms);
+        }
+
+        $bom_catalog = $bom_catalog->orderBy('created_at', 'desc')->get();
 
         $master_colors = $mysql_sb->table('master_colors_gmt')->orderBy('name', 'ASC')->get();
         $master_sizes = $mysql_sb->table('master_size_new')->orderBy('urutan', 'ASC')->get();
@@ -613,14 +619,25 @@ class Marketing_SOController extends Controller
         $errors_size = [];
         $mysql_sb = DB::connection('mysql_sb');
 
-        // Tarik Master Data
-        $master_colors = $mysql_sb->table('master_colors_gmt')->pluck('id', 'name')->toArray();
-        $master_sizes  = $mysql_sb->table('master_size_new')->pluck('id', 'size')->toArray();
+        // Tarik Master Data dan bersihkan spasi & case-nya
+        $raw_master_colors = $mysql_sb->table('master_colors_gmt')->pluck('id', 'name')->toArray();
+        $master_colors = [];
+        foreach ($raw_master_colors as $k => $v) {
+            $master_colors[strtoupper(trim($k))] = $v;
+        }
+
+        $raw_master_sizes = $mysql_sb->table('master_size_new')->pluck('id', 'size')->toArray();
+        $master_sizes = [];
+        foreach ($raw_master_sizes as $k => $v) {
+            $master_sizes[strtoupper(trim($k))] = $v;
+        }
 
         // Tarik Data BOM (Warna & Size yang terdaftar) - Di-unique langsung dari query
         $bom_colors = $mysql_sb->table('bom_marketing_detail')
             ->where('id_bom_marketing', $id_bom)
             ->whereNotNull('id_color')
+            ->where('id_color', '!=', '0')
+            ->where('id_color', '!=', '')
             ->pluck('id_color')
             ->unique()
             ->toArray();
@@ -628,6 +645,8 @@ class Marketing_SOController extends Controller
         $bom_sizes = $mysql_sb->table('bom_marketing_detail')
             ->where('id_bom_marketing', $id_bom)
             ->whereNotNull('id_size')
+            ->where('id_size', '!=', '0')
+            ->where('id_size', '!=', '')
             ->pluck('id_size')
             ->unique()
             ->toArray();
@@ -657,35 +676,42 @@ class Marketing_SOController extends Controller
             // =======================================================
 
             // Validasi Warna
-            if (!isset($master_colors[$color_name])) {
+            $color_key = strtoupper($color_name);
+            if (!isset($master_colors[$color_key])) {
                 $errors_color[] = "Warna: <b>$color_name</b> tidak ada di Master.";
                 continue;
             }
-            $color_id = $master_colors[$color_name];
+            $color_id = $master_colors[$color_key];
 
             if (count($bom_colors) > 0 && !in_array($color_id, $bom_colors)) {
-                $errors_color[] = "Warna: <b>$color_name</b> tidak terdaftar di BOM.";
+                $errors_color[] = "Warna: <b>$color_name</b> tidak terdaftar di Material BOM Detail.";
                 continue;
             }
 
             // Looping Qty per Size
             for ($col_index = 7; $col_index < count($row); $col_index++) {
-                $qty = $row[$col_index];
+                // Bersihkan qty dari spasi biasa dan karakter spasi tersembunyi (NBSP)
+                $qty_raw = $row[$col_index];
+                if ($qty_raw === null || $qty_raw === '') continue;
 
-                if (empty($qty) || !is_numeric($qty) || $qty <= 0) continue;
+                $qty = trim($qty_raw, " \t\n\r\0\x0B\xC2\xA0");
+                $qty = preg_replace('/\s+/u', '', $qty); // Hapus semua whitespace tersisa (unicode)
+
+            if ($qty === '' || !is_numeric($qty) || $qty <= 0) continue;
 
                 $size_name = trim($headers[$col_index]);
                 if (empty($size_name)) continue;
 
                 // Validasi Size
-                if (!isset($master_sizes[$size_name])) {
+                $size_key = strtoupper($size_name);
+                if (!isset($master_sizes[$size_key])) {
                     $errors_size[] = "Size: <b>$size_name</b> tidak ada di Master.";
                     continue;
                 }
-                $size_id = $master_sizes[$size_name];
+                $size_id = $master_sizes[$size_key];
 
                 if (count($bom_sizes) > 0 && !in_array($size_id, $bom_sizes)) {
-                    $errors_size[] = "Size: <b>$size_name</b> (pada warna $color_name) tidak terdaftar di BOM.";
+                    $errors_size[] = "Size: <b>$size_name</b> (pada warna $color_name) tidak terdaftar di Material BOM Detail.";
                     continue;
                 }
 
@@ -717,7 +743,18 @@ class Marketing_SOController extends Controller
             }
         }
 
-        return response()->json(['status' => 200, 'message' => 'Excel berhasil diproses.']);
+        return response()->json([
+            'status' => 200,
+            'message' => 'Excel berhasil diproses.',
+            'debug' => [
+                'total_rows_excel' => count($data),
+                'total_inserted' => count($temp_data),
+                'bom_colors_count' => count($bom_colors),
+                'bom_sizes_count' => count($bom_sizes),
+                'headers' => $headers ?? [],
+                'row_1_data' => $data[1] ?? []
+            ]
+        ]);
     }
 
 
@@ -1294,16 +1331,16 @@ class Marketing_SOController extends Controller
         if ($temp_data->isEmpty()) return response()->json(['message' => 'Data Kosong!'], 400);
 
         $po_type = $request->po_type ?? 'single';
-        
+
         if ($po_type === 'multiple') {
             $all_po_array = $temp_data->keys()->toArray();
             $no_po_combined = implode(', ', $all_po_array);
             if (strlen($no_po_combined) > 200) {
                 $no_po_combined = substr($no_po_combined, 0, 195) . '...';
             }
-            
+
             $all_details = $temp_data->flatten(1);
-            
+
             $temp_data = collect([
                 $no_po_combined => $all_details
             ]);
@@ -1372,8 +1409,8 @@ class Marketing_SOController extends Controller
                     'kpno'        => $kode['kpno'],
                     'id_buyer'    => $request->id_buyer,
                     'styleno'     => $request->style,
-                    'qty'         => $total_qty_po,
-                    'curr'        => $request->id_currency,
+                    'qty'         => $act_costing_new ? $act_costing_new->qty : $total_qty_po,
+                    'curr'        => $act_costing_new ? $act_costing_new->curr : $request->id_currency,
                     'username'    => $username_2,
                     'brand'       => $request->brand,
                     'smv_min'     => $request->smv,
@@ -1404,7 +1441,7 @@ class Marketing_SOController extends Controller
                     'smv'       => $request->smv,
                     'marketing_order' => $request->marketing_order,
                     'notes'     => $request->notes,
-                    'unit'   => 'PCS',
+                    'unit'      => 'PCS',
                     'id_season' => $act_costing_new->season_id ?? null,
                     'jns_so'    => $request->jns_so,
                 ]);
@@ -1502,6 +1539,7 @@ class Marketing_SOController extends Controller
                         'id_size'      => $size->id ?? null,
                         'product_set'  => $d->product_set ?? null,
                         'dest'    => $d->market ?? null,
+                        'price' => $act_costing_new ? $act_costing_new->confirm_price : 0,
                     ];
                 }
 
@@ -2332,7 +2370,7 @@ class Marketing_SOController extends Controller
                 'c.product_group',
                 'c.product_item as nama_product_item',
                 'c.brand',
-                'c.season',
+                'c.season_id',
                 'c.style',
                 'c.market',
                 'c.marketing_order',
@@ -2543,14 +2581,14 @@ class Marketing_SOController extends Controller
 
                 if (count($new_colors) > 0 || count($new_sizes) > 0) {
                     $so_colors_current = $so_colors;
-                    
+
                     // Ekspansi Warna Baru
                     foreach ($new_colors as $nc) {
                         $color_info = $mysql_sb->table('master_colors_gmt')->where('id', $nc)->first();
                         foreach ($so_sizes as $sz) {
                             $ref = $mysql_sb->table('so_det')->where('id_so', $id)->where('cancel', 'N')->where('id_size', $sz)->first();
                             if (!$ref) $ref = $base_so_det;
-                            
+
                             $mysql_sb->table('so_det')->insert([
                                 'id_so' => $id,
                                 'color' => $color_info ? $color_info->name : '-',
@@ -2596,7 +2634,7 @@ class Marketing_SOController extends Controller
                             ]);
                         }
                     }
-                    
+
                     // Update SO header total qty
                     $total_qty = $mysql_sb->table('so_det')->where('id_so', $id)->where('cancel', 'N')->sum('qty');
                     $mysql_sb->table('so')->where('id', $id)->update(['qty' => $total_qty]);

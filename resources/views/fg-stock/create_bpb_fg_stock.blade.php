@@ -106,7 +106,7 @@
                     <div class="col-md-3">
                         <div class="form-group">
                             <label><small><b>Sumber Penerimaan</b></small></label>
-                            <select class="form-control select2bs4" id="cbosumber" name="cbosumber" style="width: 100%;">
+                            <select class="form-control select2bs4" id="cbosumber" name="cbosumber" style="width: 100%;" onchange="getbuyer()">
                                 <option selected="selected" value="" disabled="true">Pilih Sumber Penerimaan</option>
                                 @foreach ($data_terima as $dataterima)
                                     <option value="{{ $dataterima->isi }}">
@@ -124,12 +124,6 @@
                                 <label><small><b>Buyer</b></small></label>
                                 <select class="form-control select2bs4 form-control-sm" id="cbobuyer" name="cbobuyer"
                                     style="width: 100%;" onchange='getno_ws();'>
-                                    <option selected="selected" value="" disabled="true">Pilih Buyer</option>
-                                    @foreach ($data_buyer as $databuyer)
-                                        <option value="{{ $databuyer->isi }}">
-                                            {{ $databuyer->tampil }}
-                                        </option>
-                                    @endforeach
                                 </select>
                             </div>
                         </div>
@@ -316,62 +310,117 @@
             $('input[type=number]').on('wheel', function(e) {
                 return false;
             });
+
+            $('#cbobuyer').on('select2:opening', function(e) {
+                if ($('#cbosumber').val() == '' || $('#cbosumber').val() == null) {
+
+                    iziToast.warning({
+                        message: 'Sumber penerimaan harus dipilih terlebih dahulu',
+                        position: 'topCenter'
+                    });
+
+                    e.preventDefault();
+                    return false;
+                }
+            });
         })
 
         function cleardet() {
             // document.getElementById('txtno_carton').value = "";
             document.getElementById('txtqty').value = "";
+            $('#txtqty').prop('placeholder', '');
             $("#cboproduct").val('').trigger('change');
 
         }
 
+        function getbuyer() {
+            let cbosumber = $('#cbosumber').val();
+
+            let html = $.ajax({
+                type: "GET",
+                url: '{{ route('getbuyer') }}',
+                data: {
+                    cbosumber: cbosumber
+                },
+                async: false
+            }).responseText;
+
+            if (html != "") {
+
+                $("#cbobuyer").html(html);
+
+                $("#cbows").html('');
+                $("#cbocolor").html('');
+                $("#cbosize").html('');
+                $("#cboproduct").html('');
+
+                $('#cbobuyer').val('').trigger('change');
+            }
+        }
+
         function getno_ws() {
             let cbobuyer = document.form_h.cbobuyer.value;
+            let cbosumber = $('#cbosumber').val();
             let html = $.ajax({
                 type: "GET",
                 url: '{{ route('getno_ws') }}',
                 data: {
-                    cbobuyer: cbobuyer
+                    cbobuyer: cbobuyer,
+                    cbosumber: cbosumber
                 },
                 async: false
             }).responseText;
             // console.log(html != "");
             if (html != "") {
                 $("#cbows").html(html);
-                // $("#cbomarker").prop("disabled", false);
-                // $("#txtqtyply").prop("readonly", false);
+                
+                $('#txtqty').val('');
+                $('#txtqty').prop('placeholder', '');
+                $('#cbograde').val('').trigger('change');
             }
         };
 
         function getcolor() {
             let cbows = document.form_h.cbows.value;
+            let cbosumber = $('#cbosumber').val();
             let html = $.ajax({
                 type: "GET",
                 url: '{{ route('getcolor') }}',
                 data: {
-                    cbows: cbows
+                    cbows: cbows,
+                    cbosumber: cbosumber
                 },
                 async: false
             }).responseText;
             if (html != "") {
                 $("#cbocolor").html(html);
+
+                $('#txtqty').val('');
+                $('#txtqty').prop('placeholder', '');
+                $('#cbograde').val('').trigger('change');
             }
         };
 
         function getsize() {
             let cbows = document.form_h.cbows.value;
             let cbocolor = document.form_h.cbocolor.value;
+            let cbosumber = $('#cbosumber').val();
             let html = $.ajax({
                 type: "GET",
                 url: '{{ route('getsize') }}',
                 data: {
                     cbows: cbows,
-                    cbocolor: cbocolor
+                    cbocolor: cbocolor,
+                    cbosumber: cbosumber
                 },
                 async: false
             }).responseText;
             if (html != "") {
                 $("#cbosize").html(html);
+
+                $('#txtqty').val('');
+                $('#txtqty').prop('placeholder', '');
+                $('#cbograde').val('').trigger('change');
             }
         };
 
@@ -380,6 +429,7 @@
             let cbows = document.form_h.cbows.value;
             let cbocolor = document.form_h.cbocolor.value;
             let cbosize = document.form_h.cbosize.value;
+            let cbosumber = $('#cbosumber').val();
             let html = $.ajax({
                 type: "GET",
                 url: '{{ route('getproduct') }}',
@@ -387,7 +437,8 @@
                     cbobuyer: cbobuyer,
                     cbows: cbows,
                     cbocolor: cbocolor,
-                    cbosize: cbosize
+                    cbosize: cbosize,
+                    cbosumber: cbosumber
                 },
                 async: false
             }).responseText;
@@ -396,21 +447,29 @@
             }
         };
 
+        $(document).on('change', '#cboproduct', function() {
+            let selected = $(this).find(':selected');
+
+            $('#txtqty').prop('placeholder', selected.data('qty'));
+            $('#cbograde').val(selected.data('grade')).trigger('change');
+        });
+
         function tambah_data() {
+            let cbosumber = document.form_h.cbosumber.value;
             let cboproduct = document.form_d.cboproduct.value;
             let qty = document.form_d.txtqty.value;
             let no_carton = document.form_d.txtno_carton.value;
             let grade = document.form_d.cbograde.value;
-            let cbosumber = document.form_h.cbosumber.value;
+
             $.ajax({
                 type: "post",
                 url: '{{ route('store_tmp') }}',
                 data: {
+                    cbosumber: cbosumber,
                     cboproduct: cboproduct,
                     qty: qty,
                     no_carton: no_carton,
-                    grade: grade,
-                    cbosumber: cbosumber
+                    grade: grade
                 },
                 success: function(response) {
                     if (response.icon == 'salah') {
@@ -427,6 +486,22 @@
                         cleardet();
                     }
                 },
+                error: function(xhr) {
+                    if (xhr.status == 422) {
+
+                        let errors = xhr.responseJSON.errors;
+                        let pesan = '';
+
+                        $.each(errors, function(key, value) {
+                            pesan += value[0] + '<br>';
+                        });
+
+                        iziToast.warning({
+                            message: pesan,
+                            position: 'topCenter'
+                        });
+                    }
+                }
                 // error: function(request, status, error) {
                 //     alert(request.responseText);
                 // },

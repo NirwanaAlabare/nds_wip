@@ -3,10 +3,10 @@
 
 <table class="table">
     <tr>
-        <td colspan='9'>Laporan Penerimaan Lokasi Scan</td>
+        <td colspan='10'>Laporan Penerimaan Lokasi Scan</td>
     </tr>
     <tr>
-        <td colspan='9'>{{ date('d-M-Y', strtotime($from)) }} - {{ date('d-M-Y', strtotime($to)) }}
+        <td colspan='10'>{{ date('d-M-Y', strtotime($from)) }} - {{ date('d-M-Y', strtotime($to)) }}
         </td>
     </tr>
     <tr>
@@ -14,6 +14,7 @@
     </tr>
     <thead>
         <tr>
+            <th style="background-color: yellow;border:1px solid black;font-weight:bold">No. Trans</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Tgl. Trans</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Qr Code</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">No Karton</th>
@@ -31,6 +32,7 @@
         @endphp
         @foreach ($data as $item)
             <tr>
+                <td>{{ $item->no_trans }}</td>
                 <td>{{ $item->tgl_terima_fix }}</td>
                 <td>{{ $item->qr_code }}</td>
                 <td>{{ $item->no_carton }}</td>

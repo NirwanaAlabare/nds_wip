@@ -102,7 +102,8 @@ class importSaldoAwalCuttingDetail implements ToCollection, WithStartRow
                     WHERE
                         act_costing.kpno = '".$row[2]."' and
                         so_det.color = '".$row[5]."' and
-                        so_det.size = '".$row[6]."'
+                        so_det.size = '".$row[6]."' and
+                        so_det.cancel != 'Y'
                     LIMIT 1
                 ");
 

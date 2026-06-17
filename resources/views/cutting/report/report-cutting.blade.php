@@ -31,10 +31,14 @@
                     <button type="button" class="btn btn-primary btn-sm mb-3" onclick="datatableReload()"><i
                             class="fa fa-search fa-sm"></i></button>
                 </div>
-                <div class="d-flex align-items-end gap-3 mb-3">
+                <div class="d-flex align-items-end gap-1 mb-3">
                     <div class="mb-3">
                         <button class="btn btn-success btn-sm" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i>
                             Export</button>
+                    </div>
+                    <div class="mb-3 d-none">
+                        <button class="btn btn-outline-success btn-sm" onclick="exportExcel(this, true)"><i class="fa fa-file-excel"></i>
+                            Export Detail</button>
                     </div>
                 </div>
             </div>
@@ -294,7 +298,9 @@
         //     });
         // }
 
-        function exportExcel(elm) {
+        function exportExcel(elm, detail = false) {
+            let textBefore = elm.innerText;
+
             elm.setAttribute('disabled', 'true');
             elm.innerText = "";
             let loading = document.createElement('div');
@@ -316,8 +322,13 @@
             // This arrangement can be altered based on how we want the date's format to appear.
             let currentDate = `${day}-${month}-${year}`;
 
+            let currentRoute = "{{ route('export-cutting-form') }}";
+            if (detail) {
+                currentRoute = "{{ route('export-cutting-form-part-detail') }}";
+            }
+
             $.ajax({
-                url: "{{ route('export-cutting-form') }}",
+                url: currentRoute,
                 type: 'post',
                 data: {
                     dateFrom: $("#from").val(),
@@ -333,7 +344,7 @@
                     icon.classList.add('fa-solid');
                     icon.classList.add('fa', 'fa-file-excel');
                     elm.appendChild(icon);
-                    elm.innerHTML += " Export";
+                    elm.innerHTML += textBefore;
 
                     iziToast.success({
                         title: 'Success',
@@ -353,7 +364,7 @@
                     let icon = document.createElement('i');
                     icon.classList.add('fa', 'fa-file-excel');
                     elm.appendChild(icon);
-                    elm.innerHTML += " Export";
+                    elm.innerHTML += textBefore;
 
                     let res = jqXHR.responseJSON;
                     let message = '';

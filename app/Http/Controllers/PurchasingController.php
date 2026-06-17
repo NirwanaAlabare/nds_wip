@@ -170,7 +170,7 @@ class PurchasingController extends Controller
 
         $notes_po = $po_header->notes;
         $tipe_commercial = '';
-        if (strpos($notes_po, 'Tipe: ') !== false) {
+        if (strpos($notes_po ?? '', 'Tipe: ') !== false) {
             $parts = explode(' | ', $notes_po);
             $tipe_commercial = str_replace('Tipe: ', '', $parts[0]);
             $notes_po = isset($parts[1]) ? $parts[1] : '';

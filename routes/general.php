@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\General\GeneralController;
 use App\Http\Controllers\General\InjectAdjustmentController;
+use App\Http\Controllers\General\LockController;
 use App\Http\Controllers\General\SwitchingController;
 use App\Http\Controllers\General\TrackController;
 use App\Http\Controllers\General\WorksheetController;
@@ -120,6 +121,15 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-inject-adjustment');
         Route::post('/delete', 'delete')->name('delete-inject-adjustment');
         Route::post('/get-data', 'getData')->name('get-data-inject-adjustment');
+    });
+
+    Route::controller(LockController::class)->prefix("lock")->group(function () {
+        Route::get('/', 'index')->name("lock");
+        Route::post('/store', 'store')->name('store-lock');
+        Route::post('/delete', 'delete')->name('delete-lock');
+        Route::post('/get-data', 'getData')->name('get-data-lock');
+        Route::post('/locked', 'locked')->name('locked-lock');
+        Route::post('/unlocked', 'unlocked')->name('unlocked-lock');
     });
 
     Route::controller(SwitchingController::class)->prefix("switching")->group(function () {

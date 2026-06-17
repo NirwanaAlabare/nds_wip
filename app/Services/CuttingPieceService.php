@@ -203,6 +203,9 @@ class CuttingPieceService
                 throw new \Exception("Detail size tidak ditemukan");
             }
 
+            // Take Cons. WS
+            $consWs = $formDetail->formCutPiece && $formDetail->formCutPiece->cons_ws ? $formDetail->formCutPiece->cons_ws : null;
+
             // Define Qty Form Detail Size
             $qtyBefore = $detailSize->qty;
             $qtyAfter = $request->qty_detail[$i];
@@ -219,6 +222,7 @@ class CuttingPieceService
             if ($qtyAfter != $qtyBefore) {
                 $detailSize->update([
                     "qty" => $qtyAfter,
+                    "qty_aktual" => ($qtyAfter / ($consWs > 0 ? $consWs : 1)),
                     "edited_by" => auth()->id(),
                     "edited_by_username" => auth()->user()->username,
                     "edited_at" => now(),

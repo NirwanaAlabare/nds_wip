@@ -181,7 +181,7 @@
                     </div>
                     <div class="form-group hidden">
                         <label><small class="fw-bold">Currency</small></label>
-                        <select name="currency" id="currency" class="form-control select2bs4">
+                        <select name="currency" id="currency" class="form-control select2bs ">
                             <option value="">Pilih Currency</option>
                             @foreach ($master_currency as $data)
                                 <option value="{{ $data->id }}">{{ $data->nama_pilihan }}</option>
@@ -234,7 +234,7 @@
                             </div>
                             <small class="fw-bold text-muted text-nowrap">Cons:</small>
                             <div style="flex: 1;">
-                                <input type="number" step="0.0001" id="batch_cons" class="form-control form-control-sm text-center qty_input" placeholder="0.0000">
+                                <input type="number" step="0.0000000001" id="batch_cons" class="form-control form-control-sm text-center qty_input" placeholder="0.0000000000">
                             </div>
                             <div class="flex-shrink-0">
                                 <button type="button" class="btn btn-sm text-white fw-bold shadow-sm btn-success" onclick="applyBatch()">
@@ -382,7 +382,7 @@
     </div>
 </div>
 
-<div class="modal fade" id="modalEdit" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalEdit"  tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <form id="form-edit-item" onsubmit="submit_edit_item(this, event)">
@@ -398,7 +398,9 @@
                     <div class="row">
                         <div class="col-md-12 mb-2">
                             <label><small class="fw-bold">Item Description</small></label>
-                            <input type="text" id="edit_item_desc" class="form-control form-control-sm bg-light" readonly>
+                            <select name="id_item" id="edit_id_item" class="form-control select2bs4-edit" style="width: 100%;">
+                                <option value="">-- Pilih Item (opsional) --</option>
+                            </select>
                         </div>
                         <div class="col-md-6 mb-2">
                             <label><small class="fw-bold">Color</small></label>
@@ -420,7 +422,7 @@
                         </div>
                         <div class="col-md-6 mb-2">
                             <label><small class="fw-bold">Qty</small></label>
-                            <input type="number" step="0.0001" name="qty" id="edit_qty" class="form-control form-control-sm text-center qty_input" required>
+                            <input type="number" step="0.0000000001" name="qty" id="edit_qty" class="form-control form-control-sm text-center qty_input" required>
                         </div>
                         <div class="col-md-6 mb-2">
                             <label><small class="fw-bold">Unit</small></label>
@@ -550,7 +552,7 @@
                     position: 'topRight'
                 });
             } else {
-                this.value = Math.round(val * 10000) / 10000;
+                this.value = Math.round(val * 10000000000) / 10000000000;
             }
         });
 
@@ -752,7 +754,7 @@
                 let savedData = existingMap[`${cIdStr}_${sIdStr}`];
 
                 let selectedItemId = savedData ? savedData.id_item : null;
-                let savedQty       = 0.0000;
+                let savedQty       = 0.0000000000;
 
                 let itemOptionsHtml = baseItemOptions;
 
@@ -764,7 +766,7 @@
                         <small class="fw-bold">${data.label}</small>
                     </td>
                     <td><select name="id_item[${idx}]" class="form-control select2-item">${itemOptionsHtml}</select></td>
-                    <td><input type="number" step="0.0001" name="qty_input[${idx}]" class="form-control form-control-sm text-center qty_input" placeholder="0.0000" value="${savedQty}"></td>
+                    <td><input type="number" step="0.0000000001" name="qty_input[${idx}]" class="form-control form-control-sm text-center qty_input" placeholder="0.0000000000" value="${savedQty}"></td>
                     <td class="text-center align-middle">
                         <button type="button" class="btn btn-sm btn-danger btn-hapus-row" title="Hapus Baris Ini"><i class="fas fa-times"></i></button>
                     </td>
@@ -1025,10 +1027,9 @@
 
         let isTableValid = true;
         $("#itemTable tbody tr").each(function(index) {
-            let itemId = $(this).find('[name^="id_item"]').val();
             let qty    = $(this).find('[name^="qty_input"]').val();
 
-            if (qty > 0 && (!itemId || itemId === "")) {
+            if (!qty || parseFloat(qty) <= 0) {
                 isTableValid = false;
                 $(this).addClass('table-danger');
             } else {
@@ -1037,8 +1038,8 @@
         });
 
         if (!isTableValid) {
-            Swal.fire({ icon: 'warning', title: 'Data Tidak Valid', text: 'Terdapat item yang belum dipilih padahal Qty terisi.' });
-            return false;
+             Swal.fire({ icon: 'warning', title: 'Data Tidak Valid', text: 'Terdapat quantity yang masih kosong atau 0.' });
+             return false;
         }
 
         Swal.fire({
@@ -1119,16 +1120,16 @@
                     searchable: false,
                     render: function(data) {
                         let nilai = parseFloat(data);
-                        if (isNaN(nilai)) return '0.000000';
+                        if (isNaN(nilai)) return '0.0000000000';
 
                         let stringNilai = nilai.toString();
                         if (stringNilai.indexOf('.') === -1) {
-                            return nilai.toFixed(4);
+                            return nilai.toFixed(10);
                         }
 
-                        let hasilPotong = stringNilai.match(/^-?\d+(?:\.\d{0,4})?/)[0];
+                        let hasilPotong = stringNilai.match(/^-?\d+(?:\.\d{0,10})?/)[0];
 
-                        return parseFloat(hasilPotong).toFixed(4);
+                        return parseFloat(hasilPotong).toFixed(10);
                     }
 
                 },
@@ -1157,25 +1158,72 @@
         });
     }
 
+    let edit_data = {};
+
     function edit_item_row(id) {
         let url = "{{ route('get-item-row-bom', ':id') }}";
         url = url.replace(':id', id);
 
-        $.get(url, function(res) {
-            $('#edit_id_detail').val(res.id);
-            $('#edit_item_desc').val(res.item_name);
-            $('#edit_id_color').val(res.id_color).trigger('change');
-            $('#edit_id_size').val(res.id_size).trigger('change');
-            $('#edit_qty').val(res.qty || 0);
-            $('#edit_price').val(res.price || 0);
-            $('#edit_id_currency').val(res.id_currency).trigger('change');
-            $('#edit_unit').val(res.unit).trigger('change');
-            $('#edit_shell').val(res.shell).trigger('change');
+        Swal.fire({ title: 'Memuat...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-            $('.select2bs4-edit').select2({ theme: 'bootstrap4', dropdownParent: $('#modalEdit') });
+        $.get(url, function(res) {
+            Swal.close();
+            edit_data = res;
             $('#modalEdit').modal('show');
+        }).fail(function() {
+            Swal.fire('Error', 'Gagal mengambil data item.', 'error');
         });
     }
+
+    $('#modalEdit').on('shown.bs.modal', function() {
+        $('.select2bs4-edit').each(function() {
+            try {
+                if ($(this).data('select2')) $(this).select2('destroy');
+            } catch(e) {}
+        });
+
+        let itemOptions = '<option value="">-- Pilih Item (opsional) --</option>';
+        if (edit_data.available_items) {
+            edit_data.available_items.forEach(i => {
+                let selected = (edit_data.id_item == i.isi) ? 'selected' : '';
+                itemOptions += `<option value="${i.isi}" ${selected}>${i.tampil}</option>`;
+            });
+        }
+        $('#edit_id_item').html(itemOptions);
+
+        console.log('Edit Data:', edit_data);
+
+        $('#edit_id_detail').val(edit_data.id);
+        $('#edit_id_color').val(edit_data.id_color);
+        $('#edit_id_size').val(edit_data.id_size);
+        $('#edit_qty').val(edit_data.qty || 0);
+        $('#edit_price').val(edit_data.price || 0);
+        $('#edit_id_currency').val(edit_data.id_currency);
+        $('#edit_unit').val(edit_data.unit);
+        $('#edit_shell').val(edit_data.shell);
+
+        $('.select2bs4-edit').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('#modalEdit'),
+            width: '100%'
+        });
+
+        $('#edit_id_item').val(edit_data.id_item).trigger('change.select2');
+        $('#edit_id_color').val(edit_data.id_color).trigger('change.select2');
+        $('#edit_id_size').val(edit_data.id_size).trigger('change.select2');
+        $('#edit_unit').val(edit_data.unit).trigger('change.select2');
+        $('#edit_shell').val(edit_data.shell).trigger('change.select2');
+        $('#edit_id_currency').val(edit_data.id_currency).trigger('change.select2');
+    });
+
+    $('#modalEdit').on('hidden.bs.modal', function() {
+        $('.select2bs4-edit').each(function() {
+            try {
+                if ($(this).data('select2')) $(this).select2('destroy');
+            } catch(e) {}
+        });
+        edit_data = {};
+    });
 
     function submit_edit_item(form, evt) {
         evt.preventDefault();

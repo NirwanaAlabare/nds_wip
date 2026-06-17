@@ -33,6 +33,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-cut-qty', 'getCutQty')->name('get-cut-qty-data');
         Route::delete('/destroy/{id?}', 'destroy')->name('destroy-spreading');
         Route::post('/export', 'exportExcel')->name('export-cutting-form');
+        Route::post('/export-part-detail', 'exportExcelPartDetail')->name('export-cutting-form-part-detail');
         Route::post('/export-pdf', 'exportPdf')->name('export-cutting-form-pdf');
         // export excel
         // Route::get('/export_excel', 'export_excel')->name('export_excel');
@@ -294,6 +295,9 @@ Route::middleware('auth')->group(function () {
 
             // export piece
             Route::post('/export-excel', 'exportExcel')->name('export-form-piece');
+
+            // summary
+            Route::get('/summary/{id?}', 'summary')->name('summary-edit-cutting-piece');
         });
 
         // Piping Stock
@@ -408,7 +412,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/alokasi_fabric_gr_panel', 'alokasi_fabric_gr_panel')->name('alokasi_fabric_gr_panel');
             Route::get('/create_alokasi_fabric_gr_panel', 'create_alokasi_fabric_gr_panel')->name('create_alokasi_fabric_gr_panel');
             Route::post('/save_alokasi_fabric_gr_panel', 'save_alokasi_fabric_gr_panel')->name('save_alokasi_fabric_gr_panel');
-            
+
         });
 
         // Ganti Reject GR

@@ -446,7 +446,8 @@ class CuttingFormPieceController extends Controller
         }
     }
 
-    public function finishProcess($id = 0) {
+    public function finishProcess($id = 0)
+    {
         if ($id) {
             $currentForm = FormCutPiece::where("id", $id)->first();
 
@@ -1046,6 +1047,26 @@ class CuttingFormPieceController extends Controller
         );
     }
 
+    public function deleteDetail(Request $request, CuttingPieceService $cuttingPieceService)
+    {
+        try {
+
+            $result = $cuttingPieceService->deleteFormCutPieceDetail($request);
+
+            return [
+                "status" => 200,
+                "message" => $result
+            ];
+
+        } catch (\Exception $e) {
+
+            return [
+                "status" => 400,
+                "message" => $e->getMessage()
+            ];
+        }
+    }
+
     public function stock(Request $request) {
         if ($request->ajax()) {
             $dateFrom = $request->dateFrom ? $request->dateFrom : date("Y-m-d");
@@ -1115,26 +1136,6 @@ class CuttingFormPieceController extends Controller
         ]);
     }
 
-    public function deleteDetail(Request $request, CuttingPieceService $cuttingPieceService)
-    {
-        try {
-
-            $result = $cuttingPieceService->deleteFormCutPieceDetail($request);
-
-            return [
-                "status" => 200,
-                "message" => $result
-            ];
-
-        } catch (\Exception $e) {
-
-            return [
-                "status" => 400,
-                "message" => $e->getMessage()
-            ];
-        }
-    }
-
     public function getDataWs(Request $request)
     {
         $data = DB::table('master_sb_ws')
@@ -1202,7 +1203,28 @@ class CuttingFormPieceController extends Controller
         );
     }
 
-    public function exportExcel(Request $request) {
+    public function exportExcel(Request $request)
+    {
         return Excel::download(new ExportCuttingFormReject($request->dateFrom, $request->dateTo), 'Report Cutting.xlsx');
+    }
+
+    public function summary($id = 0) {
+        $formCutPieceSummary = FormCutPiece::selectRaw("
+            master_sb_ws.id_so_det,
+            master_sb_ws.ws,
+            master_sb_ws.color,
+            master_sb_ws.size,
+            master_sb_ws.dest,
+            SUM(form_cut_piece_detail_size.qty) qty,
+            SUM(form_cut_piece_detail_size.qty_aktual) qty_aktual
+        ")->
+        leftJoin("form_cut_piece_detail", "form_cut_piece_detail.form_id", "=", "form_cut_piece.id")->
+        leftJoin("form_cut_piece_detail_size", "form_cut_piece_detail_size.form_detail_id", "=", "form_cut_piece_detail.id")->
+        leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "form_cut_piece_detail_size.so_det_id")->
+        where("form_cut_piece.id", $id)->
+        groupBy("master_sb_ws.id_so_det")->
+        get();
+
+        return Datatables::of($formCutPieceSummary)->toJson();
     }
 }

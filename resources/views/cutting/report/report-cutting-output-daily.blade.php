@@ -137,7 +137,7 @@
             },
             columns: [
                 {
-                    data: 'tgl_form_cut'
+                    data: 'tanggal'
                 },
                 {
                     data: 'meja'
@@ -146,7 +146,7 @@
                     data: 'buyer'
                 },
                 {
-                    data: 'act_costing_ws'
+                    data: 'worksheet'
                 },
                 {
                     data: 'style'
@@ -161,7 +161,7 @@
                     data: 'no_form'
                 },
                 {
-                    data: 'qty'
+                    data: 'qty_aktual'
                 },
             ],
             columnDefs: [

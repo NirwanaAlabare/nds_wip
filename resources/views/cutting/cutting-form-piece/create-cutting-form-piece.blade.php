@@ -171,6 +171,39 @@
         </form>
     {{-- END OF PROCESS ONE --}}
 
+    <div id="summary">
+        <div class="card card-sb">
+            <div class="card-header">
+                <h5 class="card-title">
+                    Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped w-100" id="summary-table">
+                        <thead>
+                            <tr>
+                                <th>Size</th>
+                                <th>Destination</th>
+                                <th>Qty</th>
+                                <th>Actual Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="2" class="text-end">Total</th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- PROCESS TWO --}}
         @php
             $currentCuttingPieceDetail = $currentCuttingPiece && $currentCuttingPiece->status == "complete" && $currentCuttingPiece->formCutPieceDetails ? $currentCuttingPiece->formCutPieceDetails->sortByDesc("id")->first() : null;
@@ -330,6 +363,7 @@
                                                 <th>Size</th>
                                                 <th>Dest</th>
                                                 <th>Qty Output</th>
+                                                <th>Qty Actual</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -341,6 +375,7 @@
                                                     <td>{{ $size->size }}</td>
                                                     <td>{{ $size->dest }}</td>
                                                     <td><input type="number" id="qty_detail_{{ $loop->index }}" name="qty_detail[{{ $loop->index }}]" value="{{ $size->qty }}"></td>
+                                                    <td><input type="number" id="qty_detail_actual_{{ $loop->index }}" name="qty_detail_actual[{{ $loop->index }}]" value="{{ $size->qty / ($currentCuttingPiece ? $currentCuttingPiece->cons_ws : 1) }}" readonly></td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -352,6 +387,7 @@
                                                 <th></th>
                                                 <th>Total</th>
                                                 <th id="total-detail-qty">{{ $currentCuttingPieceDetail->qty_pemakaian }}</th>
+                                                <th id="total-detail-qty-actual">{{ $currentCuttingPieceDetail->qty_pemakaian / ($currentCuttingPiece ? $currentCuttingPiece->cons_ws : 1) }}</th>
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -365,6 +401,7 @@
                                                 <th>Size</th>
                                                 <th>Dest</th>
                                                 <th>Qty Output</th>
+                                                <th>Qty Actual</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -378,6 +415,7 @@
                                                 <th></th>
                                                 <th>Total</th>
                                                 <th id="total-detail-qty">...</th>
+                                                <th id="total-detail-qty-actual">...</th>
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -444,6 +482,8 @@
             disableFormSubmit("#process-one-form");
             disableFormSubmit("#process-two-form");
             disableFormSubmit("#process-three-form");
+
+            summaryReload();
         });
 
         // Select2 Autofocus
@@ -904,7 +944,6 @@
                 });
             }
         // END OF PROCESS ONE
-
 
         // PROCESS TWO
             // Init Process Two
@@ -1388,6 +1427,8 @@
             }
 
             function appendProcessThree(item) {
+                let consWs = Number(document.getElementById("cons_ws").value);
+
                 const card = document.getElementById("process-three-card");
                 if (!card) return console.error("Card not found");
 
@@ -1413,7 +1454,7 @@
 
                 // 💡 Set title
                 const title = cloneCard.querySelector(".card-title");
-                if (title) title.textContent = `${(item.id_roll ? item.id_roll : item.id)}`;
+                if (title) title.textContent = `${(item.id_roll ? item.id_roll : item.id_item)}`;
 
                 // ✅ Value map from item
                 const valueMap = {
@@ -1473,6 +1514,7 @@
                                 <th>Size</th>
                                 <th>Destination</th>
                                 <th>Qty</th>
+                                <th>Qty Actual</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1482,6 +1524,7 @@
                             <tr>
                                 <td colspan="2" class="text-right font-weight-bold">Total</td>
                                 <td id="total-detail-qty${suffix}">${(item.form_cut_piece_detail_sizes || []).reduce((sum, row) => sum + Number(row.qty || 0), 0)}</td>
+                                <td id="total-detail-qty-aktual${suffix}">${(item.form_cut_piece_detail_sizes || []).reduce((sum, row) => sum + Number(row.qty_aktual || 0), 0)}</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -1517,6 +1560,9 @@
                         </td>
                         <td>
                             <input type="number" name="qty_detail[${index}]" id="qty_detail_${index}${suffix}" value="${row.qty}" class="form-control" readonly />
+                        </td>
+                        <td>
+                            <input type="number" name="qty_detail_actual[${index}]" id="qty_detail_actual_${index}${suffix}" value="${row.qty_aktual}" class="form-control" readonly />
                         </td>
                     </tr>
                 `).join("");
@@ -1556,6 +1602,9 @@
                     },
                     {
                         data: null, // qty
+                    },
+                    {
+                        data: null, // qty act
                     },
                 ],
                 columnDefs: [
@@ -1597,7 +1646,16 @@
                         targets: [5],
                         className: "text-nowrap",
                         render: (data, type, row, meta) => {
-                            let input = `<input type='number' class='form-control form-control-sm detail-qty' id='qty_detail_`+meta.row+`' name='qty_detail[`+meta.row+`]' data-so-det='`+row.so_det_id+`' onkeyup="calculateTotalDetailQty()" onchange="calculateTotalDetailQty()">`
+                            let input = `<input type='number' class='form-control form-control-sm detail-qty' id='qty_detail_`+meta.row+`' name='qty_detail[`+meta.row+`]' data-so-det='`+row.so_det_id+`' data-row='`+meta.row+`' onkeyup="calculateQtyActual(this);calculateTotalDetailQty();" onchange="calculateQtyActual(this);calculateTotalDetailQty();">`
+
+                            return input;
+                        }
+                    },
+                    {
+                        targets: [6],
+                        className: "text-nowrap",
+                        render: (data, type, row, meta) => {
+                            let input = `<input type='number' class='form-control form-control-sm detail-qty-actual' id='qty_detail_actual_`+meta.row+`' name='qty_detail_actual[`+meta.row+`]' data-so-det='`+row.so_det_id+`' data-row='`+meta.row+`'">`
 
                             return input;
                         }
@@ -1625,6 +1683,23 @@
                 }
             }
 
+            function calculateQtyActual(element) {
+                if (element) {
+                    let row = element.getAttribute('data-row');
+                    let qty = Number(element.value);
+
+                    if (row) {
+                        let consWs = Number(document.getElementById("cons_ws").value);
+
+                        console.log("calculate", consWs, qty);
+
+                        document.getElementById("qty_detail_actual_"+row).value = qty / (consWs > 0 ? consWs : 1);
+
+                        calculateTotalDetailQtyActual();
+                    }
+                }
+            }
+
             function calculateTotalDetailQty() {
                 let detailQtyElements = document.getElementsByClassName("detail-qty");
 
@@ -1643,6 +1718,18 @@
 
                 qtyUseElement.value = totalQty;
                 qtySisaElement.value = Number(qtyItemElement.value) - totalQty;
+            }
+
+            function calculateTotalDetailQtyActual() {
+                let detailQtyActualElements = document.getElementsByClassName("detail-qty-actual");
+
+                let totalQty = 0;
+                for (let i = 0; i < detailQtyActualElements.length; i++) {
+                    console.log(i, detailQtyActualElements[i].value, detailQtyActualElements[i]);
+                    totalQty += Number(detailQtyActualElements[i].value);
+                }
+
+                document.getElementById("total-detail-qty-actual").innerHTML = totalQty;
             }
 
             function processThree(e, event) {
@@ -1684,11 +1771,15 @@
                         }
 
                         document.getElementById("loading").classList.add("d-none");
+
+                        summaryReload();
                     },
                     error: function (jqXHR) {
                         handleError(jqXHR.responseJSON);
 
                         document.getElementById("loading").classList.add("d-none");
+
+                        summaryReload();
                     }
                 });
             }
@@ -1845,5 +1936,59 @@
                 }
             });
         // END
+
+        // SUMMARY
+            let summaryTable = $("#summary-table").DataTable({
+                processing: true,
+                ordering: false,
+                paging: false,
+                searching: false,
+                ajax: {
+                    url: '{{ route('summary-edit-cutting-piece') }}/'+$("#id").val(),
+                },
+                columns: [
+                    {
+                        data: 'size'
+                    },
+                    {
+                        data: 'dest'
+                    },
+                    {
+                        data: 'qty'
+                    },
+                    {
+                        data: 'qty_aktual'
+                    },
+                ],
+                columnDefs: [
+                    {
+                        targets: "_all",
+                        className: "text-nowrap",
+                        render: (data, type, row, meta) => {
+                            return data;
+                        }
+                    }
+                ],
+                footerCallback: function(row, data, start, end, display) {
+                    let api = this.api();
+
+                    let intVal = function(i) {
+                        return typeof i === 'string'
+                            ? i.replace(/[^0-9.-]/g, '') * 1
+                            : typeof i === 'number' ? i : 0;
+                    };
+
+                    let totalQty      = api.column(2, { search: 'applied' }).data().reduce((a, b) => a + intVal(b), 0);
+                    let totalQtyAktual = api.column(3, { search: 'applied' }).data().reduce((a, b) => a + intVal(b), 0);
+
+                    $(api.column(2).footer()).html(totalQty.toLocaleString('id-ID'));
+                    $(api.column(3).footer()).html(totalQtyAktual.toLocaleString('id-ID'));
+                }
+            });
+
+            function summaryReload() {
+                $("#summary-table").DataTable().ajax.reload();
+            }
+        // SUMMARY END
     </script>
 @endsection
