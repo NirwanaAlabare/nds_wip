@@ -81,6 +81,9 @@ Route::middleware('auth')->group(function () {
 
         // Item by WS, Color, Panel
         Route::get('/get-item-by-ws-color-panel', 'getItemByWsColorPanel')->name('get-item-by-ws-color-panel');
+
+        // Export Switching
+        Route::post('/export-switching', 'exportDataSwitching')->name('export-switching');
     });
 
     // Track
