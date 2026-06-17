@@ -19,6 +19,7 @@ use App\Models\Stocker\Stocker;
 use App\Models\Stocker\StockerDetail;
 use App\Models\Dc\DCIn;
 use App\Models\Dc\SecondaryIn;
+use App\Models\Dc\SecondaryInhouseIn;
 use App\Models\Dc\SecondaryInhouse;
 use App\Models\Dc\RackDetailStocker;
 use App\Models\Dc\TrolleyStocker;
@@ -1911,12 +1912,14 @@ class PartController extends Controller
             }
 
             // Cek apakah part sudah memiliki stocker (sudah print stocker)
-            $stockerCount = Stocker::where("part_detail_id", $partDetail->id)->count();
-            if ($stockerCount > 0) {
-                return array(
-                    'status' => 400,
-                    'message'  => 'Part sudah memiliki data Stocker terkait, tidak dapat menambah Part Detail.',
-                );
+            if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() < 1) {
+                $stockerCount = Stocker::where("part_detail_id", $partDetail->id)->count();
+                if ($stockerCount > 0) {
+                    return array(
+                        'status' => 400,
+                        'message'  => 'Part sudah memiliki data Stocker terkait, tidak dapat menambah Part Detail.',
+                    );
+                }
             }
 
             if ($partDetail->delete()) {
@@ -1933,6 +1936,7 @@ class PartController extends Controller
                     DB::table("part_detail_secondary")->where('part_detail_id', $id)->get(),
                     DB::table("dc_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
                     DB::table("secondary_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                    DB::table("secondary_inhouse_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
                     DB::table("secondary_inhouse_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
                     DB::table("rack_detail_stocker")->whereIn('stocker_id', $stockerIds)->get(),
                     DB::table("trolley_stocker")->whereIn('stocker_id', $stockerIds)->get(),
@@ -1943,7 +1947,8 @@ class PartController extends Controller
                 $deleteStocker = Stocker::where('part_detail_id', $id)->delete();
                 $deleteDc = DCIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
                 $deleteSecondaryIn = SecondaryIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
-                $deleteSecondaryInHouse = SecondaryInHouse::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+                $deleteSecondaryInHouseIn = SecondaryInHouseIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+                $deleteSecondaryInHouseOut = SecondaryInHouse::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
                 $deleteRackDetailStocker = RackDetailStocker::whereIn('stocker_id', $stockerIds)->delete();
                 $deleteTrolleyStocker = TrolleyStocker::whereIn('stocker_id', $stockerIds)->delete();
                 $deleteLoadingLine = LoadingLine::whereIn('stocker_id', $stockerIds)->delete();
