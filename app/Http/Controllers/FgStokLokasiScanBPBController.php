@@ -134,7 +134,7 @@ class FGStokLokasiScanBPBController extends Controller
 
             return array(
                 "status" => 200,
-                "message" => "Data berhasil disimpan.",
+                "message" => "Data berhasil disimpan.<br>No Transaksi: " . $no_trans->kode,
             );
 
         } catch (Exception $e) {

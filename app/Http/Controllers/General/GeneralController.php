@@ -33,6 +33,7 @@ use App\Services\CuttingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
 use PDF;
 
 class GeneralController extends Controller
@@ -1978,5 +1979,106 @@ class GeneralController extends Controller
         get();
 
         return Datatables::of($defectInOutList)->toJson();
+    }
+
+    public function exportDataSwitching(Request $request)
+    {
+        $tglAwal = $request->dateFrom;
+        $tglAkhir = $request->dateTo;
+        $source = $request->source ?? 'NDS';
+
+        if($source == 'NDS'){
+            $data = DB::connection("mysql")->select("
+                SELECT
+                    type_report,
+                    DATE_FORMAT(from_tgl_saldo, '%d-%m-%Y') AS from_tgl_saldo,
+                    from_no_ws,
+                    from_buyer,
+                    from_style,
+                    from_color,
+                    from_size,
+                    from_panel,
+                    from_part,
+                    from_qty,
+                    DATE_FORMAT(tgl_saldo, '%d-%m-%Y') AS tgl_saldo,
+                    no_ws,
+                    buyer,
+                    style,
+                    color,
+                    size,
+                    panel,
+                    part,
+                    qty
+                FROM
+                    wip_switching_adj
+                WHERE
+                    from_tgl_saldo BETWEEN '$tglAwal' AND '$tglAkhir'
+                ORDER BY
+                    id DESC
+            ");
+        }else{
+            $data = DB::connection("mysql_sb")->select("
+                SELECT
+                    type_report,
+                    DATE_FORMAT(from_tgl_saldo, '%d-%m-%Y') AS from_tgl_saldo,
+                    from_no_ws,
+                    from_buyer,
+                    from_style,
+                    from_color,
+                    from_size,
+                    from_panel,
+                    from_part,
+                    from_qty,
+                    DATE_FORMAT(tgl_saldo, '%d-%m-%Y') AS tgl_saldo,
+                    no_ws,
+                    buyer,
+                    style,
+                    color,
+                    size,
+                    panel,
+                    part,
+                    qty
+                FROM
+                    wip_switching_adj
+                WHERE
+                    from_tgl_saldo BETWEEN '$tglAwal' AND '$tglAkhir'
+                ORDER BY
+                    id DESC
+            ");
+        }
+
+        $filename = 'Switching_' . $tglAwal . '_' . $tglAkhir . '.xlsx';
+
+        $excel = FastExcel::create('data');
+        $sheet = $excel->getSheet();
+        $sheet->writeRow(['Type Report', 'From Tgl Saldo', 'From No WS', 'From Buyer', 'From Style', 'From Color', 'From Size', 'From Panel', 'From Part', 'From Qty', 'Tgl Saldo', 'No WS', 'Buyer', 'Style', 'Color', 'Size', 'Panel', 'Part', 'Qty'], ['font-style' => 'bold']);
+
+        collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
+            foreach ($rows as $row) {
+                $sheet->writeRow([
+                    $row->type_report,
+                    $row->from_tgl_saldo,
+                    $row->from_no_ws,
+                    $row->from_buyer,
+                    $row->from_style,
+                    $row->from_color,
+                    $row->from_size,
+                    $row->from_panel,
+                    $row->from_part,
+                    $row->from_qty,
+                    $row->tgl_saldo,
+                    $row->no_ws,
+                    $row->buyer,
+                    $row->style,
+                    $row->color,
+                    $row->size,
+                    $row->panel,
+                    $row->part,
+                    $row->qty,
+                ]);
+            }
+        });
+
+        return $excel->download($filename);
     }
 }
