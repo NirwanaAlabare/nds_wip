@@ -220,6 +220,9 @@
                 serverside: true,
                 paging: false,
                 ordering: false,
+                search: {
+                    smart: false // Cocokkan search sebagai 1 frasa utuh, bukan kata terpisah
+                },
                 fixedColumns: {
                     leftColumns: 4 // Fix the first three columns
                 },
@@ -349,6 +352,14 @@
                 columnDefs: [{
                     "className": "align-middle",
                     "targets": "_all"
+                }, {
+                    // Hanya kolom Line, Chief, Leader, Style yang bisa di-search
+                    "targets": [0, 1, 2, 3],
+                    "searchable": true
+                }, {
+                    // Kolom angka/output tidak ikut di-search agar hasil search lebih rinci
+                    "targets": "_all",
+                    "searchable": false
                 }],
 
                 drawCallback: function(settings) {
