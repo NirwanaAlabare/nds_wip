@@ -291,6 +291,8 @@ class Marketing_BomController extends Controller
             DB::connection('mysql_sb')->table('bom_marketing')
                 ->where('id', $id_bom)
                 ->update([
+                    'style'        => $request->style,
+                    'market'       => $request->market,
                     'id_costing'     => $id_costing,
                     'colors'     => json_encode($colors),
                     'sizes'      => json_encode($sizes),
