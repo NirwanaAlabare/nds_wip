@@ -515,6 +515,10 @@
             <div class="menu-img-wrap"><img src="{{ asset('dist/img/IE.png') }}" alt="IE"></div>
             <span class="menu-label">Industrial Engineering</span>
         </a>
+        <a href="{{ route('dashboard-asset') }}" class="menu-card">
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/asset.png') }}" alt="asset"></div>
+            <span class="menu-label">Asset Management</span>
+        </a>
         @endrole
 
         @role('superadmin')

@@ -32,6 +32,51 @@
     .dropdown-submenu:hover .dropdown-menu {
         display: block;
     }
+
+    /* Mega dropdown (Asset Management) */
+    .mega-dropdown {
+        width: max-content;
+        padding: 16px 20px;
+    }
+
+    .mega-dropdown-body {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 30px;
+    }
+
+    .mega-dropdown-col {
+        flex: 0 0 auto;
+    }
+
+    .mega-dropdown-col-title {
+        color: #6c757d;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .5px;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .mega-dropdown-col-title.mt-3 {
+        margin-top: 16px;
+    }
+
+    .mega-dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        margin-bottom: 2px;
+    }
+
+    .mega-dropdown-item i {
+        width: 16px;
+        text-align: center;
+        color: #6c757d;
+    }
 </style>
 
 <nav class="main-header navbar navbar-expand-md navbar-light navbar-white sticky-top">
@@ -1365,6 +1410,51 @@
                                     class="dropdown-item {{ $subPage == 'IE-laporan-recap-cm-price' ? 'active' : '' }}">
                                     <i class="fa-solid fa-list-ul fa-sm"></i> Recap CM Price
                                 </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
+
+                {{-- Asset Management --}}
+                @if ($page == 'dashboard-asset')
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'asset-master' ? 'active' : '' }}">Master
+                            Data</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow mega-dropdown">
+                            <li>
+                                <div class="mega-dropdown-body">
+                                    <div class="mega-dropdown-col">
+                                        <div class="mega-dropdown-col-title">Referensi</div>
+                                        <a href="{{ route('asset_master_lokasi') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_master_lokasi' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-location-dot"></i>Master lokasi</a>
+                                    </div>
+                                    <div class="mega-dropdown-col">
+                                        <div class="mega-dropdown-col-title">Mesin</div>
+                                        <a href="{{ route('asset_master_jenis_mesin') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_master_jenis_mesin' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-list"></i>Master Jenis</a>
+                                    </div>
+                                    {{-- <div class="mega-dropdown-col">
+                                        <div class="mega-dropdown-col-title">Keuangan</div>
+                                        <a href="#" class="dropdown-item mega-dropdown-item"><i
+                                                class="fa-solid fa-chart-line"></i>Master depresiasi</a>
+
+                                        <div class="mega-dropdown-col-title mt-3">Kategori</div>
+                                        <a href="#" class="dropdown-item mega-dropdown-item"><i
+                                                class="fa-solid fa-tag"></i>Jenis / kategori aset</a>
+                                    </div> --}}
+                                    {{-- <div class="mega-dropdown-col">
+                                        <div class="mega-dropdown-col-title">Pengaturan Sistem</div>
+                                        <a href="#" class="dropdown-item mega-dropdown-item"><i
+                                                class="fa-solid fa-user-gear"></i>Manajemen user & role</a>
+                                        <a href="#" class="dropdown-item mega-dropdown-item"><i
+                                                class="fa-solid fa-bell"></i>Setting notifikasi / reminder</a>
+                                        <a href="#" class="dropdown-item mega-dropdown-item"><i
+                                                class="fa-solid fa-lock"></i>Hak akses per modul</a>
+                                    </div> --}}
+                                </div>
                             </li>
                         </ul>
                     </li>
