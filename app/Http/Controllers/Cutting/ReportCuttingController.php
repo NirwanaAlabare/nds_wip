@@ -15624,7 +15624,7 @@ order by a.tgl_trans asc
 
     public function report_mutasi_wip_cutting_set(Request $request)
     {
-
+        $tgl_saldo = '2026-03-01';
         $start_date = $request->input('start_date');
         $end_date = $request->input('end_date');
 
@@ -15651,7 +15651,159 @@ order by a.tgl_trans asc
                             AND so.cancel_h = 'N'
                             AND ac.status = 'confirm'
                             AND mi.mattype = 'F'
+                            AND ac.dateinput > NOW() - INTERVAL 1 YEAR 
                     ),
+
+                    before_query_qty_in as(
+                        SELECT
+                            tanggal,
+                            worksheet,
+                            buyer,
+                            style,
+                            color,
+                            size,
+                            panel,
+                            qty
+                        FROM (
+                            SELECT
+                                COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tanggal,
+                                marker_input.act_costing_ws worksheet,
+                                marker_input.buyer,
+                                marker_input.style,
+                                marker_input.color,
+                                COALESCE(master_sb_ws.size, marker_input_detail.size) AS size,
+                                marker_input.panel,
+                                ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (COALESCE(modify_size_qty.difference_qty, 0))) qty
+                            FROM
+                                form_cut_input
+                                LEFT JOIN (
+                                    SELECT
+                                        form_cut_id,
+                                        no_form_cut_input,
+                                        group_roll,
+                                        group_stocker,
+                                        lot,
+                                        SUM( lembar_gelaran ) total_lembar
+                                    FROM
+                                        form_cut_input_detail
+                                    WHERE
+                                        (status != 'not complete' and status != 'extension')
+                                    GROUP BY
+                                        form_cut_id,
+                                        group_stocker
+                                ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
+                                LEFT JOIN (
+                                    SELECT
+                                        form_cut_id,
+                                        MAX(group_stocker) max_group
+                                    FROM
+                                        form_cut_input_detail
+                                    WHERE
+                                        (status != 'not complete' and status != 'extension')
+                                    GROUP BY
+                                        form_cut_id
+                                ) similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
+                                LEFT JOIN users as meja on meja.id = form_cut_input.no_meja
+                                LEFT JOIN marker_input ON marker_input.kode = form_cut_input.id_marker
+                                LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id
+                                LEFT JOIN modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id AND form_cut_input_detail.group_stocker = COALESCE(modify_size_qty.group_stocker, similar.max_group)
+                                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
+                            WHERE
+                                form_cut_input.status = 'SELESAI PENGERJAAN'
+                                AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$tgl_saldo."'
+                                AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) < '".$start_date."'
+                                AND (marker_input_detail.ratio > 0 OR (similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0))
+                            GROUP BY
+                                form_cut_input.id,
+                                form_cut_input_detail.group_stocker,
+                                marker_input_detail.id
+                            UNION ALL
+                            SELECT
+                                DATE(form_cut_piece.waktu_selesai) tanggal,
+                                form_cut_piece.act_costing_ws worksheet,
+                                form_cut_piece.buyer,
+                                form_cut_piece.style,
+                                form_cut_piece.color,
+                                COALESCE(master_sb_ws.size, form_cut_piece_detail_size.size) AS size,
+                                form_cut_piece.panel,
+                                SUM(form_cut_piece_detail_size.qty) as qty
+                            FROM
+                                form_cut_piece
+                                LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
+                                LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
+                                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
+                            WHERE
+                                COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '".$tgl_saldo."'
+                                AND COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) < '".$start_date."'
+                                AND form_cut_piece_detail.status = 'complete' and form_cut_piece_detail.id not in (
+                                    7207
+                                )
+                            GROUP BY
+                                form_cut_piece.id,
+                                form_cut_piece_detail.group_stocker,
+                                form_cut_piece_detail_size.id
+                            UNION ALL
+                            SELECT
+                                COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tanggal,
+                                stocker_ws_additional.act_costing_ws AS worksheet,
+                                stocker_ws_additional.buyer,
+                                stocker_ws_additional.style,
+                                stocker_ws_additional.color,
+                                COALESCE(master_sb_ws.size, stocker_ws_additional_detail.size) AS size,
+                                stocker_ws_additional.panel,
+                                ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (COALESCE(modify_size_qty.difference_qty, 0))) qty
+                            FROM laravel_nds.form_cut_input
+                            LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
+                            LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
+                            LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
+                            LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
+                            LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id AND marker_input_detail.size = stocker_ws_additional_detail.size
+                            LEFT JOIN (
+                                SELECT
+                                        form_cut_id,
+                                        no_form_cut_input,
+                                        group_roll,
+                                        group_stocker,
+                                        lot,
+                                        SUM( lembar_gelaran ) total_lembar
+                                FROM
+                                        laravel_nds.form_cut_input_detail
+                                WHERE
+                                        (status != 'not complete' and status != 'extension')
+                                GROUP BY
+                                        form_cut_id,
+                                        group_stocker
+                            ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
+                            LEFT JOIN (
+                                SELECT
+                                    form_cut_id,
+                                    MAX(group_stocker) AS max_group
+                                FROM laravel_nds.form_cut_input_detail
+                                WHERE status NOT IN ('not complete', 'extension')
+                                GROUP BY form_cut_id
+                            ) AS similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
+                            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
+                            WHERE
+                                COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$tgl_saldo."'
+                                AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) < '".$start_date."'
+                                AND form_cut_input.status = 'SELESAI PENGERJAAN'
+                                AND (
+                                    stocker_ws_additional_detail.ratio > 0
+                                    OR modify_size_qty.difference_qty != 0
+                                )
+                            GROUP BY
+                                form_cut_input.id,
+                                form_cut_input_detail.group_stocker,
+                                marker_input_detail.id
+
+                            ORDER BY
+                                tanggal ASC,
+                                worksheet,
+                                style,
+                                color,
+                                panel
+                        ) a
+                    ),  
 
                     query_qty_in as(
                         SELECT
@@ -15821,7 +15973,15 @@ order by a.tgl_trans asc
                                     0
                                 )
                             ) qty
-                        FROM query_qty_in
+                        FROM (
+                            SELECT *
+                            FROM query_qty_in
+
+                            UNION ALL
+
+                            SELECT *
+                            FROM before_query_qty_in
+                        ) a
                         WHERE tanggal <= '$end_date'
                         GROUP BY
                             worksheet,
@@ -15865,6 +16025,47 @@ order by a.tgl_trans asc
                             style,
                             color,
                             size
+                    ),
+
+                    before_query_qty_out AS (
+                        SELECT
+                            a.tgl_trans,
+                            COALESCE(msb.ws, s.act_costing_ws) act_costing_ws,
+                            COALESCE(msb.color, s.color) color,
+                            COALESCE(msb.buyer, p.buyer) buyer,
+                            COALESCE(msb.styleno, p.style) style,
+                            a.qty_awal,
+                            COALESCE(msb.size, s.size) size,
+                            UPPER(COALESCE(pd.part_status, '-')) part_status,
+                            COALESCE(p_com.panel, p.panel) as panel
+                        from
+                            dc_in_input a
+                            left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+                            left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+                            left join part_detail pd on s.part_detail_id = pd.id
+                            left join part p on pd.part_id = p.id
+                            left join part_detail pd_com on pd_com.id = pd.from_part_detail
+                            left join part p_com on p_com.id = pd_com.part_id
+                        where
+                            a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
+                            and tgl_trans >= '".$tgl_saldo."'
+                            and tgl_trans < '".$start_date."'
+                        UNION ALL
+                        select
+                            tgl_trans,
+                            ws,
+                            color,
+                            buyer,
+                            style,
+                            qty_awal,
+                            size,
+                            part_status,
+                            panel
+                        from
+                            dc_in_dump
+                        where tgl_trans >= '".$tgl_saldo."' and tgl_trans < '".$start_date."'
+                        order by
+                            tgl_trans desc
                     ),
 
                     query_qty_out AS (
@@ -15928,7 +16129,13 @@ order by a.tgl_trans asc
                                     0
                                 )
                             ) qty
-                        FROM query_qty_out
+                        FROM (
+                            SELECT * FROM query_qty_out
+
+                            UNION ALL
+
+                            SELECT * FROM before_query_qty_out
+                        ) a
                         WHERE tgl_trans <= '".$end_date."'
                         GROUP BY
                             act_costing_ws,
@@ -16052,6 +16259,7 @@ order by a.tgl_trans asc
 
     public function export_excel_report_mutasi_wip_cutting_set(Request $request)
     {
+        $tgl_saldo = '2026-03-01';
         $start_date = $request->start_date;
         $end_date = $request->end_date;
 
@@ -16074,7 +16282,159 @@ order by a.tgl_trans asc
                     AND so.cancel_h = 'N'
                     AND ac.status = 'confirm'
                     AND mi.mattype = 'F'
+                    AND ac.dateinput > NOW() - INTERVAL 1 YEAR 
             ),
+
+            before_query_qty_in as(
+                SELECT
+                    tanggal,
+                    worksheet,
+                    buyer,
+                    style,
+                    color,
+                    size,
+                    panel,
+                    qty
+                FROM (
+                    SELECT
+                        COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tanggal,
+                        marker_input.act_costing_ws worksheet,
+                        marker_input.buyer,
+                        marker_input.style,
+                        marker_input.color,
+                        COALESCE(master_sb_ws.size, marker_input_detail.size) AS size,
+                        marker_input.panel,
+                        ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (COALESCE(modify_size_qty.difference_qty, 0))) qty
+                    FROM
+                        form_cut_input
+                        LEFT JOIN (
+                            SELECT
+                                form_cut_id,
+                                no_form_cut_input,
+                                group_roll,
+                                group_stocker,
+                                lot,
+                                SUM( lembar_gelaran ) total_lembar
+                            FROM
+                                form_cut_input_detail
+                            WHERE
+                                (status != 'not complete' and status != 'extension')
+                            GROUP BY
+                                form_cut_id,
+                                group_stocker
+                        ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
+                        LEFT JOIN (
+                            SELECT
+                                form_cut_id,
+                                MAX(group_stocker) max_group
+                            FROM
+                                form_cut_input_detail
+                            WHERE
+                                (status != 'not complete' and status != 'extension')
+                            GROUP BY
+                                form_cut_id
+                        ) similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
+                        LEFT JOIN users as meja on meja.id = form_cut_input.no_meja
+                        LEFT JOIN marker_input ON marker_input.kode = form_cut_input.id_marker
+                        LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id
+                        LEFT JOIN modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id AND form_cut_input_detail.group_stocker = COALESCE(modify_size_qty.group_stocker, similar.max_group)
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
+                    WHERE
+                        form_cut_input.status = 'SELESAI PENGERJAAN'
+                        AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$tgl_saldo."'
+                        AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) < '".$start_date."'
+                        AND (marker_input_detail.ratio > 0 OR (similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0))
+                    GROUP BY
+                        form_cut_input.id,
+                        form_cut_input_detail.group_stocker,
+                        marker_input_detail.id
+                    UNION ALL
+                    SELECT
+                        DATE(form_cut_piece.waktu_selesai) tanggal,
+                        form_cut_piece.act_costing_ws worksheet,
+                        form_cut_piece.buyer,
+                        form_cut_piece.style,
+                        form_cut_piece.color,
+                        COALESCE(master_sb_ws.size, form_cut_piece_detail_size.size) AS size,
+                        form_cut_piece.panel,
+                        SUM(form_cut_piece_detail_size.qty) as qty
+                    FROM
+                        form_cut_piece
+                        LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
+                        LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
+                    WHERE
+                        COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '".$tgl_saldo."'
+                        AND COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) < '".$start_date."'
+                        AND form_cut_piece_detail.status = 'complete' and form_cut_piece_detail.id not in (
+                            7207
+                        )
+                    GROUP BY
+                        form_cut_piece.id,
+                        form_cut_piece_detail.group_stocker,
+                        form_cut_piece_detail_size.id
+                    UNION ALL
+                    SELECT
+                        COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tanggal,
+                        stocker_ws_additional.act_costing_ws AS worksheet,
+                        stocker_ws_additional.buyer,
+                        stocker_ws_additional.style,
+                        stocker_ws_additional.color,
+                        COALESCE(master_sb_ws.size, stocker_ws_additional_detail.size) AS size,
+                        stocker_ws_additional.panel,
+                        ((COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)) + (COALESCE(modify_size_qty.difference_qty, 0))) qty
+                    FROM laravel_nds.form_cut_input
+                    LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
+                    LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
+                    LEFT JOIN laravel_nds.modify_size_qty ON modify_size_qty.so_det_id = stocker_ws_additional_detail.so_det_id AND modify_size_qty.form_cut_id = form_cut_input.id
+                    LEFT JOIN laravel_nds.marker_input ON marker_input.kode = form_cut_input.id_marker
+                    LEFT JOIN laravel_nds.marker_input_detail ON marker_input_detail.marker_id = marker_input.id AND marker_input_detail.size = stocker_ws_additional_detail.size
+                    LEFT JOIN (
+                        SELECT
+                                form_cut_id,
+                                no_form_cut_input,
+                                group_roll,
+                                group_stocker,
+                                lot,
+                                SUM( lembar_gelaran ) total_lembar
+                        FROM
+                                laravel_nds.form_cut_input_detail
+                        WHERE
+                                (status != 'not complete' and status != 'extension')
+                        GROUP BY
+                                form_cut_id,
+                                group_stocker
+                    ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
+                    LEFT JOIN (
+                        SELECT
+                            form_cut_id,
+                            MAX(group_stocker) AS max_group
+                        FROM laravel_nds.form_cut_input_detail
+                        WHERE status NOT IN ('not complete', 'extension')
+                        GROUP BY form_cut_id
+                    ) AS similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
+                    WHERE
+                        COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$tgl_saldo."'
+                        AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) < '".$start_date."'
+                        AND form_cut_input.status = 'SELESAI PENGERJAAN'
+                        AND (
+                            stocker_ws_additional_detail.ratio > 0
+                            OR modify_size_qty.difference_qty != 0
+                        )
+                    GROUP BY
+                        form_cut_input.id,
+                        form_cut_input_detail.group_stocker,
+                        marker_input_detail.id
+
+                    ORDER BY
+                        tanggal ASC,
+                        worksheet,
+                        style,
+                        color,
+                        panel
+                ) a
+            ),  
 
             query_qty_in as(
                 SELECT
@@ -16244,7 +16604,15 @@ order by a.tgl_trans asc
                             0
                         )
                     ) qty
-                FROM query_qty_in
+                FROM (
+                    SELECT *
+                    FROM query_qty_in
+
+                    UNION ALL
+
+                    SELECT *
+                    FROM before_query_qty_in
+                ) a
                 WHERE tanggal <= '$end_date'
                 GROUP BY
                     worksheet,
@@ -16288,6 +16656,47 @@ order by a.tgl_trans asc
                     style,
                     color,
                     size
+            ),
+
+            before_query_qty_out AS (
+                SELECT
+                    a.tgl_trans,
+                    COALESCE(msb.ws, s.act_costing_ws) act_costing_ws,
+                    COALESCE(msb.color, s.color) color,
+                    COALESCE(msb.buyer, p.buyer) buyer,
+                    COALESCE(msb.styleno, p.style) style,
+                    a.qty_awal,
+                    COALESCE(msb.size, s.size) size,
+                    UPPER(COALESCE(pd.part_status, '-')) part_status,
+                    COALESCE(p_com.panel, p.panel) as panel
+                from
+                    dc_in_input a
+                    left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+                    left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+                    left join part_detail pd on s.part_detail_id = pd.id
+                    left join part p on pd.part_id = p.id
+                    left join part_detail pd_com on pd_com.id = pd.from_part_detail
+                    left join part p_com on p_com.id = pd_com.part_id
+                where
+                    a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
+                    and tgl_trans >= '".$tgl_saldo."'
+                    and tgl_trans < '".$start_date."'
+                UNION ALL
+                select
+                    tgl_trans,
+                    ws,
+                    color,
+                    buyer,
+                    style,
+                    qty_awal,
+                    size,
+                    part_status,
+                    panel
+                from
+                    dc_in_dump
+                where tgl_trans >= '".$tgl_saldo."' and tgl_trans < '".$start_date."'
+                order by
+                    tgl_trans desc
             ),
 
             query_qty_out AS (
@@ -16351,7 +16760,13 @@ order by a.tgl_trans asc
                             0
                         )
                     ) qty
-                FROM query_qty_out
+                FROM (
+                    SELECT * FROM query_qty_out
+
+                    UNION ALL
+
+                    SELECT * FROM before_query_qty_out
+                ) a
                 WHERE tgl_trans <= '".$end_date."'
                 GROUP BY
                     act_costing_ws,
