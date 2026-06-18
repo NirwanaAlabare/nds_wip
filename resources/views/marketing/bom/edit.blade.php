@@ -78,11 +78,11 @@
                 </div>
                 <div class="col-md-2">
                     <label class="form-label"><small class="fw-bold">Style</small></label>
-                    <input type="text" class="form-control" value="{{ $bom->style }}">
+                    <input type="text" class="form-control" name="style" id="style" value="{{ $bom->style }}">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label"><small class="fw-bold">Market</small></label>
-                    <input type="text" class="form-control" value="{{ $bom->market }}">
+                    <input type="text" class="form-control" name="market" id="market" value="{{ $bom->market }}">
                 </div>
             </div>
 
@@ -1425,6 +1425,8 @@
             id_costing: $('#id_costing').val(),
             colors: $('#colorList').val(),
             sizes: $('#sizeList').val(),
+            style: $('#style').val(),
+            market: $('#market').val(),
         };
 
         $.ajax({
