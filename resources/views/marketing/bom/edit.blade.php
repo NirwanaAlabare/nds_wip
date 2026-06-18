@@ -78,11 +78,11 @@
                 </div>
                 <div class="col-md-2">
                     <label class="form-label"><small class="fw-bold">Style</small></label>
-                    <input type="text" class="form-control" value="{{ $bom->style }}" readonly>
+                    <input type="text" class="form-control" value="{{ $bom->style }}">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label"><small class="fw-bold">Market</small></label>
-                    <input type="text" class="form-control" value="{{ $bom->market }}" readonly>
+                    <input type="text" class="form-control" value="{{ $bom->market }}">
                 </div>
             </div>
 
