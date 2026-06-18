@@ -158,7 +158,7 @@
                 </div>
                 <div class="col-md-2 form-group">
                     <label>SMV (Min)</label>
-                    <input type="text" name="smv" id="smv" class="form-control input-decimal text-right" value="{{ number_format($costing->smv, 2, '.', '') }}" required>
+                    <input type="text" name="smv" id="smv" class="form-control input-decimal text-right" value="{{ number_format($costing->smv, 4, '.', '') }}" required>
                 </div>
                <div class="col-md-2 form-group">
                     <label>VAT (%)</label>
