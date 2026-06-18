@@ -51,6 +51,8 @@
                             <th>Buyer</th>
                             <th>Brand</th>
                             <th>Style</th>
+                            <th>Qty</th>
+                            <th>Confirm Price</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -92,6 +94,8 @@
                     { data: 'nama_buyer', name: 'a.buyer', className: 'align-middle' },
                     { data: 'brand', name: 'a.brand', className: 'align-middle' },
                     { data: 'style', name: 'a.style', className: 'align-middle' },
+                    { data: 'qty', name: 'a.qty', className: 'text-center align-middle' },
+                    { data: 'confirm_price', name: 'a.confirm_price', className: 'text-center align-middle' },
                     {
                         data: 'id',
                         name: 'a.id',

@@ -39,7 +39,9 @@ class Marketing_CostingController extends Controller
                     'a.product_group',
                     'a.product_item',
                     'a.main_dest',
-                    'a.market'
+                    'a.market',
+                    'a.qty',
+                    'a.confirm_price'
                 )->orderBy('a.id', 'desc');
 
             if (!empty($tgl_awal) && !empty($tgl_akhir)) {
