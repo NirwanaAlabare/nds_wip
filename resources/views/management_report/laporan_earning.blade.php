@@ -495,6 +495,14 @@
                             }
                         }
                     });
+
+                    // Highlight the whole row when the day is a holiday (LIBUR)
+                    if (data.stat_kerja === 'LIBUR') {
+                        $('td', row).css({
+                            'color': 'red',
+                            'background-color': '#fde8e8'
+                        });
+                    }
                 },
 
                 footerCallback: function(row, data, start, end, display) {

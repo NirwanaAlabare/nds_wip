@@ -6,10 +6,9 @@ use App\Imports\ImportDailyCost;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
-use Maatwebsite\Excel\Facades\Excel;
 use DB;
 use Illuminate\Support\Facades\Auth;
-use App\Exports\export_excel_laporan_earning;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
 
 class MgtReportEarningController extends Controller
 {
@@ -658,7 +657,16 @@ COALESCE(a.mins_prod, 0) AS mins_prod,
 COALESCE(a.eff_line, 0) AS eff_line,
 COALESCE(sum_mins_avail, 0) AS sum_mins_avail,
 
-ROUND((COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0)) * COALESCE(a.mins_avail, 0), 2) AS est_tot_cost,
+CASE
+    WHEN stat_kerja = 'libur' THEN
+        ROUND(COALESCE(sum_tot_labor, 0), 2)
+    ELSE
+        ROUND(
+            (COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0))
+            * COALESCE(a.mins_avail, 0),
+            2
+        )
+END AS est_tot_cost,
 ROUND((COALESCE(tot_earning_rupiah, 0) - ((COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0)) * COALESCE(a.mins_avail, 0))), 2) AS blc,
   ROUND((
     (COALESCE(tot_earning_rupiah, 0) - ((COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0)) * COALESCE(a.mins_avail, 0)))
@@ -844,6 +852,940 @@ order by tanggal asc, sewing_line asc
 
     public function export_excel_laporan_earning(Request $request)
     {
-        return Excel::download(new export_excel_laporan_earning($request->start_date, $request->end_date), 'Laporan_Penerimaan FG_Stok.xlsx');
+        $start_date = $request->start_date;
+        $end_date = $request->end_date;
+
+        $today = date('Y-m-d');
+        $month = date('m');
+        $year = date('Y');
+
+        if ($start_date < $today && $end_date < $today) {
+            $rawData = DB::connection('mysql_sb')->select("SELECT
+                    tanggal,
+                    tanggal_fix,
+                    stat_kerja,
+                    tgl_trans,
+                    master_plan_id,
+                    sewing_line,
+                    buyer,
+                    kpno,
+                    tot_earning_rupiah,
+                    mins_avail,
+                    mins_prod,
+                    eff_line,
+                    sum_mins_avail,
+                    est_tot_cost,
+                    blc,
+                    percent_est_earn,
+                    cm_price,
+                    allowance,
+                    kurs_tengah,
+                    curr,
+                    tot_output,
+                    full_cm_price,
+                    est_full_earning,
+                    blc_full_earn,
+                    percent_full_earn,
+                    est_earning_prod,
+                    est_cost_prod,
+                    blc_est_cost_prod,
+                    percent_est_cost_prod,
+                    est_earning_mkt,
+                    est_cost_mkt,
+                    blc_earn_mkt,
+                    percent_earn_mkt
+                    FROM mgt_rep_tmp_earning WHERE tanggal >= '$start_date' and tanggal <= '$end_date'");
+        } else {
+            $rawData = DB::connection('mysql_sb')->select("WITH sum_cost as (
+ select a.cost_no,kpno,supplier,styleno,product_item,season_desc,curr,so_date,status,qty_so,price_so,cost_date,status_cost,qty_cost,COALESCE(ttl_fabric,0) ttl_fabric,COALESCE(ttl_accsew,0) ttl_accsew,COALESCE(ttl_accpack,0) ttl_accpack,(COALESCE(ttl_fabric,0) + COALESCE(ttl_accsew,0) + COALESCE(ttl_accpack,0)) ttl_material,COALESCE(ttl_cmt,0) ttl_cmt,COALESCE(ttl_embro,0) ttl_embro,COALESCE(ttl_wash,0) ttl_wash,COALESCE(ttl_print,0) ttl_print,COALESCE(ttl_wrapbut,0) ttl_wrapbut,COALESCE(ttl_compbut,0) ttl_compbut,COALESCE(ttl_label,0) ttl_label,COALESCE(ttl_laser,0) ttl_laser,(COALESCE(ttl_cmt,0) + COALESCE(ttl_embro,0) + COALESCE(ttl_wash,0) + COALESCE(ttl_print,0) + COALESCE(ttl_wrapbut,0) + COALESCE(ttl_compbut,0) + COALESCE(ttl_label,0) + COALESCE(ttl_laser,0)) ttl_manufacturing,COALESCE(ttl_develop,0) ttl_develop,COALESCE(ttl_overhead,0) ttl_overhead,COALESCE(ttl_market,0) ttl_market,COALESCE(ttl_shipp,0) ttl_shipp,COALESCE(ttl_import,0) ttl_import,COALESCE(ttl_handl,0) ttl_handl,COALESCE(ttl_test,0) ttl_test,COALESCE(ttl_fabhandl,0) ttl_fabhandl,COALESCE(ttl_service,0) ttl_service, COALESCE(ttl_clearcost,0) ttl_clearcost ,COALESCE(ttl_development,0) ttl_development ,COALESCE(ttl_unexcost,0) ttl_unexcost ,COALESCE(ttl_managementfee,0) ttl_managementfee ,COALESCE(ttl_profit,0) ttl_profit ,(COALESCE(ttl_develop,0) + COALESCE(ttl_overhead,0) + COALESCE(ttl_market,0) + COALESCE(ttl_shipp,0) + COALESCE(ttl_import,0) + COALESCE(ttl_handl,0) + COALESCE(ttl_test,0) + COALESCE(ttl_fabhandl,0) + COALESCE(ttl_service,0) + COALESCE(ttl_clearcost,0) + COALESCE(ttl_development,0) + COALESCE(ttl_unexcost,0) + COALESCE(ttl_managementfee,0) + COALESCE(ttl_profit,0)) ttl_others
+           from (select a.cost_no,a.kpno,b.supplier,styleno,product_item,season_desc,if(so.curr is null,a.curr,so.curr) curr,so_date,IF(so.cancel_h = 'Y','CANCEL','-') status,so.qty qty_so,so.fob price_so,cost_date,a.status status_cost, a.qty qty_cost  from act_costing a INNER JOIN mastersupplier b ON a.id_buyer=b.Id_Supplier inner join masterproduct mp on a.id_product=mp.id left join so on so.id_cost = a.id left join masterseason ms on ms.id_season = so.id_season where cost_date >= '2025-01-01' GROUP BY cost_no) a left join (select cost_no, sum(ttl_fabric) ttl_fabric, sum(ttl_accsew) ttl_accsew, sum(ttl_accpack) ttl_accpack from (select cost_no,case when mattype = 'FABRIC' then total end as ttl_fabric,
+           case when mattype = 'ACCESORIES SEWING' then total end as ttl_accsew,
+           case when mattype = 'ACCESORIES PACKING' then total end as ttl_accpack from (SELECT cost_no,mattype,IF(curr = 'IDR',val_idr,val_usd) total from act_material where cost_date >= '2025-01-01') a) a GROUP BY cost_no) b on b.cost_no = a.cost_no left join (select cost_no, sum(ttl_cmt) ttl_cmt, sum(ttl_embro) ttl_embro, sum(ttl_wash) ttl_wash, sum(ttl_print) ttl_print, sum(ttl_wrapbut) ttl_wrapbut, sum(ttl_compbut) ttl_compbut, sum(ttl_label) ttl_label, sum(ttl_laser) ttl_laser from (select cost_no,case when mattype = 'CMT' then total end as ttl_cmt,
+           case when mattype = 'EMBRODEIRY' then total end as ttl_embro,
+           case when mattype = 'WASHING' then total end as ttl_wash,
+           case when mattype = 'PRINTING' then total end as ttl_print,
+           case when mattype = 'WRAPPED BUTTON' then total end as ttl_wrapbut,
+           case when mattype = 'COMPLEXITY MAKLOON BUTTON' then total end as ttl_compbut,
+           case when mattype = 'LABEL PRINT' then total end as ttl_label,
+           case when mattype = 'LASER CUTTING' then total end as ttl_laser from (SELECT cost_no,mattype,IF(curr = 'IDR',val_idr,val_usd) total from act_manufacturing where cost_date >='2025-01-01') a) a GROUP BY cost_no) c on c.cost_no = a.cost_no left join (select cost_no, sum(ttl_develop) ttl_develop, sum(ttl_overhead) ttl_overhead, sum(ttl_market) ttl_market, sum(ttl_shipp) ttl_shipp, sum(ttl_import) ttl_import, sum(ttl_handl) ttl_handl, sum(ttl_test) ttl_test, sum(ttl_fabhandl) ttl_fabhandl, sum(ttl_service) ttl_service, sum(ttl_clearcost) ttl_clearcost , sum(ttl_development) ttl_development, sum(ttl_unexcost) ttl_unexcost, sum(ttl_managementfee) ttl_managementfee, sum(ttl_profit) ttl_profit from (select cost_no,case when mattype = 'DEVELOPMENT' then total end as ttl_develop,
+           case when mattype = 'OVERHEAD' then total end as ttl_overhead,
+           case when mattype = 'MARKETING' then total end as ttl_market,
+           case when mattype = 'SHIPPING' then total end as ttl_shipp,
+           case when mattype = 'IMPORT COST' then total end as ttl_import,
+           case when mattype = 'HANDLING' then total end as ttl_handl,
+           case when mattype = 'TESTING' then total end as ttl_test,
+           case when mattype = 'FABRIC HANDLING' then total end as ttl_fabhandl,
+           case when mattype = 'SERVICE CHARGE' then total end as ttl_service,
+           case when mattype = 'CLEARANCE  COST' then total end as ttl_clearcost,
+           case when mattype = 'DEVELOPMENT' then '0' end as ttl_development,
+           case when mattype = 'UNEXPECTED COST' then total end as ttl_unexcost,
+           case when mattype = 'MANAGEMENT FEE' then total end as ttl_managementfee,
+           case when mattype = 'PROFIT' then total end as ttl_profit
+            from (SELECT cost_no,mattype,IF(curr = 'IDR',val_idr,val_usd) total from act_others where cost_date >= '2025-01-01') a) a GROUP BY cost_no) d on d.cost_no = a.cost_no
+
+ ),
+earn as (
+SELECT
+                    a.tgl_trans,
+                    concat((DATE_FORMAT(a.tgl_trans,  '%d')), '-',left(DATE_FORMAT(a.tgl_trans,  '%M'),3),'-',DATE_FORMAT(a.tgl_trans,  '%Y')) tgl_trans_fix,
+                    concat((DATE_FORMAT(mp.tgl_plan,  '%d')), '-',left(DATE_FORMAT(mp.tgl_plan,  '%M'),3),'-',DATE_FORMAT(mp.tgl_plan,  '%Y')) tgl_plan_fix,
+                    ul.username sewing_line,
+                    ms.supplier buyer,
+					a.master_plan_id,
+                    ac.kpno,
+                    ac.styleno,
+                    mp.color,
+                    mp.id,
+                    mp.smv,
+                    mp.man_power man_power_ori,
+                    cmp.man_power,
+                    mp.jam_kerja_awal,
+                    istirahat,
+                    op.jam_akhir_input_line,
+                    round(TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600,2) AS jam_kerja_act_line,
+                    round(((((sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600)) * 60) * cmp.man_power) / mp.smv) target,
+                    sum(a.tot_output) tot_output,
+                    sum(d_rfts.tot_rfts) tot_rfts,
+                    op.tot_output_line,
+                    so.curr,
+                    CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
+                    ELSE acm.price end AS cm_price,
+					acm.allowance,
+                    round(
+                    sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
+                    ELSE acm.price end,2) AS earning,
+                    COALESCE(mr.kurs_tengah,mkb.kurs_tengah) kurs_tengah,
+                    round(
+                    if (so.curr = 'IDR',
+                    sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
+                    ELSE acm.price end,
+                    sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * COALESCE(konv_sb.rate_jual, last_konv_sb.rate_jual), acm.price)
+                    ELSE acm.price end * COALESCE(mr.kurs_tengah,mkb.kurs_tengah)
+                    ),2) tot_earning_rupiah,
+                    round((cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60),2) mins_avail,
+                    round(sum(a.tot_output) * mp.smv,2) mins_prod,
+                    round((((sum(a.tot_output) * mp.smv) / ( (cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60)))*100),2) eff_line,
+                    round(((sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600)),2) jam_kerja_act,
+                    round((sum(d_rfts.tot_rfts) / sum(a.tot_output)) * 100,2) rfts
+                from
+                (
+                    select
+                    date(a.updated_at)tgl_trans,
+                    so_det_id,
+                    master_plan_id,
+                    count(so_det_id) tot_output,
+                    time(max(a.updated_at)) jam_akhir_input,
+                    userpassword.username
+                    from output_rfts a
+                    left join user_sb_wip on user_sb_wip.id = a.created_by
+                    left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                    where a.updated_at >= '$today 00:00:00' and a.updated_at <= '$today 23:59:59'
+                    group by master_plan_id, userpassword.username, date(a.updated_at)
+										having userpassword.username != 'line_sample_prod'
+                ) a
+                inner join so_det sd on a.so_det_id = sd.id
+                inner join so on sd.id_so = so.id
+                inner join act_costing ac on so.id_cost = ac.id
+                inner join userpassword ul on ul.username = a.username
+                inner join master_plan mp on a.master_plan_id = mp.id
+                inner join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
+                left join (
+                    select date(output_rfts.updated_at) tgl_trans_line,max(time(output_rfts.updated_at)) jam_akhir_input_line,count(output_rfts.so_det_id) tot_output_line,
+                            case
+                            when time(max(output_rfts.updated_at)) >= '12:00:00' and time(max(output_rfts.updated_at)) <= '18:44:59' THEN '01:00:00'
+                            when time(max(output_rfts.updated_at)) <= '12:00:00'  THEN '00:00:00'
+                            when time(max(output_rfts.updated_at)) >= '18:45:00'  THEN '01:30:00'
+                            END as istirahat,
+                    userpassword.username
+                    from output_rfts
+                    left join user_sb_wip on user_sb_wip.id = output_rfts.created_by
+                    left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                    where output_rfts.updated_at >= '$today 00:00:00' and output_rfts.updated_at <= '$today 23:59:59' group by userpassword.username, date(output_rfts.updated_at)
+                ) op on a.tgl_trans = op.tgl_trans_line and ul.username = op.username
+                left join (
+                    select * from act_costing_mfg where id_item = '8' group by id_act_cost
+                ) acm on ac.id = acm.id_act_cost
+                left join (
+                    select * from masterrate where  curr='USD' and v_codecurr IN('COSTING3','COSTING6','COSTING8','COSTING12') group by tanggal
+                ) konv_sb on ac.deldate = konv_sb.tanggal
+                left join (
+                    select * from masterrate where  curr='USD' and v_codecurr IN('COSTING3','COSTING6','COSTING8','COSTING12') group by tanggal ORDER BY tanggal DESC limit 1
+                ) last_konv_sb on ac.deldate >= last_konv_sb.tanggal
+                left join (
+                    SELECT
+                            master_plan_id,
+                            tgl_trans_rfts,
+                            sum(tot_rfts)tot_rfts
+                    from
+                    (
+                            select
+                            date(a.updated_at)tgl_trans_rfts,
+                            master_plan_id,
+                            count(so_det_id) tot_rfts,
+                            userpassword.username
+                            from output_rfts a
+                            left join user_sb_wip on user_sb_wip.id = a.created_by
+                            left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                            where a.updated_at >= '$today 00:00:00' and a.updated_at <= '$today 23:59:59' and status = 'NORMAL'
+                            group by master_plan_id, userpassword.username, date(a.updated_at)
+                    ) a
+                    inner join master_plan mp on a.master_plan_id = mp.id
+                    group by tgl_trans_rfts, master_plan_id
+                ) d_rfts on a.tgl_trans = d_rfts.tgl_trans_rfts and a.master_plan_id = d_rfts.master_plan_id
+                left join
+                (
+                    select min(id), man_power, sewing_line, tgl_plan from master_plan
+                    where tgl_plan >= '$today' and  tgl_plan <= '$today' and cancel = 'N'
+                    group by sewing_line, tgl_plan
+                ) cmp on a.tgl_trans = cmp.tgl_plan and ul.username = cmp.sewing_line
+
+                -- Kurs join for pre-MySQL 8
+                LEFT JOIN (
+                    SELECT x.tgl_trans, x.max_kurs_date, k.kurs_tengah
+                    FROM (
+                            SELECT a_dates.tgl_trans, MAX(mkb.tanggal_kurs_bi) AS max_kurs_date
+                            FROM (
+                                    SELECT DISTINCT date(updated_at) AS tgl_trans
+                                    FROM output_rfts
+                                    WHERE updated_at >= '$today 00:00:00' AND updated_at <= '$today 23:59:59'
+                            ) a_dates
+                            JOIN master_kurs_bi mkb
+                            ON mkb.tanggal_kurs_bi <= a_dates.tgl_trans
+                            GROUP BY a_dates.tgl_trans
+                    ) x
+                    JOIN master_kurs_bi k
+                    ON k.tanggal_kurs_bi = x.max_kurs_date
+                ) mkb ON a.tgl_trans = mkb.tgl_trans
+
+                LEFT JOIN (
+                    SELECT x.tgl_trans, x.max_kurs_date, k.rate as kurs_tengah
+                    FROM (
+                        SELECT a_dates.tgl_trans, MAX(mr.tanggal) AS max_kurs_date
+                        FROM (
+                            SELECT DISTINCT date(updated_at) AS tgl_trans
+                            FROM output_rfts
+                            WHERE updated_at >= '$today 00:00:00' AND updated_at <= '$today 23:59:59'
+                        ) a_dates
+                        JOIN masterrate mr
+                        ON mr.tanggal <= a_dates.tgl_trans
+                        GROUP BY a_dates.tgl_trans
+                    ) x
+                    JOIN masterrate k
+                    ON k.tanggal = x.max_kurs_date
+                    WHERE k.v_codecurr = 'HARIAN'
+                ) mr ON a.tgl_trans = mr.tgl_trans
+                group by ul.username, ac.kpno, ac.Styleno, a.tgl_trans
+                order by a.tgl_trans asc, ul.username asc, ac.kpno asc
+),
+dd as (
+SELECT
+a.bulan,
+a.nama_bulan,
+CAST(a.tahun AS UNSIGNED) AS tahun,
+COUNT(tanggal) AS tot_working_days
+FROM dim_date a
+LEFT JOIN mgt_rep_hari_libur b ON a.tanggal = b.tanggal_libur
+WHERE status_prod = 'KERJA'
+AND (status_absen != 'LN' OR status_absen IS NULL)
+AND CAST(a.bulan AS UNSIGNED) >= '$month'
+AND CAST(a.tahun AS UNSIGNED) >= '$year'
+AND CAST(a.tahun AS UNSIGNED) <= '$year'
+GROUP BY bulan, tahun
+ORDER BY
+CAST(a.tahun AS UNSIGNED) ASC,
+CAST(a.bulan AS UNSIGNED) ASC
+),
+dim_tgl as (
+SELECT
+tanggal,
+bulan,
+tahun,
+case
+		when status_prod = 'KERJA' AND status_absen = 'LP' THEN 'KERJA'
+		when status_prod = 'KERJA' AND status_absen = 'LN' THEN 'LIBUR'
+		when status_prod = 'KERJA' AND status_absen is null THEN 'KERJA'
+		when status_prod = 'LIBUR' AND status_absen = 'LP' THEN 'LIBUR'
+		when status_prod = 'LIBUR' AND status_absen = 'LN' THEN 'LIBUR'
+		when status_prod = 'LIBUR' AND status_absen is null THEN 'LIBUR'
+		END AS stat_kerja
+FROM dim_date a
+left join mgt_rep_hari_libur b on a.tanggal = b.tanggal_libur
+where tanggal >= '$today' and tanggal <= '$today'
+),
+dc as (
+SELECT
+no_coa,
+dd.bulan,
+nama_bulan,
+dd.tahun,
+projection,
+round(sum(projection / tot_working_days),2) AS daily_cost
+FROM mgt_rep_daily_cost a
+LEFT JOIN dd ON a.bulan = dd.bulan AND a.tahun = dd.tahun
+WHERE CAST(a.bulan AS UNSIGNED) >= '$month'
+AND CAST(a.tahun AS UNSIGNED) >= '$year'
+AND CAST(a.tahun AS UNSIGNED) <= '$year'
+GROUP BY no_coa, dd.bulan, dd.tahun
+),
+coa_direct as (
+select
+tanggal,
+stat_kerja,
+a.no_coa,
+a.nama_coa,
+coalesce(projection,0) projection,
+coalesce(daily_cost,0)AS daily_cost
+FROM dim_tgl d
+cross join mastercoa_v2 a
+left join dc on a.no_coa = dc.no_coa
+where eng_categori4 = 'DIRECT LABOR COST'
+group by tanggal, no_coa
+),
+coa_indirect as (
+select
+tanggal,
+stat_kerja,
+a.no_coa,
+a.nama_coa,
+coalesce(projection,0) projection,
+coalesce(daily_cost,0)AS daily_cost
+FROM dim_tgl d
+cross join mastercoa_v2 a
+left join dc on a.no_coa = dc.no_coa
+where eng_categori4 = 'INDIRECT LABOR COST'
+group by tanggal, no_coa
+),
+coa_overhead as (
+select
+tanggal,
+stat_kerja,
+a.no_coa,
+a.nama_coa,
+coalesce(projection,0) projection,
+coalesce(daily_cost,0)AS daily_cost
+FROM dim_tgl d
+cross join mastercoa_v2 a
+left join dc on a.no_coa = dc.no_coa
+where eng_categori4 = 'FIXED OVERHEAD COST'
+group by tanggal, no_coa
+),
+coa_selling as (
+select
+tanggal,
+stat_kerja,
+a.no_coa,
+a.nama_coa,
+coalesce(projection,0) projection,
+coalesce(daily_cost,0)AS daily_cost
+FROM dim_tgl d
+cross join mastercoa_v2 a
+left join dc on a.no_coa = dc.no_coa
+where eng_categori4 = 'SELLING EXPENSE'
+group by tanggal, no_coa
+),
+coa_ga as (
+select
+tanggal,
+stat_kerja,
+a.no_coa,
+a.nama_coa,
+coalesce(projection,0) projection,
+coalesce(daily_cost,0)AS daily_cost
+FROM dim_tgl d
+cross join mastercoa_v2 a
+left join dc on a.no_coa = dc.no_coa
+where eng_categori4 = 'GENERAL & ADMINISTRATION EXPENSE'
+group by tanggal, no_coa
+),
+coa_expense as (
+select
+tanggal,
+stat_kerja,
+a.no_coa,
+a.nama_coa,
+coalesce(projection,0) projection,
+coalesce(daily_cost,0)AS daily_cost
+FROM dim_tgl d
+cross join mastercoa_v2 a
+left join dc on a.no_coa = dc.no_coa
+where eng_categori3 = 'OTHER EXPENSE'
+group by tanggal, no_coa
+),
+map_coa as (
+select no_coa, nama_coa, no_cc, cc_name, group2, id_pc from (select a.no_coa, a.nama_coa, b.no_cc, cc_name, b.id_pc, group2 from (select no_coa, nama_coa, support_gen_adm, support_prod, prod, support_sell from mastercoa_v2 where support_gen_adm != 'N' OR support_prod != 'N' OR prod != 'N' OR support_sell != 'N') a inner join
+                                (select no_cc, cc_name, group2, id_pc, 'Y' support_gen_adm from b_master_cc where group2 = 'SUPPORTING GENERAL & ADMINISTRATION' and status = 'Active') b on b.support_gen_adm = a. support_gen_adm
+                                UNION
+                                select a.no_coa, a.nama_coa, b.no_cc, cc_name, b.id_pc, group2 from (select no_coa, nama_coa, support_gen_adm, support_prod, prod, support_sell from mastercoa_v2 where support_gen_adm != 'N' OR support_prod != 'N' OR prod != 'N' OR support_sell != 'N') a inner join
+                                (select no_cc, cc_name, group2, id_pc, 'Y' support_prod from b_master_cc where group2 = 'SUPPORTING PRODUCTION' and status = 'Active') b on b.support_prod = a. support_prod
+                                UNION
+                                select a.no_coa, a.nama_coa, b.no_cc, cc_name, b.id_pc, group2 from (select no_coa, nama_coa, support_gen_adm, support_prod, prod, support_sell from mastercoa_v2 where support_gen_adm != 'N' OR support_prod != 'N' OR prod != 'N' OR support_sell != 'N') a inner join
+                                (select no_cc, cc_name, group2, id_pc, 'Y' prod from b_master_cc where group2 = 'PRODUCTION' and status = 'Active') b on b.prod = a.prod
+                                UNION
+                                select a.no_coa, a.nama_coa, b.no_cc, cc_name, b.id_pc, group2 from (select no_coa, nama_coa, support_gen_adm, support_prod, prod, support_sell from mastercoa_v2 where support_gen_adm != 'N' OR support_prod != 'N' OR prod != 'N' OR support_sell != 'N') a inner join
+                                (select no_cc, cc_name, group2, id_pc, 'Y' support_sell from b_master_cc where group2 = 'SUPPORTING SELLING' and status = 'Active') b on b.support_sell = a.support_sell)a where id_pc != 'NAK' GROUP BY no_coa, no_cc, id_pc
+                                ORDER BY no_coa asc
+),
+m_labor as (
+select
+tanggal_berjalan,
+sub_dept_id,
+group_department,
+sum(bruto) wage,
+sum(bpjs_tk) bpjs_tk,
+sum(bpjs_ks) bpjs_ks,
+sum(thr) thr
+from mgt_rep_labor
+WHERE tanggal_berjalan = '$today' AND status_staff = 'NON STAFF' -- dynamic filter
+group by sub_dept_id, group_department, tanggal_berjalan
+),
+daily_cost as (
+(
+SELECT
+a.tanggal,
+stat_kerja,
+a.no_coa,
+a.nama_coa,
+a.projection,
+a.daily_cost,
+CASE
+    WHEN COALESCE(a.daily_cost, 0) = 0 THEN 0
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'LIBUR' THEN
+        CASE
+            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
+            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
+            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0)
+            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
+            ELSE 0
+        END
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'KERJA' THEN
+        COALESCE(a.daily_cost, 0) +
+        CASE
+            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
+            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
+            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0)
+            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
+            ELSE 0
+        END
+    ELSE 0
+END AS tot_labor,
+'direct labor' as nm_labor
+from coa_direct a
+left join map_coa b on a.no_coa = b.no_coa
+left join m_labor c on b.no_cc = c.sub_dept_id and a.tanggal = c.tanggal_berjalan and group_department = 'PRODUCTION'
+GROUP BY no_coa, a.tanggal
+UNION ALL
+SELECT
+a.tanggal,
+stat_kerja,
+a.no_coa,
+a.nama_coa,
+a.projection,
+a.daily_cost,
+CASE
+    WHEN COALESCE(a.daily_cost, 0) = 0 THEN 0
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'LIBUR' THEN
+        CASE
+            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
+            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
+            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0)
+            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
+            ELSE 0
+        END
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'KERJA' THEN
+        COALESCE(a.daily_cost, 0) +
+        CASE
+            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
+            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
+            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0)
+            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
+            ELSE 0
+        END
+    ELSE 0
+END AS tot_labor,
+'indirect labor' as nm_labor
+from coa_indirect  a
+left join map_coa b on a.no_coa = b.no_coa
+left join m_labor c on b.no_cc = c.sub_dept_id and a.tanggal = c.tanggal_berjalan and group_department = 'SUPPORTING PRODUCTION'
+GROUP BY no_coa, a.tanggal
+UNION ALL
+SELECT
+a.tanggal,
+stat_kerja,
+a.no_coa,
+a.nama_coa,
+a.projection,
+a.daily_cost,
+CASE
+    WHEN COALESCE(a.daily_cost, 0) = 0 THEN 0
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'LIBUR' THEN
+        CASE
+            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
+            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
+            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0)
+            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
+            ELSE 0
+        END
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'KERJA' THEN
+        COALESCE(a.daily_cost, 0) +
+        CASE
+            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
+            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
+            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0)
+            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
+            ELSE 0
+        END
+    ELSE 0
+END AS tot_labor,
+'overhead labor' as nm_labor
+from coa_overhead  a
+left join map_coa b on a.no_coa = b.no_coa
+left join m_labor c on b.no_cc = c.sub_dept_id and a.tanggal = c.tanggal_berjalan
+GROUP BY no_coa, a.tanggal
+UNION ALL
+SELECT
+a.tanggal,
+stat_kerja,
+a.no_coa,
+a.nama_coa,
+a.projection,
+a.daily_cost,
+CASE
+    WHEN COALESCE(a.daily_cost, 0) = 0 THEN 0
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'LIBUR' THEN
+        CASE
+            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
+            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
+            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0)
+            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
+            ELSE 0
+        END
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'KERJA' THEN
+        COALESCE(a.daily_cost, 0) +
+        CASE
+            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
+            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
+            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0)
+            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
+            ELSE 0
+        END
+    ELSE 0
+END AS tot_labor,
+'selling expense' as nm_labor
+from coa_selling  a
+left join map_coa b on a.no_coa = b.no_coa
+left join m_labor c on b.no_cc = c.sub_dept_id and a.tanggal = c.tanggal_berjalan  AND c.group_department = 'SUPPORTING SELLING'
+GROUP BY no_coa, a.tanggal
+UNION ALL
+SELECT
+a.tanggal,
+stat_kerja,
+a.no_coa,
+a.nama_coa,
+a.projection,
+a.daily_cost,
+CASE
+    WHEN COALESCE(a.daily_cost, 0) = 0 THEN 0
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'LIBUR' THEN
+        CASE
+            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
+            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
+            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0)
+            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
+            ELSE 0
+        END
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'KERJA' THEN
+        COALESCE(a.daily_cost, 0) +
+        CASE
+            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
+            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
+            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0)
+            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
+            ELSE 0
+        END
+    ELSE 0
+END AS tot_labor,
+'ga expense' as nm_labor
+from coa_ga  a
+left join map_coa b on a.no_coa = b.no_coa
+left join m_labor c on b.no_cc = c.sub_dept_id and a.tanggal = c.tanggal_berjalan  AND c.group_department = 'SUPPORTING GENERAL & ADMINISTRATION'
+GROUP BY no_coa, a.tanggal
+UNION ALL
+SELECT
+a.tanggal,
+stat_kerja,
+a.no_coa,
+a.nama_coa,
+a.projection,
+a.daily_cost,
+CASE
+    WHEN a.nama_coa LIKE '%SGT%'  AND stat_kerja = 'KERJA' THEN COALESCE(a.daily_cost, 0)
+    WHEN a.nama_coa LIKE '%SGT%'  AND stat_kerja = 'LIBUR' THEN 0
+	WHEN a.nama_coa LIKE '%GS%' THEN 0
+	WHEN a.nama_coa LIKE '%SA%' THEN 0
+    WHEN COALESCE(a.daily_cost, 0) = 0 THEN 0
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'LIBUR' THEN
+        CASE
+            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
+            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
+            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0)
+            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
+            ELSE 0
+        END
+    WHEN COALESCE(a.daily_cost, 0) != 0 AND stat_kerja = 'KERJA' THEN
+        COALESCE(a.daily_cost, 0) +
+        CASE
+            WHEN a.nama_coa LIKE '%GAJI%' THEN COALESCE(SUM(wage), 0)
+            WHEN a.nama_coa LIKE '%BPJS KETENAGAKERJAAN%' THEN COALESCE(SUM(bpjs_tk), 0)
+            WHEN a.nama_coa LIKE '%BPJS KESEHATAN%' THEN COALESCE(SUM(bpjs_ks), 0)
+            WHEN a.nama_coa LIKE '%THR%' THEN COALESCE(SUM(thr), 0)
+            ELSE 0
+        END
+    ELSE 0
+END AS tot_labor,
+'other expense' as nm_labor
+from coa_expense  a
+left join map_coa b on a.no_coa = b.no_coa
+left join m_labor c on b.no_cc = c.sub_dept_id and a.tanggal = c.tanggal_berjalan
+GROUP BY no_coa, a.tanggal
+)
+ORDER BY tanggal asc,
+no_coa asc
+),
+sum_daily_cost as (
+select
+tanggal,
+SUM(tot_labor) sum_tot_labor,
+SUM(CASE WHEN nm_labor = 'direct labor' THEN tot_labor ELSE 0 END) AS sum_direct_labor,
+SUM(CASE WHEN nm_labor = 'indirect labor' THEN tot_labor ELSE 0 END) AS sum_indirect_labor,
+SUM(CASE WHEN nm_labor = 'overhead labor' THEN tot_labor ELSE 0 END) AS sum_overhead_labor,
+SUM(CASE WHEN nm_labor = 'selling expense' THEN tot_labor ELSE 0 END) AS sum_selling_expense_labor,
+SUM(CASE WHEN nm_labor = 'ga expense' THEN tot_labor ELSE 0 END) AS sum_ga_expense_labor,
+SUM(CASE WHEN nm_labor = 'other expense' THEN tot_labor ELSE 0 END) AS sum_other_expense_labor
+from daily_cost group by tanggal
+),
+sum_earn as (
+select tgl_trans, sum(mins_avail) sum_mins_avail from earn group by tgl_trans
+),
+earning as (
+select
+-- est earning
+dt.tanggal,
+concat((DATE_FORMAT(dt.tanggal,  '%d')), '-',left(DATE_FORMAT(dt.tanggal,  '%M'),3),'-',DATE_FORMAT(dt.tanggal,  '%Y')) as tanggal_fix,
+dt.stat_kerja,
+a.tgl_trans,
+a.master_plan_id,
+sewing_line,
+a.buyer,
+a.kpno,
+coalesce(tot_earning_rupiah,0) as tot_earning_rupiah,
+COALESCE(a.mins_avail, 0) AS mins_avail,
+COALESCE(a.mins_prod, 0) AS mins_prod,
+COALESCE(a.eff_line, 0) AS eff_line,
+COALESCE(sum_mins_avail, 0) AS sum_mins_avail,
+
+CASE
+    WHEN stat_kerja = 'libur' THEN
+        ROUND(COALESCE(sum_tot_labor, 0), 2)
+    ELSE
+        ROUND(
+            (COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0))
+            * COALESCE(a.mins_avail, 0),
+            2
+        )
+END AS est_tot_cost,
+ROUND((COALESCE(tot_earning_rupiah, 0) - ((COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0)) * COALESCE(a.mins_avail, 0))), 2) AS blc,
+  ROUND((
+    (COALESCE(tot_earning_rupiah, 0) - ((COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0)) * COALESCE(a.mins_avail, 0)))
+    / NULLIF(COALESCE(tot_earning_rupiah, 0), 0)
+  ) * 100, 2) AS percent_est_earn,
+-- Full earning
+COALESCE(a.cm_price,0) AS cm_price,
+allowance,
+kurs_tengah,
+a.curr,
+COALESCE(tot_output,0) AS tot_output,
+
+(a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp)) full_cm_price,
+round(
+case
+		when a.curr = 'IDR' then tot_output * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp))
+		else ((tot_output * kurs_tengah)  * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp)))
+		end,2) as est_full_earning,
+ROUND(
+  (CASE WHEN COALESCE(a.curr, '') = 'IDR'
+    THEN COALESCE(tot_output, 0) * (COALESCE(a.cm_price, 0) + (COALESCE(a.cm_price, 0) * (COALESCE(allowance, 0) / 100)) +
+         (COALESCE(d.ttl_others, 0) - COALESCE(ttl_service, 0) - COALESCE(ttl_handl, 0) - COALESCE(ttl_import, 0) - COALESCE(ttl_shipp, 0)))
+    ELSE (COALESCE(tot_output, 0) * COALESCE(kurs_tengah, 0)) * (COALESCE(a.cm_price, 0) + (COALESCE(a.cm_price, 0) * (COALESCE(allowance, 0) / 100)) +
+         (COALESCE(d.ttl_others, 0) - COALESCE(ttl_service, 0) - COALESCE(ttl_handl, 0) - COALESCE(ttl_import, 0) - COALESCE(ttl_shipp, 0)))
+  END)
+  -
+  ((COALESCE(sum_tot_labor, 0) / NULLIF(COALESCE(c.sum_mins_avail, 0), 0)) * COALESCE(a.mins_avail, 0)),
+2
+) AS blc_full_earn,
+ROUND((
+  (CASE WHEN COALESCE(a.curr, '') = 'IDR'
+    THEN COALESCE(tot_output, 0) * (COALESCE(a.cm_price, 0) + (COALESCE(a.cm_price, 0) * (COALESCE(allowance, 0) / 100)) +
+         (COALESCE(d.ttl_others, 0) - COALESCE(ttl_service, 0) - COALESCE(ttl_handl, 0) - COALESCE(ttl_import, 0) - COALESCE(ttl_shipp, 0)))
+    ELSE (COALESCE(tot_output, 0) * COALESCE(kurs_tengah, 0)) * (COALESCE(a.cm_price, 0) + (COALESCE(a.cm_price, 0) * (COALESCE(allowance, 0) / 100)) +
+         (COALESCE(d.ttl_others, 0) - COALESCE(ttl_service, 0) - COALESCE(ttl_handl, 0) - COALESCE(ttl_import, 0) - COALESCE(ttl_shipp, 0)))
+  END)
+  - ((COALESCE(sum_tot_labor, 0) / NULLIF(COALESCE(c.sum_mins_avail, 0), 0)) * COALESCE(a.mins_avail, 0)))
+  /
+  NULLIF(
+    (CASE WHEN COALESCE(a.curr, '') = 'IDR'
+      THEN COALESCE(tot_output, 0) * (COALESCE(a.cm_price, 0) + (COALESCE(a.cm_price, 0) * (COALESCE(allowance, 0) / 100)) +
+           (COALESCE(d.ttl_others, 0) - COALESCE(ttl_service, 0) - COALESCE(ttl_handl, 0) - COALESCE(ttl_import, 0) - COALESCE(ttl_shipp, 0)))
+      ELSE (COALESCE(tot_output, 0) * COALESCE(kurs_tengah, 0)) * (COALESCE(a.cm_price, 0) + (COALESCE(a.cm_price, 0) * (COALESCE(allowance, 0) / 100)) +
+           (COALESCE(d.ttl_others, 0) - COALESCE(ttl_service, 0) - COALESCE(ttl_handl, 0) - COALESCE(ttl_import, 0) - COALESCE(ttl_shipp, 0)))
+    END),
+    0
+  ) * 100, 2) AS percent_full_earn,
+
+-- est earning production
+COALESCE(tot_earning_rupiah, 0) AS est_earning_prod,
+ROUND(((COALESCE(b.sum_direct_labor, 0) + COALESCE(b.sum_indirect_labor, 0) + COALESCE(b.sum_overhead_labor, 0)) / NULLIF(COALESCE(c.sum_mins_avail, 0), 0)) * COALESCE(a.mins_avail, 0), 2) AS est_cost_prod,
+ROUND(COALESCE(tot_earning_rupiah, 0) - (((COALESCE(b.sum_direct_labor, 0) + COALESCE(b.sum_indirect_labor, 0) + COALESCE(b.sum_overhead_labor, 0)) / NULLIF(COALESCE(c.sum_mins_avail, 0), 0)) * COALESCE(a.mins_avail, 0)), 2) AS blc_est_cost_prod,
+ROUND(((COALESCE(tot_earning_rupiah, 0) - (((COALESCE(b.sum_direct_labor, 0) + COALESCE(b.sum_indirect_labor, 0) + COALESCE(b.sum_overhead_labor, 0)) / NULLIF(COALESCE(c.sum_mins_avail, 0), 0)) * COALESCE(a.mins_avail, 0))) / NULLIF(COALESCE(tot_earning_rupiah, 0), 0)) * 100, 2) AS percent_est_cost_prod,
+
+-- est earning mkt
+ROUND((
+  CASE
+    WHEN COALESCE(a.curr, '') = 'IDR' THEN
+      COALESCE(tot_output, 0) * (
+        COALESCE(a.cm_price, 0) + (COALESCE(a.cm_price, 0) * (COALESCE(allowance, 0) / 100)) +
+        (COALESCE(d.ttl_others, 0) - COALESCE(ttl_service, 0) - COALESCE(ttl_handl, 0) - COALESCE(ttl_import, 0) - COALESCE(ttl_shipp, 0))
+      )
+    ELSE
+      (COALESCE(tot_output, 0) * COALESCE(kurs_tengah, 0)) * (
+        COALESCE(a.cm_price, 0) + (COALESCE(a.cm_price, 0) * (COALESCE(allowance, 0) / 100)) +
+        (COALESCE(d.ttl_others, 0) - COALESCE(ttl_service, 0) - COALESCE(ttl_handl, 0) - COALESCE(ttl_import, 0) - COALESCE(ttl_shipp, 0))
+      )
+  END
+  - COALESCE(tot_earning_rupiah, 0)
+), 2) AS est_earning_mkt,
+
+ROUND(
+  COALESCE(
+    (
+      (COALESCE(b.sum_selling_expense_labor, 0) + COALESCE(b.sum_ga_expense_labor, 0) + COALESCE(b.sum_other_expense_labor, 0))
+      / NULLIF(COALESCE(c.sum_mins_avail, 0), 0)
+    ) * COALESCE(a.mins_avail, 0),
+  0), 2) AS est_cost_mkt,
+
+ROUND((
+  (
+    CASE
+      WHEN COALESCE(a.curr, '') = 'IDR' THEN
+        COALESCE(tot_output, 0) * (
+          COALESCE(a.cm_price, 0) + (COALESCE(a.cm_price, 0) * (COALESCE(allowance, 0) / 100)) +
+          (COALESCE(d.ttl_others, 0) - COALESCE(ttl_service, 0) - COALESCE(ttl_handl, 0) - COALESCE(ttl_import, 0) - COALESCE(ttl_shipp, 0))
+        )
+      ELSE
+        (COALESCE(tot_output, 0) * COALESCE(kurs_tengah, 0)) * (
+          COALESCE(a.cm_price, 0) + (COALESCE(a.cm_price, 0) * (COALESCE(allowance, 0) / 100)) +
+          (COALESCE(d.ttl_others, 0) - COALESCE(ttl_service, 0) - COALESCE(ttl_handl, 0) - COALESCE(ttl_import, 0) - COALESCE(ttl_shipp, 0))
+        )
+    END
+    - COALESCE(tot_earning_rupiah, 0)
+  )
+  - (
+    (COALESCE(b.sum_selling_expense_labor, 0) + COALESCE(b.sum_ga_expense_labor, 0) + COALESCE(b.sum_other_expense_labor, 0))
+    / NULLIF(COALESCE(c.sum_mins_avail, 0), 0)
+  ) * COALESCE(a.mins_avail, 0)
+), 2) AS blc_earn_mkt,
+
+
+coalesce(round(round((((case
+		when a.curr = 'IDR' then tot_output * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp))
+		else ((tot_output * kurs_tengah)  * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp)))
+		end) -
+tot_earning_rupiah)) - ((((b.sum_selling_expense_labor + b.sum_ga_expense_labor + b.sum_other_expense_labor) / c.sum_mins_avail) * a.mins_avail)),2)
+/
+round(((case
+		when a.curr = 'IDR' then tot_output * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp))
+		else ((tot_output * kurs_tengah)  * (a.cm_price + (a.cm_price * (allowance / 100)) + (d.ttl_others - ttl_service - ttl_handl - ttl_import - ttl_shipp)))
+		end) -
+tot_earning_rupiah),2) * 100,2),0) as percent_earn_mkt
+
+from dim_tgl dt
+left join earn a on dt.tanggal = a.tgl_trans
+left join sum_daily_cost b on dt.tanggal = b.tanggal
+left join sum_earn c on dt.tanggal = c.tgl_trans
+left join sum_cost d on a.kpno = d.kpno
+where dt.tanggal = '$today'
+UNION ALL
+SELECT
+                    tanggal,
+                    tanggal_fix,
+                    stat_kerja,
+                    tgl_trans,
+                    master_plan_id,
+                    sewing_line,
+                    buyer,
+                    kpno,
+                    tot_earning_rupiah,
+                    mins_avail,
+                    mins_prod,
+                    eff_line,
+                    sum_mins_avail,
+                    est_tot_cost,
+                    blc,
+                    percent_est_earn,
+                    cm_price,
+                    allowance,
+                    kurs_tengah,
+                    curr,
+                    tot_output,
+                    full_cm_price,
+                    est_full_earning,
+                    blc_full_earn,
+                    percent_full_earn,
+                    est_earning_prod,
+                    est_cost_prod,
+                    blc_est_cost_prod,
+                    percent_est_cost_prod,
+                    est_earning_mkt,
+                    est_cost_mkt,
+                    blc_earn_mkt,
+                    percent_earn_mkt
+                    FROM mgt_rep_tmp_earning WHERE tanggal >= '$start_date' and tanggal <= '$end_date'
+)
+
+    select * from earning where tanggal >= '$start_date' and tanggal <= '$end_date'
+    order by tanggal asc, sewing_line asc");
+        }
+
+        return $this->buildExcelLaporanEarning($rawData);
+    }
+
+    private function buildExcelLaporanEarning(array $rawData)
+    {
+        $excel = FastExcel::create('laporan-earning');
+        $sheet = $excel->sheet();
+
+        $sheet->writeRow(
+            ['LAPORAN EARNING'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+                'halign'     => 'center',
+            ]
+        );
+        $sheet->mergeCells('A1:Y1');
+
+        $groupRow = [
+            'Tanggal', 'Line', 'WS Number', 'Buyer', 'Output', 'Mins. Prod', 'Mins. Avail', 'Eff',
+            'Est Earning', '', '', '',
+            'Est Full Earning', '', '', '', '',
+            'Est Earning Production', '', '', '',
+            'Est Earning Marketing', '', '', '',
+        ];
+
+        $sheet->writeRow(
+            $groupRow,
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+                'halign'     => 'center',
+                'valign'     => 'center',
+                'fill'       => '#D9EDF7',
+            ]
+        );
+
+        $subHeaderRow = [
+            '', '', '', '', '', '', '', '',
+            'Est Earning', 'Est Total Cost', 'Balance', '% Of Earn',
+            'Full CM Price', 'Est Full Earning', 'Est Total Cost', 'Balance', '% Of Earn',
+            'Est Earning Prod', 'Est Cost Prod', 'Balance', '% Of Earn',
+            'Est Earning Mkt', 'Est Cost Mkt', 'Balance', '% Of Earn',
+        ];
+
+        $sheet->writeRow(
+            $subHeaderRow,
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+                'halign'     => 'center',
+                'valign'     => 'center',
+                'fill'       => '#D9EDF7',
+            ]
+        );
+
+        $sheet->mergeCells('A2:A3');
+        $sheet->mergeCells('B2:B3');
+        $sheet->mergeCells('C2:C3');
+        $sheet->mergeCells('D2:D3');
+        $sheet->mergeCells('E2:E3');
+        $sheet->mergeCells('F2:F3');
+        $sheet->mergeCells('G2:G3');
+        $sheet->mergeCells('H2:H3');
+        $sheet->mergeCells('I2:L2');
+        $sheet->mergeCells('M2:Q2');
+        $sheet->mergeCells('R2:U2');
+        $sheet->mergeCells('V2:Y2');
+
+        // Columns (1-based) that are percentages: Eff, % Of Earn x4
+        $percentCols = [8, 12, 17, 21, 25];
+
+        foreach ($rawData as $row) {
+            $isLibur = ($row->stat_kerja ?? null) === 'LIBUR';
+
+            $values = [
+                $row->tanggal_fix,
+                $row->sewing_line,
+                $row->kpno,
+                $row->buyer,
+                (float) $row->tot_output,
+                (float) $row->mins_prod,
+                (float) $row->mins_avail,
+                (float) $row->eff_line / 100,
+                (float) $row->tot_earning_rupiah,
+                (float) $row->est_tot_cost,
+                (float) $row->blc,
+                (float) $row->percent_est_earn / 100,
+                (float) $row->full_cm_price,
+                (float) $row->est_full_earning,
+                (float) $row->est_tot_cost,
+                (float) $row->blc_full_earn,
+                (float) $row->percent_full_earn / 100,
+                (float) $row->est_earning_prod,
+                (float) $row->est_cost_prod,
+                (float) $row->blc_est_cost_prod,
+                (float) $row->percent_est_cost_prod / 100,
+                (float) $row->est_earning_mkt,
+                (float) $row->est_cost_mkt,
+                (float) $row->blc_earn_mkt,
+                (float) $row->percent_earn_mkt / 100,
+            ];
+
+            $cellStyles = [];
+            foreach ($values as $colIdx => $value) {
+                $colNo = $colIdx + 1;
+                $style = [];
+
+                if ($colNo >= 5) {
+                    $style['format'] = in_array($colNo, $percentCols, true) ? '0.00%' : '#,##0.00';
+                }
+
+                if ($isLibur) {
+                    $style['font-color'] = '#FF0000';
+                    $style['fill'] = '#FDE8E8';
+                } elseif ($colNo >= 5 && is_numeric($value) && $value < 0) {
+                    $style['font-color'] = '#FF0000';
+                }
+
+                if ($style) {
+                    $cellStyles[$colIdx] = $style;
+                }
+            }
+
+            $sheet->writeRow($values, ['border' => 'thin'], $cellStyles);
+        }
+
+        foreach (range('A', 'Y') as $col) {
+            $sheet->setColWidth($col, 16);
+        }
+
+        return $excel->download('Laporan Earning.xlsx');
     }
 }
