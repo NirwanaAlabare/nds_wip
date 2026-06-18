@@ -106,8 +106,9 @@
             position: absolute;
             top: 12px;
             right: 14px;
-            font-size: 1.5rem;
-            opacity: .12;
+            font-size: 1.8rem;
+            opacity: .28;
+            text-shadow: 0 0 .4px currentColor, 0 0 .4px currentColor;
         }
 
         .kpi-card:hover {
