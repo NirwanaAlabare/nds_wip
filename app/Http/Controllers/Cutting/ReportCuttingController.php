@@ -15654,6 +15654,28 @@ order by a.tgl_trans asc
                             AND ac.dateinput > NOW() - INTERVAL 1 YEAR 
                     ),
 
+                    saldo_awal_cutting as (
+                        SELECT
+                                master_sb_ws.ws,
+                                master_sb_ws.buyer,
+                                master_sb_ws.styleno style,
+                                master_sb_ws.color,
+                                master_sb_ws.size,
+                                sum(mut_cut_pcs_tmp_detail.saldo) saldo_awal,
+                                0 qty_in,
+                                0 qty_out,
+                                0 saldo_akhir
+                        FROM mut_cut_pcs_tmp_detail
+                        left join master_sb_ws on master_sb_ws.id_so_det = mut_cut_pcs_tmp_detail.id_so_det
+                        where mut_cut_pcs_tmp_detail.tgl_trans = '".$tgl_saldo."'
+                        group by
+                                master_sb_ws.ws,
+                                master_sb_ws.buyer,
+                                master_sb_ws.styleno,
+                                master_sb_ws.color,
+                                master_sb_ws.size
+                    ),
+
                     before_query_qty_in as(
                         SELECT
                             tanggal,
@@ -16209,36 +16231,45 @@ order by a.tgl_trans asc
                             style,
                             color,
                             size
+                    ),
+
+                    main_query AS (
+                        SELECT
+                            a.worksheet,
+                            a.buyer,
+                            a.style,
+                            a.color,
+                            a.size,
+                            COALESCE(i.qty_before,0) - COALESCE(o.qty_before,0) AS saldo_awal,
+                            COALESCE(i.qty,0) qty_in,
+                            COALESCE(o.qty,0) qty_out,
+                            (
+                                COALESCE(i.qty_before,0)
+                                - COALESCE(o.qty_before,0)
+                                + COALESCE(i.qty,0)
+                                - COALESCE(o.qty,0)
+                            ) saldo_akhir
+                        FROM all_data a
+                        LEFT JOIN qty_in i
+                            ON i.worksheet = a.worksheet
+                            AND i.buyer = a.buyer
+                            AND i.style = a.style
+                            AND i.color = a.color
+                            AND i.size = a.size
+                        LEFT JOIN qty_out o
+                            ON o.worksheet = a.worksheet
+                            AND o.buyer = a.buyer
+                            AND o.style = a.style
+                            AND o.color = a.color
+                            AND o.size = a.size
                     )
 
-                    SELECT
-                        a.worksheet,
-                        a.buyer,
-                        a.style,
-                        a.color,
-                        a.size,
-                        COALESCE(i.qty_before,0) - COALESCE(o.qty_before,0) AS saldo_awal,
-                        COALESCE(i.qty,0) qty_in,
-                        COALESCE(o.qty,0) qty_out,
-                        (
-                            COALESCE(i.qty_before,0)
-                            - COALESCE(o.qty_before,0)
-                            + COALESCE(i.qty,0)
-                            - COALESCE(o.qty,0)
-                        ) saldo_akhir
-                    FROM all_data a
-                    LEFT JOIN qty_in i
-                        ON i.worksheet = a.worksheet
-                        AND i.buyer = a.buyer
-                        AND i.style = a.style
-                        AND i.color = a.color
-                        AND i.size = a.size
-                    LEFT JOIN qty_out o
-                        ON o.worksheet = a.worksheet
-                        AND o.buyer = a.buyer
-                        AND o.style = a.style
-                        AND o.color = a.color
-                        AND o.size = a.size
+
+                    SELECT * FROM main_query
+
+                    UNION ALL
+
+                    SELECT * FROM saldo_awal_cutting;
                 ");
 
                 return DataTables::of($rawData)->toJson();
@@ -16283,6 +16314,28 @@ order by a.tgl_trans asc
                     AND ac.status = 'confirm'
                     AND mi.mattype = 'F'
                     AND ac.dateinput > NOW() - INTERVAL 1 YEAR 
+            ),
+
+            saldo_awal_cutting as (
+                SELECT
+                        master_sb_ws.ws,
+                        master_sb_ws.buyer,
+                        master_sb_ws.styleno style,
+                        master_sb_ws.color,
+                        master_sb_ws.size,
+                        sum(mut_cut_pcs_tmp_detail.saldo) saldo_awal,
+                        0 qty_in,
+                        0 qty_out,
+                        0 saldo_akhir
+                FROM mut_cut_pcs_tmp_detail
+                left join master_sb_ws on master_sb_ws.id_so_det = mut_cut_pcs_tmp_detail.id_so_det
+                where mut_cut_pcs_tmp_detail.tgl_trans = '".$tgl_saldo."'
+                group by
+                        master_sb_ws.ws,
+                        master_sb_ws.buyer,
+                        master_sb_ws.styleno,
+                        master_sb_ws.color,
+                        master_sb_ws.size
             ),
 
             before_query_qty_in as(
@@ -16840,36 +16893,45 @@ order by a.tgl_trans asc
                     style,
                     color,
                     size
+            ),
+
+            main_query AS (
+                SELECT
+                    a.worksheet,
+                    a.buyer,
+                    a.style,
+                    a.color,
+                    a.size,
+                    COALESCE(i.qty_before,0) - COALESCE(o.qty_before,0) AS saldo_awal,
+                    COALESCE(i.qty,0) qty_in,
+                    COALESCE(o.qty,0) qty_out,
+                    (
+                        COALESCE(i.qty_before,0)
+                        - COALESCE(o.qty_before,0)
+                        + COALESCE(i.qty,0)
+                        - COALESCE(o.qty,0)
+                    ) saldo_akhir
+                FROM all_data a
+                LEFT JOIN qty_in i
+                    ON i.worksheet = a.worksheet
+                    AND i.buyer = a.buyer
+                    AND i.style = a.style
+                    AND i.color = a.color
+                    AND i.size = a.size
+                LEFT JOIN qty_out o
+                    ON o.worksheet = a.worksheet
+                    AND o.buyer = a.buyer
+                    AND o.style = a.style
+                    AND o.color = a.color
+                    AND o.size = a.size
             )
 
-            SELECT
-                a.worksheet,
-                a.buyer,
-                a.style,
-                a.color,
-                a.size,
-                COALESCE(i.qty_before,0) - COALESCE(o.qty_before,0) AS saldo_awal,
-                COALESCE(i.qty,0) qty_in,
-                COALESCE(o.qty,0) qty_out,
-                (
-                    COALESCE(i.qty_before,0)
-                    - COALESCE(o.qty_before,0)
-                    + COALESCE(i.qty,0)
-                    - COALESCE(o.qty,0)
-                ) saldo_akhir
-            FROM all_data a
-            LEFT JOIN qty_in i
-                ON i.worksheet = a.worksheet
-                AND i.buyer = a.buyer
-                AND i.style = a.style
-                AND i.color = a.color
-                AND i.size = a.size
-            LEFT JOIN qty_out o
-                ON o.worksheet = a.worksheet
-                AND o.buyer = a.buyer
-                AND o.style = a.style
-                AND o.color = a.color
-                AND o.size = a.size
+
+            SELECT * FROM main_query
+
+            UNION ALL
+
+            SELECT * FROM saldo_awal_cutting;
         ");
 
         $fileName = 'report-mutasi-wip-cutting-set';
