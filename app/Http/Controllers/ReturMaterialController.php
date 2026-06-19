@@ -30,9 +30,12 @@ use DB;
 use QrCode;
 use DNS1D;
 use PDF;
+use App\Http\Controllers\Traits\ChecksClosingPeriode;
 
 class ReturMaterialController extends Controller
 {
+    use ChecksClosingPeriode;
+
     /**
      * Display a listing of the resource.
      *
@@ -97,7 +100,7 @@ class ReturMaterialController extends Controller
 
         $status_replac = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'status_replacement')->get();
 
-        return view('returmaterial.create-returmaterial', ['no_req' => $no_req,'kode_gr' => $kode_gr,'jns_klr' => $jns_klr,'def_type' => $def_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit, 'status_replac' => $status_replac, 'page' => 'dashboard-warehouse']);
+        return view('returmaterial.create-returmaterial', ['no_req' => $no_req,'kode_gr' => $kode_gr,'jns_klr' => $jns_klr,'def_type' => $def_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit, 'status_replac' => $status_replac, 'min_tgl_ro' => $this->getMinTglRo(), 'closed_periods' => $this->getClosedPeriods(), 'page' => 'dashboard-warehouse']);
     }
 
 
@@ -616,6 +619,14 @@ class ReturMaterialController extends Controller
     // if (intval($request['jumlah_qty']) > 0) {
 
         $tglbppb = $request['txt_tgl_ro'];
+
+        $min_tgl_ro = $this->getMinTglRo();
+        if ($min_tgl_ro && $tglbppb < $min_tgl_ro) {
+            return ['status' => 400, 'message' => "Tgl RO tidak boleh sebelum $min_tgl_ro (periode sudah closed).", 'additional' => [], 'redirect' => ''];
+        }
+        if ($this->isTglRoClosed($tglbppb)) {
+            return ['status' => 400, 'message' => "Tgl RO $tglbppb berada pada periode yang sudah closed.", 'additional' => [], 'redirect' => ''];
+        }
         $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('GK-OUT-', DATE_FORMAT('" . $tglbppb . "', '%Y')) Mattype,IF(MAX(bppbno_int) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0)) nomor,CONCAT('GK/RO/',DATE_FORMAT('" . $tglbppb . "', '%m'),DATE_FORMAT('" . $tglbppb . "', '%y'),'/',IF(MAX(RIGHT(bppbno_int,5)) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0))) bppbno_int FROM bppb WHERE MONTH(bppbdate) = MONTH('" . $tglbppb . "') AND YEAR(bppbdate) = YEAR('" . $tglbppb . "') AND LEFT(bppbno_int,2) = 'GK'");
          // $kode_ins = $kodeins ? $kodeins[0]->kode : null;
         $m_type = $Mattype1[0]->Mattype;
@@ -945,6 +956,8 @@ class ReturMaterialController extends Controller
             'mtypebc'       => $mtypebc,
             'msupplier'     => $msupplier,
             'status_replac' => $status_replac,
+            'min_tgl_ro'    => $this->getMinTglRo(),
+            'closed_periods' => $this->getClosedPeriods(),
             'page'          => 'dashboard-warehouse',
         ]);
     }
@@ -1309,6 +1322,14 @@ class ReturMaterialController extends Controller
         $user    = Auth::user()->name;
         $tglbppb = $request->input('txt_tgl_ro');
 
+        $min_tgl_ro = $this->getMinTglRo();
+        if ($min_tgl_ro && $tglbppb < $min_tgl_ro) {
+            return ['status' => 400, 'message' => "Tgl RO tidak boleh sebelum $min_tgl_ro (periode sudah closed).", 'additional' => [], 'redirect' => ''];
+        }
+        if ($this->isTglRoClosed($tglbppb)) {
+            return ['status' => 400, 'message' => "Tgl RO $tglbppb berada pada periode yang sudah closed.", 'additional' => [], 'redirect' => ''];
+        }
+
         $temps = RoBarcodeTemp::where('created_by', $user)->get();
         if ($temps->count() === 0) {
             return ['status' => 400, 'message' => 'Belum ada barcode yang ditambahkan.', 'additional' => [], 'redirect' => ''];
@@ -1408,12 +1429,13 @@ class ReturMaterialController extends Controller
             $first = $group->first();
 
             $det_po = DB::connection('mysql_sb')->select(
-                "select pono, tax, id_jo, b.id_gen, c.id_item, unit, curr, price from po_header a INNER JOIN po_item b on b.id_po = a.id INNER JOIN masteritem c on c.id_gen = b.id_gen where pono = ? and id_jo = ? and id_item = ? and unit = ?",
+                "select pono, tax, id_jo, b.id_gen, c.id_item, unit, curr, price, a.tax from po_header a INNER JOIN po_item b on b.id_po = a.id INNER JOIN masteritem c on c.id_gen = b.id_gen where pono = ? and id_jo = ? and id_item = ? and unit = ?",
                 [$no_po, $first->id_jo, $first->id_item, $first->unit]
             );
 
             $po_curr  = $det_po[0]->curr ?? '-';
             $po_price = $det_po[0]->price ?? 0;
+            $po_ppn = $det_po[0]->tax ?? 0;
 
             $po_price_map[$first->id_item . '|' . $first->id_jo] = ['curr' => $po_curr, 'price' => $po_price];
 
@@ -1443,6 +1465,7 @@ class ReturMaterialController extends Controller
                 'status_return' => $request->input('txt_stat_rtn'),
                 'jenis_trans'   => $request->input('txt_jns_klr'),
                 'no_po'         => $no_po,
+                'ppn'         => $po_ppn,
             ]);
 
             BppbRO::create([
@@ -1459,6 +1482,7 @@ class ReturMaterialController extends Controller
                 'created_by' => $user,
                 'deskripsi'  => $request->input('txt_notes'),
                 'no_po'      => $no_po,
+                'ppn'         => $po_ppn,
             ]);
         }
 
@@ -1567,6 +1591,8 @@ class ReturMaterialController extends Controller
             'mtypebc'       => $mtypebc,
             'msupplier'     => $msupplier,
             'status_replac' => $status_replac,
+            'min_tgl_ro'    => $this->getMinTglRo(),
+            'closed_periods' => $this->getClosedPeriods(),
             'edit_data'     => $header,
             'page'          => 'dashboard-warehouse',
         ]);
@@ -1577,6 +1603,14 @@ class ReturMaterialController extends Controller
         $user    = Auth::user()->name;
         $tglbppb = $request->input('txt_tgl_ro');
         $edit_id = $request->input('edit_id');
+
+        $min_tgl_ro = $this->getMinTglRo();
+        if ($min_tgl_ro && $tglbppb < $min_tgl_ro) {
+            return ['status' => 400, 'message' => "Tgl RO tidak boleh sebelum $min_tgl_ro (periode sudah closed).", 'additional' => [], 'redirect' => ''];
+        }
+        if ($this->isTglRoClosed($tglbppb)) {
+            return ['status' => 400, 'message' => "Tgl RO $tglbppb berada pada periode yang sudah closed.", 'additional' => [], 'redirect' => ''];
+        }
 
         $header = BppbHeader::where('id', $edit_id)->first();
 

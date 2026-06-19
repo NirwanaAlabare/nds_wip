@@ -28,9 +28,11 @@ use QrCode;
 use DNS1D;
 use PDF;
 use \avadim\FastExcelLaravel\Excel as FastExcel;
+use App\Http\Controllers\Traits\ChecksClosingPeriode;
 
 class ReturInMaterialController extends Controller
 {
+    use ChecksClosingPeriode;
     /**
      * Display a listing of the resource.
      *
@@ -96,7 +98,7 @@ class ReturInMaterialController extends Controller
         $kode_gr = DB::connection('mysql_sb')->select("select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode FROM (
             SELECT 'GK/RI' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0)) nomor FROM bpb WHERE MONTH(bpbdate) = MONTH(CURRENT_DATE()) AND YEAR(bpbdate) = YEAR(CURRENT_DATE()) AND LEFT(bpbno_int,2) = 'GK') a");
 
-        return view('retur_inmaterial.create-retur-inmaterial', ['kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit, 'page' => 'dashboard-warehouse']);
+        return view('retur_inmaterial.create-retur-inmaterial', ['kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit, 'min_tgl_ro' => $this->getMinTglRo(), 'closed_periods' => $this->getClosedPeriods(), 'page' => 'dashboard-warehouse']);
     }
 
     public function getNobppb(Request $request)
@@ -165,6 +167,15 @@ class ReturInMaterialController extends Controller
         ]);
 
         $tglbpb = $request['txt_tgl_ri'];
+
+        $min_tgl_ro = $this->getMinTglRo();
+        if ($min_tgl_ro && $tglbpb < $min_tgl_ro) {
+            return ['status' => 400, 'message' => "Tgl RI tidak boleh sebelum $min_tgl_ro (periode sudah closed).", 'additional' => [], 'redirect' => ''];
+        }
+        if ($this->isTglRoClosed($tglbpb)) {
+            return ['status' => 400, 'message' => "Tgl RI $tglbpb berada pada periode yang sudah closed.", 'additional' => [], 'redirect' => ''];
+        }
+
         $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('GK-IN-', DATE_FORMAT('" . $tglbpb . "', '%Y')) Mattype,IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0)) nomor,CONCAT('GK/RI/',DATE_FORMAT('" . $tglbpb . "', '%m'),DATE_FORMAT('" . $tglbpb . "', '%y'),'/',IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0))) bpbno_int FROM bpb WHERE MONTH(bpbdate) = MONTH('" . $tglbpb . "') AND YEAR(bpbdate) = YEAR('" . $tglbpb . "') AND LEFT(bpbno_int,2) = 'GK'");
          // $kode_ins = $kodeins ? $kodeins[0]->kode : null;
         $m_type = $Mattype1[0]->Mattype;
@@ -229,6 +240,8 @@ class ReturInMaterialController extends Controller
         $no_invoice = $request['txt_noinvoice'];
         $tipe_material = $request['txt_tom'];
         $txt_no_po = $request['txt_no_po'];
+            $cek_ppn = DB::connection('mysql_sb')->select("select tax from po_header where pono = '" . $txt_no_po . "'");
+            $ppn_po = $cek_ppn ? $cek_ppn[0]->tax : 0;
         $inmaterialDetailData = [];
         for ($i = 0; $i < intval($request['jumlah_data']); $i++) {
             if ($request["qty_retur"][$i] > 0 || $request["qty_reject"][$i] > 0) {
@@ -281,6 +294,7 @@ class ReturInMaterialController extends Controller
                     "created_at" => $timestamp,
                     "updated_at" => $timestamp,
                     'pono' => $txt_no_po,
+                    "ppn" => $ppn_po,
                 ]);
             }
         }
@@ -347,6 +361,7 @@ class ReturInMaterialController extends Controller
                 "status" => 'Y',
                 "created_at" => $timestamp,
                 "updated_at" => $timestamp,
+                "ppn" => $ppn_po,
             ]);
          }
      }
@@ -465,6 +480,15 @@ class ReturInMaterialController extends Controller
         }
 
         $tglbpb = $request['txt_tgl_ri'];
+
+        $min_tgl_ro = $this->getMinTglRo();
+        if ($min_tgl_ro && $tglbpb < $min_tgl_ro) {
+            return ['status' => 400, 'message' => "Tgl RI tidak boleh sebelum $min_tgl_ro (periode sudah closed).", 'additional' => [], 'redirect' => ''];
+        }
+        if ($this->isTglRoClosed($tglbpb)) {
+            return ['status' => 400, 'message' => "Tgl RI $tglbpb berada pada periode yang sudah closed.", 'additional' => [], 'redirect' => ''];
+        }
+
         $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('GK-IN-', DATE_FORMAT('" . $tglbpb . "', '%Y')) Mattype,IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0)) nomor,CONCAT('GK/RI/',DATE_FORMAT('" . $tglbpb . "', '%m'),DATE_FORMAT('" . $tglbpb . "', '%y'),'/',IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0))) bpbno_int FROM bpb WHERE MONTH(bpbdate) = MONTH('" . $tglbpb . "') AND YEAR(bpbdate) = YEAR('" . $tglbpb . "') AND LEFT(bpbno_int,2) = 'GK'");
          // $kode_ins = $kodeins ? $kodeins[0]->kode : null;
         $m_type = $Mattype1[0]->Mattype;
@@ -924,7 +948,7 @@ public function createricutting()
     $kode_gr = DB::connection('mysql_sb')->select("select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode FROM (
         SELECT 'GK/RI' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0)) nomor FROM bpb WHERE MONTH(bpbdate) = MONTH(CURRENT_DATE()) AND YEAR(bpbdate) = YEAR(CURRENT_DATE()) AND LEFT(bpbno_int,2) = 'GK') a");
 
-    return view('retur_inmaterial.create-retur-inmaterial-cutting', ['kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit, 'page' => 'dashboard-warehouse']);
+    return view('retur_inmaterial.create-retur-inmaterial-cutting', ['kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit, 'min_tgl_ro' => $this->getMinTglRo(), 'closed_periods' => $this->getClosedPeriods(), 'page' => 'dashboard-warehouse']);
 }
 
 public function getNobppbCutting(Request $request)
@@ -1214,7 +1238,7 @@ public function createribarcode()
     $kode_gr = DB::connection('mysql_sb')->select("select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode FROM (
         SELECT 'GK/RI' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0)) nomor FROM bpb WHERE MONTH(bpbdate) = MONTH(CURRENT_DATE()) AND YEAR(bpbdate) = YEAR(CURRENT_DATE()) AND LEFT(bpbno_int,2) = 'GK') a");
 
-    return view('retur_inmaterial.create-retur-inmaterial-barcode', ['kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit, 'page' => 'dashboard-warehouse']);
+    return view('retur_inmaterial.create-retur-inmaterial-barcode', ['kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit, 'min_tgl_ro' => $this->getMinTglRo(), 'closed_periods' => $this->getClosedPeriods(), 'page' => 'dashboard-warehouse']);
 }
 
 private function queryBarcodeDetailRi(array $id_barcode_array)

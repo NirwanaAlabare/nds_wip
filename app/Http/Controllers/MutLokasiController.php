@@ -27,9 +27,11 @@ use DB;
 use QrCode;
 use DNS1D;
 use PDF;
+use App\Http\Controllers\Traits\ChecksClosingPeriode;
 
 class MutLokasiController extends Controller
 {
+    use ChecksClosingPeriode;
     /**
      * Display a listing of the resource.
      *
@@ -80,7 +82,7 @@ class MutLokasiController extends Controller
             select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'MT' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_mut) is null,'00001',LPAD(SUBSTR(MAX(no_mut),9,5)+1,5,0)) nomor from whs_mut_lokasi_h where MONTH(tgl_mut) = MONTH(CURRENT_DATE()) and YEAR(tgl_mut) = YEAR(CURRENT_DATE())) a");
         $lokasi = DB::connection('mysql_sb')->select("select id, kode_lok from whs_master_lokasi where status = 'Active'");
 
-        return view('mut-lokasi.create-mutlokasi-new', ['kode_gr' => $kode_gr,'no_ws' => $no_ws,'lokasi' => $lokasi, 'page' => 'dashboard-warehouse']);
+        return view('mut-lokasi.create-mutlokasi-new', ['kode_gr' => $kode_gr,'no_ws' => $no_ws,'lokasi' => $lokasi, 'min_tgl_ro' => $this->getMinTglRo(), 'closed_periods' => $this->getClosedPeriods(), 'page' => 'dashboard-warehouse']);
     }
 
     public function editmutlok($id)
@@ -418,6 +420,16 @@ class MutLokasiController extends Controller
         ]);
 
         $timestamp = Carbon::now();
+
+        $tgl_mut = $request['txt_tgl_mut'];
+
+        $min_tgl_ro = $this->getMinTglRo();
+        if ($min_tgl_ro && $tgl_mut < $min_tgl_ro) {
+            return ['status' => 400, 'message' => "Tgl Mutasi tidak boleh sebelum $min_tgl_ro (periode sudah closed).", 'additional' => [], 'redirect' => ''];
+        }
+        if ($this->isTglRoClosed($tgl_mut)) {
+            return ['status' => 400, 'message' => "Tgl Mutasi $tgl_mut berada pada periode yang sudah closed.", 'additional' => [], 'redirect' => ''];
+        }
 
         $notrans = DB::connection('mysql_sb')->select("select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'MT' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_mut) is null,'00001',LPAD(SUBSTR(MAX(no_mut),9,5)+1,5,0)) nomor from whs_mut_lokasi_h where MONTH(tgl_mut) = MONTH(CURRENT_DATE()) and YEAR(tgl_mut) = YEAR(CURRENT_DATE())) a");
         $no_mut = $notrans[0]->kode;
