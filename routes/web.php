@@ -141,6 +141,8 @@ use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanFgController;
 use App\Http\Controllers\AssetDashboardController;
 use App\Http\Controllers\AssetMasterLokasiController;
 use App\Http\Controllers\AssetMasterJenisMesinController;
+use App\Http\Controllers\AssetMesinTambahController;
+use App\Http\Controllers\AssetMesinMasterController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -666,6 +668,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_mutasi_fg_stok', 'export_excel_mutasi_fg_stok')->name('export_excel_mutasi_fg_stok');
         Route::get('/rep_mutasi_fg_stock', 'rep_mutasi_fg_stock')->name('rep_mutasi_fg_stock');
         Route::post('/export_excel_mutasi_fg_stock', 'export_excel_mutasi_fg_stock')->name('export_excel_mutasi_fg_stock');
+        Route::get('/rep_mutasi_global_fg_stock', 'rep_mutasi_global_fg_stock')->name('rep_mutasi_global_fg_stock');
+        Route::get('/export_excel_rep_mutasi_global_fg_stock', 'export_excel_rep_mutasi_global_fg_stock')->name('export_excel_rep_mutasi_global_fg_stock');
     });
 
     Route::controller(FGStokMutasiController::class)->prefix("mutasi-fg-stock")->middleware('fg-stock')->group(function () {
@@ -1336,6 +1340,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(MgtReportDashboardController::class)->middleware('role:management')->group(function () {
         Route::get('/dashboard_mgt_report', 'dashboard_mgt_report')->name('dashboard-mgt-report');
         Route::get('/dashboard_mgt_report/raw-data', 'getRawData')->name('dashboard-mgt-report.raw-data');
+        Route::post('/dashboard_mgt_report/sync', 'syncData')->name('dashboard-mgt-report.sync');
     });
 
     // Proses Management Report
@@ -1454,6 +1459,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/asset_jenis_mesin/show', 'show_jenis_mesin')->name('show_jenis_mesin');
         Route::post('/asset_jenis_mesin/update', 'update_jenis_mesin')->name('update_jenis_mesin');
         Route::post('/asset_jenis_mesin/delete', 'delete_jenis_mesin')->name('delete_jenis_mesin');
+    });
+    // Master Asset Management Tambah Mesin
+    Route::controller(AssetMesinTambahController::class)->middleware('role:management')->group(function () {
+        Route::get('/asset_mesin_tambah', 'asset_mesin_tambah')->name('asset_mesin_tambah');
+        Route::get('/asset_mesin_tambah/bpb_detail', 'get_bpb_detail')->name('asset_mesin_tambah_bpb_detail');
+    });
+    // Master Asset Management Master Mesin
+    Route::controller(AssetMesinMasterController::class)->middleware('role:management')->group(function () {
+        Route::get('/asset_mesin_master', 'asset_mesin_master')->name('asset_mesin_master');
     });
 
 
