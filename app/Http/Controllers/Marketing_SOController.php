@@ -61,7 +61,31 @@ class Marketing_SOController extends Controller
 
                     $url_pdf_so = route('print-pdf-so', $row->id);
 
-                   return '
+                    // return '
+                    //     <button class="btn btn-info btn-sm" onclick="showDetail('.$row->id.')" title="Detail SO">
+                    //         <i class="fas fa-eye"></i>
+                    //     </button>
+                    //     <button class="btn btn-warning btn-sm" onclick="showDetailMaterial('.$row->id.')" title="Detail Material">
+                    //         <i class="fas fa-boxes"></i>
+                    //     </button>
+                    //     <button class="btn btn-primary btn-sm" onclick="syncBom('.$row->id.')" title="Sync BOM">
+                    //         <i class="fas fa-sync-alt"></i>
+                    //     </button>
+                    //     <button class="btn btn-secondary btn-sm" onclick="openMergeModal('.$row->id.')" title="Merge SO">
+                    //         <i class="fas fa-code-branch"></i>
+                    //     </button>
+                    //     <a href="'.route('so-input-barcode', $row->id).'" class="btn btn-dark btn-sm" title="Input Barcode">
+                    //         <i class="fas fa-barcode"></i>
+                    //     </a>
+                    //     <a href="'.$url_pdf.'" target="_blank" class="btn btn-danger btn-sm" title="Cetak PDF SO">
+                    //         <i class="fas fa-file-pdf"></i>
+                    //     </a>
+                    //     <a href="'.$url_pdf_so.'" target="_blank" class="btn btn-success btn-sm" title="Cetak PDF SO Market">
+                    //         <i class="fas fa-file-pdf"></i>
+                    //     </a>
+                    // ';
+
+                    return '
                         <button class="btn btn-info btn-sm" onclick="showDetail('.$row->id.')" title="Detail SO">
                             <i class="fas fa-eye"></i>
                         </button>
@@ -74,7 +98,7 @@ class Marketing_SOController extends Controller
                         <a href="'.$url_pdf.'" target="_blank" class="btn btn-danger btn-sm" title="Cetak PDF SO">
                             <i class="fas fa-file-pdf"></i>
                         </a>
-                        <a href="'.$url_pdf_so.'" target="_blank" class="btn btn-success btn-sm" title="Cetak PDF SO Market">
+                        <a href ="'.$url_pdf_so.'" target="_blank" class="btn btn-success btn-sm" title="Cetak PDF SO Market">
                             <i class="fas fa-file-pdf"></i>
                         </a>
                     ';
@@ -1398,6 +1422,11 @@ class Marketing_SOController extends Controller
                 }
             }
 
+            $rate_to_idr = 1;
+            if (isset($act_costing_new) && $act_costing_new->rate_to_idr > 0) {
+                $rate_to_idr = $act_costing_new->rate_to_idr;
+            }
+
             foreach ($temp_data as $no_po => $details) {
                 $total_qty_po = $details->sum('qty');
                 $kode = $this->generate_kode($request->id_buyer);
@@ -1427,10 +1456,16 @@ class Marketing_SOController extends Controller
                     'mkt_order'   => $request->marketing_order ?? null,
                     'dateinput'   => now(),
                     'aktif'       => 'Y',
-                    'cfm_price'   => $request->confirm_price ?? null,
+                    'cfm_price'   => $act_costing_new->confirm_price ?? 0,
                     'vat'         => $request->vat ?? 0,
                     'deldate'     => $details->min('ex_fty') ? date('Y-m-d', strtotime($details->min('ex_fty'))) : null,
                 ]);
+
+                $curr_name_so = '';
+                $curr_record = $mysql_sb->table('masterpilihan')->where('id', $request->id_currency)->first();
+                if ($curr_record) {
+                    $curr_name_so = strtoupper($curr_record->nama_pilihan);
+                }
 
                 // save ke so
                 $id_so = $mysql_sb->table('so')->insertGetId([
@@ -1439,7 +1474,7 @@ class Marketing_SOController extends Controller
                     'so_no'     => $kode['so_no'],
                     'no_po'     => $no_po,
                     'so_date'   => now(),
-                    'curr'      => $request->id_currency ?? ($act_costing_new ? $act_costing_new->curr : null),
+                    'curr'      => $curr_name_so ?? ($request->id_currency ? $request->id_currency : null),
                     'qty'       => $total_qty_po,
                     'username'  => $username_2 ?? ($act_costing_new ? $act_costing_new->username : null),
                     'd_insert'  => now(),
@@ -1455,6 +1490,7 @@ class Marketing_SOController extends Controller
                     'unit'      => 'PCS',
                     'id_season' => $act_costing_new->season_id ?? null,
                     'jns_so'    => $request->jns_so,
+                    'fob'        => $request->fob ?? 0,
                 ]);
 
                 // save ke jo & jo_det
@@ -1479,7 +1515,7 @@ class Marketing_SOController extends Controller
                         $mat_insert_data[] = [
                             'id_act_cost'     => $id_cost,
                             'id_item'         => $mat->item_id,
-                            'price'           => $mat->price != 0 ? $mat->price : $mat->value_idr ?? 0,
+                            'price'           => $mat->price != 0 ? $mat->price : (($jenis_rate_val == 'J') ? ($mat->value_usd ?? 0) : ($mat->value_idr ?? 0)),
                             'cons'            => $mat->cons ?? 0,
                             'unit'            => $mat->unit ?? '',
                             'allowance'       => $mat->allowance ?? 0,
@@ -1488,17 +1524,16 @@ class Marketing_SOController extends Controller
                         ];
                     }
                     $mysql_sb->table('act_costing_mat')->insert($mat_insert_data);
-                }
-
-                // save ke act_costing_mfg
-                if ($mfg_details->isNotEmpty()) {
+                 }
+                 // save ke act_costing_mfg
+                 if ($mfg_details->isNotEmpty()) {
                     $mfg_insert_data = [];
                     foreach ($mfg_details as $mfg) {
                         $mfg_insert_data[] = [
                             'id_act_cost'     => $id_cost,
                             'id_item'         => $mfg->item_id,
                             'smv'             => null,
-                            'price'           => $mfg->price != 0 ? $mfg->price : $mfg->value_idr ?? 0,
+                            'price'           => $mfg->price != 0 ? $mfg->price : (($jenis_rate_val == 'J') ? ($mfg->value_usd ?? 0) : ($mfg->value_idr ?? 0)),
                             'cons'            => $mfg->cons ?? 1,
                             'unit'            => $mfg->unit ?? 'PCS',
                             'allowance'       => $mfg->allowance ?? 0,
@@ -1507,26 +1542,25 @@ class Marketing_SOController extends Controller
                         ];
                     }
                     $mysql_sb->table('act_costing_mfg')->insert($mfg_insert_data);
-                }
-
-                // save ke act_costing_oth
-                if ($oth_details->isNotEmpty()) {
+                 }
+                 // save ke act_costing_oth
+                 if ($oth_details->isNotEmpty()) {
                     $oth_insert_data = [];
                     foreach ($oth_details as $oth) {
                         $oth_insert_data[] = [
                             'id_act_cost'     => $id_cost,
                             'id_item'         => $oth->item_id,
                             'smv'             => null,
-                            'price'           => $oth->price != 0 ? $oth->price : $oth->value_idr ?? 0,
-                            'cons'            => $oth->cons ?? null,
-                            'unit'            => $oth->unit ?? null,
-                            'allowance'       => $oth->allowance ?? null,
-                            'material_source' => null,
+                            'price'           => $oth->price != 0 ? $oth->price : (($jenis_rate_val == 'J') ? ($oth->value_usd ?? 0) : ($oth->value_idr ?? 0)),
+                            'cons'            => $oth->cons ?? 1,
+                            'unit'            => $oth->unit ?? 'PCS',
+                            'allowance'       => $oth->allowance ?? 0,
+                            'material_source' => $oth->origin ?? 'LOKAL',
                             'jenis_rate'      => $jenis_rate_val,
                         ];
                     }
                     $mysql_sb->table('act_costing_oth')->insert($oth_insert_data);
-                }
+                 }
 
                 // save ke so_det
 
@@ -2803,7 +2837,7 @@ class Marketing_SOController extends Controller
                         if (in_array($mat->item_id, $processed_mat_items)) continue; // Hindari update duplikat jika ada set berbeda
                         $exists = $mysql_sb->table('act_costing_mat')->where('id_act_cost', $so->id_cost)->where('id_item', $mat->item_id)->first();
                         $mat_data = [
-                            'price'           => $mat->price != 0 ? $mat->price : $mat->value_idr ?? 0,
+                            'price'           => $mat->price != 0 ? $mat->price : (($jenis_rate_val == 'J') ? ($mat->value_usd ?? 0) : ($mat->value_idr ?? 0)),
                             'cons'            => $mat->cons ?? 0,
                             'unit'            => $mat->unit ?? '',
                             'allowance'       => $mat->allowance ?? 0,
@@ -2832,7 +2866,7 @@ class Marketing_SOController extends Controller
                         $exists = $mysql_sb->table('act_costing_mfg')->where('id_act_cost', $so->id_cost)->where('id_item', $mfg->item_id)->first();
                         $mfg_data = [
                             'smv'             => null,
-                            'price'           => $mfg->price != 0 ? $mfg->price : $mfg->value_idr ?? 0,
+                            'price'           => $mfg->price != 0 ? $mfg->price : (($jenis_rate_val == 'J') ? ($mfg->value_usd ?? 0) : ($mfg->value_idr ?? 0)),
                             'cons'            => $mfg->cons ?? 1,
                             'unit'            => $mfg->unit ?? 'PCS',
                             'allowance'       => $mfg->allowance ?? 0,
@@ -2861,7 +2895,7 @@ class Marketing_SOController extends Controller
                         $exists = $mysql_sb->table('act_costing_oth')->where('id_act_cost', $so->id_cost)->where('id_item', $oth->item_id)->first();
                         $oth_data = [
                             'smv'             => null,
-                            'price'           => $oth->price != 0 ? $oth->price : $oth->value_idr ?? 0,
+                            'price'           => $oth->price != 0 ? $oth->price : (($jenis_rate_val == 'J') ? ($oth->value_usd ?? 0) : ($oth->value_idr ?? 0)),
                             'cons'            => $oth->cons ?? null,
                             'unit'            => $oth->unit ?? null,
                             'allowance'       => $oth->allowance ?? null,
@@ -2904,5 +2938,364 @@ class Marketing_SOController extends Controller
     {
         $res = self::executeSyncBom($id);
         return response()->json($res);
+    }
+
+    // MERGE SO FEATURE
+
+    public function getMergeCandidates($id)
+    {
+        $mysql_sb = DB::connection('mysql_sb');
+
+        $source = $mysql_sb->table('so')->where('id', $id)->first();
+        if (!$source) {
+            return response()->json(['status' => 404, 'message' => 'SO tidak ditemukan']);
+        }
+
+        $candidates = $mysql_sb->table('so as s')
+            ->join('act_costing as ac', 's.id_cost', '=', 'ac.id')
+            ->where('s.id_bom', $source->id_bom)
+            ->where('s.id', '!=', $id)
+            ->where('s.cancel_h', 'N')
+            ->where('ac.aktif', 'Y')
+            ->select('s.id', 's.so_no', 's.no_po', 's.qty', 'ac.kpno')
+            ->get();
+
+        return response()->json([
+            'status'    => 200,
+            'source'    => [
+                'so_no' => $source->so_no,
+                'no_po' => $source->no_po,
+            ],
+            'candidates' => $candidates
+        ]);
+    }
+
+    /**
+     * Ambil detail so_det dari SO Sumber untuk ditampilkan di modal (dengan checkbox)
+     */
+    public function getMergeSourceDetail($id)
+    {
+        $mysql_sb = DB::connection('mysql_sb');
+
+        $details = $mysql_sb->table('so_det')
+            ->where('id_so', $id)
+            ->where('cancel', 'N')
+            ->select('id', 'color', 'size', 'qty', 'styleno_prod', 'deldate_det', 'product_set', 'dest')
+            ->get();
+
+        return response()->json([
+            'status' => 200,
+            'data'   => $details
+        ]);
+    }
+
+    /**
+     * Eksekusi Merge: pindahkan so_det yang dipilih dari SO Sumber ke SO Tujuan
+     */
+    public function executeMerge(Request $request)
+    {
+        $mysql_sb    = DB::connection('mysql_sb');
+        $id_so_src   = $request->id_so_src;
+        $id_so_dst   = $request->id_so_dst;
+        $det_ids     = $request->det_ids; // array of so_det.id
+
+        if (empty($id_so_src) || empty($id_so_dst) || empty($det_ids)) {
+            return response()->json(['status' => 400, 'message' => 'Data tidak lengkap']);
+        }
+
+        if ($id_so_src == $id_so_dst) {
+            return response()->json(['status' => 400, 'message' => 'SO Sumber dan Tujuan tidak boleh sama']);
+        }
+
+        $so_src = $mysql_sb->table('so')->where('id', $id_so_src)->first();
+        $so_dst = $mysql_sb->table('so')->where('id', $id_so_dst)->first();
+
+        if (!$so_src || !$so_dst) {
+            return response()->json(['status' => 404, 'message' => 'SO tidak ditemukan']);
+        }
+
+        // Ambil id_jo dari SO Sumber & Tujuan (via jo_det)
+        $jo_src = $mysql_sb->table('jo_det')->where('id_so', $id_so_src)->first();
+        $jo_dst = $mysql_sb->table('jo_det')->where('id_so', $id_so_dst)->first();
+
+        $mysql_sb->beginTransaction();
+        try {
+            // 1. Pindahkan so_det ke SO Tujuan
+            $mysql_sb->table('so_det')
+                ->whereIn('id', $det_ids)
+                ->where('id_so', $id_so_src)
+                ->update(['id_so' => $id_so_dst]);
+
+            // 2. Pindahkan bom_jo_item ke JO Tujuan (jika ada)
+            if ($jo_src && $jo_dst) {
+                $mysql_sb->table('bom_jo_item')
+                    ->whereIn('id_so_det', $det_ids)
+                    ->where('id_jo', $jo_src->id_jo)
+                    ->update(['id_jo' => $jo_dst->id_jo]);
+            }
+
+            // 3. Recalculate qty SO Sumber
+            $new_qty_src = $mysql_sb->table('so_det')
+                ->where('id_so', $id_so_src)
+                ->where('cancel', 'N')
+                ->sum('qty');
+
+            // 4. Recalculate qty SO Tujuan
+            $new_qty_dst = $mysql_sb->table('so_det')
+                ->where('id_so', $id_so_dst)
+                ->where('cancel', 'N')
+                ->sum('qty');
+
+            // 5. Tentukan no_po SO Tujuan berdasarkan pilihan user
+            $po_merge_option = $request->po_merge_option ?? 'combine';
+
+            if ($po_merge_option === 'use_dst') {
+                // Pakai no_po SO Tujuan apa adanya, tidak berubah
+                $no_po_new = $so_dst->no_po;
+
+            } elseif ($po_merge_option === 'manual') {
+                // Ketik sendiri oleh user
+                $no_po_new = trim($request->po_manual ?? '');
+                if (empty($no_po_new)) {
+                    // Fallback ke combine jika user tidak mengisi
+                    $po_src_parts = array_map('trim', explode(',', $so_src->no_po ?? ''));
+                    $po_dst_parts = array_map('trim', explode(',', $so_dst->no_po ?? ''));
+                    $po_merged    = array_unique(array_filter(array_merge($po_dst_parts, $po_src_parts)));
+                    $no_po_new    = implode(', ', $po_merged);
+                }
+
+            } else {
+                // Default: combine (gabungkan, hilangkan duplikat)
+                $po_src_parts = array_map('trim', explode(',', $so_src->no_po ?? ''));
+                $po_dst_parts = array_map('trim', explode(',', $so_dst->no_po ?? ''));
+                $po_merged    = array_unique(array_filter(array_merge($po_dst_parts, $po_src_parts)));
+                $no_po_new    = implode(', ', $po_merged);
+            }
+
+            if (strlen($no_po_new) > 200) {
+                $no_po_new = substr($no_po_new, 0, 195) . '...';
+            }
+
+            // 6. Update header SO Sumber & Tujuan
+            $mysql_sb->table('so')->where('id', $id_so_src)->update(['qty' => $new_qty_src]);
+            $mysql_sb->table('so')->where('id', $id_so_dst)->update([
+                'qty'   => $new_qty_dst,
+                'no_po' => $no_po_new,
+            ]);
+
+            // 7. Update qty act_costing SO Sumber
+            $mysql_sb->table('act_costing')->where('id', $so_src->id_cost)->update(['qty' => $new_qty_src]);
+            // 8. Update qty act_costing SO Tujuan
+            $mysql_sb->table('act_costing')->where('id', $so_dst->id_cost)->update(['qty' => $new_qty_dst]);
+
+            // 9. Jika SO Sumber sudah kosong → void SO & act_costing sumber
+            if ($new_qty_src == 0 || $new_qty_src === null) {
+                $remaining = $mysql_sb->table('so_det')
+                    ->where('id_so', $id_so_src)
+                    ->where('cancel', 'N')
+                    ->count();
+
+                if ($remaining == 0) {
+                    $mysql_sb->table('so')
+                        ->where('id', $id_so_src)
+                        ->update(['cancel_h' => 'Y']);
+
+                    $mysql_sb->table('act_costing')
+                        ->where('id', $so_src->id_cost)
+                        ->update(['aktif' => 'N']);
+                }
+            }
+
+            $mysql_sb->commit();
+
+            return response()->json([
+                'status'  => 200,
+                'message' => count($det_ids) . ' baris berhasil dipindahkan ke ' . $so_dst->so_no,
+                'qty_src' => $new_qty_src,
+                'qty_dst' => $new_qty_dst,
+            ]);
+
+        } catch (\Exception $e) {
+            $mysql_sb->rollBack();
+            \Log::error('Merge SO Error: ' . $e->getMessage());
+            return response()->json(['status' => 500, 'message' => 'Gagal: ' . $e->getMessage()], 500);
+        }
+    }
+
+    // =============================================
+    // INPUT BARCODE FEATURE
+    // =============================================
+
+    public function inputBarcodePage($id)
+    {
+        $mysql_sb = DB::connection('mysql_sb');
+
+        $so = $mysql_sb->table('so as s')
+            ->leftJoin('act_costing as ac', 's.id_cost', '=', 'ac.id')
+            ->leftJoin('mastersupplier as ms', 's.buyerno', '=', 'ms.Supplier')
+            ->where('s.id', $id)
+            ->select('s.id', 's.so_no', 's.no_po', 's.style', 's.brand', 's.qty', 'ac.kpno', 'ms.Supplier as buyer')
+            ->first();
+
+        if (!$so) {
+            abort(404, 'SO tidak ditemukan');
+        }
+
+        $details = $mysql_sb->table('so_det')
+            ->where('id_so', $id)
+            ->where('cancel', 'N')
+            ->orderBy('color')
+            ->orderBy('size')
+            ->select('id', 'color', 'size', 'qty', 'styleno_prod', 'barcode', 'product_set', 'deldate_det')
+            ->get();
+
+        // Ambil list unique color & size untuk filter
+        $colors = $details->pluck('color')->unique()->filter()->values();
+        $sizes  = $details->pluck('size')->unique()->filter()->values();
+
+        return view('marketing.so.input_barcode', [
+            'page'           => 'dashboard-marketing',
+            'subPageGroup'   => 'marketing-master',
+            'subPage'        => 'marketing-master-so',
+            'so'             => $so,
+            'details'        => $details,
+            'colors'         => $colors,
+            'sizes'          => $sizes,
+            'containerFluid' => true
+        ]);
+    }
+
+    public function saveBarcode(Request $request)
+    {
+        $mysql_sb = DB::connection('mysql_sb');
+        $barcodes = $request->barcodes; // array: [ ['id' => ..., 'barcode' => ...], ... ]
+
+        if (empty($barcodes) || !is_array($barcodes)) {
+            return response()->json(['status' => 400, 'message' => 'Tidak ada data barcode']);
+        }
+
+        $mysql_sb->beginTransaction();
+        try {
+            $updated = 0;
+            foreach ($barcodes as $item) {
+                if (empty($item['id'])) continue;
+                $mysql_sb->table('so_det')
+                    ->where('id', $item['id'])
+                    ->update(['barcode' => $item['barcode'] ?? null]);
+                $updated++;
+            }
+            $mysql_sb->commit();
+
+            return response()->json([
+                'status'  => 200,
+                'message' => $updated . ' baris barcode berhasil disimpan.'
+            ]);
+        } catch (\Exception $e) {
+            $mysql_sb->rollBack();
+            \Log::error('Save Barcode Error: ' . $e->getMessage());
+            return response()->json(['status' => 500, 'message' => 'Gagal: ' . $e->getMessage()], 500);
+        }
+    }
+
+    // =============================================
+    // INPUT BARCODE SO - MULTI SO (Halaman Terpisah)
+    // =============================================
+
+    public function barcodeInputPage()
+    {
+        return view('marketing.so.barcode_input', [
+            'page'         => 'dashboard-marketing',
+            'subPageGroup' => 'marketing-master',
+            'subPage'      => 'marketing-so-barcode',
+            'containerFluid' => true
+        ]);
+    }
+
+    public function getBarcodeSOList(Request $request)
+    {
+        $mysql_sb = DB::connection('mysql_sb');
+
+        $query = $mysql_sb->table('so as s')
+            ->leftJoin('act_costing as ac', 's.id_cost', '=', 'ac.id')
+            ->leftJoin('mastersupplier as ms', 's.buyerno', '=', 'ms.Supplier')
+            ->where('s.cancel_h', 'N')
+            ->orderByDesc('s.d_insert');
+
+        // Filter by keyword jika ada (untuk search select2 AJAX)
+        if ($request->search) {
+            $q = $request->search;
+            $query->where(function($w) use ($q) {
+                $w->where('s.so_no', 'like', "%$q%")
+                  ->orWhere('s.no_po', 'like', "%$q%")
+                  ->orWhere('ac.kpno', 'like', "%$q%")
+                  ->orWhere('s.style', 'like', "%$q%")
+                  ->orWhere('ms.Supplier', 'like', "%$q%");
+            });
+        }
+
+        $data = $query->select(
+            's.id',
+            's.so_no',
+            's.no_po',
+            's.style',
+            's.qty',
+            'ac.kpno',
+            'ms.Supplier as buyer'
+        )->limit(100)->get();
+
+        // Format untuk select2
+        $results = $data->map(fn($s) => [
+            'id'   => $s->id,
+            'text' => "{$s->so_no} | WS: {$s->kpno} | PO: {$s->no_po} | {$s->buyer}",
+            'so_no'  => $s->so_no,
+            'kpno'   => $s->kpno,
+            'no_po'  => $s->no_po,
+            'style'  => $s->style,
+            'buyer'  => $s->buyer,
+            'qty'    => $s->qty,
+        ]);
+
+        return response()->json(['results' => $results]);
+    }
+
+    public function getBarcodeDetails(Request $request)
+    {
+        $mysql_sb = DB::connection('mysql_sb');
+        $so_ids   = $request->so_ids; // array of SO id
+
+        if (empty($so_ids)) {
+            return response()->json(['status' => 400, 'message' => 'Pilih minimal 1 SO']);
+        }
+
+        $details = $mysql_sb->table('so_det as sd')
+            ->join('so as s', 'sd.id_so', '=', 's.id')
+            ->leftJoin('act_costing as ac', 's.id_cost', '=', 'ac.id')
+            ->whereIn('sd.id_so', $so_ids)
+            ->where('sd.cancel', 'N')
+            ->orderBy('s.so_no')
+            ->orderBy('sd.color')
+            ->orderBy('sd.size')
+            ->select(
+                'sd.id',
+                'sd.id_so',
+                's.so_no',
+                'ac.kpno',
+                's.no_po',
+                'sd.color',
+                'sd.size',
+                'sd.product_set',
+                'sd.styleno_prod',
+                'sd.qty',
+                'sd.barcode',
+                'sd.deldate_det'
+            )
+            ->get();
+
+        return response()->json([
+            'status' => 200,
+            'data'   => $details,
+            'total'  => $details->count(),
+            'filled' => $details->filter(fn($d) => !empty($d->barcode))->count(),
+        ]);
     }
 }
