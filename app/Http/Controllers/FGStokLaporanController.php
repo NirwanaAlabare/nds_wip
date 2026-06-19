@@ -759,7 +759,7 @@ class FGStokLaporanController extends Controller
                         UNION ALL
 
                         SELECT
-                            supplier buyer,
+                            buyer.supplier as buyer,
                             act_costing.kpno ws,
                             masterstyle.color,
                             act_costing.styleno,
@@ -785,7 +785,8 @@ class FGStokLaporanController extends Controller
                         LEFT JOIN (select sod.id_so,sod.id id_so_det from signalbit_erp.so_det sod  group by sod.id) tmpjod on tmpjod.id_so_det=bppb.id_so_det
                         LEFT JOIN signalbit_erp.so ON so.id = tmpjod.id_so
                         LEFT JOIN signalbit_erp.act_costing ON act_costing.id = so.id_cost
-                        WHERE mid(bppbno,4,2) in ('FG') AND bppbdate <= '".$tgl_akhir."' AND supplier = 'BARANG JADI STOCK'
+                        LEFT JOIN signalbit_erp.mastersupplier buyer ON buyer.Id_Supplier = act_costing.id_buyer
+                        WHERE mid(bppbno,4,2) in ('FG') AND bppbdate <= '".$tgl_akhir."' AND mastersupplier.supplier = 'BARANG JADI STOCK'
 
                         UNION ALL
 
@@ -1130,7 +1131,7 @@ class FGStokLaporanController extends Controller
                     UNION ALL
 
                     SELECT
-                        supplier buyer,
+                        buyer.supplier as buyer,
                         act_costing.kpno ws,
                         masterstyle.color,
                         act_costing.styleno,
@@ -1156,7 +1157,8 @@ class FGStokLaporanController extends Controller
                     LEFT JOIN (select sod.id_so,sod.id id_so_det from signalbit_erp.so_det sod  group by sod.id) tmpjod on tmpjod.id_so_det=bppb.id_so_det
                     LEFT JOIN signalbit_erp.so ON so.id = tmpjod.id_so
                     LEFT JOIN signalbit_erp.act_costing ON act_costing.id = so.id_cost
-                    WHERE mid(bppbno,4,2) in ('FG') AND bppbdate <= '".$tgl_akhir."' AND supplier = 'BARANG JADI STOCK'
+                    LEFT JOIN signalbit_erp.mastersupplier buyer ON buyer.Id_Supplier = act_costing.id_buyer
+                    WHERE mid(bppbno,4,2) in ('FG') AND bppbdate <= '".$tgl_akhir."' AND mastersupplier.supplier = 'BARANG JADI STOCK'
 
                     UNION ALL
 
