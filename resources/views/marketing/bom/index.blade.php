@@ -59,6 +59,7 @@
                     <tr class="text-center">
                         <th>No</th>
                         <th>No Katalog BOM</th>
+                        <th>No Costing</th>
                         <th>Buyer</th>
                         <th>Style</th>
                         <th>Market</th>
@@ -155,6 +156,7 @@
                         render: (data, type, row, meta) => meta.row + 1
                     },
                     { data: 'no_katalog_bom', className: "align-middle" },
+                    { data: 'no_costing', className: "align-middle" },
                     { data: 'nama_buyer', className: "align-middle" },
                     { data: 'style', className: "align-middle" },
                     { data: 'market', className: "align-middle" },
