@@ -1636,9 +1636,8 @@ class Marketing_SOController extends Controller
     public function get_detail($id)
     {
         $mysql_sb = DB::connection('mysql_sb');
-
         $header = $mysql_sb->table('so')
-            ->join('mastersupplier as ms', 'so.buyerno', '=', 'ms.Id_Supplier')
+            ->leftJoin('mastersupplier as ms', 'so.buyerno', '=', 'ms.Id_Supplier')
             ->select('so.so_no', 'so.so_no as kpno', 'ms.Supplier as buyer', 'so.style')
             ->where('so.id', $id)
             ->first();

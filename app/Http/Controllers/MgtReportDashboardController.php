@@ -3,16 +3,39 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class MgtReportDashboardController extends Controller
 {
+    private const SYNC_ALLOWED_USERNAMES = ['admin_01', 'reza'];
+
     public function dashboard_mgt_report(Request $request)
     {
         return view('management_report.dashboard_mgt_report', [
             'page' => 'dashboard-mgt-report',
             'containerFluid' => true
         ]);
+    }
+
+    public function syncData(Request $request)
+    {
+        if (!in_array(Auth::user()->username, self::SYNC_ALLOWED_USERNAMES)) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        $procedures = [
+            'get_mgt_rep_tmp_earn',
+            'get_mgt_rep_tmp_earning',
+            'get_mgt_rep_tmp_sum_prod_earning',
+            'get_mgt_rep_tmp_sum_prod_full_earning',
+        ];
+
+        foreach ($procedures as $procedure) {
+            DB::connection('mysql_sb')->statement("CALL {$procedure}()");
+        }
+
+        return response()->json(['success' => true]);
     }
 
     public function getRawData(Request $request)

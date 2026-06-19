@@ -445,6 +445,43 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, .2);
             z-index: 9999;
         }
+
+        /* Sync overlay */
+        #syncOverlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, .85);
+            z-index: 10000;
+        }
+
+        #syncOverlay .sync-box {
+            text-align: center;
+            color: #343a40;
+        }
+
+        #syncOverlay .sync-spinner {
+            width: 42px;
+            height: 42px;
+            border: 4px solid #dee2e6;
+            border-top-color: #007bff;
+            border-radius: 50%;
+            margin: 0 auto 12px;
+            animation: sync-spin .8s linear infinite;
+        }
+
+        @keyframes sync-spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        #btnSync:disabled {
+            background: #80bdff;
+            cursor: not-allowed;
+        }
     </style>
 @endsection
 
@@ -458,7 +495,14 @@
                 </h5>
                 <span class="dash-subtitle">PT Nirwana Alabare Garment &mdash; Management Dashboard</span>
             </div>
-            <span id="periodBadge">Pilih periode &amp; klik Load</span>
+            <div class="d-flex align-items-center" style="gap:10px;">
+                <span id="periodBadge">Pilih periode &amp; klik Load</span>
+                @if (in_array(auth()->user()->username, ['admin_01', 'reza']))
+                    <button type="button" id="btnSync" class="btn-load-dash">
+                        <i class="fas fa-sync-alt mr-1"></i>Sync Data
+                    </button>
+                @endif
+            </div>
         </div>
 
         {{-- Filter Bar --}}
@@ -596,6 +640,14 @@
     </div>
 
     <div id="heatmapTooltip" class="heatmap-tooltip"></div>
+
+    <div id="syncOverlay">
+        <div class="sync-box">
+            <div class="sync-spinner"></div>
+            <div style="font-weight:600;">Sinkronisasi data berjalan...</div>
+            <div style="font-size:0.78rem;color:#6c757d;">Mohon tunggu, proses ini bisa memakan waktu beberapa saat.</div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -1433,9 +1485,33 @@
             fillSelectOptions($('#filterLine'), 'All Lines', lines);
         }
 
+        /* ---- Sync data (call mysql_sb refresh procedures) ---- */
+        function syncData() {
+            const $btn = $('#btnSync');
+            const $overlay = $('#syncOverlay');
+
+            $btn.prop('disabled', true);
+            $overlay.css('display', 'flex');
+
+            $.post('{{ route('dashboard-mgt-report.sync') }}', {
+                    _token: '{{ csrf_token() }}'
+                })
+                .done(function() {
+                    loadRawData();
+                })
+                .fail(function() {
+                    alert('Sinkronisasi gagal. Silakan coba lagi.');
+                })
+                .always(function() {
+                    $btn.prop('disabled', false);
+                    $overlay.css('display', 'none');
+                });
+        }
+
         $(document).ready(function() {
             $('#startDate, #endDate').on('change', loadRawData);
             $('#filterReportType, #filterBuyer, #filterLine').on('change', renderDashboard);
+            $('#btnSync').on('click', syncData);
 
             const $tooltip = $('#heatmapTooltip');
             $('#lineHeatmap').on('mouseenter', '.heatmap-cell', function(e) {

@@ -1458,6 +1458,25 @@
                             </li>
                         </ul>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'asset-mesin' ? 'active' : '' }}">Mesin</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow mega-dropdown">
+                            <li>
+                                <div class="mega-dropdown-body">
+                                    <div class="mega-dropdown-col">
+                                        <div class="mega-dropdown-col-title">Data Aset</div>
+                                        <a href="{{ route('asset_mesin_tambah') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_tambah' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-plus"></i>Tambah Mesin Baru</a>
+                                        <a href="{{ route('asset_mesin_tambah') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_tambah' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-list"></i>Master Mesin</a>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
                 @endif
 
 
