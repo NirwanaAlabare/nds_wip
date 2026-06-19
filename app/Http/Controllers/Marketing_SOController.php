@@ -1403,22 +1403,33 @@ class Marketing_SOController extends Controller
                 $kode = $this->generate_kode($request->id_buyer);
 
                 // save ke act_costing
+                $curr_name = '';
+                if ($act_costing_new && $act_costing_new->curr) {
+                    $curr_record = $mysql_sb->table('masterpilihan')->where('id', $act_costing_new->curr)->first();
+                    if ($curr_record) {
+                        $curr_name = strtoupper($curr_record->nama_pilihan);
+                    }
+                }
+
                 $id_cost = $mysql_sb->table('act_costing')->insertGetId([
                     'cost_no'     => $kode['cost_no'],
                     'cost_date'   => now(),
                     'kpno'        => $kode['kpno'],
-                    'id_buyer'    => $request->id_buyer,
-                    'styleno'     => $request->style,
+                    'id_buyer'    => $request->id_buyer ?? ($act_costing_new ? $act_costing_new->id_buyer : null),
+                    'styleno'     => $request->style ?? ($act_costing_new ? $act_costing_new->styleno : null),
                     'qty'         => $act_costing_new ? $act_costing_new->qty : $total_qty_po,
-                    'curr'        => $act_costing_new ? $act_costing_new->curr : $request->id_currency,
-                    'username'    => $username_2,
-                    'brand'       => $request->brand,
-                    'smv_min'     => $request->smv,
-                    'id_product'  => $request->id_product_item,
-                    'notes'       => $request->notes,
-                    'mkt_order'   => $request->marketing_order,
+                    'curr'        => $curr_name ?: ($act_costing_new ? $act_costing_new->curr : $request->id_currency),
+                    'username'    => $username_2 ?? ($act_costing_new ? $act_costing_new->username : null),
+                    'brand'       => $request->brand ?? ($act_costing_new ? $act_costing_new->brand : null),
+                    'smv_min'     => $request->smv ?? ($act_costing_new ? $act_costing_new->smv_min : 0),
+                    'id_product'  => $request->id_product_item ?? null,
+                    'notes'       => $request->notes ?? null,
+                    'mkt_order'   => $request->marketing_order ?? null,
                     'dateinput'   => now(),
                     'aktif'       => 'Y',
+                    'cfm_price'   => $request->confirm_price ?? null,
+                    'vat'         => $request->vat ?? 0,
+                    'deldate'     => $details->min('ex_fty') ? date('Y-m-d', strtotime($details->min('ex_fty'))) : null,
                 ]);
 
                 // save ke so
@@ -1428,19 +1439,19 @@ class Marketing_SOController extends Controller
                     'so_no'     => $kode['so_no'],
                     'no_po'     => $no_po,
                     'so_date'   => now(),
-                    'curr'      => $request->id_currency,
+                    'curr'      => $request->id_currency ?? ($act_costing_new ? $act_costing_new->curr : null),
                     'qty'       => $total_qty_po,
-                    'username'  => $username_2,
+                    'username'  => $username_2 ?? ($act_costing_new ? $act_costing_new->username : null),
                     'd_insert'  => now(),
-                    'id_bom'    => $request->id_bom,
-                    'market'    => $request->market,
+                    'id_bom'    => $request->id_bom ?? null,
+                    'market'    => $request->market ?? ($act_costing_new ? $act_costing_new->market : null),
                     'nm_file'   => $file_name,
-                    'style'     => $request->style,
-                    'brand'     => $request->brand,
-                    'id_product'=> $request->id_product_item,
-                    'smv'       => $request->smv,
-                    'marketing_order' => $request->marketing_order,
-                    'notes'     => $request->notes,
+                    'style'     => $request->style ?? ($act_costing_new ? $act_costing_new->style : null),
+                    'brand'     => $request->brand ?? ($act_costing_new ? $act_costing_new->brand : null),
+                    'id_product'=> $request->id_product_item ?? null,
+                    'smv'       => $request->smv ?? ($act_costing_new ? $act_costing_new->smv : null),
+                    'marketing_order' => $request->marketing_order ?? null,
+                    'notes'     => $request->notes ?? null,
                     'unit'      => 'PCS',
                     'id_season' => $act_costing_new->season_id ?? null,
                     'jns_so'    => $request->jns_so,
@@ -1450,7 +1461,7 @@ class Marketing_SOController extends Controller
                 $id_jo = $mysql_sb->table('jo')->insertGetId([
                     'jo_no'    => $kode['jo_no'],
                     'jo_date'  => now(),
-                    'username' => $username_2,
+                    'username' => $username_2 ?? ($act_costing_new ? $act_costing_new->username : null),
                     'app'      => 'A',
                     'd_insert' => now(),
                 ]);
