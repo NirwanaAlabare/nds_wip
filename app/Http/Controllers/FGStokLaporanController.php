@@ -692,6 +692,7 @@ class FGStokLaporanController extends Controller
                         x.color,
                         x.styleno,
                         x.size,
+                        SUM(x.qty_saldo_awal_adjustment_before) AS qty_saldo_awal_adjustment_before,
                         SUM(x.qty_in_qc_reject_before) AS qty_in_qc_reject_before,
                         SUM(x.qty_in_qc_reject) AS qty_in_qc_reject,
                         SUM(x.qty_in_ekspedisi_before) AS qty_in_ekspedisi_before,
@@ -709,11 +710,40 @@ class FGStokLaporanController extends Controller
                     FROM (
 
                         SELECT
+                            m.buyer,
+                            m.ws,
+                            m.color,
+                            m.styleno,
+                            m.size,
+                            IF(a.tgl_terima < '".$tgl_awal."', a.qty, 0) AS qty_saldo_awal_adjustment_before,
+                            0 qty_in_qc_reject_before,
+                            0 qty_in_qc_reject,
+                            0 qty_in_ekspedisi_before,
+                            0 qty_in_ekspedisi,
+                            0 qty_adjustment_before,
+                            0 qty_adjustment,
+                            0 qty_terima_qc_reject_before,
+                            0 qty_terima_qc_reject,
+                            0 qty_terima_ekspedisi_before,
+                            0 qty_terima_ekspedisi,
+                            0 qty_keluar_sewing_before,
+                            0 qty_keluar_sewing,
+                            0 qty_keluar_qa_before,
+                            0 qty_keluar_qa
+                        FROM fg_stok_bpb a
+                        LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+                        WHERE a.tgl_terima <= '".$tgl_akhir."'
+                        AND a.sumber_pemasukan = 'ADJUSTMENT'
+
+                        UNION ALL
+
+                        SELECT
                             mb.buyer,
                             mb.ws,
                             mb.color,
                             mb.styleno,
                             mb.size,
+                            0 qty_saldo_awal_adjustment_before,
                             COUNT(CASE WHEN b.status = 'rejected' AND date(a.created_at) < '".$tgl_awal."' THEN 1 END) AS qty_in_qc_reject_before,
                             COUNT(CASE WHEN b.status = 'rejected' AND date(a.created_at) >= '".$tgl_awal."' THEN 1 END) AS qty_in_qc_reject,
                             0 qty_in_ekspedisi_before,
@@ -764,6 +794,7 @@ class FGStokLaporanController extends Controller
                             masterstyle.color,
                             act_costing.styleno,
                             masterstyle.size,
+                            0 qty_saldo_awal_adjustment_before,
                             0 qty_in_qc_reject_before,
                             0 qty_in_qc_reject,
                             IF(bppbdate < '".$tgl_awal."', bppb.qty, 0) qty_in_ekspedisi_before,
@@ -796,6 +827,7 @@ class FGStokLaporanController extends Controller
                             style styleno,
                             color,
                             size,
+                            0 qty_saldo_awal_adjustment_before,
                             0 qty_in_qc_reject_before,
                             0 qty_in_qc_reject,
                             0 qty_in_ekspedisi_before,
@@ -826,6 +858,7 @@ class FGStokLaporanController extends Controller
                             m.color,
                             m.styleno,
                             m.size,
+                            0 qty_saldo_awal_adjustment_before,
                             0 qty_in_qc_reject_before,
                             0 qty_in_qc_reject,
                             0 qty_in_ekspedisi_before,
@@ -853,6 +886,7 @@ class FGStokLaporanController extends Controller
                             m.color,
                             m.styleno,
                             m.size,
+                            0 qty_saldo_awal_adjustment_before,
                             0 qty_in_qc_reject_before,
                             0 qty_in_qc_reject,
                             0 qty_in_ekspedisi_before,
@@ -880,6 +914,7 @@ class FGStokLaporanController extends Controller
                             m.color,
                             m.styleno,
                             m.size,
+                            0 qty_saldo_awal_adjustment_before,
                             0 qty_in_qc_reject_before,
                             0 qty_in_qc_reject,
                             0 qty_in_ekspedisi_before,
@@ -907,6 +942,7 @@ class FGStokLaporanController extends Controller
                             m.color,
                             m.styleno,
                             m.size,
+                            0 qty_saldo_awal_adjustment_before,
                             0 qty_in_qc_reject_before,
                             0 qty_in_qc_reject,
                             0 qty_in_ekspedisi_before,
@@ -934,6 +970,7 @@ class FGStokLaporanController extends Controller
                             m.color,
                             m.styleno,
                             m.size,
+                            0 qty_saldo_awal_adjustment_before,
                             0 qty_in_qc_reject_before,
                             0 qty_in_qc_reject,
                             0 qty_in_ekspedisi_before,
@@ -961,6 +998,7 @@ class FGStokLaporanController extends Controller
                             m.color,
                             m.styleno,
                             m.size,
+                            0 qty_saldo_awal_adjustment_before,
                             0 qty_in_qc_reject_before,
                             0 qty_in_qc_reject,
                             0 qty_in_ekspedisi_before,
@@ -1022,7 +1060,8 @@ class FGStokLaporanController extends Controller
                         + COALESCE(qty_adjustment,0)
                     ) AS saldo_akhir_transit,
                     (
-                        COALESCE(qty_terima_qc_reject_before,0)
+                        COALESCE(qty_saldo_awal_adjustment_before,0)
+                        + COALESCE(qty_terima_qc_reject_before,0)
                         + COALESCE(qty_terima_ekspedisi_before,0)
                         - COALESCE(qty_keluar_sewing_before,0)
                         - COALESCE(qty_keluar_qa_before,0)
@@ -1032,7 +1071,8 @@ class FGStokLaporanController extends Controller
                     qty_keluar_sewing,
                     qty_keluar_qa,
                     (
-                        COALESCE(qty_terima_qc_reject_before,0)
+                        COALESCE(qty_saldo_awal_adjustment_before,0)
+                        + COALESCE(qty_terima_qc_reject_before,0)
                         + COALESCE(qty_terima_ekspedisi_before,0)
                         - COALESCE(qty_keluar_sewing_before,0)
                         - COALESCE(qty_keluar_qa_before,0)
@@ -1064,6 +1104,7 @@ class FGStokLaporanController extends Controller
                     x.color,
                     x.styleno,
                     x.size,
+                    SUM(x.qty_saldo_awal_adjustment_before) AS qty_saldo_awal_adjustment_before,
                     SUM(x.qty_in_qc_reject_before) AS qty_in_qc_reject_before,
                     SUM(x.qty_in_qc_reject) AS qty_in_qc_reject,
                     SUM(x.qty_in_ekspedisi_before) AS qty_in_ekspedisi_before,
@@ -1081,11 +1122,40 @@ class FGStokLaporanController extends Controller
                 FROM (
 
                     SELECT
+                        m.buyer,
+                        m.ws,
+                        m.color,
+                        m.styleno,
+                        m.size,
+                        IF(a.tgl_terima < '".$tgl_awal."', a.qty, 0) AS qty_saldo_awal_adjustment_before,
+                        0 qty_in_qc_reject_before,
+                        0 qty_in_qc_reject,
+                        0 qty_in_ekspedisi_before,
+                        0 qty_in_ekspedisi,
+                        0 qty_adjustment_before,
+                        0 qty_adjustment,
+                        0 qty_terima_qc_reject_before,
+                        0 qty_terima_qc_reject,
+                        0 qty_terima_ekspedisi_before,
+                        0 qty_terima_ekspedisi,
+                        0 qty_keluar_sewing_before,
+                        0 qty_keluar_sewing,
+                        0 qty_keluar_qa_before,
+                        0 qty_keluar_qa
+                    FROM fg_stok_bpb a
+                    LEFT JOIN master_sb_ws m ON a.id_so_det = m.id_so_det
+                    WHERE a.tgl_terima <= '".$tgl_akhir."'
+                    AND a.sumber_pemasukan = 'ADJUSTMENT'
+
+                    UNION ALL
+
+                    SELECT
                         mb.buyer,
                         mb.ws,
                         mb.color,
                         mb.styleno,
                         mb.size,
+                        0 qty_saldo_awal_adjustment_before,
                         COUNT(CASE WHEN b.status = 'rejected' AND date(a.created_at) < '".$tgl_awal."' THEN 1 END) AS qty_in_qc_reject_before,
                         COUNT(CASE WHEN b.status = 'rejected' AND date(a.created_at) >= '".$tgl_awal."' THEN 1 END) AS qty_in_qc_reject,
                         0 qty_in_ekspedisi_before,
@@ -1136,6 +1206,7 @@ class FGStokLaporanController extends Controller
                         masterstyle.color,
                         act_costing.styleno,
                         masterstyle.size,
+                        0 qty_saldo_awal_adjustment_before,
                         0 qty_in_qc_reject_before,
                         0 qty_in_qc_reject,
                         IF(bppbdate < '".$tgl_awal."', bppb.qty, 0) qty_in_ekspedisi_before,
@@ -1168,6 +1239,7 @@ class FGStokLaporanController extends Controller
                         style styleno,
                         color,
                         size,
+                        0 qty_saldo_awal_adjustment_before,
                         0 qty_in_qc_reject_before,
                         0 qty_in_qc_reject,
                         0 qty_in_ekspedisi_before,
@@ -1198,6 +1270,7 @@ class FGStokLaporanController extends Controller
                         m.color,
                         m.styleno,
                         m.size,
+                        0 qty_saldo_awal_adjustment_before,
                         0 qty_in_qc_reject_before,
                         0 qty_in_qc_reject,
                         0 qty_in_ekspedisi_before,
@@ -1225,6 +1298,7 @@ class FGStokLaporanController extends Controller
                         m.color,
                         m.styleno,
                         m.size,
+                        0 qty_saldo_awal_adjustment_before,
                         0 qty_in_qc_reject_before,
                         0 qty_in_qc_reject,
                         0 qty_in_ekspedisi_before,
@@ -1252,6 +1326,7 @@ class FGStokLaporanController extends Controller
                         m.color,
                         m.styleno,
                         m.size,
+                        0 qty_saldo_awal_adjustment_before,
                         0 qty_in_qc_reject_before,
                         0 qty_in_qc_reject,
                         0 qty_in_ekspedisi_before,
@@ -1279,6 +1354,7 @@ class FGStokLaporanController extends Controller
                         m.color,
                         m.styleno,
                         m.size,
+                        0 qty_saldo_awal_adjustment_before,
                         0 qty_in_qc_reject_before,
                         0 qty_in_qc_reject,
                         0 qty_in_ekspedisi_before,
@@ -1306,6 +1382,7 @@ class FGStokLaporanController extends Controller
                         m.color,
                         m.styleno,
                         m.size,
+                        0 qty_saldo_awal_adjustment_before,
                         0 qty_in_qc_reject_before,
                         0 qty_in_qc_reject,
                         0 qty_in_ekspedisi_before,
@@ -1333,6 +1410,7 @@ class FGStokLaporanController extends Controller
                         m.color,
                         m.styleno,
                         m.size,
+                        0 qty_saldo_awal_adjustment_before,
                         0 qty_in_qc_reject_before,
                         0 qty_in_qc_reject,
                         0 qty_in_ekspedisi_before,
@@ -1394,7 +1472,8 @@ class FGStokLaporanController extends Controller
                     + COALESCE(qty_adjustment,0)
                 ) AS saldo_akhir_transit,
                 (
-                    COALESCE(qty_terima_qc_reject_before,0)
+                    COALESCE(qty_saldo_awal_adjustment_before,0)
+                    + COALESCE(qty_terima_qc_reject_before,0)
                     + COALESCE(qty_terima_ekspedisi_before,0)
                     - COALESCE(qty_keluar_sewing_before,0)
                     - COALESCE(qty_keluar_qa_before,0)
@@ -1404,7 +1483,8 @@ class FGStokLaporanController extends Controller
                 qty_keluar_sewing,
                 qty_keluar_qa,
                 (
-                    COALESCE(qty_terima_qc_reject_before,0)
+                    COALESCE(qty_saldo_awal_adjustment_before,0)
+                    + COALESCE(qty_terima_qc_reject_before,0)
                     + COALESCE(qty_terima_ekspedisi_before,0)
                     - COALESCE(qty_keluar_sewing_before,0)
                     - COALESCE(qty_keluar_qa_before,0)
