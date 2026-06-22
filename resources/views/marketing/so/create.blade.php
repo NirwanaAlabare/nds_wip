@@ -151,6 +151,10 @@
                         @endisset
                     </select>
                 </div>
+                <div class="col-md-3 form-group">
+                    <label>FOB</label>
+                    <input type="text" name="fob" id="fob" class="form-control input-decimal">
+                </div>
             </div>
             <div class="row">
                 <div class="col-md-3 form-group">
@@ -572,7 +576,7 @@
                             let qty = val ? Number(val).toLocaleString('id-ID') : '-';
                             let isError = (row.errors && row.errors[size]) ? 'bg-danger text-white font-weight-bold' : '';
                             bodyHtml += `<td class="text-right ${isError}">${qty}</td>`;
-                            
+
                             if (val && !isNaN(val)) {
                                 rowTotal += Number(val);
                             }
@@ -624,7 +628,7 @@
                                 let colTotal = api.column(colIndex, { search: 'applied' }).data().reduce((a, b) => intVal(a) + intVal(b), 0);
                                 $(api.column(colIndex).footer()).html(colTotal.toLocaleString('id-ID'));
                             }
-                            
+
                             let grandTotalColIndex = startColIndex + numSizes;
                             let grandTotalValue = api.column(grandTotalColIndex, { search: 'applied' }).data().reduce((a, b) => intVal(a) + intVal(b), 0);
                             $(api.column(grandTotalColIndex).footer()).html(grandTotalValue.toLocaleString('id-ID'));

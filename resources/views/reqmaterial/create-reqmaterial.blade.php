@@ -11,7 +11,7 @@
 @endsection
 
 @section('content')
-<form action="{{ route('store-reqmaterial-fabric') }}" method="post" id="store-reqmaterial" onsubmit="submitForm(this, event)">
+<form action="{{ route('store-reqmaterial-fabric') }}" method="post" id="store-reqmaterial" onsubmit="validateAndSubmitRoForm(this, event)">
     @csrf
     <div class="card card-sb card-outline">
         <div class="card-header">
@@ -39,8 +39,11 @@
                 <div class="mb-1">
                     <div class="form-group">
                         <label><small>Request date</small></label>
-                        <input type="date" class="form-control form-control" id="req_date" name="req_date"
-                        value="{{ date('Y-m-d') }}">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="req_date" name="req_date" autocomplete="off" readonly
+                                    value="{{ date('Y-m-d') }}">
+                            <span class="input-group-text" id="req_date_icon" style="cursor: pointer;"><i class="fas fa-calendar-alt"></i></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -210,6 +213,55 @@
         $('.select2supp').select2({
             theme: 'bootstrap4'
         })
+
+        // ─── Request date datepicker (batasi periode closed) ─────────────────────────
+
+        let minTglRo = @json($min_tgl_ro ?? '');
+        let closedPeriods = {!! json_encode($closed_periods ?? []) !!};
+
+        function formatDateYmd(date) {
+            let m = date.getMonth() + 1;
+            let d = date.getDate();
+            return date.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
+        }
+
+        $('#req_date').datepicker({
+            dateFormat: 'yy-mm-dd',
+            minDate: minTglRo ? minTglRo : null,
+            beforeShowDay: function (date) {
+                let ymd = formatDateYmd(date);
+                for (let p of closedPeriods) {
+                    if (ymd >= p.tgl_awal && ymd <= p.tgl_akhir) {
+                        return [false, '', 'Periode sudah closed'];
+                    }
+                }
+                return [true, ''];
+            }
+        });
+
+        $('#req_date_icon').on('click', function () {
+            $('#req_date').datepicker('show');
+        });
+
+        function validateAndSubmitRoForm(e, evt) {
+            let tglRo = $('#req_date').val();
+
+            if (minTglRo && tglRo < minTglRo) {
+                evt.preventDefault();
+                Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Request date tidak boleh sebelum ' + minTglRo + ' (periode sudah closed).' });
+                return;
+            }
+
+            for (let p of closedPeriods) {
+                if (tglRo >= p.tgl_awal && tglRo <= p.tgl_akhir) {
+                    evt.preventDefault();
+                    Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Request date tidak boleh pada periode ' + p.tgl_awal + ' s/d ' + p.tgl_akhir + ' (sudah closed).' });
+                    return;
+                }
+            }
+
+            submitForm(e, evt);
+        }
 
         $("#color").prop("disabled", true);
         $("#panel").prop("disabled", true);

@@ -646,7 +646,16 @@ COALESCE(a.mins_prod, 0) AS mins_prod,
 COALESCE(a.eff_line, 0) AS eff_line,
 COALESCE(sum_mins_avail, 0) AS sum_mins_avail,
 
-ROUND((COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0)) * COALESCE(a.mins_avail, 0), 2) AS est_tot_cost,
+CASE
+    WHEN stat_kerja = 'libur' THEN
+        ROUND(COALESCE(sum_tot_labor, 0), 2)
+    ELSE
+        ROUND(
+            (COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0))
+            * COALESCE(a.mins_avail, 0),
+            2
+        )
+END AS est_tot_cost,
 ROUND((COALESCE(tot_earning_rupiah, 0) - ((COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0)) * COALESCE(a.mins_avail, 0))), 2) AS blc,
   ROUND((
     (COALESCE(tot_earning_rupiah, 0) - ((COALESCE(sum_tot_labor, 0) / COALESCE(c.sum_mins_avail, 0)) * COALESCE(a.mins_avail, 0)))

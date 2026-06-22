@@ -28,9 +28,12 @@ use QrCode;
 use DNS1D;
 use PDF;
 use Illuminate\Validation\Rule;
+use App\Http\Controllers\Traits\ChecksClosingPeriode;
 
 class OutMaterialController extends Controller
 {
+    use ChecksClosingPeriode;
+
     /**
      * Display a listing of the resource.
      *
@@ -109,7 +112,7 @@ class OutMaterialController extends Controller
         DB::connection('mysql_sb')->delete("DELETE FROM whs_bppb_det_temp WHERE created_by = ? ", [Auth::user()->name]);
 
 
-        return view('outmaterial.create-outmaterial', ['no_req' => $no_req,'kode_gr' => $kode_gr,'jns_klr' => $jns_klr,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit ,'no_po' => $no_po, 'page' => 'dashboard-warehouse']);
+        return view('outmaterial.create-outmaterial', ['no_req' => $no_req,'kode_gr' => $kode_gr,'jns_klr' => $jns_klr,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit ,'no_po' => $no_po, 'min_tgl_ro' => $this->getMinTglRo(), 'closed_periods' => $this->getClosedPeriods(), 'page' => 'dashboard-warehouse']);
     }
 
     public function editoutmaterial($id)
@@ -663,6 +666,15 @@ class OutMaterialController extends Controller
         // if (intval($request['jumlah_qty']) > 0) {
 
         $tglbppb = $request['txt_tgl_bppb'];
+
+        $min_tgl_ro = $this->getMinTglRo();
+        if ($min_tgl_ro && $tglbppb < $min_tgl_ro) {
+            return ['status' => 400, 'message' => "Tgl BPPB tidak boleh sebelum $min_tgl_ro (periode sudah closed).", 'additional' => [], 'redirect' => ''];
+        }
+        if ($this->isTglRoClosed($tglbppb)) {
+            return ['status' => 400, 'message' => "Tgl BPPB $tglbppb berada pada periode yang sudah closed.", 'additional' => [], 'redirect' => ''];
+        }
+
         $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('GK-OUT-', DATE_FORMAT('" . $tglbppb . "', '%Y')) Mattype,IF(MAX(bppbno_int) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0)) nomor,CONCAT('GK/OUT/',DATE_FORMAT('" . $tglbppb . "', '%m'),DATE_FORMAT('" . $tglbppb . "', '%y'),'/',IF(MAX(RIGHT(bppbno_int,5)) IS NULL,'00001',LPAD(MAX(RIGHT(bppbno_int,5))+1,5,0))) bppbno_int FROM bppb WHERE MONTH(bppbdate) = MONTH('" . $tglbppb . "') AND YEAR(bppbdate) = YEAR('" . $tglbppb . "') AND LEFT(bppbno_int,2) = 'GK'");
          // $kode_ins = $kodeins ? $kodeins[0]->kode : null;
         $m_type = $Mattype1[0]->Mattype;

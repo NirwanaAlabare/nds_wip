@@ -445,6 +445,43 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, .2);
             z-index: 9999;
         }
+
+        /* Sync overlay */
+        #syncOverlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, .85);
+            z-index: 10000;
+        }
+
+        #syncOverlay .sync-box {
+            text-align: center;
+            color: #343a40;
+        }
+
+        #syncOverlay .sync-spinner {
+            width: 42px;
+            height: 42px;
+            border: 4px solid #dee2e6;
+            border-top-color: #007bff;
+            border-radius: 50%;
+            margin: 0 auto 12px;
+            animation: sync-spin .8s linear infinite;
+        }
+
+        @keyframes sync-spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        #btnSync:disabled {
+            background: #80bdff;
+            cursor: not-allowed;
+        }
     </style>
 @endsection
 
@@ -458,7 +495,14 @@
                 </h5>
                 <span class="dash-subtitle">PT Nirwana Alabare Garment &mdash; Management Dashboard</span>
             </div>
-            <span id="periodBadge">Pilih periode &amp; klik Load</span>
+            <div class="d-flex align-items-center" style="gap:10px;">
+                <span id="periodBadge">Pilih periode &amp; klik Load</span>
+                @if (in_array(auth()->user()->username, ['admin_01', 'reza']))
+                    <button type="button" id="btnSync" class="btn-load-dash">
+                        <i class="fas fa-sync-alt mr-1"></i>Sync Data
+                    </button>
+                @endif
+            </div>
         </div>
 
         {{-- Filter Bar --}}
@@ -556,8 +600,8 @@
             </div>
         </div>
 
-        {{-- Profit Line / Product Costing / Daily Efficiency --}}
-        <div class="chart-grid mb-3" style="grid-template-columns: repeat(3, 1fr);">
+        {{-- Profit Line / Daily Efficiency --}}
+        <div class="chart-grid mb-3" style="grid-template-columns: repeat(2, 1fr);">
             <div class="chart-card">
                 <div class="card-heading d-flex justify-content-between">
                     <span>Profit Line Ranking</span>
@@ -567,17 +611,26 @@
             </div>
             <div class="chart-card">
                 <div class="card-heading d-flex justify-content-between">
-                    <span>Product Type Costing</span>
-                    <span style="font-weight:400;text-transform:none;">top qty from Costing</span>
-                </div>
-                <div id="chartProductCosting" style="height:300px;"></div>
-            </div>
-            <div class="chart-card">
-                <div class="card-heading d-flex justify-content-between">
                     <span>Daily Efficiency</span>
                     <span style="font-weight:400;text-transform:none;">earning/min vs cost/min</span>
                 </div>
                 <div id="chartEfficiency" style="height:300px;"></div>
+            </div>
+        </div>
+
+        {{-- Product Type Costing Comparison --}}
+        <div class="chart-card mb-3">
+            <div class="card-heading d-flex justify-content-between align-items-center">
+                <span>Product Type Costing Comparison</span>
+                <span style="font-weight:400;text-transform:none;">qty Costing vs qty SO - last 6 months</span>
+            </div>
+            <div class="mb-2" style="max-width:280px;">
+                <input type="text" id="searchProductCosting" class="form-control form-control-sm"
+                    placeholder="Cari product type... (mis. tshirt)">
+            </div>
+            <div id="chartProductCosting"></div>
+            <div id="noProductCostingResult" style="display:none;text-align:center;color:#6c757d;padding:24px 0;font-size:0.85rem;">
+                Tidak ada product type yang cocok.
             </div>
         </div>
 
@@ -596,6 +649,14 @@
     </div>
 
     <div id="heatmapTooltip" class="heatmap-tooltip"></div>
+
+    <div id="syncOverlay">
+        <div class="sync-box">
+            <div class="sync-spinner"></div>
+            <div style="font-weight:600;">Sinkronisasi data berjalan...</div>
+            <div style="font-size:0.78rem;color:#6c757d;">Mohon tunggu, proses ini bisa memakan waktu beberapa saat.</div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -698,14 +759,25 @@
             $.get('{{ route('dashboard-mgt-report.raw-data') }}', p)
                 .done(function(data) {
                     rawRows = (data && data.rows) || [];
-                    productCosting = (data && data.product_costing) || [];
                     loadFilterOptions();
                     renderDashboard();
                 })
                 .fail(function() {
                     rawRows = [];
-                    productCosting = [];
                     renderDashboard();
+                });
+        }
+
+        /* ---- Fetch product type costing comparison (fixed 6-month window) ---- */
+        function loadProductCostingComparison() {
+            $.get('{{ route('dashboard-mgt-report.product-costing-comparison') }}')
+                .done(function(data) {
+                    productCosting = (data && data.data) || [];
+                    renderProductCosting();
+                })
+                .fail(function() {
+                    productCosting = [];
+                    renderProductCosting();
                 });
         }
 
@@ -720,7 +792,6 @@
             renderProfitLineRanking(rows);
             renderLineHeatmap(rows);
             renderDailyEfficiency(rows);
-            renderProductCosting();
         }
 
         /* ---- KPI ---- */
@@ -1277,19 +1348,64 @@
             apexEfficiency.render();
         }
 
-        /* ---- Product type costing (top qty from Costing) ---- */
+        /* ---- Product type costing comparison (qty Costing vs qty SO) ---- */
         function renderProductCosting() {
-            const items = productCosting.map(r => r.product_item);
-            const qty = productCosting.map(r => Math.round(parseFloat(r.qty) || 0));
+            const search = ($('#searchProductCosting').val() || '').trim().toLowerCase();
+            const filtered = search ?
+                productCosting.filter(r => (r.product_item || '').toLowerCase().includes(search)) :
+                productCosting;
+
+            if (!filtered.length) {
+                if (apexProductCosting) {
+                    apexProductCosting.destroy();
+                    apexProductCosting = null;
+                }
+                $('#chartProductCosting').hide();
+                $('#noProductCostingResult').show();
+                return;
+            }
+            $('#chartProductCosting').show();
+            $('#noProductCostingResult').hide();
+
+            const sorted = [...filtered].sort((a, b) =>
+                (parseFloat(b.qty_cost) || 0) + (parseFloat(b.qty_so) || 0) -
+                ((parseFloat(a.qty_cost) || 0) + (parseFloat(a.qty_so) || 0))
+            );
+
+            const items = sorted.map(r => r.product_item);
+            const qtyCost = sorted.map(r => Math.round(parseFloat(r.qty_cost) || 0));
+            const qtySo = sorted.map(r => Math.round(parseFloat(r.qty_so) || 0));
+
+            // values span several orders of magnitude (tens up to millions), so plot on a
+            // signed log scale: this keeps every non-zero bar's length truly proportional
+            // to its value (no flattening) while still leaving small bars long enough for
+            // their label, instead of being crushed to invisible by the largest outlier.
+            const toLogScale = v => v === 0 ? 0 : Math.sign(v) * Math.log10(1 + Math.abs(v));
+            const fromLogScale = v => Math.round(Math.pow(10, Math.abs(v)) - 1);
+
+            const qtyCostPlot = qtyCost.map(v => -toLogScale(v));
+            const qtySoPlot = qtySo.map(v => toLogScale(v));
+            const maxVal = Math.max(...qtyCostPlot.map(Math.abs), ...qtySoPlot.map(Math.abs), 0.1) * 1.15;
+
+            const trueValue = (seriesIndex, dataPointIndex) =>
+                seriesIndex === 0 ? qtyCost[dataPointIndex] : qtySo[dataPointIndex];
+
+            const rowHeight = 30;
+            const chartHeight = Math.max(320, items.length * rowHeight);
+            $('#chartProductCosting').css('height', chartHeight + 'px');
 
             const opts = {
                 series: [{
-                    name: 'Qty',
-                    data: qty
+                    name: 'Qty Costing',
+                    data: qtyCostPlot
+                }, {
+                    name: 'Qty SO',
+                    data: qtySoPlot
                 }],
                 chart: {
                     type: 'bar',
-                    height: 300,
+                    height: chartHeight,
+                    stacked: true,
                     background: 'transparent',
                     toolbar: {
                         show: false
@@ -1303,28 +1419,33 @@
                 theme: {
                     mode: 'light'
                 },
-                colors: ['#28a745'],
+                colors: ['#a8d5ba', '#a9cce8'],
                 plotOptions: {
                     bar: {
                         horizontal: true,
-                        barHeight: '55%',
-                        borderRadius: 2
+                        barHeight: '65%',
+                        borderRadius: 2,
+                        dataLabels: {
+                            hideOverflowingLabels: false
+                        }
                     }
                 },
                 dataLabels: {
                     enabled: true,
                     style: {
                         colors: ['#495057'],
-                        fontSize: '10px'
+                        fontSize: '11px'
                     },
-                    formatter: v => fmtNum(v)
+                    formatter: (v, o) => fmtNum(trueValue(o.seriesIndex, o.dataPointIndex))
                 },
                 xaxis: {
                     categories: items,
+                    min: -maxVal,
+                    max: maxVal,
                     labels: {
-                        formatter: v => fmtCompact(v),
+                        formatter: v => fmtCompact(fromLogScale(v)),
                         style: {
-                            fontSize: '10px',
+                            fontSize: '11px',
                             colors: '#6c757d'
                         }
                     }
@@ -1332,21 +1453,31 @@
                 yaxis: {
                     labels: {
                         style: {
-                            colors: '#6c757d',
-                            fontSize: '10px'
-                        }
+                            colors: '#495057',
+                            fontSize: '11px'
+                        },
+                        maxWidth: 220
                     }
                 },
                 grid: {
-                    borderColor: '#f0f0f0'
+                    borderColor: '#f0f0f0',
+                    xaxis: {
+                        lines: {
+                            show: true
+                        }
+                    }
                 },
                 legend: {
-                    show: false
+                    show: true,
+                    fontSize: '12px',
+                    position: 'top',
+                    horizontalAlign: 'right'
                 },
                 tooltip: {
                     theme: 'light',
+                    shared: false,
                     y: {
-                        formatter: v => fmtNum(v)
+                        formatter: (v, o) => fmtNum(trueValue(o.seriesIndex, o.dataPointIndex))
                     }
                 },
             };
@@ -1433,9 +1564,35 @@
             fillSelectOptions($('#filterLine'), 'All Lines', lines);
         }
 
+        /* ---- Sync data (call mysql_sb refresh procedures) ---- */
+        function syncData() {
+            const $btn = $('#btnSync');
+            const $overlay = $('#syncOverlay');
+
+            $btn.prop('disabled', true);
+            $overlay.css('display', 'flex');
+
+            $.post('{{ route('dashboard-mgt-report.sync') }}', {
+                    _token: '{{ csrf_token() }}'
+                })
+                .done(function() {
+                    loadRawData();
+                    loadProductCostingComparison();
+                })
+                .fail(function() {
+                    alert('Sinkronisasi gagal. Silakan coba lagi.');
+                })
+                .always(function() {
+                    $btn.prop('disabled', false);
+                    $overlay.css('display', 'none');
+                });
+        }
+
         $(document).ready(function() {
             $('#startDate, #endDate').on('change', loadRawData);
             $('#filterReportType, #filterBuyer, #filterLine').on('change', renderDashboard);
+            $('#btnSync').on('click', syncData);
+            $('#searchProductCosting').on('input', renderProductCosting);
 
             const $tooltip = $('#heatmapTooltip');
             $('#lineHeatmap').on('mouseenter', '.heatmap-cell', function(e) {
@@ -1457,6 +1614,7 @@
             });
 
             loadRawData();
+            loadProductCostingComparison();
         });
     </script>
 @endsection

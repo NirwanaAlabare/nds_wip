@@ -43,8 +43,11 @@
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Tgl Mutasi</small></label>
-                                <input type="date" class="form-control form-control" id="txt_tgl_mut" name="txt_tgl_mut"
-                                value="{{ date('Y-m-d') }}">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="txt_tgl_mut" name="txt_tgl_mut" autocomplete="off" readonly
+                                            value="{{ date('Y-m-d') }}">
+                                    <span class="input-group-text" id="txt_tgl_mut_icon" style="cursor: pointer;"><i class="fas fa-calendar-alt"></i></span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -208,6 +211,35 @@ inputLokasi.addEventListener('blur', function() {
     if (val !== '' && !lokasiOptions.includes(val)) {
         this.value = ''; // kosongkan jika tidak cocok
     }
+});
+
+// ─── Tgl Mutasi datepicker (batasi periode closed) ─────────────────────────
+
+let minTglRo = @json($min_tgl_ro ?? '');
+let closedPeriods = {!! json_encode($closed_periods ?? []) !!};
+
+function formatDateYmd(date) {
+    let m = date.getMonth() + 1;
+    let d = date.getDate();
+    return date.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
+}
+
+$('#txt_tgl_mut').datepicker({
+    dateFormat: 'yy-mm-dd',
+    minDate: minTglRo ? minTglRo : null,
+    beforeShowDay: function (date) {
+        let ymd = formatDateYmd(date);
+        for (let p of closedPeriods) {
+            if (ymd >= p.tgl_awal && ymd <= p.tgl_akhir) {
+                return [false, '', 'Periode sudah closed'];
+            }
+        }
+        return [true, ''];
+    }
+});
+
+$('#txt_tgl_mut_icon').on('click', function () {
+    $('#txt_tgl_mut').datepicker('show');
 });
 </script>
 
@@ -431,6 +463,18 @@ function GantilokasiTujuan(){
         console.log("txt_lokasi_tujuan:" + txt_lokasi_tujuan);
         console.log("txt_keterangan:" + txt_keterangan);
         console.log("txt_total_roll:" + txt_total_roll);
+
+        if (minTglRo && txt_tgl_mut < minTglRo) {
+            Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Tgl Mutasi tidak boleh sebelum ' + minTglRo + ' (periode sudah closed).' });
+            return;
+        }
+
+        for (let p of closedPeriods) {
+            if (txt_tgl_mut >= p.tgl_awal && txt_tgl_mut <= p.tgl_akhir) {
+                Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Tgl Mutasi tidak boleh pada periode ' + p.tgl_awal + ' s/d ' + p.tgl_akhir + ' (sudah closed).' });
+                return;
+            }
+        }
 
         if (!txt_lokasi_tujuan) {
             Swal.fire({

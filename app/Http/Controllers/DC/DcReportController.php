@@ -4875,6 +4875,7 @@ class DcReportController extends Controller
                                         AND so.cancel_h = 'N'
                                         AND ac.status = 'confirm'
                                         AND mi.mattype = 'F'
+                                        AND ac.dateinput > NOW() - INTERVAL 1 YEAR 
                         ),
 
                         dc_saldo AS (
@@ -5269,7 +5270,7 @@ class DcReportController extends Controller
                                 color,
                                 size,
 
-                                MIN(current_saldo_awal_adjustment) current_saldo_awal_adjustment,
+                                MIN(current_saldo_awal) current_saldo_awal_adjustment,
                                 MIN(qty_in) qty_in,
                                 COALESCE(MIN(NULLIF(saldo_awal_secondary,0)),0) saldo_awal_secondary,
                                 COALESCE(MIN(NULLIF(kirim_secondary_luar, 0)), 0) kirim_secondary_luar,
@@ -5278,7 +5279,7 @@ class DcReportController extends Controller
                                 COALESCE(MIN(NULLIF(saldo_akhir_secondary,0)),0) saldo_akhir_secondary,
                                 MIN(loading_qty) loading,
                                 (
-                                MIN(current_saldo_awal_adjustment)
+                                MIN(current_saldo_awal)
                                 + MIN(qty_in)
                                 - COALESCE(MIN(NULLIF(kirim_secondary_luar,0)),0)
                                 + COALESCE(MIN(NULLIF(terima_repaired_secondary_luar,0)),0)
@@ -6573,6 +6574,7 @@ class DcReportController extends Controller
                                 AND so.cancel_h = 'N'
                                 AND ac.status = 'confirm'
                                 AND mi.mattype = 'F'
+                                AND ac.dateinput > NOW() - INTERVAL 1 YEAR 
                 ),
 
                 dc_saldo AS (
@@ -6967,7 +6969,7 @@ class DcReportController extends Controller
                         color,
                         size,
 
-                        MIN(current_saldo_awal_adjustment) current_saldo_awal_adjustment,
+                        MIN(current_saldo_awal) current_saldo_awal_adjustment,
                         MIN(qty_in) qty_in,
                         COALESCE(MIN(NULLIF(saldo_awal_secondary,0)),0) saldo_awal_secondary,
                         COALESCE(MIN(NULLIF(kirim_secondary_luar, 0)), 0) kirim_secondary_luar,
@@ -6976,7 +6978,7 @@ class DcReportController extends Controller
                         COALESCE(MIN(NULLIF(saldo_akhir_secondary,0)),0) saldo_akhir_secondary,
                         MIN(loading_qty) loading,
                         (
-                        MIN(current_saldo_awal_adjustment)
+                        MIN(current_saldo_awal)
                         + MIN(qty_in)
                         - COALESCE(MIN(NULLIF(kirim_secondary_luar,0)),0)
                         + COALESCE(MIN(NULLIF(terima_repaired_secondary_luar,0)),0)

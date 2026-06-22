@@ -141,6 +141,9 @@ use App\Http\Controllers\WhsSoljer\PengeluaranGudangInputanFgController;
 use App\Http\Controllers\AssetDashboardController;
 use App\Http\Controllers\AssetMasterLokasiController;
 use App\Http\Controllers\AssetMasterJenisMesinController;
+use App\Http\Controllers\AssetMesinTambahController;
+use App\Http\Controllers\AssetMesinSewaController;
+use App\Http\Controllers\AssetMesinMasterController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -666,6 +669,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_mutasi_fg_stok', 'export_excel_mutasi_fg_stok')->name('export_excel_mutasi_fg_stok');
         Route::get('/rep_mutasi_fg_stock', 'rep_mutasi_fg_stock')->name('rep_mutasi_fg_stock');
         Route::post('/export_excel_mutasi_fg_stock', 'export_excel_mutasi_fg_stock')->name('export_excel_mutasi_fg_stock');
+        Route::get('/rep_mutasi_global_fg_stock', 'rep_mutasi_global_fg_stock')->name('rep_mutasi_global_fg_stock');
+        Route::get('/export_excel_rep_mutasi_global_fg_stock', 'export_excel_rep_mutasi_global_fg_stock')->name('export_excel_rep_mutasi_global_fg_stock');
     });
 
     Route::controller(FGStokMutasiController::class)->prefix("mutasi-fg-stock")->middleware('fg-stock')->group(function () {
@@ -1201,6 +1206,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/export-excel-bom-additional', 'exportExcel')->name('export-excel-bom-additional');
     });
 
+    // Input Barcode SO (Multi SO)
+    Route::controller(Marketing_SOController::class)->prefix('so-barcode')->middleware('marketing')->group(function () {
+        Route::get('/', 'barcodeInputPage')->name('so-barcode-input-page');
+        Route::get('/get-so-list', 'getBarcodeSOList')->name('so-barcode-get-so-list');
+        Route::get('/get-details', 'getBarcodeDetails')->name('so-barcode-get-details');
+        Route::post('/save', 'saveBarcode')->name('so-barcode-save');
+    });
+
     // Master SO
     Route::controller(Marketing_SOController::class)->prefix("master-marketing-so")->middleware('marketing')->group(function () {
         Route::get('/', 'index')->name('master-marketing-so');
@@ -1226,6 +1239,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/print-pdf/{id}', 'printPdfSO')->name('print-pdf-so');
         Route::get('/get-bom-data', 'getBomCostingData')->name('so-get-bom-data');
         Route::post('/sync-bom/{id}', 'syncBom')->name('so-sync-bom');
+        Route::get('/merge-candidates/{id}', 'getMergeCandidates')->name('so-merge-candidates');
+        Route::get('/merge-source-detail/{id}', 'getMergeSourceDetail')->name('so-merge-source-detail');
+        Route::post('/execute-merge', 'executeMerge')->name('so-execute-merge');
+        Route::get('/input-barcode/{id}', 'inputBarcodePage')->name('so-input-barcode');
+        Route::post('/save-barcode', 'saveBarcode')->name('so-save-barcode');
     });
 
     // QC Inspect Kain
@@ -1336,6 +1354,8 @@ Route::middleware('auth')->group(function () {
     Route::controller(MgtReportDashboardController::class)->middleware('role:management')->group(function () {
         Route::get('/dashboard_mgt_report', 'dashboard_mgt_report')->name('dashboard-mgt-report');
         Route::get('/dashboard_mgt_report/raw-data', 'getRawData')->name('dashboard-mgt-report.raw-data');
+        Route::get('/dashboard_mgt_report/product-costing-comparison', 'getProductCostingComparison')->name('dashboard-mgt-report.product-costing-comparison');
+        Route::post('/dashboard_mgt_report/sync', 'syncData')->name('dashboard-mgt-report.sync');
     });
 
     // Proses Management Report
@@ -1432,11 +1452,11 @@ Route::middleware('auth')->group(function () {
 
     // Asset Management
     // Dashboard
-    Route::controller(AssetDashboardController::class)->middleware('role:management')->group(function () {
+    Route::controller(AssetDashboardController::class)->middleware('role:asset')->group(function () {
         Route::get('/dashboard_asset', 'dashboard_asset')->name('dashboard-asset');
     });
     // Master Asset Management Lokasi
-    Route::controller(AssetMasterLokasiController::class)->middleware('role:management')->group(function () {
+    Route::controller(AssetMasterLokasiController::class)->middleware('role:asset')->group(function () {
         Route::get('/asset_master_lokasi', 'asset_master_lokasi')->name('asset_master_lokasi');
         Route::post('/asset_main_lokasi/store', 'store_main_lokasi')->name('store_main_lokasi');
         Route::get('/asset_main_lokasi/show', 'show_main_lokasi')->name('show_main_lokasi');
@@ -1448,12 +1468,43 @@ Route::middleware('auth')->group(function () {
         Route::post('/asset_lokasi_det/delete', 'delete_lokasi_det')->name('delete_lokasi_det');
     });
     // Master Asset Management Jenis Mesin
-    Route::controller(AssetMasterJenisMesinController::class)->middleware('role:management')->group(function () {
+    Route::controller(AssetMasterJenisMesinController::class)->middleware('role:asset')->group(function () {
         Route::get('/asset_master_jenis_mesin', 'asset_master_jenis_mesin')->name('asset_master_jenis_mesin');
         Route::post('/asset_jenis_mesin/store', 'store_jenis_mesin')->name('store_jenis_mesin');
         Route::get('/asset_jenis_mesin/show', 'show_jenis_mesin')->name('show_jenis_mesin');
         Route::post('/asset_jenis_mesin/update', 'update_jenis_mesin')->name('update_jenis_mesin');
         Route::post('/asset_jenis_mesin/delete', 'delete_jenis_mesin')->name('delete_jenis_mesin');
+        Route::post('/asset_kd_jenis/store', 'store_kd_jenis')->name('store_kd_jenis');
+        Route::post('/asset_kd_jenis/update', 'update_kd_jenis')->name('update_kd_jenis');
+        Route::post('/asset_kd_merk/store', 'store_kd_merk')->name('store_kd_merk');
+        Route::post('/asset_kd_merk/update', 'update_kd_merk')->name('update_kd_merk');
+    });
+    // Master Asset Management Tambah Mesin (Pembelian Mesin)
+    Route::controller(AssetMesinTambahController::class)->middleware('role:asset')->group(function () {
+        Route::get('/asset_mesin_tambah', 'asset_mesin_tambah')->name('asset_mesin_tambah');
+        Route::get('/asset_mesin_tambah/list', 'get_penerimaan_mesin')->name('asset_mesin_tambah_list');
+        Route::get('/asset_mesin_tambah/export_excel', 'export_excel_penerimaan_mesin')->name('export_excel_penerimaan_mesin');
+        Route::get('/asset_mesin_tambah/bpb_detail', 'get_bpb_detail')->name('asset_mesin_tambah_bpb_detail');
+        Route::post('/asset_mesin_tambah/penerimaan/store', 'store_penerimaan_mesin')->name('store_penerimaan_mesin');
+        Route::get('/asset_mesin_tambah/unit', 'get_penerimaan_mesin_unit')->name('asset_mesin_tambah_unit');
+        Route::post('/asset_mesin_tambah/unit/store', 'store_penerimaan_mesin_unit')->name('store_penerimaan_mesin_unit');
+        Route::get('/asset_mesin_tambah/unit/{id}/print_qr', 'print_qr_mesin')->name('asset_mesin_tambah_print_qr');
+    });
+    // Master Asset Management Master Mesin
+    Route::controller(AssetMesinMasterController::class)->middleware('role:asset')->group(function () {
+        Route::get('/asset_mesin_master', 'asset_mesin_master')->name('asset_mesin_master');
+        Route::get('/asset_mesin_master/unit', 'get_master_mesin_unit')->name('asset_mesin_master_unit');
+    });
+    // Master Asset Management Tambah Mesin (Sewa Mesin)
+    Route::controller(AssetMesinSewaController::class)->middleware('role:asset')->group(function () {
+        Route::get('/asset_mesin_sewa', 'asset_mesin_sewa')->name('asset_mesin_sewa');
+        Route::get('/asset_mesin_sewa/list', 'get_penerimaan_mesin_sewa')->name('asset_mesin_sewa_list');
+        Route::get('/asset_mesin_sewa/export_excel', 'export_excel_penerimaan_mesin_sewa')->name('export_excel_penerimaan_mesin_sewa');
+        Route::get('/asset_mesin_sewa/bpb_detail', 'get_bpb_detail_sewa')->name('asset_mesin_sewa_bpb_detail');
+        Route::post('/asset_mesin_sewa/penerimaan/store', 'store_penerimaan_mesin_sewa')->name('store_penerimaan_mesin_sewa');
+        Route::get('/asset_mesin_sewa/unit', 'get_penerimaan_mesin_sewa_unit')->name('asset_mesin_sewa_unit');
+        Route::post('/asset_mesin_sewa/unit/store', 'store_penerimaan_mesin_sewa_unit')->name('store_penerimaan_mesin_sewa_unit');
+        Route::get('/asset_mesin_sewa/unit/{id}/print_qr', 'print_qr_mesin_sewa')->name('asset_mesin_sewa_print_qr');
     });
 
 

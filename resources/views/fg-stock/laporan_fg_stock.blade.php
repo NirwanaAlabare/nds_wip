@@ -128,6 +128,36 @@
                     </table>
                 </div>
 
+                <div class="table-responsive" id="table_mutasi_global" style="display: none;">
+                    <table id="datatable_mutasi_global" class="table table-bordered 100 table-hover display nowrap">
+                        <thead>
+                            <tr style='text-align:center; vertical-align:middle'>
+                                <th class="text-center" rowspan="2" style="background-color: lightblue;">Buyer</th>
+                                <th class="text-center" rowspan="2" style="background-color: lightblue;">WS</th>
+                                <th class="text-center" rowspan="2" style="background-color: lightblue;">Style</th>
+                                <th class="text-center" rowspan="2" style="background-color: lightblue;">Color</th>
+                                <th class="text-center" rowspan="2" style="background-color: lightblue;">Size</th>
+                                <th class="text-center" colspan="7" style="background-color: lightgreen;">Transit Terima Gudang Stok</th>
+                                <th class="text-center" colspan="6" style="background-color: lightyellow;"> Gudang Stok</th>
+                            </tr>
+                            <tr style='text-align:center; vertical-align:middle'>
+                                <th class="text-center" style="background-color: lightgreen;">Saldo Awal</th>
+                                <th class="text-center" style="background-color: lightgreen;">In Qc Reject</th>
+                                <th class="text-center" style="background-color: lightgreen;">In Ekspedisi</th>
+                                <th class="text-center" style="background-color: lightgreen;">Out Qc Reject</th>
+                                <th class="text-center" style="background-color: lightgreen;">Out Ekspedisi</th>
+                                <th class="text-center" style="background-color: lightgreen;">Adjustment</th>
+                                <th class="text-center" style="background-color: lightgreen;">Saldo Akhir</th>
+                                <th class="text-center" style="background-color: lightyellow;">Saldo Awal</th>
+                                <th class="text-center" style="background-color: lightyellow;">Terima Qc Reject</th>
+                                <th class="text-center" style="background-color: lightyellow;">Terima Ekspedisi</th>
+                                <th class="text-center" style="background-color: lightyellow;">Keluar Sewing</th>
+                                <th class="text-center" style="background-color: lightyellow;">Keluar QA</th>
+                                <th class="text-center" style="background-color: lightyellow;">Saldo Akhir</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -163,16 +193,19 @@
             let datatablePenerimaan = $('#datatable_penerimaan').DataTable();
             let datatablePengeluaran = $('#datatable_pengeluaran').DataTable();
             let datatableMutasi = $('#datatable_mutasi').DataTable();
+            let datatableMutasiGlobal = $('#datatable_mutasi_global').DataTable();
 
             $('#cbojns_lap').change(function() {
                 // Clear all tables
                 datatablePenerimaan.clear().draw();
                 datatablePengeluaran.clear().draw();
                 datatableMutasi.clear().draw();
+                datatableMutasiGlobal.clear().draw();
                 // Hide all tables initially
                 $('#table_penerimaan').hide();
                 $('#table_pengeluaran').hide();
                 $('#table_mutasi').hide();
+                $('#table_mutasi_global').hide();
                 // Show the appropriate table based on the selected value
                 var selectedValue = $(this).val();
                 if (selectedValue === 'Penerimaan') {
@@ -181,6 +214,26 @@
                     $('#table_pengeluaran').show();
                 } else if (selectedValue === 'Mutasi') {
                     $('#table_mutasi').show();
+                }else if (selectedValue === 'Mutasi Global') {
+                    $('#table_mutasi_global').show();
+                }
+            });
+
+            $('#tgl-awal').change(function() {
+                var jenisLap = $('#cbojns_lap').val();
+                var tglAwal = $(this).val();
+
+                if (jenisLap === 'Mutasi Global') {
+                    if (tglAwal < '2026-05-01') {
+                        Swal.fire({
+                            title: 'Perhatian!',
+                            text: 'Tanggal awal Mutasi Global minimal 2026-05-01',
+                            icon: 'warning',
+                            confirmButtonText: 'OK'
+                        });
+
+                        $(this).val('2026-05-01');
+                    }
                 }
             });
         });
@@ -393,6 +446,83 @@
                         "targets": "_all"
                     }, ]
                 });
+            } else if (cbojns_lap == 'Mutasi Global') {
+                let datatable = $("#datatable_mutasi_global").DataTable({
+                    ordering: false,
+                    processing: true,
+                    serverSide: true,
+                    paging: true,
+                    searching: true,
+                    destroy: true,
+                    scrollX: true,
+                    ajax: {
+                        url: '{{ route('rep_mutasi_global_fg_stock') }}',
+                        data: function(d) {
+                            d.dateFrom = $('#tgl-awal').val();
+                            d.dateTo = $('#tgl-akhir').val();
+                        },
+                    },
+                    columns: [
+                        {
+                            data: 'buyer'
+                        }, 
+                        {
+                            data: 'ws'
+                        },
+                        {
+                            data: 'styleno'
+                        },
+                        {
+                            data: 'color'
+                        },
+                        {
+                            data: 'size'
+                        },
+                        {
+                            data: 'saldo_awal_transit'
+                        },
+                        {
+                            data: 'qty_in_qc_reject'
+                        },
+                        {
+                            data: 'qty_in_ekspedisi'
+                        },
+                        {
+                            data: 'qty_out_qc_reject'
+                        },
+                        {
+                            data: 'qty_out_ekspedisi'
+                        },
+                        {
+                            data: 'qty_adjustment'
+                        },
+                        {
+                            data: 'saldo_akhir_transit'
+                        },
+                        {
+                            data: 'saldo_awal_gudang_stok'
+                        },
+                        {
+                            data: 'qty_terima_qc_reject'
+                        },
+                        {
+                            data: 'qty_terima_ekspedisi'
+                        },
+                        {
+                            data: 'qty_keluar_sewing'
+                        },
+                        {
+                            data: 'qty_keluar_qa'
+                        },
+                        {
+                            data: 'saldo_akhir_gudang_stok'
+                        },
+                    ],
+                    columnDefs: [{
+                        "className": "dt-center",
+                        "targets": "_all"
+                    }, ]
+                });
             }
         }
 
@@ -481,8 +611,7 @@
                             }
                         },
                     });
-                } else
-                if (cbojns_lap == 'Mutasi') {
+                } else if (cbojns_lap == 'Mutasi') {
                     const startTime = new Date().getTime();
                     // Fetch all data from the server
                     $.ajax({
@@ -667,6 +796,36 @@
                                 confirmButtonText: 'Okay'
                             });
                         }
+                    });
+                } else if (cbojns_lap == 'Mutasi Global'){
+                    $.ajax({
+                        type: "get",
+                        url: '{{ route('export_excel_rep_mutasi_global_fg_stock') }}',
+                        data: {
+                            from: from,
+                            to: to
+                        },
+                        xhrFields: {
+                            responseType: 'blob'
+                        },
+                        success: function(response) {
+                            {
+                                swal.close();
+                                Swal.fire({
+                                    title: 'Data Sudah Di Export!',
+                                    icon: "success",
+                                    showConfirmButton: true,
+                                    allowOutsideClick: false
+                                });
+                                var blob = new Blob([response]);
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = "Laporan Mutasi FG Stock Global " + from + " sampai " +
+                                    to + ".xlsx";
+                                link.click();
+
+                            }
+                        },
                     });
                 }
 

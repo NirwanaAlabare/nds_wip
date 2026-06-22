@@ -76,6 +76,10 @@
                 <th class="fw-bold text-center">CREATED BY</th>
                 <td>{{ $bom->created_by ?? 'admin' }}</td>
             </tr>
+            <tr>
+                <th class="fw-bold text-center">No BOM</th>
+                <td>{{ $bom->no_katalog_bom ?? '-' }}</td>
+            </tr>
         </table>
 
         <table class="info-table-right">

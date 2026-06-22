@@ -22,130 +22,118 @@ class PenerimaanCuttingController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = PenerimaanCutting::selectRaw("
-                penerimaan_cutting.id,
-                DATE_FORMAT(penerimaan_cutting.tanggal_terima, '%d/%m/%Y') as tanggal_terima,
-                penerimaan_cutting.id_roll AS barcode,
-                penerimaan_cutting.created_by_username,
-                DATE_FORMAT(penerimaan_cutting.created_at, '%d/%m/%Y %H:%i:%s') as created_at_format,
-                whs_bppb_h.no_req,
-                whs_bppb_det.no_bppb,
-                whs_bppb_h.tgl_bppb AS tanggal_bppb,
-                whs_bppb_h.tujuan,
-                whs_bppb_h.no_ws,
-                whs_bppb_h.no_ws_aktual AS no_ws_act,
-                whs_bppb_det.qty_out,
-                whs_bppb_det.satuan AS unit,
-                penerimaan_cutting.qty_konv,
-                penerimaan_cutting.unit_konv,
-                whs_bppb_det.no_lot,
-                whs_bppb_det.no_roll,
-                whs_bppb_det.no_roll_buyer,
-                whs_bppb_det.id_item,
-                whs_bppb_det.item_desc AS nama_barang,
-                buyer_ws.styleno AS style,
-                masteritem.color AS warna
-            ")
-            ->leftJoin('signalbit_erp.whs_bppb_det', 'signalbit_erp.whs_bppb_det.id', '=', 'penerimaan_cutting.whs_bppb_det_id')
-            ->leftJoin('signalbit_erp.whs_bppb_h', 'signalbit_erp.whs_bppb_h.no_bppb', '=', 'signalbit_erp.whs_bppb_det.no_bppb')
-            ->leftJoin('signalbit_erp.masteritem', 'signalbit_erp.masteritem.id_item', '=', 'signalbit_erp.whs_bppb_det.id_item')
-            ->leftJoinSub(
-                DB::table('signalbit_erp.act_costing as ac')
-                    ->selectRaw('jod.id_jo, ac.kpno AS no_ws, ac.styleno')
-                    ->join('signalbit_erp.so as so', 'ac.id', '=', 'so.id_cost')
-                    ->join('signalbit_erp.jo_det as jod', 'so.id', '=', 'jod.id_so')
-                    ->groupBy('jod.id_jo', 'ac.kpno', 'ac.styleno'),
-                'buyer_ws',
-                function ($join) {
-                    $join->on('buyer_ws.id_jo', '=', 'signalbit_erp.whs_bppb_det.id_jo');
-                }
-            );
 
-            return DataTables::eloquent($data)->filter(function ($query) {
-                    $tglAwal = request('dateFrom');
-                    $tglAkhir = request('dateTo');
+            $tglAwal = $request->dateFrom;
+            $tglAkhir = $request->dateTo;
 
-                    if ($tglAwal) {
-                        $query->whereRaw("penerimaan_cutting.tanggal_terima >= '" . $tglAwal . "'");
+            $data = DB::table('penerimaan_cutting')
+                ->selectRaw("
+                    penerimaan_cutting.id,
+                    DATE_FORMAT(penerimaan_cutting.tanggal_terima, '%d/%m/%Y') as tanggal_terima,
+                    penerimaan_cutting.id_roll AS barcode,
+                    penerimaan_cutting.created_by_username,
+                    DATE_FORMAT(penerimaan_cutting.created_at, '%d/%m/%Y %H:%i:%s') as created_at_format,
+                    whs_bppb_h.no_req,
+                    whs_bppb_det.no_bppb,
+                    whs_bppb_h.tgl_bppb AS tanggal_bppb,
+                    whs_bppb_h.tujuan,
+                    whs_bppb_h.no_ws,
+                    whs_bppb_h.no_ws_aktual AS no_ws_act,
+                    whs_bppb_det.qty_out,
+                    whs_bppb_det.satuan AS unit,
+                    penerimaan_cutting.qty_konv,
+                    penerimaan_cutting.unit_konv,
+                    whs_bppb_det.no_lot,
+                    whs_bppb_det.no_roll,
+                    whs_bppb_det.no_roll_buyer,
+                    whs_bppb_det.id_item,
+                    whs_bppb_det.item_desc AS nama_barang,
+                    buyer_ws.styleno AS style,
+                    masteritem.color AS warna
+                ")
+                ->leftJoin('signalbit_erp.whs_bppb_det', 'signalbit_erp.whs_bppb_det.id', '=', 'penerimaan_cutting.whs_bppb_det_id')
+                ->leftJoin('signalbit_erp.whs_bppb_h', 'signalbit_erp.whs_bppb_h.no_bppb', '=', 'signalbit_erp.whs_bppb_det.no_bppb')
+                ->leftJoin('signalbit_erp.masteritem', 'signalbit_erp.masteritem.id_item', '=', 'signalbit_erp.whs_bppb_det.id_item')
+                ->leftJoinSub(
+                    DB::table('signalbit_erp.act_costing as ac')
+                        ->selectRaw('jod.id_jo, ac.kpno AS no_ws, ac.styleno')
+                        ->join('signalbit_erp.so as so', 'ac.id', '=', 'so.id_cost')
+                        ->join('signalbit_erp.jo_det as jod', 'so.id', '=', 'jod.id_so')
+                        ->groupBy('jod.id_jo', 'ac.kpno', 'ac.styleno'),
+                    'buyer_ws',
+                    function ($join) {
+                        $join->on('buyer_ws.id_jo', '=', 'signalbit_erp.whs_bppb_det.id_jo');
                     }
+                );
 
-                    if ($tglAkhir) {
-                        $query->whereRaw("penerimaan_cutting.tanggal_terima <= '" . $tglAkhir . "'");
-                    }
-                }, true)->
-                filterColumn('tanggal_terima', function($query, $keyword) {
+            if ($tglAwal) {
+                $data->where('penerimaan_cutting.tanggal_terima', '>=', $tglAwal);
+            }
+
+            if ($tglAkhir) {
+                $data->where('penerimaan_cutting.tanggal_terima', '<=', $tglAkhir);
+            }
+
+            return DataTables::query($data)
+                ->filterColumn('tanggal_terima', function ($query, $keyword) {
                     $query->whereRaw("
                         DATE_FORMAT(penerimaan_cutting.tanggal_terima, '%d/%m/%Y') LIKE ?
                     ", ["%{$keyword}%"]);
-                })->
-                filterColumn('barcode', function($query, $keyword) {
-                    $sql = "penerimaan_cutting.id_roll like ?";
-                    $query->whereRaw($sql, ["%{$keyword}%"]);
-                })->
-                filterColumn('qty_out', function($query, $keyword) {
-                    $sql = "whs_bppb_det.qty_out like ?";
-                    $query->whereRaw($sql, ["%{$keyword}%"]);
-                })->
-                filterColumn('unit', function($query, $keyword) {
-                    $sql = "whs_bppb_det.satuan like ?";
-                    $query->whereRaw($sql, ["%{$keyword}%"]);
-                })->
-                filterColumn('no_req', function($query, $keyword) {
-                    $sql = "whs_bppb_h.no_req like ?";
-                    $query->whereRaw($sql, ["%{$keyword}%"]);
-                })->
-                filterColumn('no_bppb', function($query, $keyword) {
-                    $sql = "whs_bppb_det.no_bppb like ?";
-                    $query->whereRaw($sql, ["%{$keyword}%"]);
-                })->
-                filterColumn('tanggal_bppb', function($query, $keyword) {
-                    $sql = "whs_bppb_h.tgl_bppb like ?";
-                    $query->whereRaw($sql, ["%{$keyword}%"]);
-                })->
-                filterColumn('tujuan', function($query, $keyword) {
-                    $sql = "whs_bppb_h.tujuan like ?";
-                    $query->whereRaw($sql, ["%{$keyword}%"]);
-                })->
-                filterColumn('no_ws', function($query, $keyword) {
-                    $sql = "whs_bppb_h.no_ws like ?";
-                    $query->whereRaw($sql, ["%{$keyword}%"]);
-                })->
-                filterColumn('no_ws_act', function($query, $keyword) {
-                    $sql = "whs_bppb_h.no_ws_aktual like ?";
-                    $query->whereRaw($sql, ["%{$keyword}%"]);
-                })->
-                filterColumn('id_item', function($query, $keyword) {
-                    $sql = "whs_bppb_det.id_item like ?";
-                    $query->whereRaw($sql, ["%{$keyword}%"]);
-                })->
-                filterColumn('style', function($query, $keyword) {
-                    $sql = "buyer_ws.styleno like ?";
-                    $query->whereRaw($sql, ["%{$keyword}%"]);
-                })->
-                filterColumn('warna', function($query, $keyword) {
-                    $sql = "masteritem.color like ?";
-                    $query->whereRaw($sql, ["%{$keyword}%"]);
-                })->
-                filterColumn('no_lot', function($query, $keyword) {
-                    $sql = "whs_bppb_det.no_lot like ?";
-                    $query->whereRaw($sql, ["%{$keyword}%"]);
-                })->
-                filterColumn('no_roll', function($query, $keyword) {
-                    $sql = "whs_bppb_det.no_roll like ?";
-                    $query->whereRaw($sql, ["%{$keyword}%"]);
-                })->
-                filterColumn('no_roll_buyer', function($query, $keyword) {
-                    $sql = "whs_bppb_det.no_roll_buyer like ?";
-                    $query->whereRaw($sql, ["%{$keyword}%"]);
-                })->
-                filterColumn('created_at_format', function($query, $keyword) {
+                })
+                ->filterColumn('barcode', function ($query, $keyword) {
+                    $query->whereRaw("penerimaan_cutting.id_roll LIKE ?", ["%{$keyword}%"]);
+                })
+                ->filterColumn('qty_out', function ($query, $keyword) {
+                    $query->whereRaw("whs_bppb_det.qty_out LIKE ?", ["%{$keyword}%"]);
+                })
+                ->filterColumn('unit', function ($query, $keyword) {
+                    $query->whereRaw("whs_bppb_det.satuan LIKE ?", ["%{$keyword}%"]);
+                })
+                ->filterColumn('no_req', function ($query, $keyword) {
+                    $query->whereRaw("whs_bppb_h.no_req LIKE ?", ["%{$keyword}%"]);
+                })
+                ->filterColumn('no_bppb', function ($query, $keyword) {
+                    $query->whereRaw("whs_bppb_det.no_bppb LIKE ?", ["%{$keyword}%"]);
+                })
+                ->filterColumn('tanggal_bppb', function ($query, $keyword) {
+                    $query->whereRaw("whs_bppb_h.tgl_bppb LIKE ?", ["%{$keyword}%"]);
+                })
+                ->filterColumn('tujuan', function ($query, $keyword) {
+                    $query->whereRaw("whs_bppb_h.tujuan LIKE ?", ["%{$keyword}%"]);
+                })
+                ->filterColumn('no_ws', function ($query, $keyword) {
+                    $query->whereRaw("whs_bppb_h.no_ws LIKE ?", ["%{$keyword}%"]);
+                })
+                ->filterColumn('no_ws_act', function ($query, $keyword) {
+                    $query->whereRaw("whs_bppb_h.no_ws_aktual LIKE ?", ["%{$keyword}%"]);
+                })
+                ->filterColumn('id_item', function ($query, $keyword) {
+                    $query->whereRaw("whs_bppb_det.id_item LIKE ?", ["%{$keyword}%"]);
+                })
+                ->filterColumn('style', function ($query, $keyword) {
+                    $query->whereRaw("buyer_ws.styleno LIKE ?", ["%{$keyword}%"]);
+                })
+                ->filterColumn('warna', function ($query, $keyword) {
+                    $query->whereRaw("masteritem.color LIKE ?", ["%{$keyword}%"]);
+                })
+                ->filterColumn('no_lot', function ($query, $keyword) {
+                    $query->whereRaw("whs_bppb_det.no_lot LIKE ?", ["%{$keyword}%"]);
+                })
+                ->filterColumn('no_roll', function ($query, $keyword) {
+                    $query->whereRaw("whs_bppb_det.no_roll LIKE ?", ["%{$keyword}%"]);
+                })
+                ->filterColumn('no_roll_buyer', function ($query, $keyword) {
+                    $query->whereRaw("whs_bppb_det.no_roll_buyer LIKE ?", ["%{$keyword}%"]);
+                })
+                ->filterColumn('created_at_format', function ($query, $keyword) {
                     $query->whereRaw("
                         DATE_FORMAT(penerimaan_cutting.created_at, '%d/%m/%Y %H:%i:%s') LIKE ?
                     ", ["%{$keyword}%"]);
-                })->
-                order(function ($query) {
+                })
+                ->order(function ($query) {
                     $query->orderBy('penerimaan_cutting.created_at', 'desc');
-                })->toJson();
+                })
+                ->toJson();
         }
 
         return view('cutting.penerimaan-cutting.penerimaan-cutting', ["page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "penerimaan-cutting"]);
