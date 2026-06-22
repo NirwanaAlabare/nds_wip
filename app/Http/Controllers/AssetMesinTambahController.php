@@ -188,7 +188,14 @@ group by id_bpb, id_item
         }
 
         $filename = "Laporan Penerimaan Mesin {$tgl_awal} sd {$tgl_akhir}.xlsx";
-        return $excel->download($filename);
+
+        // FastExcel::download() echo file langsung via header()+readfile() tanpa mengembalikan Response,
+        // sehingga Laravel ikut mengirim response kosong di belakangnya & merusak isi file xlsx.
+        // Simpan ke temp file lalu kirim lewat response()->download() bawaan Laravel supaya bersih.
+        $tmpFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . uniqid('xlsx_export_') . '.xlsx';
+        $excel->save($tmpFile);
+
+        return response()->download($tmpFile, $filename)->deleteFileAfterSend(true);
     }
 
     public function get_penerimaan_mesin_unit(Request $request)
@@ -236,14 +243,33 @@ group by id_bpb, id_item
             'units' => 'required|array',
             'units.*.id' => 'required|integer',
             'units.*.serial_number' => 'nullable|string|max:255',
-            'units.*.foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'units.*.foto' => 'nullable|image|mimes:jpg,jpeg,png|max:10240',
         ]);
 
         $timestamp = Carbon::now();
 
         foreach ($request->units as $unit) {
+            $serialNumber = $unit['serial_number'] ?? null;
+
+            if ($serialNumber) {
+                $idJenis = DB::table('asset_penerimaan_mesin')->where('id', $unit['id'])->value('id_jenis');
+
+                $duplicate = DB::table('asset_penerimaan_mesin')
+                    ->where('id_jenis', $idJenis)
+                    ->where('serial_number', $serialNumber)
+                    ->where('id', '!=', $unit['id'])
+                    ->exists();
+
+                if ($duplicate) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Serial Number "' . $serialNumber . '" sudah digunakan pada jenis mesin yang sama',
+                    ], 422);
+                }
+            }
+
             $update = [
-                'serial_number' => $unit['serial_number'] ?? null,
+                'serial_number' => $serialNumber,
                 'updated_at' => $timestamp,
             ];
 

@@ -93,8 +93,8 @@
         }
 
         .unit-preview-img {
-            height: 42px;
-            width: 42px;
+            height: 160px;
+            width: 160px;
             object-fit: cover;
             border-radius: 6px;
             border: 1px solid #ced4da;
@@ -111,8 +111,8 @@
         }
 
         .unit-qr-img {
-            height: 50px;
-            width: 50px;
+            height: 160px;
+            width: 160px;
             cursor: pointer;
         }
 
@@ -177,7 +177,7 @@
 
     <!-- Modal New Mesin -->
     <div class="modal fade" id="NewMesinModal" tabindex="-1" aria-labelledby="NewMesinModalLabel" aria-hidden="true"
-        data-bs-backdrop="static">
+        data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-white">
@@ -226,7 +226,7 @@
 
     <!-- Modal Detail Mesin (per unit sesuai qty) -->
     <div class="modal fade" id="MesinDetailModal" tabindex="-1" aria-labelledby="MesinDetailModalLabel"
-        aria-hidden="true" data-bs-backdrop="static">
+        aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-white">
@@ -260,7 +260,7 @@
 
     <!-- Modal Unit Mesin (input Serial Number & Foto per unit) -->
     <div class="modal fade" id="MesinUnitModal" tabindex="-1" aria-labelledby="MesinUnitModalLabel" aria-hidden="true"
-        data-bs-backdrop="static">
+        data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-white">
@@ -291,8 +291,8 @@
                                 <tr>
                                     <th scope="col" class="text-center" style="width: 50px;">No</th>
                                     <th scope="col" style="width: 120px;">Serial Number</th>
-                                    <th scope="col" class="text-center" style="width: 110px;">Foto</th>
-                                    <th scope="col" class="text-center" style="width: 110px;">QR Code</th>
+                                    <th scope="col" class="text-center" style="width: 280px;">Foto</th>
+                                    <th scope="col" class="text-center" style="width: 280px;">QR Code</th>
                                 </tr>
                             </thead>
                             <tbody id="unitTableBody"></tbody>
@@ -966,25 +966,24 @@
                 'modal-stack');
         });
 
-        // Tekan Esc sekali harus menutup semua modal yang bertumpuk (termasuk popup preview gambar),
-        // bukan cuma modal yang paling atas. Ditutup berurutan dari atas ke bawah supaya backdrop tidak nyangkut.
+        // Tekan Esc menutup satu lapisan saja per tekan: popup preview gambar dulu (kalau sedang terbuka),
+        // baru modal yang paling atas. Tekan Esc lagi untuk menutup lapisan di bawahnya, dst.
+        // Modal diberi data-bs-keyboard="false" supaya Bootstrap tidak ikut menutup sendiri & bertabrakan dengan ini.
         $(document).on('keydown', function(e) {
             if (e.key !== 'Escape') return;
 
             if (Swal.isVisible()) {
                 Swal.close();
+                return;
             }
 
-            let $modals = $('.modal.show').toArray().sort((a, b) =>
+            let $topModal = $('.modal.show').toArray().sort((a, b) =>
                 (parseInt($(b).css('z-index')) || 0) - (parseInt($(a).css('z-index')) || 0)
-            );
+            )[0];
 
-            (function hideNext() {
-                if (!$modals.length) return;
-                let modal = $modals.shift();
-                $(modal).one('hidden.bs.modal', hideNext);
-                $(modal).modal('hide');
-            })();
+            if ($topModal) {
+                $($topModal).modal('hide');
+            }
         });
 
         // Reload tabel detail BPB saat nomor BPB dipilih

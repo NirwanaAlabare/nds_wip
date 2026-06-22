@@ -37,8 +37,8 @@
         }
 
         .unit-preview-img {
-            height: 42px;
-            width: 42px;
+            height: 160px;
+            width: 160px;
             object-fit: cover;
             border-radius: 6px;
             border: 1px solid #ced4da;
@@ -61,6 +61,12 @@
             justify-content: center;
             padding: 0;
         }
+
+        .qr-code-img {
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+        }
     </style>
 @endsection
 
@@ -70,10 +76,14 @@
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-plus"></i> Sewa Mesin</h5>
         </div>
         <div class="card-body">
-            <div class="mb-3">
+            <div class="mb-3 d-flex justify-content-between align-items-center">
                 <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
                     data-bs-target="#NewMesinModal">
                     <i class="fas fa-plus"></i> New
+                </button>
+                <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal"
+                    data-bs-target="#QrCodeListModal">
+                    <i class="fas fa-qrcode"></i> List Kode QR
                 </button>
             </div>
             <div class="mb-3 d-flex align-items-end gap-2 flex-wrap">
@@ -87,6 +97,9 @@
                 </div>
                 <button type="button" class="btn btn-primary btn-sm" onclick="dataTableReload();">
                     <i class="fas fa-search"></i> Search
+                </button>
+                <button type="button" class="btn btn-success btn-sm" onclick="export_excel_mesin_sewa();">
+                    <i class="fas fa-file-excel"></i> Export
                 </button>
             </div>
             <div class="table-responsive">
@@ -112,7 +125,7 @@
 
     <!-- Modal New Mesin -->
     <div class="modal fade" id="NewMesinModal" tabindex="-1" aria-labelledby="NewMesinModalLabel" aria-hidden="true"
-        data-bs-backdrop="static">
+        data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-white">
@@ -161,7 +174,7 @@
 
     <!-- Modal Unit Mesin (input Serial Number & Foto per unit) -->
     <div class="modal fade" id="MesinUnitModal" tabindex="-1" aria-labelledby="MesinUnitModalLabel" aria-hidden="true"
-        data-bs-backdrop="static">
+        data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-xl" style="max-width: 95vw;">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-white">
@@ -193,7 +206,7 @@
                                     <th scope="col" class="text-center" style="width: 50px;">No</th>
                                     <th scope="col" class="text-center" style="width: 110px;">QR Code</th>
                                     <th scope="col" style="width: 120px;">Serial Number</th>
-                                    <th scope="col" class="text-center" style="width: 110px;">Foto</th>
+                                    <th scope="col" class="text-center" style="width: 280px;">Foto</th>
                                     <th scope="col" style="width: 130px;">Jenis</th>
                                     <th scope="col" style="width: 130px;">Merk</th>
                                     <th scope="col" style="width: 110px;">Tipe</th>
@@ -207,6 +220,86 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal List Kode QR -->
+    <div class="modal fade" id="QrCodeListModal" tabindex="-1" aria-labelledby="QrCodeListModalLabel"
+        aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-white">
+                    <h5 class="modal-title" id="QrCodeListModalLabel">Kode QR</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formAddQrCode" class="row g-2 align-items-end mb-3">
+                        <div class="col-md-8">
+                            <label for="txtkode_qr" class="col-form-label"><small><b>Kode QR :</b></small></label>
+                            <input type="text" id="txtkode_qr" name="kode_qr" maxlength="20"
+                                class="form-control form-control-sm" placeholder="Masukkan Kode QR" required>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                                <i class="fas fa-plus"></i> Tambah
+                            </button>
+                        </div>
+                    </form>
+                    <div class="mb-2 d-flex justify-content-end">
+                        <button type="button" id="btnPrintSelectedQr" class="btn btn-success btn-sm">
+                            <i class="fas fa-print"></i> Print Terpilih
+                        </button>
+                    </div>
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table id="qrCodeTable" class="table table-bordered table-hover table-sm align-middle mb-0">
+                            <thead class="bg-sb">
+                                <tr>
+                                    <th scope="col" class="text-center" style="width: 36px;">
+                                        <input type="checkbox" id="chkSelectAllQr">
+                                    </th>
+                                    <th scope="col" class="text-center" style="width: 50px;">No</th>
+                                    <th scope="col" class="text-center" style="width: 90px;">QR</th>
+                                    <th scope="col">Kode QR</th>
+                                    <th scope="col">Dibuat Oleh</th>
+                                    <th scope="col">Tanggal</th>
+                                    <th scope="col" class="text-center" style="width: 70px;">Act</th>
+                                </tr>
+                            </thead>
+                            <tbody id="qrCodeTableBody">
+                                @forelse ($qrList as $i => $row)
+                                    <tr data-kode-qr="{{ $row->kode_qr }}">
+                                        <td class="text-center">
+                                            <input type="checkbox" class="qr-row-checkbox"
+                                                value="{{ $row->kode_qr }}">
+                                        </td>
+                                        <td class="text-center">{{ $i + 1 }}</td>
+                                        <td class="text-center">
+                                            <img class="qr-code-img" title="Klik untuk print PDF"
+                                                src="data:image/svg+xml;base64,{{ $row->qr }}">
+                                        </td>
+                                        <td class="qr-code-cell"><span class="qr-code-text">{{ $row->kode_qr }}</span>
+                                        </td>
+                                        <td>{{ $row->created_by ?? '-' }}</td>
+                                        <td>{{ $row->created_at ?? '-' }}</td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-outline-primary btn-edit-qr">
+                                                <i class="fas fa-pen"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">Belum ada Kode QR</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
         </div>
@@ -250,6 +343,56 @@
 
         function dataTableReload() {
             datatable.ajax.reload();
+        }
+
+        // Export Excel hanya berisi data Total/Terisi yang tampil di tabel utama (bukan detail per unit)
+        function export_excel_mesin_sewa() {
+            let tgl_awal = $('#txttgl_awal').val();
+            let tgl_akhir = $('#txttgl_akhir').val();
+
+            Swal.fire({
+                title: 'Please Wait,',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: 'get',
+                url: '{{ route('export_excel_penerimaan_mesin_sewa') }}',
+                data: {
+                    tgl_awal: tgl_awal,
+                    tgl_akhir: tgl_akhir
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    Swal.close();
+                    Swal.fire({
+                        title: 'Data Berhasil Di Export!',
+                        icon: 'success',
+                        showConfirmButton: true,
+                        allowOutsideClick: false
+                    });
+                    let blob = new Blob([response]);
+                    let link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = 'Laporan Penerimaan Mesin Sewa ' + tgl_awal + ' sd ' + tgl_akhir + '.xlsx';
+                    link.click();
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                    Swal.close();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal export data ke Excel.',
+                    });
+                }
+            });
         }
 
         let datatable = $("#datatable").DataTable({
@@ -339,7 +482,263 @@
         });
 
         // Master daftar Kode QR (asset_master_mesin_sewa_qr) untuk dropdown pilihan di kolom QR Code
-        const qrList = @json($qrList);
+        let qrList = @json($qrList);
+
+        // Paksa huruf besar sambil mengetik, tanpa memindahkan posisi kursor (dipakai input tambah & edit Kode QR)
+        $(document).on('input', '#txtkode_qr, .qr-code-edit-input', function() {
+            let pos = this.selectionStart;
+            this.value = this.value.toUpperCase();
+            this.setSelectionRange(pos, pos);
+        });
+
+        // Tambah Kode QR baru ke asset_master_mesin_sewa_qr (kode_qr adalah primary key, jadi tidak boleh duplikat)
+        $('#formAddQrCode').on('submit', function(e) {
+            e.preventDefault();
+
+            let $btn = $(this).find('button[type=submit]');
+            let kodeQr = $('#txtkode_qr').val().trim();
+
+            if (!kodeQr) return;
+
+            $btn.prop('disabled', true);
+
+            $.ajax({
+                type: 'POST',
+                url: '{{ route('store_mesin_sewa_qr') }}',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    kode_qr: kodeQr
+                },
+                success: function(response) {
+                    $('#txtkode_qr').val('');
+                    reloadQrCodeTable();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Kode QR Disimpan',
+                        timer: 1200,
+                        showConfirmButton: false
+                    });
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Menyimpan',
+                        text: xhr.responseJSON?.message ||
+                            'Terjadi kesalahan saat menyimpan Kode QR.',
+                    });
+                },
+                complete: function() {
+                    $btn.prop('disabled', false);
+                }
+            });
+        });
+
+        // Muat ulang tabel & dropdown pilihan Kode QR setelah ada Kode QR yang disimpan/diubah.
+        // Baris dibangun lewat method jQuery (bukan template string) supaya nilai Kode QR yang diketik
+        // bebas oleh user otomatis ter-escape, tidak disisipkan mentah sebagai HTML.
+        function reloadQrCodeTable() {
+            $.ajax({
+                type: 'GET',
+                url: '{{ route('asset_mesin_sewa_qr_list') }}',
+                success: function(rows) {
+                    qrList = rows;
+
+                    let $body = $('#qrCodeTableBody').empty();
+                    $('#chkSelectAllQr').prop('checked', false);
+
+                    if (!rows.length) {
+                        $body.append(
+                            '<tr><td colspan="7" class="text-center text-muted">Belum ada Kode QR</td></tr>'
+                        );
+                        return;
+                    }
+
+                    rows.forEach(function(row, i) {
+                        let $tr = $('<tr>').data('kode-qr', row.kode_qr);
+
+                        $tr.append(
+                            $('<td>', {
+                                class: 'text-center'
+                            }).append($('<input>', {
+                                type: 'checkbox',
+                                class: 'qr-row-checkbox',
+                                value: row.kode_qr
+                            }))
+                        );
+                        $tr.append($('<td>', {
+                            class: 'text-center',
+                            text: i + 1
+                        }));
+                        $tr.append(
+                            $('<td>', {
+                                class: 'text-center'
+                            }).append($('<img>', {
+                                class: 'qr-code-img',
+                                title: 'Klik untuk print PDF',
+                                src: `data:image/svg+xml;base64,${row.qr}`
+                            }))
+                        );
+                        $tr.append(
+                            $('<td>', {
+                                class: 'qr-code-cell'
+                            }).append($('<span>', {
+                                class: 'qr-code-text',
+                                text: row.kode_qr
+                            }))
+                        );
+                        $tr.append($('<td>', {
+                            text: row.created_by ?? '-'
+                        }));
+                        $tr.append($('<td>', {
+                            text: row.created_at ?? '-'
+                        }));
+                        $tr.append(
+                            $('<td>', {
+                                class: 'text-center'
+                            }).append($('<button>', {
+                                type: 'button',
+                                class: 'btn btn-sm btn-outline-primary btn-edit-qr',
+                                html: '<i class="fas fa-pen"></i>'
+                            }))
+                        );
+
+                        $body.append($tr);
+                    });
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+
+        // Centang/hapus centang semua baris sekaligus
+        $(document).on('change', '#chkSelectAllQr', function() {
+            $('.qr-row-checkbox').prop('checked', $(this).is(':checked'));
+        });
+
+        // Print satu Kode QR langsung dengan klik gambar QR-nya
+        $(document).on('click', '.qr-code-img', function() {
+            let kodeQr = $(this).closest('tr').data('kode-qr');
+            openPrintQrCode([kodeQr]);
+        });
+
+        // Print beberapa Kode QR sekaligus sesuai baris yang dicentang
+        $('#btnPrintSelectedQr').on('click', function() {
+            let selected = $('.qr-row-checkbox:checked').map(function() {
+                return $(this).val();
+            }).get();
+
+            if (!selected.length) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Belum Ada Yang Dipilih',
+                    text: 'Centang minimal 1 Kode QR untuk di-print.',
+                });
+                return;
+            }
+
+            openPrintQrCode(selected);
+        });
+
+        // Buka PDF QR Code (1 atau beberapa sekaligus) di tab baru untuk di-print
+        function openPrintQrCode(kodeQrArray) {
+            let query = $.param({
+                kode_qr: kodeQrArray
+            });
+            window.open(`{{ route('print_mesin_sewa_qr') }}?${query}`, '_blank');
+        }
+
+        // Klik tombol Edit mengubah sel Kode QR jadi input untuk diedit di tempat
+        $(document).on('click', '.btn-edit-qr', function() {
+            let $tr = $(this).closest('tr');
+            let $cell = $tr.find('.qr-code-cell');
+            let oldVal = $tr.data('kode-qr');
+
+            if ($cell.find('input').length) return; // sedang diedit
+
+            let $input = $('<input>', {
+                type: 'text',
+                class: 'form-control form-control-sm qr-code-edit-input',
+                maxlength: 20
+            }).val(oldVal).data('old-kode-qr', oldVal);
+
+            $cell.empty().append($input);
+            $input.trigger('focus').trigger('select');
+        });
+
+        // Kembalikan sel Kode QR ke tampilan teks biasa
+        function revertQrCodeCell($cell, value) {
+            $cell.empty().append($('<span>', {
+                class: 'qr-code-text',
+                text: value
+            }));
+        }
+
+        // Simpan perubahan Kode QR ke asset_master_mesin_sewa_qr (kode_qr adalah primary key, tidak boleh duplikat)
+        function saveQrCodeEdit($input) {
+            let oldVal = $input.data('old-kode-qr');
+            let newVal = $input.val().trim();
+            let $tr = $input.closest('tr');
+            let $cell = $tr.find('.qr-code-cell');
+
+            if (!newVal || newVal === oldVal) {
+                revertQrCodeCell($cell, oldVal);
+                return;
+            }
+
+            $input.prop('disabled', true);
+
+            $.ajax({
+                type: 'POST',
+                url: '{{ route('update_mesin_sewa_qr') }}',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    kode_qr_old: oldVal,
+                    kode_qr_new: newVal
+                },
+                success: function() {
+                    reloadQrCodeTable();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Kode QR Diubah',
+                        timer: 1200,
+                        showConfirmButton: false
+                    });
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                    revertQrCodeCell($cell, oldVal);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Mengubah',
+                        text: xhr.responseJSON?.message ||
+                            'Terjadi kesalahan saat mengubah Kode QR.',
+                    });
+                },
+                complete: function() {
+                    $input.prop('disabled', false);
+                }
+            });
+        }
+
+        $(document).on('blur', '.qr-code-edit-input', function() {
+            saveQrCodeEdit($(this));
+        });
+
+        $(document).on('keydown', '.qr-code-edit-input', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                $(this).trigger('blur');
+            }
+            if (e.key === 'Escape') {
+                // Hentikan event di sini supaya hanya membatalkan edit, tidak ikut menutup modal
+                // (modal ini pakai data-bs-keyboard="false", penutupan modal ditangani handler Esc global)
+                e.stopImmediatePropagation();
+                let oldVal = $(this).data('old-kode-qr');
+                revertQrCodeCell($(this).closest('.qr-code-cell'), oldVal);
+            }
+        });
 
         let currentUnitContext = null;
 
@@ -901,25 +1300,24 @@
             bpbDetailTable.ajax.reload();
         });
 
-        // Tekan Esc sekali harus menutup semua modal yang bertumpuk (termasuk popup preview gambar),
-        // bukan cuma modal yang paling atas. Ditutup berurutan dari atas ke bawah supaya backdrop tidak nyangkut.
+        // Tekan Esc menutup satu lapisan saja per tekan: popup preview gambar dulu (kalau sedang terbuka),
+        // baru modal yang paling atas. Tekan Esc lagi untuk menutup lapisan di bawahnya, dst.
+        // Modal diberi data-bs-keyboard="false" supaya Bootstrap tidak ikut menutup sendiri & bertabrakan dengan ini.
         $(document).on('keydown', function(e) {
             if (e.key !== 'Escape') return;
 
             if (Swal.isVisible()) {
                 Swal.close();
+                return;
             }
 
-            let $modals = $('.modal.show').toArray().sort((a, b) =>
+            let $topModal = $('.modal.show').toArray().sort((a, b) =>
                 (parseInt($(b).css('z-index')) || 0) - (parseInt($(a).css('z-index')) || 0)
-            );
+            )[0];
 
-            (function hideNext() {
-                if (!$modals.length) return;
-                let modal = $modals.shift();
-                $(modal).one('hidden.bs.modal', hideNext);
-                $(modal).modal('hide');
-            })();
+            if ($topModal) {
+                $($topModal).modal('hide');
+            }
         });
 
         // Perbaiki lebar kolom saat modal ditampilkan (DataTables tidak bisa hitung lebar saat modal masih hidden)

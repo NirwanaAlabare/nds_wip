@@ -1505,6 +1505,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/asset_mesin_sewa/unit', 'get_penerimaan_mesin_sewa_unit')->name('asset_mesin_sewa_unit');
         Route::post('/asset_mesin_sewa/unit/store', 'store_penerimaan_mesin_sewa_unit')->name('store_penerimaan_mesin_sewa_unit');
         Route::get('/asset_mesin_sewa/unit/{id}/print_qr', 'print_qr_mesin_sewa')->name('asset_mesin_sewa_print_qr');
+        Route::get('/asset_mesin_sewa/qr/list', 'get_mesin_sewa_qr_list')->name('asset_mesin_sewa_qr_list');
+        Route::post('/asset_mesin_sewa/qr/store', 'store_mesin_sewa_qr')->name('store_mesin_sewa_qr');
+        Route::post('/asset_mesin_sewa/qr/update', 'update_mesin_sewa_qr')->name('update_mesin_sewa_qr');
+        Route::get('/asset_mesin_sewa/qr/print', 'print_mesin_sewa_qr')->name('print_mesin_sewa_qr');
     });
 
 
