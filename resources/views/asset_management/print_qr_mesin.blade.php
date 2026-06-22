@@ -25,5 +25,6 @@
 <body>
     <img src="data:image/svg+xml;base64, {!! base64_encode(QrCode::format('svg')->size(300)->generate($kode_qr)) !!}">
     <h5>{{ $kode_qr }}</h5>
+    <h5>{{ $serial_number }}</h5>
 </body>
 </html>

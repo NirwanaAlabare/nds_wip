@@ -116,6 +116,22 @@ class AssetMasterJenisMesinController extends Controller
             ], 404);
         }
 
+        // Kode Jenis tidak boleh diubah kalau sudah ada transaksi penerimaan mesin yang memakai jenis ini
+        if ($old->kd_jenis !== $kd_jenis) {
+            $hasTransaksi = DB::table('asset_penerimaan_mesin')
+                ->join('asset_master_jenis_mesin', 'asset_penerimaan_mesin.id_jenis', '=',
+                    'asset_master_jenis_mesin.id_jenis')
+                ->where('asset_master_jenis_mesin.kd_jenis', $old->kd_jenis)
+                ->exists();
+
+            if ($hasTransaksi) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Kode Jenis tidak bisa diubah karena sudah ada transaksi penerimaan mesin yang menggunakan jenis ini',
+                ], 422);
+            }
+        }
+
         $exists = DB::table('asset_master_kd_jenis')
             ->where('kd_jenis', $kd_jenis)
             ->where('id_jenis', '!=', $id_jenis)
@@ -210,6 +226,22 @@ class AssetMasterJenisMesinController extends Controller
                 'status' => 'error',
                 'message' => 'Data Merk tidak ditemukan',
             ], 404);
+        }
+
+        // Kode Merk tidak boleh diubah kalau sudah ada transaksi penerimaan mesin yang memakai merk ini
+        if ($old->kd_merk !== $kd_merk) {
+            $hasTransaksi = DB::table('asset_penerimaan_mesin')
+                ->join('asset_master_jenis_mesin', 'asset_penerimaan_mesin.id_jenis', '=',
+                    'asset_master_jenis_mesin.id_jenis')
+                ->where('asset_master_jenis_mesin.kd_merk', $old->kd_merk)
+                ->exists();
+
+            if ($hasTransaksi) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Kode Merk tidak bisa diubah karena sudah ada transaksi penerimaan mesin yang menggunakan merk ini',
+                ], 422);
+            }
         }
 
         $exists = DB::table('asset_master_kd_merk')
@@ -323,6 +355,23 @@ class AssetMasterJenisMesinController extends Controller
         $merk = strtoupper($request->merk);
         $tipe = strtoupper($request->tipe);
 
+        $old = DB::table('asset_master_jenis_mesin')->where('id_jenis', $request->id)->first();
+        if (!$old) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data Jenis Mesin tidak ditemukan',
+            ], 404);
+        }
+
+        // Kode Jenis, Merk & Tipe tidak boleh diubah kalau jenis mesin ini sudah pernah ada penerimaannya
+        if (($old->kd_jenis !== $jenis || $old->kd_merk !== $merk || $old->tipe !== $tipe)
+            && DB::table('asset_penerimaan_mesin')->where('id_jenis', $request->id)->exists()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Kode Jenis, Merk, dan Tipe tidak bisa diubah karena sudah ada penerimaan mesin untuk jenis ini',
+            ], 422);
+        }
+
         $exists = DB::table('asset_master_jenis_mesin')
             ->where('kd_jenis', $jenis)
             ->where('kd_merk', $merk)
@@ -356,6 +405,14 @@ class AssetMasterJenisMesinController extends Controller
 
     public function delete_jenis_mesin(Request $request)
     {
+        $hasTransaksi = DB::table('asset_penerimaan_mesin')->where('id_jenis', $request->id)->exists();
+        if ($hasTransaksi) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Jenis Mesin tidak bisa dihapus karena sudah ada penerimaan mesin untuk jenis ini',
+            ], 422);
+        }
+
         DB::delete("DELETE FROM asset_master_jenis_mesin WHERE id_jenis = ?", [$request->id]);
 
         return response()->json([

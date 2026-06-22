@@ -115,6 +115,14 @@
             width: 50px;
             cursor: pointer;
         }
+
+        .unit-preview-zoom-img {
+            max-width: 90vw;
+            max-height: 80vh;
+            object-fit: contain;
+            cursor: zoom-in;
+            transition: transform 0.1s ease-out;
+        }
     </style>
 @endsection
 
@@ -265,8 +273,9 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="text-muted mb-2"><small><i class="fas fa-circle-info"></i> Ketik Serial Number lalu
-                            tekan <kbd>Enter</kbd> untuk langsung menyimpan baris tersebut.</small></p>
+                    <p class="text-muted mb-2"><small><i class="fas fa-circle-info"></i> Ketik Serial Number, lalu
+                            tekan <kbd>Enter</kbd> atau pindah fokus (klik/Tab ke luar) untuk langsung menyimpan baris
+                            tersebut.</small></p>
                     <div class="mb-2 d-flex gap-2">
                         <input type="text" id="unitSerialSearch" class="form-control form-control-sm"
                             placeholder="Cari Serial Number...">
@@ -608,6 +617,11 @@
                         qty: mesinDetailQty
                     },
                     success: function(response) {
+                        // Tutup modal anak dulu, baru modal induk setelah benar-benar selesai (hidden.bs.modal),
+                        // supaya backdrop modal yang bertumpuk tidak ada yang tersisa nyangkut
+                        $('#MesinDetailModal').one('hidden.bs.modal', function() {
+                            $('#NewMesinModal').modal('hide');
+                        });
                         $('#MesinDetailModal').modal('hide');
 
                         Swal.fire({
@@ -617,7 +631,7 @@
                             timer: 1500,
                             showConfirmButton: false
                         }).then(() => {
-                            location.reload();
+                            dataTableReload();
                         });
                     },
                     error: function(xhr) {
@@ -697,6 +711,8 @@
 
                     $body.find('tr').each(function() {
                         refreshUnitQrState($(this));
+                        let $serialInput = $(this).find('.unit-serial-input');
+                        $serialInput.data('last-saved', $serialInput.val());
                     });
                     updateUnitFilledCounter();
 
@@ -753,20 +769,20 @@
             }
         }
 
-        // Simpan Serial Number langsung saat tekan Enter, pakai id baris asset_penerimaan_mesin sebagai patokan update
-        $(document).on('keydown', '.unit-serial-input', function(e) {
-            if (e.key !== 'Enter') return;
-            e.preventDefault();
-
-            let $input = $(this);
+        // Simpan Serial Number ke server, pakai id baris asset_penerimaan_mesin sebagai patokan update.
+        // Dipakai baik saat tekan Enter maupun saat fokus pindah (blur), supaya user tinggal mengetik.
+        function saveUnitSerial($input, refocusAfterSave) {
             let id = $input.data('unit-id');
+            let value = $input.val();
+
+            if (value === $input.data('last-saved')) return; // tidak berubah, tidak perlu simpan ulang
 
             $input.prop('disabled', true).removeClass('is-valid is-invalid');
 
             let formData = new FormData();
             formData.append('_token', '{{ csrf_token() }}');
             formData.append(`units[${id}][id]`, id);
-            formData.append(`units[${id}][serial_number]`, $input.val());
+            formData.append(`units[${id}][serial_number]`, value);
 
             $.ajax({
                 type: 'POST',
@@ -775,6 +791,7 @@
                 contentType: false,
                 processData: false,
                 success: function() {
+                    $input.data('last-saved', value);
                     $input.addClass('is-valid');
                     setTimeout(() => $input.removeClass('is-valid'), 1500);
                     updateUnitFilledCounter();
@@ -792,9 +809,22 @@
                     });
                 },
                 complete: function() {
-                    $input.prop('disabled', false).trigger('focus');
+                    $input.prop('disabled', false);
+                    if (refocusAfterSave) $input.trigger('focus');
                 }
             });
+        }
+
+        // Tekan Enter langsung menyimpan & mempertahankan fokus di kolom yang sama
+        $(document).on('keydown', '.unit-serial-input', function(e) {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            saveUnitSerial($(this), true);
+        });
+
+        // Pindah fokus (klik/Tab ke kolom lain) juga otomatis menyimpan, tanpa perlu tekan Enter
+        $(document).on('blur', '.unit-serial-input', function() {
+            saveUnitSerial($(this));
         });
 
         // Sinkronkan badge Terisi pada tabel utama begitu modal unit ditutup
@@ -894,14 +924,28 @@
             });
         });
 
-        // Klik thumbnail foto untuk melihat versi lebih besar
+        // Klik thumbnail foto untuk melihat versi lebih besar, scroll mouse di atas gambar untuk zoom in/out
         $(document).on('click', '.unit-preview-img', function() {
             Swal.fire({
                 imageUrl: this.src,
                 imageAlt: 'Preview',
+                width: 'auto',
                 showConfirmButton: false,
                 showCloseButton: true,
-                background: '#fff'
+                background: '#fff',
+                customClass: {
+                    image: 'unit-preview-zoom-img'
+                },
+                didOpen: () => {
+                    let scale = 1;
+                    document.querySelector('.unit-preview-zoom-img').addEventListener('wheel', function(e) {
+                        e.preventDefault();
+                        scale = Math.min(Math.max(scale + (e.deltaY < 0 ? 0.2 : -0.2), 1), 4);
+                        this.style.transform = `scale(${scale})`;
+                    }, {
+                        passive: false
+                    });
+                }
             });
         });
 
@@ -920,6 +964,27 @@
         $(document).on('shown.bs.modal', '.modal', function() {
             $('.modal-backdrop').not('.modal-stack').css('z-index', $(this).css('z-index') - 1).addClass(
                 'modal-stack');
+        });
+
+        // Tekan Esc sekali harus menutup semua modal yang bertumpuk (termasuk popup preview gambar),
+        // bukan cuma modal yang paling atas. Ditutup berurutan dari atas ke bawah supaya backdrop tidak nyangkut.
+        $(document).on('keydown', function(e) {
+            if (e.key !== 'Escape') return;
+
+            if (Swal.isVisible()) {
+                Swal.close();
+            }
+
+            let $modals = $('.modal.show').toArray().sort((a, b) =>
+                (parseInt($(b).css('z-index')) || 0) - (parseInt($(a).css('z-index')) || 0)
+            );
+
+            (function hideNext() {
+                if (!$modals.length) return;
+                let modal = $modals.shift();
+                $(modal).one('hidden.bs.modal', hideNext);
+                $(modal).modal('hide');
+            })();
         });
 
         // Reload tabel detail BPB saat nomor BPB dipilih

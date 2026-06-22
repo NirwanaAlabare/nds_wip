@@ -162,15 +162,17 @@ class AssetMesinSewaController extends Controller
                 id_bpb,
                 bpbno,
                 bpbno_int,
+                masa_kontrak,
                 created_by,
                 created_at,
                 updated_at
-            ) VALUES (?,?,?,?,?,?,?,?)", [
+            ) VALUES (?,?,?,?,?,?,?,?,?)", [
                 $timestamp->format('Y-m-d'),
                 $request->id_item,
                 $request->id_bpb,
                 $request->bpbno,
                 $request->bpbno_int,
+                30,
                 $user,
                 $timestamp,
                 $timestamp
@@ -258,6 +260,12 @@ class AssetMesinSewaController extends Controller
                 $tglAwalKontrak = array_key_exists('tgl_awal_kontrak', $update) ? $update['tgl_awal_kontrak'] : $current->tgl_awal_kontrak;
                 $masaKontrak = array_key_exists('masa_kontrak', $update) ? $update['masa_kontrak'] : $current->masa_kontrak;
 
+                // Default Masa Kontrak ke 30 hari kalau Tanggal Terima sudah diisi tapi Masa Kontrak belum pernah diisi
+                if ($tglAwalKontrak && !$masaKontrak) {
+                    $masaKontrak = 30;
+                    $update['masa_kontrak'] = 30;
+                }
+
                 $update['tgl_akhir_kontrak'] = ($tglAwalKontrak && $masaKontrak)
                     ? Carbon::parse($tglAwalKontrak)->addDays((int) $masaKontrak)->format('Y-m-d')
                     : null;
@@ -276,19 +284,5 @@ class AssetMesinSewaController extends Controller
             'status' => 'success',
             'message' => 'Data unit mesin sewa berhasil disimpan.',
         ]);
-    }
-
-    public function print_qr_mesin_sewa(Request $request, $id)
-    {
-        $unit = DB::table('asset_penerimaan_mesin_sewa')->where('id', $id)->first();
-
-        if (!$unit || !$unit->kode_qr) {
-            abort(404);
-        }
-
-        $pdf = PDF::loadView('asset_management.print_qr_mesin', ['kode_qr' => $unit->kode_qr])
-            ->setPaper([0, 0, 200, 200]);
-
-        return $pdf->stream('QR-' . $unit->kode_qr . '.pdf');
     }
 }

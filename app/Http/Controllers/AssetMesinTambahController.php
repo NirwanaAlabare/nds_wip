@@ -222,8 +222,10 @@ group by id_bpb, id_item
             abort(404);
         }
 
-        $pdf = PDF::loadView('asset_management.print_qr_mesin', ['kode_qr' => $unit->kode_qr])
-            ->setPaper([0, 0, 200, 200]);
+        $pdf = PDF::loadView('asset_management.print_qr_mesin', [
+            'kode_qr' => $unit->kode_qr,
+            'serial_number' => $unit->serial_number,
+        ])->setPaper([0, 0, 200, 200]);
 
         return $pdf->stream('QR-' . $unit->kode_qr . '.pdf');
     }
