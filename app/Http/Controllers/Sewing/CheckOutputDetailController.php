@@ -1232,7 +1232,7 @@ class CheckOutputDetailController extends Controller
                     output_rfts.kode_numbering,
                     'RFT' as status,
                     'RFT',
-                    '-'
+                    ''
                 from
                     output_rfts
                     left join master_plan on master_plan.id = output_rfts.master_plan_id
@@ -1317,7 +1317,7 @@ class CheckOutputDetailController extends Controller
                     output_rfts.kode_numbering,
                     'RFT' as status,
                     'RFT',
-                    '-'
+                    ''
                 from
                     output_rfts_packing as output_rfts
                     left join master_plan on master_plan.id = output_rfts.master_plan_id
@@ -1407,7 +1407,7 @@ class CheckOutputDetailController extends Controller
                     output_secondary_in.kode_numbering,
                     'RFT' as status,
                     'RFT',
-                    '-',
+                    '',
                     output_secondary_master.secondary tipe
                 from
                     output_secondary_in
@@ -1473,7 +1473,7 @@ class CheckOutputDetailController extends Controller
                     output_rfts_packing_po.kode_numbering,
                     'RFT' as status,
                     'RFT',
-                    '-',
+                    '',
                     ppic_master_so.po
                 from
                     output_rfts_packing_po
@@ -1591,35 +1591,35 @@ class CheckOutputDetailController extends Controller
         foreach ($data as $row) {
 
             $sheet->writeRow([
-                $row->kode ?? "-",
-                $row->buyer ?? "-",
-                $row->ws ?? "-",
-                $row->style ?? "-",
-                $row->color ?? "-",
-                $row->size ?? "-",
-                $row->tanggal_loading ?? "-",
-                $row->line_loading ?? "-",
-                $row->tanggal_plan ?? "-",
-                $row->tanggal_output ?? "-",
-                $row->line_output ?? "-",
-                $row->status_output ?? "-",
-                $row->defect_output ?? "-",
-                $row->allocation_output ?? "-",
-                $row->tanggal_output_packing ?? "-",
-                $row->line_output_packing ?? "-",
-                $row->status_output_packing ?? "-",
-                $row->defect_output_packing ?? "-",
-                $row->allocation_output_packing ?? "-",
-                $row->tipe_finishing_proses ?? "-",
-                $row->tanggal_in_finishing_proses ?? "-",
-                $row->tanggal_out_finishing_proses ?? "-",
-                $row->line_finishing_proses ?? "-",
-                $row->status_finishing_proses ?? "-",
-                $row->defect_finishing_proses ?? "-",
-                $row->allocation_finishing_proses ?? "-",
-                $row->tanggal_packing_line ?? "-",
-                $row->line_packing_line ?? "-",
-                $row->po_packing_line ?? "-",
+                $row->kode ?? "",
+                $row->buyer ?? "",
+                $row->ws ?? "",
+                $row->style ?? "",
+                $row->color ?? "",
+                $row->size ?? "",
+                $row->tanggal_loading ?? "",
+                $row->line_loading ?? "",
+                $row->tanggal_plan ?? "",
+                $row->tanggal_output ?? "",
+                $row->line_output ?? "",
+                $row->status_output ?? "",
+                $row->defect_output ?? "",
+                $row->allocation_output ?? "",
+                $row->tanggal_output_packing ?? "",
+                $row->line_output_packing ?? "",
+                $row->status_output_packing ?? "",
+                $row->defect_output_packing ?? "",
+                $row->allocation_output_packing ?? "",
+                $row->tipe_finishing_proses ?? "",
+                $row->tanggal_in_finishing_proses ?? "",
+                $row->tanggal_out_finishing_proses ?? "",
+                $row->line_finishing_proses ?? "",
+                $row->status_finishing_proses ?? "",
+                $row->defect_finishing_proses ?? "",
+                $row->allocation_finishing_proses ?? "",
+                $row->tanggal_packing_line ?? "",
+                $row->line_packing_line ?? "",
+                $row->po_packing_line ?? "",
             ], [
                 'border' => 'thin',
             ]);
