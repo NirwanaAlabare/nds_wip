@@ -284,16 +284,26 @@
                             <th>Tanggal Loading</th>
                             <th>Line Loading</th>
                             <th>Tanggal Plan</th>
-                            <th>Tanggal Sewing</th>
-                            <th>Line Sewing</th>
-                            <th>Status Sewing</th>
-                            <th>Defect Sewing</th>
-                            <th>Alokasi Sewing</th>
-                            <th>Tanggal Finishing</th>
-                            <th>Line Finishing</th>
-                            <th>Status Finishing</th>
-                            <th>Defect Finishing</th>
-                            <th>Alokasi Finishing</th>
+                            <th>Tanggal QC Endline</th>
+                            <th>Line QC Endline</th>
+                            <th>Status QC Endline</th>
+                            <th>Defect QC Endline</th>
+                            <th>Alokasi QC Endline</th>
+                            <th>Tanggal QC Finishing</th>
+                            <th>Line QC Finishing</th>
+                            <th>Status QC Finishing</th>
+                            <th>Defect QC Finishing</th>
+                            <th>Alokasi QC Finishing</th>
+                            <th>Tipe Finishing Proses</th>
+                            <th>Tanggal In Finishing Proses</th>
+                            <th>Tanggal Out Finishing Proses</th>
+                            <th>Line Finishing Proses</th>
+                            <th>Status Finishing Proses</th>
+                            <th>Defect Finishing Proses</th>
+                            <th>Alokasi Finishing Proses</th>
+                            <th>Tanggal Packing Line</th>
+                            <th>Line Packing Line</th>
+                            <th>PO Packing Line</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -528,7 +538,37 @@
             },
             {
                 data: "allocation_output_packing"
-            }
+            },
+            {
+                data: "tipe_finishing_proses"
+            },
+            {
+                data: "tanggal_in_finishing_proses"
+            },
+            {
+                data: "tanggal_out_finishing_proses"
+            },
+            {
+                data: "line_finishing_proses"
+            },
+            {
+                data: "status_finishing_proses"
+            },
+            {
+                data: "defect_finishing_proses"
+            },
+            {
+                data: "allocation_finishing_proses"
+            },
+            {
+                data: "tanggal_packing_line"
+            },
+            {
+                data: "line_packing_line"
+            },
+            {
+                data: "po_packing_line"
+            },
         ],
         columnDefs: [
             {
