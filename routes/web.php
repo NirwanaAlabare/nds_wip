@@ -1451,11 +1451,11 @@ Route::middleware('auth')->group(function () {
 
     // Asset Management
     // Dashboard
-    Route::controller(AssetDashboardController::class)->middleware('role:management')->group(function () {
+    Route::controller(AssetDashboardController::class)->middleware('role:asset')->group(function () {
         Route::get('/dashboard_asset', 'dashboard_asset')->name('dashboard-asset');
     });
     // Master Asset Management Lokasi
-    Route::controller(AssetMasterLokasiController::class)->middleware('role:management')->group(function () {
+    Route::controller(AssetMasterLokasiController::class)->middleware('role:asset')->group(function () {
         Route::get('/asset_master_lokasi', 'asset_master_lokasi')->name('asset_master_lokasi');
         Route::post('/asset_main_lokasi/store', 'store_main_lokasi')->name('store_main_lokasi');
         Route::get('/asset_main_lokasi/show', 'show_main_lokasi')->name('show_main_lokasi');
@@ -1467,7 +1467,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/asset_lokasi_det/delete', 'delete_lokasi_det')->name('delete_lokasi_det');
     });
     // Master Asset Management Jenis Mesin
-    Route::controller(AssetMasterJenisMesinController::class)->middleware('role:management')->group(function () {
+    Route::controller(AssetMasterJenisMesinController::class)->middleware('role:asset')->group(function () {
         Route::get('/asset_master_jenis_mesin', 'asset_master_jenis_mesin')->name('asset_master_jenis_mesin');
         Route::post('/asset_jenis_mesin/store', 'store_jenis_mesin')->name('store_jenis_mesin');
         Route::get('/asset_jenis_mesin/show', 'show_jenis_mesin')->name('show_jenis_mesin');
@@ -1479,7 +1479,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/asset_kd_merk/update', 'update_kd_merk')->name('update_kd_merk');
     });
     // Master Asset Management Tambah Mesin (Pembelian Mesin)
-    Route::controller(AssetMesinTambahController::class)->middleware('role:management')->group(function () {
+    Route::controller(AssetMesinTambahController::class)->middleware('role:asset')->group(function () {
         Route::get('/asset_mesin_tambah', 'asset_mesin_tambah')->name('asset_mesin_tambah');
         Route::get('/asset_mesin_tambah/list', 'get_penerimaan_mesin')->name('asset_mesin_tambah_list');
         Route::get('/asset_mesin_tambah/export_excel', 'export_excel_penerimaan_mesin')->name('export_excel_penerimaan_mesin');
@@ -1490,12 +1490,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/asset_mesin_tambah/unit/{id}/print_qr', 'print_qr_mesin')->name('asset_mesin_tambah_print_qr');
     });
     // Master Asset Management Master Mesin
-    Route::controller(AssetMesinMasterController::class)->middleware('role:management')->group(function () {
+    Route::controller(AssetMesinMasterController::class)->middleware('role:asset')->group(function () {
         Route::get('/asset_mesin_master', 'asset_mesin_master')->name('asset_mesin_master');
         Route::get('/asset_mesin_master/unit', 'get_master_mesin_unit')->name('asset_mesin_master_unit');
     });
     // Master Asset Management Tambah Mesin (Sewa Mesin)
-    Route::controller(AssetMesinSewaController::class)->middleware('role:management')->group(function () {
+    Route::controller(AssetMesinSewaController::class)->middleware('role:asset')->group(function () {
         Route::get('/asset_mesin_sewa', 'asset_mesin_sewa')->name('asset_mesin_sewa');
         Route::get('/asset_mesin_sewa/list', 'get_penerimaan_mesin_sewa')->name('asset_mesin_sewa_list');
         Route::get('/asset_mesin_sewa/export_excel', 'export_excel_penerimaan_mesin_sewa')->name('export_excel_penerimaan_mesin_sewa');
