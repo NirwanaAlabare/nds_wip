@@ -218,6 +218,24 @@
                     $('#table_mutasi_global').show();
                 }
             });
+
+            $('#tgl-awal').change(function() {
+                var jenisLap = $('#cbojns_lap').val();
+                var tglAwal = $(this).val();
+
+                if (jenisLap === 'Mutasi Global') {
+                    if (tglAwal < '2026-05-01') {
+                        Swal.fire({
+                            title: 'Perhatian!',
+                            text: 'Tanggal awal Mutasi Global minimal 2026-05-01',
+                            icon: 'warning',
+                            confirmButtonText: 'OK'
+                        });
+
+                        $(this).val('2026-05-01');
+                    }
+                }
+            });
         });
 
         function cari() {
