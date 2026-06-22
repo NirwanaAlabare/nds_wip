@@ -1436,24 +1436,6 @@
                                             class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_master_jenis_mesin' ? 'active' : '' }}"><i
                                                 class="fa-solid fa-list"></i>Master Jenis</a>
                                     </div>
-                                    {{-- <div class="mega-dropdown-col">
-                                        <div class="mega-dropdown-col-title">Keuangan</div>
-                                        <a href="#" class="dropdown-item mega-dropdown-item"><i
-                                                class="fa-solid fa-chart-line"></i>Master depresiasi</a>
-
-                                        <div class="mega-dropdown-col-title mt-3">Kategori</div>
-                                        <a href="#" class="dropdown-item mega-dropdown-item"><i
-                                                class="fa-solid fa-tag"></i>Jenis / kategori aset</a>
-                                    </div> --}}
-                                    {{-- <div class="mega-dropdown-col">
-                                        <div class="mega-dropdown-col-title">Pengaturan Sistem</div>
-                                        <a href="#" class="dropdown-item mega-dropdown-item"><i
-                                                class="fa-solid fa-user-gear"></i>Manajemen user & role</a>
-                                        <a href="#" class="dropdown-item mega-dropdown-item"><i
-                                                class="fa-solid fa-bell"></i>Setting notifikasi / reminder</a>
-                                        <a href="#" class="dropdown-item mega-dropdown-item"><i
-                                                class="fa-solid fa-lock"></i>Hak akses per modul</a>
-                                    </div> --}}
                                 </div>
                             </li>
                         </ul>
@@ -1468,9 +1450,12 @@
                                         <div class="mega-dropdown-col-title">Data Aset</div>
                                         <a href="{{ route('asset_mesin_tambah') }}"
                                             class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_tambah' ? 'active' : '' }}"><i
-                                                class="fa-solid fa-plus"></i>Tambah Mesin Baru</a>
-                                        <a href="{{ route('asset_mesin_tambah') }}"
-                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_tambah' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-plus"></i>Tambah Mesin (Pembelian)</a>
+                                        <a href="{{ route('asset_mesin_sewa') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_sewa' ? 'active' : '' }}"><i
+                                                class="fa-solid fa-plus"></i>Tambah Mesin (Sewa)</a>
+                                        <a href="{{ route('asset_mesin_master') }}"
+                                            class="dropdown-item mega-dropdown-item {{ $subPage == 'asset_mesin_master' ? 'active' : '' }}"><i
                                                 class="fa-solid fa-list"></i>Master Mesin</a>
                                     </div>
                                 </div>
